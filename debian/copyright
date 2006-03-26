@@ -1,0 +1,19 @@
+This package was debianized by Tommi Virtanen tv@debian.org on
+Sun, 26 Mar 2006 16:53:19 +0300.
+
+It was originally downloaded from http://sqlalchemy.org/
+
+Upstream Author: Mike Bayer et al <mike_mp@zzzcomputing.com>
+
+Copyright:
+
+--8<--
+SQLAlchemy is licensed under an MIT-style license (see LICENSE).
+Other incorporated projects may be licensed under different licenses.
+All licenses allow for non-commercial and commercial use.
+--8<--
+
+I did not see any other licenses or copyrights in the source tree.
+Here's the LICENSE file:
+
+# See the file LICENSE at the top of the source tree.
