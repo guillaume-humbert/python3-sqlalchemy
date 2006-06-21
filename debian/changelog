@@ -1,3 +1,18 @@
+sqlalchemy (0.2.3-0.1) unstable; urgency=low
+
+  * Non-maintainer upload (closes: #369371)
+  * New upstream release
+  * Update for new python policy:
+    - Convert to python-central
+    - Add debian/pycompat file
+    - Dependencies updated
+  * Add debian/watch file
+  * Fixed long description (indents, missing space in Homepage pseudo-header)
+  * Add temporary patch for python 2.3 compatibility
+  * Standards-version bumped to 3.7.2 (no changes needed)
+
+ -- Piotr Ozarowski <ozarow@gmail.com>  Wed, 21 Jun 2006 21:50:36 +0200
+
 sqlalchemy (0.1.4-1) unstable; urgency=low
 
   * Initial release

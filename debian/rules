@@ -1,26 +1,19 @@
 #!/usr/bin/make -f
-# -*- mode: makefile; coding: utf-8 -*-
+
+DEB_PYTHON_SYSTEM := pycentral
 
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/python-distutils.mk
 
 DEB_PYTHON_INSTALL_ARGS_ALL += --single-version-externally-managed
+DEB_COMPRESS_EXCLUDE := .py
 
-docdir = debian/$(1)/usr/share/doc/$(1)
-binary-post-install/%::
-	grep -v '^# See the file LICENSE' \
-		'$(call docdir,$*)/copyright' \
-		>'$(call docdir,$*)/copyright.tmp'
-	cat LICENSE \
-		>>'$(call docdir,$*)/copyright.tmp'
-	mv \
-		'$(call docdir,$*)/copyright.tmp' \
-		'$(call docdir,$*)/copyright'
-
-binary-post-install/%::
-	rm -rf '$(call docdir,$*)/doc/build'
+PYVER=$(shell pyversions -vd)
 
 clean::
-	find lib test -name '*.py[co]' -print0 \
-	| xargs -0 rm -f --
-	rm -rf dist lib/SQLAlchemy.egg-info
+	-rm -rf lib/SQLAlchemy.egg-info
+
+binary-post-install/python-sqlalchemy::
+	rm -rf debian/python-sqlalchemy/usr/share/doc/python-sqlalchemy/doc/build
+	mv debian/python-sqlalchemy/usr/share/pycentral/python-sqlalchemy/site-packages/SQLAlchemy-${DEB_UPSTREAM_VERSION}{-py${PYVER},}.egg-info
+

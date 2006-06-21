@@ -1,0 +1,7 @@
+sqlalchemy (0.2.3-0.1) unstable; urgency=low
+
+ SQLAlchemy 0.1 -> 0.2 migration notes can be found on the wiki page:
+ http://www.sqlalchemy.org/trac/wiki/02Migration
+
+ -- Piotr Ozarowski <ozarow@gmail.com>  Wed,  7 Jun 2006 00:11:30 +0200
+

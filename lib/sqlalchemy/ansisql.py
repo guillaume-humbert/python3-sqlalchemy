@@ -4,55 +4,51 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-"""defines ANSI SQL operations."""
+"""defines ANSI SQL operations.  Contains default implementations for the abstract objects 
+in the sql module."""
 
-import sqlalchemy.schema as schema
+from sqlalchemy import schema, sql, engine, util
+import sqlalchemy.engine.default as default
+import string, re, sets
 
-from sqlalchemy.schema import *
-import sqlalchemy.sql as sql
-import sqlalchemy.engine
-from sqlalchemy.sql import *
-from sqlalchemy.util import *
-import string, re
-
-ANSI_FUNCS = HashSet([
+ANSI_FUNCS = sets.ImmutableSet([
 'CURRENT_TIME',
 'CURRENT_TIMESTAMP',
 'CURRENT_DATE',
-'LOCAL_TIME',
-'LOCAL_TIMESTAMP',
+'LOCALTIME',
+'LOCALTIMESTAMP',
 'CURRENT_USER',
 'SESSION_USER',
 'USER'
 ])
 
 
-def engine(**params):
-    return ANSISQLEngine(**params)
-
-class ANSISQLEngine(sqlalchemy.engine.SQLEngine):
-
-    def schemagenerator(self, **params):
-        return ANSISchemaGenerator(self, **params)
+def create_engine():
+    return engine.ComposedSQLEngine(None, ANSIDialect())
     
-    def schemadropper(self, **params):
-        return ANSISchemaDropper(self, **params)
-
-    def compiler(self, statement, parameters, **kwargs):
-        return ANSICompiler(statement, parameters, engine=self, **kwargs)
-    
+class ANSIDialect(default.DefaultDialect):
     def connect_args(self):
         return ([],{})
 
     def dbapi(self):
         return None
 
+    def schemagenerator(self, *args, **params):
+        return ANSISchemaGenerator(*args, **params)
+
+    def schemadropper(self, *args, **params):
+        return ANSISchemaDropper(*args, **params)
+
+    def compiler(self, statement, parameters, **kwargs):
+        return ANSICompiler(self, statement, parameters, **kwargs)
+
+
 class ANSICompiler(sql.Compiled):
     """default implementation of Compiled, which compiles ClauseElements into ANSI-compliant SQL strings."""
-    def __init__(self, statement, parameters=None, typemap=None, engine=None, positional=None, paramstyle=None, **kwargs):
+    def __init__(self, dialect, statement, parameters=None, **kwargs):
         """constructs a new ANSICompiler object.
         
-        engine - SQLEngine to compile against
+        dialect - Dialect to be used
         
         statement - ClauseElement to be compiled
         
@@ -61,22 +57,18 @@ class ANSICompiler(sql.Compiled):
         key/value pairs when the Compiled is executed, and also may affect the 
         actual compilation, as in the case of an INSERT where the actual columns
         inserted will correspond to the keys present in the parameters."""
-        sql.Compiled.__init__(self, statement, parameters, engine=engine)
+        sql.Compiled.__init__(self, dialect, statement, parameters, **kwargs)
         self.binds = {}
         self.froms = {}
         self.wheres = {}
         self.strings = {}
         self.select_stack = []
-        self.typemap = typemap or {}
+        self.typemap = {}
         self.isinsert = False
         self.isupdate = False
         self.bindtemplate = ":%s"
-        if engine is not None:
-            self.paramstyle = engine.paramstyle
-            self.positional = engine.positional
-        else:
-            self.positional = False
-            self.paramstyle = 'named'
+        self.paramstyle = dialect.paramstyle
+        self.positional = dialect.positional
         
     def after_compile(self):
         # this re will search for params like :param
@@ -130,7 +122,7 @@ class ANSICompiler(sql.Compiled):
             bindparams = {}
         bindparams.update(params)
 
-        d = sql.ClauseParameters(self.engine)
+        d = sql.ClauseParameters(self.dialect)
         if self.positional:
             for k in self.positiontup:
                 b = self.binds[k]
@@ -146,7 +138,6 @@ class ANSICompiler(sql.Compiled):
                 continue
             d.set_parameter(b.key, value, b)
 
-        #print "FROM", params, "TO", d
         return d
 
     def get_named_params(self, parameters):
@@ -177,11 +168,20 @@ class ANSICompiler(sql.Compiled):
         if len(self.select_stack):
             # if we are within a visit to a Select, set up the "typemap"
             # for this column which is used to translate result set values
-            self.typemap.setdefault(column.key.lower(), column.type)
-        if column.table is None or column.table.name is None:
+            self.typemap.setdefault(column.name.lower(), column.type)
+        if column.table is None or not column.table.named_with_column():
             self.strings[column] = column.name
         else:
-            self.strings[column] = "%s.%s" % (column.table.name, column.name)
+            if column.table.oid_column is column:
+                n = self.dialect.oid_column_name()
+                if n is not None:
+                    self.strings[column] = "%s.%s" % (column.table.name, n)
+                elif len(column.table.primary_key) != 0:
+                    self.strings[column] = "%s.%s" % (column.table.name, column.table.primary_key[0].name)
+                else:
+                    self.strings[column] = None
+            else:
+                self.strings[column] = "%s.%s" % (column.table.name, column.name)
 
 
     def visit_fromclause(self, fromclause):
@@ -189,7 +189,10 @@ class ANSICompiler(sql.Compiled):
 
     def visit_index(self, index):
         self.strings[index] = index.name
-        
+    
+    def visit_typeclause(self, typeclause):
+        self.strings[typeclause] = typeclause.type.dialect_impl(self.dialect).get_col_spec()
+            
     def visit_textclause(self, textclause):
         if textclause.parens and len(textclause.text):
             self.strings[textclause] = "(" + textclause.text + ")"
@@ -216,22 +219,41 @@ class ANSICompiler(sql.Compiled):
         
     def visit_clauselist(self, list):
         if list.parens:
-            self.strings[list] = "(" + string.join([self.get_str(c) for c in list.clauses], ', ') + ")"
+            self.strings[list] = "(" + string.join([s for s in [self.get_str(c) for c in list.clauses] if s is not None], ', ') + ")"
         else:
-            self.strings[list] = string.join([self.get_str(c) for c in list.clauses], ', ')
+            self.strings[list] = string.join([s for s in [self.get_str(c) for c in list.clauses] if s is not None], ', ')
 
+    def apply_function_parens(self, func):
+        return func.name.upper() not in ANSI_FUNCS or len(func.clauses) > 0
+
+    def visit_calculatedclause(self, list):
+        if list.parens:
+            self.strings[list] = "(" + string.join([self.get_str(c) for c in list.clauses], ' ') + ")"
+        else:
+            self.strings[list] = string.join([self.get_str(c) for c in list.clauses], ' ')
+      
+    def visit_cast(self, cast):
+        if len(self.select_stack):
+            # not sure if we want to set the typemap here...
+            self.typemap.setdefault("CAST", cast.type)
+        self.strings[cast] = "CAST(%s AS %s)" % (self.strings[cast.clause],self.strings[cast.typeclause])
+         
     def visit_function(self, func):
         if len(self.select_stack):
             self.typemap.setdefault(func.name, func.type)
-        if func.name.upper() in ANSI_FUNCS and not len(func.clauses):
-            self.strings[func] = func.name
+        if not self.apply_function_parens(func):
+            self.strings[func] = ".".join(func.packagenames + [func.name])
         else:
-            self.strings[func] = func.name + "(" + string.join([self.get_str(c) for c in func.clauses], ', ') + ")"
+            self.strings[func] = ".".join(func.packagenames + [func.name]) + "(" + string.join([self.get_str(c) for c in func.clauses], ', ') + ")"
         
     def visit_compound_select(self, cs):
         text = string.join([self.get_str(c) for c in cs.selects], " " + cs.keyword + " ")
-        for tup in cs.clauses:
-            text += " " + tup[0] + " " + self.get_str(tup[1])
+        group_by = self.get_str(cs.group_by_clause)
+        if group_by:
+            text += " GROUP BY " + group_by
+        order_by = self.get_str(cs.order_by_clause)
+        if order_by:
+            text += " ORDER BY " + order_by
         if cs.parens:
             self.strings[cs] = "(" + text + ")"
         else:
@@ -259,7 +281,10 @@ class ANSICompiler(sql.Compiled):
         # redefine the generated name of the bind param in the case
         # that we have multiple conflicting bind parameters.
         while self.binds.setdefault(key, bindparam) is not bindparam:
-            key = "%s_%d" % (bindparam.key, count)
+            # insure the name doesn't expand the length of the string
+            # in case we're at the edge of max identifier length
+            tag = "_%d" % count
+            key = bindparam.key[0 : len(bindparam.key) - len(tag)] + tag
             count += 1
         bindparam.key = key
         self.strings[bindparam] = self.bindparam_string(key)
@@ -276,7 +301,7 @@ class ANSICompiler(sql.Compiled):
         # the actual list of columns to print in the SELECT column list.
         # its an ordered dictionary to insure that the actual labeled column name
         # is unique.
-        inner_columns = OrderedDict()
+        inner_columns = util.OrderedDict()
 
         self.select_stack.append(select)
         for c in select._raw_columns:
@@ -296,7 +321,7 @@ class ANSICompiler(sql.Compiled):
                         # SQLite doesnt like selecting from a subquery where the column
                         # names look like table.colname, so add a label synonomous with
                         # the column name
-                        l = co.label(co.text)
+                        l = co.label(co.name)
                         l.accept_visitor(self)
                         inner_columns[self.get_str(l.obj)] = l
                     else:
@@ -355,18 +380,24 @@ class ANSICompiler(sql.Compiled):
             if t:
                 text += " \nWHERE " + t
 
-        for tup in select.clauses:
-            ss = self.get_str(tup[1])
-            if ss:
-                text += " " + tup[0] + " " + ss
+        group_by = self.get_str(select.group_by_clause)
+        if group_by:
+            text += " GROUP BY " + group_by
 
         if select.having is not None:
             t = self.get_str(select.having)
             if t:
                 text += " \nHAVING " + t
-                
+
+        order_by = self.get_str(select.order_by_clause)
+        if order_by:
+            text += " ORDER BY " + order_by
+
         text += self.visit_select_postclauses(select)
  
+        if select.for_update:
+            text += " FOR UPDATE"
+            
         if getattr(select, 'parens', False):
             self.strings[select] = "(" + text + ")"
         else:
@@ -406,26 +437,26 @@ class ANSICompiler(sql.Compiled):
             " ON " + self.get_str(join.onclause))
         self.strings[join] = self.froms[join]
 
-    def visit_insert_column_default(self, column, default):
+    def visit_insert_column_default(self, column, default, parameters):
         """called when visiting an Insert statement, for each column in the table that
         contains a ColumnDefault object.  adds a blank 'placeholder' parameter so the 
         Insert gets compiled with this column's name in its column and VALUES clauses."""
-        self.parameters.setdefault(column.key, None)
+        parameters.setdefault(column.key, None)
 
-    def visit_update_column_default(self, column, default):
+    def visit_update_column_default(self, column, default, parameters):
         """called when visiting an Update statement, for each column in the table that
         contains a ColumnDefault object as an onupdate. adds a blank 'placeholder' parameter so the 
         Update gets compiled with this column's name as one of its SET clauses."""
-        self.parameters.setdefault(column.key, None)
+        parameters.setdefault(column.key, None)
         
-    def visit_insert_sequence(self, column, sequence):
+    def visit_insert_sequence(self, column, sequence, parameters):
         """called when visiting an Insert statement, for each column in the table that
         contains a Sequence object.  Overridden by compilers that support sequences to place
         a blank 'placeholder' parameter, so the Insert gets compiled with this column's
         name in its column and VALUES clauses."""
         pass
     
-    def visit_insert_column(self, column):
+    def visit_insert_column(self, column, parameters):
         """called when visiting an Insert statement, for each column in the table
         that is a NULL insert into the table.  Overridden by compilers who disallow
         NULL columns being set in an Insert where there is a default value on the column
@@ -435,43 +466,54 @@ class ANSICompiler(sql.Compiled):
     def visit_insert(self, insert_stmt):
         # scan the table's columns for defaults that have to be pre-set for an INSERT
         # add these columns to the parameter list via visit_insert_XXX methods
+        default_params = {}
         class DefaultVisitor(schema.SchemaVisitor):
             def visit_column(s, c):
-                self.visit_insert_column(c)
+                self.visit_insert_column(c, default_params)
             def visit_column_default(s, cd):
-                self.visit_insert_column_default(c, cd)
+                self.visit_insert_column_default(c, cd, default_params)
             def visit_sequence(s, seq):
-                self.visit_insert_sequence(c, seq)
+                self.visit_insert_sequence(c, seq, default_params)
         vis = DefaultVisitor()
         for c in insert_stmt.table.c:
             if (isinstance(c, schema.SchemaItem) and (self.parameters is None or self.parameters.get(c.key, None) is None)):
                 c.accept_schema_visitor(vis)
         
         self.isinsert = True
-        colparams = self._get_colparams(insert_stmt)
-        for c in colparams:
-            b = c[1]
-            self.binds[b.key] = b
-            self.binds[b.shortname] = b
-            
+        colparams = self._get_colparams(insert_stmt, default_params)
+
+        def create_param(p):
+            if isinstance(p, sql.BindParamClause):
+                self.binds[p.key] = p
+                if p.shortname is not None:
+                    self.binds[p.shortname] = p
+                return self.bindparam_string(p.key)
+            else:
+                p.accept_visitor(self)
+                if isinstance(p, sql.ClauseElement) and not isinstance(p, sql.ColumnElement):
+                    return "(" + self.get_str(p) + ")"
+                else:
+                    return self.get_str(p)
+
         text = ("INSERT INTO " + insert_stmt.table.fullname + " (" + string.join([c[0].name for c in colparams], ', ') + ")" +
-         " VALUES (" + string.join([self.bindparam_string(c[1].key) for c in colparams], ', ') + ")")
-         
+         " VALUES (" + string.join([create_param(c[1]) for c in colparams], ', ') + ")")
+
         self.strings[insert_stmt] = text
 
     def visit_update(self, update_stmt):
         # scan the table's columns for onupdates that have to be pre-set for an UPDATE
         # add these columns to the parameter list via visit_update_XXX methods
+        default_params = {}
         class OnUpdateVisitor(schema.SchemaVisitor):
             def visit_column_onupdate(s, cd):
-                self.visit_update_column_default(c, cd)
+                self.visit_update_column_default(c, cd, default_params)
         vis = OnUpdateVisitor()
         for c in update_stmt.table.c:
             if (isinstance(c, schema.SchemaItem) and (self.parameters is None or self.parameters.get(c.key, None) is None)):
                 c.accept_schema_visitor(vis)
 
         self.isupdate = True
-        colparams = self._get_colparams(update_stmt)
+        colparams = self._get_colparams(update_stmt, default_params)
         def create_param(p):
             if isinstance(p, sql.BindParamClause):
                 self.binds[p.key] = p
@@ -479,7 +521,7 @@ class ANSICompiler(sql.Compiled):
                 return self.bindparam_string(p.key)
             else:
                 p.accept_visitor(self)
-                if isinstance(p, sql.ClauseElement) and not isinstance(p, sql.ColumnClause):
+                if isinstance(p, sql.ClauseElement) and not isinstance(p, sql.ColumnElement):
                     return "(" + self.get_str(p) + ")"
                 else:
                     return self.get_str(p)
@@ -492,7 +534,7 @@ class ANSICompiler(sql.Compiled):
         self.strings[update_stmt] = text
 
 
-    def _get_colparams(self, stmt):
+    def _get_colparams(self, stmt, default_params):
         """determines the VALUES or SET clause for an INSERT or UPDATE
         clause based on the arguments specified to this ANSICompiler object
         (i.e., the execute() or compile() method clause object):
@@ -510,7 +552,7 @@ class ANSICompiler(sql.Compiled):
         # case one: no parameters in the statement, no parameters in the 
         # compiled params - just return binds for all the table columns
         if self.parameters is None and stmt.parameters is None:
-            return [(c, bindparam(c.name, type=c.type)) for c in stmt.table.columns]
+            return [(c, sql.bindparam(c.name, type=c.type)) for c in stmt.table.columns]
 
         # if we have statement parameters - set defaults in the 
         # compiled params
@@ -523,6 +565,9 @@ class ANSICompiler(sql.Compiled):
             for k, v in stmt.parameters.iteritems():
                 parameters.setdefault(k, v)
 
+        for k, v in default_params.iteritems():
+            parameters.setdefault(k, v)
+            
         # now go thru compiled params, get the Column object for each key
         d = {}
         for key, value in parameters.iteritems():
@@ -540,7 +585,7 @@ class ANSICompiler(sql.Compiled):
             if d.has_key(c):
                 value = d[c]
                 if sql._is_literal(value):
-                    value = bindparam(c.name, value, type=c.type)
+                    value = sql.bindparam(c.name, value, type=c.type)
                 values.append((c, value))
         return values
 
@@ -556,7 +601,7 @@ class ANSICompiler(sql.Compiled):
         return self.get_str(self.statement)
 
 
-class ANSISchemaGenerator(sqlalchemy.engine.SchemaIterator):
+class ANSISchemaGenerator(engine.SchemaIterator):
     def get_column_specification(self, column, override_pk=False, first_pk=False):
         raise NotImplementedError()
         
@@ -593,9 +638,14 @@ class ANSISchemaGenerator(sqlalchemy.engine.SchemaIterator):
             if isinstance(column.default.arg, str):
                 return repr(column.default.arg)
             else:
-                return str(column.default.arg.compile(self.engine))
+                return str(self._compile(column.default.arg, None))
         else:
             return None
+
+    def _compile(self, tocompile, parameters):
+        compiler = self.engine.dialect.compiler(tocompile, parameters)
+        compiler.compile()
+        return compiler
 
     def visit_column(self, column):
         pass
@@ -610,7 +660,7 @@ class ANSISchemaGenerator(sqlalchemy.engine.SchemaIterator):
         self.execute()
         
     
-class ANSISchemaDropper(sqlalchemy.engine.SchemaIterator):
+class ANSISchemaDropper(engine.SchemaIterator):
     def visit_index(self, index):
         self.append("\nDROP INDEX " + index.name)
         self.execute()
@@ -622,5 +672,5 @@ class ANSISchemaDropper(sqlalchemy.engine.SchemaIterator):
         self.execute()
 
 
-class ANSIDefaultRunner(sqlalchemy.engine.DefaultRunner):
+class ANSIDefaultRunner(engine.DefaultRunner):
     pass

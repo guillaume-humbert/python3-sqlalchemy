@@ -3,26 +3,26 @@ import sqlalchemy.engine as engine
 import sqlalchemy.schema as schema
 import sqlalchemy.ansisql as ansisql
 import sqlalchemy.types as sqltypes
-from sqlalchemy.exceptions import *
+import sqlalchemy.exceptions as exceptions
 from sqlalchemy import *
 from sqlalchemy.ansisql import *
 
-generic_engine = ansisql.engine()
+ischema = MetaData()
 
-gen_schemata = schema.Table("schemata", generic_engine,
+schemata = schema.Table("schemata", ischema,
     Column("catalog_name", String),
     Column("schema_name", String),
     Column("schema_owner", String),
     schema="information_schema")
 
-gen_tables = schema.Table("tables", generic_engine,
+tables = schema.Table("tables", ischema,
     Column("table_catalog", String),
     Column("table_schema", String),
     Column("table_name", String),
     Column("table_type", String),
     schema="information_schema")
 
-gen_columns = schema.Table("columns", generic_engine,
+columns = schema.Table("columns", ischema,
     Column("table_schema", String),
     Column("table_name", String),
     Column("column_name", String),
@@ -35,27 +35,51 @@ gen_columns = schema.Table("columns", generic_engine,
     Column("column_default", Integer),
     schema="information_schema")
     
-gen_constraints = schema.Table("table_constraints", generic_engine,
+constraints = schema.Table("table_constraints", ischema,
     Column("table_schema", String),
     Column("table_name", String),
     Column("constraint_name", String),
     Column("constraint_type", String),
     schema="information_schema")
 
-gen_column_constraints = schema.Table("constraint_column_usage", generic_engine,
+column_constraints = schema.Table("constraint_column_usage", ischema,
     Column("table_schema", String),
     Column("table_name", String),
     Column("column_name", String),
     Column("constraint_name", String),
     schema="information_schema")
 
-gen_key_constraints = schema.Table("key_column_usage", generic_engine,
+pg_key_constraints = schema.Table("key_column_usage", ischema,
     Column("table_schema", String),
     Column("table_name", String),
     Column("column_name", String),
     Column("constraint_name", String),
     schema="information_schema")
 
+#mysql_key_constraints = schema.Table("key_column_usage", ischema,
+#    Column("table_schema", String),
+#    Column("table_name", String),
+#    Column("column_name", String),
+#    Column("constraint_name", String),
+#    Column("referenced_table_schema", String),
+#    Column("referenced_table_name", String),
+#    Column("referenced_column_name", String),
+#    schema="information_schema")
+
+key_constraints = pg_key_constraints
+
+ref_constraints = schema.Table("referential_constraints", ischema,
+    Column("constraint_catalog", String),
+    Column("constraint_schema", String),
+    Column("constraint_name", String),
+    Column("unique_constraint_catlog", String),
+    Column("unique_constraint_schema", String),
+    Column("unique_constraint_name", String),
+    Column("match_option", String),
+    Column("update_rule", String),
+    Column("delete_rule", String),
+    schema="information_schema")
+                                   
 class ISchema(object):
     def __init__(self, engine):
         self.engine = engine
@@ -76,43 +100,33 @@ class ISchema(object):
         return self.cache[name]
 
 
-def reflecttable(engine, table, ischema_names, use_mysql=False):
-    columns = gen_columns.toengine(engine)
-    constraints = gen_constraints.toengine(engine)
+def reflecttable(connection, table, ischema_names, use_mysql=False):
     
     if use_mysql:
         # no idea which INFORMATION_SCHEMA spec is correct, mysql or postgres
-        key_constraints = schema.Table("key_column_usage", engine,
-            Column("table_schema", String),
-            Column("table_name", String),
-            Column("column_name", String),
-            Column("constraint_name", String),
-            Column("referenced_table_schema", String),
-            Column("referenced_table_name", String),
-            Column("referenced_column_name", String),
-            schema="information_schema", useexisting=True)
+        key_constraints = mysql_key_constraints
     else:
-        column_constraints = gen_column_constraints.toengine(engine)
-        key_constraints = gen_key_constraints.toengine(engine)
-
-
+        key_constraints = pg_key_constraints
+        
     if table.schema is not None:
         current_schema = table.schema
     else:
-        current_schema = engine.get_default_schema_name()
+        current_schema = connection.default_schema_name()
     
     s = select([columns], 
         sql.and_(columns.c.table_name==table.name,
         columns.c.table_schema==current_schema),
         order_by=[columns.c.ordinal_position])
         
-    c = s.execute()
+    c = connection.execute(s)
+    found_table = False
     while True:
         row = c.fetchone()
         if row is None:
             break
         #print "row! " + repr(row)
  #       continue
+        found_table = True
         (name, type, nullable, charlen, numericprec, numericscale, default) = (
             row[columns.c.column_name], 
             row[columns.c.data_type], 
@@ -134,6 +148,9 @@ def reflecttable(engine, table, ischema_names, use_mysql=False):
         if default is not None:
             colargs.append(PassiveDefault(sql.text(default)))
         table.append_item(schema.Column(name, coltype, nullable=nullable, *colargs))
+    
+    if not found_table:
+        raise exceptions.NoSuchTableError(table.name)
 
     s = select([constraints.c.constraint_name, constraints.c.constraint_type, constraints.c.table_name, key_constraints], use_labels=True, from_obj=[constraints.join(column_constraints, column_constraints.c.constraint_name==constraints.c.constraint_name).join(key_constraints, key_constraints.c.constraint_name==column_constraints.c.constraint_name)])
     if not use_mysql:
@@ -148,7 +165,7 @@ def reflecttable(engine, table, ischema_names, use_mysql=False):
         s.append_whereclause(constraints.c.table_name==table.name)
         s.append_whereclause(constraints.c.table_schema==current_schema)
         colmap = [constraints.c.constraint_type, key_constraints.c.column_name, key_constraints.c.referenced_table_schema, key_constraints.c.referenced_table_name, key_constraints.c.referenced_column_name]
-    c = s.execute()
+    c = connection.execute(s)
 
     while True:
         row = c.fetchone()
@@ -166,6 +183,8 @@ def reflecttable(engine, table, ischema_names, use_mysql=False):
         if type=='PRIMARY KEY':
             table.c[constrained_column]._set_primary_key()
         elif type=='FOREIGN KEY':
-            remotetable = Table(referred_table, engine, autoload = True, schema=referred_schema)
+            if current_schema == referred_schema:
+                referred_schema = table.schema
+            remotetable = Table(referred_table, table.metadata, autoload=True, autoload_with=connection, schema=referred_schema)
             table.c[constrained_column].append_item(schema.ForeignKey(remotetable.c[referred_column]))
             

@@ -1,16 +1,30 @@
-from sqlalchemy             import objectstore, create_engine, assign_mapper, relation, mapper
+from sqlalchemy             import create_session, relation, mapper, join, \
+                                    DynamicMetaData, class_mapper, util
 from sqlalchemy             import and_, or_
 from sqlalchemy             import Table, Column, ForeignKey
-from sqlalchemy.ext.proxy   import ProxyEngine
+from sqlalchemy.ext.sessioncontext import SessionContext
+from sqlalchemy.ext.assignmapper import assign_mapper
+from sqlalchemy import backref as create_backref
 
 import inspect
 import sys
+import sets
 
 #
 # the "proxy" to the database engine... this can be swapped out at runtime
 #
-engine = ProxyEngine()
+metadata = DynamicMetaData("activemapper")
 
+#
+# thread local SessionContext
+#
+class Objectstore(SessionContext):
+    def __getattr__(self, key):
+        return getattr(self.current, key)
+    def get_session(self):
+        return self.current
+
+objectstore = Objectstore(create_session)
 
 
 #
@@ -19,14 +33,12 @@ engine = ProxyEngine()
 class column(object):
     def __init__(self, coltype, colname=None, foreign_key=None,
                  primary_key=False, *args, **kwargs):
-        if isinstance( foreign_key, basestring ):
-            foreign_key= ForeignKey( foreign_key )
+        if isinstance(foreign_key, basestring): 
+            foreign_key = ForeignKey(foreign_key)
         self.coltype     = coltype
         self.colname     = colname
         self.foreign_key = foreign_key
         self.primary_key = primary_key
-#         self.unique      = kwargs.pop( 'unique', None )
-#         self.index       = kwargs.pop( 'indexed', None )
         self.kwargs      = kwargs
         self.args        = args
 
@@ -45,13 +57,18 @@ class relationship(object):
         self.secondary = secondary
 
 class one_to_many(relationship):
-    def __init__(self, classname, colname=None, backref=None, private=False, lazy=True):
-        relationship.__init__(self, classname, colname, backref, private, lazy, uselist=True)
-
+    def __init__(self, classname, colname=None, backref=None, private=False,
+                 lazy=True):
+        relationship.__init__(self, classname, colname, backref, private, 
+                              lazy, uselist=True)
 
 class one_to_one(relationship):
-    def __init__(self, classname, colname=None, backref=None, private=False, lazy=True):
-        relationship.__init__(self, classname, colname, backref, private, lazy, uselist=False)
+    def __init__(self, classname, colname=None, backref=None, private=False,
+                 lazy=True):
+        if backref is not None:
+            backref = create_backref(backref, uselist=False)
+        relationship.__init__(self, classname, colname, backref, private, 
+                              lazy, uselist=False)
 
 class many_to_many(relationship):
     def __init__(self, classname, secondary, backref=None, lazy=True):
@@ -66,14 +83,44 @@ class many_to_many(relationship):
 # up if the classes aren't specified in a proper order
 # 
 
-__deferred_classes__  = []
+__deferred_classes__ = set()
+__processed_classes__ = set()
 def process_relationships(klass, was_deferred=False):
+    # first, we loop through all of the relationships defined on the
+    # class, and make sure that the related class already has been
+    # completely processed and defer processing if it has not
     defer = False
     for propname, reldesc in klass.relations.items():
-        if not reldesc.classname in ActiveMapperMeta.classes:
-            if not was_deferred: __deferred_classes__.append(klass)
+        found = False
+        for other_klass in __processed_classes__:
+            if reldesc.classname == other_klass.__name__:
+                found = True
+                break
+        
+        if not found:
+            if not was_deferred: __deferred_classes__.add(klass)
             defer = True
+            break
     
+    # next, we loop through all the columns looking for foreign keys
+    # and make sure that we can find the related tables (they do not 
+    # have to be processed yet, just defined), and we defer if we are 
+    # not able to find any of the related tables
+    for col in klass.columns:
+        if col.foreign_key is not None:
+            found = False
+            for other_klass in ActiveMapperMeta.classes.values():
+                table_name = col.foreign_key._colspec.rsplit('.', 1)[0]
+                if other_klass.table.fullname.lower() == table_name.lower():
+                    found = True
+                        
+            if not found:
+                if not was_deferred: __deferred_classes__.add(klass)
+                defer = True
+                break
+    
+    # if we are able to find all related and referred to tables, then
+    # we can go ahead and assign the relationships to the class
     if not defer:
         relations = {}
         for propname, reldesc in klass.relations.items():
@@ -84,23 +131,35 @@ def process_relationships(klass, was_deferred=False):
                                            private=reldesc.private, 
                                            lazy=reldesc.lazy, 
                                            uselist=reldesc.uselist)
-        assign_mapper(klass, klass.table, properties=relations)
-        if was_deferred: __deferred_classes__.remove(klass)
+        
+        class_mapper(klass).add_properties(relations)
+        if klass in __deferred_classes__: 
+            __deferred_classes__.remove(klass)
+        __processed_classes__.add(klass)
     
+    # finally, loop through the deferred classes and attempt to process
+    # relationships for them
     if not was_deferred:
-        for deferred_class in __deferred_classes__:
-            process_relationships(deferred_class, was_deferred=True)
-
+        # loop through the list of deferred classes, processing the
+        # relationships, until we can make no more progress
+        last_count = len(__deferred_classes__) + 1
+        while last_count > len(__deferred_classes__):
+            last_count = len(__deferred_classes__)
+            deferred = __deferred_classes__.copy()
+            for deferred_class in deferred:
+                if deferred_class == klass: continue
+                process_relationships(deferred_class, was_deferred=True)
 
 
 class ActiveMapperMeta(type):
     classes = {}
-    
+    metadatas = util.Set()
     def __init__(cls, clsname, bases, dict):
         table_name = clsname.lower()
         columns    = []
         relations  = {}
-        _engine    = getattr( sys.modules[cls.__module__], "__engine__", engine )
+        _metadata  = getattr(sys.modules[cls.__module__], 
+                             "__metadata__", metadata)
         
         if 'mapping' in dict:
             members = inspect.getmembers(dict.get('mapping'))
@@ -109,8 +168,8 @@ class ActiveMapperMeta(type):
                     table_name = value
                     continue
                 
-                if '__engine__' == name:
-                    _engine= value
+                if '__metadata__' == name:
+                    _metadata= value
                     continue
                     
                 if name.startswith('__'): continue
@@ -128,23 +187,31 @@ class ActiveMapperMeta(type):
                                      primary_key=value.primary_key,
                                      *value.args, **value.kwargs)
                     columns.append(col)
-#                     if value.indexed:
-#                         # create a Index object for the column
-#                         index= Index( "%s_idx" % (value.colname or name),
-#                                       col, unique= value.unique )
                     continue
                 
                 if isinstance(value, relationship):
                     relations[name] = value
-            assert _engine is not None, "No engine specified"
-            cls.table = Table(table_name, _engine, *columns)
-            assign_mapper(cls, cls.table)
+            
+            assert _metadata is not None, "No MetaData specified"
+            
+            ActiveMapperMeta.metadatas.add(_metadata)
+            cls.table = Table(table_name, _metadata, *columns)
+            cls.columns = columns
+            
+            # check for inheritence
+            if hasattr(bases[0], "mapping"):
+                cls._base_mapper= bases[0].mapper
+                assign_mapper(objectstore, cls, cls.table, 
+                              inherits=cls._base_mapper)
+            else:
+                assign_mapper(objectstore, cls, cls.table)
             cls.relations = relations
             ActiveMapperMeta.classes[clsname] = cls
             
             process_relationships(cls)
         
         super(ActiveMapperMeta, cls).__init__(clsname, bases, dict)
+
 
 
 class ActiveMapper(object):
@@ -160,6 +227,9 @@ class ActiveMapper(object):
 #
 
 def create_tables():
-    for klass in ActiveMapperMeta.classes.values():
-        klass.table.create()
+    for metadata in ActiveMapperMeta.metadatas:
+        metadata.create_all()
 
+def drop_tables():
+    for metadata in ActiveMapperMeta.metadatas:
+        metadata.drop_all()

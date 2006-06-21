@@ -2,129 +2,45 @@ Source: sqlalchemy
 Section: python
 Priority: optional
 Maintainer: Tommi Virtanen <tv@debian.org>
-Standards-Version: 3.6.2
-Build-Depends-Indep: cdbs (>= 0.4.23-1.1), debhelper (>= 4.2.0), python-setuptools, python2.3-setuptools, python2.4-setuptools
+Build-Depends: debhelper (>= 5.0.37.2), cdbs (>=0.4.41)
+Build-Depends-Indep: python-all-dev (>= 2.3.5-10), python-central (>= 0.4.17), python-setuptools (>= 0.6b3-1)
+Standards-Version: 3.7.2
+XS-Python-Version: >= 2.3
 
 Package: python-sqlalchemy
 Architecture: all
 Depends: ${python:Depends}
+Provides: ${python:Provides}
+Conflicts: python2.3-sqlalchemy (<<0.2.3-0.1), python2.4-sqlalchemy (<<0.2.3-0.1)
+Replaces: python2.3-sqlalchemy (<<0.2.3-0.1), python2.4-sqlalchemy (<<0.2.3-0.1)
+Suggests: python-psycopg (>=1.1.21-6), python-mysqldb (>=1.2.1-p2-2), python-pysqlite2 (>=2.3.0-1), python-pysqlite1.1 (>=1.1.7-2), python-sqlite (>=1.0.1-5), python-kinterbasdb (>>3.1.2-0.1)
+XB-Python-Version: ${python:Versions}
 Description: SQL toolkit and Object Relational Mapper for Python
  SQLAlchemy is an SQL database abstraction library for Python.
  It's strengths are:
+  * full power and flexibility of SQL. SQLAlchemy provides a full suite
+    of well known enterprise-level persistence patterns, designed for
+    efficient and high-performing database access, adapted into a simple
+    and Pythonic domain language.
+  * extremely easy to use for all the basic tasks, such as: accessing
+    thread-safe and pooled connections, constructing SQL from Python
+    expressions, finding object instances, and commiting object
+    modifications back to the database.
+  * powerful enough for complicated tasks, such as: eager load a graph
+    of objects and their dependencies via joins; map recursive adjacency
+    structures automatically; map objects to not just tables but to any
+    arbitrary join or select statement; combine multiple tables together
+    to load whole sets of otherwise unrelated objects from a single
+    result set; commit entire graphs of object changes in one step.
+  * built to conform to what DBAs demand, including the ability to swap
+    out generated SQL with hand-optimized statements, full usage of bind
+    parameters for all literal values, fully transactionalized and
+    consistent updates using Unit of Work.
+  * modular. Different parts of SQLAlchemy can be used independently of
+    the rest, including the connection pool, SQL construction, and
+    ORM. SQLAlchemy is constructed in an open style that allows plenty of
+    customization, with an architecture that supports custom datatypes,
+    custom SQL extensions, and ORM plugins which can augment or extend
+    mapping functionality.
  .
- * full power and flexibility of SQL. SQLAlchemy provides a full suite
- of well known enterprise-level persistence patterns, designed for
- efficient and high-performing database access, adapted into a simple
- and Pythonic domain language.
- .
- * extremely easy to use for all the basic tasks, such as: accessing
- thread-safe and pooled connections, constructing SQL from Python
- expressions, finding object instances, and commiting object
- modifications back to the database.
- .
- * powerful enough for complicated tasks, such as: eager load a graph
- of objects and their dependencies via joins; map recursive adjacency
- structures automatically; map objects to not just tables but to any
- arbitrary join or select statement; combine multiple tables together
- to load whole sets of otherwise unrelated objects from a single
- result set; commit entire graphs of object changes in one step.
- .
- * built to conform to what DBAs demand, including the ability to swap
- out generated SQL with hand-optimized statements, full usage of bind
- parameters for all literal values, fully transactionalized and
- consistent updates using Unit of Work.
- .
- * modular. Different parts of SQLAlchemy can be used independently of
- the rest, including the connection pool, SQL construction, and
- ORM. SQLAlchemy is constructed in an open style that allows plenty of
- customization, with an architecture that supports custom datatypes,
- custom SQL extensions, and ORM plugins which can augment or extend
- mapping functionality.
- .
- Homepage: http://sqlalchemy.org/
- .
- This is a dummy package that depends on the correct version of
- sqlalchemy for the default version of Python.
-
-Package: python2.3-sqlalchemy
-Architecture: all
-Depends: ${python:Depends}
-Suggests: python2.3-pysqlite2, python2.3-pysqlite1.1, python2.3-sqlite, python2.3-psycopg, python2.3-mysqldb, python2.3-kinterbasdb
-Description: SQL toolkit and Object Relational Mapper for Python
- SQLAlchemy is an SQL database abstraction library for Python.
- It's strengths are:
- .
- * full power and flexibility of SQL. SQLAlchemy provides a full suite
- of well known enterprise-level persistence patterns, designed for
- efficient and high-performing database access, adapted into a simple
- and Pythonic domain language.
- .
- * extremely easy to use for all the basic tasks, such as: accessing
- thread-safe and pooled connections, constructing SQL from Python
- expressions, finding object instances, and commiting object
- modifications back to the database.
- .
- * powerful enough for complicated tasks, such as: eager load a graph
- of objects and their dependencies via joins; map recursive adjacency
- structures automatically; map objects to not just tables but to any
- arbitrary join or select statement; combine multiple tables together
- to load whole sets of otherwise unrelated objects from a single
- result set; commit entire graphs of object changes in one step.
- .
- * built to conform to what DBAs demand, including the ability to swap
- out generated SQL with hand-optimized statements, full usage of bind
- parameters for all literal values, fully transactionalized and
- consistent updates using Unit of Work.
- .
- * modular. Different parts of SQLAlchemy can be used independently of
- the rest, including the connection pool, SQL construction, and
- ORM. SQLAlchemy is constructed in an open style that allows plenty of
- customization, with an architecture that supports custom datatypes,
- custom SQL extensions, and ORM plugins which can augment or extend
- mapping functionality.
- .
- Homepage: http://sqlalchemy.org/
- .
- This version is usable with python2.3
-
-Package: python2.4-sqlalchemy
-Architecture: all
-Depends: ${python:Depends}
-Suggests: python2.4-pysqlite2, python2.4-pysqlite1.1, python2.4-sqlite, python2.4-psycopg, python2.4-mysqldb, python2.4-kinterbasdb
-Description: SQL toolkit and Object Relational Mapper for Python
- SQLAlchemy is an SQL database abstraction library for Python.
- It's strengths are:
- .
- * full power and flexibility of SQL. SQLAlchemy provides a full suite
- of well known enterprise-level persistence patterns, designed for
- efficient and high-performing database access, adapted into a simple
- and Pythonic domain language.
- .
- * extremely easy to use for all the basic tasks, such as: accessing
- thread-safe and pooled connections, constructing SQL from Python
- expressions, finding object instances, and commiting object
- modifications back to the database.
- .
- * powerful enough for complicated tasks, such as: eager load a graph
- of objects and their dependencies via joins; map recursive adjacency
- structures automatically; map objects to not just tables but to any
- arbitrary join or select statement; combine multiple tables together
- to load whole sets of otherwise unrelated objects from a single
- result set; commit entire graphs of object changes in one step.
- .
- * built to conform to what DBAs demand, including the ability to swap
- out generated SQL with hand-optimized statements, full usage of bind
- parameters for all literal values, fully transactionalized and
- consistent updates using Unit of Work.
- .
- * modular. Different parts of SQLAlchemy can be used independently of
- the rest, including the connection pool, SQL construction, and
- ORM. SQLAlchemy is constructed in an open style that allows plenty of
- customization, with an architecture that supports custom datatypes,
- custom SQL extensions, and ORM plugins which can augment or extend
- mapping functionality.
- .
- Homepage: http://sqlalchemy.org/
- .
- This version is usable with python2.4
-
+  Homepage: http://sqlalchemy.org/

@@ -1,11 +1,9 @@
-# Please do not assume network connectivity during build.
-# Either work with what's installed, or fail.
-## from ez_setup import use_setuptools
-## use_setuptools()
+from ez_setup import use_setuptools
+use_setuptools()
 from setuptools import setup, find_packages
 
 setup(name = "SQLAlchemy",
-    version = "0.1.4",
+    version = "0.2.3",
     description = "Database Abstraction Library",
     author = "Mike Bayer",
     author_email = "mike_mp@zzzcomputing.com",
