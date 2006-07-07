@@ -23,7 +23,8 @@ class TLSession(object):
         except AttributeError:
             pass
         self.__tcount = 0
-        
+    def in_transaction(self):
+        return self.__tcount > 0
     def begin(self):
         if self.__tcount == 0:
             self.__transaction = self.get_connection()
@@ -60,6 +61,8 @@ class TLConnection(base.Connection):
         return TLTransaction(self, parent)
     def _begin(self):
         return base.Connection.begin(self)
+    def in_transaction(self):
+        return self.session.in_transaction()
     def begin(self):
         return self.session.begin()
     def close(self):

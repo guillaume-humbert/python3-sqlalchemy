@@ -2,8 +2,8 @@ Source: sqlalchemy
 Section: python
 Priority: optional
 Maintainer: Tommi Virtanen <tv@debian.org>
-Build-Depends: debhelper (>= 5.0.37.2), cdbs (>=0.4.41)
-Build-Depends-Indep: python-all-dev (>= 2.3.5-10), python-central (>= 0.4.17), python-setuptools (>= 0.6b3-1)
+Build-Depends: debhelper (>= 5.0.37.2), cdbs (>=0.4.42), python (>= 2.3.5-11)
+Build-Depends-Indep: python-all-dev, python-central (>= 0.4.17), python-setuptools (>= 0.6b3-1)
 Standards-Version: 3.7.2
 XS-Python-Version: >= 2.3
 

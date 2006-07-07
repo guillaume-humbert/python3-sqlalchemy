@@ -69,6 +69,7 @@ lib/sqlalchemy/ansisql.py
 lib/sqlalchemy/attributes.py
 lib/sqlalchemy/exceptions.py
 lib/sqlalchemy/pool.py
+lib/sqlalchemy/queue.py
 lib/sqlalchemy/schema.py
 lib/sqlalchemy/sql.py
 lib/sqlalchemy/sql_util.py
@@ -138,6 +139,7 @@ test/orm/__init__.py
 test/orm/alltests.py
 test/orm/association.py
 test/orm/cascade.py
+test/orm/compile.py
 test/orm/cycles.py
 test/orm/eagertest1.py
 test/orm/eagertest2.py

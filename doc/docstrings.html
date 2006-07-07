@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >Modules and Classes</div>
-<div class="">Version: 0.2.3   Last Updated: 06/16/06 21:59:41</div>
+<div class="">Version: 0.2.4   Last Updated: 06/27/06 20:09:23</div>
 </div>
 
 
@@ -820,6 +820,17 @@ Previous: <a href="plugins.html">Plugins</a>
     
     <div class="smalltoclink">
     <A href="#docstrings_sqlalchemy.exceptions_SQLError">Class SQLError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_TimeoutError">Class TimeoutError</a>
     </div>
 
     </div>
@@ -6572,7 +6583,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm_modfunc_class_mapper"></a>
-        <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>)</b>
+        <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>, <i>compile=True</i>)</b>
         <div class="docstring">
     <p>
     given a ClassKey, returns the primary Mapper associated with the key.
@@ -6939,11 +6950,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def compile(<i>self</i>)</b>
         <div class="docstring">
     <p>
-    compile.  this step assembles the Mapper's constructor arguments into their final internal
-        format, which includes establishing its relationships with other Mappers either via inheritance
-        relationships or via attached properties.  This step is deferred to when the Mapper is first used
-        (i.e. queried, used in a flush(), or its columns or properties are accessed) so that Mappers can be 
-        constructed in an arbitrary order, completing their relationships when they have all been established.
+    compile this mapper into its final internal format.</p>
+<p>this is the 'external' version of the method which is not reentrant.
 </p>
     </div>
         </div>
@@ -10876,6 +10884,12 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
 			
 
 
+      
+        
+
+			
+
+
 
     </table>
 
@@ -11112,6 +11126,33 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
 
 
     </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions_TimeoutError"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class TimeoutError</span>
+    <div class="sectiontext">
+
+
+<p>
+    raised when a connection pool times out on getting a connection
+</p>
 
 
 

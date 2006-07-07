@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >SQLAlchemy 0.2 Documentation</div>
-<div class="">Version: 0.2.3   Last Updated: 06/16/06 21:59:41</div>
+<div class="">Version: 0.2.4   Last Updated: 06/27/06 20:09:23</div>
 </div>
 
 
@@ -2700,6 +2700,17 @@
     </div>
 
 
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_TimeoutError">Class TimeoutError</a>
+    </div>
+
+    </div>
+
+
     </div>
 
 
@@ -4288,6 +4299,33 @@ Next: <a href="#metadata">Database Meta Data</a>
 
 <p>Engines exist for SQLite, Postgres, MySQL, and Oracle, using the Pysqlite, Psycopg2 (Psycopg1 will work to some degree but its typing model is not supported...install Psycopg2!), MySQLDB, and cx_Oracle modules.  There is also preliminary support for MS-SQL using adodbapi or pymssql, as well as Firebird.   For each engine, a distinct Python module exists in the <code>sqlalchemy.databases</code> package, which provides implementations of some of the objects mentioned in the previous section.
 </p>
+<p>Downloads for each DBAPI at the time of this writing are as follows:
+</p>
+<ul>
+ <li>
+     Postgres:  <a href="http://www.initd.org/tracker/psycopg">psycopg2</a> 
+ </li>
+
+ <li>
+     SQLite:  <a href="http://initd.org/tracker/pysqlite">pysqlite</a> 
+ </li>
+
+ <li>
+     MySQL:   <a href="http://sourceforge.net/projects/mysql-python">MySQLDB</a> 
+ </li>
+
+ <li>
+     Oracle:  <a href="http://www.cxtools.net/default.aspx?nav=home">cx_Oracle</a> 
+ </li>
+
+ <li>
+     MS-SQL:  <a href="http://adodbapi.sourceforge.net/">adodbapi</a>  <a href="http://pymssql.sourceforge.net/">pymssql</a> 
+ </li>
+
+ <li>
+     Firebird:  <a href="http://kinterbasdb.sourceforge.net/">kinterbasdb</a> 
+ </li>
+</ul>
 
 
     </div>
@@ -12640,9 +12678,13 @@ Next: <a href="#plugins">Plugins</a>
 </span>
 <span class="python_comment"># then connect normally
 </span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">psycopg</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">database</span><span class="python_operator">=</span><span class="python_literal">'test'</span><span class="python_operator">, </span><span class="python_name">username</span><span class="python_operator">=</span><span class="python_literal">'scott'</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'tiger'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>This produces a <code>sqlalchemy.pool.DBProxy</code> object which supports the same <code>connect()</code> function as the original DBAPI module.  Upon connection, a thread-local connection proxy object is returned, which delegates its calls to a real DBAPI connection object.  This connection object is stored persistently within a connection pool (an instance of <code>sqlalchemy.pool.Pool</code>) that corresponds to the exact connection arguments sent to the <code>connect()</code> function.  The connection proxy also returns a proxied cursor object upon calling <code>connection.cursor()</code>.  When all cursors as well as the connection proxy are de-referenced, the connection is automatically made available again by the owning pool object.
+<p>This produces a <code>sqlalchemy.pool.DBProxy</code> object which supports the same <code>connect()</code> function as the original DBAPI module.  Upon connection, a connection proxy object is returned, which delegates its calls to a real DBAPI connection object.  This connection object is stored persistently within a connection pool (an instance of <code>sqlalchemy.pool.Pool</code>) that corresponds to the exact connection arguments sent to the <code>connect()</code> function.  <br /> 
 </p>
-<p>Basically, the <code>connect()</code> function is used in its usual way, and the pool module transparently returns thread-local pooled connections.  Each distinct set of connect arguments corresponds to a brand new connection pool created; in this way, an application can maintain connections to multiple schemas and/or databases, and each unique connect argument set will be managed by a different pool object.
+<p>The connection proxy supports all of the methods on the original connection object, most of which are proxied via <code>__getattr__()</code>.  The <code>close()</code> method will return the connection to the pool, and the <code>cursor()</code> method will return a proxied cursor object.  Both the connection proxy and the cursor proxy will also return the underlying connection to the pool after they have both been garbage collected, which is detected via the <code>__del__()</code> method.
+</p>
+<p>Additionally, when connections are returned to the pool, a <code>rollback()</code> is issued on the connection unconditionally.  This is to release any locks still held by the connection that may have resulted from normal activity.
+</p>
+<p>By default, the <code>connect()</code> method will return the same connection that is already checked out in the current thread.  This allows a particular connection to be used in a given thread without needing to pass it around between functions.  To disable this behavior, specify <code>use_threadlocal=False</code> to the <code>manage()</code> function.
 </p>
 
 
@@ -12676,7 +12718,7 @@ Next: <a href="#plugins">Plugins</a>
  </li>
 
  <li>
-     use_threadlocal=True : if set to True, repeated calls to connect() within the same application thread will be guaranteed to return the <strong>same</strong> connection object, if one has already been retrieved from the pool and has not been returned yet.  This allows code to retrieve a connection from the pool, and then while still holding on to that connection, to call other functions which also ask the pool for a connection of the same arguments;  those functions will act upon the same connection that the calling method is using.  Note that once the connection is returned to the pool, it then may be used by another thread.  To guarantee a single unique connection per thread that <strong>never</strong> changes, use the option <code>poolclass=SingletonThreadPool</code>, in which case the use_threadlocal parameter is automatically set to False.
+     use_threadlocal=True : if set to True, repeated calls to connect() within the same application thread will be guaranteed to return the <strong>same</strong> connection object, if one has already been retrieved from the pool and has not been returned yet.  This allows code to retrieve a connection from the pool, and then while still holding on to that connection, to call other functions which also ask the pool for a connection of the same arguments;  those functions will act upon the same connection that the calling method is using.  Note that once the connection is returned to the pool, it then may be used by another thread.  To guarantee a single unique connection per thread that <strong>never</strong> changes, use the option <code>poolclass=SingletonThreadPool</code>, in which case the use_threadlocal parameter is not used.
  </li>
 
  <li>
@@ -14392,6 +14434,17 @@ Previous: <a href="#plugins">Plugins</a>
     
     <div class="smalltoclink">
     <A href="#docstrings_sqlalchemy.exceptions_SQLError">Class SQLError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_TimeoutError">Class TimeoutError</a>
     </div>
 
     </div>
@@ -20145,7 +20198,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm_modfunc_class_mapper"></a>
-        <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>)</b>
+        <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>, <i>compile=True</i>)</b>
         <div class="docstring">
     <p>
     given a ClassKey, returns the primary Mapper associated with the key.
@@ -20512,11 +20565,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def compile(<i>self</i>)</b>
         <div class="docstring">
     <p>
-    compile.  this step assembles the Mapper's constructor arguments into their final internal
-        format, which includes establishing its relationships with other Mappers either via inheritance
-        relationships or via attached properties.  This step is deferred to when the Mapper is first used
-        (i.e. queried, used in a flush(), or its columns or properties are accessed) so that Mappers can be 
-        constructed in an arbitrary order, completing their relationships when they have all been established.
+    compile this mapper into its final internal format.</p>
+<p>this is the 'external' version of the method which is not reentrant.
 </p>
     </div>
         </div>
@@ -24449,6 +24499,12 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
 			
 
 
+      
+        
+
+			
+
+
 
     </table>
 
@@ -24685,6 +24741,33 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
 
 
     </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions_TimeoutError"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class TimeoutError</span>
+    <div class="sectiontext">
+
+
+<p>
+    raised when a connection pool times out on getting a connection
+</p>
 
 
 

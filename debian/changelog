@@ -1,3 +1,12 @@
+sqlalchemy (0.2.4-0.1) unstable; urgency=low
+
+  * Non-maintainer upload (with maintainer's knowledge)
+  * New upstream release
+  * Patch for python 2.3 compatibility removed (fixed in upstream)
+  * Added python to Build-Depends (for clean rule)
+
+ -- Piotr Ozarowski <ozarow@gmail.com>  Fri,  7 Jul 2006 18:07:35 +0200
+
 sqlalchemy (0.2.3-0.1) unstable; urgency=low
 
   * Non-maintainer upload (closes: #369371)
