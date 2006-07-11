@@ -1,12 +1,11 @@
+import testbase
 from sqlalchemy.ext.activemapper           import ActiveMapper, column, one_to_many, one_to_one, objectstore
 from sqlalchemy             import and_, or_, clear_mappers
 from sqlalchemy             import ForeignKey, String, Integer, DateTime
 from datetime               import datetime
 
-import unittest
 import sqlalchemy.ext.activemapper as activemapper
 
-import testbase
 
 class testcase(testbase.PersistTest):
     def setUpAll(self):
@@ -14,7 +13,6 @@ class testcase(testbase.PersistTest):
         
         class Person(ActiveMapper):
             class mapping:
-                id          = column(Integer, primary_key=True)
                 full_name   = column(String)
                 first_name  = column(String)
                 middle_name = column(String)
@@ -26,7 +24,7 @@ class testcase(testbase.PersistTest):
                 cell_phone  = column(String)
                 work_phone  = column(String)
                 prefs_id    = column(Integer, foreign_key=ForeignKey('preferences.id'))
-                addresses   = one_to_many('Address', colname='person_id', backref='person')
+                addresses   = one_to_many('Address', colname='person_id', backref='person', order_by=['state', 'city', 'postal_code'])
                 preferences = one_to_one('Preferences', colname='pref_id', backref='person')
 
             def __str__(self):
@@ -44,12 +42,15 @@ class testcase(testbase.PersistTest):
         class Preferences(ActiveMapper):
             class mapping:
                 __table__        = 'preferences'
-                id               = column(Integer, primary_key=True)
                 favorite_color   = column(String)
                 personality_type = column(String)
 
         class Address(ActiveMapper):
             class mapping:
+                # note that in other objects, the 'id' primary key is 
+                # automatically added -- if you specify a primary key,
+                # then ActiveMapper will not add an integer primary key
+                # for you.
                 id          = column(Integer, primary_key=True)
                 type        = column(String)
                 address_1   = column(String)
@@ -68,17 +69,6 @@ class testcase(testbase.PersistTest):
     def tearDown(self):
         for t in activemapper.metadata.table_iterator(reverse=True):
             t.delete().execute()
-        #people = Person.select()
-        #for person in people: person.delete()
-        
-        #addresses = Address.select()
-        #for address in addresses: address.delete()
-        
-        #preferences = Preferences.select()
-        #for preference in preferences: preference.delete()
-        
-        #objectstore.flush()
-        #objectstore.clear()
     
     def create_person_one(self):
         # create a person
@@ -228,10 +218,6 @@ class testcase(testbase.PersistTest):
         )
         self.assertEquals(len(results), 1)
 
-
     
 if __name__ == '__main__':
-    # go ahead and setup the database connection, and create the tables
-    
-    # launch the unit tests
     unittest.main()

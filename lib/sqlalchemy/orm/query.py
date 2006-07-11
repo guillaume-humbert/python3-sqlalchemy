@@ -115,7 +115,11 @@ class Query(object):
     def _locate_prop(self, key):
         import properties
         keys = []
+        seen = util.Set()
         def search_for_prop(mapper):
+            if mapper in seen:
+                return None
+            seen.add(mapper)
             if mapper.props.has_key(key):
                 prop = mapper.props[key]
                 if isinstance(prop, properties.PropertyLoader):
@@ -328,7 +332,7 @@ class Query(object):
 #            raise "ok first thing", str(s2)
             if not kwargs.get('distinct', False) and order_by:
                 s2.order_by(*util.to_list(order_by))
-            s3 = s2.alias('rowcount')
+            s3 = s2.alias('tbl_row_count')
             crit = []
             for i in range(0, len(self.table.primary_key)):
                 crit.append(s3.primary_key[i] == self.table.primary_key[i])

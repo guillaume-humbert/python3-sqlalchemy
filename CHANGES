@@ -1,3 +1,17 @@
+0.2.5
+- fixed endless loop bug in select_by(), if the traversal hit
+two mappers that referenced each other
+- upgraded all unittests to insert './lib/' into sys.path, 
+working around new setuptools PYTHONPATH-killing behavior
+- further fixes with attributes/dependencies/etc....
+- improved error handling for when DynamicMetaData is not connected
+- MS-SQL support largely working (tested with pymssql)
+- ordering of UPDATE and DELETE statements within groups is now 
+in order of primary key values, for more deterministic ordering
+- after_insert/delete/update mapper extensions now called per object,
+not per-object-per-table
+- further fixes/refactorings to mapper compilation 
+
 0.2.4
 - try/except when the mapper sets init.__name__ on a mapped class,
 supports python 2.3

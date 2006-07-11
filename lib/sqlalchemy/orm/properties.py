@@ -150,14 +150,12 @@ class PropertyLoader(mapper.MapperProperty):
         
     private = property(lambda s:s.cascade.delete_orphan)
 
-    def attach(self, mapper):
-        mapper._add_compile_trigger(self.argument)
-        
     def cascade_iterator(self, type, object, recursive):
         if not type in self.cascade:
             return
         childlist = sessionlib.attribute_manager.get_history(object, self.key, passive=True)
-        
+        if childlist is None:
+            return
         mapper = self.mapper.primary_mapper()
         for c in childlist.added_items() + childlist.deleted_items() + childlist.unchanged_items():
             if c is not None and c not in recursive:
