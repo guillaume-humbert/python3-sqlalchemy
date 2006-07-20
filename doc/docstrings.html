@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >Modules and Classes</div>
-<div class="">Version: 0.2.5   Last Updated: 07/08/06 13:45:27</div>
+<div class="">Version: 0.2.6   Last Updated: 07/19/06 21:46:30</div>
 </div>
 
 
@@ -224,6 +224,17 @@ Previous: <a href="plugins.html">Plugins</a>
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_ForeignKeyConstraint">Class ForeignKeyConstraint(Constraint)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
     <A href="#docstrings_sqlalchemy.schema_Index">Class Index(SchemaItem)</a>
     </div>
 
@@ -247,6 +258,17 @@ Previous: <a href="plugins.html">Plugins</a>
     
     <div class="smalltoclink">
     <A href="#docstrings_sqlalchemy.schema_PassiveDefault">Class PassiveDefault(DefaultGenerator)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">Class PrimaryKeyConstraint(Constraint)</a>
     </div>
 
     </div>
@@ -689,7 +711,7 @@ Previous: <a href="plugins.html">Plugins</a>
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="#docstrings_sqlalchemy.mods.threadlocal_Objectstore">Class Objectstore(SessionContext)</a>
+    <A href="#docstrings_sqlalchemy.mods.threadlocal_Objectstore">Class Objectstore(object)</a>
     </div>
 
     </div>
@@ -2252,38 +2274,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     
         
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_c"></a>
-           <b>c = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
-
-    
-        
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_columns"></a>
-           <b>columns = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
-
-    
-        
         <tr>
     <td>
         <div class="darkcell">
@@ -2313,38 +2303,6 @@ Previous: <a href="plugins.html">Plugins</a>
     </td>
     </tr>
 
-
-    
-        
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_foreign_keys"></a>
-           <b>foreign_keys = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
-
-    
-        
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_indexes"></a>
-           <b>indexes = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
 
     
         
@@ -2425,22 +2383,6 @@ Previous: <a href="plugins.html">Plugins</a>
     </td>
     </tr>
 
-
-    
-        
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_primary_key"></a>
-           <b>primary_key = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
 
     
         
@@ -2601,6 +2543,18 @@ method by which other methods operate upon the schema.  The SQL package extends 
 
     <table cellspacing="0" cellpadding="0" width="100%">
     
+      
+        
+
+			
+
+
+      
+        
+
+			
+
+
       
         
 
@@ -3087,8 +3041,10 @@ method by which other methods operate upon the schema.  The SQL package extends 
 
 
 <p>
-    defines a ForeignKey constraint between two columns.  ForeignKey is 
-    specified as an argument to a Column object.
+    defines a column-level ForeignKey constraint between two columns.  </p>
+<p>ForeignKey is specified as an argument to a Column object.</p>
+<p>One or more ForeignKey objects are used within a ForeignKeyConstraint
+    object which represents the table-level constraint definition.
 </p>
 
 
@@ -3100,14 +3056,16 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_ForeignKey___init__"></a>
-        <b>def __init__(<i>self</i>, <i>column</i>)</b>
+        <b>def __init__(<i>self</i>, <i>column</i>, <i>constraint=None</i>)</b>
         <div class="docstring">
     <p>
-    Constructs a new ForeignKey object.  &quot;column&quot; can be a schema.Column
-        object representing the relationship, or just its string name given as 
-        &quot;tablename.columnname&quot;.  schema can be specified as 
-        &quot;schema.tablename.columnname&quot; 
-</p>
+    Construct a new ForeignKey object.  </p>
+<p>&quot;column&quot; can be a schema.Column object representing the relationship, 
+        or just its string name given as &quot;tablename.columnname&quot;.  schema can be 
+        specified as &quot;schema.tablename.columnname&quot; </p>
+<p>&quot;constraint&quot; is the owning ForeignKeyConstraint object, if any.  if not given,
+        then a ForeignKeyConstraint will be automatically created and added to the parent table.</p>
+<p></p>
     </div>
         </div>
     </td>
@@ -3156,7 +3114,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <b>def copy(<i>self</i>)</b>
         <div class="docstring">
     <p>
-    produces a copy of this ForeignKey object.
+    produce a copy of this ForeignKey object.
 </p>
     </div>
         </div>
@@ -3175,6 +3133,103 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <p>
     returns True if the given table is referenced by this ForeignKey.
 </p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ForeignKeyConstraint(Constraint)</span>
+    <div class="sectiontext">
+
+
+<p>
+    table-level foreign key constraint, represents a colleciton of ForeignKey objects.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint___init__"></a>
+        <b>def __init__(<i>self</i>, <i>columns</i>, <i>refcolumns</i>, <i>name=None</i>, <i>onupdate=None</i>, <i>ondelete=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint_accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint_append"></a>
+        <b>def append(<i>self</i>, <i>col</i>, <i>refcol</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint_copy"></a>
+        <b>def copy(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
     </div>
         </div>
     </td>
@@ -3512,6 +3567,102 @@ method by which other methods operate upon the schema.  The SQL package extends 
 
 
 
+<A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class PrimaryKeyConstraint(Constraint)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint___init__"></a>
+        <b>def __init__(<i>self</i>, <i>*columns</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint_accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint_append"></a>
+        <b>def append(<i>self</i>, <i>col</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint_copy"></a>
+        <b>def copy(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
 <A name="docstrings_sqlalchemy.schema_SchemaItem"></a>
 
 <div class="subsection" style="margin-left:30px;">
@@ -3665,6 +3816,22 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <tr>
     <td>
         <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_visit_foreign_key_constraint"></a>
+        <b>def visit_foreign_key_constraint(<i>self</i>, <i>constraint</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_SchemaVisitor_visit_index"></a>
         <b>def visit_index(<i>self</i>, <i>index</i>)</b>
         <div class="docstring">
@@ -3688,6 +3855,22 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <p>
     visit a passive default
 </p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_visit_primary_key_constraint"></a>
+        <b>def visit_primary_key_constraint(<i>self</i>, <i>constraint</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
     </div>
         </div>
     </td>
@@ -3739,6 +3922,22 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <p>
     visit a Table.
 </p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_visit_unique_constraint"></a>
+        <b>def visit_unique_constraint(<i>self</i>, <i>constraint</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
     </div>
         </div>
     </td>
@@ -3888,7 +4087,8 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <b>def __init__(<i>self</i>, <i>name</i>, <i>metadata</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
     <p>
-    Table objects can be constructed directly.  The init method is actually called via 
+    Construct a Table.</p>
+<p>Table objects can be constructed directly.  The init method is actually called via 
         the TableSingleton metaclass.  Arguments are:</p>
 <p>name : the name of this table, exactly as it appears, or will appear, in the database.
         This property, along with the &quot;schema&quot;, indicates the &quot;singleton identity&quot; of this table.
@@ -3907,6 +4107,8 @@ method by which other methods operate upon the schema.  The SQL package extends 
 <p>useexisting=False : indicates that if this Table was already defined elsewhere in the application, disregard
         the rest of the constructor arguments.  If this flag and the &quot;redefine&quot; flag are not set, constructing 
         the same table twice will result in an exception.</p>
+<p>owner=None : optional owning user of this table.  useful for databases such as Oracle to aid in table
+        reflection.</p>
 <p></p>
     </div>
         </div>
@@ -4004,7 +4206,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_Table_create"></a>
-        <b>def create(<i>self</i>, <i>connectable=None</i>)</b>
+        <b>def create(<i>self</i>, <i>connectable=None</i>, <i>checkfirst=False</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -4023,8 +4225,8 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <b>def deregister(<i>self</i>)</b>
         <div class="docstring">
     <p>
-    removes this table from it's metadata.  this does not
-        issue a SQL DROP statement.
+    remove this table from it's owning metadata.  </p>
+<p>this does not issue a SQL DROP statement.
 </p>
     </div>
         </div>
@@ -4038,7 +4240,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_Table_drop"></a>
-        <b>def drop(<i>self</i>, <i>connectable=None</i>)</b>
+        <b>def drop(<i>self</i>, <i>connectable=None</i>, <i>checkfirst=False</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -4053,19 +4255,32 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <tr>
     <td>
         <div class="darkcell">
-        <A name="docstrings_sqlalchemy.schema_Table_reload_values"></a>
-        <b>def reload_values(<i>self</i>, <i>*args</i>)</b>
+        <A name="docstrings_sqlalchemy.schema_Table_exists"></a>
+        <b>def exists(<i>self</i>, <i>engine=None</i>)</b>
         <div class="docstring">
-    <p>
-    clears out the columns and other properties of this Table, and reloads them from the 
-        given argument list.  This is used with the &quot;redefine&quot; keyword argument sent to the
-        metaclass constructor.
-</p>
+    <p></p>
+<p></p>
     </div>
         </div>
     </td>
     </tr>
 
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.schema_Table_primary_key"></a>
+           <b>primary_key = property()</b>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
 
     
         
@@ -4076,7 +4291,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <b>def tometadata(<i>self</i>, <i>metadata</i>, <i>schema=None</i>)</b>
         <div class="docstring">
     <p>
-    returns a singleton instance of this Table with a different Schema
+    return a copy of this Table associated with a different MetaData.
 </p>
     </div>
         </div>
@@ -6793,6 +7008,22 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <tr>
     <td>
         <div class="darkcell">
+        <A name="docstrings_sqlalchemy.orm_modfunc_synonym"></a>
+        <b>def synonym(<i>name</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm_modfunc_undefer"></a>
         <b>def undefer(<i>name</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
@@ -6901,7 +7132,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def base_mapper(<i>self</i>)</b>
         <div class="docstring">
     <p>
-    returns the ultimate base mapper in an inheritance chain
+    return the ultimate base mapper in an inheritance chain
 </p>
     </div>
         </div>
@@ -6931,7 +7162,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm_Mapper_cascade_iterator"></a>
-        <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>object</i>, <i>callable_=None</i>, <i>recursive=None</i>)</b>
+        <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>object</i>, <i>recursive=None</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -7193,6 +7424,23 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <p>
     returns True if this mapper handles the given instance.  this is dependent
         not only on class assignment but the optional &quot;entity_name&quot; parameter as well.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.orm_Mapper_isa"></a>
+        <b>def isa(<i>self</i>, <i>other</i>)</b>
+        <div class="docstring">
+    <p>
+    return True if the given mapper inherits from this mapper
 </p>
     </div>
         </div>
@@ -7551,22 +7799,6 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <tr>
     <td>
         <div class="darkcell">
-        <A name="docstrings_sqlalchemy.orm_MapperExtension___init__"></a>
-        <b>def __init__(<i>self</i>)</b>
-        <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-        </div>
-    </td>
-    </tr>
-
-
-    
-        
-        <tr>
-    <td>
-        <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm_MapperExtension_after_delete"></a>
         <b>def after_delete(<i>self</i>, <i>mapper</i>, <i>connection</i>, <i>instance</i>)</b>
         <div class="docstring">
@@ -7690,22 +7922,6 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <p>
     called before an object instnace is UPDATED
 </p>
-    </div>
-        </div>
-    </td>
-    </tr>
-
-
-    
-        
-        <tr>
-    <td>
-        <div class="darkcell">
-        <A name="docstrings_sqlalchemy.orm_MapperExtension_chain"></a>
-        <b>def chain(<i>self</i>, <i>ext</i>)</b>
-        <div class="docstring">
-    <p></p>
-<p></p>
     </div>
         </div>
     </td>
@@ -8760,10 +8976,10 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm.session_Session_expire"></a>
-        <b>def expire(<i>self</i>, <i>object</i>)</b>
+        <b>def expire(<i>self</i>, <i>obj</i>)</b>
         <div class="docstring">
     <p>
-    invalidates the data in the given object and sets them to refresh themselves
+    invalidate the data in the given object and sets them to refresh themselves
         the next time they are requested.
 </p>
     </div>
@@ -8781,7 +8997,9 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def expunge(<i>self</i>, <i>object</i>)</b>
         <div class="docstring">
     <p>
-    removes the given object from this Session.  this will free all internal references to the object.
+    remove the given object from this Session.  </p>
+<p>this will free all internal references to the object.  cascading will be applied according to the
+        'expunge' cascade rule.
 </p>
     </div>
         </div>
@@ -8798,8 +9016,9 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def flush(<i>self</i>, <i>objects=None</i>)</b>
         <div class="docstring">
     <p>
-    flushes all the object modifications present in this session to the database.  'objects'
-        is a list or tuple of objects specifically to be flushed.
+    flush all the object modifications present in this session to the database.  </p>
+<p>'objects' is a list or tuple of objects specifically to be flushed; if None, all
+        new and modified objects are flushed.
 </p>
     </div>
         </div>
@@ -8816,8 +9035,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def get(<i>self</i>, <i>class_</i>, <i>ident</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
     <p>
-    returns an instance of the object based on the given identifier, or None
-        if not found.  The ident argument is a scalar or tuple of primary key column values in the order of the 
+    return an instance of the object based on the given identifier, or None if not found.  </p>
+<p>The ident argument is a scalar or tuple of primary key column values in the order of the 
         table def's primary key columns.</p>
 <p>the entity_name keyword argument may also be specified which further qualifies the underlying
         Mapper used to perform the query.
@@ -8837,8 +9056,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def get_bind(<i>self</i>, <i>mapper</i>)</b>
         <div class="docstring">
     <p>
-    given a Mapper, returns the Engine or Connection which is used to execute statements on behalf of this 
-        Mapper.  Calling connect() on the return result will always result in a Connection object.  This method 
+    return the Engine or Connection which is used to execute statements on behalf of the given Mapper.</p>
+<p>Calling connect() on the return result will always result in a Connection object.  This method 
         disregards any SessionTransaction that may be in progress.</p>
 <p>The order of searching is as follows:</p>
 <p>if an Engine or Connection was bound to this Mapper specifically within this Session, returns that 
@@ -8911,7 +9130,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm.session_Session_is_expired"></a>
-        <b>def is_expired(<i>self</i>, <i>instance</i>, <i>**kwargs</i>)</b>
+        <b>def is_expired(<i>self</i>, <i>obj</i>, <i>unexpire=False</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -8930,8 +9149,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def load(<i>self</i>, <i>class_</i>, <i>ident</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
     <p>
-    returns an instance of the object based on the given identifier. If not found,
-        raises an exception.  The method will *remove all pending changes* to the object
+    return an instance of the object based on the given identifier. </p>
+<p>If not found, raises an exception.  The method will *remove all pending changes* to the object
         already existing in the Session.  The ident argument is a scalar or tuple of
         primary key columns in the order of the table def's primary key columns.</p>
 <p>the entity_name keyword argument may also be specified which further qualifies the underlying
@@ -9002,7 +9221,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def query(<i>self</i>, <i>mapper_or_class</i>, <i>entity_name=None</i>)</b>
         <div class="docstring">
     <p>
-    given a mapper or Class, returns a new Query object corresponding to this Session and the mapper, or the classes' primary mapper.
+    return a new Query object corresponding to this Session and the mapper, or the classes' primary mapper.
 </p>
     </div>
         </div>
@@ -9016,11 +9235,10 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm.session_Session_refresh"></a>
-        <b>def refresh(<i>self</i>, <i>object</i>)</b>
+        <b>def refresh(<i>self</i>, <i>obj</i>)</b>
         <div class="docstring">
     <p>
-    reloads the attributes for the given object from the database, clears
-        any changes made.
+    reload the attributes for the given object from the database, clear any changes made.
 </p>
     </div>
         </div>
@@ -9589,6 +9807,22 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.pool_Pool_connect"></a>
         <b>def connect(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_dispose"></a>
+        <b>def dispose(<i>self</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -10421,7 +10655,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Class Objectstore(SessionContext)</span>
+    <span class="sectionheadertext">Class Objectstore(object)</span>
     <div class="sectiontext">
 
 
@@ -10436,8 +10670,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <tr>
     <td>
         <div class="darkcell">
-        <A name="docstrings_sqlalchemy.mods.threadlocal_Objectstore_get_session"></a>
-        <b>def get_session(<i>self</i>)</b>
+        <A name="docstrings_sqlalchemy.mods.threadlocal_Objectstore___init__"></a>
+        <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -10446,6 +10680,22 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     </td>
     </tr>
 
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.mods.threadlocal_Objectstore_session"></a>
+           <b>session = property()</b>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
 
 
     </table>
@@ -10966,6 +11216,28 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
 <p>
     something weird happened with a particular DBAPI version
 </p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.exceptions_DBAPIError___init__"></a>
+        <b>def __init__(<i>self</i>, <i>message</i>, <i>orig</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
 
 
 

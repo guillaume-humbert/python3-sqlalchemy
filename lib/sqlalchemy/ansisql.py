@@ -602,31 +602,36 @@ class ANSICompiler(sql.Compiled):
 
 
 class ANSISchemaGenerator(engine.SchemaIterator):
-    def get_column_specification(self, column, override_pk=False, first_pk=False):
+    def __init__(self, engine, proxy, connection=None, checkfirst=False, **params):
+        super(ANSISchemaGenerator, self).__init__(engine, proxy, **params)
+        self.checkfirst = checkfirst
+        self.connection = connection
+    def get_column_specification(self, column, first_pk=False):
         raise NotImplementedError()
         
     def visit_table(self, table):
         # the single whitespace before the "(" is significant
         # as its MySQL's method of indicating a table name and not a reserved word.
         # feel free to localize this logic to the mysql module
+        if self.checkfirst and self.engine.dialect.has_table(self.connection, table.name):
+            return
+            
         self.append("\nCREATE TABLE " + table.fullname + " (")
         
         separator = "\n"
         
         # if only one primary key, specify it along with the column
-        pks = table.primary_key
         first_pk = False
         for column in table.columns:
             self.append(separator)
             separator = ", \n"
-            self.append("\t" + self.get_column_specification(column, override_pk=len(pks)>1, first_pk=column.primary_key and not first_pk))
+            self.append("\t" + self.get_column_specification(column, first_pk=column.primary_key and not first_pk))
             if column.primary_key:
                 first_pk = True
-        # if multiple primary keys, specify it at the bottom
-        if len(pks) > 1:
-            self.append(", \n")
-            self.append("\tPRIMARY KEY (%s)" % string.join([c.name for c in pks],', '))
-                    
+
+        for constraint in table.constraints:
+            constraint.accept_schema_visitor(self)            
+
         self.append("\n)%s\n\n" % self.post_create_table(table))
         self.execute()        
         if hasattr(table, 'indexes'):
@@ -650,6 +655,26 @@ class ANSISchemaGenerator(engine.SchemaIterator):
         compiler.compile()
         return compiler
 
+    def visit_primary_key_constraint(self, constraint):
+        if len(constraint) == 0:
+            return
+        self.append(", \n")
+        self.append("\tPRIMARY KEY (%s)" % string.join([c.name for c in constraint],', '))
+            
+    def visit_foreign_key_constraint(self, constraint):
+        self.append(", \n\t ")
+        if constraint.name is not None:
+            self.append("CONSTRAINT %s " % constraint.name)
+        self.append("FOREIGN KEY(%s) REFERENCES %s (%s)" % (
+            string.join([f.parent.name for f in constraint.elements], ', '),
+            list(constraint.elements)[0].column.table.fullname,
+            string.join([f.column.name for f in constraint.elements], ', ')
+        ))
+        if constraint.ondelete is not None:
+            self.append(" ON DELETE %s" % constraint.ondelete)
+        if constraint.onupdate is not None:
+            self.append(" ON UPDATE %s" % constraint.onupdate)
+
     def visit_column(self, column):
         pass
 
@@ -664,6 +689,11 @@ class ANSISchemaGenerator(engine.SchemaIterator):
         
     
 class ANSISchemaDropper(engine.SchemaIterator):
+    def __init__(self, engine, proxy, connection=None, checkfirst=False, **params):
+        super(ANSISchemaDropper, self).__init__(engine, proxy, **params)
+        self.checkfirst = checkfirst
+        self.connection = connection
+
     def visit_index(self, index):
         self.append("\nDROP INDEX " + index.name)
         self.execute()
@@ -671,6 +701,8 @@ class ANSISchemaDropper(engine.SchemaIterator):
     def visit_table(self, table):
         # NOTE: indexes on the table will be automatically dropped, so
         # no need to drop them individually
+        if self.checkfirst and not self.engine.dialect.has_table(self.connection, table.name):
+            return
         self.append("\nDROP TABLE " + table.fullname)
         self.execute()
 

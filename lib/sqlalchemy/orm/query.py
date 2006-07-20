@@ -17,8 +17,7 @@ class Query(object):
             self.mapper = mapper.class_mapper(class_or_mapper, entity_name=entity_name)
         else:
             self.mapper = class_or_mapper.compile()
-        self.mapper = self.mapper.get_select_mapper()
-
+        self.mapper = self.mapper.get_select_mapper().compile()
         self.always_refresh = kwargs.pop('always_refresh', self.mapper.always_refresh)
         self.order_by = kwargs.pop('order_by', self.mapper.order_by)
         self.extension = kwargs.pop('extension', self.mapper.extension)
@@ -26,7 +25,7 @@ class Query(object):
         if not hasattr(self.mapper, '_get_clause'):
             _get_clause = sql.and_()
             for primary_key in self.mapper.pks_by_table[self.table]:
-                _get_clause.clauses.append(primary_key == sql.bindparam("pk_"+primary_key._label, type=primary_key.type))
+                _get_clause.clauses.append(primary_key == sql.bindparam(primary_key._label, type=primary_key.type))
             self.mapper._get_clause = _get_clause
         self._get_clause = self.mapper._get_clause
     def _get_session(self):
@@ -116,17 +115,19 @@ class Query(object):
         import properties
         keys = []
         seen = util.Set()
-        def search_for_prop(mapper):
-            if mapper in seen:
+        def search_for_prop(mapper_):
+            if mapper_ in seen:
                 return None
-            seen.add(mapper)
-            if mapper.props.has_key(key):
-                prop = mapper.props[key]
+            seen.add(mapper_)
+            if mapper_.props.has_key(key):
+                prop = mapper_.props[key]
+                if isinstance(prop, mapper.SynonymProperty):
+                    prop = mapper_.props[prop.name]
                 if isinstance(prop, properties.PropertyLoader):
                     keys.insert(0, prop.key)
                 return prop
             else:
-                for prop in mapper.props.values():
+                for prop in mapper_.props.values():
                     if not isinstance(prop, properties.PropertyLoader):
                         continue
                     x = search_for_prop(prop.mapper)
@@ -278,7 +279,7 @@ class Query(object):
         i = 0
         params = {}
         for primary_key in self.mapper.pks_by_table[self.table]:
-            params["pk_"+primary_key._label] = ident[i]
+            params[primary_key._label] = ident[i]
             # if there are not enough elements in the given identifier, then 
             # use the previous identifier repeatedly.  this is a workaround for the issue 
             # in [ticket:185], where a mapper that uses joined table inheritance needs to specify
@@ -315,7 +316,10 @@ class Query(object):
         if order_by is False:
             if self.table.default_order_by() is not None:
                 order_by = self.table.default_order_by()
-
+        
+        if self.mapper.single and self.mapper.polymorphic_on is not None and self.mapper.polymorphic_identity is not None:
+            whereclause = sql.and_(whereclause, self.mapper.polymorphic_on==self.mapper.polymorphic_identity)
+            
         if self._should_nest(**kwargs):
             from_obj.append(self.table)
             
@@ -364,5 +368,6 @@ class Query(object):
         # give all the attached properties a chance to modify the query
         for key, value in self.mapper.props.iteritems():
             value.setup(key, statement, **kwargs) 
+        
         return statement
 

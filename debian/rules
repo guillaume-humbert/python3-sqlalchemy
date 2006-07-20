@@ -15,5 +15,6 @@ clean::
 
 binary-post-install/python-sqlalchemy::
 	rm -rf debian/python-sqlalchemy/usr/share/doc/python-sqlalchemy/doc/build
-	mv debian/python-sqlalchemy/usr/share/pycentral/python-sqlalchemy/site-packages/SQLAlchemy-${DEB_UPSTREAM_VERSION}{-py${PYVER},}.egg-info
+	mv debian/python-sqlalchemy/usr/share/pycentral/python-sqlalchemy/site-packages/SQLAlchemy-${DEB_UPSTREAM_VERSION}-py${PYVER}.egg-info \
+	   debian/python-sqlalchemy/usr/share/pycentral/python-sqlalchemy/site-packages/SQLAlchemy-${DEB_UPSTREAM_VERSION}.egg-info
 

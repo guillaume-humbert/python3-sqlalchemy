@@ -1,3 +1,14 @@
+sqlalchemy (0.2.6-0.1) unstable; urgency=low
+
+  * Non-maintainer upload (with maintainer's knowledge)
+  * New upstream release
+  * Added a temporary patch for primary mappers issue (will be fixed in next
+    upstream release)
+  * Updated python-kinterbasdb's dependency (new python policy version is
+    available)
+
+ -- Piotr Ozarowski <ozarow@gmail.com>  Thu, 20 Jul 2006 15:23:59 +0200
+
 sqlalchemy (0.2.5-0.1) unstable; urgency=low
 
   * Non-maintainer upload (with maintainer's knowledge)

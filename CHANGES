@@ -1,3 +1,53 @@
+0.2.6
+- big overhaul to schema to allow truly composite primary and foreign
+key constraints, via new ForeignKeyConstraint and PrimaryKeyConstraint
+objects.
+Existing methods of primary/foreign key creation have not been changed
+but use these new objects behind the scenes.  table creation
+and reflection is now more table oriented rather than column oriented.
+[ticket:76]
+- overhaul to MapperExtension calling scheme, wasnt working very well 
+previously
+- tweaks to ActiveMapper, supports self-referential relationships
+- slight rearrangement to objectstore (in activemapper/threadlocal)
+so that the SessionContext is referenced by '.context' instead
+of subclassed directly.
+- activemapper will use threadlocal's objectstore if the mod is
+activated when activemapper is imported
+- small fix to URL regexp to allow filenames with '@' in them
+- fixes to Session expunge/update/etc...needs more cleanup.
+- select_table mappers *still* werent always compiling
+- fixed up Boolean datatype
+- added count()/count_by() to list of methods proxied by assignmapper;
+this also adds them to activemapper
+- connection exceptions wrapped in DBAPIError
+- ActiveMapper now supports autoloading column definitions from the
+database if you supply a __autoload__ = True attribute in your
+mapping inner-class.  Currently this does not support reflecting 
+any relationships.
+- deferred column load could screw up the connection status in 
+a flush() under some circumstances, this was fixed
+- expunge() was not working with cascade, fixed.
+- potential endless loop in cascading operations fixed.
+- added "synonym()" function, applied to properties to have a 
+propname the same as another, for the purposes of overriding props
+and allowing the original propname to be accessible in select_by().
+- fix to typing in clause construction which specifically helps
+type issues with polymorphic_union (CAST/ColumnClause propigates
+its type to proxy columns)
+- mapper compilation work ongoing, someday it'll work....moved 
+around the initialization of MapperProperty objects to be after
+all mappers are created to better handle circular compilations.
+do_init() method is called on all properties now which are more 
+aware of their "inherited" status if so.
+- eager loads explicitly disallowed on self-referential relationships, or
+relationships to an inheriting mapper (which is also self-referential)
+- reduced bind param size in query._get to appease the picky oracle 
+[ticket:244]
+- added 'checkfirst' argument to table.create()/table.drop(), as 
+well as table.exists() [ticket:234]
+- some other ongoing fixes to inheritance [ticket:245]
+
 0.2.5
 - fixed endless loop bug in select_by(), if the traversal hit
 two mappers that referenced each other

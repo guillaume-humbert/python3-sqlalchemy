@@ -146,6 +146,7 @@ test/orm/entity.py
 test/orm/inheritance.py
 test/orm/inheritance2.py
 test/orm/inheritance3.py
+test/orm/inheritance4.py
 test/orm/lazytest1.py
 test/orm/manytomany.py
 test/orm/mapper.py

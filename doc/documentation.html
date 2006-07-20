@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >SQLAlchemy 0.2 Documentation</div>
-<div class="">Version: 0.2.5   Last Updated: 07/08/06 13:45:27</div>
+<div class="">Version: 0.2.6   Last Updated: 07/19/06 21:46:30</div>
 </div>
 
 
@@ -2089,6 +2089,17 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_ForeignKeyConstraint">Class ForeignKeyConstraint(Constraint)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
     <A href="#docstrings_sqlalchemy.schema_Index">Class Index(SchemaItem)</a>
     </div>
 
@@ -2112,6 +2123,17 @@
     
     <div class="smalltoclink">
     <A href="#docstrings_sqlalchemy.schema_PassiveDefault">Class PassiveDefault(DefaultGenerator)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">Class PrimaryKeyConstraint(Constraint)</a>
     </div>
 
     </div>
@@ -2562,7 +2584,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="#docstrings_sqlalchemy.mods.threadlocal_Objectstore">Class Objectstore(SessionContext)</a>
+    <A href="#docstrings_sqlalchemy.mods.threadlocal_Objectstore">Class Objectstore(object)</a>
     </div>
 
     </div>
@@ -3111,12 +3133,12 @@ Next: <a href="#dbengine">Database Engines</a>
 
 <p>Installing SQLAlchemy from scratch is most easily achieved with <a href="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</a>.  (<a href="http://peak.telecommunity.com/DevCenter/EasyInstall#installation-instructions">setuptools installation</a>). Just run this from the command-line:
 </p>
-<pre><code>$ easy_install SQLAlchemy
+<pre><code># easy_install SQLAlchemy
 </code></pre><p>This command will download the latest version of SQLAlchemy from the <a href="http://cheeseshop.python.org/pypi">Python Cheese Shop</a> and install it to your system.
 </p>
 <p>Otherwise, you can install from the distribution using the <code>setup.py</code> script:
 </p>
-<pre><code>$ python setup.py install
+<pre><code># python setup.py install
 </code></pre>
 
     </div>
@@ -4821,6 +4843,17 @@ Next: <a href="#sql">Constructing SQL Queries via Python Expressions</a>
     <A href="#metadata_tables_reflecting">Reflecting Tables</a>
     </div>
 
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#metadata_tables_reflecting_overriding">Overriding Reflected Columns</a>
+    </div>
+
+    </div>
+
+
     </div>
 
 
@@ -5019,6 +5052,28 @@ Next: <a href="#sql">Constructing SQL Queries via Python Expressions</a>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'pref_value'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">100</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 <p>The specific datatypes for each Column, such as Integer, String, etc. are described in <a href="#types" >The Types System</a>, and exist within the module <code>sqlalchemy.types</code> as well as the global <code>sqlalchemy</code> namespace.
+</p>
+<p>Foreign keys are most easily specified by the <code>ForeignKey</code> object within a <code>Column</code> object.  For a composite foreign key, i.e. a foreign key that contains multiple columns referencing multiple columns to a composite primary key, an explicit syntax is provided which allows the correct table CREATE statements to be generated:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_comment"># a table with a composite primary key
+</span><span class="python_name">invoices </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'invoices'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'invoice_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'ref_num'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'description'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">60</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># a table with a composite foreign key referencing the parent table
+</span><span class="python_name">invoice_items </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'invoice_items'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'item_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'item_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">60</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'invoice_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'ref_num'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'invoice_id'</span><span class="python_operator">, </span><span class="python_literal">'ref_num'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'invoices.invoice_id'</span><span class="python_operator">, </span><span class="python_literal">'invoices.ref_num'</span><span class="python_enclosure">])</span>
+<span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<p>Above, the <code>invoice_items</code> table will have <code>ForeignKey</code> objects automatically added to the <code>invoice_id</code> and <code>ref_num</code> <code>Column</code> objects as a result of the additional <code>ForeignKeyConstraint</code> object.
 </p>
 <p>The <code>MetaData</code> object supports some handy methods, such as getting a list of Tables in the order (or reverse) of their dependency:
 </p>
@@ -5245,11 +5300,43 @@ Next: <a href="#sql">Constructing SQL Queries via Python Expressions</a>
 </span><span class="python_literal">>>> </span><span class="python_name">othertable </span><span class="python_keyword">is </span><span class="python_name">news_articles</span><span class="python_operator">
 </span><span class="python_name">True</span><span class="python_operator"></span></pre></div>
 
+			
+
+    </div>
+
+        
+
+
+
+<A name="metadata_tables_reflecting_overriding"></a>
+
+<div class="subsection" style="margin-left:40px;">
+
+    <span class="sectionheadertext">Overriding Reflected Columns</span>
+    <div class="sectiontext">
+
+
+<p>Individual columns can be overridden with explicit values when reflecting tables; this is handy for specifying custom datatypes, constraints such as primary keys that may not be configured within the database, etc.
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_literal">>>> </span><span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'mytable'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+<span class="python_operator">... </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,   </span><span class="python_comment"># override reflected 'id' to have primary key</span>
+<span class="python_operator">... </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'mydata'</span><span class="python_operator">, </span><span class="python_name">Unicode</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">,    </span><span class="python_comment"># override reflected 'mydata' to be Unicode</span>
+<span class="python_operator">... </span><span class="python_name">autoload</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
 
     </div>
 
 
     <a href="#metadata" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
 
 
 </div>
@@ -5369,7 +5456,14 @@ Next: <a href="#sql">Constructing SQL Queries via Python Expressions</a>
 <div class="code">
 <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">DROP TABLE employees<br/>
   {}</div><pre><span class="python_operator"></span></pre></div>
-<p>Entire groups of Tables can be created and dropped directly from the <code>MetaData</code> object with <code>create_all()</code> and <code>drop_all()</code>, each of which take an optional <code>engine</code> keyword argument which can reference an <code>Engine</code> or a <code>Connection</code>, else the underlying bound <code>Engine</code> is used:
+<p>The <code>create()</code> and <code>drop()</code> methods also support an optional keyword argument <code>checkfirst</code> which will issue the database's appropriate pragma statements to check if the table exists before creating or dropping:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_operator">, </span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<p>Entire groups of Tables can be created and dropped directly from the <code>MetaData</code> object with <code>create_all()</code> and <code>drop_all()</code>.  These methods always check for the existence of each table before creating or dropping.  Each method takes an optional <code>engine</code> keyword argument which can reference an <code>Engine</code> or a <code>Connection</code>.  If no engine is specified, the underlying bound <code>Engine</code>,  if any, is used:
 </p>
 
 
@@ -5561,7 +5655,7 @@ Next: <a href="#sql">Constructing SQL Queries via Python Expressions</a>
 
 
 
-<p>A PassiveDefault indicates a column default or on-update value that is executed automatically by the database.  This construct is used to specify a SQL function that will be specified as "DEFAULT" when creating tables, and also to indicate the presence of new data that is available to be "post-fetched" after an insert or update execution.
+<p>A PassiveDefault indicates an column default that is executed upon INSERT by the database.  This construct is used to specify a SQL function that will be specified as "DEFAULT" when creating tables.
 </p>
 
 
@@ -5577,7 +5671,7 @@ Next: <a href="#sql">Constructing SQL Queries via Python Expressions</a>
 <pre>CREATE TABLE test (
     mycolumn datetime default sysdate
 )</pre></div>
-<p>PassiveDefaults also send a message to the <code>Engine</code> that data is available after update or insert.  The object-relational mapper system uses this information to post-fetch rows after insert or update, so that instances can be refreshed with the new data.  Below is a simplified version:
+<p>PassiveDefault also sends a message to the <code>Engine</code> that data is available after an insert.  The object-relational mapper system uses this information to post-fetch rows after the insert, so that instances can be refreshed with the new data.  Below is a simplified version:
 </p>
 
 
@@ -11033,8 +11127,23 @@ Next: <a href="#types">The Types System</a>
    <span class="python_comment"># on the table</span>
    <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span>
 <span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
-<p>In a later release, SQLAlchemy will also allow <code>_get_email</code> and <code>_set_email</code> to be attached directly to the "email" property created by the mapper, and 
-   will also allow this association to occur via decorators.
+<p>It is also possible to use the <code>select_by</code> and <code>get_by</code> functions on <code>Query</code> using the original property name, by establishing a <code>synonym</code>:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">proeprties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+    <span class="python_comment"># map the '_email' attribute to the "email" column</span>
+    <span class="python_comment"># on the table</span>
+    <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span>
+
+    <span class="python_comment"># make a synonym 'email'</span>
+    <span class="python_literal">'email' </span><span class="python_operator">: </span><span class="python_name">synonym</span><span class="python_enclosure">(</span><span class="python_literal">'_email'</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span>
+<span class="python_comment"># now you can select_by(email)
+</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'john@smith.com'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<p>The <code>synonym</code> keyword is currently an <a href="javascript:alphaApi()">Alpha Feature</a>.
 </p>
 
 
@@ -11716,22 +11825,22 @@ Next: <a href="#types">The Types System</a>
 
 <div class="sliding_code">
     <div class="codetitle">Multiple Table Inheritance, Non-polymorphic</div>
-<pre><span class="python_name">people </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'people'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
+<pre><span class="python_name">employees </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'employees'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'person_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'type'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">30</span><span class="python_enclosure">)))</span><span class="python_operator">
 </span>
 <span class="python_name">engineers </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'engineers'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
-   <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'person_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'people.person_id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+   <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'person_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'employees.person_id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'engineer_info'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
   <span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_name">managers </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'managers'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
-   <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'person_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'people.person_id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+   <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'person_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'employees.person_id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'manager_data'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
    <span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">person_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Person</span><span class="python_operator">, </span><span class="python_name">people</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">person_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_operator">, </span><span class="python_name">employees</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">, </span><span class="python_name">engineers</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">person_mapper</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Manager</span><span class="python_operator">, </span><span class="python_name">managers</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">person_mapper</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 <p>Polymorphic:
@@ -11742,12 +11851,12 @@ Next: <a href="#types">The Types System</a>
     <div class="codetitle">Multiple Table Inheritance, Polymorphic</div>
 <pre><span class="python_name">person_join </span><span class="python_operator">= </span><span class="python_name">polymorphic_union</span><span class="python_enclosure">(</span>
     <span class="python_enclosure">{</span>
-        <span class="python_literal">'engineer'</span><span class="python_operator">:</span><span class="python_name">people</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">engineers</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-        <span class="python_literal">'manager'</span><span class="python_operator">:</span><span class="python_name">people</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">managers</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-        <span class="python_literal">'person'</span><span class="python_operator">:</span><span class="python_name">people</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">people</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">type</span><span class="python_operator">==</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+        <span class="python_literal">'engineer'</span><span class="python_operator">:</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">engineers</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+        <span class="python_literal">'manager'</span><span class="python_operator">:</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">managers</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+        <span class="python_literal">'person'</span><span class="python_operator">:</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">type</span><span class="python_operator">==</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">None</span><span class="python_operator">, </span><span class="python_literal">'pjoin'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">person_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Person</span><span class="python_operator">, </span><span class="python_name">people</span><span class="python_operator">, </span><span class="python_name">select_table</span><span class="python_operator">=</span><span class="python_name">person_join</span><span class="python_operator">, </span><span class="python_name">polymorphic_on</span><span class="python_operator">=</span><span class="python_name">person_join</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">type</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">person_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_operator">, </span><span class="python_name">employees</span><span class="python_operator">, </span><span class="python_name">select_table</span><span class="python_operator">=</span><span class="python_name">person_join</span><span class="python_operator">, </span><span class="python_name">polymorphic_on</span><span class="python_operator">=</span><span class="python_name">person_join</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">type</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">, </span><span class="python_name">engineers</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">person_mapper</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'engineer'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Manager</span><span class="python_operator">, </span><span class="python_name">managers</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">person_mapper</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'manager'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 <p>The join condition in a multiple table inheritance relationship can be specified explicitly, using <code>inherit_condition</code>:
@@ -13847,6 +13956,17 @@ Previous: <a href="#plugins">Plugins</a>
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_ForeignKeyConstraint">Class ForeignKeyConstraint(Constraint)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
     <A href="#docstrings_sqlalchemy.schema_Index">Class Index(SchemaItem)</a>
     </div>
 
@@ -13870,6 +13990,17 @@ Previous: <a href="#plugins">Plugins</a>
     
     <div class="smalltoclink">
     <A href="#docstrings_sqlalchemy.schema_PassiveDefault">Class PassiveDefault(DefaultGenerator)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">Class PrimaryKeyConstraint(Constraint)</a>
     </div>
 
     </div>
@@ -14312,7 +14443,7 @@ Previous: <a href="#plugins">Plugins</a>
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="#docstrings_sqlalchemy.mods.threadlocal_Objectstore">Class Objectstore(SessionContext)</a>
+    <A href="#docstrings_sqlalchemy.mods.threadlocal_Objectstore">Class Objectstore(object)</a>
     </div>
 
     </div>
@@ -15876,38 +16007,6 @@ Previous: <a href="#plugins">Plugins</a>
 
     
         
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_c"></a>
-           <b>c = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
-
-    
-        
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_columns"></a>
-           <b>columns = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
-
-    
-        
         <tr>
     <td>
         <div class="darkcell">
@@ -15937,38 +16036,6 @@ Previous: <a href="#plugins">Plugins</a>
     </td>
     </tr>
 
-
-    
-        
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_foreign_keys"></a>
-           <b>foreign_keys = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
-
-    
-        
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_indexes"></a>
-           <b>indexes = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
 
     
         
@@ -16049,22 +16116,6 @@ Previous: <a href="#plugins">Plugins</a>
     </td>
     </tr>
 
-
-    
-        
-              <tr>
-       <td>
-           <div class="darkcell">
-           <A name="docstrings_sqlalchemy.sql_TableClause_primary_key"></a>
-           <b>primary_key = property()</b>
-           <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-           </div>
-       </td>
-       </tr>
-    
 
     
         
@@ -16225,6 +16276,18 @@ method by which other methods operate upon the schema.  The SQL package extends 
 
     <table cellspacing="0" cellpadding="0" width="100%">
     
+      
+        
+
+			
+
+
+      
+        
+
+			
+
+
       
         
 
@@ -16711,8 +16774,10 @@ method by which other methods operate upon the schema.  The SQL package extends 
 
 
 <p>
-    defines a ForeignKey constraint between two columns.  ForeignKey is 
-    specified as an argument to a Column object.
+    defines a column-level ForeignKey constraint between two columns.  </p>
+<p>ForeignKey is specified as an argument to a Column object.</p>
+<p>One or more ForeignKey objects are used within a ForeignKeyConstraint
+    object which represents the table-level constraint definition.
 </p>
 
 
@@ -16724,14 +16789,16 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_ForeignKey___init__"></a>
-        <b>def __init__(<i>self</i>, <i>column</i>)</b>
+        <b>def __init__(<i>self</i>, <i>column</i>, <i>constraint=None</i>)</b>
         <div class="docstring">
     <p>
-    Constructs a new ForeignKey object.  &quot;column&quot; can be a schema.Column
-        object representing the relationship, or just its string name given as 
-        &quot;tablename.columnname&quot;.  schema can be specified as 
-        &quot;schema.tablename.columnname&quot; 
-</p>
+    Construct a new ForeignKey object.  </p>
+<p>&quot;column&quot; can be a schema.Column object representing the relationship, 
+        or just its string name given as &quot;tablename.columnname&quot;.  schema can be 
+        specified as &quot;schema.tablename.columnname&quot; </p>
+<p>&quot;constraint&quot; is the owning ForeignKeyConstraint object, if any.  if not given,
+        then a ForeignKeyConstraint will be automatically created and added to the parent table.</p>
+<p></p>
     </div>
         </div>
     </td>
@@ -16780,7 +16847,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <b>def copy(<i>self</i>)</b>
         <div class="docstring">
     <p>
-    produces a copy of this ForeignKey object.
+    produce a copy of this ForeignKey object.
 </p>
     </div>
         </div>
@@ -16799,6 +16866,103 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <p>
     returns True if the given table is referenced by this ForeignKey.
 </p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ForeignKeyConstraint(Constraint)</span>
+    <div class="sectiontext">
+
+
+<p>
+    table-level foreign key constraint, represents a colleciton of ForeignKey objects.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint___init__"></a>
+        <b>def __init__(<i>self</i>, <i>columns</i>, <i>refcolumns</i>, <i>name=None</i>, <i>onupdate=None</i>, <i>ondelete=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint_accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint_append"></a>
+        <b>def append(<i>self</i>, <i>col</i>, <i>refcol</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint_copy"></a>
+        <b>def copy(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
     </div>
         </div>
     </td>
@@ -17136,6 +17300,102 @@ method by which other methods operate upon the schema.  The SQL package extends 
 
 
 
+<A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class PrimaryKeyConstraint(Constraint)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint___init__"></a>
+        <b>def __init__(<i>self</i>, <i>*columns</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint_accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint_append"></a>
+        <b>def append(<i>self</i>, <i>col</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint_copy"></a>
+        <b>def copy(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
 <A name="docstrings_sqlalchemy.schema_SchemaItem"></a>
 
 <div class="subsection" style="margin-left:30px;">
@@ -17289,6 +17549,22 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <tr>
     <td>
         <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_visit_foreign_key_constraint"></a>
+        <b>def visit_foreign_key_constraint(<i>self</i>, <i>constraint</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_SchemaVisitor_visit_index"></a>
         <b>def visit_index(<i>self</i>, <i>index</i>)</b>
         <div class="docstring">
@@ -17312,6 +17588,22 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <p>
     visit a passive default
 </p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_visit_primary_key_constraint"></a>
+        <b>def visit_primary_key_constraint(<i>self</i>, <i>constraint</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
     </div>
         </div>
     </td>
@@ -17363,6 +17655,22 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <p>
     visit a Table.
 </p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_visit_unique_constraint"></a>
+        <b>def visit_unique_constraint(<i>self</i>, <i>constraint</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
     </div>
         </div>
     </td>
@@ -17512,7 +17820,8 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <b>def __init__(<i>self</i>, <i>name</i>, <i>metadata</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
     <p>
-    Table objects can be constructed directly.  The init method is actually called via 
+    Construct a Table.</p>
+<p>Table objects can be constructed directly.  The init method is actually called via 
         the TableSingleton metaclass.  Arguments are:</p>
 <p>name : the name of this table, exactly as it appears, or will appear, in the database.
         This property, along with the &quot;schema&quot;, indicates the &quot;singleton identity&quot; of this table.
@@ -17531,6 +17840,8 @@ method by which other methods operate upon the schema.  The SQL package extends 
 <p>useexisting=False : indicates that if this Table was already defined elsewhere in the application, disregard
         the rest of the constructor arguments.  If this flag and the &quot;redefine&quot; flag are not set, constructing 
         the same table twice will result in an exception.</p>
+<p>owner=None : optional owning user of this table.  useful for databases such as Oracle to aid in table
+        reflection.</p>
 <p></p>
     </div>
         </div>
@@ -17628,7 +17939,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_Table_create"></a>
-        <b>def create(<i>self</i>, <i>connectable=None</i>)</b>
+        <b>def create(<i>self</i>, <i>connectable=None</i>, <i>checkfirst=False</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -17647,8 +17958,8 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <b>def deregister(<i>self</i>)</b>
         <div class="docstring">
     <p>
-    removes this table from it's metadata.  this does not
-        issue a SQL DROP statement.
+    remove this table from it's owning metadata.  </p>
+<p>this does not issue a SQL DROP statement.
 </p>
     </div>
         </div>
@@ -17662,7 +17973,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_Table_drop"></a>
-        <b>def drop(<i>self</i>, <i>connectable=None</i>)</b>
+        <b>def drop(<i>self</i>, <i>connectable=None</i>, <i>checkfirst=False</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -17677,19 +17988,32 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <tr>
     <td>
         <div class="darkcell">
-        <A name="docstrings_sqlalchemy.schema_Table_reload_values"></a>
-        <b>def reload_values(<i>self</i>, <i>*args</i>)</b>
+        <A name="docstrings_sqlalchemy.schema_Table_exists"></a>
+        <b>def exists(<i>self</i>, <i>engine=None</i>)</b>
         <div class="docstring">
-    <p>
-    clears out the columns and other properties of this Table, and reloads them from the 
-        given argument list.  This is used with the &quot;redefine&quot; keyword argument sent to the
-        metaclass constructor.
-</p>
+    <p></p>
+<p></p>
     </div>
         </div>
     </td>
     </tr>
 
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.schema_Table_primary_key"></a>
+           <b>primary_key = property()</b>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
 
     
         
@@ -17700,7 +18024,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
         <b>def tometadata(<i>self</i>, <i>metadata</i>, <i>schema=None</i>)</b>
         <div class="docstring">
     <p>
-    returns a singleton instance of this Table with a different Schema
+    return a copy of this Table associated with a different MetaData.
 </p>
     </div>
         </div>
@@ -20417,6 +20741,22 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <tr>
     <td>
         <div class="darkcell">
+        <A name="docstrings_sqlalchemy.orm_modfunc_synonym"></a>
+        <b>def synonym(<i>name</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm_modfunc_undefer"></a>
         <b>def undefer(<i>name</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
@@ -20525,7 +20865,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def base_mapper(<i>self</i>)</b>
         <div class="docstring">
     <p>
-    returns the ultimate base mapper in an inheritance chain
+    return the ultimate base mapper in an inheritance chain
 </p>
     </div>
         </div>
@@ -20555,7 +20895,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm_Mapper_cascade_iterator"></a>
-        <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>object</i>, <i>callable_=None</i>, <i>recursive=None</i>)</b>
+        <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>object</i>, <i>recursive=None</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -20817,6 +21157,23 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <p>
     returns True if this mapper handles the given instance.  this is dependent
         not only on class assignment but the optional &quot;entity_name&quot; parameter as well.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.orm_Mapper_isa"></a>
+        <b>def isa(<i>self</i>, <i>other</i>)</b>
+        <div class="docstring">
+    <p>
+    return True if the given mapper inherits from this mapper
 </p>
     </div>
         </div>
@@ -21175,22 +21532,6 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <tr>
     <td>
         <div class="darkcell">
-        <A name="docstrings_sqlalchemy.orm_MapperExtension___init__"></a>
-        <b>def __init__(<i>self</i>)</b>
-        <div class="docstring">
-    <p></p>
-<p></p>
-    </div>
-        </div>
-    </td>
-    </tr>
-
-
-    
-        
-        <tr>
-    <td>
-        <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm_MapperExtension_after_delete"></a>
         <b>def after_delete(<i>self</i>, <i>mapper</i>, <i>connection</i>, <i>instance</i>)</b>
         <div class="docstring">
@@ -21314,22 +21655,6 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <p>
     called before an object instnace is UPDATED
 </p>
-    </div>
-        </div>
-    </td>
-    </tr>
-
-
-    
-        
-        <tr>
-    <td>
-        <div class="darkcell">
-        <A name="docstrings_sqlalchemy.orm_MapperExtension_chain"></a>
-        <b>def chain(<i>self</i>, <i>ext</i>)</b>
-        <div class="docstring">
-    <p></p>
-<p></p>
     </div>
         </div>
     </td>
@@ -22384,10 +22709,10 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm.session_Session_expire"></a>
-        <b>def expire(<i>self</i>, <i>object</i>)</b>
+        <b>def expire(<i>self</i>, <i>obj</i>)</b>
         <div class="docstring">
     <p>
-    invalidates the data in the given object and sets them to refresh themselves
+    invalidate the data in the given object and sets them to refresh themselves
         the next time they are requested.
 </p>
     </div>
@@ -22405,7 +22730,9 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def expunge(<i>self</i>, <i>object</i>)</b>
         <div class="docstring">
     <p>
-    removes the given object from this Session.  this will free all internal references to the object.
+    remove the given object from this Session.  </p>
+<p>this will free all internal references to the object.  cascading will be applied according to the
+        'expunge' cascade rule.
 </p>
     </div>
         </div>
@@ -22422,8 +22749,9 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def flush(<i>self</i>, <i>objects=None</i>)</b>
         <div class="docstring">
     <p>
-    flushes all the object modifications present in this session to the database.  'objects'
-        is a list or tuple of objects specifically to be flushed.
+    flush all the object modifications present in this session to the database.  </p>
+<p>'objects' is a list or tuple of objects specifically to be flushed; if None, all
+        new and modified objects are flushed.
 </p>
     </div>
         </div>
@@ -22440,8 +22768,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def get(<i>self</i>, <i>class_</i>, <i>ident</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
     <p>
-    returns an instance of the object based on the given identifier, or None
-        if not found.  The ident argument is a scalar or tuple of primary key column values in the order of the 
+    return an instance of the object based on the given identifier, or None if not found.  </p>
+<p>The ident argument is a scalar or tuple of primary key column values in the order of the 
         table def's primary key columns.</p>
 <p>the entity_name keyword argument may also be specified which further qualifies the underlying
         Mapper used to perform the query.
@@ -22461,8 +22789,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def get_bind(<i>self</i>, <i>mapper</i>)</b>
         <div class="docstring">
     <p>
-    given a Mapper, returns the Engine or Connection which is used to execute statements on behalf of this 
-        Mapper.  Calling connect() on the return result will always result in a Connection object.  This method 
+    return the Engine or Connection which is used to execute statements on behalf of the given Mapper.</p>
+<p>Calling connect() on the return result will always result in a Connection object.  This method 
         disregards any SessionTransaction that may be in progress.</p>
 <p>The order of searching is as follows:</p>
 <p>if an Engine or Connection was bound to this Mapper specifically within this Session, returns that 
@@ -22535,7 +22863,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm.session_Session_is_expired"></a>
-        <b>def is_expired(<i>self</i>, <i>instance</i>, <i>**kwargs</i>)</b>
+        <b>def is_expired(<i>self</i>, <i>obj</i>, <i>unexpire=False</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -22554,8 +22882,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def load(<i>self</i>, <i>class_</i>, <i>ident</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
     <p>
-    returns an instance of the object based on the given identifier. If not found,
-        raises an exception.  The method will *remove all pending changes* to the object
+    return an instance of the object based on the given identifier. </p>
+<p>If not found, raises an exception.  The method will *remove all pending changes* to the object
         already existing in the Session.  The ident argument is a scalar or tuple of
         primary key columns in the order of the table def's primary key columns.</p>
 <p>the entity_name keyword argument may also be specified which further qualifies the underlying
@@ -22626,7 +22954,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <b>def query(<i>self</i>, <i>mapper_or_class</i>, <i>entity_name=None</i>)</b>
         <div class="docstring">
     <p>
-    given a mapper or Class, returns a new Query object corresponding to this Session and the mapper, or the classes' primary mapper.
+    return a new Query object corresponding to this Session and the mapper, or the classes' primary mapper.
 </p>
     </div>
         </div>
@@ -22640,11 +22968,10 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm.session_Session_refresh"></a>
-        <b>def refresh(<i>self</i>, <i>object</i>)</b>
+        <b>def refresh(<i>self</i>, <i>obj</i>)</b>
         <div class="docstring">
     <p>
-    reloads the attributes for the given object from the database, clears
-        any changes made.
+    reload the attributes for the given object from the database, clear any changes made.
 </p>
     </div>
         </div>
@@ -23213,6 +23540,22 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.pool_Pool_connect"></a>
         <b>def connect(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_dispose"></a>
+        <b>def dispose(<i>self</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -24045,7 +24388,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Class Objectstore(SessionContext)</span>
+    <span class="sectionheadertext">Class Objectstore(object)</span>
     <div class="sectiontext">
 
 
@@ -24060,8 +24403,8 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <tr>
     <td>
         <div class="darkcell">
-        <A name="docstrings_sqlalchemy.mods.threadlocal_Objectstore_get_session"></a>
-        <b>def get_session(<i>self</i>)</b>
+        <A name="docstrings_sqlalchemy.mods.threadlocal_Objectstore___init__"></a>
+        <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -24070,6 +24413,22 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     </td>
     </tr>
 
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.mods.threadlocal_Objectstore_session"></a>
+           <b>session = property()</b>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
 
 
     </table>
@@ -24590,6 +24949,28 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
 <p>
     something weird happened with a particular DBAPI version
 </p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.exceptions_DBAPIError___init__"></a>
+        <b>def __init__(<i>self</i>, <i>message</i>, <i>orig</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
 
 
 

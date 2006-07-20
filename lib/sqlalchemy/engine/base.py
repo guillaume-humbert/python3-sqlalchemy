@@ -231,11 +231,15 @@ class Connection(Connectable):
         self.__connection = None
         del self.__connection
     def scalar(self, object, parameters=None, **kwargs):
-        row = self.execute(object, parameters, **kwargs).fetchone()
-        if row is not None:
-            return row[0]
-        else:
-            return None
+        result = self.execute(object, parameters, **kwargs)
+        row = result.fetchone()
+        try:
+            if row is not None:
+                return row[0]
+            else:
+                return None
+        finally:
+            result.close()
     def execute(self, object, *multiparams, **params):
         return Connection.executors[type(object).__mro__[-2]](self, object, *multiparams, **params)
     def execute_default(self, default, **kwargs):
@@ -416,7 +420,7 @@ class ComposedSQLEngine(sql.Engine, Connectable):
         else:
             conn = connection
         try:
-            element.accept_schema_visitor(visitorcallable(self, conn.proxy, **kwargs))
+            element.accept_schema_visitor(visitorcallable(self, conn.proxy, connection=conn, **kwargs))
         finally:
             if connection is None:
                 conn.close()
