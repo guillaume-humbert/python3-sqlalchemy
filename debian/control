@@ -13,7 +13,7 @@ Depends: ${python:Depends}
 Provides: ${python:Provides}
 Conflicts: python2.3-sqlalchemy (<<0.2.3-0.1), python2.4-sqlalchemy (<<0.2.3-0.1)
 Replaces: python2.3-sqlalchemy (<<0.2.3-0.1), python2.4-sqlalchemy (<<0.2.3-0.1)
-Suggests: python-psycopg (>=1.1.21-6), python-mysqldb (>=1.2.1-p2-2), python-pysqlite2 (>=2.3.0-1), python-pysqlite1.1 (>=1.1.7-2), python-sqlite (>=1.0.1-5), python-kinterbasdb (>=3.1.2-0.3)
+Suggests: python-psycopg2 | python-psycopg (>=1.1.21-6), python-mysqldb (>=1.2.1-p2-2), python-pysqlite2 (>=2.3.0-1), python-pysqlite1.1 (>=1.1.7-2), python-sqlite (>=1.0.1-5), python-kinterbasdb (>=3.1.2-0.3)
 XB-Python-Version: ${python:Versions}
 Description: SQL toolkit and Object Relational Mapper for Python
  SQLAlchemy is an SQL database abstraction library for Python.

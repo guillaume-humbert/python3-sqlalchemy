@@ -115,28 +115,19 @@ class MSText(sqltypes.TEXT):
         super(MSText, self).__init__()
     def get_col_spec(self):
         return "TEXT"
-class MSTinyText(sqltypes.TEXT):
-    def __init__(self, **kw):
-        self.binary = 'binary' in kw
-        super(MSTinyText, self).__init__()
+class MSTinyText(MSText):
     def get_col_spec(self):
         if self.binary:
             return "TEXT BINARY"
         else:
            return "TEXT"
-class MSMediumText(sqltypes.TEXT):
-    def __init__(self, **kw):
-        self.binary = 'binary' in kw
-        super(MSMediumText, self).__init__()
+class MSMediumText(MSText):
     def get_col_spec(self):
         if self.binary:
             return "MEDIUMTEXT BINARY"
         else:
             return "MEDIUMTEXT"
-class MSLongText(sqltypes.TEXT):
-    def __init__(self, **kw):
-        self.binary = 'binary' in kw
-        super(MSLongText, self).__init__()
+class MSLongText(MSText):
     def get_col_spec(self):
         if self.binary:
             return "LONGTEXT BINARY"
@@ -215,6 +206,7 @@ colspecs = {
 ischema_names = {
     'bigint' : MSBigInteger,
     'int' : MSInteger,
+    'mediumint' : MSInteger,
     'smallint' : MSSmallInteger,
     'tinyint' : MSSmallInteger, 
     'varchar' : MSString,
@@ -265,6 +257,18 @@ class MySQLDialect(ansisql.ANSIDialect):
 
     def create_connect_args(self, url):
         opts = url.translate_connect_args(['host', 'db', 'user', 'passwd', 'port'])
+        opts.update(url.query)
+        def coercetype(param, type):
+            if param in opts and type(param) is not type:
+                if type is bool:
+                    opts[param] = bool(int(opts[param]))
+                else:
+                    opts[param] = type(opts[param])
+        coercetype('compress', bool)
+        coercetype('connect_timeout', int)
+        coercetype('use_unicode', bool)   # this could break SA Unicode type
+        coercetype('charset', str)        # this could break SA Unicode type
+        # TODO: what about options like "ssl", "cursorclass" and "conv" ?
         return [[], opts]
 
     def create_execution_context(self):
@@ -284,6 +288,16 @@ class MySQLDialect(ansisql.ANSIDialect):
 
     def schemadropper(self, *args, **kwargs):
         return MySQLSchemaDropper(*args, **kwargs)
+
+    def preparer(self):
+        return MySQLIdentifierPreparer()
+
+    def do_rollback(self, connection):
+        # some versions of MySQL just dont support rollback() at all....
+        try:
+            connection.rollback()
+        except:
+            pass
 
     def get_default_schema_name(self):
         if not hasattr(self, '_default_schema_name'):
@@ -335,11 +349,13 @@ class MySQLDialect(ansisql.ANSIDialect):
                 else:
                     argslist = re.findall(r'(\d+)', args)
                     coltype = coltype(*[int(a) for a in argslist], **kw)
-            
-            table.append_item(schema.Column(name, coltype, 
+
+            colargs= []
+            if default:
+                colargs.append(schema.PassiveDefault(sql.text(default)))
+            table.append_item(schema.Column(name, coltype, *colargs, 
                                             **dict(primary_key=primary_key,
                                                    nullable=nullable,
-                                                   default=default
                                                    )))
 
         tabletype = self.moretableinfo(connection, table=table)
@@ -358,7 +374,12 @@ class MySQLDialect(ansisql.ANSIDialect):
         CONSTRAINT `child_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `parent` (`id`) ON DELETE CASCADE\n) TYPE=InnoDB
         """
         c = connection.execute("SHOW CREATE TABLE " + table.name, {})
-        desc = c.fetchone()[1].strip()
+        desc_fetched = c.fetchone()[1]
+        if type(desc_fetched) is not str:
+            # may get array.array object here, depending on version (such as mysql 4.1.14 vs. 4.1.11)
+            desc_fetched = desc_fetched.tostring()
+        desc = desc_fetched.strip()
+
         tabletype = ''
         lastparen = re.search(r'\)[^\)]*\Z', desc)
         if lastparen:
@@ -370,6 +391,7 @@ class MySQLDialect(ansisql.ANSIDialect):
         for match in re.finditer(fkpat, desc):
             columns = re.findall(r'`(.+?)`', match.group('columns'))
             refcols = [match.group('reftable') + "." + x for x in re.findall(r'`(.+?)`', match.group('refcols'))]
+            schema.Table(match.group('reftable'), table.metadata, autoload=True, autoload_with=connection)
             constraint = schema.ForeignKeyConstraint(columns, refcols, name=match.group('name'))
             table.append_item(constraint)
 
@@ -400,7 +422,8 @@ class MySQLCompiler(ansisql.ANSICompiler):
         
 class MySQLSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, override_pk=False, first_pk=False):
-        colspec = column.name + " " + column.type.engine_impl(self.engine).get_col_spec()
+        t = column.type.engine_impl(self.engine)
+        colspec = self.preparer.format_column(column) + " " + column.type.engine_impl(self.engine).get_col_spec()
         default = self.get_column_default_string(column)
         if default is not None:
             colspec += " DEFAULT " + default
@@ -423,5 +446,15 @@ class MySQLSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX " + index.name + " ON " + index.table.name)
         self.execute()
+
+class MySQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
+    def __init__(self):
+        super(MySQLIdentifierPreparer, self).__init__(initial_quote='`')
+    def _escape_identifier(self, value):
+        #TODO: determin MySQL's escaping rules
+        return value
+    def _fold_identifier_case(self, value):
+        #TODO: determin MySQL's case folding rules
+        return value
 
 dialect = MySQLDialect

@@ -102,9 +102,9 @@ class Pool(object):
         self._purge_for_threadlocal()
         self.do_return_conn(agent.connection)
 
-    def return_invalid(self):
+    def return_invalid(self, agent):
         self._purge_for_threadlocal()
-        self.do_return_invalid()
+        self.do_return_invalid(agent.connection)
         
     def get(self):
         return self.do_get()
@@ -115,7 +115,7 @@ class Pool(object):
     def do_return_conn(self, conn):
         raise NotImplementedError()
         
-    def do_return_invalid(self):
+    def do_return_invalid(self, conn):
         raise NotImplementedError()
         
     def status(self):
@@ -141,7 +141,7 @@ class ConnectionFairy(object):
                 self.connection = pool.get()
             except:
                 self.connection = None
-                self.pool.return_invalid()
+                self.pool.return_invalid(self)
                 raise
         if self.pool.echo:
             self.pool.log("Connection %s checked out from pool" % repr(self.connection))
@@ -149,7 +149,7 @@ class ConnectionFairy(object):
         if self.pool.echo:
             self.pool.log("Invalidate connection %s" % repr(self.connection))
         self.connection = None
-        self.pool.return_invalid()
+        self.pool.return_invalid(self)
     def cursor(self, *args, **kwargs):
         return CursorFairy(self, self.connection.cursor(*args, **kwargs))
     def __getattr__(self, key):
@@ -169,7 +169,11 @@ class ConnectionFairy(object):
         if self.connection is not None:
             if self.pool.echo:
                 self.pool.log("Connection %s being returned to pool" % repr(self.connection))
-            self.connection.rollback()
+            try:
+                self.connection.rollback()
+            except:
+                # damn mysql -- (todo look for NotSupportedError)
+                pass
             self.pool.return_conn(self)
             self.pool = None
             self.connection = None
@@ -184,10 +188,11 @@ class CursorFairy(object):
 class SingletonThreadPool(Pool):
     """Maintains one connection per each thread, never moving to another thread.  this is
     used for SQLite."""
-    def __init__(self, creator, **params):
+    def __init__(self, creator, pool_size=5, **params):
         Pool.__init__(self, **params)
         self._conns = {}
         self._creator = creator
+        self.size = pool_size
 
     def dispose(self):
         for key, conn in self._conns.items():
@@ -197,14 +202,29 @@ class SingletonThreadPool(Pool):
                 # sqlite won't even let you close a conn from a thread that didn't create it
                 pass
             del self._conns[key]
-            
+    
+    def dispose_local(self):
+        try:
+            del self._conns[thread.get_ident()]
+        except KeyError:
+            pass
+    
+    def cleanup(self):
+        for key in self._conns.keys():
+            try:
+                del self._conns[key]
+            except KeyError:
+                pass
+            if len(self._conns) <= self.size:
+                return
+                                    
     def status(self):
         return "SingletonThreadPool id:%d thread:%d size: %d" % (id(self), thread.get_ident(), len(self._conns))
 
     def do_return_conn(self, conn):
         pass
         
-    def do_return_invalid(self):
+    def do_return_invalid(self, conn):
         try:
             del self._conns[thread.get_ident()]
         except KeyError:
@@ -216,6 +236,8 @@ class SingletonThreadPool(Pool):
         except KeyError:
             c = self._creator()
             self._conns[thread.get_ident()] = c
+            if len(self._conns) > self.size:
+                self.cleanup()
             return c
     
 class QueuePool(Pool):
@@ -235,8 +257,9 @@ class QueuePool(Pool):
         except Queue.Full:
             self._overflow -= 1
 
-    def do_return_invalid(self):
-        self._overflow -= 1
+    def do_return_invalid(self, conn):
+        if conn is not None:
+            self._overflow -= 1
         
     def do_get(self):
         try:

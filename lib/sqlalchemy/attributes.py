@@ -34,13 +34,13 @@ class InstrumentedAttribute(object):
     def hasparent(self, item):
         """returns True if the given item is attached to a parent object 
         via the attribute represented by this InstrumentedAttribute."""
-        return item._state.get(('hasparent', self))
+        return item._state.get(('hasparent', id(self)))
         
     def sethasparent(self, item, value):
         """sets a boolean flag on the given item corresponding to whether or not it is
         attached to a parent object via the attribute represented by this InstrumentedAttribute."""
         if item is not None:
-            item._state[('hasparent', self)] = value
+            item._state[('hasparent', id(self))] = value
 
     def get_history(self, obj, passive=False):
         """return a new AttributeHistory object for the given object/this attribute's key.
@@ -300,14 +300,16 @@ class InstrumentedList(object):
         self[:] = []
         
     def __getstate__(self):
-        """implemented to allow pickling, since __obj is a weakref."""
-        return {'key':self.key, 'obj':self.obj, 'data':self.data, 'attr':self.attr}
+        """implemented to allow pickling, since __obj is a weakref, also the InstrumentedAttribute has callables
+        attached to it"""
+        return {'key':self.key, 'obj':self.obj, 'data':self.data}
     def __setstate__(self, d):
-        """implemented to allow pickling, since __obj is a weakref."""
+        """implemented to allow pickling, since __obj is a weakref, also the InstrumentedAttribute has callables
+        attached to it"""
         self.key = d['key']
         self.__obj = weakref.ref(d['obj'])
         self.data = d['data']
-        self.attr = d['attr']
+        self.attr = getattr(d['obj'].__class__, self.key)
         
     obj = property(lambda s:s.__obj())
 
@@ -573,7 +575,7 @@ class AttributeManager(object):
         if not isinstance(class_, type):
             raise repr(class_) + " is not a type"
         for key in dir(class_):
-            value = getattr(class_, key)
+            value = getattr(class_, key, None)
             if isinstance(value, InstrumentedAttribute):
                 yield value
                 

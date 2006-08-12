@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >Database Meta Data</div>
-<div class="">Version: 0.2.6   Last Updated: 07/19/06 21:46:30</div>
+<div class="">Version: 0.2.7   Last Updated: 08/12/06 18:15:53</div>
 </div>
 
 
@@ -119,6 +119,28 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
     
     <div class="smalltoclink">
     <A href="#metadata_tables_schema">Specifying the Schema Name</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#metadata_tables_onupdate">ON UPDATE and ON DELETE</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#metadata_tables_quoting">Enabling Table / Column Quoting</a>
     </div>
 
     </div>
@@ -406,6 +428,10 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 			
 
+			
+
+			
+
     </div>
 
         
@@ -637,6 +663,83 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 
 
+<A name="metadata_tables_onupdate"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">ON UPDATE and ON DELETE</span>
+    <div class="sectiontext">
+
+
+
+<p> <code>ON UPDATE</code> and <code>ON DELETE</code> clauses to a table create are specified within the <code>ForeignKeyConstraint</code> object, using the <code>on_update</code> and <code>on_delete</code> keyword arguments:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">foobar </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'foobar'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'lala'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">40</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'lala'</span><span class="python_enclosure">]</span><span class="python_operator">,</span><span class="python_enclosure">[</span><span class="python_literal">'hoho.lala'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">on_update</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_operator">, </span><span class="python_name">on_delete</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#metadata" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="metadata_tables_quoting"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Enabling Table / Column Quoting</span>
+    <div class="sectiontext">
+
+
+
+<p>Many table, schema, or column names require quoting to be enabled.  Reasons for this include names that are the same as a database reserved word, or for identifiers that use MixedCase, where the database would normally "fold" the case convention into lower or uppercase (such as Postgres).  SQLAlchemy currently has no internal logic to automatically determine when quoting should be used; so its off unless explicitly enabled for a particular column or table.  Turning on quoting for a column or table identifier is performed manually by the <code>quote=True</code> flag on <code>Column</code> or <code>Table</code>, as well as the <code>quote_schema=True</code> flag for <code>Table</code>. 
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">table2 </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'WorstCase2'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
+    <span class="python_comment"># desc is a reserved word so quote this column</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'desc'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+
+    <span class="python_comment"># MixedCase uses a mixed case convention, so quote this column</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'MixedCase'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+
+    <span class="python_comment"># Union is both a reserved word and mixed case</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'Union'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+
+    <span class="python_comment"># normal_column doesnt require quoting</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'normal_column'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">30</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+
+    <span class="python_comment"># the table name uses mixed case, so turn on quoting for the table ident</span>
+    <span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#metadata" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
 <A name="metadata_tables_options"></a>
 
 <div class="subsection" style="margin-left:30px;">
@@ -709,14 +812,14 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 
 <div class="code">
-<pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">DROP TABLE employees<br/>
+<pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">connectable</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">DROP TABLE employees<br/>
   {}</div><pre><span class="python_operator"></span></pre></div>
 <p>The <code>create()</code> and <code>drop()</code> methods also support an optional keyword argument <code>checkfirst</code> which will issue the database's appropriate pragma statements to check if the table exists before creating or dropping:
 </p>
 
 
 <div class="sliding_code">
-<pre><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_operator">, </span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+<pre><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">(</span><span class="python_name">connectable</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_operator">, </span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 <p>Entire groups of Tables can be created and dropped directly from the <code>MetaData</code> object with <code>create_all()</code> and <code>drop_all()</code>.  These methods always check for the existence of each table before creating or dropping.  Each method takes an optional <code>engine</code> keyword argument which can reference an <code>Engine</code> or a <code>Connection</code>.  If no engine is specified, the underlying bound <code>Engine</code>,  if any, is used:
 </p>
@@ -741,7 +844,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'pref_value'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">100</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">PRAGMA table_info(users){}<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">connectable</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">PRAGMA table_info(users){}<br/>
   CREATE TABLE users(<br/>
           user_id INTEGER NOT NULL PRIMARY KEY, <br/>
           user_name VARCHAR(16) NOT NULL, <br/>
@@ -937,9 +1040,6 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
     <span class="python_comment"># an on-insert database-side default</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'data1'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_literal">"d1_func"</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
-
-    <span class="python_comment"># an on-update database-side default</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'data2'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_literal">"d2_func"</span><span class="python_operator">, </span><span class="python_name">for_update</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_comment"># insert a row
 </span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator">

@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >Connection Pooling</div>
-<div class="">Version: 0.2.6   Last Updated: 07/19/06 21:46:30</div>
+<div class="">Version: 0.2.7   Last Updated: 08/12/06 18:15:53</div>
 </div>
 
 
@@ -196,7 +196,7 @@ Next: <a href="plugins.html">Plugins</a>
  </li>
 
  <li>
-     pool_size=5 : used by <code>QueuePool</code> - the size of the pool to be maintained.  This is the largest number of connections that will be kept persistently in the pool.  Note that the pool begins with no connections; once this number of connections is requested, that number of connections will remain.
+     pool_size=5 : used by <code>QueuePool</code> as well as <code>SingletonThreadPool</code> as of 0.2.7 - the size of the pool to be maintained.  This is the largest number of connections that will be kept persistently in the pool.  Note that the pool begins with no connections; once this number of connections is requested, that number of connections will remain.
  </li>
 
  <li>

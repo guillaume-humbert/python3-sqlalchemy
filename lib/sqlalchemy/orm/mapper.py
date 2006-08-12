@@ -52,7 +52,8 @@ class Mapper(object):
                 polymorphic_map=None,
                 polymorphic_identity=None,
                 concrete=False,
-                select_table=None):
+                select_table=None,
+                allow_null_pks=False):
 
         if not issubclass(class_, object):
             raise exceptions.ArgumentError("Class '%s' is not a new-style class" % class_.__name__)
@@ -84,6 +85,7 @@ class Mapper(object):
         self.extension = extension
         self.properties = properties or {}
         self.allow_column_override = allow_column_override
+        self.allow_null_pks = allow_null_pks
         
         # a Column which is used during a select operation to retrieve the 
         # "polymorphic identity" of the row, which indicates which Mapper should be used
@@ -226,7 +228,7 @@ class Mapper(object):
                 self.inherits = class_mapper(self.inherits, compile=False)._do_compile()
             else:
                 self.inherits = self.inherits._do_compile()
-            if self.class_.__mro__[1] != self.inherits.class_:
+            if not issubclass(self.class_, self.inherits.class_):
                 raise exceptions.ArgumentError("Class '%s' does not inherit from '%s'" % (self.class_.__name__, self.inherits.class_.__name__))
             # inherit_condition is optional.
             if self.local_table is None:
@@ -472,6 +474,10 @@ class Mapper(object):
         else:
             return self
     
+    def common_parent(self, other):
+        """return true if the given mapper shares a common inherited parent as this mapper"""
+        return self.base_mapper() is other.base_mapper()
+        
     def isa(self, other):
         """return True if the given mapper inherits from this mapper"""
         m = other
@@ -819,6 +825,9 @@ class Mapper(object):
 
             if len(insert):
                 statement = table.insert()
+                def comparator(a, b):
+                    return cmp(a[0]._sa_insert_order, b[0]._sa_insert_order)
+                insert.sort(comparator)
                 for rec in insert:
                     (obj, params) = rec
                     c = connection.execute(statement, params)
@@ -981,11 +990,21 @@ class Mapper(object):
         # look in result-local identitymap for it.
         exists = imap.has_key(identitykey)      
         if not exists:
-            # check if primary key cols in the result are None - this indicates 
-            # an instance of the object is not present in the row
-            for col in self.pks_by_table[self.mapped_table]:
-                if row[col] is None:
+            if self.allow_null_pks:
+                # check if *all* primary key cols in the result are None - this indicates 
+                # an instance of the object is not present in the row.  
+                for col in self.pks_by_table[self.mapped_table]:
+                    if row[col] is not None:
+                        break
+                else:
                     return None
+            else:
+                # otherwise, check if *any* primary key cols in the result are None - this indicates 
+                # an instance of the object is not present in the row.  
+                for col in self.pks_by_table[self.mapped_table]:
+                    if row[col] is None:
+                        return None
+            
             # plugin point
             instance = self.extension.create_instance(self, session, row, imap, self.class_)
             if instance is EXT_PASS:

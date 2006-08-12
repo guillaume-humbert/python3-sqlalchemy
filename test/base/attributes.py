@@ -6,6 +6,7 @@ import pickle
 
 
 class MyTest(object):pass
+class MyTest2(object):pass
     
 class AttributesTest(PersistTest):
     """tests for the attributes.py module, which deals with tracking attribute changes on an object."""
@@ -43,7 +44,15 @@ class AttributesTest(PersistTest):
         manager.register_attribute(MyTest, 'user_id', uselist = False)
         manager.register_attribute(MyTest, 'user_name', uselist = False)
         manager.register_attribute(MyTest, 'email_address', uselist = False)
+        manager.register_attribute(MyTest2, 'a', uselist = False)
+        manager.register_attribute(MyTest2, 'b', uselist = False)
+        # shouldnt be pickling callables at the class level
+        def somecallable(*args):
+            return None
+        manager.register_attribute(MyTest, 'mt2', uselist = True, trackparent=True, callable_=somecallable)
         x = MyTest()
+        x.mt2.append(MyTest2())
+        
         x.user_id=7
         s = pickle.dumps(x)
         x2 = pickle.loads(s)
@@ -251,6 +260,21 @@ class AttributesTest(PersistTest):
         
         b2.element = None
         assert not manager.get_history(b2, 'element').hasparent(f2)
+
+    def testdescriptorattributes(self):
+        """changeset: 1633 broke ability to use ORM to map classes with unusual
+        descriptor attributes (for example, classes that inherit from ones
+        implementing zope.interface.Interface).
+        This is a simple regression test to prevent that defect.
+        """
+        class des(object):
+            def __get__(self, instance, owner): raise AttributeError('fake attribute')
+
+        class Foo(object):
+            A = des()
+
+        manager = attributes.AttributeManager()
+        manager.reset_class_managed(Foo)
         
 if __name__ == "__main__":
     unittest.main()

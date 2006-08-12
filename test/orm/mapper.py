@@ -101,6 +101,21 @@ class MapperTest(MapperSuperTest):
         finally:
             table.drop()
 
+    def testpropconflict(self):
+        """test that a backref created against an existing mapper with a property name
+        conflict raises a decent error message"""
+        mapper(Address, addresses)
+        mapper(User, users,
+            properties={
+            'addresses':relation(Address, backref='email_address')
+        })
+        try:
+            class_mapper(Address)
+            class_mapper(User)
+            assert False
+        except exceptions.ArgumentError:
+            pass
+        
     def testrefresh(self):
         mapper(User, users, properties={'addresses':relation(mapper(Address, addresses))})
         s = create_session()
@@ -255,6 +270,13 @@ class MapperTest(MapperSuperTest):
         })
         q = create_session().query(m)
         q.select_by(email_address='foo')
+        
+    def testjoinbyfk(self):
+        class UserWithAddress(object):
+			pass
+        j = join(users, addresses, isouter=True)
+        m = mapper(UserWithAddress, j, allow_null_pks=True)
+        q = create_session().query(m)
         
     def testjoinvia(self):
         m = mapper(User, users, properties={

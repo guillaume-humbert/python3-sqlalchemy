@@ -7,7 +7,7 @@
 
 import sys, StringIO, string, types, re
 
-from sqlalchemy import sql, engine, schema, ansisql, exceptions, pool
+from sqlalchemy import sql, engine, schema, ansisql, exceptions, pool, PassiveDefault
 import sqlalchemy.engine.default as default
 import sqlalchemy.types as sqltypes
 import datetime,time
@@ -31,9 +31,7 @@ class SLInteger(sqltypes.Integer):
 class SLSmallInteger(sqltypes.Smallinteger):
     def get_col_spec(self):
         return "SMALLINT"
-class SLDateTime(sqltypes.DateTime):
-    def get_col_spec(self):
-        return "TIMESTAMP"
+class DateTimeMixin(object):
     def convert_bind_param(self, value, dialect):
         if value is not None:
             return str(value)
@@ -49,16 +47,20 @@ class SLDateTime(sqltypes.DateTime):
         except ValueError:
             (value, microsecond) = (value, 0)
         return time.strptime(value, fmt)[0:6] + (microsecond,)
+    
+class SLDateTime(sqltypes.DateTime, DateTimeMixin):
+    def get_col_spec(self):
+        return "TIMESTAMP"
     def convert_result_value(self, value, dialect):
         tup = self._cvt(value, dialect, "%Y-%m-%d %H:%M:%S")
         return tup and datetime.datetime(*tup)
-class SLDate(SLDateTime):
+class SLDate(sqltypes.Date, DateTimeMixin):
     def get_col_spec(self):
         return "DATE"
     def convert_result_value(self, value, dialect):
         tup = self._cvt(value, dialect, "%Y-%m-%d")
         return tup and datetime.date(*tup[0:3])
-class SLTime(SLDateTime):
+class SLTime(sqltypes.Time, DateTimeMixin):
     def get_col_spec(self):
         return "TIME"
     def convert_result_value(self, value, dialect):
@@ -139,16 +141,18 @@ class SQLiteDialect(ansisql.ANSIDialect):
         return SQLiteCompiler(self, statement, bindparams, **kwargs)
     def schemagenerator(self, *args, **kwargs):
         return SQLiteSchemaGenerator(*args, **kwargs)
+    def preparer(self):
+        return SQLiteIdentifierPreparer()
     def create_connect_args(self, url):
         filename = url.database or ':memory:'
-        return ([filename], {})
+        return ([filename], url.query)
     def type_descriptor(self, typeobj):
         return sqltypes.adapt_type(typeobj, colspecs)
     def create_execution_context(self):
         return SQLiteExecutionContext(self)
     def last_inserted_ids(self):
         return self.context.last_inserted_ids
-
+    
     def oid_column_name(self):
         return "oid"
 
@@ -178,7 +182,7 @@ class SQLiteDialect(ansisql.ANSIDialect):
                 break
             #print "row! " + repr(row)
             found_table = True
-            (name, type, nullable, primary_key) = (row[1], row[2].upper(), not row[3], row[5])
+            (name, type, nullable, has_default, primary_key) = (row[1], row[2].upper(), not row[3], row[4] is not None, row[5])
             
             match = re.match(r'(\w+)(\(.*?\))?', type)
             coltype = match.group(1)
@@ -190,22 +194,40 @@ class SQLiteDialect(ansisql.ANSIDialect):
                 args = re.findall(r'(\d+)', args)
                 #print "args! " +repr(args)
                 coltype = coltype(*[int(a) for a in args])
-            table.append_item(schema.Column(name, coltype, primary_key = primary_key, nullable = nullable))
+
+            colargs= []
+            if has_default:
+                colargs.append(PassiveDefault('?'))
+            table.append_item(schema.Column(name, coltype, primary_key = primary_key, nullable = nullable, *colargs))
         
         if not found_table:
             raise exceptions.NoSuchTableError(table.name)
         
         c = connection.execute("PRAGMA foreign_key_list(" + table.name + ")", {})
+        fks = {}
         while True:
             row = c.fetchone()
             if row is None:
                 break
-            (tablename, localcol, remotecol) = (row[2], row[3], row[4])
-            #print "row! " + repr(row)
+            (constraint_name, tablename, localcol, remotecol) = (row[0], row[2], row[3], row[4])
+            try:
+                fk = fks[constraint_name]
+            except KeyError:
+                fk = ([],[])
+                fks[constraint_name] = fk
+            
+            #print "row! " + repr([key for key in row.keys()]), repr(row)
             # look up the table based on the given table's engine, not 'self',
             # since it could be a ProxyEngine
             remotetable = schema.Table(tablename, table.metadata, autoload=True, autoload_with=connection)
-            table.c[localcol].append_item(schema.ForeignKey(remotetable.c[remotecol]))
+            constrained_column = table.c[localcol].name
+            refspec = ".".join([tablename, remotecol])
+            if constrained_column not in fk[0]:
+                fk[0].append(constrained_column)
+            if refspec not in fk[1]:
+                fk[1].append(refspec)
+        for name, value in fks.iteritems():
+            table.append_item(schema.ForeignKeyConstraint(value[0], value[1]))    
         # check for UNIQUE indexes
         c = connection.execute("PRAGMA index_list(" + table.name + ")", {})
         unique_indexes = []
@@ -258,7 +280,7 @@ class SQLiteCompiler(ansisql.ANSICompiler):
 
 class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, **kwargs):
-        colspec = column.name + " " + column.type.engine_impl(self.engine).get_col_spec()
+        colspec = self.preparer.format_column(column) + " " + column.type.engine_impl(self.engine).get_col_spec()
         default = self.get_column_default_string(column)
         if default is not None:
             colspec += " DEFAULT " + default
@@ -276,6 +298,10 @@ class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
     #        self.append("\tUNIQUE (%s)" % string.join([c.name for c in constraint],', '))
     #    else:
     #        super(SQLiteSchemaGenerator, self).visit_primary_key_constraint(constraint)
-            
+
+class SQLiteIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
+    def __init__(self):
+        super(SQLiteIdentifierPreparer, self).__init__(omit_schema=True)
+
 dialect = SQLiteDialect
 poolclass = pool.SingletonThreadPool       
