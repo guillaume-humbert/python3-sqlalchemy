@@ -106,9 +106,10 @@ class UnitOfWork(object):
             pass
 
     def _validate_obj(self, obj):
-        if hasattr(obj, '_instance_key') and not self.identity_map.has_key(obj._instance_key):
-            raise InvalidRequestError("Instance '%s' is not attached or pending within this session" % repr(obj._instance_key))
-        
+        if (hasattr(obj, '_instance_key') and not self.identity_map.has_key(obj._instance_key)) or \
+            (not hasattr(obj, '_instance_key') and obj not in self.new):
+            raise InvalidRequestError("Instance '%s' is not attached or pending within this session" % repr(obj))
+
     def update(self, obj):
         """called to add an object to this UnitOfWork as though it were loaded from the DB,
         but is actually coming from somewhere else, like a web session or similar."""
@@ -179,15 +180,24 @@ class UnitOfWork(object):
         else:
             objset = None
 
+        processed = util.Set()
         for obj in [n for n in self.new] + [d for d in self.dirty]:
             if objset is not None and not obj in objset:
                 continue
-            if obj in self.deleted:
+            if obj in self.deleted or obj in processed:
                 continue
-            flush_context.register_object(obj)
-            
+            if object_mapper(obj)._is_orphan(obj):
+                for c in [obj] + list(object_mapper(obj).cascade_iterator('delete', obj)):
+                    if c in processed:
+                        continue
+                    flush_context.register_object(c, isdelete=True)
+                    processed.add(c)
+            else:
+                flush_context.register_object(obj)
+                processed.add(obj)
+                
         for obj in self.deleted:
-            if objset is not None and not obj in objset:
+            if (objset is not None and not obj in objset) or obj in processed:
                 continue
             flush_context.register_object(obj, isdelete=True)
         
@@ -195,10 +205,10 @@ class UnitOfWork(object):
         flush_context.transaction = trans
         try:
             flush_context.execute(echo=echo)
-            trans.commit()
         except:
             trans.rollback()
             raise
+        trans.commit()
             
         flush_context.post_exec()
         

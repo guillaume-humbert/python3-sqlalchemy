@@ -21,8 +21,8 @@
 
 <div class="docheader">
 
-<div class="docheadertext" >Constructing SQL Queries via Python Expressions</div>
-<div class="">Version: 0.2.7   Last Updated: 08/12/06 18:15:53</div>
+<h1>Constructing SQL Queries via Python Expressions</h1>
+<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
 </div>
 
 
@@ -61,302 +61,233 @@ Next: <a href="datamapping.html">Data Mapping</a>
 	<div class="topnavitems">
 	
 
+<ul class="toc_list">
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_select">Simple Select</a>
-    </div>
+        <li><A style="" href="#sql_select">Simple Select</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_select_explicit">Explicit Execution</a>
-    </div>
+    <li><A href="#sql_select_explicit">Explicit Execution</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_select_binding">Binding ClauseElements to Engines</a>
-    </div>
+    <li><A href="#sql_select_binding">Binding ClauseElements to Engines</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_select_resultproxy">Getting Results</a>
-    </div>
+    <li><A href="#sql_select_resultproxy">Getting Results</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_select_labels">Using Column Labels</a>
-    </div>
+    <li><A href="#sql_select_labels">Using Column Labels</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_select_columns">Table/Column Specification</a>
-    </div>
+    <li><A href="#sql_select_columns">Table/Column Specification</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_whereclause">WHERE Clause</a>
-    </div>
+        <li><A style="" href="#sql_whereclause">WHERE Clause</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_whereclause_operators">Operators</a>
-    </div>
+    <li><A href="#sql_whereclause_operators">Operators</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_whereclause_functions">Functions</a>
-    </div>
+    <li><A href="#sql_whereclause_functions">Functions</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_whereclause_literals">Literals</a>
-    </div>
+    <li><A href="#sql_whereclause_literals">Literals</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_whereclause_orderby">Order By</a>
-    </div>
+    <li><A href="#sql_whereclause_orderby">Order By</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_whereclause_options">DISTINCT, LIMIT and OFFSET</a>
-    </div>
+    <li><A href="#sql_whereclause_options">DISTINCT, LIMIT and OFFSET</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_join">Inner and Outer Joins</a>
-    </div>
+        <li><A style="" href="#sql_join">Inner and Outer Joins</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_alias">Table Aliases</a>
-    </div>
+        <li><A style="" href="#sql_alias">Table Aliases</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_subqueries">Subqueries</a>
-    </div>
+        <li><A style="" href="#sql_subqueries">Subqueries</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_subqueries_scalar">Scalar Column Subqueries</a>
-    </div>
+    <li><A href="#sql_subqueries_scalar">Scalar Column Subqueries</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_correlated">Correlated Subqueries</a>
-    </div>
+        <li><A style="" href="#sql_correlated">Correlated Subqueries</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_correlated_exists">EXISTS Clauses</a>
-    </div>
+    <li><A href="#sql_correlated_exists">EXISTS Clauses</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_unions">Unions</a>
-    </div>
+        <li><A style="" href="#sql_unions">Unions</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_bindparams">Custom Bind Parameters</a>
-    </div>
+        <li><A style="" href="#sql_bindparams">Custom Bind Parameters</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_bindparams_precompiling">Precompiling a Query</a>
-    </div>
+    <li><A href="#sql_bindparams_precompiling">Precompiling a Query</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_textual">Literal Text Blocks</a>
-    </div>
+        <li><A style="" href="#sql_textual">Literal Text Blocks</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_textual_textual_binds">Using Bind Parameters in Text Blocks</a>
-    </div>
+    <li><A href="#sql_textual_textual_binds">Using Bind Parameters in Text Blocks</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_building">Building Select Objects</a>
-    </div>
+        <li><A style="" href="#sql_building">Building Select Objects</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_insert">Inserts</a>
-    </div>
+        <li><A style="" href="#sql_insert">Inserts</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_update">Updates</a>
-    </div>
+        <li><A style="" href="#sql_update">Updates</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#sql_update_correlated">Correlated Updates</a>
-    </div>
+    <li><A href="#sql_update_correlated">Correlated Updates</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#sql_delete">Deletes</a>
-    </div>
+        <li><A style="" href="#sql_delete">Deletes</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
+</ul>
 
 	</div>
 </div>
@@ -457,7 +388,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Simple Select</span>
+    <h3>Simple Select</h3>
     <div class="sectiontext">
 
 
@@ -503,7 +434,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Explicit Execution</span>
+    <h3>Explicit Execution</h3>
     <div class="sectiontext">
 
 
@@ -538,7 +469,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Binding ClauseElements to Engines</span>
+    <h3>Binding ClauseElements to Engines</h3>
     <div class="sectiontext">
 
 
@@ -572,7 +503,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Getting Results</span>
+    <h3>Getting Results</h3>
     <div class="sectiontext">
 
 
@@ -632,7 +563,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Using Column Labels</span>
+    <h3>Using Column Labels</h3>
     <div class="sectiontext">
 
 
@@ -709,7 +640,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Table/Column Specification</span>
+    <h3>Table/Column Specification</h3>
     <div class="sectiontext">
 
 
@@ -758,7 +689,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">WHERE Clause</span>
+    <h3>WHERE Clause</h3>
     <div class="sectiontext">
 
 
@@ -855,7 +786,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Operators</span>
+    <h3>Operators</h3>
     <div class="sectiontext">
 
 
@@ -916,7 +847,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Functions</span>
+    <h3>Functions</h3>
     <div class="sectiontext">
 
 
@@ -961,7 +892,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Literals</span>
+    <h3>Literals</h3>
     <div class="sectiontext">
 
 
@@ -1002,7 +933,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Order By</span>
+    <h3>Order By</h3>
     <div class="sectiontext">
 
 
@@ -1040,7 +971,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">DISTINCT, LIMIT and OFFSET</span>
+    <h3>DISTINCT, LIMIT and OFFSET</h3>
     <div class="sectiontext">
 
 
@@ -1078,7 +1009,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Inner and Outer Joins</span>
+    <h3>Inner and Outer Joins</h3>
     <div class="sectiontext">
 
 
@@ -1162,7 +1093,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Table Aliases</span>
+    <h3>Table Aliases</h3>
     <div class="sectiontext">
 
 
@@ -1205,7 +1136,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Subqueries</span>
+    <h3>Subqueries</h3>
     <div class="sectiontext">
 
 
@@ -1290,7 +1221,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Scalar Column Subqueries</span>
+    <h3>Scalar Column Subqueries</h3>
     <div class="sectiontext">
 
 
@@ -1330,7 +1261,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Correlated Subqueries</span>
+    <h3>Correlated Subqueries</h3>
     <div class="sectiontext">
 
 
@@ -1367,7 +1298,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">EXISTS Clauses</span>
+    <h3>EXISTS Clauses</h3>
     <div class="sectiontext">
 
 
@@ -1416,7 +1347,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Unions</span>
+    <h3>Unions</h3>
     <div class="sectiontext">
 
 
@@ -1478,7 +1409,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Custom Bind Parameters</span>
+    <h3>Custom Bind Parameters</h3>
     <div class="sectiontext">
 
 
@@ -1515,7 +1446,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Precompiling a Query</span>
+    <h3>Precompiling a Query</h3>
     <div class="sectiontext">
 
 
@@ -1554,7 +1485,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Literal Text Blocks</span>
+    <h3>Literal Text Blocks</h3>
     <div class="sectiontext">
 
 
@@ -1602,7 +1533,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Using Bind Parameters in Text Blocks</span>
+    <h3>Using Bind Parameters in Text Blocks</h3>
     <div class="sectiontext">
 
 
@@ -1662,7 +1593,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Building Select Objects</span>
+    <h3>Building Select Objects</h3>
     <div class="sectiontext">
 
 
@@ -1721,7 +1652,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Inserts</span>
+    <h3>Inserts</h3>
     <div class="sectiontext">
 
 
@@ -1781,7 +1712,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Updates</span>
+    <h3>Updates</h3>
     <div class="sectiontext">
 
 
@@ -1823,7 +1754,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Correlated Updates</span>
+    <h3>Correlated Updates</h3>
     <div class="sectiontext">
 
 
@@ -1867,7 +1798,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Deletes</span>
+    <h3>Deletes</h3>
     <div class="sectiontext">
 
 

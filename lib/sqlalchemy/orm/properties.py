@@ -216,6 +216,11 @@ class PropertyLoader(mapper.MapperProperty):
         
         self.target = self.mapper.mapped_table
 
+        if self.cascade.delete_orphan:
+            if self.parent.class_ is self.mapper.class_:
+                raise exceptions.ArgumentError("Cant establish 'delete-orphan' cascade rule on a self-referential relationship (attribute '%s' on class '%s').  You probably want cascade='all', which includes delete cascading but not orphan detection." %(self.key, self.parent.class_.__name__))
+            self.mapper.primary_mapper().delete_orphans.append((self.key, self.parent.class_))
+            
         if self.secondaryjoin is not None and self.secondary is None:
             raise exceptions.ArgumentError("Property '" + self.key + "' specified with secondary join condition but no secondary argument")
         # if join conditions were not specified, figure them out based on foreign keys
@@ -374,9 +379,17 @@ class LazyLoader(PropertyLoader):
                 return None
             else:
                 return mapper.object_mapper(instance).props[self.key].setup_loader(instance)
+        
         def lazyload():
             params = {}
             allparams = True
+            # if the instance wasnt loaded from the database, then it cannot lazy load
+            # child items.  one reason for this is that a bi-directional relationship
+            # will not update properly, since bi-directional uses lazy loading functions
+            # in both directions, and this instance will not be present in the lazily-loaded
+            # results of the other objects since its not in the database
+            if not mapper.has_identity(instance):
+                return None
             #print "setting up loader, lazywhere", str(self.lazywhere), "binds", self.lazybinds
             for col, bind in self.lazybinds.iteritems():
                 params[bind.key] = self.parent._getattrbycolumn(instance, col)
@@ -389,7 +402,10 @@ class LazyLoader(PropertyLoader):
 
             session = sessionlib.object_session(instance)
             if session is None:
-                raise exceptions.InvalidRequestError("Parent instance %s is not bound to a Session; lazy load operation of attribute '%s' cannot proceed" % (instance.__class__, self.key))
+                try:
+                    session = mapper.object_mapper(instance).get_session()
+                except exceptions.InvalidRequestError:
+                    raise exceptions.InvalidRequestError("Parent instance %s is not bound to a Session, and no contextual session is established; lazy load operation of attribute '%s' cannot proceed" % (instance.__class__, self.key))
                 
             # if we have a simple straight-primary key load, use mapper.get()
             # to possibly save a DB round trip
@@ -564,7 +580,6 @@ class EagerLoader(LazyLoader):
         else:
             towrap = self.localparent.mapped_table
 
- #       print "hello, towrap", str(towrap)
         if self.secondaryjoin is not None:
             statement._outerjoin = sql.outerjoin(towrap, self.eagersecondary, self.eagerprimary).outerjoin(self.eagertarget, self.eagersecondaryjoin)
             if self.order_by is False and self.secondary.default_order_by() is not None:
@@ -607,8 +622,6 @@ class EagerLoader(LazyLoader):
                 # call _instance on the row, even though the object has been created,
                 # so that we further descend into properties
                 self.mapper._instance(session, decorated_row, imap, None)
-                
-            return
         else:
             if isnew:
                 # call the SmartProperty's initialize() method to create a new, blank list
@@ -620,7 +633,7 @@ class EagerLoader(LazyLoader):
                 # store it in the "scratch" area, which is local to this load operation.
                 imap['_scratch'][(instance, self.key)] = appender
             result_list = imap['_scratch'][(instance, self.key)]
-        self.mapper._instance(session, decorated_row, imap, result_list)
+            self.mapper._instance(session, decorated_row, imap, result_list)
 
     def _create_decorator_row(self):
         class DecoratorDict(object):

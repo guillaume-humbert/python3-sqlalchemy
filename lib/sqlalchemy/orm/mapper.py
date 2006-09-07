@@ -86,6 +86,7 @@ class Mapper(object):
         self.properties = properties or {}
         self.allow_column_override = allow_column_override
         self.allow_null_pks = allow_null_pks
+        self.delete_orphans = []
         
         # a Column which is used during a select operation to retrieve the 
         # "polymorphic identity" of the row, which indicates which Mapper should be used
@@ -139,6 +140,16 @@ class Mapper(object):
         # of dependency
         #self.compile()
     
+    def _is_orphan(self, obj):
+        optimistic = has_identity(obj)
+        for (key,klass) in self.delete_orphans:
+            if not getattr(klass, key).hasparent(obj, optimistic=optimistic):
+                if not has_identity(obj):
+                    raise exceptions.FlushError("instance %s is an unsaved, pending instance and is an orphan (is not attached to any parent '%s' instance via that classes' '%s' attribute)" % (obj, klass.__name__, key))
+                return True
+        else:
+            return False
+            
     def _get_props(self):
         self.compile()
         return self.__props
@@ -151,7 +162,17 @@ class Mapper(object):
         this is the 'external' version of the method which is not reentrant."""
         if self.__is_compiled:
             return self
-            
+        
+        self._compile_all()
+        
+        # if we're not primary, compile us
+        if self.non_primary:
+            self._do_compile()
+            self._initialize_properties()
+                
+        return self
+    
+    def _compile_all(self):
         # compile all primary mappers
         for mapper in mapper_registry.values():
             if not mapper.__is_compiled:
@@ -162,13 +183,6 @@ class Mapper(object):
             if not mapper.__props_init:
                 mapper._initialize_properties()
         
-        # if we're not primary, compile us
-        if self.non_primary:
-            self._do_compile()
-            self._initialize_properties()
-                
-        return self
-    
     def _check_compile(self):
         if self.non_primary:
             self._do_compile()
@@ -496,6 +510,8 @@ class Mapper(object):
         has already been compiled, then the given MapperProperty is compiled immediately."""
         self.properties[key] = prop
         if self.__is_compiled:
+            # if we're compiled, make sure all the other mappers are compiled too
+            self._compile_all()
             self._compile_property(key, prop, init=True)
             
     def _create_prop_from_column(self, column, skipmissing=False):
@@ -590,6 +606,7 @@ class Mapper(object):
     def instances(self, cursor, session, *mappers, **kwargs):
         """given a cursor (ResultProxy) from an SQLEngine, returns a list of object instances
         corresponding to the rows in the cursor."""
+        self.compile()
         limit = kwargs.get('limit', None)
         offset = kwargs.get('offset', None)
         populate_existing = kwargs.get('populate_existing', False)
@@ -695,7 +712,7 @@ class Mapper(object):
 
         if not postupdate:
             for obj in objects:
-                if not hasattr(obj, "_instance_key"):
+                if not has_identity(obj):
                     self.extension.before_insert(self, connection, obj)
                 else:
                     self.extension.before_update(self, connection, obj)
@@ -732,7 +749,7 @@ class Mapper(object):
                 # 'postupdate' means a PropertyLoader is telling us, "yes I know you 
                 # already inserted/updated this row but I need you to UPDATE one more 
                 # time"
-                isinsert = not postupdate and not hasattr(obj, "_instance_key")
+                isinsert = not postupdate and not has_identity(obj)
                 hasdata = False
                 for col in table.columns:
                     if col is self.version_id_col:
@@ -1377,6 +1394,9 @@ def hash_key(obj):
     else:
         return repr(obj)
 
+def has_identity(object):
+    return hasattr(object, '_instance_key')
+    
 def has_mapper(object):
     """returns True if the given object has a mapper association"""
     return hasattr(object, '_entity_name')

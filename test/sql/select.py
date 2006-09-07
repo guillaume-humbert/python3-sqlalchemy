@@ -212,6 +212,14 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
             literal("a") + literal("b") * literal("c"), ":literal + (:liter_1 * :liter_2)"
         )
 
+    def testunicodestartswith(self):
+	string = u"hi \xf6 \xf5"
+	self.runtest(
+		table1.select(table1.c.name.startswith(string)),
+		"SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.name LIKE :mytable_name",
+		checkparams = {'mytable_name': u'hi \xf6 \xf5%'},
+	)
+
     def testmultiparam(self):
         self.runtest(
             select(["*"], or_(table1.c.myid == 12, table1.c.myid=='asdf', table1.c.myid == 'foo')), 
@@ -344,9 +352,9 @@ FROM mytable, myothertable WHERE foo.id = foofoo(lala) AND datetime(foo) = Today
 
     def testcalculatedcolumns(self):
          value_tbl = table('values',
-             Column('id', Integer),
-             Column('val1', Float),
-             Column('val2', Float),
+             column('id', Integer),
+             column('val1', Float),
+             column('val2', Float),
          )
 
          self.runtest(
@@ -461,6 +469,19 @@ FROM myothertable UNION SELECT thirdtable.userid, thirdtable.otherstuff FROM thi
             )
             assert u.corresponding_column(table2.c.otherid) is u.c.otherid
             
+            self.runtest(
+                union(
+                    select([table1]),
+                    select([table2]),
+                    order_by=['myid'],
+                    offset=10,
+                    limit=5
+                )
+            ,    "SELECT mytable.myid, mytable.name, mytable.description \
+FROM mytable UNION SELECT myothertable.otherid, myothertable.othername \
+FROM myothertable ORDER BY myid \
+ LIMIT 5 OFFSET 10"
+            )
             
     def testouterjoin(self):
         # test an outer join.  the oracle module should take the ON clause of the join and
@@ -536,10 +557,10 @@ FROM mytable, myothertable WHERE mytable.myid = myothertable.otherid AND mytable
         
     def testcast(self):
         tbl = table('casttest',
-                    Column('id', Integer),
-                    Column('v1', Float),
-                    Column('v2', Float),
-                    Column('ts', TIMESTAMP),
+                    column('id', Integer),
+                    column('v1', Float),
+                    column('v2', Float),
+                    column('ts', TIMESTAMP),
                     )
         
         def check_results(dialect, expected_results, literal):

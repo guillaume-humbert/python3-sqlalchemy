@@ -34,7 +34,7 @@ class MSDecimal(MSNumeric):
     def get_col_spec(self):
         if self.precision is not None and self.length is not None:
             return kw_colspec(self, "DECIMAL(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length})
-class MSDouble(sqltypes.Numeric):
+class MSDouble(MSNumeric):
     def __init__(self, precision=10, length=2, **kw):
         if (precision is None and length is not None) or (precision is not None and length is None):
             raise exceptions.ArgumentError("You must specify both precision and length or omit both altogether.")
@@ -60,17 +60,6 @@ class MSFloat(sqltypes.Float):
             return kw_colspec(self, "FLOAT(%(precision)s)" % {'precision': self.precision})
         else:
             return kw_colspec(self, "FLOAT")
-class MSBigInteger(sqltypes.Integer):
-    def __init__(self, length=None, **kw):
-        self.length = length
-        self.unsigned = 'unsigned' in kw
-        self.zerofill = 'zerofill' in kw
-        super(MSBigInteger, self).__init__()
-    def get_col_spec(self):
-        if self.length is not None:
-            return kw_colspec(self, "BIGINT(%(length)s)" % {'length': self.length})
-        else:
-            return kw_colspec(self, "BIGINT")
 class MSInteger(sqltypes.Integer):
     def __init__(self, length=None, **kw):
         self.length = length
@@ -82,6 +71,17 @@ class MSInteger(sqltypes.Integer):
             return kw_colspec(self, "INTEGER(%(length)s)" % {'length': self.length})
         else:
             return kw_colspec(self, "INTEGER")
+class MSBigInteger(MSInteger):
+    def __init__(self, length=None, **kw):
+        self.length = length
+        self.unsigned = 'unsigned' in kw
+        self.zerofill = 'zerofill' in kw
+        super(MSBigInteger, self).__init__()
+    def get_col_spec(self):
+        if self.length is not None:
+            return kw_colspec(self, "BIGINT(%(length)s)" % {'length': self.length})
+        else:
+            return kw_colspec(self, "BIGINT")
 class MSSmallInteger(sqltypes.Smallinteger):
     def __init__(self, length=None, **kw):
         self.length = length
@@ -153,7 +153,12 @@ class MSBinary(sqltypes.Binary):
             return None
         else:
             return buffer(value)
-class MSEnum(sqltypes.String):
+
+class MSMediumBlob(MSBinary):
+    def get_col_spec(self):
+        return "MEDIUMBLOB"
+            
+class MSEnum(MSString):
     def __init__(self, *enums):
         self.__enums_hidden = enums
         length = 0
@@ -290,7 +295,7 @@ class MySQLDialect(ansisql.ANSIDialect):
         return MySQLSchemaDropper(*args, **kwargs)
 
     def preparer(self):
-        return MySQLIdentifierPreparer()
+        return MySQLIdentifierPreparer(self)
 
     def do_rollback(self, connection):
         # some versions of MySQL just dont support rollback() at all....
@@ -312,9 +317,11 @@ class MySQLDialect(ansisql.ANSIDialect):
         return bool( not not cursor.rowcount )
 
     def reflecttable(self, connection, table):
-        # to use information_schema:
-        #ischema.reflecttable(self, table, ischema_names, use_mysql=True)
-        
+        # reference:  http://dev.mysql.com/doc/refman/5.0/en/name-case-sensitivity.html
+        case_sensitive = connection.execute("show variables like 'lower_case_table_names'").fetchone()[1] == 0
+        if not case_sensitive:
+            table.name = table.name.lower()
+            table.metadata.tables[table.name]= table
         c = connection.execute("describe " + table.name, {})
         found_table = False
         while True:
@@ -448,8 +455,8 @@ class MySQLSchemaDropper(ansisql.ANSISchemaDropper):
         self.execute()
 
 class MySQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
-    def __init__(self):
-        super(MySQLIdentifierPreparer, self).__init__(initial_quote='`')
+    def __init__(self, dialect):
+        super(MySQLIdentifierPreparer, self).__init__(dialect, initial_quote='`')
     def _escape_identifier(self, value):
         #TODO: determin MySQL's escaping rules
         return value
