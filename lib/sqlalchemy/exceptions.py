@@ -28,7 +28,11 @@ class ArgumentError(SQLAlchemyError):
 class TimeoutError(SQLAlchemyError):
     """raised when a connection pool times out on getting a connection"""
     pass
-    
+
+class ConcurrentModificationError(SQLAlchemyError):
+    """raised when a concurrent modification condition is detected"""
+    pass
+        
 class FlushError(SQLAlchemyError):
     """raised when an invalid condition is detected upon a flush()"""
     pass
@@ -46,7 +50,11 @@ class NoSuchTableError(InvalidRequestError):
 class AssertionError(SQLAlchemyError):
     """corresponds to internal state being detected in an invalid state"""
     pass
-    
+
+class NoSuchColumnError(KeyError, SQLAlchemyError):
+    """raised by RowProxy when a nonexistent column is requested from a row"""
+    pass
+        
 class DBAPIError(SQLAlchemyError):
     """something weird happened with a particular DBAPI version"""
     def __init__(self, message, orig):

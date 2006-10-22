@@ -1,18 +1,15 @@
 <html>
 <head>
 	<title>
-    Advanced Data Mapping - SQLAlchemy 0.2 Documentation
+    SQLAlchemy 0.3 Documentation - Advanced Data Mapping
 </title>
+    <link href="style.css" rel="stylesheet" type="text/css"></link>
+    <link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+    <link href="docs.css" rel="stylesheet" type="text/css"></link>
+    <script src="scripts.js"></script>
 </head>
 <body>
-
-
-
-<link href="style.css" rel="stylesheet" type="text/css"></link>
-<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
-
-<link href="docs.css" rel="stylesheet" type="text/css"></link>
-<script src="scripts.js"></script>
 
 
 <div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
@@ -21,24 +18,14 @@
 
 <div class="docheader">
 
-<h1>Advanced Data Mapping</h1>
-<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
+<h1>SQLAlchemy 0.3 Documentation</h1>
+<div class="">Version: 0.3.0   Last Updated: 10/22/06 14:17:49</div>
 </div>
 
 
+<A name="advdatamapping"></a>
 
-		<A name="advdatamapping"></a>
-		
-	
-<div class="topnav">
-
-
-	
-	<div class="topnavcontrol">
-	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
-	</div>
-
-
+	<div class="topnav">
 
 <div class="topnavsectionlink">
 
@@ -55,30 +42,20 @@ Next: <a href="types.html">The Types System</a>
 </div>
 </div>
 
-
 <div class="topnavmain">
 	<div class="topnavheader">Advanced Data Mapping</div>
 	<div class="topnavitems">
 	
 
 <ul class="toc_list">
-
     
-    
-        <li><A style="" href="#advdatamapping_properties">More On Mapper Properties</a></li>
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_properties">More On Mapper Properties</a></li>
     
     <ul class="small_toc_list">
         
         
-    <li><A href="#advdatamapping_properties_colname">Overriding Column Names</a></li>
-
-    <ul class="small_toc_list">
-    </ul>
-
-
-        
-        
-    <li><A href="#advdatamapping_properties_overriding">Overriding Properties</a></li>
+    <li><A href="adv_datamapping.html#advdatamapping_properties_colname">Overriding Column Names</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -86,7 +63,7 @@ Next: <a href="types.html">The Types System</a>
 
         
         
-    <li><A href="#advdatamapping_properties_customlist">Custom List Classes</a></li>
+    <li><A href="adv_datamapping.html#advdatamapping_properties_overriding">Overriding Properties</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -94,7 +71,7 @@ Next: <a href="types.html">The Types System</a>
 
         
         
-    <li><A href="#advdatamapping_properties_customjoin">Custom Join Conditions</a></li>
+    <li><A href="adv_datamapping.html#advdatamapping_properties_customlist">Custom List Classes</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -102,7 +79,7 @@ Next: <a href="types.html">The Types System</a>
 
         
         
-    <li><A href="#advdatamapping_properties_multiplejoin">Lazy/Eager Joins Multiple Times to One Table</a></li>
+    <li><A href="adv_datamapping.html#advdatamapping_properties_customjoin">Custom Join Conditions</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -110,7 +87,7 @@ Next: <a href="types.html">The Types System</a>
 
         
         
-    <li><A href="#advdatamapping_properties_deferred">Deferred Column Loading</a></li>
+    <li><A href="adv_datamapping.html#advdatamapping_properties_multiplejoin">Lazy/Eager Joins Multiple Times to One Table</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -118,47 +95,7 @@ Next: <a href="types.html">The Types System</a>
 
         
         
-    <li><A href="#advdatamapping_properties_relationoptions">Relation Options</a></li>
-
-    <ul class="small_toc_list">
-    </ul>
-
-
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#advdatamapping_orderby">Controlling Ordering</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#advdatamapping_limits">Limiting Rows</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#advdatamapping_options">More on Mapper Options</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#advdatamapping_inheritance">Mapping a Class with Table Inheritance</a></li>
-    
-    <ul class="small_toc_list">
-        
-        
-    <li><A href="#advdatamapping_inheritance_single">Single Table Inheritance</a></li>
+    <li><A href="adv_datamapping.html#advdatamapping_properties_deferred">Deferred Column Loading</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -166,7 +103,36 @@ Next: <a href="types.html">The Types System</a>
 
         
         
-    <li><A href="#advdatamapping_inheritance_concrete">Concrete Table Inheritance</a></li>
+    <li><A href="adv_datamapping.html#advdatamapping_properties_relationoptions">Relation Options</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+    </ul>
+
+    
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_orderby">Controlling Ordering</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
+
+    
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_limits">Limiting Rows</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
+
+    
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_inheritance">Mapping a Class with Table Inheritance</a></li>
+    
+    <ul class="small_toc_list">
+        
+        
+    <li><A href="adv_datamapping.html#advdatamapping_inheritance_single">Single Table Inheritance</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -174,7 +140,15 @@ Next: <a href="types.html">The Types System</a>
 
         
         
-    <li><A href="#advdatamapping_inheritance_multiple">Multiple Table Inheritance</a></li>
+    <li><A href="adv_datamapping.html#advdatamapping_inheritance_concrete">Concrete Table Inheritance</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+        
+        
+    <li><A href="adv_datamapping.html#advdatamapping_inheritance_multiple">Multiple Table Inheritance</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -182,70 +156,61 @@ Next: <a href="types.html">The Types System</a>
 
     </ul>
 
-
     
-    
-        <li><A style="" href="#advdatamapping_joins">Mapping a Class against Multiple Tables</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#advdatamapping_selects">Mapping a Class against Arbitary Selects</a></li>
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_joins">Mapping a Class against Multiple Tables</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
-
     
-    
-        <li><A style="" href="#advdatamapping_multiple">Multiple Mappers for One Class</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#advdatamapping_circular">Circular Mapping</a></li>
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_selects">Mapping a Class against Arbitary Selects</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
-
     
-    
-        <li><A style="" href="#advdatamapping_recursive">Self Referential Mappers</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#advdatamapping_resultset">Result-Set Mapping</a></li>
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_multiple">Multiple Mappers for One Class</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
-
     
-    
-        <li><A style="" href="#advdatamapping_arguments">Mapper Arguments</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#advdatamapping_extending">Extending Mapper</a></li>
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_circular">Circular Mapping</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
+    
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_recursive">Self Referential Mappers</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
+
+    
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_resultset">Result-Set Mapping</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
+
+    
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_arguments">Mapper Arguments</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
+
+    
+        
+        <li><A style="" href="adv_datamapping.html#advdatamapping_extending">Extending Mapper</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
 
 </ul>
 
@@ -254,17 +219,19 @@ Next: <a href="types.html">The Types System</a>
 
 </div>
 
-		<div class="sectioncontent">
-			
+<div class="sectioncontent">
+<html>
 
 
 
+<A name="advdatamapping"></a>
 
 <div class="subsection" style="margin-left:10px;">
 
+
+
     <div class="sectiontext">
-
-
+    
 
 <p>This section details all the options available to Mappers, as well as advanced patterns.
 </p>
@@ -307,66 +274,17 @@ Next: <a href="types.html">The Types System</a>
 <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 
 
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-    </div>
-
-        
-
-
 
 <A name="advdatamapping_properties"></a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>More On Mapper Properties</h3>
+
+<h3>More On Mapper Properties</h3>
+
     <div class="sectiontext">
+    
 
-
-
-
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-    </div>
-
-        
 
 
 
@@ -374,10 +292,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Overriding Column Names</h3>
+
+<h3>Overriding Column Names</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>When mappers are constructed, by default the column names in the Table metadata are used as the names of attributes on the mapped class.  This can be customzed within the properties by stating the key/column combinations explicitly:
 </p>
@@ -404,14 +323,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -419,10 +333,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Overriding Properties</h3>
+
+<h3>Overriding Properties</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>A common request is the ability to create custom class properties that override the behavior of setting/getting an attribute.  Currently, the easiest way to do this in SQLAlchemy is how it would be done in any Python program; define your attribute with a different name, such as "_attribute", and use a property to get/set its value.  The mapper just needs to be told of the special name:
 </p>
@@ -441,12 +356,12 @@ Next: <a href="types.html">The Types System</a>
    <span class="python_comment"># on the table</span>
    <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span>
 <span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
-<p>It is also possible to use the <code>select_by</code> and <code>get_by</code> functions on <code>Query</code> using the original property name, by establishing a <code>synonym</code>:
+<p>It is also possible to route the the <code>select_by</code> and <code>get_by</code> functions on <code>Query</code> using the new property name, by establishing a <code>synonym</code>:
 </p>
 
 
 <div class="sliding_code">
-<pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">proeprties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+<pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
     <span class="python_comment"># map the '_email' attribute to the "email" column</span>
     <span class="python_comment"># on the table</span>
     <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span>
@@ -457,20 +372,30 @@ Next: <a href="types.html">The Types System</a>
 </span>
 <span class="python_comment"># now you can select_by(email)
 </span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'john@smith.com'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>The <code>synonym</code> keyword is currently an <a href="javascript:alphaApi()">Alpha Feature</a>.
+<p>Synonym can be established with the flag "proxy=True", to create a class-level proxy to the actual property:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+    <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span>
+    <span class="python_literal">'email' </span><span class="python_operator">: </span><span class="python_name">synonym</span><span class="python_enclosure">(</span><span class="python_literal">'_email'</span><span class="python_operator">, </span><span class="python_name">proxy</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span>
+<span class="python_name">x </span><span class="python_operator">= </span><span class="python_name">MyClass</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">x</span><span class="python_operator">.</span><span class="python_name">email </span><span class="python_operator">= </span><span class="python_literal">'john@doe.com'</span><span class="python_operator">
+</span>
+<span class="python_literal">>>> </span><span class="python_name">x</span><span class="python_operator">.</span><span class="python_name">_email</span><span class="python_operator">
+</span><span class="python_literal">'john@doe.com'</span><span class="python_operator"></span></pre></div>
+<p>The <code>synonym</code> keyword is currently an <a href='javascript:alphaApi()'>Alpha Feature</a>.
 </p>
 
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -478,14 +403,15 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Custom List Classes</h3>
+
+<h3>Custom List Classes</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>Feature Status: <a href="javascript:alphaApi()">Alpha API</a> 
+<p>Feature Status: <a href='javascript:alphaApi()'>Alpha API</a> 
 </p>
-<p>A one-to-many or many-to-many relationship results in a list-holding element being attached to all instances of a class.  Currently, this list is an instance of <code>sqlalchemy.util.HistoryArraySet</code>, is a <code>UserDict</code> instance that <em>decorates</em> an underlying list object.  The implementation of this list can be controlled, and can in fact be any object that implements a <code>list</code>-style <code>append</code> and <code>__iter__</code> method.  A common need is for a list-based relationship to actually be a dictionary.  This can be achieved by subclassing <code>dict</code> to have <code>list</code>-like behavior.
+<p>A one-to-many or many-to-many relationship results in a list-holding element being attached to all instances of a class.  The actual list is an "instrumented" list, which transparently maintains a relationship to a plain Python list.  The implementation of the underlying plain list can be changed to be any object that implements a <code>list</code>-style <code>append</code> and <code>__iter__</code> method.  A common need is for a list-based relationship to actually be a dictionary.  This can be achieved by subclassing <code>dict</code> to have <code>list</code>-like behavior.
 </p>
 <p>In this example, a class <code>MyClass</code> is defined, which is associated with a parent object <code>MyParent</code>.  The collection of <code>MyClass</code> objects on each <code>MyParent</code> object will be a dictionary, storing each <code>MyClass</code> instance keyed to its <code>name</code> attribute.
 </p>
@@ -507,14 +433,12 @@ Next: <a href="types.html">The Types System</a>
 </span>
 <span class="python_comment"># parent class
 </span><span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">MyParent</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_comment"># this class-level attribute provides the class to be
-    # used by the 'myclasses' attribute
-</span><span class="python_operator">    </span><span class="python_name">myclasses </span><span class="python_operator">= </span><span class="python_name">MyDict</span><span class="python_operator">
+    </span><span class="python_keyword">pass</span><span class="python_operator">
 </span>
 <span class="python_comment"># mappers, constructed normally
 </span><span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">myclass_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyParent</span><span class="python_operator">, </span><span class="python_name">myparent_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'myclasses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span>
+    <span class="python_literal">'myclasses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">MyDict</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">})</span><span class="python_operator">
 </span>
 <span class="python_comment"># elements on 'myclasses' can be accessed via string keyname
@@ -525,14 +449,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -540,12 +459,14 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Custom Join Conditions</h3>
+
+<h3>Custom Join Conditions</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>When creating relations on a mapper, most examples so far have illustrated the mapper and relationship joining up based on the foreign keys of the tables they represent.  in fact, this "automatic" inspection can be completely circumvented using the <code>primaryjoin</code> and <code>secondaryjoin</code> arguments to <code>relation</code>, as in this example which creates a User object which has a relationship to all of its Addresses which are in Boston:
+<pre><code>
+</code></pre><p>When creating relations on a mapper, most examples so far have illustrated the mapper and relationship joining up based on the foreign keys of the tables they represent.  in fact, this "automatic" inspection can be completely circumvented using the <code>primaryjoin</code> and <code>secondaryjoin</code> arguments to <code>relation</code>, as in this example which creates a User object which has a relationship to all of its Addresses which are in Boston:
 </p>
 
 
@@ -557,7 +478,7 @@ Next: <a href="types.html">The Types System</a>
 </span>
 <span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'boston_addreses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
+    <span class="python_literal">'boston_addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
                 <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
                 <span class="python_name">Addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">==</span><span class="python_literal">'Boston'</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
@@ -581,14 +502,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -596,10 +512,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Lazy/Eager Joins Multiple Times to One Table</h3>
+
+<h3>Lazy/Eager Joins Multiple Times to One Table</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The previous example leads in to the idea of joining against the same table multiple times.  Below is a User object that has lists of its Boston and New York addresses:
 </p>
@@ -607,7 +524,7 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="sliding_code">
 <pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'boston_addreses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
+    <span class="python_literal">'boston_addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
                 <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
                 <span class="python_name">Addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">==</span><span class="python_literal">'Boston'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
     <span class="python_literal">'newyork_addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
@@ -620,14 +537,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -635,10 +547,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Deferred Column Loading</h3>
+
+<h3>Deferred Column Loading</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>This feature allows particular columns of a table to not be loaded by default, instead being loaded later on when first referenced.  It is essentailly "column-level lazy loading".   This feature is useful when one wants to avoid loading a large text or binary field into memory when its not needed.  Individual columns can be lazy loaded by themselves or placed into groups that lazy-load together.
 </p>
@@ -694,14 +607,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -709,10 +617,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Relation Options</h3>
+
+<h3>Relation Options</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Keyword options to the <code>relation</code> function include:
 </p>
@@ -722,7 +631,7 @@ Next: <a href="types.html">The Types System</a>
  </li>
 
  <li>
-     cascade - a string list of <strong>cascade rules</strong> which determines how persistence operations should be "cascaded" from parent to child.  For a description of cascade rules, see <a href="datamapping.html#datamapping_relations_lifecycle" >datamapping_relations_cycle</a> and <a href="unitofwork.html#unitofwork_cascade" >Cascade rules</a>.
+     cascade - a string list of <strong>cascade rules</strong> which determines how persistence operations should be "cascaded" from parent to child.  For a description of cascade rules, see <a href="datamapping.html#datamapping_relations_lifecycle">datamapping_relations_cycle</a> and <a href="unitofwork.html#unitofwork_cascade">Cascade rules</a>.
  </li>
 
  <li>
@@ -746,43 +655,46 @@ Next: <a href="types.html">The Types System</a>
  </li>
 
  <li>
-     private - setting <code>private=True</code> is the equivalent of setting <code>cascade="all, delete-orphan"</code>, and indicates the lifecycle of child objects should be contained within that of the parent.   See the example in <a href="datamapping.html#datamapping_relations_lifecycle" >datamapping_relations_cycle</a>.
+     private - setting <code>private=True</code> is the equivalent of setting <code>cascade="all, delete-orphan"</code>, and indicates the lifecycle of child objects should be contained within that of the parent.   See the example in <a href="datamapping.html#datamapping_relations_lifecycle">datamapping_relations_cycle</a>.
  </li>
 
  <li>
-     backref - indicates the name of a property to be placed on the related mapper's class that will handle this relationship in the other direction, including synchronizing the object attributes on both sides of the relation.  Can also point to a <code>backref()</code> construct for more configurability.  See <a href="datamapping.html#datamapping_relations_backreferences" >Backreferences</a>.
+     backref - indicates the name of a property to be placed on the related mapper's class that will handle this relationship in the other direction, including synchronizing the object attributes on both sides of the relation.  Can also point to a <code>backref()</code> construct for more configurability.  See <a href="datamapping.html#datamapping_relations_backreferences">Backreferences</a>.
  </li>
 
  <li>
-     order_by - indicates the ordering that should be applied when loading these items.  See the section <a href="adv_datamapping.html#advdatamapping_orderby" >Controlling Ordering</a> for details.
+     order_by - indicates the ordering that should be applied when loading these items.  See the section <a href="adv_datamapping.html#advdatamapping_orderby">Controlling Ordering</a> for details.
  </li>
 
  <li>
-     association - When specifying a many to many relationship with an association object, this keyword should reference the mapper or class of the target object of the association.  See the example in <a href="datamapping.html#datamapping_association" >Association Object</a>.
+     association - When specifying a many to many relationship with an association object, this keyword should reference the mapper or class of the target object of the association.  See the example in <a href="datamapping.html#datamapping_association">Association Object</a>.
  </li>
 
  <li>
-     post<em>update - this indicates that the relationship should be handled by a second UPDATE statement after an INSERT, or before a DELETE.  using this flag essentially means the relationship will not incur any "dependency" between parent and child item, as the particular foreign key relationship between them is handled by a second statement.  use this flag when a particular mapping arrangement will incur two rows that are dependent on each other, such as a table that has a one-to-many relationship to a set of child rows, and also has a column that references a single child row within that list (i.e. both tables contain a foreign key to each other).  If a flush() operation returns an error that a "cyclical dependency" was detected, this is a cue that you might want to use post</em>update.
+     post_update - this indicates that the relationship should be handled by a second UPDATE statement after an INSERT, or before a DELETE.  using this flag essentially means the relationship will not incur any "dependency" between parent and child item, as the particular foreign key relationship between them is handled by a second statement.  use this flag when a particular mapping arrangement will incur two rows that are dependent on each other, such as a table that has a one-to-many relationship to a set of child rows, and also has a column that references a single child row within that list (i.e. both tables contain a foreign key to each other).  If a flush() operation returns an error that a "cyclical dependency" was detected, this is a cue that you might want to use post_update.
+ </li>
+
+ <li>
+     viewonly=(True|False) - when set to True, the relation is used only for loading objects within the relationship, and has no effect on the unit-of-work flush process.  relations with viewonly can specify any kind of join conditions to provide additional views of related objects onto a parent object.
+ </li>
+
+ <li>
+     collection_class = None - a class or function that returns a new list-holding object.  will be used in place of a plain list for storing elements.
  </li>
 </ul>
 
 
     </div>
 
+</div>
+
+
+
+    </div>
 
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-
-
-
-</div>
-
-
-        
 
 
 
@@ -790,10 +702,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Controlling Ordering</h3>
+
+<h3>Controlling Ordering</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>By default, mappers will attempt to ORDER BY the "oid" column of a table, or the primary key column, when selecting rows.  This can be modified in several ways.
 </p>
@@ -838,14 +751,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -853,10 +761,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Limiting Rows</h3>
+
+<h3>Limiting Rows</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>You can limit rows in a regular SQL query by specifying <code>limit</code> and <code>offset</code>.  A Mapper can handle the same concepts:
 </p>
@@ -867,7 +776,7 @@ Next: <a href="types.html">The Types System</a>
     </span><span class="python_keyword">pass</span><span class="python_operator">
 </span>
 <span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_89', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">limit</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_operator">, </span><span class="python_name">offset</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_89_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">limit</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_operator">, </span><span class="python_name">offset</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_1_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
   users.user_name AS users_user_name, users.password AS users_password <br/>
   FROM users ORDER BY users.oid <br/>
   LIMIT 20 OFFSET 10<br/>
@@ -901,67 +810,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
-
-
-
-<A name="advdatamapping_options"></a>
-
-<div class="subsection" style="margin-left:20px;">
-
-    <h3>More on Mapper Options</h3>
-    <div class="sectiontext">
-
-
-
-<p>The <code>options</code> method on the <code>Query</code> object, first introduced in <b>None</b>, produces a new <code>Query</code> object by creating a copy of the underlying <code>Mapper</code> and placing modified properties on it.  The <code>options</code> method is also directly available off the <code>Mapper</code> object itself, so that the newly copied <code>Mapper</code> can be dealt with directly.  The <code>options</code> method takes a variable number of <code>MapperOption</code> objects which know how to change specific things about the mapper.  The five available options are <code>eagerload</code>, <code>lazyload</code>, <code>noload</code>, <code>deferred</code> and <code>extension</code>.
-</p>
-<p>An example of a mapper with a lazy load relationship, upgraded to an eager load relationship:
-</p>
-
-
-<div class="sliding_code">
-<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_keyword">pass</span><span class="python_operator">
-</span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_keyword">pass</span><span class="python_operator">
-</span>
-<span class="python_comment"># a 'lazy' relationship
-</span><span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
-    <span class="python_literal">'addreses'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>
-<span class="python_enclosure">})</span><span class="python_operator">
-</span>
-<span class="python_comment"># copy the mapper and convert 'addresses' to be eager
-</span><span class="python_name">eagermapper </span><span class="python_operator">= </span><span class="python_name">class_mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
-<p>The <code>defer</code> and <code>undefer</code> options can control the deferred loading of attributes:
-</p>
-
-
-<div class="sliding_code">
-<pre><span class="python_comment"># set the 'excerpt' deferred attribute to load normally
-</span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">book_mapper</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">undefer</span><span class="python_enclosure">(</span><span class="python_literal">'excerpt'</span><span class="python_enclosure">))</span><span class="python_operator">
-</span>
-<span class="python_comment"># set the referenced mapper 'photos' to defer its loading of the column 'imagedata'
-</span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">book_mapper</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">defer</span><span class="python_enclosure">(</span><span class="python_literal">'photos.imagedata'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
-
-
-    </div>
-
-
-    <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
-</div>
-
-
-        
 
 
 
@@ -969,12 +820,13 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Mapping a Class with Table Inheritance</h3>
+
+<h3>Mapping a Class with Table Inheritance</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>Feature Status: <a href="javascript:alphaImplementation()">Alpha Implementation</a> 
+<p>Feature Status: <a href='javascript:alphaImplementation()'>Alpha Implementation</a> 
 </p>
 <p>Inheritance in databases comes in three forms:  <em>single table inheritance</em>, where several types of classes are stored in one table, <em>concrete table inheritance</em>, where each type of class is stored in its own table, and <em>multiple table inheritance</em>, where the parent/child classes are stored in their own tables that are joined together in a select.
 </p>
@@ -1012,26 +864,16 @@ Next: <a href="types.html">The Types System</a>
 </p>
 
 
-			
-
-			
-
-			
-
-    </div>
-
-        
-
-
 
 <A name="advdatamapping_inheritance_single"></a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Single Table Inheritance</h3>
+
+<h3>Single Table Inheritance</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>This will support polymorphic loading via the <code>Employee</code> mapper.
 </p>
@@ -1053,14 +895,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1068,10 +905,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Concrete Table Inheritance</h3>
+
+<h3>Concrete Table Inheritance</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Without polymorphic loading, you just define a separate mapper for each class.
 </p>
@@ -1107,20 +945,15 @@ Next: <a href="types.html">The Types System</a>
 <span class="python_name">employee_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_operator">, </span><span class="python_name">pjoin</span><span class="python_operator">, </span><span class="python_name">polymorphic_on</span><span class="python_operator">=</span><span class="python_name">pjoin</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">type</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">manager_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Manager</span><span class="python_operator">, </span><span class="python_name">managers_table</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">employee_mapper</span><span class="python_operator">, </span><span class="python_name">concrete</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'manager'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">engineer_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">, </span><span class="python_name">engineers_table</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">employee_mapper</span><span class="python_operator">, </span><span class="python_name">concrete</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'engineer'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>A future release of SQLALchemy might better merge the generated UNION into the mapper construction phase.    <br /> 
+<p>A future release of SQLALchemy might better merge the generated UNION into the mapper construction phase.    <br></br>
 </p>
 
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1128,10 +961,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Multiple Table Inheritance</h3>
+
+<h3>Multiple Table Inheritance</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Like concrete table inheritance, this can be done non-polymorphically, or with a little more complexity, polymorphically:
 </p>
@@ -1187,20 +1021,15 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
+</div>
+
+
+
+    </div>
 
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-
-
-
-</div>
-
-
-        
 
 
 
@@ -1208,10 +1037,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Mapping a Class against Multiple Tables</h3>
+
+<h3>Mapping a Class against Multiple Tables</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Mappers can be constructed against arbitrary relational units (called <code>Selectables</code>) as well as plain <code>Tables</code>.  For example, The <code>join</code> keyword from the SQL package creates a neat selectable unit comprised of multiple tables, complete with its own composite primary key, which can be passed in to a mapper as the table.
 </p>
@@ -1256,14 +1086,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1271,10 +1096,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Mapping a Class against Arbitary Selects</h3>
+
+<h3>Mapping a Class against Arbitary Selects</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Similar to mapping against a join, a plain select() object can be used with a mapper as well.  Below, an example select which contains two aggregate functions and a group_by is mapped to a class:
 </p>
@@ -1291,20 +1117,15 @@ Next: <a href="types.html">The Types System</a>
     </span><span class="python_keyword">pass</span><span class="python_operator">
 </span>
 <span class="python_operator"></span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Customer</span><span class="python_operator">, </span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>Above, the "customers" table is joined against the "orders" table to produce a full row for each customer row, the total count of related rows in the "orders" table, and the highest price in the "orders" table, grouped against the full set of columns in the "customers" table.  That query is then mapped against the Customer class.  New instances of Customer will contain attributes for each column in the "customers" table as well as an "order<em>count" and "highest</em>order" attribute.  Updates to the Customer object will only be reflected in the "customers" table and not the "orders" table.  This is because the primary keys of the "orders" table are not represented in this mapper and therefore the table is not affected by save or delete operations.
+<p>Above, the "customers" table is joined against the "orders" table to produce a full row for each customer row, the total count of related rows in the "orders" table, and the highest price in the "orders" table, grouped against the full set of columns in the "customers" table.  That query is then mapped against the Customer class.  New instances of Customer will contain attributes for each column in the "customers" table as well as an "order_count" and "highest_order" attribute.  Updates to the Customer object will only be reflected in the "customers" table and not the "orders" table.  This is because the primary keys of the "orders" table are not represented in this mapper and therefore the table is not affected by save or delete operations.
 </p>
 
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1312,16 +1133,17 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Multiple Mappers for One Class</h3>
+
+<h3>Multiple Mappers for One Class</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The first mapper created for a certain class is known as that class's "primary mapper."  Other mappers can be created as well, these come in two varieties.
 </p>
 <ul>
  <li>
-      <strong>secondary mapper</strong> - this is a mapper that must be constructed with the keyword argument <code>non_primary=True</code>, and represents a load-only mapper.  Objects that are loaded with a secondary mapper will have their save operation processed by the primary mapper.  It is also invalid to add new <code>relation()</code>s to a non-primary mapper. To use this mapper with the Session, specify it to the <code>query</code> method:
+     <strong>secondary mapper</strong> - this is a mapper that must be constructed with the keyword argument <code>non_primary=True</code>, and represents a load-only mapper.  Objects that are loaded with a secondary mapper will have their save operation processed by the primary mapper.  It is also invalid to add new <code>relation()</code>s to a non-primary mapper. To use this mapper with the Session, specify it to the <code>query</code> method:
  </li>
 </ul>
 <p>example:
@@ -1339,7 +1161,7 @@ Next: <a href="types.html">The Types System</a>
 </span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">othermapper</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
 <ul>
  <li>
-      <strong>entity name mapper</strong> - this is a mapper that is a fully functioning primary mapper for a class, which is distinguished from the regular primary mapper by an <code>entity_name</code> parameter.  Instances loaded with this mapper will be totally managed by this new mapper and have no connection to the original one.  Most methods on <code>Session</code> include an optional <code>entity_name</code> parameter in order to specify this condition.
+     <strong>entity name mapper</strong> - this is a mapper that is a fully functioning primary mapper for a class, which is distinguished from the regular primary mapper by an <code>entity_name</code> parameter.  Instances loaded with this mapper will be totally managed by this new mapper and have no connection to the original one.  Most methods on <code>Session</code> include an optional <code>entity_name</code> parameter in order to specify this condition.
  </li>
 </ul>
 <p>example:
@@ -1371,14 +1193,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1386,12 +1203,13 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Circular Mapping</h3>
+
+<h3>Circular Mapping</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>Oftentimes it is necessary for two mappers to be related to each other.  With a datamodel that consists of Users that store Addresses, you might have an Address object and want to access the "user" attribute on it, or have a User object and want to get the list of Address objects.  The easiest way to do this is via the <code>backref</code> keyword described in <a href="datamapping.html#datamapping_relations_backreferences" >Backreferences</a>.  Although even when backreferences are used, it is sometimes necessary to explicitly specify the relations on both mappers pointing to each other.
+<p>Oftentimes it is necessary for two mappers to be related to each other.  With a datamodel that consists of Users that store Addresses, you might have an Address object and want to access the "user" attribute on it, or have a User object and want to get the list of Address objects.  The easiest way to do this is via the <code>backref</code> keyword described in <a href="datamapping.html#datamapping_relations_backreferences">Backreferences</a>.  Although even when backreferences are used, it is sometimes necessary to explicitly specify the relations on both mappers pointing to each other.
    To achieve this involves creating the first mapper by itself, then creating the second mapper referencing the first, then adding references to the first mapper to reference the second:
 </p>
 
@@ -1414,14 +1232,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1429,12 +1242,13 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Self Referential Mappers</h3>
+
+<h3>Self Referential Mappers</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>A self-referential mapper is a mapper that is designed to operate with an <b>adjacency list</b> table.  This is a table that contains one or more foreign keys back to itself, and is usually used to create hierarchical tree structures.  SQLAlchemy's default model of saving items based on table dependencies is not sufficient in this case, as an adjacency list table introduces dependencies between individual rows.  Fortunately, SQLAlchemy will automatically detect a self-referential mapper and do the extra lifting to make it work.  <br /> 
+<p>A self-referential mapper is a mapper that is designed to operate with an <em>adjacency list</em> table.  This is a table that contains one or more foreign keys back to itself, and is usually used to create hierarchical tree structures.  SQLAlchemy's default model of saving items based on table dependencies is not sufficient in this case, as an adjacency list table introduces dependencies between individual rows.  Fortunately, SQLAlchemy will automatically detect a self-referential mapper and do the extra lifting to make it work.  <br></br>
 </p>
 
 
@@ -1456,7 +1270,7 @@ Next: <a href="types.html">The Types System</a>
 </span><span class="python_operator"></span><span class="python_name">TreeNode</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">TreeNode</span><span class="python_operator">, </span><span class="python_name">trees</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
         <span class="python_literal">'children' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
                         <span class="python_name">TreeNode</span><span class="python_operator">, </span>
-                        <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all, delete-orphan"</span>
+                        <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all"</span>
                      <span class="python_enclosure">)</span><span class="python_operator">,</span>
         <span class="python_enclosure">}</span>
     <span class="python_enclosure">)</span><span class="python_operator">
@@ -1466,11 +1280,11 @@ Next: <a href="types.html">The Types System</a>
 </span>
 <span class="python_name">mymapper</span><span class="python_operator">.</span><span class="python_name">add_property</span><span class="python_enclosure">(</span><span class="python_literal">'children'</span><span class="python_operator">, </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
                         <span class="python_name">mymapper</span><span class="python_operator">, </span>
-                        <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all, delete-orphan"</span>
+                        <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all"</span>
                      <span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
 <p>This kind of mapper goes through a lot of extra effort when saving and deleting items, to determine the correct dependency graph of nodes within the tree.
 </p>
-<p>A self-referential mapper where there is more than one relationship on the table requires that all join conditions be explicitly spelled out.  Below is a self-referring table that contains a "parent<em>node</em>id" column to reference parent/child relationships, and a "root<em>node</em>id" column which points child nodes back to the ultimate root node:
+<p>A self-referential mapper where there is more than one relationship on the table requires that all join conditions be explicitly spelled out.  Below is a self-referring table that contains a "parent_node_id" column to reference parent/child relationships, and a "root_node_id" column which points child nodes back to the ultimate root node:
 </p>
 
 
@@ -1492,7 +1306,8 @@ Next: <a href="types.html">The Types System</a>
         <span class="python_literal">'children' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
                         <span class="python_name">TreeNode</span><span class="python_operator">, </span>
                         <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">parent_node_id</span><span class="python_operator">==</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span>
-                        <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all, delete-orphan"</span>
+                        <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all"</span><span class="python_operator">,</span>
+                        <span class="python_name">backref</span><span class="python_operator">=</span><span class="python_name">backref</span><span class="python_enclosure">(</span><span class="python_literal">"parent"</span><span class="python_operator">, </span><span class="python_name">foreignkey</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span><span class="python_enclosure">)</span>
                      <span class="python_enclosure">)</span><span class="python_operator">,</span>
         <span class="python_literal">'root' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
                 <span class="python_name">TreeNode</span><span class="python_operator">,</span>
@@ -1503,20 +1318,15 @@ Next: <a href="types.html">The Types System</a>
         <span class="python_enclosure">}</span>
     <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 <p>The "root" property on a TreeNode is a many-to-one relationship.  By default, a self-referential mapper declares relationships as one-to-many, so the extra parameter <code>foreignkey</code>, pointing to a column or list of columns on the remote side of a relationship, is needed to indicate a "many-to-one" self-referring relationship.
-   Both TreeNode examples above are available in functional form in the <code>examples/adjacencytree</code> directory of the distribution.    <br /> 
+   Both TreeNode examples above are available in functional form in the <code>examples/adjacencytree</code> directory of the distribution.    <br></br>
 </p>
 
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1524,10 +1334,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Result-Set Mapping</h3>
+
+<h3>Result-Set Mapping</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Take any result set and feed it into a mapper to produce objects.  Multiple mappers can be combined to retrieve unrelated objects from the same row in one step.  The <code>instances</code> method on mapper takes a ResultProxy object, which is the result type generated from SQLEngine, and delivers object instances.
 </p>
@@ -1565,14 +1376,9 @@ Next: <a href="types.html">The Types System</a>
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1580,10 +1386,11 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Mapper Arguments</h3>
+
+<h3>Mapper Arguments</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Other arguments not covered above include:
 </p>
@@ -1606,14 +1413,9 @@ count returned by the database is compared to the expected row count, and an exc
 
     </div>
 
-
     <a href="#advdatamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1621,10 +1423,11 @@ count returned by the database is compared to the expected row count, and an exc
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Extending Mapper</h3>
+
+<h3>Extending Mapper</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Mappers can have functionality augmented or replaced at many points in its execution via the usage of the MapperExtension class.  This class is just a series of "hooks" where various functionality takes place.  An application can make its own MapperExtension objects, overriding only the methods it needs.  Methods that are not overridden return the special value <code>sqlalchemy.orm.mapper.EXT_PASS</code>, which indicates the operation should proceed as normally.
 </p>
@@ -1632,76 +1435,90 @@ count returned by the database is compared to the expected row count, and an exc
 
 <div class="sliding_code">
 <pre><span class="python_keyword">class </span><span class="python_name">MapperExtension</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_literal">"""base implementation for an object that provides overriding behavior to various
+    Mapper functions.  For each method in MapperExtension, a result of EXT_PASS indicates
+    the functionality is not overridden."""</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">get_session</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_literal">"""called to retrieve a contextual Session instance with which to
+        register a new object. Note: this is not called if a session is 
+        provided with the __init__ params (i.e. _sa_session)"""</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">query</span><span class="python_operator">, *</span><span class="python_name">args</span><span class="python_operator">, **</span><span class="python_name">kwargs</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""overrides the select_by method of the Query object"""</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">query</span><span class="python_operator">, *</span><span class="python_name">args</span><span class="python_operator">, **</span><span class="python_name">kwargs</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""overrides the select method of the Query object"""</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">create_instance</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">session</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_operator">, </span><span class="python_name">imap</span><span class="python_operator">, </span><span class="python_name">class_</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">create_instance</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">selectcontext</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_operator">, </span><span class="python_name">class_</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""called when a new object instance is about to be created from a row.  
         the method can choose to create the instance itself, or it can return 
         None to indicate normal object creation should take place.
 
         mapper - the mapper doing the operation
 
-        row - the result row from the database
+        selectcontext - SelectionContext corresponding to the instances() call
 
-        imap - a dictionary that is storing the running set of objects collected from the
-        current result set
+        row - the result row from the database
 
         class_ - the class we are mapping.
         """</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">append_result</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">session</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_operator">, </span><span class="python_name">imap</span><span class="python_operator">, </span><span class="python_name">result</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_operator">, </span><span class="python_name">isnew</span><span class="python_operator">, </span><span class="python_name">populate_existing</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">append_result</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">selectcontext</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_operator">, </span><span class="python_name">identitykey</span><span class="python_operator">, </span><span class="python_name">result</span><span class="python_operator">, </span><span class="python_name">isnew</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""called when an object instance is being appended to a result list.
 
-        If this method returns True, it is assumed that the mapper should do the appending, else
-        if this method returns False, it is assumed that the append was handled by this method.
+        If this method returns EXT_PASS, it is assumed that the mapper should do the appending, else
+        if this method returns any other value or None, it is assumed that the append was handled by this method.
 
         mapper - the mapper doing the operation
 
+        selectcontext - SelectionContext corresponding to the instances() call
+
         row - the result row from the database
 
-        imap - a dictionary that is storing the running set of objects collected from the
-        current result set
-
-        result - an instance of util.HistoryArraySet(), which may be an attribute on an
-        object if this is a related object load (lazy or eager).  use result.append_nohistory(value)
-        to append objects to this list.
-
         instance - the object instance to be appended to the result
+
+        identitykey - the identity key of the instance
+
+        result - list to which results are being appended
 
         isnew - indicates if this is the first time we have seen this object instance in the current result
         set.  if you are selecting from a join, such as an eager load, you might see the same object instance
         many times in the same result set.
-
-        populate_existing - usually False, indicates if object instances that were already in the main 
-        identity map, i.e. were loaded by a previous select(), get their attributes overwritten
         """</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">populate_instance</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">session</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_operator">, </span><span class="python_name">identitykey</span><span class="python_operator">, </span><span class="python_name">imap</span><span class="python_operator">, </span><span class="python_name">isnew</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">populate_instance</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">selectcontext</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_operator">, </span><span class="python_name">identitykey</span><span class="python_operator">, </span><span class="python_name">isnew</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""called right before the mapper, after creating an instance from a row, passes the row
         to its MapperProperty objects which are responsible for populating the object's attributes.
-        If this method returns True, it is assumed that the mapper should do the appending, else
-        if this method returns False, it is assumed that the append was handled by this method.
+        If this method returns EXT_PASS, it is assumed that the mapper should do the appending, else
+        if this method returns any other value or None, it is assumed that the append was handled by this method.
 
         Essentially, this method is used to have a different mapper populate the object:
 
-            def populate_instance(self, mapper, session, instance, row, identitykey, imap, isnew):
-                othermapper.populate_instance(session, instance, row, identitykey, imap, isnew, frommapper=mapper)
+            def populate_instance(self, mapper, selectcontext, instance, row, identitykey, isnew):
+                othermapper.populate_instance(selectcontext, instance, row, identitykey, isnew, frommapper=mapper)
                 return True
         """</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">before_insert</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">connection</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""called before an object instance is INSERTed into its table.
 
         this is a good place to set up primary key values and such that arent handled otherwise."""</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">before_update</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">connection</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""called before an object instnace is UPDATED"""</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">after_update</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">connection</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""called after an object instnace is UPDATED"""</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">after_insert</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">connection</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""called after an object instance has been INSERTed"""</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">before_delete</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">connection</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_literal">"""called before an object instance is DELETEed"""</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">after_delete</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">connection</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
-        </span><span class="python_literal">"""called after an object instance is DELETEed"""</span><span class="python_operator"></span></pre></div>
+        </span><span class="python_literal">"""called after an object instance is DELETEed"""</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">EXT_PASS</span><span class="python_operator"></span></pre></div>
 <p>To use MapperExtension, make your own subclass of it and just send it off to a mapper:
 </p>
 
@@ -1716,57 +1533,35 @@ count returned by the database is compared to the expected row count, and an exc
 <pre><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">ext1</span><span class="python_operator">, </span><span class="python_name">ext2</span><span class="python_operator">, </span><span class="python_name">ext3</span><span class="python_enclosure">])</span><span class="python_operator"></span></pre></div>
 
 
+
     </div>
-
-
-    <a href="#advdatamapping" class="toclink">back to section top</a>
-
 
 </div>
 
 
 
+    </div>
 
+    <a href="#advdatamapping" class="toclink">back to section top</a>
     
 <div class="sectionnavblock">
 <div class="sectionnav">
 
-
-        Previous: <a href="unitofwork.html">Session / Unit of Work</a>
+        Previous: <a href="unitofwork.html#unitofwork">Session / Unit of Work</a>
 
                 |
 
-        Next: <a href="types.html">The Types System</a>
+        Next: <a href="types.html#types">The Types System</a>
 
 </div>
 </div>
 
-
 </div>
 
 
-		</div>
-
-
-
-
-
+</html></div>
 
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

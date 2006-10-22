@@ -1,3 +1,10 @@
+sqlalchemy (0.3.0-1) unstable; urgency=low
+
+  * New upstream release
+  * Register documentation in doc-base
+
+ -- Piotr Ozarowski <ozarow@gmail.com>  Sun, 22 Oct 2006 22:07:15 +0200
+
 sqlalchemy (0.2.8-1) unstable; urgency=low
 
   * New upstream release

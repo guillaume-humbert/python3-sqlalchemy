@@ -1,18 +1,15 @@
 <html>
 <head>
 	<title>
-        SQLAlchemy 0.2 Documentation
+    
 </title>
+    <link href="style.css" rel="stylesheet" type="text/css"></link>
+    <link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+    <link href="docs.css" rel="stylesheet" type="text/css"></link>
+    <script src="scripts.js"></script>
 </head>
 <body>
-
-
-
-<link href="style.css" rel="stylesheet" type="text/css"></link>
-<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
-
-<link href="docs.css" rel="stylesheet" type="text/css"></link>
-<script src="scripts.js"></script>
 
 
 <div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
@@ -21,23 +18,15 @@
 
 <div class="docheader">
 
-<h1>SQLAlchemy 0.2 Documentation</h1>
-<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
+<h1>SQLAlchemy 0.3 Documentation</h1>
+<div class="">Version: 0.3.0   Last Updated: 10/22/06 14:17:49</div>
 </div>
 
 
 
 		
-		
 	
 	<div class="maintoc">
-	
-	
-	<div class="topnavcontrol">
-	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
-	</div>
-
-
 
 	<a name="table_of_contents"></a>
 	<h2>Table of Contents</h2>
@@ -49,72 +38,60 @@
 	
 
 <ul class="toc_list">
-
     
-    
+        
         <li><A style="" href="tutorial.html">Tutorial</a></li>
     
 
-
     
-    
+        
         <li><A style="" href="dbengine.html">Database Engines</a></li>
     
 
-
     
-    
+        
         <li><A style="" href="metadata.html">Database Meta Data</a></li>
     
 
-
     
-    
+        
         <li><A style="" href="sqlconstruction.html">Constructing SQL Queries via Python Expressions</a></li>
     
 
-
     
-    
+        
         <li><A style="" href="datamapping.html">Data Mapping</a></li>
     
 
-
     
-    
+        
         <li><A style="" href="unitofwork.html">Session / Unit of Work</a></li>
     
 
-
     
-    
+        
         <li><A style="" href="adv_datamapping.html">Advanced Data Mapping</a></li>
     
 
-
     
-    
+        
         <li><A style="" href="types.html">The Types System</a></li>
     
 
-
     
-    
+        
         <li><A style="" href="pooling.html">Connection Pooling</a></li>
     
 
-
     
-    
+        
         <li><A style="" href="plugins.html">Plugins</a></li>
     
 
-
     
+        
+        <li><A style="" href="docstrings.html">Generated Documentation</a></li>
     
-        <li><A style="" href="docstrings.html">Modules and Classes</a></li>
-    
-
 
 </ul>
 
@@ -134,9 +111,8 @@
 	
 
 <ul class="toc_list">
-
     
-    
+        
         <li><A style="" href="tutorial.html">Tutorial</a></li>
     
     <ul class="small_toc_list">
@@ -284,9 +260,8 @@
 
     </ul>
 
-
     
-    
+        
         <li><A style="" href="dbengine.html">Database Engines</a></li>
     
     <ul class="small_toc_list">
@@ -325,12 +300,6 @@
     <li><A href="dbengine.html#dbengine_connections">Using Connections</a></li>
 
     <ul class="small_toc_list">
-        
-        
-    <li><A href="dbengine.html#dbengine_connections_context">Implicit Connection Contexts</a></li>
-
-
-
     </ul>
 
 
@@ -342,11 +311,24 @@
     </ul>
 
 
+        
+        
+    <li><A href="dbengine.html#dbengine_implicit">Implicit Execution</a></li>
+
+    <ul class="small_toc_list">
+        
+        
+    <li><A href="dbengine.html#dbengine_implicit_strategies">Implicit Execution Strategies</a></li>
+
+
+
     </ul>
 
 
+    </ul>
+
     
-    
+        
         <li><A style="" href="metadata.html">Database Meta Data</a></li>
     
     <ul class="small_toc_list">
@@ -442,9 +424,27 @@
 
         
         
-    <li><A href="metadata.html#metadata_indexes">Defining Indexes</a></li>
+    <li><A href="metadata.html#metadata_constraints">Defining Constraints and Indexes</a></li>
 
     <ul class="small_toc_list">
+        
+        
+    <li><A href="metadata.html#metadata_constraints_unique">UNIQUE Constraint</a></li>
+
+
+
+        
+        
+    <li><A href="metadata.html#metadata_constraints_check">CHECK Constraint</a></li>
+
+
+
+        
+        
+    <li><A href="metadata.html#metadata_constraints_indexes">Indexes</a></li>
+
+
+
     </ul>
 
 
@@ -458,9 +458,8 @@
 
     </ul>
 
-
     
-    
+        
         <li><A style="" href="sqlconstruction.html">Constructing SQL Queries via Python Expressions</a></li>
     
     <ul class="small_toc_list">
@@ -660,9 +659,8 @@
 
     </ul>
 
-
     
-    
+        
         <li><A style="" href="datamapping.html">Data Mapping</a></li>
     
     <ul class="small_toc_list">
@@ -782,9 +780,8 @@
 
     </ul>
 
-
     
-    
+        
         <li><A style="" href="unitofwork.html">Session / Unit of Work</a></li>
     
     <ul class="small_toc_list">
@@ -958,9 +955,8 @@
 
     </ul>
 
-
     
-    
+        
         <li><A style="" href="adv_datamapping.html">Advanced Data Mapping</a></li>
     
     <ul class="small_toc_list">
@@ -1025,14 +1021,6 @@
         
         
     <li><A href="adv_datamapping.html#advdatamapping_limits">Limiting Rows</a></li>
-
-    <ul class="small_toc_list">
-    </ul>
-
-
-        
-        
-    <li><A href="adv_datamapping.html#advdatamapping_options">More on Mapper Options</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -1130,9 +1118,8 @@
 
     </ul>
 
-
     
-    
+        
         <li><A style="" href="types.html">The Types System</a></li>
     
     <ul class="small_toc_list">
@@ -1154,9 +1141,8 @@
 
     </ul>
 
-
     
-    
+        
         <li><A style="" href="pooling.html">Connection Pooling</a></li>
     
     <ul class="small_toc_list">
@@ -1186,44 +1172,19 @@
 
     </ul>
 
-
     
-    
+        
         <li><A style="" href="plugins.html">Plugins</a></li>
     
     <ul class="small_toc_list">
         
         
-    <li><A href="plugins.html#plugins_threadlocal">threadlocal</a></li>
+    <li><A href="plugins.html#plugins_sessioncontext">SessionContext</a></li>
 
     <ul class="small_toc_list">
         
         
-    <li><A href="plugins.html#plugins_threadlocal_get_session()">get_session() Implemented on All Mappers</a></li>
-
-
-
-        
-        
-    <li><A href="plugins.html#plugins_threadlocal_default">Default Query Objects</a></li>
-
-
-
-        
-        
-    <li><A href="plugins.html#plugins_threadlocal_objectstore">objectstore Namespace</a></li>
-
-
-
-        
-        
-    <li><A href="plugins.html#plugins_threadlocal_attaching">Attaching Mappers to their Class</a></li>
-
-
-
-        
-        
-    <li><A href="plugins.html#plugins_threadlocal_engine">Engine Strategy Set to threadlocal By Default</a></li>
+    <li><A href="plugins.html#plugins_sessioncontext_sessioncontextext">Using SessionContextExt</a></li>
 
 
 
@@ -1232,7 +1193,7 @@
 
         
         
-    <li><A href="plugins.html#plugins_sessioncontext">SessionContext</a></li>
+    <li><A href="plugins.html#plugins_selectresults">SelectResults</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -1241,6 +1202,14 @@
         
         
     <li><A href="plugins.html#plugins_assignmapper">assignmapper</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+        
+        
+    <li><A href="plugins.html#plugins_threadlocal">threadlocal</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -1270,25 +1239,16 @@
     </ul>
 
 
-        
-        
-    <li><A href="plugins.html#plugins_selectresults">SelectResults</a></li>
-
-    <ul class="small_toc_list">
     </ul>
 
-
-    </ul>
-
-
     
-    
-        <li><A style="" href="docstrings.html">Modules and Classes</a></li>
+        
+        <li><A style="" href="docstrings.html">Generated Documentation</a></li>
     
     <ul class="small_toc_list">
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.sql">Module sqlalchemy.sql</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql">module sqlalchemy.sql</a></li>
 
     <ul class="small_toc_list">
         
@@ -1299,43 +1259,91 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_Engine">Class Engine(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_AbstractDialect">class AbstractDialect(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_AbstractDialect">Class AbstractDialect(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_Alias">class Alias(FromClause)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_ClauseParameters">Class ClauseParameters(dict)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_ClauseElement">class ClauseElement(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_Compiled">Class Compiled(ClauseVisitor)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_ClauseParameters">class ClauseParameters(dict)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_ClauseElement">Class ClauseElement(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_ClauseVisitor">class ClauseVisitor(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_TableClause">Class TableClause(FromClause)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_ColumnCollection">class ColumnCollection(OrderedProperties)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_ColumnClause">Class ColumnClause(ColumnElement)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_ColumnElement">class ColumnElement(Selectable,_CompareMixin)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_Compiled">class Compiled(ClauseVisitor)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_CompoundSelect">class CompoundSelect(_SelectBaseMixin,FromClause)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_Executor">class Executor(object)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_FromClause">class FromClause(Selectable)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_Join">class Join(FromClause)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_Select">class Select(_SelectBaseMixin,FromClause)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_Selectable">class Selectable(ClauseElement)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.sql_TableClause">class TableClause(FromClause)</a></li>
 
 
 
@@ -1344,90 +1352,114 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema">Module sqlalchemy.schema</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema">module sqlalchemy.schema</a></li>
 
     <ul class="small_toc_list">
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_BoundMetaData">Class BoundMetaData(MetaData)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_BoundMetaData">class BoundMetaData(MetaData)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_Column">Class Column(SchemaItem,ColumnClause)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_CheckConstraint">class CheckConstraint(Constraint)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_ColumnDefault">Class ColumnDefault(DefaultGenerator)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_Column">class Column(SchemaItem,_ColumnClause)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_DynamicMetaData">Class DynamicMetaData(MetaData)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_ColumnDefault">class ColumnDefault(DefaultGenerator)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_ForeignKey">Class ForeignKey(SchemaItem)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_Constraint">class Constraint(SchemaItem)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_ForeignKeyConstraint">Class ForeignKeyConstraint(Constraint)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_DefaultGenerator">class DefaultGenerator(SchemaItem)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_Index">Class Index(SchemaItem)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_DynamicMetaData">class DynamicMetaData(MetaData)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_MetaData">Class MetaData(SchemaItem)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_ForeignKey">class ForeignKey(SchemaItem)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_PassiveDefault">Class PassiveDefault(DefaultGenerator)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_ForeignKeyConstraint">class ForeignKeyConstraint(Constraint)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">Class PrimaryKeyConstraint(Constraint)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_Index">class Index(SchemaItem)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_SchemaItem">Class SchemaItem(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_MetaData">class MetaData(SchemaItem)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_SchemaVisitor">Class SchemaVisitor(ClauseVisitor)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_PassiveDefault">class PassiveDefault(DefaultGenerator)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_Sequence">Class Sequence(DefaultGenerator)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">class PrimaryKeyConstraint(Constraint)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_Table">Class Table(SchemaItem,TableClause)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_SchemaItem">class SchemaItem(object)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_SchemaVisitor">class SchemaVisitor(ClauseVisitor)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_Sequence">class Sequence(DefaultGenerator)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_Table">class Table(SchemaItem,TableClause)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.schema_UniqueConstraint">class UniqueConstraint(Constraint)</a></li>
 
 
 
@@ -1436,7 +1468,7 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine">Module sqlalchemy.engine</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine">module sqlalchemy.engine</a></li>
 
     <ul class="small_toc_list">
         
@@ -1447,55 +1479,67 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_Connectable">Class Connectable(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_Connectable">class Connectable(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_ComposedSQLEngine">Class ComposedSQLEngine(Engine,Connectable)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_Connection">class Connection(Connectable)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_Connection">Class Connection(Connectable)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_ConnectionProvider">class ConnectionProvider(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_Transaction">Class Transaction(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_DefaultRunner">class DefaultRunner(SchemaVisitor)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_Dialect">Class Dialect(AbstractDialect)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_Dialect">class Dialect(AbstractDialect)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_ConnectionProvider">Class ConnectionProvider(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_Engine">class Engine(Executor,Connectable)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_ExecutionContext">Class ExecutionContext(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_ExecutionContext">class ExecutionContext(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_ResultProxy">Class ResultProxy</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_ResultProxy">class ResultProxy(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_RowProxy">Class RowProxy</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_RowProxy">class RowProxy(object)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_SchemaIterator">class SchemaIterator(SchemaVisitor)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine_Transaction">class Transaction(object)</a></li>
 
 
 
@@ -1504,30 +1548,18 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine.strategies">Module sqlalchemy.engine.strategies</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine.url">module sqlalchemy.engine.url</a></li>
 
     <ul class="small_toc_list">
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine.strategies_DefaultEngineStrategy">Class DefaultEngineStrategy(EngineStrategy)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine.url_modfunc">Module Functions</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine.strategies_EngineStrategy">Class EngineStrategy(object)</a></li>
-
-
-
-        
-        
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine.strategies_PlainEngineStrategy">Class PlainEngineStrategy(DefaultEngineStrategy)</a></li>
-
-
-
-        
-        
-    <li><A href="docstrings.html#docstrings_sqlalchemy.engine.strategies_ThreadLocalEngineStrategy">Class ThreadLocalEngineStrategy(DefaultEngineStrategy)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.engine.url_URL">class URL(object)</a></li>
 
 
 
@@ -1536,7 +1568,7 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.orm">Module sqlalchemy.orm</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm">module sqlalchemy.orm</a></li>
 
     <ul class="small_toc_list">
         
@@ -1547,13 +1579,7 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.orm_Mapper">Class Mapper(object)</a></li>
-
-
-
-        
-        
-    <li><A href="docstrings.html#docstrings_sqlalchemy.orm_MapperExtension">Class MapperExtension(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm_MapperExtension">class MapperExtension(object)</a></li>
 
 
 
@@ -1562,12 +1588,18 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.query">Module sqlalchemy.orm.query</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.mapper">module sqlalchemy.orm.mapper</a></li>
 
     <ul class="small_toc_list">
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.query_Query">Class Query(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.mapper_modfunc">Module Functions</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.mapper_Mapper">class Mapper(object)</a></li>
 
 
 
@@ -1576,7 +1608,33 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.session">Module sqlalchemy.orm.session</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.query">module sqlalchemy.orm.query</a></li>
+
+    <ul class="small_toc_list">
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.query_Query">class Query(object)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.query_QueryContext">class QueryContext(OperationContext)</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.query_SelectionContext">class SelectionContext(OperationContext)</a></li>
+
+
+
+    </ul>
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.session">module sqlalchemy.orm.session</a></li>
 
     <ul class="small_toc_list">
         
@@ -1587,13 +1645,13 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.session_Session">Class Session(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.session_Session">class Session(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.session_SessionTransaction">Class SessionTransaction(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.orm.session_SessionTransaction">class SessionTransaction(object)</a></li>
 
 
 
@@ -1602,7 +1660,7 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.pool">Module sqlalchemy.pool</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.pool">module sqlalchemy.pool</a></li>
 
     <ul class="small_toc_list">
         
@@ -1613,25 +1671,25 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_DBProxy">Class DBProxy(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_DBProxy">class DBProxy(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_Pool">Class Pool(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_Pool">class Pool(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_QueuePool">Class QueuePool(Pool)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_QueuePool">class QueuePool(Pool)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_SingletonThreadPool">Class SingletonThreadPool(Pool)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_SingletonThreadPool">class SingletonThreadPool(Pool)</a></li>
 
 
 
@@ -1640,18 +1698,18 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.sessioncontext">Module sqlalchemy.ext.sessioncontext</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.sessioncontext">module sqlalchemy.ext.sessioncontext</a></li>
 
     <ul class="small_toc_list">
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.sessioncontext_SessionContext">Class SessionContext(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.sessioncontext_SessionContext">class SessionContext(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.sessioncontext_SessionContextExt">Class SessionContextExt(MapperExtension)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.sessioncontext_SessionContextExt">class SessionContextExt(MapperExtension)</a></li>
 
 
 
@@ -1660,7 +1718,7 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.mods.threadlocal">Module sqlalchemy.mods.threadlocal</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.mods.threadlocal">module sqlalchemy.mods.threadlocal</a></li>
 
     <ul class="small_toc_list">
         
@@ -1671,7 +1729,7 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.mods.threadlocal_Objectstore">Class Objectstore(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.mods.threadlocal_Objectstore">class Objectstore(object)</a></li>
 
 
 
@@ -1680,18 +1738,18 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.selectresults">Module sqlalchemy.ext.selectresults</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.selectresults">module sqlalchemy.ext.selectresults</a></li>
 
     <ul class="small_toc_list">
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.selectresults_SelectResults">Class SelectResults(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.selectresults_SelectResults">class SelectResults(object)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.selectresults_SelectResultsExt">Class SelectResultsExt(MapperExtension)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.selectresults_SelectResultsExt">class SelectResultsExt(MapperExtension)</a></li>
 
 
 
@@ -1700,60 +1758,72 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions">Module sqlalchemy.exceptions</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions">module sqlalchemy.exceptions</a></li>
 
     <ul class="small_toc_list">
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_ArgumentError">Class ArgumentError</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_ArgumentError">class ArgumentError()</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_AssertionError">Class AssertionError</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_AssertionError">class AssertionError()</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_DBAPIError">Class DBAPIError</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_ConcurrentModificationError">class ConcurrentModificationError()</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_FlushError">Class FlushError</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_DBAPIError">class DBAPIError()</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_InvalidRequestError">Class InvalidRequestError</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_FlushError">class FlushError()</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_NoSuchTableError">Class NoSuchTableError</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_InvalidRequestError">class InvalidRequestError()</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_SQLAlchemyError">Class SQLAlchemyError</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_NoSuchColumnError">class NoSuchColumnError()</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_SQLError">Class SQLError</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_NoSuchTableError">class NoSuchTableError()</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_TimeoutError">Class TimeoutError</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_SQLAlchemyError">class SQLAlchemyError()</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_SQLError">class SQLError()</a></li>
+
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.exceptions_TimeoutError">class TimeoutError()</a></li>
 
 
 
@@ -1762,24 +1832,24 @@
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.proxy">Module sqlalchemy.ext.proxy</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.proxy">module sqlalchemy.ext.proxy</a></li>
 
     <ul class="small_toc_list">
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_AutoConnectEngine">Class AutoConnectEngine(BaseProxyEngine)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_AutoConnectEngine">class AutoConnectEngine(BaseProxyEngine)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_BaseProxyEngine">Class BaseProxyEngine(Engine)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_BaseProxyEngine">class BaseProxyEngine(Executor)</a></li>
 
 
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_ProxyEngine">Class ProxyEngine(BaseProxyEngine)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_ProxyEngine">class ProxyEngine(BaseProxyEngine)</a></li>
 
 
 
@@ -1787,7 +1857,6 @@
 
 
     </ul>
-
 
 </ul>
 
@@ -1796,26 +1865,7 @@
 	</div>
 
 
-
-
-
-
-
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

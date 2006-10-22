@@ -164,6 +164,29 @@ class DefaultExecutionContext(base.ExecutionContext):
         return self._last_updated_params                
     def lastrow_has_defaults(self):
         return self._lastrow_has_defaults
+    def set_input_sizes(self, cursor, parameters):
+        """given a cursor and ClauseParameters, call the appropriate style of 
+        setinputsizes() on the cursor, using DBAPI types from the bind parameter's
+        TypeEngine objects."""
+        if isinstance(parameters, list):
+            plist = parameters
+        else:
+            plist = [parameters]
+        if self.dialect.positional:
+            inputsizes = []
+            for params in plist[0:1]:
+                for key in params.positional:
+                    typeengine = params.binds[key].type
+                    inputsizes.append(typeengine.get_dbapi_type(self.dialect.module))
+            cursor.setinputsizes(*inputsizes)
+        else:
+            inputsizes = {}
+            for params in plist[0:1]:
+                for key in params.keys():
+                    typeengine = params.binds[key].type
+                    inputsizes[key] = typeengine.get_dbapi_type(self.dialect.module)
+            cursor.setinputsizes(**inputsizes)
+        
     def _process_defaults(self, engine, proxy, compiled, parameters):
         """INSERT and UPDATE statements, when compiled, may have additional columns added to their
         VALUES and SET lists corresponding to column defaults/onupdates that are present on the 
@@ -186,18 +209,18 @@ class DefaultExecutionContext(base.ExecutionContext):
                 last_inserted_ids = []
                 need_lastrowid=False
                 for c in compiled.statement.table.c:
-                    if not param.has_key(c.name) or param[c.name] is None:
+                    if not param.has_key(c.key) or param[c.key] is None:
                         if isinstance(c.default, schema.PassiveDefault):
                             self._lastrow_has_defaults = True
                         newid = drunner.get_column_default(c)
                         if newid is not None:
-                            param[c.name] = newid
+                            param[c.key] = newid
                             if c.primary_key:
-                                last_inserted_ids.append(param[c.name])
+                                last_inserted_ids.append(param[c.key])
                         elif c.primary_key:
                             need_lastrowid = True
                     elif c.primary_key:
-                        last_inserted_ids.append(param[c.name])
+                        last_inserted_ids.append(param[c.key])
                 if need_lastrowid:
                     self._last_inserted_ids = None
                 else:
@@ -213,10 +236,10 @@ class DefaultExecutionContext(base.ExecutionContext):
             self._lastrow_has_defaults = False
             for param in plist:
                 for c in compiled.statement.table.c:
-                    if c.onupdate is not None and (not param.has_key(c.name) or param[c.name] is None):
+                    if c.onupdate is not None and (not param.has_key(c.key) or param[c.key] is None):
                         value = drunner.get_column_onupdate(c)
                         if value is not None:
-                            param[c.name] = value
+                            param[c.key] = value
                 self._last_updated_params = param
 
 

@@ -1,18 +1,15 @@
 <html>
 <head>
 	<title>
-    Connection Pooling - SQLAlchemy 0.2 Documentation
+    SQLAlchemy 0.3 Documentation - Connection Pooling
 </title>
+    <link href="style.css" rel="stylesheet" type="text/css"></link>
+    <link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+    <link href="docs.css" rel="stylesheet" type="text/css"></link>
+    <script src="scripts.js"></script>
 </head>
 <body>
-
-
-
-<link href="style.css" rel="stylesheet" type="text/css"></link>
-<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
-
-<link href="docs.css" rel="stylesheet" type="text/css"></link>
-<script src="scripts.js"></script>
 
 
 <div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
@@ -21,24 +18,14 @@
 
 <div class="docheader">
 
-<h1>Connection Pooling</h1>
-<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
+<h1>SQLAlchemy 0.3 Documentation</h1>
+<div class="">Version: 0.3.0   Last Updated: 10/22/06 14:17:49</div>
 </div>
 
 
+<A name="pooling"></a>
 
-		<A name="pooling"></a>
-		
-	
-<div class="topnav">
-
-
-	
-	<div class="topnavcontrol">
-	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
-	</div>
-
-
+	<div class="topnav">
 
 <div class="topnavsectionlink">
 
@@ -55,37 +42,32 @@ Next: <a href="plugins.html">Plugins</a>
 </div>
 </div>
 
-
 <div class="topnavmain">
 	<div class="topnavheader">Connection Pooling</div>
 	<div class="topnavitems">
 	
 
 <ul class="toc_list">
-
     
-    
-        <li><A style="" href="#pooling_establishing">Establishing a Transparent Connection Pool</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#pooling_configuration">Connection Pool Configuration</a></li>
+        
+        <li><A style="" href="pooling.html#pooling_establishing">Establishing a Transparent Connection Pool</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
-
     
-    
-        <li><A style="" href="#pooling_custom">Custom Pool Construction</a></li>
+        
+        <li><A style="" href="pooling.html#pooling_configuration">Connection Pool Configuration</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
+    
+        
+        <li><A style="" href="pooling.html#pooling_custom">Custom Pool Construction</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
 
 </ul>
 
@@ -94,17 +76,19 @@ Next: <a href="plugins.html">Plugins</a>
 
 </div>
 
-		<div class="sectioncontent">
-			
+<div class="sectioncontent">
+<html>
 
 
 
+<A name="pooling"></a>
 
 <div class="subsection" style="margin-left:10px;">
 
+
+
     <div class="sectiontext">
-
-
+    
 
 <p>This section describes the connection pool module of SQLAlchemy.  The <code>Pool</code> object it provides is normally embedded within an <code>Engine</code> instance.  For most cases, explicit access to the pool module is not required.  However, the <code>Pool</code> object can be used on its own, without the rest of SA, to manage DBAPI connections; this section describes that usage.  Also, this section will describe in more detail how to customize the pooling strategy used by an <code>Engine</code>.
 </p>
@@ -112,26 +96,16 @@ Next: <a href="plugins.html">Plugins</a>
 </p>
 
 
-			
-
-			
-
-			
-
-    </div>
-
-        
-
-
 
 <A name="pooling_establishing"></a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Establishing a Transparent Connection Pool</h3>
+
+<h3>Establishing a Transparent Connection Pool</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Any DBAPI module can be "proxied" through the connection pool using the following technique (note that the usage of 'psycopg2' is <strong>just an example</strong>; substitute whatever DBAPI module you'd like):
 </p>
@@ -144,7 +118,7 @@ Next: <a href="plugins.html">Plugins</a>
 </span>
 <span class="python_comment"># then connect normally
 </span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">psycopg</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">database</span><span class="python_operator">=</span><span class="python_literal">'test'</span><span class="python_operator">, </span><span class="python_name">username</span><span class="python_operator">=</span><span class="python_literal">'scott'</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'tiger'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>This produces a <code>sqlalchemy.pool.DBProxy</code> object which supports the same <code>connect()</code> function as the original DBAPI module.  Upon connection, a connection proxy object is returned, which delegates its calls to a real DBAPI connection object.  This connection object is stored persistently within a connection pool (an instance of <code>sqlalchemy.pool.Pool</code>) that corresponds to the exact connection arguments sent to the <code>connect()</code> function.  <br /> 
+<p>This produces a <code>sqlalchemy.pool.DBProxy</code> object which supports the same <code>connect()</code> function as the original DBAPI module.  Upon connection, a connection proxy object is returned, which delegates its calls to a real DBAPI connection object.  This connection object is stored persistently within a connection pool (an instance of <code>sqlalchemy.pool.Pool</code>) that corresponds to the exact connection arguments sent to the <code>connect()</code> function.  <br></br>
 </p>
 <p>The connection proxy supports all of the methods on the original connection object, most of which are proxied via <code>__getattr__()</code>.  The <code>close()</code> method will return the connection to the pool, and the <code>cursor()</code> method will return a proxied cursor object.  Both the connection proxy and the cursor proxy will also return the underlying connection to the pool after they have both been garbage collected, which is detected via the <code>__del__()</code> method.
 </p>
@@ -156,14 +130,9 @@ Next: <a href="plugins.html">Plugins</a>
 
     </div>
 
-
     <a href="#pooling" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -171,10 +140,11 @@ Next: <a href="plugins.html">Plugins</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Connection Pool Configuration</h3>
+
+<h3>Connection Pool Configuration</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>When proxying a DBAPI module through the <code>pool</code> module, options exist for how the connections should be pooled:
 </p>
@@ -211,14 +181,9 @@ Next: <a href="plugins.html">Plugins</a>
 
     </div>
 
-
     <a href="#pooling" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -226,10 +191,11 @@ Next: <a href="plugins.html">Plugins</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Custom Pool Construction</h3>
+
+<h3>Custom Pool Construction</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>One level below using a DBProxy to make transparent pools is creating the pool yourself.  The pool module comes with two implementations of connection pools: <code>QueuePool</code> and <code>SingletonThreadPool</code>.  While <code>QueuePool</code> uses <code>Queue.Queue</code> to provide connections, <code>SingletonThreadPool</code> provides a single per-thread connection which SQLite requires.
 </p>
@@ -265,57 +231,35 @@ Next: <a href="plugins.html">Plugins</a>
 </span><span class="python_operator"></span><span class="python_name">p </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">SingletonThreadPool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 
 
+
     </div>
-
-
-    <a href="#pooling" class="toclink">back to section top</a>
-
 
 </div>
 
 
 
+    </div>
 
+    <a href="#pooling" class="toclink">back to section top</a>
     
 <div class="sectionnavblock">
 <div class="sectionnav">
 
-
-        Previous: <a href="types.html">The Types System</a>
+        Previous: <a href="types.html#types">The Types System</a>
 
                 |
 
-        Next: <a href="plugins.html">Plugins</a>
+        Next: <a href="plugins.html#plugins">Plugins</a>
 
 </div>
 </div>
 
-
 </div>
 
 
-		</div>
-
-
-
-
-
+</html></div>
 
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

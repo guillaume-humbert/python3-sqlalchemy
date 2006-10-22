@@ -34,13 +34,13 @@ class MultipleTableTest(testbase.PersistTest):
         
         # a table to store companies
         companies = Table('companies', metadata, 
-           Column('company_id', Integer, primary_key=True),
+           Column('company_id', Integer, Sequence('company_id_seq', optional=True), primary_key=True),
            Column('name', String(50)))
 
         # we will define an inheritance relationship between the table "people" and "engineers",
         # and a second inheritance relationship between the table "people" and "managers"
         people = Table('people', metadata, 
-           Column('person_id', Integer, primary_key=True),
+           Column('person_id', Integer, Sequence('person_id_seq', optional=True), primary_key=True),
            Column('company_id', Integer, ForeignKey('companies.company_id')),
            Column('name', String(50)),
            Column('type', String(30)))
@@ -224,6 +224,38 @@ class MultipleTableTest(testbase.PersistTest):
 
         session.delete(c)
         session.flush()
+
+    def test_insert_order(self):
+        person_join = polymorphic_union(
+            {
+                'engineer':people.join(engineers),
+                'manager':people.join(managers),
+                'person':people.select(people.c.type=='person'),
+            }, None, 'pjoin')
+
+        person_mapper = mapper(Person, people, select_table=person_join, polymorphic_on=person_join.c.type, polymorphic_identity='person')
+
+        mapper(Engineer, engineers, inherits=person_mapper, polymorphic_identity='engineer')
+        mapper(Manager, managers, inherits=person_mapper, polymorphic_identity='manager')
+        mapper(Company, companies, properties={
+            'employees': relation(Person, private=True, backref='company', order_by=person_join.c.person_id)
+        })
+
+        session = create_session()
+        c = Company(name='company1')
+        c.employees.append(Manager(status='AAB', manager_name='manager1', name='pointy haired boss'))
+        c.employees.append(Engineer(status='BBA', engineer_name='engineer1', primary_language='java', name='dilbert'))
+        c.employees.append(Person(status='HHH', name='joesmith'))
+        c.employees.append(Engineer(status='CGG', engineer_name='engineer2', primary_language='python', name='wally'))
+        c.employees.append(Manager(status='ABA', manager_name='manager2', name='jsmith'))
+        session.save(c)
+        session.flush()
+        session.clear()
+        c = session.query(Company).get(c.company_id)
+        for e in c.employees:
+            print e, e._instance_key, e.company
+        
+        assert [e.get_name() for e in c.employees] == ['pointy haired boss', 'dilbert', 'joesmith', 'wally', 'jsmith']
 
 if __name__ == "__main__":    
     testbase.main()

@@ -7,55 +7,7 @@ from sqlalchemy.ext.sessioncontext import SessionContext
 from tables import *
 import tables
 
-user_result = [{'user_id' : 7}, {'user_id' : 8}, {'user_id' : 9}]
-user_address_result = [
-{'user_id' : 7, 'addresses' : (Address, [{'address_id' : 1}])},
-{'user_id' : 8, 'addresses' : (Address, [{'address_id' : 2}, {'address_id' : 3}, {'address_id' : 4}])},
-{'user_id' : 9, 'addresses' : (Address, [])}
-]
-user_address_orders_result = [{'user_id' : 7, 
-    'addresses' : (Address, [{'address_id' : 1}]),
-    'orders' : (Order, [{'order_id' : 1}, {'order_id' : 3},{'order_id' : 5},])
-},
-
-{'user_id' : 8, 
-    'addresses' : (Address, [{'address_id' : 2}, {'address_id' : 3}, {'address_id' : 4}]),
-    'orders' : (Order, [])
-},
-{'user_id' : 9, 
-    'addresses' : (Address, []),
-    'orders' : (Order, [{'order_id' : 2},{'order_id' : 4}])
-}]
-
-user_all_result = [
-{'user_id' : 7, 
-    'addresses' : (Address, [{'address_id' : 1}]),
-    'orders' : (Order, [
-        {'order_id' : 1, 'items': (Item, [])}, 
-        {'order_id' : 3, 'items': (Item, [{'item_id':3, 'item_name':'item 3'}, {'item_id':4, 'item_name':'item 4'}, {'item_id':5, 'item_name':'item 5'}])},
-        {'order_id' : 5, 'items': (Item, [])},
-        ])
-},
-{'user_id' : 8, 
-    'addresses' : (Address, [{'address_id' : 2}, {'address_id' : 3}, {'address_id' : 4}]),
-    'orders' : (Order, [])
-},
-{'user_id' : 9, 
-    'addresses' : (Address, []),
-    'orders' : (Order, [
-        {'order_id' : 2, 'items': (Item, [{'item_id':1, 'item_name':'item 1'}, {'item_id':2, 'item_name':'item 2'}])},
-        {'order_id' : 4, 'items': (Item, [])}
-    ])
-}]
-
-item_keyword_result = [
-{'item_id' : 1, 'keywords' : (Keyword, [{'keyword_id' : 2}, {'keyword_id' : 4}, {'keyword_id' : 6}])},
-{'item_id' : 2, 'keywords' : (Keyword, [{'keyword_id' : 2, 'name':'red'}, {'keyword_id' : 5, 'name':'small'}, {'keyword_id' : 7, 'name':'square'}])},
-{'item_id' : 3, 'keywords' : (Keyword, [{'keyword_id' : 3,'name':'green'}, {'keyword_id' : 4,'name':'big'}, {'keyword_id' : 6,'name':'round'}])},
-{'item_id' : 4, 'keywords' : (Keyword, [])},
-{'item_id' : 5, 'keywords' : (Keyword, [])}
-]
-
+"""tests general mapper operations with an emphasis on selecting/loading"""
 
 class MapperSuperTest(AssertMixin):
     def setUpAll(self):
@@ -111,7 +63,15 @@ class MapperTest(MapperSuperTest):
             assert False
         except exceptions.ArgumentError:
             pass
-        
+
+    def testcolumnprefix(self):
+        mapper(User, users, column_prefix='_')
+        s = create_session()
+        u = s.get(User, 7)
+        assert u._user_name=='jack'
+    	assert u._user_id ==7
+        assert not hasattr(u, 'user_name')
+          
     def testrefresh(self):
         mapper(User, users, properties={'addresses':relation(mapper(Address, addresses))})
         s = create_session()
@@ -315,7 +275,20 @@ class MapperTest(MapperSuperTest):
 
         l = q.select((orderitems.c.item_name=='item 4') & q.join_to('items'))
         self.assert_result(l, User, user_result[0])
-        
+    
+    def testcustomjoin(self):
+        """test that the from_obj parameter to query.select() can be used
+        to totally replace the FROM parameters of the generated query."""
+        m = mapper(User, users, properties={
+            'orders':relation(mapper(Order, orders, properties={
+                'items':relation(mapper(Item, orderitems))
+            }))
+        })
+
+        q = create_session().query(m)
+        l = q.select((orderitems.c.item_name=='item 4'), from_obj=[users.join(orders).join(orderitems)])
+        self.assert_result(l, User, user_result[0])
+            
     def testorderby(self):
         """test ordering at the mapper and query level"""
         # TODO: make a unit test out of these various combinations
@@ -377,6 +350,26 @@ class MapperTest(MapperSuperTest):
                 'foo' : users.c.user_name,
             })
 
+    def testsynonym(self):
+        sess = create_session()
+        mapper(User, users, properties = dict(
+            addresses = relation(mapper(Address, addresses), lazy = True),
+            uname = synonym('user_name', proxy=True),
+            adlist = synonym('addresses', proxy=True)
+        ))
+        
+        u = sess.query(User).get_by(uname='jack')
+        self.assert_result(u.adlist, Address, *(user_address_result[0]['addresses'][1]))
+    
+    def testextensionoptions(self):
+        sess  = create_session()
+        mapper(User, users)
+        class testext(MapperExtension):
+            def select_by(self, *args, **kwargs):
+                return "HI"
+        l = sess.query(User).options(extension(testext())).select_by(x=5)
+        assert l == "HI"
+        
     def testeageroptions(self):
         """tests that a lazy relation can be upgraded to an eager relation via the options method"""
         sess = create_session()
@@ -398,17 +391,58 @@ class MapperTest(MapperSuperTest):
 
         # first test straight eager load, 1 statement
         def go():
-            l = usermapper.query(sess).select()
+            l = sess.query(usermapper).select()
             self.assert_result(l, User, *user_address_result)
         self.assert_sql_count(db, go, 1)
+
+        sess.clear()
         
         # then select just from users.  run it into instances.
         # then assert the data, which will launch 3 more lazy loads
+        # (previous users in session fell out of scope and were removed from session's identity map)
         def go():
             r = users.select().execute()
             l = usermapper.instances(r, sess)
             self.assert_result(l, User, *user_address_result)
         self.assert_sql_count(db, go, 4)
+        
+        clear_mappers()
+
+        sess.clear()
+        
+        # test with a deeper set of eager loads.  when we first load the three
+        # users, they will have no addresses or orders.  the number of lazy loads when
+        # traversing the whole thing will be three for the addresses and three for the 
+        # orders.
+        # (previous users in session fell out of scope and were removed from session's identity map)
+        usermapper = mapper(User, users,
+            properties = {
+                'addresses':relation(mapper(Address, addresses), lazy=False),
+                'orders': relation(mapper(Order, orders, properties = {
+                    'items' : relation(mapper(Item, orderitems, properties = {
+                        'keywords' : relation(mapper(Keyword, keywords), itemkeywords, lazy=False)
+                    }), lazy=False)
+                }), lazy=False)
+            })
+
+        sess.clear()
+
+        # first test straight eager load, 1 statement
+        def go():
+            l = sess.query(usermapper).select()
+            self.assert_result(l, User, *user_all_result)
+        self.assert_sql_count(db, go, 1)
+
+        sess.clear()
+        
+        # then select just from users.  run it into instances.
+        # then assert the data, which will launch 6 more lazy loads
+        def go():
+            r = users.select().execute()
+            l = usermapper.instances(r, sess)
+            self.assert_result(l, User, *user_all_result)
+        self.assert_sql_count(db, go, 7)
+        
         
     def testlazyoptions(self):
         """tests that an eager relation can be upgraded to a lazy relation via the options method"""
@@ -452,7 +486,9 @@ class MapperTest(MapperSuperTest):
             print u[0].orders[1].items[0].keywords[1]
         self.assert_sql_count(db, go, 3)
         sess.clear()
+        print "-------MARK----------"
         u = q2.select()
+        print "-------MARK2----------"
         self.assert_sql_count(db, go, 2)
         
 class InheritanceTest(MapperSuperTest):
@@ -506,6 +542,32 @@ class InheritanceTest(MapperSuperTest):
         sess.clear()
         au = sess.query(usermapper).get_by(user_name='jack')
         self.assert_(au.email_address == 'jack@gmail.com')
+
+    def testlazyoption(self):
+        """test that a lazy options gets created against its correct mapper when
+        using options with inheriting mappers"""
+        class _Order(object):
+            pass
+        class _User(object):
+            pass
+        class AddressUser(_User):
+            pass
+        ordermapper = mapper(_Order, orders)
+        usermapper = mapper(_User, users, 
+            properties = {
+                'orders' : relation(ordermapper, lazy=True)
+            })
+        amapper = mapper(AddressUser, addresses, inherits = usermapper)
+            
+        sess = create_session()
+
+        def go():
+            l = sess.query(AddressUser).options(lazyload('orders')).select()
+            # this would fail because the "orders" lazyloader gets created against AddressUsers selectable
+            # and not _User's.
+            assert len(l[0].orders) == 3
+        self.assert_sql_count(db, go, 2)
+        
             
     
 class DeferredTest(MapperSuperTest):
@@ -546,7 +608,6 @@ class DeferredTest(MapperSuperTest):
         
     def testgroup(self):
         """tests deferred load with a group"""
-        
         m = mapper(Order, orders, properties = {
             'userident':deferred(orders.c.user_id, group='primary'),
             'description':deferred(orders.c.description, group='primary'),
@@ -557,7 +618,9 @@ class DeferredTest(MapperSuperTest):
             l = q.select()
             o2 = l[2]
             print o2.opened, o2.description, o2.userident
-
+            assert o2.opened == 1
+            assert o2.userident == 7
+            assert o2.description == 'order 3'
         orderby = str(orders.default_order_by()[0].compile(db))
         self.assert_sql(db, go, [
             ("SELECT orders.order_id AS orders_order_id FROM orders ORDER BY %s" % orderby, {}),
@@ -718,7 +781,8 @@ class LazyTest(MapperSuperTest):
         self.assert_result(l, User, *user_all_result)
         
         sess.clear()
-        m = mapper(Item, orderitems, is_primary=True, properties = dict(
+        clear_mappers()
+        m = mapper(Item, orderitems, properties = dict(
                 keywords = relation(mapper(Keyword, keywords), itemkeywords, lazy = True),
             ))
         
@@ -796,7 +860,6 @@ class LazyTest(MapperSuperTest):
 
 class EagerTest(MapperSuperTest):
     def testbasic(self):
-        testbase.db.echo="debug"
         """tests a basic one-to-many eager load"""
         m = mapper(Address, addresses)
         
@@ -821,6 +884,20 @@ class EagerTest(MapperSuperTest):
             {'user_id' : 9, 'addresses' : (Address, [])}
             )
 
+    def testcustomeagerquery(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, lazy=False)
+        })
+        mapper(Address, addresses)
+        
+        selectquery = users.outerjoin(addresses).select(use_labels=True)
+        q = create_session().query(User)
+        
+        def go():
+            l = q.options(contains_eager('addresses')).instances(selectquery.execute())
+            self.assert_result(l, User, *user_address_result)
+        self.assert_sql_count(testbase.db, go, 1)
+        
     def testorderby_desc(self):
         m = mapper(Address, addresses)
 
@@ -858,7 +935,8 @@ class EagerTest(MapperSuperTest):
         l = q.select(s.c.u2_user_id==User.c.user_id, distinct=True)
         self.assert_result(l, User, *user_all_result)
         sess.clear()
-        m = mapper(Item, orderitems, is_primary=True, properties = dict(
+        clear_mappers()
+        m = mapper(Item, orderitems, properties = dict(
                 keywords = relation(mapper(Keyword, keywords), itemkeywords, lazy = False, order_by=[keywords.c.keyword_id]),
             ))
         q = sess.query(m)
@@ -934,7 +1012,17 @@ class EagerTest(MapperSuperTest):
             {'user_id' : 8, 'addresses' : (Address, [{'address_id' : 2, 'email_address':'ed@wood.com'}, {'address_id':3, 'email_address':'ed@bettyboop.com'}, {'address_id':4, 'email_address':'ed@lala.com'}])},
         )
         
-
+    def testcircular(self):
+        """test that a circular eager relationship breaks the cycle with a lazy loader"""
+        m = mapper(User, users, properties = dict(
+            addresses = relation(mapper(Address, addresses), lazy=False, backref=backref('user', lazy=False))
+        ))
+        assert class_mapper(User).props['addresses'].lazy is False
+        assert class_mapper(Address).props['user'].lazy is False
+        session = create_session()
+        l = session.query(User).select()
+        self.assert_result(l, User, *user_address_result)
+        
     def testcompile(self):
         """tests deferred operation of a pre-compiled mapper statement"""
         session = create_session()
@@ -1038,8 +1126,7 @@ class EagerTest(MapperSuperTest):
         m = mapper(Item, items, properties = dict(
                 keywords = relation(mapper(Keyword, keywords), itemkeywords, lazy=True, order_by=[keywords.c.keyword_id]),
             ))
-        m2 = m.options(eagerload('keywords'))
-        q = create_session().query(m2)
+        q = create_session().query(m).options(eagerload('keywords'))
         def go():
             l = q.select()
             self.assert_result(l, Item, *item_keyword_result)

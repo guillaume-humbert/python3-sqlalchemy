@@ -16,7 +16,7 @@ try:
 except:
     import pickle
     
-from sqlalchemy import util, exceptions
+from sqlalchemy import util, exceptions, logging
 import sqlalchemy.queue as Queue
 
 try:
@@ -73,16 +73,18 @@ def clear_managers():
     for manager in proxies.values():
         manager.close()
     proxies.clear()
-
     
 class Pool(object):
-    def __init__(self, creator, recycle=-1, echo = False, use_threadlocal = True, logger=None):
+    def __init__(self, creator, recycle=-1, echo=None, use_threadlocal = True, auto_close_cursors=True, disallow_open_cursors=False):
+        self.logger = logging.instance_logger(self)
         self._threadconns = weakref.WeakValueDictionary()
         self._creator = creator
         self._recycle = recycle
         self._use_threadlocal = use_threadlocal
+        self.auto_close_cursors = auto_close_cursors
+        self.disallow_open_cursors = disallow_open_cursors
         self.echo = echo
-        self._logger = logger or util.Logger(origin='pool')
+    echo = logging.echo_property()
     
     def unique_connection(self):
         return _ConnectionFairy(self).checkout()
@@ -117,13 +119,11 @@ class Pool(object):
         raise NotImplementedError()
 
     def log(self, msg):
-        self._logger.write(msg)
+        self.logger.info(msg)
 
     def dispose(self):
         raise NotImplementedError()
         
-    def __del__(self):
-        self.dispose()
 
 class _ConnectionRecord(object):
     def __init__(self, pool):
@@ -152,7 +152,9 @@ class _ConnectionRecord(object):
     def __connect(self):
         try:
             self.starttime = time.time()
-            return self.__pool._creator()
+            connection = self.__pool._creator()
+            self.__pool.log("Created new connection %s" % repr(connection))
+            return connection
         except Exception, e:
             self.__pool.log("Error on connect(): %s" % (str(e)))
             raise
@@ -166,6 +168,7 @@ class _ConnectionFairy(object):
     """proxies a DBAPI connection object and provides return-on-dereference support"""
     def __init__(self, pool):
         self._threadfairy = _ThreadFairy(self)
+        self.cursors = weakref.WeakKeyDictionary()
         self.__pool = pool
         self.__counter = 0
         try:
@@ -178,8 +181,11 @@ class _ConnectionFairy(object):
         if self.__pool.echo:
             self.__pool.log("Connection %s checked out from pool" % repr(self.connection))
     def invalidate(self):
+        if self.connection is None:
+            raise exceptions.InvalidRequestError("This connection is closed")
         self._connection_record.invalidate()
         self.connection = None
+        self.cursors = None
         self._close()
     def cursor(self, *args, **kwargs):
         try:
@@ -191,9 +197,12 @@ class _ConnectionFairy(object):
         return getattr(self.connection, key)
     def checkout(self):
         if self.connection is None:
-            raise "this connection is closed"
+            raise exceptions.InvalidRequestError("This connection is closed")
         self.__counter +=1
         return self    
+    def close_open_cursors(self):
+        for c in list(self.cursors):
+            c.close()
     def close(self):
         self.__counter -=1
         if self.__counter == 0:
@@ -201,6 +210,14 @@ class _ConnectionFairy(object):
     def __del__(self):
         self._close()
     def _close(self):
+        if self.cursors is not None:
+            # cursors should be closed before connection is returned to the pool.  some dbapis like
+            # mysql have real issues if they are not.
+            if self.__pool.auto_close_cursors:
+                self.close_open_cursors()
+            elif self.__pool.disallow_open_cursors:
+                if len(self.cursors):
+                    raise exceptions.InvalidRequestError("This connection still has %d open cursors" % len(self.cursors))
         if self.connection is not None:
             try:
                 self.connection.rollback()
@@ -217,7 +234,12 @@ class _ConnectionFairy(object):
 class _CursorFairy(object):
     def __init__(self, parent, cursor):
         self.__parent = parent
+        self.__parent.cursors[self]=True
         self.cursor = cursor
+    def close(self):
+        if self in self.__parent.cursors:
+            del self.__parent.cursors[self]
+            self.cursor.close()
     def __getattr__(self, key):
         return getattr(self.cursor, key)
 

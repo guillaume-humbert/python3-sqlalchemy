@@ -9,17 +9,66 @@ db = testbase.db
 from sqlalchemy import *
 
 
+class SessionTest(AssertMixin):
+    def setUpAll(self):
+        tables.create()
+        tables.data()
+    def tearDownAll(self):
+        tables.drop()
+    def tearDown(self):
+        tables.delete()
+        clear_mappers()
+    def setUp(self):
+        pass
+
+    def test_close(self):
+        """test that flush() doenst close a connection the session didnt open"""
+        c = testbase.db.connect()
+        class User(object):pass
+        mapper(User, users)
+        s = create_session(bind_to=c)
+        s.save(User())
+        s.flush()
+        c.execute("select * from users")
+        u = User()
+        s.save(u)
+        s.user_name = 'some user'
+        s.flush()
+        u = User()
+        s.save(u)
+        s.user_name = 'some other user'
+        s.flush()
+
+    def test_close_two(self):
+        c = testbase.db.connect()
+        try:
+            class User(object):pass
+            mapper(User, users)
+            s = create_session(bind_to=c)
+            tran = s.create_transaction()
+            s.save(User())
+            s.flush()
+            c.execute("select * from users")
+            u = User()
+            s.save(u)
+            s.user_name = 'some user'
+            s.flush()
+            u = User()
+            s.save(u)
+            s.user_name = 'some other user'
+            s.flush()
+            assert s.transaction is tran
+            tran.close()
+        finally:
+            c.close()
+        
 class OrphanDeletionTest(AssertMixin):
 
     def setUpAll(self):
-        db.echo = False
         tables.create()
         tables.data()
-        db.echo = testbase.echo
     def tearDownAll(self):
-        db.echo = False
         tables.drop()
-        db.echo = testbase.echo
     def tearDown(self):
         clear_mappers()
     def setUp(self):
@@ -103,7 +152,7 @@ class CascadingOrphanDeletionTest(AssertMixin):
             items=relation(itemMapper, cascade="all,delete-orphan", backref="order")
         ))
 
-        s = create_session(echo_uow=True)
+        s = create_session( )
         order = Order()
         s.save(order)
 
@@ -121,11 +170,6 @@ class CascadingOrphanDeletionTest(AssertMixin):
 
         assert item.id is None
         assert attr.id is None
-
-
-
-
-
 
 if __name__ == "__main__":    
     testbase.main()

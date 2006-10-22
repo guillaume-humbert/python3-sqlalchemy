@@ -8,34 +8,37 @@
 """bridges the PropertyLoader (i.e. a relation()) and the UOWTransaction 
 together to allow processing of scalar- and list-based dependencies at flush time."""
 
+import sync
 from sync import ONETOMANY,MANYTOONE,MANYTOMANY
 from sqlalchemy import sql, util
 import session as sessionlib
 
-def create_dependency_processor(key, syncrules, cascade, secondary=None, association=None, is_backref=False, post_update=False):
+def create_dependency_processor(prop):
     types = {
         ONETOMANY : OneToManyDP,
         MANYTOONE: ManyToOneDP,
         MANYTOMANY : ManyToManyDP,
     }
-    if association is not None:
-        return AssociationDP(key, syncrules, cascade, secondary, association, is_backref, post_update)
+    if prop.association is not None:
+        return AssociationDP(prop)
     else:
-        return types[syncrules.direction](key, syncrules, cascade, secondary, association, is_backref, post_update)
+        return types[prop.direction](prop)
 
 class DependencyProcessor(object):
-    def __init__(self, key, syncrules, cascade, secondary=None, association=None, is_backref=False, post_update=False):
-        # TODO: update instance variable names to be more meaningful
-        self.syncrules = syncrules
-        self.cascade = cascade
-        self.mapper = syncrules.child_mapper
-        self.parent = syncrules.parent_mapper
-        self.association = association
-        self.secondary = secondary
-        self.direction = syncrules.direction
-        self.is_backref = is_backref
-        self.post_update = post_update
-        self.key = key
+    def __init__(self, prop):
+        self.prop = prop
+        self.cascade = prop.cascade
+        self.mapper = prop.mapper
+        self.parent = prop.parent
+        self.association = prop.association
+        self.secondary = prop.secondary
+        self.direction = prop.direction
+        self.is_backref = prop.is_backref
+        self.post_update = prop.post_update
+        self.foreignkey = prop.foreignkey
+        self.key = prop.key
+
+        self._compile_synchronizers()
 
     def register_dependencies(self, uowcommit):
         """tells a UOWTransaction what mappers are dependent on which, with regards
@@ -58,14 +61,13 @@ class DependencyProcessor(object):
             return (obj1, obj2)
         else:
             return (obj2, obj1)
-
+            
     def process_dependencies(self, task, deplist, uowcommit, delete = False):
         """this method is called during a flush operation to synchronize data between a parent and child object.
         it is called within the context of the various mappers and sometimes individual objects sorted according to their
         insert/update/delete order (topological sort)."""
         raise NotImplementedError()
 
-    # TODO: all of these preproc rules need to take dependencies into account
     def preprocess_dependencies(self, task, deplist, uowcommit, delete = False):
         """used before the flushes' topological sort to traverse through related objects and insure every 
         instance which will require save/update/delete is properly added to the UOWTransaction."""
@@ -75,12 +77,39 @@ class DependencyProcessor(object):
         """called during a flush to synchronize primary key identifier values between a parent/child object, as well as 
         to an associationrow in the case of many-to-many."""
         raise NotImplementedError()
+
+    def _compile_synchronizers(self):
+        """assembles a list of 'synchronization rules', which are instructions on how to populate
+        the objects on each side of a relationship.  This is done when a DependencyProcessor is 
+        first initialized.
+
+        The list of rules is used within commits by the _synchronize() method when dependent 
+        objects are processed."""
+        self.syncrules = sync.ClauseSynchronizer(self.parent, self.mapper, self.direction)
+        if self.direction == sync.MANYTOMANY:
+            self.syncrules.compile(self.prop.primaryjoin, issecondary=False)
+            self.syncrules.compile(self.prop.secondaryjoin, issecondary=True)
+        else:
+            self.syncrules.compile(self.prop.primaryjoin, foreignkey=self.foreignkey)
         
     def get_object_dependencies(self, obj, uowcommit, passive = True):
         """returns the list of objects that are dependent on the given object, as according to the relationship
         this dependency processor represents"""
         return sessionlib.attribute_manager.get_history(obj, self.key, passive = passive)
 
+    def _conditional_post_update(self, obj, uowcommit, related):
+        """execute a post_update call.
+        
+        for relations that contain the post_update flag, an additional UPDATE statement may be
+        associated after an INSERT or before a DELETE in order to resolve circular row dependencies.
+        This method will check for the post_update flag being set on a particular relationship, and
+        given a target object and list of one or more related objects, and execute the UPDATE if the
+        given related object list contains INSERTs or DELETEs."""
+        if obj is not None and self.post_update:
+            for x in related:
+                if x is not None and (uowcommit.is_deleted(x) or not hasattr(x, '_instance_key')):
+                    uowcommit.register_object(obj, postupdate=True, post_update_cols=self.syncrules.dest_columns())
+                    break
 
 class OneToManyDP(DependencyProcessor):
     def register_dependencies(self, uowcommit):
@@ -103,21 +132,18 @@ class OneToManyDP(DependencyProcessor):
                     for child in childlist.deleted_items():
                         if child is not None and childlist.hasparent(child) is False:
                             self._synchronize(obj, child, None, True)
-                            if self.post_update:
-                                uowcommit.register_object(child, postupdate=True)
+                            self._conditional_post_update(child, uowcommit, [obj])
                     for child in childlist.unchanged_items():
                         if child is not None:
                             self._synchronize(obj, child, None, True)
-                            if self.post_update:
-                                uowcommit.register_object(child, postupdate=True)
+                            self._conditional_post_update(child, uowcommit, [obj])
         else:
             for obj in deplist:
                 childlist = self.get_object_dependencies(obj, uowcommit, passive=True)
                 if childlist is not None:
                     for child in childlist.added_items():
                         self._synchronize(obj, child, None, False)
-                        if child is not None and self.post_update:
-                            uowcommit.register_object(child, postupdate=True)
+                        self._conditional_post_update(child, uowcommit, [obj])
                     for child in childlist.deleted_items():
                         if not self.cascade.delete_orphan:
                             self._synchronize(obj, child, None, True)
@@ -129,8 +155,6 @@ class OneToManyDP(DependencyProcessor):
             # head object is being deleted, and we manage its list of child objects
             # the child objects have to have their foreign key to the parent set to NULL
             if self.post_update:
-                # TODO: post_update instructions should be established in this step as well
-                # (and executed in the regular traversal)
                 pass
             elif self.cascade.delete_orphan:
                 for obj in deplist:
@@ -194,20 +218,18 @@ class ManyToOneDP(DependencyProcessor):
                 # before we can DELETE the row
                 for obj in deplist:
                     self._synchronize(obj, None, None, True)
-                    uowcommit.register_object(obj, postupdate=True)
+                    childlist = self.get_object_dependencies(obj, uowcommit, passive=False)
+                    self._conditional_post_update(obj, uowcommit, childlist.deleted_items() + childlist.unchanged_items() + childlist.added_items())
         else:
             for obj in deplist:
                 childlist = self.get_object_dependencies(obj, uowcommit, passive=True)
                 if childlist is not None:
                     for child in childlist.added_items():
                         self._synchronize(obj, child, None, False)
-                if self.post_update:
-                    uowcommit.register_object(obj, postupdate=True)
-            
+                    self._conditional_post_update(obj, uowcommit, childlist.deleted_items() + childlist.unchanged_items() + childlist.added_items())
+                        
     def preprocess_dependencies(self, task, deplist, uowcommit, delete = False):
         #print self.mapper.mapped_table.name + " " + self.key + " " + repr(len(deplist)) + " PRE process_dep isdelete " + repr(delete) + " direction " + repr(self.direction)
-        # TODO: post_update instructions should be established in this step as well
-        # (and executed in the regular traversal)
         if self.post_update:
             return
         if delete:
@@ -280,8 +302,7 @@ class ManyToManyDP(DependencyProcessor):
                     secondary_delete.append(associationrow)
         if len(secondary_delete):
             secondary_delete.sort()
-            # TODO: precompile the delete/insert queries and store them as instance variables
-            # on the PropertyLoader
+            # TODO: precompile the delete/insert queries?
             statement = self.secondary.delete(sql.and_(*[c == sql.bindparam(c.key) for c in self.secondary.c if c.key in associationrow]))
             connection.execute(statement, secondary_delete)
         if len(secondary_insert):
@@ -298,72 +319,10 @@ class ManyToManyDP(DependencyProcessor):
         self.syncrules.execute(source, dest, obj, child, clearkeys)
 
 class AssociationDP(OneToManyDP):
-    def register_dependencies(self, uowcommit):
-        # association object.  our mapper should be dependent on both
-        # the parent mapper and the association object mapper.
-        # this is where we put the "stub" as a marker, so we get
-        # association/parent->stub->self, then we process the child
-        # elments after the 'stub' save, which is before our own
-        # mapper's save.
-        stub = MapperStub(self.parent, self.association, self.key)
-        uowcommit.register_dependency(self.parent, stub)
-        uowcommit.register_dependency(self.association, stub)
-        uowcommit.register_dependency(stub, self.mapper)
-        uowcommit.register_processor(stub, self, self.parent)
-    def process_dependencies(self, task, deplist, uowcommit, delete = False):
-        #print self.mapper.table.name + " " + self.key + " " + repr(len(deplist)) + " process_dep isdelete " + repr(delete) + " direction " + repr(self.direction)
-        for obj in deplist:
-            childlist = self.get_object_dependencies(obj, uowcommit, passive=True)
-            if childlist is None: continue
-
-            # for the association mapper, the list of association objects is organized into a unique list based on the
-            # "primary key".  newly added association items which correspond to existing association items are "merged"
-            # into the existing one by moving the "_instance_key" over to the added item, so instead of insert/delete you
-            # just get an update operation.
-            if not delete:
-                tosave = util.OrderedDict()
-                for child in childlist:
-                    self._synchronize(obj, child, None, False)
-                    key = self.mapper.instance_key(child)
-                    tosave[key] = child
-                    uowcommit.unregister_object(child)
-
-                todelete = {}
-                for child in childlist.deleted_items():
-                    self._synchronize(obj, child, None, False)
-                    key = self.mapper.instance_key(child)
-                    if not tosave.has_key(key):
-                        todelete[key] = child
-                    else:
-                        tosave[key]._instance_key = key
-                    uowcommit.unregister_object(child)
-                
-                for child in childlist.unchanged_items():
-                    key = self.mapper.instance_key(child)
-                    tosave[key]._instance_key = key
-                    
-                #print "OK for the save", [(o, getattr(o, '_instance_key', None)) for o in tosave.values()]
-                #print "OK for the delete", [(o, getattr(o, '_instance_key', None)) for o in todelete.values()]
-                
-                for obj in tosave.values():
-                    uowcommit.register_object(obj)
-                for obj in todelete.values():
-                    uowcommit.register_object(obj, isdelete=True)
-            else:
-                todelete = {}
-                for child in childlist.unchanged_items() + childlist.deleted_items():
-                    self._synchronize(obj, child, None, False)
-                    key = self.mapper.instance_key(child)
-                    todelete[key] = child
-                for obj in todelete.values():
-                    uowcommit.register_object(obj, isdelete=True)
-                    
-                
-    def preprocess_dependencies(self, task, deplist, uowcommit, delete = False):
-        # TODO: clean up the association step in process_dependencies and move the
-        # appropriate sections of it to here
-        pass
-        
+    def __init__(self, *args, **kwargs):
+        super(AssociationDP, self).__init__(*args, **kwargs)
+        self.cascade.delete = True
+        self.cascade.delete_orphan = True
 
 class MapperStub(object):
     """poses as a Mapper representing the association table in a many-to-many

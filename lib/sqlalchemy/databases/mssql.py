@@ -50,7 +50,7 @@ try:
     connect = dbmodule.Connection
     make_connect_string = lambda keys: \
         [["Provider=SQLOLEDB;Data Source=%s;User Id=%s;Password=%s;Initial Catalog=%s" % (
-            keys["host"], keys["user"], keys["password"], keys["database"])], {}]
+            keys.get("host"), keys.get("user"), keys.get("password"), keys.get("database"))], {}]
     do_commit = False
     sane_rowcount = True
 except:
@@ -59,8 +59,12 @@ except:
         connect = dbmodule.connect
         # pymmsql doesn't have a Binary method.  we use string
         dbmodule.Binary = lambda st: str(st)
-        make_connect_string = lambda keys:  \
-                    [[], keys]
+        def make_connect_string(keys):
+            if keys.get('port'):
+                # pymssql expects port as host:port, not a separate arg
+                keys['host'] = ''.join([keys.get('host', ''), ':', str(keys['port'])])
+                del keys['port'] 
+            return [[], keys]
         do_commit = True
     except:
         dbmodule = None
@@ -101,6 +105,9 @@ class MSSmallInteger(sqltypes.Smallinteger):
         return "SMALLINT"
 
 class MSDateTime(sqltypes.DateTime):
+    def __init__(self, *a, **kw):
+        super(MSDateTime, self).__init__(False)
+
     def get_col_spec(self):
         return "DATETIME"
 
@@ -118,6 +125,9 @@ class MSDateTime(sqltypes.DateTime):
         return value
 
 class MSDate(sqltypes.Date):
+    def __init__(self, *a, **kw):
+        super(MSDate, self).__init__(False)
+
     def get_col_spec(self):
         return "SMALLDATETIME"
     
@@ -138,9 +148,15 @@ class MSText(sqltypes.TEXT):
 class MSString(sqltypes.String):
     def get_col_spec(self):
         return "VARCHAR(%(length)s)" % {'length' : self.length}
+class MSUnicode(sqltypes.Unicode):
+    def get_col_spec(self):
+        return "NVARCHAR(%(length)s)" % {'length' : self.length}
 class MSChar(sqltypes.CHAR):
     def get_col_spec(self):
         return "CHAR(%(length)s)" % {'length' : self.length}
+class MSNChar(sqltypes.NCHAR):
+    def get_col_spec(self):
+        return "NCHAR(%(length)s)" % {'length' : self.length}
 class MSBinary(sqltypes.Binary):
     def get_col_spec(self):
         return "IMAGE"
@@ -169,10 +185,12 @@ colspecs = {
     sqltypes.DateTime : MSDateTime,
     sqltypes.Date : MSDate,
     sqltypes.String : MSString,
+    sqltypes.Unicode : MSUnicode,
     sqltypes.Binary : MSBinary,
     sqltypes.Boolean : MSBoolean,
     sqltypes.TEXT : MSText,
     sqltypes.CHAR: MSChar,
+    sqltypes.NCHAR: MSNChar,
 }
 
 ischema_names = {
@@ -180,8 +198,11 @@ ischema_names = {
     'smallint' : MSSmallInteger,
     'tinyint' : MSTinyInteger,
     'varchar' : MSString,
+    'nvarchar' : MSUnicode,
     'char' : MSChar,
+    'nchar' : MSNChar,
     'text' : MSText,
+    'ntext' : MSText, 
     'decimal' : MSNumeric,
     'numeric' : MSNumeric,
     'float' : MSFloat,
@@ -192,9 +213,6 @@ ischema_names = {
     'real' : MSFloat,
     'image' : MSBinary
 }
-
-def engine(opts, **params):
-    return MSSQLEngine(opts, **params)
 
 def descriptor():
     return {'name':'mssql',
@@ -207,24 +225,28 @@ def descriptor():
     ]}
 
 class MSSQLExecutionContext(default.DefaultExecutionContext):
+    def __init__(self, dialect):
+        self.IINSERT = self.HASIDENT = False
+	super(MSSQLExecutionContext, self).__init__(dialect)
+    
     def pre_exec(self, engine, proxy, compiled, parameters, **kwargs):
-        """ MS-SQL has a special mode for inserting non-NULL values into IDENTITY columns. Activate it if needed. """
+        """ MS-SQL has a special mode for inserting non-NULL values into IDENTITY columns. Activate it if the feature is turned on and needed. """
         if getattr(compiled, "isinsert", False):
             self.IINSERT = False
             self.HASIDENT = False
             for c in compiled.statement.table.c:
                 if hasattr(c,'sequence'):
                     self.HASIDENT = True
-                    if isinstance(parameters, list):
+                    if engine.dialect.auto_identity_insert and isinstance(parameters, list):
                         if parameters[0].has_key(c.name):
                             self.IINSERT = True
-                    elif parameters.has_key(c.name):
-                        self.IINSERT = True
+                        elif parameters.has_key(c.name):
+                            self.IINSERT = True
                     break
             if self.IINSERT:
                 proxy("SET IDENTITY_INSERT %s ON" % compiled.statement.table.name)
-	super(MSSQLExecutionContext, self).pre_exec(engine, proxy, compiled, parameters, **kwargs)
-	
+        super(MSSQLExecutionContext, self).pre_exec(engine, proxy, compiled, parameters, **kwargs)
+
     def post_exec(self, engine, proxy, compiled, parameters, **kwargs):
         """ Turn off the INDENTITY_INSERT mode if it's been activated, and fetch recently inserted IDENTIFY values (works only for one column) """
         if getattr(compiled, "isinsert", False):
@@ -235,12 +257,14 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
                 cursor = proxy("SELECT @@IDENTITY AS lastrowid")
                 row = cursor.fetchone()
                 self._last_inserted_ids = [int(row[0])]
-                print "LAST ROW ID", self._last_inserted_ids
+                # print "LAST ROW ID", self._last_inserted_ids
             self.HASIDENT = False
 
+
 class MSSQLDialect(ansisql.ANSIDialect):            
-    def __init__(self, module = None, **params):
+    def __init__(self, module=None, auto_identity_insert=False, **params):
         self.module = module or dbmodule
+        self.auto_identity_insert = auto_identity_insert
         ansisql.ANSIDialect.__init__(self, **params)
 
     def create_connect_args(self, url):
@@ -293,6 +317,8 @@ class MSSQLDialect(ansisql.ANSIDialect):
             c.DBPROP_COMMITPRESERVE = "Y"
         except Exception, e:
             raise exceptions.SQLError(statement, parameters, e)
+
+
 
     def do_rollback(self, connection):
         """implementations might want to put logic here for turning autocommit on/off, etc."""
@@ -353,13 +379,24 @@ class MSSQLDialect(ansisql.ANSIDialect):
     def dbapi(self):
         return self.module
 
+    def uppercase_table(self, t):
+        # convert all names to uppercase -- fixes refs to INFORMATION_SCHEMA for case-senstive DBs, and won't matter for case-insensitive
+        t.name = t.name.upper()
+        if t.schema:
+            t.schema = t.schema.upper()
+        for c in t.columns:
+            c.name = c.name.upper()
+        return t
+
     def has_table(self, connection, tablename):
         import sqlalchemy.databases.information_schema as ischema
 
         current_schema = self.get_default_schema_name()
-        columns = ischema.columns
+        columns = self.uppercase_table(ischema.columns)
         s = sql.select([columns],
-                   current_schema and sql.and_(columns.c.table_name==tablename, columns.c.table_schema==current_schema) or columns.c.table_name==tablename,
+                   current_schema
+                       and sql.and_(columns.c.table_name==tablename, columns.c.table_schema==current_schema)
+                       or columns.c.table_name==tablename,
                    )
         
         c = connection.execute(s)
@@ -375,9 +412,11 @@ class MSSQLDialect(ansisql.ANSIDialect):
         else:
             current_schema = self.get_default_schema_name()
 
-        columns = ischema.columns
+        columns = self.uppercase_table(ischema.columns)
         s = sql.select([columns],
-                   current_schema and sql.and_(columns.c.table_name==table.name, columns.c.table_schema==current_schema) or columns.c.table_name==table.name,
+                   current_schema
+                       and sql.and_(columns.c.table_name==table.name, columns.c.table_schema==current_schema)
+                       or columns.c.table_name==table.name,
                    order_by=[columns.c.ordinal_position])
         
         c = connection.execute(s)
@@ -407,11 +446,11 @@ class MSSQLDialect(ansisql.ANSIDialect):
             if default is not None:
                 colargs.append(schema.PassiveDefault(sql.text(default)))
                 
-            table.append_item(schema.Column(name, coltype, nullable=nullable, *colargs))
+            table.append_column(schema.Column(name, coltype, nullable=nullable, *colargs))
         
         if not found_table:
             raise exceptions.NoSuchTableError(table.name)
-        
+
         # We also run an sp_columns to check for identity columns:
         # FIXME: note that this only fetches the existence of an identity column, not it's properties like (seed, increment)
         #        also, add a check to make sure we specify the schema name of the table
@@ -424,48 +463,49 @@ class MSSQLDialect(ansisql.ANSIDialect):
             col_name, type_name = row[3], row[5]
             if type_name.endswith("identity"):
                 ic = table.c[col_name]
-                ic.primary_key = True
                 # setup a psuedo-sequence to represent the identity attribute - we interpret this at table.create() time as the identity attribute
                 ic.sequence = schema.Sequence(ic.name + '_identity')
 
         # Add constraints
-        RR = ischema.ref_constraints    #information_schema.referential_constraints
-        TC = ischema.constraints        #information_schema.table_constraints
-        C  = ischema.column_constraints.alias('C') #information_schema.constraint_column_usage: the constrained column 
-        R  = ischema.column_constraints.alias('R') #information_schema.constraint_column_usage: the referenced column
+        RR = self.uppercase_table(ischema.ref_constraints)    #information_schema.referential_constraints
+        TC = self.uppercase_table(ischema.constraints)        #information_schema.table_constraints
+        C  = self.uppercase_table(ischema.column_constraints).alias('C') #information_schema.constraint_column_usage: the constrained column 
+        R  = self.uppercase_table(ischema.column_constraints).alias('R') #information_schema.constraint_column_usage: the referenced column
 
-        fromjoin = TC.join(RR, RR.c.constraint_name == TC.c.constraint_name).join(C, C.c.constraint_name == RR.c.constraint_name)
-        fromjoin = fromjoin.join(R, R.c.constraint_name == RR.c.unique_constraint_name)
-
-        s = sql.select([TC.c.constraint_type, C.c.table_schema, C.c.table_name, C.c.column_name,
-                    R.c.table_schema, R.c.table_name, R.c.column_name],
-                   sql.and_(RR.c.constraint_schema == current_schema,  C.c.table_name == table.name),
-                   from_obj = [fromjoin], use_labels=True
-                   )
-        colmap = [TC.c.constraint_type, C.c.column_name, R.c.table_schema, R.c.table_name, R.c.column_name]
-               
+        # Primary key constraints
+        s = sql.select([C.c.column_name, TC.c.constraint_type], sql.and_(TC.c.constraint_name == C.c.constraint_name,
+                                                                         C.c.table_name == table.name))
         c = connection.execute(s)
+        for row in c:
+            if 'PRIMARY' in row[TC.c.constraint_type.name]:
+                table.primary_key.add(table.c[row[0]])
 
-        while True:
-            row = c.fetchone()
-            if row is None:
-                break
-            print "CCROW", row.keys(), row
-            (type, constrained_column, referred_schema, referred_table, referred_column) = (
-                row[colmap[0]],
-                row[colmap[1]],
-                row[colmap[2]],
-                row[colmap[3]],
-                row[colmap[4]]
-                )
 
-            if type=='PRIMARY KEY':
-                table.c[constrained_column]._set_primary_key()
-            elif type=='FOREIGN KEY':
-                if current_schema == referred_schema:
-                    referred_schema = table.schema
-                remotetable = schema.Table(referred_table, table.metadata, autoload=True, autoload_with=connection, schema=referred_schema)
-                table.c[constrained_column].append_item(schema.ForeignKey(remotetable.c[referred_column]))
+        # Foreign key constraints
+        s = sql.select([C.c.column_name,
+                        R.c.table_schema, R.c.table_name, R.c.column_name,
+                        RR.c.constraint_name, RR.c.match_option, RR.c.update_rule, RR.c.delete_rule],
+                       sql.and_(C.c.table_name == table.name,
+                                C.c.constraint_name == RR.c.constraint_name,
+                                R.c.constraint_name == RR.c.unique_constraint_name
+                                ),
+                       order_by = [RR.c.constraint_name])
+        rows = connection.execute(s).fetchall()
+
+        # group rows by constraint ID, to handle multi-column FKs
+        fknm, scols, rcols = (None, [], [])
+        for r in rows:
+            scol, rschema, rtbl, rcol, rfknm, fkmatch, fkuprule, fkdelrule = r
+            if rfknm != fknm:
+                if fknm:
+                    table.append_constraint(schema.ForeignKeyConstraint(scols, ['%s.%s' % (t,c) for (s,t,c) in rcols], fknm))
+                fknm, scols, rcols = (rfknm, [], [])
+            if (not scol in scols): scols.append(scol)
+            if (not (rschema, rtbl, rcol) in rcols): rcols.append((rschema, rtbl, rcol))
+
+        if fknm and scols:
+            table.append_constraint(schema.ForeignKeyConstraint(scols, ['%s.%s' % (t,c) for (s,t,c) in rcols], fknm))
+                                
 
 
 class MSSQLCompiler(ansisql.ANSICompiler):
@@ -520,7 +560,7 @@ class MSSQLSchemaGenerator(ansisql.ANSISchemaGenerator):
         colspec = self.preparer.format_column(column) + " " + column.type.engine_impl(self.engine).get_col_spec()
 
         # install a IDENTITY Sequence if we have an implicit IDENTITY column
-        if column.primary_key and isinstance(column.type, sqltypes.Integer):
+        if column.primary_key and column.autoincrement and isinstance(column.type, sqltypes.Integer) and not column.foreign_key:
             if column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional):
                 column.sequence = schema.Sequence(column.name + '_seq')
 

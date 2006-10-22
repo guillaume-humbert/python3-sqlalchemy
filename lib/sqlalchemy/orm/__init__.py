@@ -11,96 +11,133 @@ packages and tying operations to class properties and constructors.
 from sqlalchemy import sql, schema, engine, util, exceptions
 from mapper import *
 from mapper import mapper_registry
+import mapper as mapperlib
 from query import Query
 from util import polymorphic_union
-import properties
+import properties, strategies
 from session import Session as create_session
 
-__all__ = ['relation', 'backref', 'eagerload', 'lazyload', 'noload', 'deferred', 'defer', 'undefer',
-        'mapper', 'clear_mappers', 'sql', 'extension', 'class_mapper', 'object_mapper', 'MapperExtension', 'Query', 
-        'cascade_mappers', 'polymorphic_union', 'create_session', 'synonym', 'EXT_PASS' 
+__all__ = ['relation', 'backref', 'eagerload', 'lazyload', 'noload', 'deferred', 'defer', 'undefer', 'extension', 
+        'mapper', 'clear_mappers', 'clear_mapper', 'sql', 'class_mapper', 'object_mapper', 'MapperExtension', 'Query', 
+        'cascade_mappers', 'polymorphic_union', 'create_session', 'synonym', 'contains_eager', 'EXT_PASS'
         ]
 
 def relation(*args, **kwargs):
-    """provides a relationship of a primary Mapper to a secondary Mapper, which corresponds
-    to a parent-child or associative table relationship."""
+    """provide a relationship of a primary Mapper to a secondary Mapper.
+    
+    This corresponds to a parent-child or associative table relationship."""
     if len(args) > 1 and isinstance(args[0], type):
         raise exceptions.ArgumentError("relation(class, table, **kwargs) is deprecated.  Please use relation(class, **kwargs) or relation(mapper, **kwargs).")
     return _relation_loader(*args, **kwargs)
 
 def _relation_loader(mapper, secondary=None, primaryjoin=None, secondaryjoin=None, lazy=True, **kwargs):
-    if lazy:
-        return properties.LazyLoader(mapper, secondary, primaryjoin, secondaryjoin, **kwargs)
-    elif lazy is None:
-        return properties.PropertyLoader(mapper, secondary, primaryjoin, secondaryjoin, **kwargs)
-    else:
-        return properties.EagerLoader(mapper, secondary, primaryjoin, secondaryjoin, **kwargs)
+    return properties.PropertyLoader(mapper, secondary, primaryjoin, secondaryjoin, lazy=lazy, **kwargs)
 
 def backref(name, **kwargs):
+    """create a BackRef object with explicit arguments, which are the same arguments one
+    can send to relation().  
+    
+    used with the "backref" keyword argument to relation() in place
+    of a string argument. """
     return properties.BackRef(name, **kwargs)
     
 def deferred(*columns, **kwargs):
-    """returns a DeferredColumnProperty, which indicates this object attributes should only be loaded 
-    from its corresponding table column when first accessed."""
-    return properties.DeferredColumnProperty(*columns, **kwargs)
+    """return a DeferredColumnProperty, which indicates this object attributes should only be loaded 
+    from its corresponding table column when first accessed.  
+    
+    used with the 'properties' dictionary sent to mapper()."""
+    return properties.ColumnProperty(deferred=True, *columns, **kwargs)
     
 def mapper(class_, table=None, *args, **params):
-    """returns a newMapper object."""
+    """return a new Mapper object.
+    
+    See the Mapper class for a description of arguments."""
     return Mapper(class_, table, *args, **params)
 
-def synonym(name):
-    return SynonymProperty(name)
+def synonym(name, proxy=False):
+    """set up 'name' as a synonym to another MapperProperty.  
+    
+    Used with the 'properties' dictionary sent to mapper()."""
+    return properties.SynonymProperty(name, proxy=proxy)
     
 def clear_mappers():
-    """removes all mappers that have been created thus far.  when new mappers are 
-    created, they will be assigned to their classes as their primary mapper."""
+    """remove all mappers that have been created thus far.  
+    
+    when new mappers are created, they will be assigned to their classes as their primary mapper."""
     mapper_registry.clear()
     
 def clear_mapper(m):
-    """removes the given mapper from the storage of mappers.  when a new mapper is 
-    created for the previous mapper's class, it will be used as that classes' 
+    """remove the given mapper from the storage of mappers.  
+    
+    when a new mapper is created for the previous mapper's class, it will be used as that classes' 
     new primary mapper."""
-    del mapper_registry[m.hash_key]
+    del mapper_registry[m.class_key]
 
 def extension(ext):
-    """returns a MapperOption that will add the given MapperExtension to the 
-    mapper returned by mapper.options()."""
-    return ExtensionOption(ext)
-def eagerload(name, **kwargs):
-    """returns a MapperOption that will convert the property of the given name
-    into an eager load.  Used with mapper.options()"""
-    return properties.EagerLazyOption(name, toeager=True, **kwargs)
+    """return a MapperOption that will insert the given MapperExtension to the 
+    beginning of the list of extensions that will be called in the context of the Query.
+    
+    used with query.options()."""
+    return mapperlib.ExtensionOption(ext)
+    
+def eagerload(name):
+    """return a MapperOption that will convert the property of the given name
+    into an eager load.  
+    
+    used with query.options()."""
+    return strategies.EagerLazyOption(name, lazy=False)
 
-def lazyload(name, **kwargs):
-    """returns a MapperOption that will convert the property of the given name
-    into a lazy load.  Used with mapper.options()"""
-    return properties.EagerLazyOption(name, toeager=False, **kwargs)
+def lazyload(name):
+    """return a MapperOption that will convert the property of the given name
+    into a lazy load.
+    
+    used with query.options()."""
+    return strategies.EagerLazyOption(name, lazy=True)
 
-def noload(name, **kwargs):
-    """returns a MapperOption that will convert the property of the given name
-    into a non-load.  Used with mapper.options()"""
-    return properties.EagerLazyOption(name, toeager=None, **kwargs)
+def noload(name):
+    """return a MapperOption that will convert the property of the given name
+    into a non-load.  
+    
+    used with query.options()."""
+    return strategies.EagerLazyOption(name, lazy=None)
 
-def defer(name, **kwargs):
-    """returns a MapperOption that will convert the column property of the given 
-    name into a deferred load.  Used with mapper.options()"""
-    return properties.DeferredOption(name, defer=True)
-def undefer(name, **kwargs):
-    """returns a MapperOption that will convert the column property of the given
-    name into a non-deferred (regular column) load.  Used with mapper.options."""
-    return properties.DeferredOption(name, defer=False)
+def contains_eager(key, decorator=None):
+    """return a MapperOption that will indicate to the query that the given 
+    attribute will be eagerly loaded without any row decoration, or using
+    a custom row decorator.  
+    
+    used when feeding SQL result sets directly into
+    query.instances()."""
+    return strategies.RowDecorateOption(key, decorator=decorator)
+    
+def defer(name):
+    """return a MapperOption that will convert the column property of the given 
+    name into a deferred load.  
+    
+    used with query.options()"""
+    return strategies.DeferredOption(name, defer=True)
+def undefer(name):
+    """return a MapperOption that will convert the column property of the given
+    name into a non-deferred (regular column) load.  
+    
+    used with query.options()."""
+    return strategies.DeferredOption(name, defer=False)
     
 
-
-    
 def cascade_mappers(*classes_or_mappers):
-    """given a list of classes and/or mappers, identifies the foreign key relationships
+    """attempt to create a series of relations() between mappers automatically, via
+    introspecting the foreign key relationships of the underlying tables.
+    
+    given a list of classes and/or mappers, identifies the foreign key relationships
     between the given mappers or corresponding class mappers, and creates relation()
     objects representing those relationships, including a backreference.  Attempts to find
     the "secondary" table in a many-to-many relationship as well.  The names of the relations
     will be a lowercase version of the related class.  In the case of one-to-many or many-to-many,
     the name will be "pluralized", which currently is based on the English language (i.e. an 's' or 
-    'es' added to it)."""
+    'es' added to it).
+    
+    NOTE: this method usually works poorly, and its usage is generally not advised.
+    """
     table_to_mapper = {}
     for item in classes_or_mappers:
         if isinstance(item, Mapper):

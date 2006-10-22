@@ -1,6 +1,5 @@
 SQLAlchemy Debian notes
 =======================
 
-The package does not depend on various various low level database
-libraries, but it does suggest all the supported ones. Please
-install the ones you intend to use.
+The package does not depend on various low level database libraries, but it
+does suggest all the supported ones. Please install the ones you intend to use.

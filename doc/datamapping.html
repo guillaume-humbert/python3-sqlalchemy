@@ -1,18 +1,15 @@
 <html>
 <head>
 	<title>
-    Data Mapping - SQLAlchemy 0.2 Documentation
+    SQLAlchemy 0.3 Documentation - Data Mapping
 </title>
+    <link href="style.css" rel="stylesheet" type="text/css"></link>
+    <link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+    <link href="docs.css" rel="stylesheet" type="text/css"></link>
+    <script src="scripts.js"></script>
 </head>
 <body>
-
-
-
-<link href="style.css" rel="stylesheet" type="text/css"></link>
-<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
-
-<link href="docs.css" rel="stylesheet" type="text/css"></link>
-<script src="scripts.js"></script>
 
 
 <div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
@@ -21,24 +18,14 @@
 
 <div class="docheader">
 
-<h1>Data Mapping</h1>
-<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
+<h1>SQLAlchemy 0.3 Documentation</h1>
+<div class="">Version: 0.3.0   Last Updated: 10/22/06 14:17:49</div>
 </div>
 
 
+<A name="datamapping"></a>
 
-		<A name="datamapping"></a>
-		
-	
-<div class="topnav">
-
-
-	
-	<div class="topnavcontrol">
-	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
-	</div>
-
-
+	<div class="topnav">
 
 <div class="topnavsectionlink">
 
@@ -55,54 +42,48 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </div>
 </div>
 
-
 <div class="topnavmain">
 	<div class="topnavheader">Data Mapping</div>
 	<div class="topnavitems">
 	
 
 <ul class="toc_list">
-
     
-    
-        <li><A style="" href="#datamapping_datamapping">Basic Data Mapping</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#datamapping_synopsis">Synopsis</a></li>
+        
+        <li><A style="" href="datamapping.html#datamapping_datamapping">Basic Data Mapping</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
-
     
-    
-        <li><A style="" href="#datamapping_query">The Query Object</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#datamapping_saving">Saving Objects</a></li>
+        
+        <li><A style="" href="datamapping.html#datamapping_synopsis">Synopsis</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
+    
+        
+        <li><A style="" href="datamapping.html#datamapping_query">The Query Object</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
 
     
+        
+        <li><A style="" href="datamapping.html#datamapping_saving">Saving Objects</a></li>
     
-        <li><A style="" href="#datamapping_relations">Defining and Using Relationships</a></li>
+    <ul class="small_toc_list">
+    </ul>
+
+    
+        
+        <li><A style="" href="datamapping.html#datamapping_relations">Defining and Using Relationships</a></li>
     
     <ul class="small_toc_list">
         
         
-    <li><A href="#datamapping_relations_onetomany">One to Many</a></li>
+    <li><A href="datamapping.html#datamapping_relations_onetomany">One to Many</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -110,7 +91,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
         
         
-    <li><A href="#datamapping_relations_lifecycle">Lifecycle Relations</a></li>
+    <li><A href="datamapping.html#datamapping_relations_lifecycle">Lifecycle Relations</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -118,7 +99,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
         
         
-    <li><A href="#datamapping_relations_backreferences">Backreferences</a></li>
+    <li><A href="datamapping.html#datamapping_relations_backreferences">Backreferences</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -126,23 +107,14 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </ul>
 
-
     
-    
-        <li><A style="" href="#datamapping_selectrelations">Selecting from Relationships</a></li>
+        
+        <li><A style="" href="datamapping.html#datamapping_selectrelations">Selecting from Relationships</a></li>
     
     <ul class="small_toc_list">
         
         
-    <li><A href="#datamapping_selectrelations_relselectby">Creating Joins Across Relations</a></li>
-
-    <ul class="small_toc_list">
-    </ul>
-
-
-        
-        
-    <li><A href="#datamapping_selectrelations_jointo">More Granular Join Control Using join_to, join_via</a></li>
+    <li><A href="datamapping.html#datamapping_selectrelations_relselectby">Creating Joins Across Relations</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -150,7 +122,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
         
         
-    <li><A href="#datamapping_selectrelations_eagerload">Eager Loading</a></li>
+    <li><A href="datamapping.html#datamapping_selectrelations_jointo">More Granular Join Control Using join_to, join_via</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -158,7 +130,15 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
         
         
-    <li><A href="#datamapping_selectrelations_options">Using Options to Change the Loading Strategy</a></li>
+    <li><A href="datamapping.html#datamapping_selectrelations_eagerload">Eager Loading</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+        
+        
+    <li><A href="datamapping.html#datamapping_selectrelations_options">Using Options to Change the Loading Strategy</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -166,30 +146,26 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </ul>
 
-
     
-    
-        <li><A style="" href="#datamapping_onetoone">One to One/Many to One</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#datamapping_manytomany">Many to Many</a></li>
+        
+        <li><A style="" href="datamapping.html#datamapping_onetoone">One to One/Many to One</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
-
     
-    
-        <li><A style="" href="#datamapping_association">Association Object</a></li>
+        
+        <li><A style="" href="datamapping.html#datamapping_manytomany">Many to Many</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
+    
+        
+        <li><A style="" href="datamapping.html#datamapping_association">Association Object</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
 
 </ul>
 
@@ -198,41 +174,20 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 </div>
 
-		<div class="sectioncontent">
-			
+<div class="sectioncontent">
+<html>
 
 
 
+<A name="datamapping"></a>
 
 <div class="subsection" style="margin-left:10px;">
 
+
+
     <div class="sectiontext">
+    
 
-
-
-
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-    </div>
-
-        
 
 
 
@@ -240,12 +195,13 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Basic Data Mapping</h3>
+
+<h3>Basic Data Mapping</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>Data mapping describes the process of defining <em>Mapper</em> objects, which associate table metadata with user-defined classes.  <br /> 
+<p>Data mapping describes the process of defining <em>Mapper</em> objects, which associate table metadata with user-defined classes.  <br></br>
 </p>
 <p>The <code>Mapper</code>'s role is to perform SQL operations upon the database, associating individual table rows with instances of those classes, and individual database columns with properties upon those instances, to transparently associate in-memory objects with a persistent database representation. 
 </p>
@@ -257,20 +213,15 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </p>
 <p>The three configurational elements to be defined, i.e. the <code>Table</code> metadata, the user-defined class, and the <code>Mapper</code>, are typically defined as module-level variables, and may be defined in any fashion suitable to the application, with the only requirement being that the class and table metadata are described before the mapper.  For the sake of example, we will be defining these elements close together, but this should not be construed as a requirement; since SQLAlchemy is not a framework, those decisions are left to the developer or an external framework.
 </p>
-<p>Also, keep in mind that the examples in this section deal with explicit <code>Session</code> objects mapped directly to <code>Engine</code> objects, which represents the most explicit style of using the ORM.  Options exist for how this is configured, including binding <code>Table</code> objects directly to <code>Engines</code> (described in <a href="metadata.html#metadata_tables_binding" >Binding MetaData to an Engine</a>), as well as using the "Threadlocal" plugin which provides various code shortcuts by using an implicit Session associated to the current thread (described in <a href="plugins.html#plugins_threadlocal" >threadlocal</a>).
+<p>Also, keep in mind that the examples in this section deal with explicit <code>Session</code> objects mapped directly to <code>Engine</code> objects, which represents the most explicit style of using the ORM.  Options exist for how this is configured, including binding <code>Table</code> objects directly to <code>Engines</code> (described in <a href="metadata.html#metadata_tables_binding">Binding MetaData to an Engine</a>), as well as using the "Threadlocal" plugin which provides various code shortcuts by using an implicit Session associated to the current thread (described in <a href="plugins.html#plugins_threadlocal">threadlocal</a>).
 </p>
 
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -278,10 +229,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Synopsis</h3>
+
+<h3>Synopsis</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>First, the metadata/mapper configuration code:
 </p>
@@ -319,7 +271,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># select
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_73', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_73_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_1_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
   users.password AS users_password <br/>
   FROM users <br/>
   WHERE users.user_name = :users_user_name ORDER BY users.oid<br/>
@@ -327,21 +279,16 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">= </span><span class="python_literal">'fred jones'</span><span class="python_operator">
 </span>
 <span class="python_comment"># flush - saves everything that changed
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_74', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_74_div" class="codepop" style="display:none;">UPDATE users SET user_name=:user_name <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">UPDATE users SET user_name=:user_name <br/>
    WHERE users.user_id = :user_id<br/>
   [{'user_name': 'fred jones', 'user_id': 1}]</div><pre><span class="python_operator"></span></pre></div>
 
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -349,10 +296,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>The Query Object</h3>
+
+<h3>The Query Object</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The method <code>session.query(class_or_mapper)</code> returns a <code>Query</code> object.  Below is a synopsis of things you can do with <code>Query</code>:
 </p>
@@ -417,14 +365,9 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -432,16 +375,17 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Saving Objects</h3>
+
+<h3>Saving Objects</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>When objects corresponding to mapped classes are created or manipulated, all changes are logged by the <code>Session</code> object.  The changes are then written to the database when an application calls <code>flush()</code>.  This pattern is known as a <em>Unit of Work</em>, and has many advantages over saving individual objects or attributes on those objects with individual method invocations.  Domain models can be built with far greater complexity with no concern over the order of saves and deletes, excessive database round-trips and write operations, or deadlocking issues.  The <code>flush()</code> operation batches its SQL statements into a transaction, and can also perform optimistic concurrency checks (using a version id column) to insure the proper number of rows were in fact affected (not supported with the current MySQL drivers). 
 </p>
-<p>The Unit of Work is a powerful tool, and has some important concepts that should be understood in order to use it effectively.  See the <a href="unitofwork.html#unitofwork" >Session / Unit of Work</a> section for a full description on all its operations.
+<p>The Unit of Work is a powerful tool, and has some important concepts that should be understood in order to use it effectively.  See the <a href="unitofwork.html#unitofwork">Session / Unit of Work</a> section for a full description on all its operations.
 </p>
-<p>When a mapper is created, the target class has its mapped properties decorated by specialized property accessors that track changes.  New objects by default must be explicitly added to the <code>Session</code>, however this can be made automatic by using <a href="plugins.html#plugins_threadlocal" >threadlocal</a> or <a href="plugins.html#plugins_sessioncontext" >SessionContext</a>.
+<p>When a mapper is created, the target class has its mapped properties decorated by specialized property accessors that track changes.  New objects by default must be explicitly added to the <code>Session</code>, however this can be made automatic by using <a href="plugins.html#plugins_threadlocal">threadlocal</a> or <a href="plugins.html#plugins_sessioncontext">SessionContext</a>.
 </p>
 
 
@@ -464,13 +408,13 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">myuser2</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># load a third User from the database            
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_75', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">myuser3 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_75_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">myuser3 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
   users.user_name AS users_user_name, users.password AS users_password<br/>
   FROM users WHERE users.user_name = :users_user_name<br/>
   {'users_user_name': 'fred'}</div><pre><span class="python_name">myuser3</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">= </span><span class="python_literal">'fredjones'</span><span class="python_operator">
 </span>
 <span class="python_comment"># save all changes            
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_76', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_76_div" class="codepop" style="display:none;">UPDATE users SET user_name=:user_name<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_4', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_4_div" class="codepop" style="display:none;">UPDATE users SET user_name=:user_name<br/>
   WHERE users.user_id =:users_user_id<br/>
   [{'users_user_id': 1, 'user_name': 'fredjones'}]<br/>
   INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
@@ -497,7 +441,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 <span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_literal">'foo'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">u</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_77', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_77_div" class="codepop" style="display:none;">INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_5', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_5_div" class="codepop" style="display:none;">INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
   {'password': 'foo', 'user_name': 'john'}</div><pre><span class="python_literal">>>> </span><span class="python_name">u</span><span class="python_operator">
 </span><span class="python_name">User id </span><span class="python_number">1 </span><span class="python_name">name </span><span class="python_literal">'john' </span><span class="python_name">password </span><span class="python_literal">'foo'</span><span class="python_operator"></span></pre></div>
 <p>SQLAlchemy will only put modified object attributes columns into the UPDATE statements generated upon flush.  This is to conserve database traffic and also to successfully interact with a "deferred" attribute, which is a mapped object attribute against the mapper's primary table that isnt loaded until referenced by the application.
@@ -506,14 +450,9 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -521,24 +460,14 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Defining and Using Relationships</h3>
+
+<h3>Defining and Using Relationships</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>So that covers how to map the columns in a table to an object, how to load objects, create new ones, and save changes.  The next step is how to define an object's relationships to other database-persisted objects.  This is done via the <code>relation</code> function provided by the <code>orm</code> module.  <br /> 
+<p>So that covers how to map the columns in a table to an object, how to load objects, create new ones, and save changes.  The next step is how to define an object's relationships to other database-persisted objects.  This is done via the <code>relation</code> function provided by the <code>orm</code> module.  <br></br>
 </p>
-
-
-			
-
-			
-
-			
-
-    </div>
-
-        
 
 
 
@@ -546,10 +475,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>One to Many</h3>
+
+<h3>One to Many</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>So with our User class, lets also define the User has having one or more mailing addresses.  First, the table metadata:
 </p>
@@ -576,7 +506,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'state'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'zip'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">10</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>Of importance here is the addresses table's definition of a <em>foreign key</em> relationship to the users table, relating the user_id column into a parent-child relationship.  When a <code>Mapper</code> wants to indicate a relation of one object to another, the <code>ForeignKey</code> relationships are the default method by which the relationship is determined (options also exist to describe the relationships explicitly).   <br /> 
+<p>Of importance here is the addresses table's definition of a <em>foreign key</em> relationship to the users table, relating the user_id column into a parent-child relationship.  When a <code>Mapper</code> wants to indicate a relation of one object to another, the <code>ForeignKey</code> relationships are the default method by which the relationship is determined (options also exist to describe the relationships explicitly).   <br></br>
 </p>
 <p>So then lets define two classes, the familiar <code>User</code> class, as well as an <code>Address</code> class:
 </p>
@@ -647,14 +577,9 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -662,10 +587,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Lifecycle Relations</h3>
+
+<h3>Lifecycle Relations</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>In the previous example, a single address was removed from the <code>addresses</code> attribute of a <code>User</code> object, resulting in the corresponding database row being updated to have a user_id of <code>None</code>.  But now, theres a mailing address with no user_id floating around in the database of no use to anyone.  How can we avoid this ?  This is acheived by using the <code>cascade</code> parameter of <code>relation</code>:
 </p>
@@ -689,20 +615,15 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
   [{'address_id': 2}]</div><pre><span class="python_operator"></span></pre></div>
 <p>In this case, with the <code>delete-orphan</code> <strong>cascade rule</strong> set, the element that was removed from the addresses list was also removed from the database.  Specifying <code>cascade="all, delete-orphan"</code> means that every persistence operation performed on the parent object will be <em>cascaded</em> to the child object or objects handled by the relation, and additionally that each child object cannot exist without being attached to a parent.  Such a relationship indicates that the <strong>lifecycle</strong> of the <code>Address</code> objects are bounded by that of their parent <code>User</code> object.
 </p>
-<p>Cascading is described fully in <a href="unitofwork.html#unitofwork_cascade" >Cascade rules</a>.
+<p>Cascading is described fully in <a href="unitofwork.html#unitofwork_cascade">Cascade rules</a>.
 </p>
 
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -710,10 +631,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Backreferences</h3>
+
+<h3>Backreferences</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>By creating relations with the <code>backref</code> keyword, a bi-directional relationship can be created which will keep both ends of the relationship updated automatically, independently of database operations.  Below, the <code>User</code> mapper is created with an <code>addresses</code> property, and the corresponding <code>Address</code> mapper receives a "backreference" to the <code>User</code> object via the property name <code>user</code>:
 </p>
@@ -763,20 +685,15 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </div>
 
+</div>
+
+
+
+    </div>
 
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-
-
-
-</div>
-
-
-        
 
 
 
@@ -784,10 +701,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Selecting from Relationships</h3>
+
+<h3>Selecting from Relationships</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>We've seen how the <code>relation</code> specifier affects the saving of an object and its child items, how does it affect selecting them?  By default, the relation keyword indicates that the related property should be attached a <em>lazy loader</em> when instances of the parent object are loaded from the database; this is just a callable function that when accessed will invoke a second SQL query to load the child objects of the parent.
 </p>
@@ -801,12 +719,12 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span>
 <span class="python_comment"># select users where username is 'jane', get the first element of the list
 # this will incur a load operation for the parent table
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_78', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'jane'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_78_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_6', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'jane'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_6_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
   users.user_name AS users_user_name, users.password AS users_password<br/>
   FROM users WHERE users.user_name = :users_user_name ORDER BY users.oid<br/>
   {'users_user_name': 'jane'}</div><pre><span class="python_comment"># iterate through the User object's addresses.  this will incur an
 # immediate load of those child items
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_79', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_keyword">for </span><span class="python_name">a </span><span class="python_keyword">in </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">:</span></pre><div id="popbox_79_div" class="codepop" style="display:none;">SELECT addresses.address_id AS addresses_address_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_7', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_keyword">for </span><span class="python_name">a </span><span class="python_keyword">in </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">:</span></pre><div id="popbox_7_div" class="codepop" style="display:none;">SELECT addresses.address_id AS addresses_address_id, <br/>
   addresses.user_id AS addresses_user_id, addresses.street AS addresses_street, <br/>
   addresses.city AS addresses_city, addresses.state AS addresses_state, <br/>
   addresses.zip AS addresses_zip FROM addresses<br/>
@@ -814,35 +732,24 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
   {'users_user_id': 1}</div><pre><span class="python_keyword">print </span><span class="python_name">repr</span><span class="python_enclosure">(</span><span class="python_name">a</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 
 
-			
-
-			
-
-			
-
-			
-
-    </div>
-
-        
-
-
 
 <A name="datamapping_selectrelations_relselectby"></a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Creating Joins Across Relations</h3>
+
+<h3>Creating Joins Across Relations</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>For mappers that have relationships, the <code>select_by</code> method of the <code>Query</code> object can create queries that include automatically created joins.  Just specify a key in the argument list which is not present in the primary mapper's list of properties or columns, but <em>is</em> present in the property list of one of its relationships:
+<pre><code>
+</code></pre><p>For mappers that have relationships, the <code>select_by</code> method of the <code>Query</code> object can create queries that include automatically created joins.  Just specify a key in the argument list which is not present in the primary mapper's list of properties or columns, but <em>is</em> present in the property list of one of its relationships:
 </p>
 
 
 <div class="code">
-<pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_80', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_80_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+<pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_8', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_8_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
   users.user_name AS users_user_name, users.password AS users_password<br/>
   FROM users, addresses <br/>
   WHERE users.user_id=addresses.user_id<br/>
@@ -858,7 +765,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
          <span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
          <span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span>
    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>All keyword arguments sent to <code>select_by</code> are used to create query criterion.  This means that familiar <code>select</code> keyword options like <code>order_by</code> and <code>limit</code> are not directly available.  To enable these options with <code>select_by</code>, you can try the <a href="plugins.html#plugins_selectresults" >SelectResults</a> extension which offers methods off the result of a <code>select</code> or <code>select_by</code> such as <code>order_by()</code> and array slicing functions that generate new queries.  <br /> 
+<p>All keyword arguments sent to <code>select_by</code> are used to create query criterion.  This means that familiar <code>select</code> keyword options like <code>order_by</code> and <code>limit</code> are not directly available.  To enable these options with <code>select_by</code>, you can try the <a href="plugins.html#plugins_selectresults">SelectResults</a> extension which offers methods off the result of a <code>select</code> or <code>select_by</code> such as <code>order_by()</code> and array slicing functions that generate new queries.  <br></br>
 </p>
 <p>Also, <code>select_by</code> will <em>not</em> create joins derived from <code>Column</code>-based expressions (i.e. <code>ClauseElement</code> objects); the reason is that a <code>Column</code>-based expression may include many columns, and <code>select_by</code> has no way to know which columns in the expression correspond to properties and which don't (it also prefers not to dig into column expressions which may be very complex).  The next section describes some ways to combine <code>Column</code> expressions with <code>select_by</code>'s auto-joining capabilities.
 </p>
@@ -866,14 +773,9 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -881,12 +783,13 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>More Granular Join Control Using join_to, join_via</h3>
+
+<h3>More Granular Join Control Using join_to, join_via</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>Feature Status: <a href="javascript:alphaApi()">Alpha API</a> 
+<p>Feature Status: <a href='javascript:alphaApi()'>Alpha API</a> 
 </p>
 <p>The <code>join_to</code> method of <code>Query</code> is a component of the <code>select_by</code> operation, and is given a keyname in order to return a "join path" from the Query's mapper to the mapper which is referenced by a <code>relation()</code> of the given name:
 </p>
@@ -897,7 +800,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span><span class="python_literal">>>> </span><span class="python_name">j </span><span class="python_operator">= </span><span class="python_name">q</span><span class="python_operator">.</span><span class="python_name">join_to</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">j</span><span class="python_operator">
 </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">=</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator"></span></pre></div>
-<p> <code>join_to</code> can also be given the name of a column-based property, in which case it will locate a path to the nearest mapper which has that property as a column:
+<p><code>join_to</code> can also be given the name of a column-based property, in which case it will locate a path to the nearest mapper which has that property as a column:
 </p>
 
 
@@ -930,14 +833,9 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -945,10 +843,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Eager Loading</h3>
+
+<h3>Eager Loading</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>With just a single parameter <code>lazy=False</code> specified to the relation object, the parent and child SQL queries can be joined together.
 </p>
@@ -961,7 +860,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
     <span class="python_enclosure">}</span>
   <span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_81', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'Jane'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_81_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, users.password AS users_password, <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_9', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'Jane'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_9_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, users.password AS users_password, <br/>
   users.user_id AS users_user_id, addresses_4fb8.city AS addresses_4fb8_city, <br/>
   addresses_4fb8.address_id AS addresses_4fb8_address_id, addresses_4fb8.user_id AS addresses_4fb8_user_id, <br/>
   addresses_4fb8.zip AS addresses_4fb8_zip, addresses_4fb8.state AS addresses_4fb8_state, <br/>
@@ -979,7 +878,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 
 <div class="code">
-<pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_82', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_82_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, <br/>
+<pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_10', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_10_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, <br/>
   users.password AS users_password, users.user_id AS users_user_id, <br/>
   addresses_6ca7.city AS addresses_6ca7_city, <br/>
   addresses_6ca7.address_id AS addresses_6ca7_address_id, <br/>
@@ -995,14 +894,9 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1010,10 +904,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Using Options to Change the Loading Strategy</h3>
+
+<h3>Using Options to Change the Loading Strategy</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The <code>options</code> method on the <code>Query</code> object provides an easy way to get alternate forms of a mapper query from an original one.  The most common use of this feature is to change the "eager/lazy" loading behavior of a particular mapper, via the functions <code>eagerload()</code>, <code>lazyload()</code> and <code>noload()</code>:
 </p>
@@ -1045,20 +940,15 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </div>
 
+</div>
+
+
+
+    </div>
 
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-
-
-
-</div>
-
-
-        
 
 
 
@@ -1066,10 +956,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>One to One/Many to One</h3>
+
+<h3>One to One/Many to One</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The above examples focused on the "one-to-many" relationship.  To do other forms of relationship is easy, as the <code>relation</code> function can usually figure out what you want:
 </p>
@@ -1117,7 +1008,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span>
 <span class="python_comment"># select
 </span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_83', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_83_div" class="codepop" style="display:none;">SELECT users.preference_id AS users_preference_id, users.user_name AS users_user_name, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_11', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_11_div" class="codepop" style="display:none;">SELECT users.preference_id AS users_preference_id, users.user_name AS users_user_name, <br/>
   users.password AS users_password, users.user_id AS users_user_id, <br/>
   user_prefs_4eb2.timezone AS user_prefs_4eb2_timezone, user_prefs_4eb2.stylename AS user_prefs_4eb2_stylename, <br/>
   user_prefs_4eb2.save_password AS user_prefs_4eb2_save_password, user_prefs_4eb2.pref_id AS user_prefs_4eb2_pref_id <br/>
@@ -1131,21 +1022,16 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">preferences</span><span class="python_operator">.</span><span class="python_name">stylename </span><span class="python_operator">= </span><span class="python_literal">'bluesteel'</span><span class="python_operator">
 </span>
 <span class="python_comment"># flush
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_84', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_84_div" class="codepop" style="display:none;">UPDATE user_prefs SET stylename=:stylename<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_12', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_12_div" class="codepop" style="display:none;">UPDATE user_prefs SET stylename=:stylename<br/>
   WHERE user_prefs.pref_id = :pref_id<br/>
   [{'stylename': 'bluesteel', 'pref_id': 1}]</div><pre><span class="python_operator"></span></pre></div>
 
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1153,10 +1039,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Many to Many</h3>
+
+<h3>Many to Many</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The <code>relation</code> function handles a basic many-to-many relationship when you specify the association table:
 </p>
@@ -1210,7 +1097,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span><span class="python_name">article</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_enclosure">(</span><span class="python_literal">'entertainment'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">article</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_85', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_85_div" class="codepop" style="display:none;">INSERT INTO keywords (name) VALUES (:name)<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_13', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_13_div" class="codepop" style="display:none;">INSERT INTO keywords (name) VALUES (:name)<br/>
   {'name': 'politics'}<br/>
   INSERT INTO keywords (name) VALUES (:name)<br/>
   {'name': 'entertainment'}<br/>
@@ -1218,7 +1105,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
   {'article_body': 'this is the body', 'article_headline': 'a headline'}<br/>
   INSERT INTO article_keywords (article_id, keyword_id) VALUES (:article_id, :keyword_id)<br/>
   [{'keyword_id': 1, 'article_id': 1}, {'keyword_id': 2, 'article_id': 1}]</div><pre><span class="python_comment"># select articles based on a keyword.  select_by will handle the extra joins.
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_86', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">articles </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Article</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">keyword_name</span><span class="python_operator">=</span><span class="python_literal">'politics'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_86_div" class="codepop" style="display:none;">SELECT keywords_e2f2.keyword_id AS keywords_e2f2_keyword_id, keywords_e2f2.keyword_name AS keywords_e2f2_keyword_name, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_14', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">articles </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Article</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">keyword_name</span><span class="python_operator">=</span><span class="python_literal">'politics'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_14_div" class="codepop" style="display:none;">SELECT keywords_e2f2.keyword_id AS keywords_e2f2_keyword_id, keywords_e2f2.keyword_name AS keywords_e2f2_keyword_name, <br/>
   articles.headline AS articles_headline, articles.body AS articles_body, articles.article_id AS articles_article_id <br/>
   FROM keywords, article_keywords, articles <br/>
   LEFT OUTER JOIN article_keywords AS article_keyword_3da2 ON articles.article_id = article_keyword_3da2.article_id <br/>
@@ -1233,7 +1120,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span><span class="python_name">a</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_enclosure">(</span><span class="python_literal">'government'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
 <span class="python_comment"># flush
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_87', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_87_div" class="codepop" style="display:none;">INSERT INTO keywords (name) VALUES (:name)<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_15', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_15_div" class="codepop" style="display:none;">INSERT INTO keywords (name) VALUES (:name)<br/>
   {'name': 'topstories'}<br/>
   INSERT INTO keywords (name) VALUES (:name)<br/>
   {'name': 'government'}<br/>
@@ -1247,14 +1134,9 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
     </div>
 
-
     <a href="#datamapping" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1262,10 +1144,11 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Association Object</h3>
+
+<h3>Association Object</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Many to Many can also be done with an association object, that adds additional information about how two items are related.  This association object is set up in basically the same way as any other mapped object.  However, since an association table typically has no primary key columns, you have to tell the mapper what columns will compose its "primary key", which are the two (or more) columns involved in the association.  Also, the relation function needs an additional hint as to the fact that this mapped object is an association object, via the "association" argument which points to the class or mapper representing the other side of the association.
 </p>
@@ -1333,7 +1216,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span>
 <span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_comment"># select by keyword
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_88', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">alist </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Article</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">keyword_name</span><span class="python_operator">=</span><span class="python_literal">'jacks_stories'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_88_div" class="codepop" style="display:none;">SELECT article_keyword_f9af.keyword_id AS article_keyword_f9af_key_b3e1, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_16', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">alist </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Article</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">keyword_name</span><span class="python_operator">=</span><span class="python_literal">'jacks_stories'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_16_div" class="codepop" style="display:none;">SELECT article_keyword_f9af.keyword_id AS article_keyword_f9af_key_b3e1, <br/>
   article_keyword_f9af.attached_by AS article_keyword_f9af_att_95d4, <br/>
   article_keyword_f9af.article_id AS article_keyword_f9af_art_fd49, <br/>
   users_9c30.user_name AS users_9c30_user_name, users_9c30.user_id AS users_9c30_user_id, <br/>
@@ -1375,57 +1258,35 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 <span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
 
 
+
     </div>
-
-
-    <a href="#datamapping" class="toclink">back to section top</a>
-
 
 </div>
 
 
 
+    </div>
 
+    <a href="#datamapping" class="toclink">back to section top</a>
     
 <div class="sectionnavblock">
 <div class="sectionnav">
 
-
-        Previous: <a href="sqlconstruction.html">Constructing SQL Queries via Python Expressions</a>
+        Previous: <a href="sqlconstruction.html#sql">Constructing SQL Queries via Python Expressions</a>
 
                 |
 
-        Next: <a href="unitofwork.html">Session / Unit of Work</a>
+        Next: <a href="unitofwork.html#unitofwork">Session / Unit of Work</a>
 
 </div>
 </div>
 
-
 </div>
 
 
-		</div>
-
-
-
-
-
+</html></div>
 
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

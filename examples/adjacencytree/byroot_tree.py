@@ -46,7 +46,6 @@ class TreeNode(object):
     identifiable root.  Any node can return its root node and therefore the "tree" that it 
     belongs to, and entire trees can be selected from the database in one query, by 
     identifying their common root ID."""
-    children = NodeList
     
     def __init__(self, name):
         """for data integrity, a TreeNode requires its name to be passed as a parameter
@@ -91,7 +90,8 @@ class TreeLoader(MapperExtension):
         if instance.root is instance:
             connection.execute(mapper.mapped_table.update(TreeNode.c.id==instance.id, values=dict(root_node_id=instance.id)))
             instance.root_id = instance.id
-    def append_result(self, mapper, session, row, imap, result, instance, isnew, populate_existing=False):
+
+    def append_result(self, mapper, selectcontext, row, instance, identitykey, result, isnew):
         """runs as results from a SELECT statement are processed, and newly created or already-existing
         instances that correspond to each row are appended to result lists.  This method will only
         append root nodes to the result list, and will attach child nodes to their appropriate parent
@@ -101,8 +101,10 @@ class TreeLoader(MapperExtension):
             result.append(instance)
         else:
             if isnew or populate_existing:
-                parentnode = imap[mapper.identity_key(instance.parent_id)]
-                parentnode.children.append(instance, _mapper_nohistory=True)
+                parentnode = selectcontext.identity_map[mapper.identity_key(instance.parent_id)]
+                parentnode.children.append_without_event(instance)
+        # fire off lazy loader before the instance is part of the session
+        instance.children
         return False
             
 class TreeData(object):
@@ -127,10 +129,11 @@ mapper(TreeNode, trees, properties=dict(
     parent_id=trees.c.parent_node_id,
     root_id=trees.c.root_node_id,
     root=relation(TreeNode, primaryjoin=trees.c.root_node_id==trees.c.node_id, foreignkey=trees.c.node_id, lazy=None, uselist=False),
-    children=relation(TreeNode, primaryjoin=trees.c.parent_node_id==trees.c.node_id, lazy=None, uselist=True, cascade="delete,save-update"),
+    children=relation(TreeNode, primaryjoin=trees.c.parent_node_id==trees.c.node_id, lazy=None, uselist=True, cascade="delete,save-update", collection_class=NodeList),
     data=relation(mapper(TreeData, treedata, properties=dict(id=treedata.c.data_id)), cascade="delete,delete-orphan,save-update", lazy=False)
     
-), extension = TreeLoader())
+), extension = TreeLoader()).compile()
+
 
 session = create_session()
 

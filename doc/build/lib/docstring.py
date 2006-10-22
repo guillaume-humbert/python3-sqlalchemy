@@ -1,9 +1,21 @@
+"""
+defines a pickleable, recursive "generated python documentation" datastructure.
+"""
+
 import re, types, string, inspect
 
-"""sucks a module and its contents into a simple documentation object, suitable for pickling"""
+allobjects = {}
 
-class ObjectDoc(object):
+class AbstractDoc(object):
+    def __init__(self, obj):
+        allobjects[id(obj)] = self
+        self.id = id(obj)
+        self.allobjects = allobjects
+        self.toc_path = None
+        
+class ObjectDoc(AbstractDoc):
     def __init__(self, obj, functions=None, classes=None):
+        super(ObjectDoc, self).__init__(obj)
         self.isclass = isinstance(obj, types.ClassType) or isinstance(obj, types.TypeType)
         self.name= obj.__name__
         functions = functions
@@ -51,7 +63,8 @@ class ObjectDoc(object):
                 classes = []
         
         if self.isclass:
-            self.description = "Class " + self.name
+            self.description = "class " + self.name
+            self.classname = self.name
             if hasattr(obj, '__mro__'):
                 l = []
                 mro = list(obj.__mro__[1:])
@@ -62,8 +75,11 @@ class ObjectDoc(object):
                             del l[l.index(y)]
                     l.insert(0, x)
                 self.description += "(" + string.join([x.__name__ for x in l], ',') + ")"
+                self._inherits = [(id(x), x.__name__) for x in l]
+            else:
+                self._inherits = []
         else:
-            self.description = "Module " + self.name
+            self.description = "module " + self.name
 
         self.doc = obj.__doc__
 
@@ -82,12 +98,20 @@ class ObjectDoc(object):
         self.classes = []
         for class_ in classes:
             self.classes.append(ObjectDoc(class_))
-
+            
+    def _get_inherits(self):
+        for item in self._inherits:
+            if item[0] in self.allobjects:
+                yield self.allobjects[item[0]]
+            else:
+                yield item[1]
+    inherits = property(_get_inherits)
     def accept_visitor(self, visitor):
         visitor.visit_object(self)
 
-class FunctionDoc(object):
+class FunctionDoc(AbstractDoc):
     def __init__(self, func):
+        super(FunctionDoc, self).__init__(func)
         argspec = inspect.getargspec(func)
         argnames = argspec[0]
         varargs = argspec[1]
@@ -110,8 +134,9 @@ class FunctionDoc(object):
     def accept_visitor(self, visitor):
         visitor.visit_function(self)
 
-class PropertyDoc(object):
+class PropertyDoc(AbstractDoc):
     def __init__(self, name, prop):
+        super(PropertyDoc, self).__init__(prop)
         self.doc = prop.__doc__
         self.name = name + " = property()"
         self.link = name

@@ -5,7 +5,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-import sys, StringIO, string
+import sys, StringIO, string, re
 
 import sqlalchemy.util as util
 import sqlalchemy.sql as sql
@@ -38,6 +38,13 @@ class OracleDateTime(sqltypes.DateTime):
 # Oracle does not allow milliseconds in DATE
 # Oracle does not support TIME columns
 
+# only if cx_oracle contains TIMESTAMP
+class OracleTimestamp(sqltypes.DateTime):
+    def get_col_spec(self):
+        return "TIMESTAMP"
+    def get_dbapi_type(self, dialect):
+        return dialect.TIMESTAMP
+        
 class OracleText(sqltypes.TEXT):
     def get_col_spec(self):
         return "CLOB"
@@ -79,9 +86,9 @@ colspecs = {
     sqltypes.Binary : OracleBinary,
     sqltypes.Boolean : OracleBoolean,
     sqltypes.TEXT : OracleText,
+    sqltypes.TIMESTAMP : OracleTimestamp,
     sqltypes.CHAR: OracleChar,
 }
-
 
 ischema_names = {
     'VARCHAR2' : OracleString,
@@ -89,7 +96,8 @@ ischema_names = {
     'DATETIME' : OracleDateTime,
     'NUMBER' : OracleNumeric,
     'BLOB' : OracleBinary,
-    'CLOB' : OracleText
+    'CLOB' : OracleText,
+    'TIMESTAMP' : OracleTimestamp
 }
 
 constraintSQL = """SELECT
@@ -122,16 +130,21 @@ def descriptor():
     ]}
 
 class OracleExecutionContext(default.DefaultExecutionContext):
-    pass
-    
+    def pre_exec(self, engine, proxy, compiled, parameters):
+        super(OracleExecutionContext, self).pre_exec(engine, proxy, compiled, parameters)
+        if self.dialect.auto_setinputsizes:
+                self.set_input_sizes(proxy(), parameters)
+        
 class OracleDialect(ansisql.ANSIDialect):
-    def __init__(self, use_ansi=True, module=None, threaded=True, **kwargs):
+    def __init__(self, use_ansi=True, auto_setinputsizes=False, module=None, threaded=True, **kwargs):
         self.use_ansi = use_ansi
         self.threaded = threaded
         if module is None:
             self.module = cx_Oracle
         else:
             self.module = module
+        self.supports_timestamp = hasattr(self.module, 'TIMESTAMP' )
+        self.auto_setinputsizes = auto_setinputsizes
         ansisql.ANSIDialect.__init__(self, **kwargs)
 
     def dbapi(self):
@@ -233,7 +246,11 @@ class OracleDialect(ansisql.ANSIDialect):
             elif coltype=='CHAR' or coltype=='VARCHAR2':
                 coltype = ischema_names.get(coltype, OracleString)(length)
             else:
-                coltype = ischema_names.get(coltype)
+                coltype = re.sub(r'\(\d+\)', '', coltype)
+                try:
+                    coltype = ischema_names[coltype]
+                except KeyError:
+                    raise exceptions.AssertionError("Cant get coltype for type '%s'" % coltype)
                
             colargs = []
             if default is not None:
@@ -243,7 +260,7 @@ class OracleDialect(ansisql.ANSIDialect):
             if (name.upper() == name): 
                 name = name.lower()
             
-            table.append_item (schema.Column(name, coltype, nullable=nullable, *colargs))
+            table.append_column(schema.Column(name, coltype, nullable=nullable, *colargs))
 
        
         c = connection.execute(constraintSQL, {'table_name' : table.name.upper(), 'owner' : owner})
@@ -255,7 +272,7 @@ class OracleDialect(ansisql.ANSIDialect):
             #print "ROW:" , row                
             (cons_name, cons_type, local_column, remote_table, remote_column) = row
             if cons_type == 'P':
-                table.c[local_column]._set_primary_key()
+                table.primary_key.add(table.c[local_column])
             elif cons_type == 'R':
                 try:
                     fk = fks[cons_name]
@@ -270,7 +287,7 @@ class OracleDialect(ansisql.ANSIDialect):
                     fk[1].append(refspec)
 
         for name, value in fks.iteritems():
-            table.append_item(schema.ForeignKeyConstraint(value[0], value[1], name=name))
+            table.append_constraint(schema.ForeignKeyConstraint(value[0], value[1], name=name))
 
     def do_executemany(self, c, statement, parameters, context=None):
         rowcount = 0
@@ -298,6 +315,7 @@ class OracleCompiler(ansisql.ANSICompiler):
         
         self.froms[join] = self.get_from_text(join.left) + ", " + self.get_from_text(join.right)
         self.wheres[join] = sql.and_(self.wheres.get(join.left, None), join.onclause)
+        self.strings[join] = self.froms[join]
 
         if join.isouter:
             # if outer join, push on the right side table as the current "outertable"
@@ -350,7 +368,7 @@ class OracleCompiler(ansisql.ANSICompiler):
                 orderby = self.strings[orderby]
             class SelectVisitor(sql.ClauseVisitor):
                 def visit_select(self, select):
-                    select.append_column(sql.ColumnClause("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn"))
+                    select.append_column(sql.column("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn"))
             select.accept_visitor(SelectVisitor())
             limitselect = sql.select([c for c in select.c if c.key!='ora_rn'])
             if select.offset is not None:
@@ -385,7 +403,7 @@ class OracleCompiler(ansisql.ANSICompiler):
                 orderby = select.oid_column
                 orderby.accept_visitor(self)
                 orderby = self.strings[orderby]
-            select.append_column(sql.ColumnClause("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn"))
+            select.append_column(sql.column("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn"))
             limitselect = sql.select([c for c in select.c if c.key!='ora_rn'])
             if select.offset is not None:
                 limitselect.append_whereclause("ora_rn>%d" % select.offset)
@@ -401,6 +419,12 @@ class OracleCompiler(ansisql.ANSICompiler):
             
     def limit_clause(self, select):
         return ""
+
+    def for_update_clause(self, select):
+        if select.for_update=="nowait":
+            return " FOR UPDATE NOWAIT"
+        else:
+            return super(OracleCompiler, self).for_update_clause(select)
 
 class OracleSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, **kwargs):

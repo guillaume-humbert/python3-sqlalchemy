@@ -44,6 +44,9 @@ class PGInteger(sqltypes.Integer):
 class PGSmallInteger(sqltypes.Smallinteger):
     def get_col_spec(self):
         return "SMALLINT"
+class PGBigInteger(sqltypes.Integer):
+    def get_col_spec(self):
+        return "BIGINT"
 class PG2DateTime(sqltypes.DateTime):
     def get_col_spec(self):
         return "TIMESTAMP " + (self.timezone and "WITH" or "WITHOUT") + " TIME ZONE"
@@ -144,7 +147,7 @@ pg1_colspecs.update({
 
 pg2_ischema_names = {
     'integer' : PGInteger,
-    'bigint' : PGInteger,
+    'bigint' : PGBigInteger,
     'smallint' : PGSmallInteger,
     'character varying' : PGString,
     'character' : PGChar,
@@ -170,10 +173,6 @@ pg1_ischema_names.update({
     'date' : PG1Date,
     'time' : PG1Time
     })
-
-
-def engine(opts, **params):
-    return PGSQLEngine(opts, **params)
 
 def descriptor():
     return {'name':'postgres',
@@ -360,18 +359,24 @@ class PGDialect(ansisql.ANSIDialect):
                 if attype == 'integer':
                     numericprec, numericscale = (32, 0)
                     charlen = None
-    
+
                 args = []
                 for a in (charlen, numericprec, numericscale):
                     if a is not None:
                         args.append(int(a))
+
+                kwargs = {}
+                if attype == 'timestamp with time zone':
+                    kwargs['timezone'] = True
+                elif attype == 'timestamp without time zone':
+                    kwargs['timezone'] = False
     
                 coltype = ischema_names[attype]
-                coltype = coltype(*args)
+                coltype = coltype(*args, **kwargs)
                 colargs= []
                 if default is not None:
                     colargs.append(PassiveDefault(sql.text(default)))
-                table.append_item(schema.Column(name, coltype, nullable=nullable, *colargs))
+                table.append_column(schema.Column(name, coltype, nullable=nullable, *colargs))
     
     
             if not found_table:
@@ -393,7 +398,7 @@ class PGDialect(ansisql.ANSIDialect):
                 if row is None:
                     break
                 pk = row[0]
-                table.c[pk]._set_primary_key()
+                table.primary_key.add(table.c[pk])
     
             # Foreign keys
             FK_SQL = """
@@ -444,7 +449,7 @@ class PGDialect(ansisql.ANSIDialect):
                     for column in referred_columns:
                         refspec.append(".".join([referred_table, column]))
                 
-                table.append_item(ForeignKeyConstraint(constrained_columns, refspec, row['conname']))
+                table.append_constraint(ForeignKeyConstraint(constrained_columns, refspec, row['conname']))
 
 class PGCompiler(ansisql.ANSICompiler):
         
@@ -490,7 +495,7 @@ class PGSchemaGenerator(ansisql.ANSISchemaGenerator):
         
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
-        if column.primary_key and not column.foreign_key and isinstance(column.type, sqltypes.Integer) and (column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional)):
+        if column.primary_key and len(column.foreign_keys)==0 and column.autoincrement and isinstance(column.type, sqltypes.Integer) and not isinstance(column.type, sqltypes.SmallInteger) and (column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional)):
             colspec += " SERIAL"
         else:
             colspec += " " + column.type.engine_impl(self.engine).get_col_spec()
@@ -503,13 +508,13 @@ class PGSchemaGenerator(ansisql.ANSISchemaGenerator):
         return colspec
 
     def visit_sequence(self, sequence):
-        if not sequence.optional and not self.engine.dialect.has_sequence(self.connection, sequence.name):
+        if not sequence.optional and (not self.dialect.has_sequence(self.connection, sequence.name)):
             self.append("CREATE SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
             
 class PGSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_sequence(self, sequence):
-        if not sequence.optional and self.engine.dialect.has_sequence(self.connection, sequence.name):
+        if not sequence.optional and (self.dialect.has_sequence(self.connection, sequence.name)):
             self.append("DROP SEQUENCE %s" % sequence.name)
             self.execute()
 
@@ -520,7 +525,7 @@ class PGDefaultRunner(ansisql.ANSIDefaultRunner):
             if isinstance(column.default, schema.PassiveDefault):
                 c = self.proxy("select %s" % column.default.arg)
                 return c.fetchone()[0]
-            elif isinstance(column.type, sqltypes.Integer) and (column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional)):
+            elif (isinstance(column.type, sqltypes.Integer) and column.autoincrement) and (column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional)):
                 sch = column.table.schema
                 # TODO: this has to build into the Sequence object so we can get the quoting 
                 # logic from it

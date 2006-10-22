@@ -1,28 +1,42 @@
+<%doc>pydoc.myt - provides formatting functions for printing docstring.AbstractDoc generated python documentation objects.</%doc>
+
 <%global>
-    import re, types, string, docstring
-    def format_paragraphs(text):
-        return re.sub(r'([\w])\n([\w])', r'\1 \2', text or '', re.S)
+import docstring
 </%global>
 
 <%method obj_doc>
     <%args>
         obj
+        toc
+        extension
     </%args>
-    
-<&|doclib.myt:item, name=obj.name, description=obj.description &>
-<&|formatting.myt:formatplain&><% format_paragraphs(obj.doc) %></&>
+<%init>
+if obj.isclass:
+    links = []
+    for elem in obj.inherits:
+        if isinstance(elem, docstring.ObjectDoc):
+            links.append(m.scomp("nav.myt:toclink", toc=toc, path=elem.toc_path, extension=extension, description=elem.name))
+        else:
+            links.append(str(elem))
+    htmldescription = "class " + obj.classname + "(%s)" % (','.join(links))
+else:
+    htmldescription = obj.description
+
+</%init>
+
+<&|formatting.myt:section, toc=toc, path=obj.toc_path, description=htmldescription &>
+
+<&|formatting.myt:formatplain&><% obj.doc %></&>
 
 % if not obj.isclass and obj.functions:
-<&|doclib.myt:item, name="modfunc", description="Module Functions" &>
-<&|formatting.myt:paramtable&>
+
 %   for func in obj.functions:
     <& SELF:function_doc, func=func &>
 %
-</&>
-</&>
+
 % else:
+
 % if obj.functions:
-<&|formatting.myt:paramtable&>
 %   for func in obj.functions:
 %   if isinstance(func, docstring.FunctionDoc):
     <& SELF:function_doc, func=func &>
@@ -30,26 +44,26 @@
     <& SELF:property_doc, prop=func &>
 %
 %
-</&>
 %
 %
 
 % if obj.classes:
-<&|formatting.myt:paramtable&>
 %   for class_ in obj.classes:
-      <& SELF:obj_doc, obj=class_ &>
+      <& SELF:obj_doc, obj=class_, toc=toc, extension=extension &>
 %   
-</&>
 %    
 </&>
-
 </%method>
 
 <%method function_doc>
     <%args>func</%args>
-    <&|formatting.myt:function_doc, name=func.name, link=func.link, arglist=func.arglist &>
-    <&|formatting.myt:formatplain&><% format_paragraphs(func.doc) %></&>
-    </&>
+        <div class="darkcell">
+        <A name=""></a>
+        <b><% func.name %>(<% ", ".join(map(lambda k: "<i>%s</i>" % k, func.arglist))%>)</b>
+        <div class="docstring">
+        <&|formatting.myt:formatplain&><% func.doc %></&>
+        </div>
+        </div>
 </%method>
 
 
@@ -57,7 +71,13 @@
     <%args>
         prop
     </%args>
-    <&|formatting.myt:member_doc, name=prop.name, link=prop.link &>
-    <&|formatting.myt:formatplain&><% format_paragraphs(prop.doc) %></&>
-    </&>    
+         <div class="darkcell">
+         <A name=""></a>
+         <b><% prop.name %></b>
+         <div class="docstring">
+         <&|formatting.myt:formatplain&><% prop.doc %></&>
+         </div> 
+         </div>
 </%method>
+
+

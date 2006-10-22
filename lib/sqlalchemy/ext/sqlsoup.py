@@ -41,8 +41,15 @@ Field access is intuitive:
     >>> users[0].email
     u'student@example.edu'
 
-Of course, you don't want to load all users very often.  The common case is to
-select by a key or other field:
+Of course, you don't want to load all users very often.  Let's add a WHERE clause.
+Let's also switch the order_by to DESC while we're at it.
+    >>> from sqlalchemy import or_, and_, desc
+	>>> where = or_(db.users.c.name=='Bhargan Basepair', db.users.c.email=='student@example.edu')
+    >>> db.users.select(where, order_by=[desc(db.users.c.name)])
+    [MappedUsers(name='Joe Student',email='student@example.edu',password='student',classname=None,admin=0), MappedUsers(name='Bhargan Basepair',email='basepair@example.edu',password='basepair',classname=None,admin=1)]
+
+You can also use the select...by methods if you're querying on a single column.
+This allows using keyword arguments as column names:
     >>> db.users.selectone_by(name='Bhargan Basepair')
     MappedUsers(name='Bhargan Basepair',email='basepair@example.edu',password='basepair',classname=None,admin=1)
 
@@ -153,6 +160,16 @@ Boring tests here.  Nothing of real expository value.
 
     >>> db.users.select(db.users.c.classname==None, order_by=[db.users.c.name])
     [MappedUsers(name='Bhargan Basepair',email='basepair+nospam@example.edu',password='basepair',classname=None,admin=1), MappedUsers(name='Joe Student',email='student@example.edu',password='student',classname=None,admin=0)]
+    
+    >>> db.nopk
+    Traceback (most recent call last):
+    ...
+    PKNotFoundError: table 'nopk' does not have a primary key defined
+    
+    >>> db.nosuchtable
+    Traceback (most recent call last):
+    ...
+    NoSuchTableError: nosuchtable
 """
 
 from sqlalchemy import *
@@ -200,9 +217,13 @@ values (
     (select name from users where name like 'Joe%'),
     '2006-07-12 0:0:0')
 ;
+
+CREATE TABLE nopk (
+    i                    int
+);
 """.split(';')
 
-__all__ = ['NoSuchTableError', 'SqlSoup']
+__all__ = ['PKNotFoundError', 'SqlSoup']
 
 #
 # thread local SessionContext
@@ -215,7 +236,7 @@ class Objectstore(SessionContext):
 
 objectstore = Objectstore(create_session)
 
-class NoSuchTableError(SQLAlchemyError): pass
+class PKNotFoundError(SQLAlchemyError): pass
 
 # metaclass is necessary to expose class methods with getattr, e.g.
 # we want to pass db.users.select through to users._mapper.select
@@ -231,10 +252,10 @@ class TableClassType(type):
     def update(cls, whereclause=None, values=None, **kwargs):
         cls._table.update(whereclause, values).execute(**kwargs)
     def __getattr__(cls, attr):
-        if attr == '_mapper':
+        if attr == '_query':
             # called during mapper init
             raise AttributeError()
-        return getattr(cls._mapper, attr)
+        return getattr(cls._query, attr)
             
 
 def _is_outer_join(selectable):
@@ -252,7 +273,10 @@ def _selectable_name(selectable):
     elif isinstance(selectable, schema.Table):
         return selectable.name.capitalize()
     else:
-        return selectable.__class__.__name__
+        x = selectable.__class__.__name__
+        if x[0] == '_':
+            x = x[1:]
+        return x
 
 def class_for_table(selectable):
     if not hasattr(selectable, '_selectable') \
@@ -286,6 +310,7 @@ def class_for_table(selectable):
                            selectable,
                            extension=objectstore.mapper_extension,
                            allow_null_pks=_is_outer_join(selectable))
+    klass._query = Query(klass._mapper)
     return klass
 
 class SqlSoup:
@@ -332,13 +357,13 @@ class SqlSoup:
             t = self._cache[attr]
         except KeyError:
             table = Table(attr, self._metadata, autoload=True, schema=self.schema)
+            if not table.primary_key.columns:
+                raise PKNotFoundError('table %r does not have a primary key defined' % attr)
             if table.columns:
                 t = class_for_table(table)
             else:
                 t = None
             self._cache[attr] = t
-        if not t:
-            raise NoSuchTableError('%s does not exist' % attr)
         return t
 
 if __name__ == '__main__':

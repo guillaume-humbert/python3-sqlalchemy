@@ -1,2 +1,2 @@
 version=3
-http://qa.debian.org/watch/sf.php/sqlalchemy SQLAlchemy-(.*)\.tar\.gz
+http://qa.debian.org/watch/sf.php/sqlalchemy/SQLAlchemy-(.*)\.tar\.gz
