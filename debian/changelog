@@ -1,3 +1,15 @@
+sqlalchemy (0.3.0-2) unstable; urgency=low
+
+  * Documentation and example files moved to python-sqlalchemy-doc package
+  * python-psycopg moved to Conflicts: (closes: #380622, #397427).
+    Please use python-psycopg2 instead, psycopg is not supported but it is
+    used if both psycopg and psycopg2 are installed
+  * python2.3-sqlalchemy removed from Conflicts: and Replaces:
+    (Python v2.3 is not supported in Debian anymore and pycentral will not
+    create links for this version)
+
+ -- Piotr Ozarowski <ozarow@gmail.com>  Wed,  8 Nov 2006 01:19:28 +0100
+
 sqlalchemy (0.3.0-1) unstable; urgency=low
 
   * New upstream release

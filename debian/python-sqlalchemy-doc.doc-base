@@ -7,5 +7,5 @@ Abstract: This document describes SQLAlchemy - the Python SQL toolkit and
 Section: Apps/Programming
 
 Format: HTML
-Index: /usr/share/doc/python-sqlalchemy/doc/index.html
-Files: /usr/share/doc/python-sqlalchemy/doc/*.html
+Index: /usr/share/doc/python-sqlalchemy-doc/doc/index.html
+Files: /usr/share/doc/python-sqlalchemy-doc/doc/*.html

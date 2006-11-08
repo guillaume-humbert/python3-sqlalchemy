@@ -8,6 +8,7 @@ include /usr/share/cdbs/1/class/python-distutils.mk
 
 DEB_PYTHON_INSTALL_ARGS_ALL += --single-version-externally-managed
 DEB_COMPRESS_EXCLUDE := .py
+DEB_DESTDIR = $(CURDIR)/debian/python-sqlalchemy
 
 PYVER=$(shell pyversions -vd)
 
@@ -17,5 +18,7 @@ clean::
 binary-post-install/python-sqlalchemy::
 	mv debian/python-sqlalchemy/usr/share/pycentral/python-sqlalchemy/site-packages/SQLAlchemy-${DEB_UPSTREAM_VERSION}-py${PYVER}.egg-info \
 	   debian/python-sqlalchemy/usr/share/pycentral/python-sqlalchemy/site-packages/SQLAlchemy-${DEB_UPSTREAM_VERSION}.egg-info
-	rm -rf debian/python-sqlalchemy/usr/share/doc/python-sqlalchemy/doc/build \
-	       debian/python-sqlalchemy/usr/share/doc/python-sqlalchemy/examples/README
+
+binary-post-install/python-sqlalchemy-doc::
+	rm -rf debian/python-sqlalchemy-doc/usr/share/doc/python-sqlalchemy-doc/doc/build \
+	       debian/python-sqlalchemy-doc/usr/share/doc/python-sqlalchemy-doc/examples/README
