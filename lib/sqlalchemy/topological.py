@@ -31,113 +31,155 @@ have been of this nature - very tricky to reproduce and track down, particularly
 realized this characteristic of the algorithm.
 """
 import string, StringIO
-from sets import *
-import sqlalchemy.util as util
+from sqlalchemy import util
 from sqlalchemy.exceptions import *
 
+class _Node(object):
+    """represents each item in the sort.  While the topological sort
+    produces a straight ordered list of items, _Node ultimately stores a tree-structure
+    of those items which are organized so that non-dependent nodes are siblings."""
+    def __init__(self, item):
+        self.item = item
+        self.dependencies = util.Set()
+        self.children = []
+        self.cycles = None
+    def __str__(self):
+        return self.safestr()
+    def safestr(self, indent=0):
+        return (' ' * indent * 2) + \
+            str(self.item) + \
+            (self.cycles is not None and (" (cycles: " + repr([x for x in self.cycles]) + ")") or "") + \
+            "\n" + \
+            string.join([n.safestr(indent + 1) for n in self.children], '')
+    def __repr__(self):
+        return "%s" % (str(self.item))
+    def is_dependent(self, child):
+        if self.cycles is not None:
+            for c in self.cycles:
+                if child in c.dependencies:
+                    return True
+        if child.cycles is not None:
+            for c in child.cycles:
+                if c in self.dependencies:
+                    return True
+        return child in self.dependencies
+
+class _EdgeCollection(object):
+    """a collection of directed edges."""
+    def __init__(self):
+        self.parent_to_children = {}
+        self.child_to_parents = {}
+    def add(self, edge):
+        """add an edge to this collection."""
+        (parentnode, childnode) = edge
+        if not self.parent_to_children.has_key(parentnode):
+            self.parent_to_children[parentnode] = util.Set()
+        self.parent_to_children[parentnode].add(childnode)
+        if not self.child_to_parents.has_key(childnode):
+            self.child_to_parents[childnode] = util.Set()
+        self.child_to_parents[childnode].add(parentnode)
+        parentnode.dependencies.add(childnode)
+    def remove(self, edge):
+        """remove an edge from this collection.  return the childnode if it has no other parents"""
+        (parentnode, childnode) = edge
+        self.parent_to_children[parentnode].remove(childnode)
+        self.child_to_parents[childnode].remove(parentnode)
+        if len(self.child_to_parents[childnode]) == 0:
+            return childnode
+        else:
+            return None
+    def has_parents(self, node):
+        return self.child_to_parents.has_key(node) and len(self.child_to_parents[node]) > 0
+    def edges_by_parent(self, node):
+        if self.parent_to_children.has_key(node):
+            return [(node, child) for child in self.parent_to_children[node]]
+        else:
+            return []
+    def get_parents(self):
+        return self.parent_to_children.keys()
+    def pop_node(self, node):
+        """remove all edges where the given node is a parent.  
+        
+        returns the collection of all nodes which were children of the given node, and have
+        no further parents."""
+        children = self.parent_to_children.pop(node, None)
+        if children is not None:
+            for child in children:
+                self.child_to_parents[child].remove(node)
+                if not len(self.child_to_parents[child]):
+                    yield child
+    def __len__(self):
+        return sum([len(x) for x in self.parent_to_children.values()])
+    def __iter__(self):
+        for parent, children in self.parent_to_children.iteritems():
+            for child in children:
+                yield (parent, child)
+    def __str__(self):
+        return repr(list(self))
+        
+        
 class QueueDependencySorter(object):
     """topological sort adapted from wikipedia's article on the subject.  it creates a straight-line
     list of elements, then a second pass groups non-dependent actions together to build
     more of a tree structure with siblings."""
-    class Node:
-        """represents a node in a tree.  stores an 'item' which represents the 
-        dependent thing we are talking about.  if node 'a' is an ancestor node of 
-        node 'b', it means 'a's item is *not* dependent on that of 'b'."""
-        def __init__(self, item):
-            self.item = item
-            self.edges = {}
-            self.dependencies = {}
-            self.children = []
-            self.cycles = None
-        def __str__(self):
-            return self.safestr()
-        def safestr(self, indent=0):
-            return (' ' * indent * 2) + \
-                str(self.item) + \
-                (self.cycles is not None and (" (cycles: " + repr([x for x in self.cycles]) + ")") or "") + \
-                "\n" + \
-                string.join([n.safestr(indent + 1) for n in self.children], '')
-                
-        def describe(self):
-            return "%s" % (str(self.item))
-        def __repr__(self):
-            return self.describe()
-        def is_dependent(self, child):
-            if self.cycles is not None:
-                for c in self.cycles:
-                    if c.dependencies.has_key(child):
-                        return True
-            if child.cycles is not None:
-                for c in child.cycles:
-                    if self.dependencies.has_key(c):
-                        return True
-            return self.dependencies.has_key(child)
             
     def __init__(self, tuples, allitems):
         self.tuples = tuples
         self.allitems = allitems
 
-    def _dump_edges(self, edges):
-        s = StringIO.StringIO()
-        for key, value in edges.iteritems():
-            for c in value.keys():
-                s.write("%s->%s\n" % (repr(key), repr(c)))
-        return s.getvalue()
-        
     def sort(self, allow_self_cycles=True, allow_all_cycles=False):
         (tuples, allitems) = (self.tuples, self.allitems)
-
         #print "\n---------------------------------\n"        
         #print repr([t for t in tuples])
         #print repr([a for a in allitems])
         #print "\n---------------------------------\n"        
 
         nodes = {}
-        edges = {}
+        edges = _EdgeCollection()
         for item in allitems + [t[0] for t in tuples] + [t[1] for t in tuples]:
             if not nodes.has_key(item):
-                node = QueueDependencySorter.Node(item)
+                node = _Node(item)
                 nodes[item] = node
-                edges[node] = {}
         
         for t in tuples:
             if t[0] is t[1]:
                 if allow_self_cycles:
                     n = nodes[t[0]]
-                    n.cycles = Set([n])
+                    n.cycles = util.Set([n])
                     continue
                 else:
                     raise FlushError("Self-referential dependency detected " + repr(t))
             childnode = nodes[t[1]]
             parentnode = nodes[t[0]]
-            self._add_edge(edges, (parentnode, childnode))
+            edges.add((parentnode, childnode))
 
         queue = []
         for n in nodes.values():
-            if len(n.edges) == 0:
+            if not edges.has_parents(n):
                 queue.append(n)
         cycles = {}
         output = []
-        while len(edges) > 0:
-            #print self._dump_edges(edges)
+        while len(nodes) > 0:
             if len(queue) == 0:
                 # edges remain but no edgeless nodes to remove; this indicates
                 # a cycle
                 if allow_all_cycles:
-                    cycle = self._find_cycle(edges)
-                    lead = cycle[0][0]
-                    lead.cycles = Set()
-                    for edge in cycle:
-                        n = self._remove_edge(edges, edge)
-                        lead.cycles.add(edge[0])
-                        lead.cycles.add(edge[1])
-                        if n is not None:
-                            queue.append(n)
+                    x = self._find_cycles(edges)
+                    for cycle in self._find_cycles(edges):
+                        lead = cycle[0][0]
+                        lead.cycles = util.Set()
+                        for edge in cycle:
+                            n = edges.remove(edge)
+                            lead.cycles.add(edge[0])
+                            lead.cycles.add(edge[1])
+                            if n is not None:
+                                queue.append(n)
+                        for n in lead.cycles:
                             if n is not lead:
                                 n._cyclical = True
-                    # loop through cycle
-                    # remove edges from the edge dictionary
-                    # install the cycled nodes in the "cycle" list of one of the nodes
+                                for (n,k) in list(edges.edges_by_parent(n)):
+                                    edges.add((lead, k))
+                                    edges.remove((n,k))
                     continue
                 else:
                     # long cycles not allowed
@@ -145,14 +187,9 @@ class QueueDependencySorter(object):
             node = queue.pop()
             if not hasattr(node, '_cyclical'):
                 output.append(node)
-            nodeedges = edges.pop(node, None)
-            if nodeedges is None:
-                continue
-            for childnode in nodeedges.keys():
-                del childnode.edges[node]
-                if len(childnode.edges) == 0:
-                    queue.append(childnode)
-
+            del nodes[node.item]
+            for childnode in edges.pop_node(node):
+                queue.append(childnode)
         return self._create_batched_tree(output)
         
 
@@ -192,47 +229,41 @@ class QueueDependencySorter(object):
                     return False
         return sort()
         
-        
-    def _add_edge(self, edges, edge):
-        (parentnode, childnode) = edge
-        edges[parentnode][childnode] = True
-        parentnode.dependencies[childnode] = True
-        childnode.edges[parentnode] = True
-
-    def _remove_edge(self, edges, edge):
-        (parentnode, childnode) = edge
-        del edges[parentnode][childnode]
-        del childnode.edges[parentnode]
-        del parentnode.dependencies[childnode]
-        if len(childnode.edges) == 0:
-            return childnode
-        
-    def _find_cycle(self, edges):
-        """given a structure of edges, locates a cycle in the strucure and returns 
-        as a list of tuples representing edges involved in the cycle."""
-        seen = Set()
-        cycled_edges = []
-        def traverse(d, parent=None):
-            for key in d.keys():
-                if not edges.has_key(key):
+    def _find_cycles(self, edges):
+        involved_in_cycles = util.Set()
+        cycles = {}
+        def traverse(node, goal=None, cycle=None):
+            if goal is None:
+                goal = node
+                cycle = []
+            elif node is goal:
+                return True
+                
+            for (n, key) in edges.edges_by_parent(node):
+                if key in cycle:
                     continue
-                if key in seen:
-                    if parent is not None:
-                        cycled_edges.append((parent, key))
-                    return key
-                seen.add(key)
-                x = traverse(edges[key], parent=key)
-                if x is None:
-                    seen.remove(key)
-                else:
-                    if parent is not None:
-                        cycled_edges.append((parent, key))
-                    return x
-            else:
-                return None
-        s = traverse(edges)
-        if s is None:
-            return None
-        else:
-            return cycled_edges
+                cycle.append(key)
+                if traverse(key, goal, cycle):
+                    cycset = util.Set(cycle)
+                    for x in cycle:
+                        involved_in_cycles.add(x)
+                        if cycles.has_key(x):
+                            existing_set = cycles[x]
+                            [existing_set.add(y) for y in cycset]
+                            for y in existing_set:
+                                cycles[y] = existing_set
+                            cycset = existing_set
+                        else:
+                            cycles[x] = cycset
+                cycle.pop()
+                    
+        for parent in edges.get_parents():
+            traverse(parent)
 
+        for cycle in dict([(id(s), s) for s in cycles.values()]).values():
+            edgecollection = []
+            for edge in edges:
+                if edge[0] in cycle and edge[1] in cycle:
+                    edgecollection.append(edge)
+            yield edgecollection
+    

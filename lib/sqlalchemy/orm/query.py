@@ -4,11 +4,9 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import session as sessionlib
 from sqlalchemy import sql, util, exceptions, sql_util, logging
-
-import mapper
-from interfaces import OperationContext
+from sqlalchemy.orm import mapper
+from sqlalchemy.orm.interfaces import OperationContext
 
 __all__ = ['Query', 'QueryContext', 'SelectionContext']
 
@@ -257,10 +255,20 @@ class Query(object):
 
     def count(self, whereclause=None, params=None, **kwargs):
         """given a WHERE criterion, create a SELECT COUNT statement, execute and return the resulting count value."""
+
+        from_obj = kwargs.pop('from_obj', [])
+        alltables = []
+        for l in [sql_util.TableFinder(x) for x in from_obj]:
+            alltables += l
+            
+        if self.table not in alltables:
+            from_obj.append(self.table)
+
         if self._nestable(**kwargs):
-            s = self.table.select(whereclause, **kwargs).alias('getcount').count()
+            s = sql.select([self.table], whereclause, **kwargs).alias('getcount').count()
         else:
-            s = self.table.count(whereclause)
+            primary_key = self.mapper.pks_by_table[self.table]
+            s = sql.select([sql.func.count(list(primary_key)[0])], whereclause, from_obj=from_obj, **kwargs)
         return self.session.scalar(self.mapper, s, params=params)
 
     def select_statement(self, statement, **params):
@@ -376,7 +384,7 @@ class Query(object):
         generated query as a subquery inside of a larger eager-loading query.  this is used
         with keywords like distinct, limit and offset and the mapper defines eager loads."""
         return (
-            self.mapper.has_eager()
+            len(querycontext.eager_loaders) > 0
             and self._nestable(**querycontext.select_args())
         )
 
@@ -407,7 +415,7 @@ class Query(object):
             raise exceptions.ArgumentError("Unknown lockmode '%s'" % lockmode)
         
         if self.mapper.single and self.mapper.polymorphic_on is not None and self.mapper.polymorphic_identity is not None:
-            whereclause = sql.and_(whereclause, self.mapper.polymorphic_on==self.mapper.polymorphic_identity)
+            whereclause = sql.and_(whereclause, self.mapper.polymorphic_on.in_(*[m.polymorphic_identity for m in self.mapper.polymorphic_iterator()]))
         
         alltables = []
         for l in [sql_util.TableFinder(x) for x in from_obj]:
@@ -475,6 +483,7 @@ class QueryContext(OperationContext):
         self.distinct = kwargs.pop('distinct', False)
         self.limit = kwargs.pop('limit', None)
         self.offset = kwargs.pop('offset', None)
+        self.eager_loaders = util.Set([x for x in query.mapper._eager_loaders])
         self.statement = None
         super(QueryContext, self).__init__(query.mapper, query.with_options, **kwargs)
     def select_args(self):

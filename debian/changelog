@@ -1,3 +1,9 @@
+sqlalchemy (0.3.1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Piotr Ozarowski <ozarow@gmail.com>  Mon, 13 Nov 2006 15:03:35 +0100
+
 sqlalchemy (0.3.0-2) unstable; urgency=low
 
   * Documentation and example files moved to python-sqlalchemy-doc package

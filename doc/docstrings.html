@@ -19,7 +19,7 @@
 <div class="docheader">
 
 <h1>SQLAlchemy 0.3 Documentation</h1>
-<div class="">Version: 0.3.0   Last Updated: 10/22/06 14:17:49</div>
+<div class="">Version: 0.3.1   Last Updated: 11/12/06 18:46:51</div>
 </div>
 
 
@@ -580,7 +580,15 @@ Previous: <a href="plugins.html">Plugins</a>
 
         
         
-    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_DBProxy">class DBProxy(object)</a></li>
+    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_AssertionPool">class AssertionPool(Pool)</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+        
+        
+    <li><A href="docstrings.html#docstrings_sqlalchemy.pool_NullPool">class NullPool(Pool)</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -829,12 +837,22 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     defines the base components of SQL expression trees.
 </p>
 
 
+
+
+<A name="docstrings_sqlalchemy.sql_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Module Functions</h3>
+
+    <div class="sectiontext">
+    
     
             <div class="darkcell">
         <A name=""></a>
@@ -1201,6 +1219,13 @@ Previous: <a href="plugins.html">Plugins</a>
         </div>
 
 
+    </div>
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+</div>
+
+
+
 
       
     
@@ -1215,7 +1240,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     represents the behavior of a particular database.  Used by Compiled objects.
 </p>
@@ -1243,7 +1267,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -1310,7 +1333,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     base class for elements of a programmatically constructed SQL expression.
 </p>
@@ -1430,7 +1452,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     represents a dictionary/iterator of bind parameter key names/values.  </p>
 <p>Tracks the original BindParam objects as well as the keys/position of each
@@ -1523,7 +1544,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     Defines the visiting of ClauseElements.
 </p>
@@ -1731,7 +1751,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     an ordered dictionary that stores a list of ColumnElement instances.</p>
 <p>overrides the __eq__() method to produce SQL clauses between sets of
@@ -1774,7 +1793,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     represents a column element within the list of a Selectable's columns.
     A ColumnElement can either be directly associated with a TableClause, or
@@ -1872,7 +1890,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     represents a compiled SQL expression.  the __str__ method of the Compiled object
     should produce the actual text of the statement.  Compiled objects are specific to the
@@ -1974,7 +1991,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -2031,7 +2047,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     represents a 'thing that can produce Compiled objects and execute them'.
 </p>
@@ -2081,7 +2096,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     represents an element that can be used within the FROM clause of a SELECT statement.
 </p>
@@ -2263,7 +2277,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -2351,7 +2364,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     represents a SELECT statement, with appendable clauses, as well as 
     the ability to execute itself and return a result set.
@@ -2490,7 +2502,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     represents a column list-holding object.
 </p>
@@ -2538,7 +2549,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -2702,7 +2712,6 @@ Previous: <a href="plugins.html">Plugins</a>
 
     <div class="sectiontext">
     
-
 <p>
     the schema module provides the building blocks for database metadata.  This means
 all the entities within a SQL database that we might want to look at, modify, or create
@@ -2728,7 +2737,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     builds upon MetaData to provide the capability to bind to an Engine implementation.
 </p>
@@ -2776,7 +2784,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -2823,7 +2830,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     represents a column in a database table.  this is a subclass of sql.ColumnClause and
     represents an actual existing table in the database, in a similar fashion as TableClause/Table.
@@ -2956,7 +2962,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     A plain default value on a column.  this could correspond to a constant, 
     a callable function, or a SQL clause.
@@ -3006,7 +3011,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     represents a table-level Constraint such as a composite primary key, foreign key, or unique constraint.</p>
 <p>Implements a hybrid of dict/setlike behavior with regards to the list of underying columns
@@ -3065,7 +3069,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     Base class for column &quot;default&quot; values.
 </p>
@@ -3113,7 +3116,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     builds upon MetaData to provide the capability to bind to multiple Engine implementations
     on a dynamically alterable, thread-local basis.
@@ -3193,7 +3195,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     defines a column-level ForeignKey constraint between two columns.  </p>
 <p>ForeignKey is specified as an argument to a Column object.</p>
@@ -3283,7 +3284,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     table-level foreign key constraint, represents a colleciton of ForeignKey objects.
 </p>
@@ -3351,7 +3351,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     Represents an index of columns from a database table</p>
 <p></p>
@@ -3435,7 +3434,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     represents a collection of Tables and their associated schema constructs.
 </p>
@@ -3547,7 +3545,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     a default that takes effect on the database side
 </p>
@@ -3595,7 +3592,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -3672,7 +3668,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     base class for items that define a database schema.
 </p>
@@ -3741,7 +3736,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     defines the visiting for SchemaItem objects
 </p>
@@ -3908,7 +3902,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     represents a sequence, which applies to Oracle and Postgres databases.
 </p>
@@ -3977,7 +3970,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     represents a relational database table.  This subclasses sql.TableClause to provide
     a table that is &quot;wired&quot; to an engine.  Whereas TableClause represents a table as its 
@@ -4005,8 +3997,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
         schema other than the default selected schema for the engine's database connection.</p>
 <p>autoload=False : the Columns for this table should be reflected from the database.  Usually
         there will be no Column objects in the constructor if this property is set.</p>
-<p>redefine=False : if this Table has already been defined in the application, clear out its columns
-        and redefine with new arguments.</p>
 <p>mustexist=False : indicates that this Table must already have been defined elsewhere in the application,
         else an exception is raised.</p>
 <p>useexisting=False : indicates that if this Table was already defined elsewhere in the application, disregard
@@ -4146,7 +4136,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -4210,11 +4199,21 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
 
+
+
+<A name="docstrings_sqlalchemy.engine_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Module Functions</h3>
+
+    <div class="sectiontext">
+    
     
             <div class="darkcell">
         <A name=""></a>
@@ -4284,6 +4283,13 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
         </div>
 
 
+    </div>
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+</div>
+
+
+
 
       
     
@@ -4298,7 +4304,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     interface for an object that can provide an Engine and a Connection object which correponds to that Engine.
 </p>
@@ -4379,7 +4384,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     represents a single DBAPI connection returned from the underlying connection pool.  Provides
     execution support for string-based SQL statements as well as ClauseElement, Compiled and DefaultGenerator objects.
@@ -4634,7 +4638,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     defines an interface that returns raw Connection objects (or compatible).
 </p>
@@ -4689,7 +4692,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     a visitor which accepts ColumnDefault objects, produces the dialect-specific SQL corresponding
     to their execution, and executes the SQL, returning the result value.</p>
@@ -4803,7 +4805,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     Defines the behavior of a specific database/DBAPI.</p>
 <p>Any aspect of metadata defintion, SQL query generation, execution, result-set handling,
@@ -5088,7 +5089,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p>Connects a ConnectionProvider, a Dialect and a CompilerFactory together to 
     provide a default implementation of SchemaEngine.</p>
@@ -5098,7 +5098,7 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def __init__(<i>self</i>, <i>connection_provider</i>, <i>dialect</i>, <i>echo=None</i>, <i>**kwargs</i>)</b>
+        <b>def __init__(<i>self</i>, <i>connection_provider</i>, <i>dialect</i>, <i>echo=None</i>)</b>
         <div class="docstring">
         <p></p>
 <p></p>
@@ -5340,7 +5340,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     a messenger object for a Dialect that corresponds to a single execution.  The Dialect
     should provide an ExecutionContext via the create_execution_context() method.  
@@ -5472,7 +5471,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     wraps a DBAPI cursor object to provide access to row columns based on integer
     position, case-insensitive column name, or by schema.Column object. e.g.:</p>
@@ -5637,7 +5635,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     proxies a single cursor row for a parent ResultProxy.  Mostly follows 
     &quot;ordered dictionary&quot; behavior, mapping result values to the string-based column name,
@@ -5735,7 +5732,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     a visitor that can gather text into a buffer and execute the contents of the buffer.
 </p>
@@ -5799,7 +5795,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     represents a Transaction in progress.</p>
 <p>the Transaction object is **not** threadsafe.
@@ -5886,11 +5881,21 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
 
+
+
+<A name="docstrings_sqlalchemy.engine.url_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Module Functions</h3>
+
+    <div class="sectiontext">
+    
     
             <div class="darkcell">
         <A name=""></a>
@@ -5903,6 +5908,13 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 </p>
         </div>
         </div>
+
+
+    </div>
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+</div>
+
 
 
 
@@ -5919,7 +5931,6 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p>
     represents the components of a URL used to connect to a database.</p>
 <p>This object is suitable to be passed directly to a create_engine() call.
@@ -5999,13 +6010,23 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p>the mapper package provides object-relational functionality, building upon the schema and sql
 packages and tying operations to class properties and constructors.</p>
 <p></p>
 
 
+
+
+<A name="docstrings_sqlalchemy.orm_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Module Functions</h3>
+
+    <div class="sectiontext">
+    
     
             <div class="darkcell">
         <A name=""></a>
@@ -6242,6 +6263,13 @@ packages and tying operations to class properties and constructors.</p>
         </div>
 
 
+    </div>
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+</div>
+
+
+
 
       
     
@@ -6256,7 +6284,6 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p>
     base implementation for an object that provides overriding behavior to various
     Mapper functions.  For each method in MapperExtension, a result of EXT_PASS indicates
@@ -6494,11 +6521,21 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
 
+
+
+<A name="docstrings_sqlalchemy.orm.mapper_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Module Functions</h3>
+
+    <div class="sectiontext">
+    
     
             <div class="darkcell">
         <A name=""></a>
@@ -6522,6 +6559,13 @@ packages and tying operations to class properties and constructors.</p>
         </div>
 
 
+    </div>
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+</div>
+
+
+
 
       
     
@@ -6536,7 +6580,6 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p>
     Defines the correlation of class attributes to database table columns.</p>
 <p>Instances of this class should be constructed via the sqlalchemy.orm.mapper() function.
@@ -6867,8 +6910,11 @@ packages and tying operations to class properties and constructors.</p>
         <A name=""></a>
         <b>def polymorphic_iterator(<i>self</i>)</b>
         <div class="docstring">
-        <p></p>
-<p></p>
+        <p>
+    iterates through the collection including this mapper and all descendant mappers.</p>
+<p>this includes not just the immediately inheriting mappers but all their inheriting mappers as well.</p>
+<p>To iterate through an entire hierarchy, use mapper.base_mapper().polymorphic_iterator().
+</p>
         </div>
         </div>
 
@@ -7000,7 +7046,6 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -7019,7 +7064,6 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p>
     encapsulates the object-fetching operations provided by Mappers.
 </p>
@@ -7355,7 +7399,6 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p>
     created within the Query.compile() method to store and share
     state among all the Mappers and MapperProperty objects used in a query construction.
@@ -7416,7 +7459,6 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p>
     created within the query.instances() method to store and share
     state among all the Mappers and MapperProperty objects used in a load operation.</p>
@@ -7485,10 +7527,42 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
+
+
+
+<A name="docstrings_sqlalchemy.orm.session_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Module Functions</h3>
+
+    <div class="sectiontext">
+    
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>, <i>compile=True</i>)</b>
+        <div class="docstring">
+        <p>
+    given a ClassKey, returns the primary Mapper associated with the key.
+</p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def object_mapper(<i>object</i>, <i>raiseerror=True</i>)</b>
+        <div class="docstring">
+        <p>
+    given an object, returns the primary Mapper associated with the object instance
+</p>
+        </div>
+        </div>
 
     
             <div class="darkcell">
@@ -7500,6 +7574,13 @@ packages and tying operations to class properties and constructors.</p>
 </p>
         </div>
         </div>
+
+
+    </div>
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+</div>
+
 
 
 
@@ -7516,7 +7597,6 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p>
     encapsulates a set of objects being operated upon within an object-relational operation.</p>
 <p>The Session object is **not** threadsafe.  For thread-management of Sessions, see the
@@ -7958,7 +8038,6 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p>
     represents a Session-level Transaction.  This corresponds to one or
     more sqlalchemy.engine.Transaction instances behind the scenes, with one
@@ -8066,7 +8145,6 @@ packages and tying operations to class properties and constructors.</p>
 
     <div class="sectiontext">
     
-
 <p>
     provides a connection pool implementation, which optionally manages connections
 on a thread local basis.  Also provides a DBAPI2 transparency layer so that pools can
@@ -8075,6 +8153,17 @@ be managed automatically, based on module type and connect arguments,
 </p>
 
 
+
+
+<A name="docstrings_sqlalchemy.pool_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Module Functions</h3>
+
+    <div class="sectiontext">
+    
     
             <div class="darkcell">
         <A name=""></a>
@@ -8093,36 +8182,23 @@ be managed automatically, based on module type and connect arguments,
         <div class="docstring">
         <p>
     given a DBAPI2 module and pool management parameters, returns a proxy for the module
-    that will automatically pool connections.  Options are delivered to an underlying DBProxy
-    object.</p>
+    that will automatically pool connections, creating new connection pools for each 
+    distinct set of connection arguments sent to the decorated module's connect() function.</p>
 <p>Arguments:
     module : a DBAPI2 database module.</p>
+<p>poolclass=QueuePool : the class used by the pool module to provide pooling.</p>
 <p>Options:
-    echo=False : if set to True, connections being pulled and retrieved from/to the pool will
-    be logged to the standard output, as well as pool sizing information.</p>
-<p>use_threadlocal=True : if set to True, repeated calls to connect() within the same
-    application thread will be guaranteed to return the same connection object, if one has
-    already been retrieved from the pool and has not been returned yet. This allows code to
-    retrieve a connection from the pool, and then while still holding on to that connection,
-    to call other functions which also ask the pool for a connection of the same arguments;
-    those functions will act upon the same connection that the calling method is using.</p>
-<p>poolclass=QueuePool : the default class used by the pool module to provide pooling.
-    QueuePool uses the Python Queue.Queue class to maintain a list of available connections.</p>
-<p>pool_size=5 : used by QueuePool - the size of the pool to be maintained. This is the
-    largest number of connections that will be kept persistently in the pool. Note that the
-    pool begins with no connections; once this number of connections is requested, that
-    number of connections will remain.</p>
-<p>max_overflow=10 : the maximum overflow size of the pool. When the number of checked-out
-    connections reaches the size set in pool_size, additional connections will be returned up
-    to this limit. When those additional connections are returned to the pool, they are
-    disconnected and discarded. It follows then that the total number of simultaneous
-    connections the pool will allow is pool_size + max_overflow, and the total number of
-    &quot;sleeping&quot; connections the pool will allow is pool_size. max_overflow can be set to -1 to
-    indicate no overflow limit; no limit will be placed on the total number of concurrent
-    connections.</p>
+    See Pool for options.</p>
 <p></p>
         </div>
         </div>
+
+
+    </div>
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+</div>
+
 
 
 
@@ -8130,39 +8206,27 @@ be managed automatically, based on module type and connect arguments,
     
 
 
-<A name="docstrings_sqlalchemy.pool_DBProxy"></a>
+<A name="docstrings_sqlalchemy.pool_AssertionPool"></a>
 
 <div class="subsection" style="margin-left:30px;">
 
 
-<h3>class DBProxy(object)</h3>
+<h3>class AssertionPool(<a href="docstrings.html#docstrings_sqlalchemy.pool_Pool">Pool</a>)</h3>
 
     <div class="sectiontext">
     
-
 <p>
-    proxies a DBAPI2 connect() call to a pooled connection keyed to the specific connect
-    parameters.
+    a Pool implementation which will raise an exception
+    if more than one connection is checked out at a time.  Useful for debugging
+    code that is using more connections than desired.</p>
+<p>TODO: modify this to handle an arbitrary connection count.
 </p>
 
 
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def __init__(<i>self</i>, <i>module</i>, <i>poolclass=<class 'sqlalchemy.pool.QueuePool'></i>, <i>**params</i>)</b>
-        <div class="docstring">
-        <p></p>
-<p>module is a DBAPI2 module
-        poolclass is a Pool class, defaulting to QueuePool.
-        other parameters are sent to the Pool object's constructor.</p>
-<p></p>
-        </div>
-        </div>
-
-    
-            <div class="darkcell">
-        <A name=""></a>
-        <b>def close(<i>self</i>)</b>
+        <b>def __init__(<i>self</i>, <i>creator</i>, <i>**params</i>)</b>
         <div class="docstring">
         <p></p>
 <p></p>
@@ -8172,34 +8236,115 @@ be managed automatically, based on module type and connect arguments,
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def connect(<i>self</i>, <i>*args</i>, <i>**params</i>)</b>
+        <b>def create_connection(<i>self</i>)</b>
         <div class="docstring">
-        <p>
-    connects to a database using this DBProxy's module and the given connect
-        arguments.  if the arguments match an existing pool, the connection will be returned
-        from the pool's current thread-local connection instance, or if there is no
-        thread-local connection instance it will be checked out from the set of pooled
-        connections.  If the pool has no available connections and allows new connections to
-        be created, a new database connection will be made.
-</p>
+        <p></p>
+<p></p>
         </div>
         </div>
 
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def dispose(<i>self</i>, <i>*args</i>, <i>**params</i>)</b>
+        <b>def do_get(<i>self</i>)</b>
         <div class="docstring">
-        <p>
-    disposes the connection pool referenced by the given connect arguments.
-</p>
+        <p></p>
+<p></p>
         </div>
         </div>
 
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def get_pool(<i>self</i>, <i>*args</i>, <i>**params</i>)</b>
+        <b>def do_return_conn(<i>self</i>, <i>conn</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def do_return_invalid(<i>self</i>, <i>conn</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def status(<i>self</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
+
+
+    </div>
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+</div>
+
+
+
+      
+    
+
+
+<A name="docstrings_sqlalchemy.pool_NullPool"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>class NullPool(<a href="docstrings.html#docstrings_sqlalchemy.pool_Pool">Pool</a>)</h3>
+
+    <div class="sectiontext">
+    
+<p>
+    a Pool implementation which does not pool connections; instead
+    it literally opens and closes the underlying DBAPI connection per each connection open/close.
+</p>
+
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def do_get(<i>self</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def do_return_conn(<i>self</i>, <i>conn</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def do_return_invalid(<i>self</i>, <i>conn</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def status(<i>self</i>)</b>
         <div class="docstring">
         <p></p>
 <p></p>
@@ -8228,15 +8373,42 @@ be managed automatically, based on module type and connect arguments,
 
     <div class="sectiontext">
     
-
-<p></p>
+<p>
+    Base Pool class.  This is an abstract class, which is implemented by various subclasses
+    including:</p>
+<p>QueuePool  -          pools multiple connections using Queue.Queue</p>
+<p>SingletonThreadPool - stores a single connection per execution thread</p>
+<p>NullPool -            doesnt do any pooling; opens and closes connections</p>
+<p>AssertionPool -       stores only one connection, and asserts that only one connection is checked out at a time.</p>
+<p>the main argument, &quot;creator&quot;, is a callable function that returns a newly connected DBAPI connection
+    object.</p>
+<p>Options that are understood by Pool are:</p>
+<p>echo=False : if set to True, connections being pulled and retrieved from/to the pool will
+    be logged to the standard output, as well as pool sizing information.  Echoing can also
+    be achieved by enabling logging for the &quot;sqlalchemy.pool&quot; namespace.</p>
+<p>use_threadlocal=True : if set to True, repeated calls to connect() within the same
+    application thread will be guaranteed to return the same connection object, if one has
+    already been retrieved from the pool and has not been returned yet. This allows code to
+    retrieve a connection from the pool, and then while still holding on to that connection,
+    to call other functions which also ask the pool for a connection of the same arguments;
+    those functions will act upon the same connection that the calling method is using.</p>
+<p>recycle=-1 : if set to non -1, a number of seconds between connection recycling, which
+    means upon checkout, if this timeout is surpassed the connection will be closed and replaced
+    with a newly opened connection.</p>
+<p>auto_close_cursors = True : cursors, returned by connection.cursor(), are tracked and are 
+    automatically closed when the connection is returned to the pool.  some DBAPIs like MySQLDB
+    become unstable if cursors remain open.</p>
+<p>disallow_open_cursors = False : if auto_close_cursors is False, and disallow_open_cursors is True,
+    will raise an exception if an open cursor is detected upon connection checkin.</p>
+<p>If auto_close_cursors and disallow_open_cursors are both False, then no cursor processing
+    occurs upon checkin.</p>
 <p></p>
 
 
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def __init__(<i>self</i>, <i>creator</i>, <i>recycle=-1</i>, <i>echo=None</i>, <i>use_threadlocal=True</i>, <i>auto_close_cursors=True</i>, <i>disallow_open_cursors=False</i>)</b>
+        <b>def __init__(<i>self</i>, <i>creator</i>, <i>recycle=-1</i>, <i>echo=None</i>, <i>use_threadlocal=False</i>, <i>auto_close_cursors=True</i>, <i>disallow_open_cursors=False</i>)</b>
         <div class="docstring">
         <p></p>
 <p></p>
@@ -8365,10 +8537,23 @@ be managed automatically, based on module type and connect arguments,
 
     <div class="sectiontext">
     
-
 <p>
-    uses Queue.Queue to maintain a fixed-size list of connections.
-</p>
+    uses Queue.Queue to maintain a fixed-size list of connections.</p>
+<p>Arguments include all those used by the base Pool class, as well as:</p>
+<p>pool_size=5 : the size of the pool to be maintained. This is the
+    largest number of connections that will be kept persistently in the pool. Note that the
+    pool begins with no connections; once this number of connections is requested, that
+    number of connections will remain.</p>
+<p>max_overflow=10 : the maximum overflow size of the pool. When the number of checked-out
+    connections reaches the size set in pool_size, additional connections will be returned up
+    to this limit. When those additional connections are returned to the pool, they are
+    disconnected and discarded. It follows then that the total number of simultaneous
+    connections the pool will allow is pool_size + max_overflow, and the total number of
+    &quot;sleeping&quot; connections the pool will allow is pool_size. max_overflow can be set to -1 to
+    indicate no overflow limit; no limit will be placed on the total number of concurrent
+    connections.</p>
+<p>timeout=30 : the number of seconds to wait before giving up on returning a connection</p>
+<p></p>
 
 
     
@@ -8483,10 +8668,13 @@ be managed automatically, based on module type and connect arguments,
 
     <div class="sectiontext">
     
-
 <p>
-    Maintains one connection per each thread, never moving to another thread.  this is
-    used for SQLite.
+    Maintains one connection per each thread, never moving a connection to a thread
+    other than the one which it was created in.</p>
+<p>this is used for SQLite, which both does not handle multithreading by default,
+    and also requires a singleton connection if a :memory: database is being used.</p>
+<p>options are the same as those of Pool, as well as:</p>
+<p>pool_size=5 - the number of threads in which to maintain connections at once.
 </p>
 
 
@@ -8589,7 +8777,6 @@ be managed automatically, based on module type and connect arguments,
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -8608,7 +8795,6 @@ be managed automatically, based on module type and connect arguments,
 
     <div class="sectiontext">
     
-
 <p>
     A simple wrapper for ScopedRegistry that provides a &quot;current&quot; property
     which can be used to get, set, or remove the session in the current scope.</p>
@@ -8710,7 +8896,6 @@ be managed automatically, based on module type and connect arguments,
 
     <div class="sectiontext">
     
-
 <p>
     a mapper extionsion that provides sessions to a mapper using SessionContext
 </p>
@@ -8765,7 +8950,6 @@ be managed automatically, based on module type and connect arguments,
 
     <div class="sectiontext">
     
-
 <p>
     this plugin installs thread-local behavior at the Engine and Session level.</p>
 <p>The default Engine strategy will be &quot;threadlocal&quot;, producing TLocalEngine instances for create_engine by default.
@@ -8779,6 +8963,17 @@ while this mod is installed will reference this global context when creating new
 <p></p>
 
 
+
+
+<A name="docstrings_sqlalchemy.mods.threadlocal_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Module Functions</h3>
+
+    <div class="sectiontext">
+    
     
             <div class="darkcell">
         <A name=""></a>
@@ -8788,6 +8983,13 @@ while this mod is installed will reference this global context when creating new
 <p></p>
         </div>
         </div>
+
+
+    </div>
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+</div>
+
 
 
 
@@ -8804,7 +9006,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -8858,7 +9059,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -8877,7 +9077,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     Builds a query one component at a time via separate method calls, 
     each call transforming the previous SelectResults instance into a new SelectResults 
@@ -9102,7 +9301,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     a MapperExtension that provides SelectResults functionality for the 
     results of query.select_by() and query.select()
@@ -9158,7 +9356,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -9177,7 +9374,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     raised for all those conditions where invalid arguments are sent to constructed
     objects.  This error generally corresponds to construction time state errors.
@@ -9206,7 +9402,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     corresponds to internal state being detected in an invalid state
 </p>
@@ -9234,7 +9429,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     raised when a concurrent modification condition is detected
 </p>
@@ -9262,7 +9456,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     something weird happened with a particular DBAPI version
 </p>
@@ -9300,7 +9493,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     raised when an invalid condition is detected upon a flush()
 </p>
@@ -9328,7 +9520,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     sqlalchemy was asked to do something it cant do, return nonexistent data, etc.
     This error generally corresponds to runtime state errors.
@@ -9357,7 +9548,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     raised by RowProxy when a nonexistent column is requested from a row
 </p>
@@ -9385,7 +9575,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     sqlalchemy was asked to load a table's definition from the database,
     but the table doesn't exist.
@@ -9414,7 +9603,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     generic error class
 </p>
@@ -9442,7 +9630,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     raised when the execution of a SQL statement fails.  includes accessors
     for the underlying exception, as well as the SQL and bind parameters
@@ -9481,7 +9668,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     raised when a connection pool times out on getting a connection
 </p>
@@ -9516,7 +9702,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p></p>
 <p></p>
 
@@ -9535,7 +9720,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     An SQLEngine proxy that automatically connects when necessary.
 </p>
@@ -9583,7 +9767,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     Basis for all proxy engines.
 </p>
@@ -9663,7 +9846,6 @@ while this mod is installed will reference this global context when creating new
 
     <div class="sectiontext">
     
-
 <p>
     Engine proxy for lazy and late initialization.</p>
 <p>This engine will delegate access to a real engine set with connect().</p>

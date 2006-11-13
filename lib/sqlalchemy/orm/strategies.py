@@ -7,10 +7,10 @@
 """sqlalchemy.orm.interfaces.LoaderStrategy implementations, and related MapperOptions."""
 
 from sqlalchemy import sql, schema, util, exceptions, sql_util, logging
-import mapper, query
-from interfaces import *
-import session as sessionlib
-import util as mapperutil
+from sqlalchemy.orm import mapper, query
+from sqlalchemy.orm.interfaces import *
+from sqlalchemy.orm import session as sessionlib
+from sqlalchemy.orm import util as mapperutil
 import sets, random
 
 
@@ -289,7 +289,7 @@ class EagerLoader(AbstractRelationLoader):
         super(EagerLoader, self).init()
         if self.parent.isa(self.mapper):
             raise exceptions.ArgumentError("Error creating eager relationship '%s' on parent class '%s' to child class '%s': Cant use eager loading on a self referential relationship." % (self.key, repr(self.parent.class_), repr(self.mapper.class_)))
-        self.parent._has_eager = True
+        self.parent._eager_loaders.add(self.parent_property)
 
         self.clauses = {}
         self.clauses_by_lead_mapper = {}
@@ -400,11 +400,11 @@ class EagerLoader(AbstractRelationLoader):
         else:
             localparent = parentmapper
         
-        if self in context.recursion_stack:
+        if self.mapper in context.recursion_stack:
             return
         else:
-            context.recursion_stack.add(self)
-            
+            context.recursion_stack.add(self.parent)
+
         statement = context.statement
         
         if hasattr(statement, '_outerjoin'):
@@ -470,7 +470,6 @@ class EagerLoader(AbstractRelationLoader):
                 else:
                     decorated_row = decorator(row)
             else:
-                # AliasedClauses, keyed to the lead mapper used in the query
                 clauses = self.clauses_by_lead_mapper[selectcontext.mapper]
                 decorated_row = clauses._decorate_row(row)
             # check for identity key
@@ -481,36 +480,36 @@ class EagerLoader(AbstractRelationLoader):
             self.parent_property._get_strategy(LazyLoader).process_row(selectcontext, instance, row, identitykey, isnew)
             return
             
-        if not self.uselist:
-            self.logger.debug("eagerload scalar instance on %s" % mapperutil.attribute_str(instance, self.key))
-            if isnew:
-                # set a scalar object instance directly on the parent object, 
-                # bypassing SmartProperty event handlers.
-                instance.__dict__[self.key] = self.mapper._instance(selectcontext, decorated_row, None)
+        # TODO: recursion check a speed hit...?  try to get a "termination point" into the AliasedClauses
+        # or EagerRowAdapter ?
+        selectcontext.recursion_stack.add(self)
+        try:
+            if not self.uselist:
+                self.logger.debug("eagerload scalar instance on %s" % mapperutil.attribute_str(instance, self.key))
+                if isnew:
+                    # set a scalar object instance directly on the parent object, 
+                    # bypassing SmartProperty event handlers.
+                    instance.__dict__[self.key] = self.mapper._instance(selectcontext, decorated_row, None)
+                else:
+                    # call _instance on the row, even though the object has been created,
+                    # so that we further descend into properties
+                    self.mapper._instance(selectcontext, decorated_row, None)
             else:
-                # call _instance on the row, even though the object has been created,
-                # so that we further descend into properties
-                self.mapper._instance(selectcontext, decorated_row, None)
-        else:
-            if isnew:
-                self.logger.debug("initialize UniqueAppender on %s" % mapperutil.attribute_str(instance, self.key))
-                # call the SmartProperty's initialize() method to create a new, blank list
-                l = getattr(instance.__class__, self.key).initialize(instance)
+                if isnew:
+                    self.logger.debug("initialize UniqueAppender on %s" % mapperutil.attribute_str(instance, self.key))
+                    # call the SmartProperty's initialize() method to create a new, blank list
+                    l = getattr(instance.__class__, self.key).initialize(instance)
                 
-                # create an appender object which will add set-like semantics to the list
-                appender = util.UniqueAppender(l.data)
+                    # create an appender object which will add set-like semantics to the list
+                    appender = util.UniqueAppender(l.data)
                 
-                # store it in the "scratch" area, which is local to this load operation.
-                selectcontext.attributes[(instance, self.key)] = appender
-            result_list = selectcontext.attributes[(instance, self.key)]
-            self.logger.debug("eagerload list instance on %s" % mapperutil.attribute_str(instance, self.key))
-            # TODO: recursion check a speed hit...?  try to get a "termination point" into the AliasedClauses
-            # or EagerRowAdapter ?
-            selectcontext.recursion_stack.add(self)
-            try:
+                    # store it in the "scratch" area, which is local to this load operation.
+                    selectcontext.attributes[(instance, self.key)] = appender
+                result_list = selectcontext.attributes[(instance, self.key)]
+                self.logger.debug("eagerload list instance on %s" % mapperutil.attribute_str(instance, self.key))
                 self.mapper._instance(selectcontext, decorated_row, result_list)
-            finally:
-                selectcontext.recursion_stack.remove(self)
+        finally:
+            selectcontext.recursion_stack.remove(self)
 
 EagerLoader.logger = logging.class_logger(EagerLoader)
 
@@ -518,6 +517,13 @@ class EagerLazyOption(StrategizedOption):
     def __init__(self, key, lazy=True):
         super(EagerLazyOption, self).__init__(key)
         self.lazy = lazy
+    def process_query_property(self, context, prop):
+        if self.lazy:
+            if prop in context.eager_loaders:
+                context.eager_loaders.remove(prop)
+        else:
+            context.eager_loaders.add(prop)
+        super(EagerLazyOption, self).process_query_property(context, prop)
     def get_strategy_class(self):
         if self.lazy:
             return LazyLoader

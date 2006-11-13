@@ -399,9 +399,56 @@ We've seen how the `relation` specifier affects the saving of an object and its 
         
         print repr(a)
             
-#### Creating Joins Across Relations {@name=relselectby}
+#### Selecting With Joins {@name=queryjoins}
+
+When using mappers that have relationships to other mappers, the need to specify query criterion across multiple tables arises.  SQLAlchemy provides several core techniques which offer this functionality.
+
+When specifying columns to the `select` method of `Query`, if the columns are attached to a table other than the mapped table, that table is automatically added to the "FROM" clause of the query.  This is the same behavior that occurs when creating a non-ORM `select` object.  Using this feature, joins can be created when querying:
+
+    {python}
+    {sql}l = session.query(User).select(and_(users.c.user_id==addresses.c.user_id, 
+                 addresses.c.street=='123 Green Street'))
+    SELECT users.user_id AS users_user_id, 
+    users.user_name AS users_user_name, users.password AS users_password
+    FROM users, addresses 
+    WHERE users.user_id=addresses.user_id
+    AND addresses.street=:addresses_street
+    ORDER BY users.oid
+    {'addresses_street', '123 Green Street'}
+
+Above, we specified selection criterion that included columns from both the `users` and the `addresses` table.  Note that in this case, we had to specify not just the matching condition to the `street` column on `addresses`, but also the join condition between the `users` and `addresses` table.  Even though the `User` mapper has a relationship to the `Address` mapper where the join condition is known, **the select method does not assume how you want to construct joins**.  If we did not include the join clause, we would get:
+
+    {python}
+    # this is usually not what you want to do
+    {sql}l = session.query(User).select(addresses.c.street=='123 Green Street')
+    SELECT users.user_id AS users_user_id, 
+    users.user_name AS users_user_name, users.password AS users_password
+    FROM users, addresses 
+    WHERE addresses.street=:addresses_street
+    ORDER BY users.oid
+    {'addresses_street', '123 Green Street'}
     
-For mappers that have relationships, the `select_by` method of the `Query` object can create queries that include automatically created joins.  Just specify a key in the argument list which is not present in the primary mapper's list of properties or columns, but *is* present in the property list of one of its relationships:
+The above join will return all rows of the `users` table, even those that do not correspond to the `addresses` table, in a **cartesian product** with the matching rows from the `addresses` table.
+
+Another way to specify joins more explicitly is to use the `from_obj` parameter of `select()`.  This allows you to explicitly place elements in the FROM clause of the query, which could include lists of tables and/or `Join` constructs:
+
+    {python}
+    {sql}l = session.query(User).select(addresses.c.street=='123 Green Street', 
+                    from_obj=[users.join(addresses)])
+    SELECT users.user_id AS users_user_id, 
+    users.user_name AS users_user_name, users.password AS users_password
+    FROM users JOIN addresses ON users.user_id=addresses.user_id
+    WHERE addresses.street=:addresses_street
+    ORDER BY users.oid
+    {'addresses_street', '123 Green Street'}
+
+In the above example, the `join` function by default creates a natural join between the two tables, so we were able to avoid having to specify the join condition between `users` and `addresses` explicitly.
+
+#### Creating Joins Using selectby() {@name=relselectby}
+
+Another way that joins can be created is by using the `select_by` method of `Query`, which has the ability to create joins across relationships automatically.  This method is in many circumstances more convenient than, but not as flexible as, the more SQL-level approach using the `select()` method described in the previous section.
+
+To issue a join using `select_by`, just specify a key in the argument list which is not present in the primary mapper's list of properties or columns, but *is* present in the property list of some relationship down the line of objects.  The `Query` object will recursively traverse along the mapped relationships starting with the lead class and descending into child classes, until it finds a property matching the given name.  For each new mapper it encounters along the path to the located property, it constructs a join across that relationship:
 
     {python}
     {sql}l = session.query(User).select_by(street='123 Green Street')
@@ -421,11 +468,11 @@ The above example is shorthand for:
              Address.c.street=='123 Green Street')
        )
 
-All keyword arguments sent to `select_by` are used to create query criterion.  This means that familiar `select` keyword options like `order_by` and `limit` are not directly available.  To enable these options with `select_by`, you can try the [plugins_selectresults](rel:plugins_selectresults) extension which offers methods off the result of a `select` or `select_by` such as `order_by()` and array slicing functions that generate new queries.  
+All keyword arguments sent to `select_by` are used to create query criterion.  This means that familiar `select` keyword options like `order_by` and `limit` are not directly available.  To enable these options with `select_by`, you can try the [plugins_selectresults](rel:plugins_selectresults) extension which offers transitive methods off the result of a `select` or `select_by` such as `order_by()`, `limit()`, etc.  
 
-Also, `select_by` will *not* create joins derived from `Column`-based expressions (i.e. `ClauseElement` objects); the reason is that a `Column`-based expression may include many columns, and `select_by` has no way to know which columns in the expression correspond to properties and which don't (it also prefers not to dig into column expressions which may be very complex).  The next section describes some ways to combine `Column` expressions with `select_by`'s auto-joining capabilities.
+Note that the `select_by` method, while it primarily uses keyword arguments, also can accomodate `ClauseElement` objects positionally; recall that a `ClauseElement` is genearated when producing a comparison off of a `Column` expression, such as `users.c.name=='ed'`.  When using `ClauseElements` with `select_by`, these clauses are passed directly to the generated SQL and are **not** used to further locate join criterion.  If criterion is being constructed with these kinds of expressions, consider using the `select()` method which is better designed to accomodate these expressions.
 
-#### More Granular Join Control Using join\_to, join\_via {@name=jointo}
+#### Generating Join Criterion Using join\_to, join\_via {@name=jointo}
 
 Feature Status: [Alpha API][alpha_api] 
 
@@ -463,8 +510,15 @@ Expressions produced by `join_to` and `join_via` can be used with `select` to cr
         q.join_via(['orders', 'items'])
         )
 
+Note that the `from_obj` parameter of `select()`, described previously, allows finer grained control of joins, allowing any combination of inner and outer joins.  
 
 #### Eager Loading {@name=eagerload}
+
+Eager Loading describes the loading of parent and child objects across a relation using a single query.  The purpose of eager loading is strictly one of performance enhancement; eager loading has **no impact** on the results of a query, except that when traversing child objects within the results, lazy loaders will not need to issue separate queries to load those child objects.
+
+Eager Loading is enabled on a per-relationship basis, either as the default
+for a particular relationship, or for a single query using query options,
+described later.
 
 With just a single parameter `lazy=False` specified to the relation object, the parent and child SQL queries can be joined together.
 
@@ -492,7 +546,7 @@ With just a single parameter `lazy=False` specified to the relation object, the 
 
 Above, a pretty ambitious query is generated just by specifying that the User should be loaded with its child Addresses in one query.  When the mapper processes the results, it uses an *Identity Map* to keep track of objects that were already loaded, based on their primary key identity.  Through this method, the redundant rows produced by the join are organized into the distinct object instances they represent.
         
-The generation of this query is also immune to the effects of additional joins being specified in the original query.  To use our select_by example above, joining against the "addresses" table to locate users with a certain street results in this behavior:
+Recall that eager loading has no impact on the results of the query.  What if our query included our own join criterion?  The eager loading query accomodates this using aliases, and is immune to the effects of additional joins being specified in the original query.  To use our select_by example above, joining against the "addresses" table to locate users with a certain street results in this behavior:
 
     {python}
     {sql}users = session.query(User).select_by(street='123 Green Street')
@@ -508,7 +562,7 @@ The generation of this query is also immune to the effects of additional joins b
     WHERE addresses.street = :addresses_street AND users.user_id = addresses.user_id ORDER BY users.oid, addresses_6ca7.oid
     {'addresses_street': '123 Green Street'}
                     
-The join implied by passing the "street" parameter is stated as an *additional* join between the `addresses` and `users` tables.  Also, since the eager join is "aliasized", no name conflict occurs.
+The join implied by passing the "street" parameter is separate from the join produced by the eager join, which is "aliasized" to prevent conflicts.
     
 #### Using Options to Change the Loading Strategy {@name=options}
 
@@ -700,7 +754,7 @@ The `relation` function handles a basic many-to-many relationship when you speci
 
 ### Association Object {@name=association}
 
-Many to Many can also be done with an association object, that adds additional information about how two items are related.  This association object is set up in basically the same way as any other mapped object.  However, since an association table typically has no primary key columns, you have to tell the mapper what columns will compose its "primary key", which are the two (or more) columns involved in the association.  Also, the relation function needs an additional hint as to the fact that this mapped object is an association object, via the "association" argument which points to the class or mapper representing the other side of the association.
+Many to Many can also be done with an association object, that adds additional information about how two items are related.  In this pattern, the "secondary" option to `relation()` is no longer used; instead, the association object becomes a mapped entity itself, mapped to the association table.  If the association table has no explicit primary key columns defined, you also have to tell the mapper what columns will compose its "primary key", which are typically the two (or more) columns involved in the association.  Also, the relation between the parent and association mapping is typically set up with a cascade of `all, delete-orphan`.  This is to insure that when an association object is removed from its parent collection, it is deleted (otherwise, the unit of work tries to null out one of the foreign key columns, which raises an error condition since that column is also part of its "primary key").
 
     {python}
     from sqlalchemy import *
@@ -743,24 +797,27 @@ Many to Many can also be done with an association object, that adds additional i
     class KeywordAssociation(object):
         pass
         
-    mapper(User, users_table)
-    mapper(Keyword, keywords_table)
-    
+    # Article mapper, relates to Keyword via KeywordAssociation
+    mapper(Article, articles_table, properties={
+        'keywords':relation(KeywordAssociation, lazy=False, cascade="all, delete-orphan")
+        }
+    )
+
     # mapper for KeywordAssociation
     # specify "primary key" columns manually
     mapper(KeywordAssociation, itemkeywords_table,
-        primary_key = [itemkeywords_table.c.article_id, itemkeywords_table.c.keyword_id],
+        primary_key=[itemkeywords_table.c.article_id, itemkeywords_table.c.keyword_id],
         properties={
-            'keyword' : relation(Keyword, lazy = False), 
-            'user' : relation(User, lazy = False) 
+            'keyword' : relation(Keyword, lazy=False), 
+            'user' : relation(User, lazy=False) 
         }
     )
+
+    # user mapper
+    mapper(User, users_table)
     
-    # Article mapper, relates to Keyword via KeywordAssociation
-    mapper(Article, articles_table, properties={
-        'keywords':relation(KeywordAssociation, lazy=False, association=Keyword)
-        }
-    )
+    # keyword mapper
+    mapper(Keyword, keywords_table)
     
     session = create_session(bind_to=engine)
     # select by keyword
@@ -805,6 +862,10 @@ Keep in mind that the association object works a little differently from a plain
     article.keywords.append(assoc)
     article.keywords.append(assoc2)
     
-    session.flush()
+    session.save(article)
     
+    session.flush()
+
+SQLAlchemy includes an extension module which can be used in some cases to decrease the explicitness of the association object pattern; this extension is described in [plugins_associationproxy](rel:plugins_associationproxy).
+
     

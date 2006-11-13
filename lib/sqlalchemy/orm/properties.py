@@ -10,15 +10,11 @@ module to handle load operations.  PropertyLoader also relies upon the dependenc
 to handle flush-time dependency sorting and processing."""
 
 from sqlalchemy import sql, schema, util, exceptions, sql_util, logging
-import mapper
-import sync
-import strategies
-import attributes
-import session as sessionlib
-import dependency
-import util as mapperutil
+from sqlalchemy.orm import mapper, sync, strategies, attributes, dependency
+from sqlalchemy.orm import session as sessionlib
+from sqlalchemy.orm import util as mapperutil
 import sets, random
-from interfaces import *
+from sqlalchemy.orm.interfaces import *
 
 
 class SynonymProperty(MapperProperty):
@@ -72,7 +68,7 @@ mapper.ColumnProperty = ColumnProperty
 class PropertyLoader(StrategizedProperty):
     """describes an object property that holds a single item or list of items that correspond
     to a related database table."""
-    def __init__(self, argument, secondary, primaryjoin, secondaryjoin, foreignkey=None, uselist=None, private=False, association=None, order_by=False, attributeext=None, backref=None, is_backref=False, post_update=False, cascade=None, viewonly=False, lazy=True, collection_class=None):
+    def __init__(self, argument, secondary, primaryjoin, secondaryjoin, foreignkey=None, uselist=None, private=False, association=None, order_by=False, attributeext=None, backref=None, is_backref=False, post_update=False, cascade=None, viewonly=False, lazy=True, collection_class=None, passive_deletes=False):
         self.uselist = uselist
         self.argument = argument
         self.secondary = secondary
@@ -84,7 +80,8 @@ class PropertyLoader(StrategizedProperty):
         self.lazy = lazy
         self.foreignkey = util.to_set(foreignkey)
         self.collection_class = collection_class
-            
+        self.passive_deletes = passive_deletes
+        
         if cascade is not None:
             self.cascade = mapperutil.CascadeOptions(cascade)
         else:
@@ -124,12 +121,15 @@ class PropertyLoader(StrategizedProperty):
     def cascade_iterator(self, type, object, recursive):
         if not type in self.cascade:
             return
-        childlist = sessionlib.attribute_manager.get_history(object, self.key, passive=True)
+        passive = type != 'delete' or self.passive_deletes
+        childlist = sessionlib.attribute_manager.get_history(object, self.key, passive=passive)
         if childlist is None:
             return
         mapper = self.mapper.primary_mapper()
         for c in childlist.added_items() + childlist.deleted_items() + childlist.unchanged_items():
             if c is not None and c not in recursive:
+                if not isinstance(c, self.mapper.class_):
+                    raise exceptions.AssertionError("Attribute '%s' on class '%s' doesn't handle objects of type '%s'" % (self.key, str(self.parent.class_), str(c.__class__)))
                 recursive.add(c)
                 yield c
                 for c2 in mapper.cascade_iterator(type, c, recursive):
@@ -140,8 +140,11 @@ class PropertyLoader(StrategizedProperty):
             return
         
         mapper = self.mapper.primary_mapper()
-        for c in sessionlib.attribute_manager.get_as_list(object, self.key, passive=True):
+        passive = type != 'delete' or self.passive_deletes
+        for c in sessionlib.attribute_manager.get_as_list(object, self.key, passive=passive):
             if c is not None and c not in recursive:
+                if not isinstance(c, self.mapper.class_):
+                    raise exceptions.AssertionError("Attribute '%s' on class '%s' doesn't handle objects of type '%s'" % (self.key, str(self.parent.class_), str(c.__class__)))
                 recursive.add(c)
                 callable_(c, mapper.entity_name)
                 mapper.cascade_callable(type, c, callable_, recursive)

@@ -14,7 +14,7 @@ import sqlalchemy.schema as schema
 import sqlalchemy.ansisql as ansisql
 import sqlalchemy.types as sqltypes
 import sqlalchemy.exceptions as exceptions
-import information_schema as ischema
+from sqlalchemy.databases import information_schema as ischema
 from sqlalchemy import * 
 import re
 
@@ -530,7 +530,7 @@ class PGDefaultRunner(ansisql.ANSIDefaultRunner):
                 # TODO: this has to build into the Sequence object so we can get the quoting 
                 # logic from it
                 if sch is not None:
-                    exc = "select nextval('\"%s.%s_%s_seq\"')" % (sch, column.table.name, column.name)
+                    exc = "select nextval('\"%s\".\"%s_%s_seq\"')" % (sch, column.table.name, column.name)
                 else:
                     exc = "select nextval('\"%s_%s_seq\"')" % (column.table.name, column.name)
                 c = self.proxy(exc)

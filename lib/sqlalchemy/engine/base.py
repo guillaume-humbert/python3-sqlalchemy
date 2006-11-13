@@ -299,7 +299,7 @@ class Connection(Connectable):
     # poor man's multimethod/generic function thingy
     executors = {
         sql.ClauseElement : execute_clauseelement,
-        sql.Compiled : execute_compiled,
+        sql.ClauseVisitor : execute_compiled,
         schema.SchemaItem:execute_default,
         str.__mro__[-2] : execute_text
     }
@@ -396,7 +396,7 @@ class Engine(sql.Executor, Connectable):
     Connects a ConnectionProvider, a Dialect and a CompilerFactory together to 
     provide a default implementation of SchemaEngine.
     """
-    def __init__(self, connection_provider, dialect, echo=None, **kwargs):
+    def __init__(self, connection_provider, dialect, echo=None):
         self.connection_provider = connection_provider
         self.dialect=dialect
         self.echo = echo

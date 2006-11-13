@@ -19,7 +19,7 @@
 <div class="docheader">
 
 <h1>SQLAlchemy 0.3 Documentation</h1>
-<div class="">Version: 0.3.0   Last Updated: 10/22/06 14:17:49</div>
+<div class="">Version: 0.3.1   Last Updated: 11/12/06 18:46:51</div>
 </div>
 
 
@@ -173,13 +173,6 @@ Next: <a href="types.html">The Types System</a>
     
         
         <li><A style="" href="adv_datamapping.html#advdatamapping_multiple">Multiple Mappers for One Class</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-    
-        
-        <li><A style="" href="adv_datamapping.html#advdatamapping_circular">Circular Mapping</a></li>
     
     <ul class="small_toc_list">
     </ul>
@@ -493,7 +486,7 @@ Next: <a href="types.html">The Types System</a>
     </span><span class="python_keyword">pass</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">keywords_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'keywords'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">secondary</span><span class="python_operator">=</span><span class="python_name">userkeywords_table</span>
+    <span class="python_literal">'keywords'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">secondary</span><span class="python_operator">=</span><span class="python_name">userkeywords_table</span><span class="python_operator">,</span>
         <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">userkeywords_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">,</span>
         <span class="python_name">secondaryjoin</span><span class="python_operator">=</span><span class="python_name">userkeywords_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">keyword_id</span><span class="python_operator">==</span><span class="python_name">keywords_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">keyword_id</span>
         <span class="python_enclosure">)</span>
@@ -667,7 +660,7 @@ Next: <a href="types.html">The Types System</a>
  </li>
 
  <li>
-     association - When specifying a many to many relationship with an association object, this keyword should reference the mapper or class of the target object of the association.  See the example in <a href="datamapping.html#datamapping_association">Association Object</a>.
+     association - Deprecated; as of version 0.3.0 the association keyword is synonomous with applying the "all, delete-orphan" cascade to a "one-to-many" relationship.  SA can now automatically reconcile a "delete" and "insert" operation of two objects with the same "identity" in a flush() operation into a single "update" statement, which is the pattern that "association" used to indicate.  See the updated example of association mappings in <a href="datamapping.html#datamapping_association">Association Object</a>.
  </li>
 
  <li>
@@ -680,6 +673,10 @@ Next: <a href="types.html">The Types System</a>
 
  <li>
      collection_class = None - a class or function that returns a new list-holding object.  will be used in place of a plain list for storing elements.
+ </li>
+
+ <li>
+     passive_deletes = False - if False, child instances will be loaded from the database into the current session when a parent instance is deleted so that delete cascade can be processed on those child instances, even if they were not loaded already.  When set to True, lazy loaders will not be fired off in order to process a "delete" cascade, which is appropriate if "ON DELETE" rules have been set up on the database tables themselves.
  </li>
 </ul>
 
@@ -1189,45 +1186,6 @@ Next: <a href="types.html">The Types System</a>
 </span>
 <span class="python_comment"># select from the alternate mapper
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'alt'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
-
-
-    </div>
-
-    <a href="#advdatamapping" class="toclink">back to section top</a>
-</div>
-
-
-
-
-<A name="advdatamapping_circular"></a>
-
-<div class="subsection" style="margin-left:20px;">
-
-
-<h3>Circular Mapping</h3>
-
-    <div class="sectiontext">
-    
-
-<p>Oftentimes it is necessary for two mappers to be related to each other.  With a datamodel that consists of Users that store Addresses, you might have an Address object and want to access the "user" attribute on it, or have a User object and want to get the list of Address objects.  The easiest way to do this is via the <code>backref</code> keyword described in <a href="datamapping.html#datamapping_relations_backreferences">Backreferences</a>.  Although even when backreferences are used, it is sometimes necessary to explicitly specify the relations on both mappers pointing to each other.
-   To achieve this involves creating the first mapper by itself, then creating the second mapper referencing the first, then adding references to the first mapper to reference the second:
-</p>
-
-
-<div class="sliding_code">
-<pre><span class="python_name">usermapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'user'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span>
-<span class="python_enclosure">})</span><span class="python_operator">
-</span>
-<span class="python_name">usermapper</span><span class="python_operator">.</span><span class="python_name">add_property</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
-<p>Note that with a circular relationship as above, you cannot declare both relationships as "eager" relationships, since that produces a circular query situation which will generate a recursion exception.  So what if you want to load an Address and its User eagerly?  Just use eager options:
-</p>
-
-
-<div class="sliding_code">
-<pre><span class="python_name">eagerquery </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'user'</span><span class="python_enclosure">))</span><span class="python_operator">
-</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">eagerquery</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">address_id</span><span class="python_operator">==</span><span class="python_number">12</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 
 
     </div>

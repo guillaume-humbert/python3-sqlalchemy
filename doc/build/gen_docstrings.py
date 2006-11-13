@@ -28,7 +28,7 @@ def make_all_docs():
         make_doc(obj=orm.mapperlib, classes=[orm.mapperlib.Mapper]),
         make_doc(obj=orm.query, classes=[orm.query.Query, orm.query.QueryContext, orm.query.SelectionContext]),
         make_doc(obj=orm.session, classes=[orm.session.Session, orm.session.SessionTransaction]),
-        make_doc(obj=pool, classes=[pool.DBProxy, pool.Pool, pool.QueuePool, pool.SingletonThreadPool]),
+        make_doc(obj=pool),
         make_doc(obj=sessioncontext),
         make_doc(obj=threadlocal),
         make_doc(obj=selectresults),
@@ -57,8 +57,9 @@ def create_docstring_toc(data, root):
         obj.toc_path = toc.path
 
         if not obj.isclass and obj.functions:
-            TOCElement("docstrings", name="modfunc", description="Module Functions", parent=toc)
-
+            functoc = TOCElement("docstrings", name="modfunc", description="Module Functions", parent=toc)
+            obj.mod_path = functoc.path
+            
         if obj.classes:
             for class_ in obj.classes:
                 create_obj_toc(class_, toc)

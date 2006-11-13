@@ -19,7 +19,7 @@
 <div class="docheader">
 
 <h1>SQLAlchemy 0.3 Documentation</h1>
-<div class="">Version: 0.3.0   Last Updated: 10/22/06 14:17:49</div>
+<div class="">Version: 0.3.1   Last Updated: 11/12/06 18:46:51</div>
 </div>
 
 
@@ -146,35 +146,71 @@ Next: <a href="plugins.html">Plugins</a>
     <div class="sectiontext">
     
 
-<p>When proxying a DBAPI module through the <code>pool</code> module, options exist for how the connections should be pooled:
+<p>For all types of Pool construction, which includes the "transparent proxy" described in the previous section, using an <code>Engine</code> via <code>create_engine()</code>, or constructing a pool through direct class instantiation, the options are generally the same.  Additional options may be available based on the specific subclass of <code>Pool</code> being used.
+</p>
+<p>For a description of all pool classes, see the <a href="docstrings.html#docstrings_sqlalchemy.pool">generated documentation</a>.
+</p>
+<p>Common options include:
 </p>
 <ul>
  <li>
-     echo=False : if set to True, connections being pulled and retrieved from/to the pool will be logged to the standard output, as well as pool sizing information.
+     echo=False : if set to True, connections being pulled and retrieved from/to the pool will
+        be logged to the standard output, as well as pool sizing information.  Echoing can also
+        be achieved by enabling logging for the "sqlalchemy.pool" namespace.  When using create_engine(), 
+        this option is specified as <code>echo_pool</code>.
  </li>
 
  <li>
-     use_threadlocal=True : if set to True, repeated calls to connect() within the same application thread will be guaranteed to return the <strong>same</strong> connection object, if one has already been retrieved from the pool and has not been returned yet.  This allows code to retrieve a connection from the pool, and then while still holding on to that connection, to call other functions which also ask the pool for a connection of the same arguments;  those functions will act upon the same connection that the calling method is using.  Note that once the connection is returned to the pool, it then may be used by another thread.  To guarantee a single unique connection per thread that <strong>never</strong> changes, use the option <code>poolclass=SingletonThreadPool</code>, in which case the use_threadlocal parameter is not used.
+     use_threadlocal=False : if set to True, repeated calls to connect() within the same
+        application thread will be guaranteed to return the same connection object, if one has
+        already been retrieved from the pool and has not been returned yet. This allows code to
+        retrieve a connection from the pool, and then while still holding on to that connection,
+        to call other functions which also ask the pool for a connection of the same arguments;
+        those functions will act upon the same connection that the calling method is using.
+        This option is overridden during <code>create_engine()</code>, corresponding to the "plain" or 
+   "threadlocal" connection strategy.
  </li>
 
  <li>
-     recycle=3600 : this setting causes the pool to recycle connections after the given number of seconds has passed.  It defaults to 3600 seconds, or one hour.  Note that MySQL in particular will disconnect automatically if no activity is detected on a connection for eight hours.
+     recycle=-1 : if set to non -1, a number of seconds between connection recycling, which
+        means upon checkout, if this timeout is surpassed the connection will be closed and replaced
+        with a newly opened connection.
  </li>
 
  <li>
-     poolclass=QueuePool :  the Pool class used by the pool module to provide pooling.  QueuePool uses the Python <code>Queue.Queue</code> class to maintain a list of available connections.  A developer can supply his or her own Pool class to supply a different pooling algorithm.  Also included is the <code>SingletonThreadPool</code>, which provides a single distinct connection per thread and is required with SQLite.
+     auto_close_cursors = True : cursors, returned by connection.cursor(), are tracked and are 
+        automatically closed when the connection is returned to the pool.  some DBAPIs like MySQLDB
+        become unstable if cursors remain open.
  </li>
 
  <li>
-     pool_size=5 : used by <code>QueuePool</code> as well as <code>SingletonThreadPool</code> as of 0.2.7 - the size of the pool to be maintained.  This is the largest number of connections that will be kept persistently in the pool.  Note that the pool begins with no connections; once this number of connections is requested, that number of connections will remain.
+     disallow_open_cursors = False : if auto_close_cursors is False, and disallow_open_cursors is True,
+        will raise an exception if an open cursor is detected upon connection checkin.  If auto_close_cursors and disallow_open_cursors are both False, then no cursor processing occurs upon checkin.
+ </li>
+</ul>
+<p>QueuePool options include:
+</p>
+<ul>
+ <li>
+     pool_size=5 : the size of the pool to be maintained. This is the
+      largest number of connections that will be kept persistently in the pool. Note that the
+      pool begins with no connections; once this number of connections is requested, that
+      number of connections will remain.
  </li>
 
  <li>
-     max_overflow=10 : used by <code>QueuePool</code> - the maximum overflow size of the pool.  When the number of checked-out connections reaches the size set in pool_size, additional connections will be returned up to this limit.  When those additional connections are returned to the pool, they are disconnected and discarded.  It follows then that the total number of simultaneous connections the pool will allow is <code>pool_size</code> + <code>max_overflow</code>, and the total number of "sleeping" connections the pool will allow is <code>pool_size</code>.  <code>max_overflow</code> can be set to -1 to indicate no overflow limit; no limit will be placed on the total number of concurrent connections.
+     max_overflow=10 : the maximum overflow size of the pool. When the number of checked-out
+      connections reaches the size set in pool_size, additional connections will be returned up
+      to this limit. When those additional connections are returned to the pool, they are
+      disconnected and discarded. It follows then that the total number of simultaneous
+      connections the pool will allow is pool_size + max_overflow, and the total number of
+      "sleeping" connections the pool will allow is pool_size. max_overflow can be set to -1 to
+      indicate no overflow limit; no limit will be placed on the total number of concurrent
+      connections.
  </li>
 
  <li>
-     timeout=30 : used by <code>QueuePool</code> - the timeout before giving up on returning a connection, if none are available and the <code>max_overflow</code> has been reached.
+     timeout=30 : the number of seconds to wait before giving up on returning a connection
  </li>
 </ul>
 
@@ -197,14 +233,12 @@ Next: <a href="plugins.html">Plugins</a>
     <div class="sectiontext">
     
 
-<p>One level below using a DBProxy to make transparent pools is creating the pool yourself.  The pool module comes with two implementations of connection pools: <code>QueuePool</code> and <code>SingletonThreadPool</code>.  While <code>QueuePool</code> uses <code>Queue.Queue</code> to provide connections, <code>SingletonThreadPool</code> provides a single per-thread connection which SQLite requires.
-</p>
-<p>Constructing your own pool involves passing a callable used to create a connection.  Through this method, custom connection schemes can be made, such as a connection that automatically executes some initialization commands to start.  The options from the previous section can be used as they apply to <code>QueuePool</code> or <code>SingletonThreadPool</code>.
+<p>Besides using the transparent proxy, instances of <code>sqlalchemy.pool.Pool</code> can be created directly.  Constructing your own pool involves passing a callable used to create a connection.  Through this method, custom connection schemes can be made, such as a connection that automatically executes some initialization commands to start.  <br></br>
 </p>
 
 
 <div class="sliding_code">
-    <div class="codetitle">Plain QueuePool</div>
+    <div class="codetitle">Constructing a QueuePool</div>
 <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">psycopg2</span><span class="python_operator">
 </span>
@@ -220,7 +254,7 @@ Next: <a href="plugins.html">Plugins</a>
 
 
 <div class="sliding_code">
-    <div class="codetitle">SingletonThreadPool</div>
+    <div class="codetitle">Constructing a SingletonThreadPool</div>
 <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">sqlite</span><span class="python_operator">
 </span>
