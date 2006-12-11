@@ -51,6 +51,9 @@ class OracleText(sqltypes.TEXT):
 class OracleString(sqltypes.String):
     def get_col_spec(self):
         return "VARCHAR(%(length)s)" % {'length' : self.length}
+class OracleRaw(sqltypes.Binary):
+    def get_col_spec(self):
+        return "RAW(%(length)s)" % {'length' : self.length}
 class OracleChar(sqltypes.CHAR):
     def get_col_spec(self):
         return "CHAR(%(length)s)" % {'length' : self.length}
@@ -97,7 +100,10 @@ ischema_names = {
     'NUMBER' : OracleNumeric,
     'BLOB' : OracleBinary,
     'CLOB' : OracleText,
-    'TIMESTAMP' : OracleTimestamp
+    'TIMESTAMP' : OracleTimestamp,
+    'RAW' : OracleRaw,
+    'FLOAT' : OracleNumeric,
+    'DOUBLE PRECISION' : OracleNumeric,
 }
 
 constraintSQL = """SELECT
@@ -105,7 +111,8 @@ constraintSQL = """SELECT
   ac.constraint_type,
   LOWER(loc.column_name) AS local_column,
   LOWER(rem.table_name) AS remote_table,
-  LOWER(rem.column_name) AS remote_column
+  LOWER(rem.column_name) AS remote_column,
+  LOWER(rem.owner) AS remote_owner
 FROM all_constraints ac,
   all_cons_columns loc,
   all_cons_columns rem
@@ -270,7 +277,7 @@ class OracleDialect(ansisql.ANSIDialect):
             if row is None:
                 break
             #print "ROW:" , row                
-            (cons_name, cons_type, local_column, remote_table, remote_column) = row
+            (cons_name, cons_type, local_column, remote_table, remote_column, remote_owner) = row
             if cons_type == 'P':
                 table.primary_key.add(table.c[local_column])
             elif cons_type == 'R':
@@ -280,7 +287,7 @@ class OracleDialect(ansisql.ANSIDialect):
                    fk = ([], [])
                    fks[cons_name] = fk
                 refspec = ".".join([remote_table, remote_column])
-                schema.Table(remote_table, table.metadata, autoload=True, autoload_with=connection)
+                schema.Table(remote_table, table.metadata, autoload=True, autoload_with=connection, owner=remote_owner)
                 if local_column not in fk[0]:
                     fk[0].append(local_column)
                 if refspec not in fk[1]:

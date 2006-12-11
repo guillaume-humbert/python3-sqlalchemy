@@ -2,6 +2,7 @@
 <%args>
     extension
     toc
+    onepage=False
 </%args>
 
-<& toc.myt:toc, toc=toc, extension=extension &>
+<& toc.myt:toc, toc=toc, extension=extension, onepage=onepage &>

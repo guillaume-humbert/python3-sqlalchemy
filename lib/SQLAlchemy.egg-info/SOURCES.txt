@@ -12,6 +12,7 @@ doc/datamapping.html
 doc/dbengine.html
 doc/docs.css
 doc/docstrings.html
+doc/documentation.html
 doc/index.html
 doc/metadata.html
 doc/plugins.html
@@ -40,6 +41,7 @@ doc/build/content/adv_datamapping.txt
 doc/build/content/datamapping.txt
 doc/build/content/dbengine.txt
 doc/build/content/docstrings.myt
+doc/build/content/documentation.myt
 doc/build/content/index.myt
 doc/build/content/metadata.txt
 doc/build/content/plugins.txt
@@ -60,6 +62,7 @@ examples/association/basic_association.py
 examples/association/proxied_association.py
 examples/backref/backref_tree.py
 examples/graphs/graph1.py
+examples/pickle/custom_pickler.py
 examples/polymorph/concrete.py
 examples/polymorph/polymorph.py
 examples/polymorph/single.py
@@ -171,12 +174,15 @@ test/orm/session.py
 test/orm/sessioncontext.py
 test/orm/single.py
 test/orm/unitofwork.py
+test/perf/cascade_speed.py
 test/perf/masscreate.py
 test/perf/masscreate2.py
+test/perf/masseagerload.py
 test/perf/massload.py
 test/perf/massload2.py
 test/perf/masssave.py
 test/perf/poolload.py
+test/perf/wsgi.py
 test/sql/__init__.py
 test/sql/alltests.py
 test/sql/case_statement.py

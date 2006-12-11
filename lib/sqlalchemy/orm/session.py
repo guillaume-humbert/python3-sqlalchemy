@@ -75,15 +75,16 @@ class Session(object):
     
     The Session object is **not** threadsafe.  For thread-management of Sessions, see the
     sqlalchemy.ext.sessioncontext module."""
-    def __init__(self, bind_to=None, hash_key=None, import_session=None, echo_uow=False):
+    def __init__(self, bind_to=None, hash_key=None, import_session=None, echo_uow=False, weak_identity_map=False):
         if import_session is not None:
-            self.uow = unitofwork.UnitOfWork(identity_map=import_session.uow.identity_map)
+            self.uow = unitofwork.UnitOfWork(identity_map=import_session.uow.identity_map, weak_identity_map=weak_identity_map)
         else:
-            self.uow = unitofwork.UnitOfWork()
+            self.uow = unitofwork.UnitOfWork(weak_identity_map=weak_identity_map)
         
         self.bind_to = bind_to
         self.binds = {}
         self.echo_uow = echo_uow
+        self.weak_identity_map = weak_identity_map
         self.transaction = None
         if hash_key is None:
             self.hash_key = id(self)
@@ -147,7 +148,7 @@ class Session(object):
         for instance in self:
             self._unattach(instance)
         echo = self.uow.echo
-        self.uow = unitofwork.UnitOfWork()
+        self.uow = unitofwork.UnitOfWork(weak_identity_map=self.weak_identity_map)
         self.uow.echo = echo
             
     def mapper(self, class_, entity_name=None):
@@ -287,7 +288,7 @@ class Session(object):
         instance.
         """
         self._save_impl(object, entity_name=entity_name)
-        _object_mapper(object).cascade_callable('save-update', object, lambda c, e:self._save_or_update_impl(c, e))
+        _object_mapper(object).cascade_callable('save-update', object, lambda c, e:self._save_or_update_impl(c, e), halt_on=lambda c:c in self)
 
     def update(self, object, entity_name=None):
         """Bring the given detached (saved) instance into this Session.
@@ -298,7 +299,7 @@ class Session(object):
         This operation cascades the "save_or_update" method to associated instances if the relation is mapped 
         with cascade="save-update"."""
         self._update_impl(object, entity_name=entity_name)
-        _object_mapper(object).cascade_callable('save-update', object, lambda c, e:self._save_or_update_impl(c, e))
+        _object_mapper(object).cascade_callable('save-update', object, lambda c, e:self._save_or_update_impl(c, e), halt_on=lambda c:c in self)
 
     def save_or_update(self, object, entity_name=None):
         """save or update the given object into this Session.
@@ -306,7 +307,7 @@ class Session(object):
         The presence of an '_instance_key' attribute on the instance determines whether to
         save() or update() the instance."""
         self._save_or_update_impl(object, entity_name=entity_name)
-        _object_mapper(object).cascade_callable('save-update', object, lambda c, e:self._save_or_update_impl(c, e))
+        _object_mapper(object).cascade_callable('save-update', object, lambda c, e:self._save_or_update_impl(c, e), halt_on=lambda c:c in self)
     
     def _save_or_update_impl(self, object, entity_name=None):
         key = getattr(object, '_instance_key', None)
@@ -367,8 +368,8 @@ class Session(object):
             return
         if not hasattr(object, '_instance_key'):
             raise exceptions.InvalidRequestError("Instance '%s' is not persisted" % repr(object))
-        self._register_persistent(object)
-    
+        self._attach(object)
+
     def _register_pending(self, obj):
         self._attach(obj)
         self.uow.register_new(obj)
@@ -425,7 +426,7 @@ class Session(object):
     dirty = property(lambda s:s.uow.locate_dirty(), doc="a Set of all objects marked as 'dirty' within this Session")
     deleted = property(lambda s:s.uow.deleted, doc="a Set of all objects marked as 'deleted' within this Session")
     new = property(lambda s:s.uow.new, doc="a Set of all objects marked as 'new' within this Session.")
-    identity_map = property(lambda s:s.uow.identity_map, doc="a WeakValueDictionary consisting of all objects within this Session keyed to their _instance_key value.")
+    identity_map = property(lambda s:s.uow.identity_map, doc="a dictionary consisting of all objects within this Session keyed to their _instance_key value.")
             
     def import_instance(self, *args, **kwargs):
         """deprecated; a synynom for merge()"""

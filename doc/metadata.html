@@ -18,8 +18,15 @@
 
 <div class="docheader">
 
+
 <h1>SQLAlchemy 0.3 Documentation</h1>
-<div class="">Version: 0.3.1   Last Updated: 11/12/06 18:46:51</div>
+
+<div class="multipage">
+<a href="index.html">Multiple Pages</a> |
+<a href="documentation.html">One Page</a>
+</div>
+
+<div class="">Version: 0.3.2   Last Updated: 12/10/06 12:24:21</div>
 </div>
 
 
@@ -78,6 +85,8 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
         
     <li><A href="metadata.html#metadata_tables_reflecting_overriding">Overriding Reflected Columns</a></li>
 
+    <ul class="small_toc_list">
+    </ul>
 
 
     </ul>
@@ -154,6 +163,8 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
         
     <li><A href="metadata.html#metadata_defaults_passive_postgres">The Catch: Postgres Primary Key Defaults always Pre-Execute</a></li>
 
+    <ul class="small_toc_list">
+    </ul>
 
 
     </ul>
@@ -604,7 +615,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <p>Feature Status: <a href='javascript:alphaImplementation()'>Alpha Implementation</a> 
 </p>
-<p>Many table, schema, or column names require quoting to be enabled.  Reasons for this include names that are the same as a database reserved word, or for identifiers that use MixedCase, where the database would normally "fold" the case convention into lower or uppercase (such as Postgres).  SQLAlchemy as of version 0.2.8 will attempt to automatically determine when quoting should be used.  It will determine a value for every identifier name called <code>case_sensitive</code>, which defaults to <code>False</code> if the identifer name uses no uppercase letters, or <code>True</code> otherwise.  This flag may be explicitly set on any schema item as well (schema items include <code>Table</code>, <code>Column</code>, <code>MetaData</code>, <code>Sequence</code>, etc.) to override this default setting, where objects will inherit the setting from an enclosing object if not explicitly overridden.
+<p>Many table, schema, or column names require quoting to be enabled.  Reasons for this include names that are the same as a database reserved word, or for identifiers that use MixedCase, where the database would normally "fold" the case convention into lower or uppercase (such as Postgres).  SQLAlchemy will attempt to automatically determine when quoting should be used.  It will determine a value for every identifier name called <code>case_sensitive</code>, which defaults to <code>False</code> if the identifer name uses no uppercase letters, or <code>True</code> otherwise.  This flag may be explicitly set on any schema item as well (schema items include <code>Table</code>, <code>Column</code>, <code>MetaData</code>, <code>Sequence</code>, etc.) to override this default setting, where objects will inherit the setting from an enclosing object if not explicitly overridden.
 </p>
 <p>When <code>case_sensitive</code> is <code>True</code>, the dialect will do what it has to in order for the database to recognize the casing.  For Postgres and Oracle, this means using quoted identifiers.
 </p>

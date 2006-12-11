@@ -264,6 +264,34 @@ class MutableTypesTest(UnitOfWorkTest):
         assert f3.data != f1.data
         assert f3.data == pickleable.Bar(4, 19)
 
+    def testmutablechanges(self):
+        """test that mutable changes are detected or not detected correctly"""
+        class Foo(object):pass
+        mapper(Foo, table)
+        f1 = Foo()
+        f1.data = pickleable.Bar(4,5)
+        f1.value = unicode('hi')
+        ctx.current.flush()
+        def go():
+            ctx.current.flush()
+        self.assert_sql_count(db, go, 0)
+        f1.value = unicode('someothervalue')
+        self.assert_sql(db, lambda: ctx.current.flush(), [
+            (
+                "UPDATE mutabletest SET value=:value WHERE mutabletest.id = :mutabletest_id",
+                {'mutabletest_id': f1.id, 'value': u'someothervalue'}
+            ),
+        ])
+        f1.value = unicode('hi')
+        f1.data.x = 9
+        self.assert_sql(db, lambda: ctx.current.flush(), [
+            (
+                "UPDATE mutabletest SET data=:data, value=:value WHERE mutabletest.id = :mutabletest_id",
+                {'mutabletest_id': f1.id, 'value': u'hi', 'data':f1.data}
+            ),
+        ])
+        
+        
     def testnocomparison(self):
         """test that types marked as MutableType get changes detected on them when the type has no __eq__ method"""
         class Foo(object):pass
@@ -681,7 +709,19 @@ class SaveTest(UnitOfWorkTest):
         u = User()
         u.user_id=42
         ctx.current.flush()
-        
+    
+    def test_dont_update_blanks(self):
+        mapper(User, users)
+        u = User()
+        u.user_name = ""
+        ctx.current.flush()
+        ctx.current.clear()
+        u = ctx.current.query(User).get(u.user_id)
+        u.user_name = ""
+        def go():
+            ctx.current.flush()
+        self.assert_sql_count(db, go, 0)
+
     def testmultitable(self):
         """tests a save of an object where each instance spans two tables. also tests
         redefinition of the keynames for the column properties."""
@@ -817,7 +857,7 @@ class SaveTest(UnitOfWorkTest):
         """tests moving a child from one parent to the other, then deleting the first parent, properly
         updates the child with the new parent.  this tests the 'trackparent' option in the attributes module."""
         m = mapper(User, users, properties = dict(
-            addresses = relation(mapper(Address, addresses), lazy = True, private = False)
+            addresses = relation(mapper(Address, addresses), lazy = True)
         ))
         u1 = User()
         u1.user_name = 'user1'
@@ -1313,32 +1353,27 @@ class SaveTest2(UnitOfWorkTest):
     def setUp(self):
         ctx.current.clear()
         clear_mappers()
-        self.users = Table('users', db,
+        global meta, users, addresses
+        meta = BoundMetaData(db)
+        users = Table('users', meta,
             Column('user_id', Integer, Sequence('user_id_seq', optional=True), primary_key = True),
             Column('user_name', String(20)),
-            redefine=True
         )
 
-        self.addresses = Table('email_addresses', db,
+        addresses = Table('email_addresses', meta,
             Column('address_id', Integer, Sequence('address_id_seq', optional=True), primary_key = True),
-            Column('rel_user_id', Integer, ForeignKey(self.users.c.user_id)),
+            Column('rel_user_id', Integer, ForeignKey(users.c.user_id)),
             Column('email_address', String(20)),
-            redefine=True
         )
-        x = sql.join(self.users, self.addresses)
-#        raise repr(self.users) + repr(self.users.primary_key)
-#        raise repr(self.addresses) + repr(self.addresses.foreign_keys)
-        self.users.create()
-        self.addresses.create()
+        meta.create_all()
 
     def tearDown(self):
-        self.addresses.drop()
-        self.users.drop()
+        meta.drop_all()
         UnitOfWorkTest.tearDown(self)
     
     def testbackwardsnonmatch(self):
-        m = mapper(Address, self.addresses, properties = dict(
-            user = relation(mapper(User, self.users), lazy = True, uselist = False)
+        m = mapper(Address, addresses, properties = dict(
+            user = relation(mapper(User, users), lazy = True, uselist = False)
         ))
         data = [
             {'user_name' : 'thesub' , 'email_address' : 'bar@foo.com'},

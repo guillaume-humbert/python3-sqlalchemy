@@ -9,7 +9,8 @@ from sqlalchemy import util, exceptions
 from sqlalchemy import types as sqltypes
 import string, re, random, sets
 
-__all__ = ['text', 'table', 'column', 'func', 'select', 'update', 'insert', 'delete', 'join', 'and_', 'or_', 'not_', 'between_', 'case', 'cast', 'union', 'union_all', 'null', 'desc', 'asc', 'outerjoin', 'alias', 'subquery', 'literal', 'bindparam', 'exists', 'extract','AbstractDialect', 'ClauseParameters', 'ClauseVisitor', 'Executor', 'Compiled', 'ClauseElement', 'ColumnElement', 'ColumnCollection', 'FromClause', 'TableClause', 'Select', 'Alias', 'CompoundSelect','Join', 'Selectable']
+
+__all__ = ['text', 'table', 'column', 'func', 'select', 'update', 'insert', 'delete', 'join', 'and_', 'or_', 'not_', 'between_', 'case', 'cast', 'union', 'union_all', 'except_', 'except_all', 'intersect', 'intersect_all', 'null', 'desc', 'asc', 'outerjoin', 'alias', 'subquery', 'literal', 'bindparam', 'exists', 'extract','AbstractDialect', 'ClauseParameters', 'ClauseVisitor', 'Executor', 'Compiled', 'ClauseElement', 'ColumnElement', 'ColumnCollection', 'FromClause', 'TableClause', 'Select', 'Alias', 'CompoundSelect','Join', 'Selectable']
 
 def desc(column):
     """return a descending ORDER BY clause element, e.g.:
@@ -180,6 +181,18 @@ def union(*selects, **params):
 
 def union_all(*selects, **params):
     return _compound_select('UNION ALL', *selects, **params)
+
+def except_(*selects, **params):
+    return _compound_select('EXCEPT', *selects, **params)
+
+def except_all(*selects, **params):
+    return _compound_select('EXCEPT ALL', *selects, **params)
+
+def intersect(*selects, **params):
+    return _compound_select('INTERSECT', *selects, **params)
+
+def intersect_all(*selects, **params):
+    return _compound_select('INTERSECT ALL', *selects, **params)
 
 def alias(*args, **params):
     return Alias(*args, **params)
@@ -410,14 +423,9 @@ class ClauseElement(object):
         FROM list of a query, when this ClauseElement is placed in the column clause of a Select
         statement."""
         raise NotImplementedError(repr(self))
-    def _process_from_dict(self, data, asfrom):
-        """given a dictionary attached to a Select object, places the appropriate
-        FROM objects in the dictionary corresponding to this ClauseElement,
-        and possibly removes or modifies others."""
-        for f in self._get_from_objects():
-            data.setdefault(f, f)
-        if asfrom:
-            data[self] = self
+    def _hide_froms(self):
+        """return a list of FROM clause elements which this ClauseElement replaces."""
+        return []
     def compare(self, other):
         """compare this ClauseElement to the given ClauseElement.
         
@@ -537,10 +545,12 @@ class _CompareMixin(object):
         elif _is_literal(other[0]):
             return self._compare('IN', ClauseList(parens=True, *[self._bind_param(o) for o in other]), negate='NOT IN')
         else:
-            # assume *other is a list of selects.
-            # so put them in a UNION.  if theres only one, you just get one SELECT 
-            # statement out of it.
-            return self._compare('IN', union(parens=True, *other), negate='NOT IN')
+            # assume *other is a single select.
+            # originally, this assumed possibly multiple selects and created a UNION, 
+            # but we are now forcing explictness if a UNION is desired.
+            if len(other) > 1:
+                raise exceptions.InvalidRequestException("in() function accepts only multiple literal values, or a single selectable as an argument")
+            return self._compare('IN', other[0], negate='NOT IN')
     def startswith(self, other):
         return self._compare('LIKE', other + "%")
     def endswith(self, other):
@@ -819,8 +829,9 @@ class _BindParamClause(ClauseElement, _CompareMixin):
         return isinstance(other, _BindParamClause) and other.type.__class__ == self.type.__class__
     def _make_proxy(self, selectable, name = None):
         return self
-#        return self.obj._make_proxy(selectable, name=self.name)
-
+    def __repr__(self):
+        return "_BindParamClause(%s, %s, type=%s)" % (repr(self.key), repr(self.value), repr(self.type))
+        
 class _TypeClause(ClauseElement):
     """handles a type keyword in a SQL statement.  used by the Case statement."""
     def __init__(self, type):
@@ -953,11 +964,6 @@ class _CalculatedClause(ClauseList, ColumnElement):
         self._engine = kwargs.get('engine', None)
         ClauseList.__init__(self, *clauses)
     key = property(lambda self:self.name or "_calc_")
-    def _process_from_dict(self, data, asfrom):
-        super(_CalculatedClause, self)._process_from_dict(data, asfrom)
-        # this helps a Select object get the engine from us
-        if asfrom:
-            data.setdefault(self, self)
     def copy_container(self):
         clauses = [clause.copy_container() for clause in self.clauses]
         return _CalculatedClause(type=self.type, engine=self._engine, *clauses)
@@ -1143,25 +1149,13 @@ class Join(FromClause):
 
     engine = property(lambda s:s.left.engine or s.right.engine)
 
-    class JoinMarker(FromClause):
-        def __init__(self, join):
-            FromClause.__init__(self)
-            self.join = join
-        def _exportable_columns(self):
-            return []
-    
     def alias(self, name=None):
         """creates a Select out of this Join clause and returns an Alias of it.  The Select is not correlating."""
         return self.select(use_labels=True, correlate=False).alias(name)            
-    def _process_from_dict(self, data, asfrom):
-        for f in self.onclause._get_from_objects():
-            data[f] = f
-        for f in self.left._get_from_objects() + self.right._get_from_objects():
-            # mark the object as a "blank" "from" that wont be printed
-            data[f] = Join.JoinMarker(self)
-        # a JOIN always impacts the final FROM list of a select statement
-        data[self] = self
-        
+
+    def _hide_froms(self):
+        return self.left._get_from_objects() + self.right._get_from_objects()
+            
     def _get_from_objects(self):
         return [self] + self.onclause._get_from_objects() + self.left._get_from_objects() + self.right._get_from_objects()
         
@@ -1310,11 +1304,6 @@ class TableClause(FromClause):
         raise NotImplementedError()
     def _group_parenthesized(self):
         return False
-    def _process_from_dict(self, data, asfrom):
-        for f in self._get_from_objects():
-            data.setdefault(f, f)
-        if asfrom:
-            data[self] = self
     def count(self, whereclause=None, **params):
         if len(self.primary_key):
             col = list(self.primary_key)[0]
@@ -1357,7 +1346,7 @@ class _SelectBaseMixin(object):
     def select(self, whereclauses = None, **params):
         return select([self], whereclauses, **params)
     def _get_from_objects(self):
-        if self.is_where or self._scalar:
+        if self.is_where or self.is_scalar:
             return []
         else:
             return [self]
@@ -1366,19 +1355,28 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
     def __init__(self, keyword, *selects, **kwargs):
         _SelectBaseMixin.__init__(self)
         self.keyword = keyword
-        self.selects = selects
         self.use_labels = kwargs.pop('use_labels', False)
         self.parens = kwargs.pop('parens', False)
-        self.correlate = kwargs.pop('correlate', False)
+        self.should_correlate = kwargs.pop('correlate', False)
         self.for_update = kwargs.pop('for_update', False)
         self.nowait = kwargs.pop('nowait', False)
-        self.limit = kwargs.get('limit', None)
-        self.offset = kwargs.get('offset', None)
-        for s in self.selects:
+        self.limit = kwargs.pop('limit', None)
+        self.offset = kwargs.pop('offset', None)
+        self.is_compound = True
+        self.is_where = False
+        self.is_scalar = False
+
+        self.selects = selects
+
+        # some DBs do not like ORDER BY in the inner queries of a UNION, etc.
+        for s in selects:
             s.group_by(None)
             s.order_by(None)
-        self.group_by(*kwargs.get('group_by', [None]))
-        self.order_by(*kwargs.get('order_by', [None]))
+            
+        self.group_by(*kwargs.pop('group_by', [None]))
+        self.order_by(*kwargs.pop('order_by', [None]))
+        if len(kwargs):
+            raise TypeError("invalid keyword argument(s) for CompoundSelect: %s" % repr(kwargs.keys()))
         self._col_map = {}
 
     name = property(lambda s:s.keyword + " statement")
@@ -1420,9 +1418,10 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
 class Select(_SelectBaseMixin, FromClause):
     """represents a SELECT statement, with appendable clauses, as well as 
     the ability to execute itself and return a result set."""
-    def __init__(self, columns=None, whereclause = None, from_obj = [], order_by = None, group_by=None, having=None, use_labels = False, distinct=False, for_update=False, nowait=False, engine=None, limit=None, offset=None, scalar=False, correlate=True):
+    def __init__(self, columns=None, whereclause = None, from_obj = [], order_by = None, group_by=None, having=None, use_labels = False, distinct=False, for_update=False, engine=None, limit=None, offset=None, scalar=False, correlate=True):
         _SelectBaseMixin.__init__(self)
-        self._froms = util.OrderedDict()
+        self.__froms = util.OrderedSet()
+        self.__hide_froms = util.Set([self])
         self.use_labels = use_labels
         self.whereclause = None
         self.having = None
@@ -1430,31 +1429,30 @@ class Select(_SelectBaseMixin, FromClause):
         self.limit = limit
         self.offset = offset
         self.for_update = for_update
-        self.nowait = nowait
+        self.is_compound = False
 
         # indicates that this select statement should not expand its columns
         # into the column clause of an enclosing select, and should instead
         # act like a single scalar column
-        self._scalar = scalar
+        self.is_scalar = scalar
 
-        # indicates if this select statement, as a subquery, should correlate
-        # its FROM clause to that of an enclosing select statement
-        self.correlate = correlate
+        # indicates if this select statement, as a subquery, should automatically correlate
+        # its FROM clause to that of an enclosing select statement.
+        # note that the "correlate" method can be used to explicitly add a value to be correlated.
+        self.should_correlate = correlate
         
         # indicates if this select statement is a subquery inside another query
-        self.issubquery = False
+        self.is_subquery = False
         
         # indicates if this select statement is a subquery as a criterion
         # inside of a WHERE clause
         self.is_where = False
         
         self.distinct = distinct
-        self._text = None
         self._raw_columns = []
-        self._correlated = None
-        self._correlator = Select._CorrelatedVisitor(self, False)
-        self._wherecorrelator = Select._CorrelatedVisitor(self, True)
-
+        self.__correlated = {}
+        self.__correlator = Select._CorrelatedVisitor(self, False)
+        self.__wherecorrelator = Select._CorrelatedVisitor(self, True)
 
         self.group_by(*(group_by or [None]))
         self.order_by(*(order_by or [None]))
@@ -1470,10 +1468,6 @@ class Select(_SelectBaseMixin, FromClause):
             
         for f in from_obj:
             self.append_from(f)
-    
-    def _foo(self):
-        raise "this is a temporary assertion while we refactor SQL to not call 'name' on non-table Selectables"    
-    name = property(lambda s:s._foo()) #"SELECT statement")
     
     class _CorrelatedVisitor(ClauseVisitor):
         """visits a clause, locates any Select clauses, and tells them that they should
@@ -1491,12 +1485,11 @@ class Select(_SelectBaseMixin, FromClause):
             if select is self.select:
                 return
             select.is_where = self.is_where
-            select.issubquery = True
+            select.is_subquery = True
             select.parens = True
-            if not select.correlate:
+            if not select.should_correlate:
                 return
-            if getattr(select, '_correlated', None) is None:
-                select._correlated = self.select._froms
+            [select.correlate(x) for x in self.select._Select__froms]
                 
     def append_column(self, column):
         if _is_literal(column):
@@ -1504,14 +1497,28 @@ class Select(_SelectBaseMixin, FromClause):
 
         self._raw_columns.append(column)
 
+        if self.is_scalar and not hasattr(self, 'type'):
+            self.type = column.type
+
         # if the column is a Select statement itself, 
         # accept visitor
-        column.accept_visitor(self._correlator)
+        column.accept_visitor(self.__correlator)
         
         # visit the FROM objects of the column looking for more Selects
         for f in column._get_from_objects():
-            f.accept_visitor(self._correlator)
-        column._process_from_dict(self._froms, False)
+            f.accept_visitor(self.__correlator)
+        self._process_froms(column, False)
+    def _make_proxy(self, selectable, name):
+        if self.is_scalar:
+            return self._raw_columns[0]._make_proxy(selectable, name)
+        else:
+            raise exceptions.InvalidRequestError("Not a scalar select statement")
+    def label(self, name):
+        if not self.is_scalar:
+            raise exceptions.InvalidRequestError("Not a scalar select statement")
+        else:
+            return label(name, self)
+            
     def _exportable_columns(self):
         return self._raw_columns
     def _proxy_column(self, column):
@@ -1519,6 +1526,15 @@ class Select(_SelectBaseMixin, FromClause):
             return column._make_proxy(self, name=column._label)
         else:
             return column._make_proxy(self, name=column.name)
+            
+    def _process_froms(self, elem, asfrom):
+        for f in elem._get_from_objects():
+            self.__froms.add(f)
+        if asfrom:
+            self.__froms.add(elem)
+        for f in elem._hide_froms():
+            self.__hide_froms.add(f)
+            
     def append_whereclause(self, whereclause):
         self._append_condition('whereclause', whereclause)
     def append_having(self, having):
@@ -1526,23 +1542,28 @@ class Select(_SelectBaseMixin, FromClause):
     def _append_condition(self, attribute, condition):
         if type(condition) == str:
             condition = _TextClause(condition)
-        condition.accept_visitor(self._wherecorrelator)
-        condition._process_from_dict(self._froms, False)
+        condition.accept_visitor(self.__wherecorrelator)
+        self._process_froms(condition, False)
         if getattr(self, attribute) is not None:
             setattr(self, attribute, and_(getattr(self, attribute), condition))
         else:
             setattr(self, attribute, condition)
-
-    def clear_from(self, from_obj):
-        self._froms[from_obj] = FromClause()
+    
+    def correlate(self, from_obj):
+        """given a FROM object, correlate this SELECT statement to it.  
+        
+        this basically means the given from object will not come out in this select statement's FROM 
+        clause when printed."""
+        self.__correlated[from_obj] = from_obj
         
     def append_from(self, fromclause):
         if type(fromclause) == str:
             fromclause = _TextClause(fromclause)
-        fromclause.accept_visitor(self._correlator)
-        fromclause._process_from_dict(self._froms, True)
+        fromclause.accept_visitor(self.__correlator)
+        self._process_froms(fromclause, True)
+        
     def _locate_oid_column(self):
-        for f in self._froms.values():
+        for f in self.__froms:
             if f is self:
                 # we might be in our own _froms list if a column with us as the parent is attached,
                 # which includes textual columns. 
@@ -1552,16 +1573,11 @@ class Select(_SelectBaseMixin, FromClause):
                 return oid
         else:
             return None
-    def _get_froms(self):
-        return [f for f in self._froms.values() if f is not self and (self._correlated is None or not self._correlated.has_key(f))]
-    froms = property(lambda s: s._get_froms())
+
+    froms = property(lambda self: self.__froms.difference(self.__hide_froms).difference(self.__correlated), doc="""a collection containing all elements of the FROM clause""")
 
     def accept_visitor(self, visitor):
-        # TODO: add contextual visit_ methods
-        # visit_select_whereclause, visit_select_froms, visit_select_orderby, etc.
-        # which will allow the compiler to set contextual flags before traversing 
-        # into each thing.  
-        for f in self._get_froms():
+        for f in self.froms:
             f.accept_visitor(visitor)
         if self.whereclause is not None:
             self.whereclause.accept_visitor(visitor)
@@ -1581,7 +1597,7 @@ class Select(_SelectBaseMixin, FromClause):
         
         if self._engine is not None:
             return self._engine
-        for f in self._froms.values():
+        for f in self.__froms:
             if f is self:
                 continue
             e = f.engine
@@ -1619,7 +1635,7 @@ class _UpdateBase(ClauseElement):
         for key in parameters.keys():
             value = parameters[key]
             if isinstance(value, Select):
-                value.clear_from(self.table)
+                value.correlate(self.table)
             elif _is_literal(value):
                 if _is_literal(key):
                     col = self.table.c[key]
@@ -1657,7 +1673,7 @@ class _Update(_UpdateBase):
         visitor.visit_update(self)
 
 class _Delete(_UpdateBase):
-    def __init__(self, table, whereclause, **params):
+    def __init__(self, table, whereclause):
         self.table = table
         self.whereclause = whereclause
 

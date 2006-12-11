@@ -18,8 +18,15 @@
 
 <div class="docheader">
 
+
 <h1>SQLAlchemy 0.3 Documentation</h1>
-<div class="">Version: 0.3.1   Last Updated: 11/12/06 18:46:51</div>
+
+<div class="multipage">
+<a href="index.html">Multiple Pages</a> |
+<a href="documentation.html">One Page</a>
+</div>
+
+<div class="">Version: 0.3.2   Last Updated: 12/10/06 12:24:21</div>
 </div>
 
 
@@ -150,7 +157,7 @@ Next: <a href="docstrings.html">Generated Documentation</a>
 
 <p><strong>Author:</strong>  Daniel Miller
 </p>
-<p>This plugin is used to instantiate and manage Session objects.  As of SQLAlchemy 0.2 it is the preferred way to provide thread-local session functionality to an application.  It provides several services:
+<p>This plugin is used to instantiate and manage Session objects.  It is the preferred way to provide thread-local session functionality to an application.  It provides several services:
 </p>
 <ul>
  <li>
@@ -414,7 +421,7 @@ Next: <a href="docstrings.html">Generated Documentation</a>
 </span>
 <span class="python_comment"># globally configure all Mappers to return SelectResults, using the "selectresults" mod
 </span><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">mods</span><span class="python_operator">.</span><span class="python_name">selectresults</span><span class="python_operator"></span></pre></div>
-<p>SelectResults greatly enhances querying and is highly recommended.  For example, heres an example of constructing a query using a combination of joins and outerjoins (requires 0.2.9 or above):
+<p>SelectResults greatly enhances querying and is highly recommended.  For example, heres an example of constructing a query using a combination of joins and outerjoins:
 </p>
 
 
@@ -634,7 +641,7 @@ Next: <a href="docstrings.html">Generated Documentation</a>
 
 <p><strong>Author:</strong>  Mike Bayer and Daniel Miller
 </p>
-<p><code>threadlocal</code> is an extension that was created primarily to provide backwards compatibility with the SQLAlchemy 0.1 series.  It uses three features which SQLAlchemy 0.2 and above provide as distinct features:  <code>SessionContext</code>, <code>assign_mapper</code>, and the <code>TLEngine</code>, which is the <code>Engine</code> used with the threadlocal <code>create_engine()</code> strategy.  It is <strong>strongly</strong> recommended that these three features are understood individually before using threadlocal.
+<p><code>threadlocal</code> is an extension that was created primarily to provide backwards compatibility with the older SQLAlchemy 0.1 series.  It uses three features which SQLAlchemy 0.2 and above provide as distinct features:  <code>SessionContext</code>, <code>assign_mapper</code>, and the <code>TLEngine</code>, which is the <code>Engine</code> used with the threadlocal <code>create_engine()</code> strategy.  It is <strong>strongly</strong> recommended that these three features are understood individually before using threadlocal.
 </p>
 <p>In SQLAlchemy 0.1, users never dealt with explcit connections and didn't have a very explicit <code>Session</code> interface, instead relying upon a more magical global object called <code>objectstore</code>.  The <code>objectstore</code> idea was wildly popular with about half of SA's users, and completely unpopular with the other half.  The threadlocal mod basically brings back <code>objectstore</code>, which is in fact just a <code>SessionContext</code> where you can call <code>Session</code> methods directly off of it, instead of saying <code>context.current</code>.  For <code>threadlocal</code> to faithfully produce 0.1 behavior, it is invoked as a <em>mod</em> which globally installs the objectstore's mapper extension, such that all <code>Mapper</code>s will automatically assign all new instances of mapped classes to the objectstore's contextual <code>Session</code>.  Additionally, it also changes the default engine strategy used by <code>create_engine</code> to be the "threadlocal" strategy, which in normal practice does not affect much. 
 </p>

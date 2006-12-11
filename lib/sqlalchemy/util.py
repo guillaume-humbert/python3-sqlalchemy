@@ -93,39 +93,40 @@ class OrderedProperties(object):
     no append or extend.)
     """
     def __init__(self):
-        self.__dict__['_OrderedProperties__data'] = OrderedDict()
+        self.__dict__['_data'] = OrderedDict()
     def __len__(self):
-        return len(self.__data)
+        return len(self._data)
     def __iter__(self):
-        return self.__data.itervalues()
+        return self._data.itervalues()
     def __add__(self, other):
         return list(self) + list(other)
     def __setitem__(self, key, object):
-        self.__data[key] = object
+        self._data[key] = object
     def __getitem__(self, key):
-        return self.__data[key]
+        return self._data[key]
     def __delitem__(self, key):
-        del self.__data[key]
+        del self._data[key]
     def __setattr__(self, key, object):
-        self.__data[key] = object
+        self._data[key] = object
+    _data = property(lambda s:s.__dict__['_data'])
     def __getattr__(self, key):
         try:
-            return self.__data[key]
+            return self._data[key]
         except KeyError:
             raise AttributeError(key)
     def __contains__(self, key):
-        return key in self.__data
+        return key in self._data
     def get(self, key, default=None):
         if self.has_key(key):
             return self[key]
         else:
             return default
     def keys(self):
-        return self.__data.keys()
+        return self._data.keys()
     def has_key(self, key):
-        return self.__data.has_key(key)
+        return self._data.has_key(key)
     def clear(self):
-        self.__data.clear()
+        self._data.clear()
         
 class OrderedDict(dict):
     """A Dictionary that returns keys/values/items in the order they were added"""
@@ -259,43 +260,3 @@ class ScopedRegistry(object):
         return self.scopefunc()
 
 
-def constructor_args(instance, **kwargs):
-    """given an object instance and keyword arguments, inspects the 
-    argument signature of the instance's __init__ method and returns 
-    a tuple of list and keyword arguments, suitable for creating a new
-    instance of the class.  The returned arguments are drawn from the
-    given keyword dictionary, or if not found are drawn from the 
-    corresponding attributes of the original instance."""
-    classobj = instance.__class__
-        
-    argspec = inspect.getargspec(classobj.__init__.im_func)
-
-    argnames = argspec[0] or []
-    defaultvalues = argspec[3] or []
-
-    (requiredargs, namedargs) = (
-            argnames[0:len(argnames) - len(defaultvalues)], 
-            argnames[len(argnames) - len(defaultvalues):]
-            )
-
-    newparams = {}
-
-    for arg in requiredargs:
-        if arg == 'self': 
-            continue
-        elif kwargs.has_key(arg):
-            newparams[arg] = kwargs[arg]
-        else:
-            newparams[arg] = getattr(instance, arg)
-
-    for arg in namedargs:
-        if kwargs.has_key(arg):
-            newparams[arg] = kwargs[arg]
-        else:
-            if hasattr(instance, arg):
-                newparams[arg] = getattr(instance, arg)
-            else:
-                raise AssertionError("instance has no attribute '%s'" % arg)
-
-    return newparams
-    

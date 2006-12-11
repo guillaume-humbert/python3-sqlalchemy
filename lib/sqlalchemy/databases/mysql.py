@@ -29,7 +29,10 @@ class MSNumeric(sqltypes.Numeric):
         self.zerofill = 'zerofill' in kw
         super(MSNumeric, self).__init__(precision, length)
     def get_col_spec(self):
-        return kw_colspec(self, "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length})
+        if self.precision is None:
+            return kw_colspec(self, "NUMERIC")
+        else:
+            return kw_colspec(self, "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length})
 class MSDecimal(MSNumeric):
     def get_col_spec(self):
         if self.precision is not None and self.length is not None:
@@ -204,6 +207,7 @@ colspecs = {
 }
 
 ischema_names = {
+    'boolean':MSBoolean,
     'bigint' : MSBigInteger,
     'int' : MSInteger,
     'mediumint' : MSInteger,
@@ -289,6 +293,22 @@ class MySQLDialect(ansisql.ANSIDialect):
     def preparer(self):
         return MySQLIdentifierPreparer(self)
 
+    def do_executemany(self, cursor, statement, parameters, **kwargs):
+        try:
+            cursor.executemany(statement, parameters)
+        except mysql.OperationalError, o:
+            if o.args[0] == 2006 or o.args[0] == 2014:
+                cursor.invalidate()
+                raise o
+    def do_execute(self, cursor, statement, parameters, **kwargs):
+        try:
+            cursor.execute(statement, parameters)
+        except mysql.OperationalError, o:
+            if o.args[0] == 2006 or o.args[0] == 2014:
+                cursor.invalidate()
+                raise o
+            
+
     def do_rollback(self, connection):
         # some versions of MySQL just dont support rollback() at all....
         try:
@@ -315,7 +335,7 @@ class MySQLDialect(ansisql.ANSIDialect):
             table.name = table.name.lower()
             table.metadata.tables[table.name]= table
         try:
-            c = connection.execute("describe " + table.name, {})
+            c = connection.execute("describe " + table.fullname, {})
         except:
             raise exceptions.NoSuchTableError(table.name)
         found_table = False
@@ -376,7 +396,7 @@ class MySQLDialect(ansisql.ANSIDialect):
         KEY `par_ind` (`parent_id`),
         CONSTRAINT `child_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `parent` (`id`) ON DELETE CASCADE\n) TYPE=InnoDB
         """
-        c = connection.execute("SHOW CREATE TABLE " + table.name, {})
+        c = connection.execute("SHOW CREATE TABLE " + table.fullname, {})
         desc_fetched = c.fetchone()[1]
 
         # this can come back as unicode if use_unicode=1 in the mysql connection

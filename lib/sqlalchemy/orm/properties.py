@@ -68,7 +68,7 @@ mapper.ColumnProperty = ColumnProperty
 class PropertyLoader(StrategizedProperty):
     """describes an object property that holds a single item or list of items that correspond
     to a related database table."""
-    def __init__(self, argument, secondary, primaryjoin, secondaryjoin, foreignkey=None, uselist=None, private=False, association=None, order_by=False, attributeext=None, backref=None, is_backref=False, post_update=False, cascade=None, viewonly=False, lazy=True, collection_class=None, passive_deletes=False):
+    def __init__(self, argument, secondary, primaryjoin, secondaryjoin, foreignkey=None, uselist=None, private=False, association=None, order_by=False, attributeext=None, backref=None, is_backref=False, post_update=False, cascade=None, viewonly=False, lazy=True, collection_class=None, passive_deletes=False, remote_side=None):
         self.uselist = uselist
         self.argument = argument
         self.secondary = secondary
@@ -81,6 +81,7 @@ class PropertyLoader(StrategizedProperty):
         self.foreignkey = util.to_set(foreignkey)
         self.collection_class = collection_class
         self.passive_deletes = passive_deletes
+        self.remote_side = util.to_set(remote_side)
         
         if cascade is not None:
             self.cascade = mapperutil.CascadeOptions(cascade)
@@ -118,7 +119,7 @@ class PropertyLoader(StrategizedProperty):
     def __str__(self):
         return self.__class__.__name__ + " " + str(self.parent) + "->" + self.key + "->" + str(self.mapper)
         
-    def cascade_iterator(self, type, object, recursive):
+    def cascade_iterator(self, type, object, recursive, halt_on=None):
         if not type in self.cascade:
             return
         passive = type != 'delete' or self.passive_deletes
@@ -127,7 +128,7 @@ class PropertyLoader(StrategizedProperty):
             return
         mapper = self.mapper.primary_mapper()
         for c in childlist.added_items() + childlist.deleted_items() + childlist.unchanged_items():
-            if c is not None and c not in recursive:
+            if c is not None and c not in recursive and (halt_on is None or not halt_on(c)):
                 if not isinstance(c, self.mapper.class_):
                     raise exceptions.AssertionError("Attribute '%s' on class '%s' doesn't handle objects of type '%s'" % (self.key, str(self.parent.class_), str(c.__class__)))
                 recursive.add(c)
@@ -135,14 +136,14 @@ class PropertyLoader(StrategizedProperty):
                 for c2 in mapper.cascade_iterator(type, c, recursive):
                     yield c2
 
-    def cascade_callable(self, type, object, callable_, recursive):
+    def cascade_callable(self, type, object, callable_, recursive, halt_on=None):
         if not type in self.cascade:
             return
         
         mapper = self.mapper.primary_mapper()
         passive = type != 'delete' or self.passive_deletes
         for c in sessionlib.attribute_manager.get_as_list(object, self.key, passive=passive):
-            if c is not None and c not in recursive:
+            if c is not None and c not in recursive and (halt_on is None or not halt_on(c)):
                 if not isinstance(c, self.mapper.class_):
                     raise exceptions.AssertionError("Attribute '%s' on class '%s' doesn't handle objects of type '%s'" % (self.key, str(self.parent.class_), str(c.__class__)))
                 recursive.add(c)
@@ -238,11 +239,18 @@ class PropertyLoader(StrategizedProperty):
             # for a self referential mapper, if the "foreignkey" is a single or composite primary key,
             # then we are "many to one", since the remote site of the relationship identifies a singular entity.
             # otherwise we are "one to many".
-            for f in self.foreignkey:
-                if not f.primary_key:
-                    return sync.ONETOMANY
+            if self.remote_side is not None and len(self.remote_side):
+                for f in self.foreignkey:
+                    if f in self.remote_side:
+                        return sync.ONETOMANY
+                else:
+                    return sync.MANYTOONE
             else:
-                return sync.MANYTOONE
+                for f in self.foreignkey:
+                    if not f.primary_key:
+                        return sync.ONETOMANY
+                else:
+                    return sync.MANYTOONE
         elif len([c for c in self.foreignkey if self.mapper.unjoined_table.corresponding_column(c, False) is not None]):
             return sync.ONETOMANY
         elif len([c for c in self.foreignkey if self.parent.unjoined_table.corresponding_column(c, False) is not None]):
@@ -298,6 +306,8 @@ class BackRef(object):
             sj = self.kwargs.pop('secondaryjoin', None)
             # the backref property is set on the primary mapper
             parent = prop.parent.primary_mapper()
+            self.kwargs.setdefault('viewonly', prop.viewonly)
+            self.kwargs.setdefault('post_update', prop.post_update)
             relation = PropertyLoader(parent, prop.secondary, pj, sj, backref=prop.key, is_backref=True, **self.kwargs)
             mapper._compile_property(self.key, relation);
         elif not isinstance(mapper.props[self.key], PropertyLoader):

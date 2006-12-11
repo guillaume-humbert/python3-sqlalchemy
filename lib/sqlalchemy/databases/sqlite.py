@@ -27,7 +27,10 @@ except ImportError:
 
 class SLNumeric(sqltypes.Numeric):
     def get_col_spec(self):
-        return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
+        if self.precision is None:
+            return "NUMERIC"
+        else:
+            return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
 class SLInteger(sqltypes.Integer):
     def get_col_spec(self):
         return "INTEGER"
@@ -43,7 +46,6 @@ class DateTimeMixin(object):
     def _cvt(self, value, dialect, fmt):
         if value is None:
             return None
-        parts = value.split('.')
         try:
             (value, microsecond) = value.split('.')
             microsecond = int(microsecond)
