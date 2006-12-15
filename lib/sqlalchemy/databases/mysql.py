@@ -13,6 +13,7 @@ import sqlalchemy.exceptions as exceptions
 
 try:
     import MySQLdb as mysql
+    import MySQLdb.constants.CLIENT as CLIENT_FLAGS
 except:
     mysql = None
 
@@ -270,6 +271,11 @@ class MySQLDialect(ansisql.ANSIDialect):
         coercetype('use_unicode', bool)   # this could break SA Unicode type
         coercetype('charset', str)        # this could break SA Unicode type
         # TODO: what about options like "ssl", "cursorclass" and "conv" ?
+
+        client_flag = opts.get('client_flag', 0)
+        client_flag |= CLIENT_FLAGS.FOUND_ROWS
+        opts['client_flag'] = client_flag
+
         return [[], opts]
 
     def create_execution_context(self):
@@ -279,7 +285,7 @@ class MySQLDialect(ansisql.ANSIDialect):
         return sqltypes.adapt_type(typeobj, colspecs)
 
     def supports_sane_rowcount(self):
-        return False
+        return True
 
     def compiler(self, statement, bindparams, **kwargs):
         return MySQLCompiler(self, statement, bindparams, **kwargs)
@@ -293,24 +299,26 @@ class MySQLDialect(ansisql.ANSIDialect):
     def preparer(self):
         return MySQLIdentifierPreparer(self)
 
-    def do_executemany(self, cursor, statement, parameters, **kwargs):
+    def do_executemany(self, cursor, statement, parameters, context=None, **kwargs):
         try:
-            cursor.executemany(statement, parameters)
+            rowcount = cursor.executemany(statement, parameters)
+            if context is not None:
+                context._rowcount = rowcount
         except mysql.OperationalError, o:
             if o.args[0] == 2006 or o.args[0] == 2014:
                 cursor.invalidate()
-                raise o
+            raise o
     def do_execute(self, cursor, statement, parameters, **kwargs):
         try:
             cursor.execute(statement, parameters)
         except mysql.OperationalError, o:
             if o.args[0] == 2006 or o.args[0] == 2014:
                 cursor.invalidate()
-                raise o
+            raise o
             
 
     def do_rollback(self, connection):
-        # some versions of MySQL just dont support rollback() at all....
+        # MySQL without InnoDB doesnt support rollback()
         try:
             connection.rollback()
         except:

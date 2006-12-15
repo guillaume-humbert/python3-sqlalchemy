@@ -1,3 +1,9 @@
+sqlalchemy (0.3.3-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Piotr Ozarowski <ozarow@gmail.com>  Fri, 15 Dec 2006 15:36:00 +0100
+
 sqlalchemy (0.3.2-1) experimental; urgency=low
 
   * New upstream release

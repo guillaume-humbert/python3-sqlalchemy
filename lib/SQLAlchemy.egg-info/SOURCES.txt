@@ -61,6 +61,7 @@ examples/adjacencytree/byroot_tree.py
 examples/association/basic_association.py
 examples/association/proxied_association.py
 examples/backref/backref_tree.py
+examples/collections/large_collection.py
 examples/graphs/graph1.py
 examples/pickle/custom_pickler.py
 examples/polymorph/concrete.py
@@ -190,6 +191,7 @@ test/sql/constraints.py
 test/sql/defaults.py
 test/sql/query.py
 test/sql/quote.py
+test/sql/rowcount.py
 test/sql/select.py
 test/sql/selectable.py
 test/sql/testtypes.py
