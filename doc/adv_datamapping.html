@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.3   Last Updated: 12/15/06 01:53:03</div>
+<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
 </div>
 
 
@@ -194,7 +194,7 @@ Next: <a href="types.html">The Types System</a>
 
     
         
-        <li><A style="" href="adv_datamapping.html#advdatamapping_recursive">Self Referential Mappers</a></li>
+        <li><A style="" href="adv_datamapping.html#advdatamapping_selfreferential">Self Referential Mappers</a></li>
     
     <ul class="small_toc_list">
     </ul>
@@ -204,11 +204,19 @@ Next: <a href="types.html">The Types System</a>
         <li><A style="" href="adv_datamapping.html#advdatamapping_resultset">Result-Set Mapping</a></li>
     
     <ul class="small_toc_list">
+        
+        
+    <li><A href="adv_datamapping.html#advdatamapping_resultset_combining">Combining Eager Loads with Result Set Mappings</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
     </ul>
 
     
         
-        <li><A style="" href="adv_datamapping.html#advdatamapping_arguments">Mapper Arguments</a></li>
+        <li><A style="" href="adv_datamapping.html#advdatamapping_mapperoptions">Mapper Options</a></li>
     
     <ul class="small_toc_list">
     </ul>
@@ -355,7 +363,7 @@ Next: <a href="types.html">The Types System</a>
 <pre><span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">def </span><span class="python_name">_set_email</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">email</span><span class="python_enclosure">)</span><span class="python_operator">:
        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_email </span><span class="python_operator">= </span><span class="python_name">email</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">_get_email</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">email</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">def </span><span class="python_name">_get_email</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
        </span><span class="python_keyword">return </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_email</span><span class="python_operator">
     </span><span class="python_name">email </span><span class="python_operator">= </span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_name">_get_email</span><span class="python_operator">, </span><span class="python_name">_set_email</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
@@ -372,7 +380,7 @@ Next: <a href="types.html">The Types System</a>
 <pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
     <span class="python_comment"># map the '_email' attribute to the "email" column</span>
     <span class="python_comment"># on the table</span>
-    <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span>
+    <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span><span class="python_operator">,</span>
 
     <span class="python_comment"># make a synonym 'email'</span>
     <span class="python_literal">'email' </span><span class="python_operator">: </span><span class="python_name">synonym</span><span class="python_enclosure">(</span><span class="python_literal">'_email'</span><span class="python_enclosure">)</span>
@@ -380,7 +388,7 @@ Next: <a href="types.html">The Types System</a>
 </span>
 <span class="python_comment"># now you can select_by(email)
 </span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'john@smith.com'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>Synonym can be established with the flag "proxy=True", to create a class-level proxy to the actual property:
+<p>Synonym can be established with the flag "proxy=True", to create a class-level proxy to the actual property.  This has the effect of creating a fully functional synonym on class instances:
 </p>
 
 
@@ -395,8 +403,6 @@ Next: <a href="types.html">The Types System</a>
 </span>
 <span class="python_literal">>>> </span><span class="python_name">x</span><span class="python_operator">.</span><span class="python_name">_email</span><span class="python_operator">
 </span><span class="python_literal">'john@doe.com'</span><span class="python_operator"></span></pre></div>
-<p>The <code>synonym</code> keyword is currently an <a href='javascript:alphaApi()'>Alpha Feature</a>.
-</p>
 
 
     </div>
@@ -473,8 +479,7 @@ Next: <a href="types.html">The Types System</a>
     <div class="sectiontext">
     
 
-<pre><code>
-</code></pre><p>When creating relations on a mapper, most examples so far have illustrated the mapper and relationship joining up based on the foreign keys of the tables they represent.  in fact, this "automatic" inspection can be completely circumvented using the <code>primaryjoin</code> and <code>secondaryjoin</code> arguments to <code>relation</code>, as in this example which creates a User object which has a relationship to all of its Addresses which are in Boston:
+<p>When creating relations on a mapper, most examples so far have illustrated the mapper and relationship joining up based on the foreign keys of the tables they represent.  in fact, this "automatic" inspection can be completely circumvented using the <code>primaryjoin</code> and <code>secondaryjoin</code> arguments to <code>relation</code>, as in this example which creates a User object which has a relationship to all of its Addresses which are in Boston:
 </p>
 
 
@@ -611,6 +616,14 @@ Next: <a href="types.html">The Types System</a>
     <span class="python_literal">'photo2' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">photo2</span><span class="python_operator">, </span><span class="python_name">group</span><span class="python_operator">=</span><span class="python_literal">'photos'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_literal">'photo3' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">photo3</span><span class="python_operator">, </span><span class="python_name">group</span><span class="python_operator">=</span><span class="python_literal">'photos'</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+<p>You can defer or undefer columns at the <code>Query</code> level with the <code>options</code> method:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Book</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">defer</span><span class="python_enclosure">(</span><span class="python_literal">'summary'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">undefer</span><span class="python_enclosure">(</span><span class="python_literal">'excerpt'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
 
 
     </div>
@@ -631,7 +644,7 @@ Next: <a href="types.html">The Types System</a>
     <div class="sectiontext">
     
 
-<p>SQLAlchemy relations are generally simplistic; the lazy loader loads in the full list of child objects when accessed, and the eager load builds a query that loads the full list of child objects.  Additionally, when you are deleting a parent object, SQLAlchemy insures that it has loaded the full list of child objects so that it can mark them as deleted as well (or to update their parent foreign key to NULL).  It does not issue an en-masse "delete from table where parent_id=?" type of statement in such a scenario.  This is because the child objects themselves may also have further dependencies, and additionally may also exist in the current session in which case SA needs to know their identity so that their state can be properly updated.
+<p>SQLAlchemy relations are generally simplistic; the lazy loader loads in the full list of child objects when accessed, and the eager load builds a query that loads the full list of child objects.  Additionally, when you are deleting a parent object, SQLAlchemy ensures that it has loaded the full list of child objects so that it can mark them as deleted as well (or to update their parent foreign key to NULL).  It does not issue an en-masse "delete from table where parent_id=?" type of statement in such a scenario.  This is because the child objects themselves may also have further dependencies, and additionally may also exist in the current session in which case SA needs to know their identity so that their state can be properly updated.
 </p>
 <p>So there are several techniques that can be used individually or combined together to address these issues, in the context of a large collection where you normally would not want to load the full list of relationships:
 </p>
@@ -642,7 +655,7 @@ Next: <a href="types.html">The Types System</a>
 
 <div class="sliding_code">
 <pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_name">relation</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'children'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyObj</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span>
+    <span class="python_literal">'children'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
 
  </li>
@@ -661,25 +674,30 @@ Next: <a href="types.html">The Types System</a>
 
  </li>
 
- <li><p>Use <code>passive_updates=True</code> to disable child object loading on a DELETE operation (noload also accomplishes this)
-</p>
-
- </li>
-
- <li><p>Use "ON DELETE (CASCADE|SET NULL)" on your database to automatically cascade deletes to child objects (this is the best way to do it)
+ <li><p>Use <code>passive_deletes=True</code> to disable child object loading on a DELETE operation, in conjunction with "ON DELETE (CASCADE|SET NULL)" on your database to automatically cascade deletes to child objects.   Note that "ON DELETE" is not supported on SQLite, and requires <code>InnoDB</code> tables when using MySQL:
 </p>
 
 
 <div class="sliding_code">
-<pre><span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'sometable'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+<pre><span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'mytable'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">myothertable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'myothertable'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'parent_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-    <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'parent_id'</span><span class="python_enclosure">]</span><span class="python_operator">,</span><span class="python_enclosure">[</span><span class="python_literal">'parenttable.id'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">ondelete</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+    <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'parent_id'</span><span class="python_enclosure">]</span><span class="python_operator">,</span><span class="python_enclosure">[</span><span class="python_literal">'mytable.id'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">ondelete</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">mmapper</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">myothertable</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'children'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">passive_deletes</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
 
  </li>
 
- <li><p>Alternatively, you can create a simple <code>MapperExtension</code> that will issue a DELETE for child objects:
+ <li><p>As an alternative to using "ON DELETE CASCADE", for very simple scenarios you can create a simple <code>MapperExtension</code> that will issue a DELETE for child objects before the parent object is deleted:
 </p>
 
 
@@ -694,6 +712,8 @@ Next: <a href="types.html">The Types System</a>
 
  </li>
 </ul>
+<p>Note that this approach is not nearly as efficient or general-purpose as "ON DELETE CASCADE", since the database itself can cascade the operation along any number of tables.
+</p>
 <p>The latest distribution includes an example <code>examples/collection/large_collection.py</code> which illustrates most of these techniques.    <br></br>
 </p>
 
@@ -716,71 +736,71 @@ Next: <a href="types.html">The Types System</a>
     <div class="sectiontext">
     
 
-<p>Keyword options to the <code>relation</code> function include:
+<p>Options which can be sent to the <code>relation()</code> function.  For arguments to <code>mapper()</code>, see <a href="adv_datamapping.html#advdatamapping_mapperoptions">Mapper Options</a>.
 </p>
 <ul>
  <li>
-     lazy=(True|False|None) - specifies how the related items should be loaded.  a value of True indicates they should be loaded when the property is first accessed.  A value of False indicates they should be loaded by joining against the parent object query, so parent and child are loaded in one round trip.  A value of None indicates the related items are not loaded by the mapper in any case; the application will manually insert items into the list in some other way.  A relationship with lazy=None is still important; items added to the list or removed will cause the appropriate updates and deletes upon flush().  Future capabilities for lazy might also include "lazy='extra'", which would allow lazy loading of child elements one at a time, for very large collections.
+     <strong>association</strong> - Deprecated; as of version 0.3.0 the association keyword is synonomous with applying the "all, delete-orphan" cascade to a "one-to-many" relationship.  SA can now automatically reconcile a "delete" and "insert" operation of two objects with the same "identity" in a flush() operation into a single "update" statement, which is the pattern that "association" used to indicate.  See the updated example of association mappings in <a href="datamapping.html#datamapping_association">Association Object</a>.
  </li>
 
  <li>
-     cascade - a string list of <strong>cascade rules</strong> which determines how persistence operations should be "cascaded" from parent to child.  For a description of cascade rules, see <a href="datamapping.html#datamapping_relations_lifecycle">datamapping_relations_cycle</a> and <a href="unitofwork.html#unitofwork_cascade">Cascade rules</a>.
+     <strong>backref</strong> - indicates the name of a property to be placed on the related mapper's class that will handle this relationship in the other direction, including synchronizing the object attributes on both sides of the relation.  Can also point to a <code>backref()</code> construct for more configurability.  See <a href="datamapping.html#datamapping_relations_backreferences">Backreferences</a>.
  </li>
 
  <li>
-     secondary - for a many-to-many relationship, specifies the intermediary table.
+     <strong>cascade</strong> - a string list of cascade rules which determines how persistence operations should be "cascaded" from parent to child. For a description of cascade rules, see <a href="datamapping.html#datamapping_relations_lifecycle">Lifecycle Relations</a> and <a href="unitofwork.html#unitofwork_cascade">Cascade rules</a>.
  </li>
 
  <li>
-     primaryjoin - a ClauseElement that will be used as the primary join of this child object against the parent object, or in a many-to-many relationship the join of the primary object to the association table.  By default, this value is computed based on the foreign key relationships of the parent and child tables (or association table).
+     <strong>collection_class</strong> - a class or function that returns a new list-holding object.  will be used in place of a plain list for storing elements.  See <a href="adv_datamapping.html#advdatamapping_properties_customlist">Custom List Classes</a>.
  </li>
 
  <li>
-     secondaryjoin - a ClauseElement that will be used as the join of an association table to the child object.  By default, this value is computed based on the foreign key relationships of the association and child tables.
+     <strong>foreignkey</strong> - deprecated for most uses.  As of 0.3.2, use <code>remote_side</code> to indicate the direction of self-referential relationships.  For <code>ForeignKey</code> specification, this field is only partially functional (i.e. does not work for many-to-many relationships), but is needed in rare cases when both sides of the primaryjoin condition contain foreign keys to either side of the relationship, and <code>relation()</code> cannot determine which side of the relationship is "foreign".  a new field <code>foreign_keys</code> will be added in a future release to fully implement this functionality.
  </li>
 
  <li>
-     remote_side - used for self-referential relationships, indicates the column or list of columns that form the "remote side" of the relationship.
+     <strong>lazy=True</strong> - specifies how the related items should be loaded.  a value of True indicates they should be loaded lazily when the property is first accessed.  A value of False indicates they should be loaded by joining against the parent object query, so parent and child are loaded in one round trip (i.e. eagerly).  A value of None indicates the related items are not loaded by the mapper in any case; the application will manually insert items into the list in some other way.  In all cases, items added or removed to the parent object's collection (or scalar attribute) will cause the appropriate updates and deletes upon flush(),  i.e. this option only affects load operations, not save operations.  <br></br>
  </li>
 
  <li>
-     foreignkey - deprecated.  As of 0.3.2, use remote_side to indicate the direction of self-referential relationships.  For ForeignKey specification, this field is only partially functional (i.e. does not work for many-to-many relationships).  a new field "foreign_keys" will be added in a future release to implement this functionality.
+     <strong>order_by</strong> - indicates the ordering that should be applied when loading these items.  See the section <a href="adv_datamapping.html#advdatamapping_orderby">Controlling Ordering</a> for details.
  </li>
 
  <li>
-     uselist - a boolean that indicates if this property should be loaded as a list or a scalar.  In most cases, this value is determined based on the type and direction of the relationship - one to many forms a list, many to one forms a scalar, many to many is a list.  If a scalar is desired where normally a list would be present, such as a bi-directional one-to-one relationship, set uselist to False.
+     <strong>passive_deletes=False</strong> - Indicates if lazy-loaders should not be executed during the <code>flush()</code> process, which normally occurs in order to locate all existing child items when a parent item is to be deleted.  Setting this flag to True is appropriate when <code>ON DELETE CASCADE</code> rules have been set up on the actual tables so that the database may handle cascading deletes automatically.  This strategy is useful particularly for handling the deletion of objects that have very large (and/or deep) child-object collections.  See the example in <a href="adv_datamapping.html#advdatamapping_properties_working">Working with Large Collections</a>.
  </li>
 
  <li>
-     private - setting <code>private=True</code> is the equivalent of setting <code>cascade="all, delete-orphan"</code>, and indicates the lifecycle of child objects should be contained within that of the parent.   See the example in <a href="datamapping.html#datamapping_relations_lifecycle">datamapping_relations_cycle</a>.
+     <strong>post_update</strong> - this indicates that the relationship should be handled by a second UPDATE statement after an INSERT or before a DELETE.  Currently, it also will issue an UPDATE after the instance was UPDATEd as well, although this technically should be improved.  This flag is used to handle saving bi-directional dependencies between two individual rows (i.e. each row references the other), where it would otherwise be impossible to INSERT or DELETE both rows fully since one row exists before the other.  Use this flag when a particular mapping arrangement will incur two rows that are dependent on each other, such as a table that has a one-to-many relationship to a set of child rows, and also has a column that references a single child row within that list (i.e. both tables contain a foreign key to each other).  If a <code>flush()</code> operation returns an error that a "cyclical dependency" was detected, this is a cue that you might want to use <code>post_update</code> to "break" the cycle.
  </li>
 
  <li>
-     backref - indicates the name of a property to be placed on the related mapper's class that will handle this relationship in the other direction, including synchronizing the object attributes on both sides of the relation.  Can also point to a <code>backref()</code> construct for more configurability.  See <a href="datamapping.html#datamapping_relations_backreferences">Backreferences</a>.
+     <strong>primaryjoin</strong> - a ClauseElement that will be used as the primary join of this child object against the parent object, or in a many-to-many relationship the join of the primary object to the association table.  By default, this value is computed based on the foreign key relationships of the parent and child tables (or association table).
  </li>
 
  <li>
-     order_by - indicates the ordering that should be applied when loading these items.  See the section <a href="adv_datamapping.html#advdatamapping_orderby">Controlling Ordering</a> for details.
+     <strong>private=False</strong> - deprecated.  setting <code>private=True</code> is the equivalent of setting <code>cascade="all, delete-orphan"</code>, and indicates the lifecycle of child objects should be contained within that of the parent.   See the example in <a href="datamapping.html#datamapping_relations_lifecycle">Lifecycle Relations</a>.
  </li>
 
  <li>
-     association - Deprecated; as of version 0.3.0 the association keyword is synonomous with applying the "all, delete-orphan" cascade to a "one-to-many" relationship.  SA can now automatically reconcile a "delete" and "insert" operation of two objects with the same "identity" in a flush() operation into a single "update" statement, which is the pattern that "association" used to indicate.  See the updated example of association mappings in <a href="datamapping.html#datamapping_association">Association Object</a>.
+     <strong>remote_side</strong> - used for self-referential relationships, indicates the column or list of columns that form the "remote side" of the relationship.  See the examples in <a href="adv_datamapping.html#advdatamapping_selfreferential">Self Referential Mappers</a>.
  </li>
 
  <li>
-     post_update - this indicates that the relationship should be handled by a second UPDATE statement after an INSERT, or before a DELETE.  using this flag essentially means the relationship will not incur any "dependency" between parent and child item, as the particular foreign key relationship between them is handled by a second statement.  use this flag when a particular mapping arrangement will incur two rows that are dependent on each other, such as a table that has a one-to-many relationship to a set of child rows, and also has a column that references a single child row within that list (i.e. both tables contain a foreign key to each other).  If a flush() operation returns an error that a "cyclical dependency" was detected, this is a cue that you might want to use post_update.
+     <strong>secondary</strong> - for a many-to-many relationship, specifies the intermediary table.  The <code>secondary</code> keyword argument should generally only be used for a table that is not otherwise expressed in any class mapping.  In particular, using the <a href="datamapping.html#datamapping_association">Association Object Pattern</a> is generally mutually exclusive against using the <code>secondary</code> keyword argument.
  </li>
 
  <li>
-     viewonly=(True|False) - when set to True, the relation is used only for loading objects within the relationship, and has no effect on the unit-of-work flush process.  relations with viewonly can specify any kind of join conditions to provide additional views of related objects onto a parent object.
+     <strong>secondaryjoin</strong> - a ClauseElement that will be used as the join of an association table to the child object.  By default, this value is computed based on the foreign key relationships of the association and child tables.
  </li>
 
  <li>
-     collection_class = None - a class or function that returns a new list-holding object.  will be used in place of a plain list for storing elements.
+     <strong>uselist=(True|False)</strong> - a boolean that indicates if this property should be loaded as a list or a scalar.  In most cases, this value is determined automatically by <code>relation()</code>, based on the type and direction of the relationship - one to many forms a list, many to one forms a scalar, many to many is a list.  If a scalar is desired where normally a list would be present, such as a bi-directional one-to-one relationship, set uselist to False.
  </li>
 
  <li>
-     passive_deletes = False - if False, child instances will be loaded from the database into the current session when a parent instance is deleted so that delete cascade can be processed on those child instances, even if they were not loaded already.  When set to True, lazy loaders will not be fired off in order to process a "delete" cascade, which is appropriate if "ON DELETE" rules have been set up on the database tables themselves.
+     <strong>viewonly=False</strong> - when set to True, the relation is used only for loading objects within the relationship, and has no effect on the unit-of-work flush process.  Relations with viewonly can specify any kind of join conditions to provide additional views of related objects onto a parent object.  Note that the functionality of a viewonly relationship has its limits - complicated join conditions may not compile into eager or lazy loaders properly.  If this is the case, use an alternative method, such as those described in <a href="adv_datamapping.html#advdatamapping_properties_working">Working with Large Collections</a>, <a href="adv_datamapping.html#advdatamapping_resultset">Result-Set Mapping</a>, or <a href="adv_datamapping.html#advdatamapping_selects">Mapping a Class against Arbitary Selects</a>.
  </li>
 </ul>
 
@@ -1300,7 +1320,7 @@ Next: <a href="types.html">The Types System</a>
 
 
 
-<A name="advdatamapping_recursive"></a>
+<A name="advdatamapping_selfreferential"></a>
 
 <div class="subsection" style="margin-left:20px;">
 
@@ -1335,15 +1355,7 @@ Next: <a href="types.html">The Types System</a>
                         <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all"</span>
                      <span class="python_enclosure">)</span><span class="python_operator">,</span>
         <span class="python_enclosure">}</span>
-    <span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># or, specify the circular relationship after establishing the original mapper:
-</span><span class="python_name">mymapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">TreeNode</span><span class="python_operator">, </span><span class="python_name">trees</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_name">mymapper</span><span class="python_operator">.</span><span class="python_name">add_property</span><span class="python_enclosure">(</span><span class="python_literal">'children'</span><span class="python_operator">, </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
-                        <span class="python_name">mymapper</span><span class="python_operator">, </span>
-                        <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all"</span>
-                     <span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 <p>This kind of mapper goes through a lot of extra effort when saving and deleting items, to determine the correct dependency graph of nodes within the tree.
 </p>
 <p>A self-referential mapper where there is more than one relationship on the table requires that all join conditions be explicitly spelled out.  Below is a self-referring table that contains a "parent_node_id" column to reference parent/child relationships, and a "root_node_id" column which points child nodes back to the ultimate root node:
@@ -1425,7 +1437,8 @@ Next: <a href="types.html">The Types System</a>
 <span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># select users and addresses in one query
-</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
+# use_labels is so that the user_id column in both tables are distinguished
+</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># execute it, and process the results with the User mapper, chained to the Address mapper
 </span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_name">class_mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">))</span><span class="python_operator">
@@ -1436,6 +1449,70 @@ Next: <a href="types.html">The Types System</a>
     </span><span class="python_name">address </span><span class="python_operator">= </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre></div>
 
 
+
+<A name="advdatamapping_resultset_combining"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Combining Eager Loads with Result Set Mappings</h3>
+
+    <div class="sectiontext">
+    
+
+<p>When result-set mapping is used with a particular Mapper, SQLAlchemy has no access to the query being used and therefore has no way of tacking on its own <code>LEFT OUTER JOIN</code> conditions that are normally used to eager load relationships.  If the query being constructed is created in such a way that it returns rows not just from a parent table (or tables) but also returns rows from child tables, the result-set mapping can be notified as to which additional properties are contained within the result set.  This is done using the <code>contains_eager()</code> query option, which specifies the name of the relationship to be eagerly loaded, and optionally a <strong>decorator function</strong> that can translate aliased column names when results are received.
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_comment"># mapping is the users->addresses mapping
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'addresses'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span>
+<span class="python_comment"># define a query on USERS with an outer join to ADDRESSES
+</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># construct a Query object which expects the "addresses" results 
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_comment"># get results normally
+</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre></div>
+<p>It is often the case with large queries that some of the tables within the query need to be aliased in order to distinguish them from other occurences of the same table within the query.  A query that attempts to add eagerly loaded child items will often have this condition.  Therefore with a little more effort a decorator function can be used to produce translated rows (in the form of a dictionary which accepts Column instances), in the case that aliasing is used for the relationship tables.
+</p>
+
+
+<div class="code">
+<pre><span class="python_comment"># use an alias of the addresses table
+</span><span class="python_name">adalias </span><span class="python_operator">= </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">alias</span><span class="python_enclosure">(</span><span class="python_literal">'adalias'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># define a query on USERS with an outer join to adalias
+</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">adalias</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># define row-translation function.  this should return 
+# a dictionary-like object that will receive Column instances from the normally expected
+# table (i.e. addreses_table), and produce results from the actual result set
+</span><span class="python_keyword">def </span><span class="python_name">adtranslator</span><span class="python_enclosure">(</span><span class="python_name">row</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">d </span><span class="python_operator">= </span><span class="python_enclosure">{}</span><span class="python_operator">
+    </span><span class="python_keyword">for </span><span class="python_name">c </span><span class="python_keyword">in </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">columns</span><span class="python_operator">:
+        </span><span class="python_name">d</span><span class="python_enclosure">[</span><span class="python_name">c</span><span class="python_enclosure">] </span><span class="python_operator">= </span><span class="python_name">row</span><span class="python_enclosure">[</span><span class="python_name">adalias</span><span class="python_operator">.</span><span class="python_name">corresponding_column</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">)]</span><span class="python_operator">
+    </span><span class="python_keyword">return </span><span class="python_name">d</span><span class="python_operator">
+</span>
+<span class="python_comment"># construct a Query object which expects the "addresses" results 
+</span><span class="python_operator"></span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">decorator</span><span class="python_operator">=</span><span class="python_name">adtranslator</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_comment"># get results normally
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, adalias.address_id AS adalias_address_id, <br/>
+  adalias.user_id AS adalias_user_id, adalias.email_address AS adalias_email_address, (...other columns...)<br/>
+  FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias.user_id</div><pre><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+</div>
+
+
+
     </div>
 
     <a href="#advdatamapping" class="toclink">back to section top</a>
@@ -1444,31 +1521,91 @@ Next: <a href="types.html">The Types System</a>
 
 
 
-<A name="advdatamapping_arguments"></a>
+<A name="advdatamapping_mapperoptions"></a>
 
 <div class="subsection" style="margin-left:20px;">
 
 
-<h3>Mapper Arguments</h3>
+<h3>Mapper Options</h3>
 
     <div class="sectiontext">
     
 
-<p>Other arguments not covered above include:
+<p>Options which can be sent to the <code>mapper()</code> function.  For arguments to <code>relation()</code>, see <a href="adv_datamapping.html#advdatamapping_properties_relationoptions">Relation Options</a>.
 </p>
 <ul>
  <li>
-     select_table=None - often used with polymorphic mappers, this is a <code>Selectable</code> which will take the place of the <code>Mapper</code>'s main table argument when performing queries.
+     <strong>allow_column_override</strong> - if True, allows the usage of a <code>relation()</code> which has the same name as a column in the mapped table. The table column will no longer be mapped.
  </li>
 
  <li>
-     version_id_col=None - an integer-holding Column object that will be assigned an incrementing
-counter, which is added to the WHERE clause used by UPDATE and DELETE statements.  The matching row
-count returned by the database is compared to the expected row count, and an exception is raised if they dont match.  This is a basic "optimistic concurrency" check.  Without the version id column, SQLAlchemy still compares the updated rowcount.
+     <strong>allow_null_pks=False</strong> - indicates that composite primary keys where one or more (but not all) columns contain NULL is a valid primary key. Primary keys which contain NULL values usually indicate that a result row does not contain an entity and should be skipped.
  </li>
 
  <li>
-     always_refresh=False - this option will cause the mapper to refresh all the attributes of all objects loaded by select/get statements, regardless of if they already exist in the current session.  this includes all lazy- and eager-loaded relationship attributes, and will also overwrite any changes made to attributes on the column. 
+     <strong>always_refresh=False</strong> - if True, all query operations for this mapped class will overwrite all data within object instances that already exist within the session, erasing any in-memory changes with whatever information was loaded from the database.
+ </li>
+
+ <li>
+     <strong>batch=True</strong> - when False, indicates that when a mapper is persisting a list of instances, each instance will be fully saved to the database before moving onto the next instance. Normally, inserts and updates are batched together per-table, such as for an inheriting mapping that spans multiple tables. This flag is for rare circumstances where custom <code>MapperExtension</code> objects are used to attach logic to <code>before_insert()</code>, <code>before_update()</code>, etc., and the user-defined logic requires that the full persistence of each instance must be completed before moving onto the next (such as logic which queries the tables for the most recent ID). Note that this flag has a significant impact on the efficiency of a large save operation.
+ </li>
+
+ <li>
+     <strong>column_prefix</strong> - a string which will be prepended to the "key" name of all Columns when creating column-based properties from the given Table. Does not affect explicitly specified column-based properties. Setting <code>column_prefix='_'</code> is equivalent to defining all column-based properties as <code>_columnname=table.c.columnname</code>. See <a href="adv_datamapping.html#advdatamapping_properties_colname">Overriding Column Names</a> for information on overriding column-based attribute names.
+ </li>
+
+ <li>
+     <strong>concrete</strong> - if True, indicates this mapper should use concrete table inheritance with its parent mapper.  Requires <code>inherits</code> to be set.
+ </li>
+
+ <li>
+     <strong>entity_name</strong> - defines this mapping as local to a particular class of entities within a single class.  Allows alternate persistence mappings for a single class. See <a href="adv_datamapping.html#advdatamapping_multiple">Multiple Mappers for One Class</a>.
+ </li>
+
+ <li>
+     <strong>extension</strong> - a MapperExtension instance or list of MapperExtension instances which will be applied to all operations by this Mapper. See <a href="adv_datamapping.html#advdatamapping_extending">Extending Mapper</a>.
+ </li>
+
+ <li>
+     <strong>inherits</strong> - another Mapper or class for which this Mapper will have an inheritance relationship with. See the examples in <a href="adv_datamapping.html#advdatamapping_inheritance">Mapping a Class with Table Inheritance</a>.
+ </li>
+
+ <li>
+     <strong>inherit_condition</strong> - for joined table inheritance, a SQL expression (constructed ClauseElement) which will define how the two tables are joined;
+defaults to a natural join between the two tables.
+ </li>
+
+ <li>
+     <strong>non_primary=False</strong> - if True, construct a Mapper that will define only the selection of instances, not their persistence. It essentially creates a mapper that can be used for querying but does not define how instances of the class are stored. A non_primary mapper is always created after a regular primary mapper has already been created for the class. To use one, send it in place of the class argument when creating a query, such as <code>session.query(somemapper)</code>. Note that it is usually invalid to define additional relationships on a non_primary mapper as they will conflict with those of the primary. See <a href="adv_datamapping.html#advdatamapping_multiple">Multiple Mappers for One Class</a>.
+ </li>
+
+ <li>
+     <strong>order_by</strong> - a single Column or list of Columns for which selection operations should use as the default ordering for entities. Defaults to the OID/ROWID of the table if any, or the first primary key column of the table. See <a href="adv_datamapping.html#advdatamapping_orderby">Controlling Ordering</a>.
+ </li>
+
+ <li>
+     <strong>polymorphic_on</strong> - used with mappers in an inheritance relationship, a Column which will identify the class/mapper combination to be used with a particular row. requires the <code>polymorphic_identity</code> value to be set for all mappers in the inheritance hierarchy.
+ </li>
+
+ <li>
+     <strong>polymorphic_identity</strong> - a value which will be stored in the Column denoted by <code>polymorphic_on</code>, corresponding to the "class identity" of this mapper.  See <a href="adv_datamapping.html#advdatamapping_inheritance">Mapping a Class with Table Inheritance</a>.
+ </li>
+
+ <li>
+     <strong>primary_key</strong> - a list of Column objects which define the "primary key" to be used against this mapper's selectable unit. The mapper normally determines these automatically from the given <code>local_table</code> of the mapper combined against any inherited tables. When this argument is specified, the primary keys of the mapped table if any are disregarded in place of the columns given. This can be used to provide primary key identity to a table that has no PKs defined at the schema level, or to modify what defines "identity" for a particular table.
+ </li>
+
+ <li>
+     <strong>properties</strong> - a dictionary mapping the string names of object attributes to MapperProperty instances, which define the persistence behavior of that attribute. Note that the columns in the mapped table are automatically converted into ColumnProperty instances based on the "key" property of each Column (although they can be overridden using this dictionary).
+ </li>
+
+ <li>
+     <strong>select_table</strong> - used with polymorphic mappers, this is a <code>Selectable</code> which will take the place of the <code>Mapper</code>'s main table argument when
+performing queries.
+ </li>
+
+ <li>
+     <strong>version_id_col</strong> - a Column which must have an integer type that will be used to keep a running "version id" of mapped entities in the database. This is used during save operations to ensure that no other thread or process has updated the instance during the lifetime of the entity, else a ConcurrentModificationError exception is thrown.
  </li>
 </ul>
 

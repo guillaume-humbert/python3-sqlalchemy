@@ -1,5 +1,5 @@
 # orm/unitofwork.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -305,7 +305,7 @@ class UOWTransaction(object):
         task.dependencies.add(up)
 
     def execute(self):
-        # insure that we have a UOWTask for every mapper that will be involved 
+        # ensure that we have a UOWTask for every mapper that will be involved 
         # in the topological sort
         [self.get_task_by_mapper(m) for m in self._get_noninheriting_mappers()]
         

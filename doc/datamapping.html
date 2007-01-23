@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.3   Last Updated: 12/15/06 01:53:03</div>
+<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
 </div>
 
 
@@ -129,7 +129,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 
         
         
-    <li><A href="datamapping.html#datamapping_selectrelations_relselectby">Creating Joins Using selectby()</a></li>
+    <li><A href="datamapping.html#datamapping_selectrelations_relselectby">Creating Joins Using select_by()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -396,7 +396,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
     <div class="sectiontext">
     
 
-<p>When objects corresponding to mapped classes are created or manipulated, all changes are logged by the <code>Session</code> object.  The changes are then written to the database when an application calls <code>flush()</code>.  This pattern is known as a <em>Unit of Work</em>, and has many advantages over saving individual objects or attributes on those objects with individual method invocations.  Domain models can be built with far greater complexity with no concern over the order of saves and deletes, excessive database round-trips and write operations, or deadlocking issues.  The <code>flush()</code> operation batches its SQL statements into a transaction, and can also perform optimistic concurrency checks (using a version id column) to insure the proper number of rows were in fact affected (not supported with the current MySQL drivers). 
+<p>When objects corresponding to mapped classes are created or manipulated, all changes are logged by the <code>Session</code> object.  The changes are then written to the database when an application calls <code>flush()</code>.  This pattern is known as a <em>Unit of Work</em>, and has many advantages over saving individual objects or attributes on those objects with individual method invocations.  Domain models can be built with far greater complexity with no concern over the order of saves and deletes, excessive database round-trips and write operations, or deadlocking issues.  The <code>flush()</code> operation batches its SQL statements into a transaction, and can also perform optimistic concurrency checks (using a version id column) to ensure the proper number of rows were in fact affected (not supported with the current MySQL drivers). 
 </p>
 <p>The Unit of Work is a powerful tool, and has some important concepts that should be understood in order to use it effectively.  See the <a href="unitofwork.html#unitofwork">Session / Unit of Work</a> section for a full description on all its operations.
 </p>
@@ -459,6 +459,8 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </span><span class="python_literal"><a href="javascript:togglePopbox('popbox_5', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_5_div" class="codepop" style="display:none;">INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
   {'password': 'foo', 'user_name': 'john'}</div><pre><span class="python_literal">>>> </span><span class="python_name">u</span><span class="python_operator">
 </span><span class="python_name">User id </span><span class="python_number">1 </span><span class="python_name">name </span><span class="python_literal">'john' </span><span class="python_name">password </span><span class="python_literal">'foo'</span><span class="python_operator"></span></pre></div>
+<p>Note that the <strong>__init__() method is not called when the instance is loaded</strong>.  This is so that classes can define operations that are specific to their initial construction which are not re-called when the object is restored from the database, and is similar in concept to how Python's <code>pickle</code> module calls <code>__new__()</code> when deserializing instances.  To allow <code>__init__()</code> to be called at object load time, or to define any other sort of on-load operation, create a <code>MapperExtension</code> which supplies the <code>create_instance()</code> method (see <a href="adv_datamapping.html#advdatamapping_extending">Extending Mapper</a>, as well as the example in the FAQ).
+</p>
 <p>SQLAlchemy will only put modified object attributes columns into the UPDATE statements generated upon flush.  This is to conserve database traffic and also to successfully interact with a "deferred" attribute, which is a mapped object attribute against the mapper's primary table that isnt loaded until referenced by the application.
 </p>
 
@@ -816,7 +818,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 <div class="subsection" style="margin-left:30px;">
 
 
-<h3>Creating Joins Using selectby()</h3>
+<h3>Creating Joins Using select_by()</h3>
 
     <div class="sectiontext">
     
@@ -847,6 +849,19 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 <p>All keyword arguments sent to <code>select_by</code> are used to create query criterion.  This means that familiar <code>select</code> keyword options like <code>order_by</code> and <code>limit</code> are not directly available.  To enable these options with <code>select_by</code>, you can try the <a href="plugins.html#plugins_selectresults">SelectResults</a> extension which offers transitive methods off the result of a <code>select</code> or <code>select_by</code> such as <code>order_by()</code>, <code>limit()</code>, etc.  <br></br>
 </p>
 <p>Note that the <code>select_by</code> method, while it primarily uses keyword arguments, also can accomodate <code>ClauseElement</code> objects positionally; recall that a <code>ClauseElement</code> is genearated when producing a comparison off of a <code>Column</code> expression, such as <code>users.c.name=='ed'</code>.  When using <code>ClauseElements</code> with <code>select_by</code>, these clauses are passed directly to the generated SQL and are <strong>not</strong> used to further locate join criterion.  If criterion is being constructed with these kinds of expressions, consider using the <code>select()</code> method which is better designed to accomodate these expressions.
+</p>
+<p>As of SA 0.3.4, <code>select_by()</code> and related functions can compare not only column-based attributes to column-based values, but also relations to object instances:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_comment"># get an instance of Address
+</span><span class="python_name">someaddress </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># look for User instances which have the 
+# "someaddress" instance in their "addresses" collection
+</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">=</span><span class="python_name">someaddress</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<p>Where above, the comparison denoted by <code>addresses=someaddress</code> is constructed by comparing all the primary key columns in the <code>Address</code> mapper to each corresponding primary key value in the <code>someaddress</code> entity.  In other words, its equivalent to saying <code>select_by(address_id=someaddress.address_id)</code> (<a href='javascript:alphaApi()'>Alpha API</a>).
 </p>
 
 
@@ -1237,7 +1252,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
     <div class="sectiontext">
     
 
-<p>Many to Many can also be done with an association object, that adds additional information about how two items are related.  In this pattern, the "secondary" option to <code>relation()</code> is no longer used; instead, the association object becomes a mapped entity itself, mapped to the association table.  If the association table has no explicit primary key columns defined, you also have to tell the mapper what columns will compose its "primary key", which are typically the two (or more) columns involved in the association.  Also, the relation between the parent and association mapping is typically set up with a cascade of <code>all, delete-orphan</code>.  This is to insure that when an association object is removed from its parent collection, it is deleted (otherwise, the unit of work tries to null out one of the foreign key columns, which raises an error condition since that column is also part of its "primary key").
+<p>Many to Many can also be done with an association object, that adds additional information about how two items are related.  In this pattern, the "secondary" option to <code>relation()</code> is no longer used; instead, the association object becomes a mapped entity itself, mapped to the association table.  If the association table has no explicit primary key columns defined, you also have to tell the mapper what columns will compose its "primary key", which are typically the two (or more) columns involved in the association.  Also, the relation between the parent and association mapping is typically set up with a cascade of <code>all, delete-orphan</code>.  This is to ensure that when an association object is removed from its parent collection, it is deleted (otherwise, the unit of work tries to null out one of the foreign key columns, which raises an error condition since that column is also part of its "primary key").
 </p>
 
 

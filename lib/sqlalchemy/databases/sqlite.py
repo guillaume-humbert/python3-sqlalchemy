@@ -1,5 +1,5 @@
 # sqlite.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -192,8 +192,12 @@ class SQLiteDialect(ansisql.ANSIDialect):
             (name, type, nullable, has_default, primary_key) = (row[1], row[2].upper(), not row[3], row[4] is not None, row[5])
             name = re.sub(r'^\"|\"$', '', name)
             match = re.match(r'(\w+)(\(.*?\))?', type)
-            coltype = match.group(1)
-            args = match.group(2)
+            if match:
+                coltype = match.group(1)
+                args = match.group(2)
+            else:
+                coltype = "VARCHAR"
+                args = ''
             
             #print "coltype: " + repr(coltype) + " args: " + repr(args)
             coltype = pragma_names.get(coltype, SLString)

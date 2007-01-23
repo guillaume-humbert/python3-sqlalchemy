@@ -1,5 +1,5 @@
 # interfaces.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -37,10 +37,6 @@ class MapperProperty(object):
         mappers, establish instrumented class attributes"""
         self.key = key
         self.do_init()
-    def adapt_to_inherited(self, key, newparent):
-        """adapt this MapperProperty to a new parent, assuming the new parent is an inheriting
-        descendant of the old parent.  """
-        newparent._compile_property(key, self, init=False, setparent=False)
     def do_init(self):
         """template method for subclasses"""
         pass
@@ -55,17 +51,31 @@ class MapperProperty(object):
         This flag is used to indicate that the MapperProperty can define attribute instrumentation
         for the class at the class level (as opposed to the individual instance level.)"""
         return self.parent._is_primary_mapper()
-
+    def merge(self, session, source, dest):
+        """merges the attribute represented by this MapperProperty from source to destination object"""
+        raise NotImplementedError()
+    def compare(self, value):
+        """returns a compare operation for the columns represented by this MapperProperty to the given value,
+        which may be a column value or an instance."""
+        raise NotImplementedError()
+        
 class StrategizedProperty(MapperProperty):
     """a MapperProperty which uses selectable strategies to affect loading behavior.
     There is a single default strategy selected, and alternate strategies can be selected
     at selection time through the usage of StrategizedOption objects."""
     def _get_context_strategy(self, context):
-        return self._get_strategy(context.attributes.get((LoaderStrategy, self), self.strategy.__class__))
+        try:
+            return context.attributes[id(self)]
+        except KeyError:
+            # cache the located strategy per StrategizedProperty in the given context for faster re-lookup
+            ctx_strategy = self._get_strategy(context.attributes.get((LoaderStrategy, self), self.strategy.__class__))
+            context.attributes[id(self)] = ctx_strategy
+            return ctx_strategy
     def _get_strategy(self, cls):
         try:
             return self._all_strategies[cls]
         except KeyError:
+            # cache the located strategy per class for faster re-lookup
             strategy = cls(self)
             strategy.init()
             strategy.is_default = False

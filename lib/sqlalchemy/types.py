@@ -1,5 +1,5 @@
 # types.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -82,6 +82,12 @@ class TypeDecorator(AbstractType):
         try:
             return self.impl_dict[dialect]
         except:
+            # see if the dialect has an adaptation of the TypeDecorator itself
+            adapted_decorator = dialect.type_descriptor(self)
+            if adapted_decorator is not self:
+                result = adapted_decorator.dialect_impl(dialect)
+                self.impl_dict[dialect] = result
+                return result
             typedesc = dialect.type_descriptor(self.impl)
             tt = self.copy()
             if not isinstance(tt, self.__class__):
@@ -138,7 +144,8 @@ def adapt_type(typeobj, colspecs):
         except KeyError:
             pass
     else:
-        # couldnt adapt...raise exception ?
+        # couldnt adapt - so just return the type itself
+        # (it may be a user-defined type)
         return typeobj
     # if we adapted the given generic type to a database-specific type, 
     # but it turns out the originally given "generic" type
@@ -221,7 +228,7 @@ class Float(Numeric):
 
 class DateTime(TypeEngine):
     """implements a type for datetime.datetime() objects"""
-    def __init__(self, timezone=True):
+    def __init__(self, timezone=False):
         self.timezone = timezone
     def adapt(self, impltype):
         return impltype(timezone=self.timezone)
@@ -235,7 +242,7 @@ class Date(TypeEngine):
 
 class Time(TypeEngine):
     """implements a type for datetime.time() objects"""
-    def __init__(self, timezone=True):
+    def __init__(self, timezone=False):
         self.timezone = timezone
     def adapt(self, impltype):
         return impltype(timezone=self.timezone)

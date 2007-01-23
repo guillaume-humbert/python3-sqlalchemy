@@ -1,5 +1,5 @@
 # ansisql.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -98,6 +98,9 @@ class ANSICompiler(sql.Compiled):
         # a dictionary of result-set column names (strings) to TypeEngine instances,
         # which will be passed to a ResultProxy and used for resultset-level value conversion
         self.typemap = {}
+        
+        # a dictionary of select columns mapped to their name or key
+        self.columns = {}
         
         # True if this compiled represents an INSERT
         self.isinsert = False
@@ -207,6 +210,7 @@ class ANSICompiler(sql.Compiled):
             # if we are within a visit to a Select, set up the "typemap"
             # for this column which is used to translate result set values
             self.typemap.setdefault(column.name.lower(), column.type)
+            self.columns.setdefault(column.key, column)
         if column.table is None or not column.table.named_with_column():
             self.strings[column] = self.preparer.format_column(column)
         else:
@@ -321,7 +325,7 @@ class ANSICompiler(sql.Compiled):
         # redefine the generated name of the bind param in the case
         # that we have multiple conflicting bind parameters.
         while self.binds.setdefault(key, bindparam) is not bindparam:
-            # insure the name doesn't expand the length of the string
+            # ensure the name doesn't expand the length of the string
             # in case we're at the edge of max identifier length
             tag = "_%d" % count
             key = bindparam.key[0 : len(bindparam.key) - len(tag)] + tag
@@ -701,8 +705,12 @@ class ANSISchemaGenerator(ANSISchemaBase):
                 first_pk = True
             for constraint in column.constraints:
                 constraint.accept_schema_visitor(self, traverse=False)
-                
-        for constraint in table.constraints:
+
+        # On some DB order is significant: visit PK first, then the
+        # other constraints (engine.ReflectionTest.testbasic failed on FB2)
+        if len(table.primary_key):
+            table.primary_key.accept_schema_visitor(self, traverse=False)
+        for constraint in [c for c in table.constraints if c is not table.primary_key]:
             constraint.accept_schema_visitor(self, traverse=False)
 
         self.append("\n)%s\n\n" % self.post_create_table(table))

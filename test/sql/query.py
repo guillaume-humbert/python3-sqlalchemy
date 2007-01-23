@@ -17,7 +17,7 @@ class QueryTest(PersistTest):
             Column('user_id', INT, primary_key = True),
             Column('user_name', VARCHAR(20)),
         )
-        users.create()
+        metadata.create_all()
     
     def setUp(self):
         self.users = users
@@ -25,8 +25,7 @@ class QueryTest(PersistTest):
         self.users.delete().execute()
     
     def tearDownAll(self):
-        global users
-        users.drop()
+        metadata.drop_all()
         
     def testinsert(self):
         self.users.insert().execute(user_id = 7, user_name = 'jack')
@@ -159,8 +158,24 @@ class QueryTest(PersistTest):
         self.assert_(r==[(3, 'ed'), (4, 'wendy'), (5, 'laura')])
         r = self.users.select(offset=5, order_by=[self.users.c.user_id]).execute().fetchall()
         self.assert_(r==[(6, 'ralph'), (7, 'fido')])
-      
-  
+        
+    @testbase.unsupported('mysql')  
+    def test_scalar_select(self):
+        """test that scalar subqueries with labels get their type propigated to the result set."""
+        # mysql and/or mysqldb has a bug here, type isnt propigated for scalar subquery.
+        datetable = Table('datetable', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('today', DateTime))
+        datetable.create()
+        try:
+            datetable.insert().execute(id=1, today=datetime.datetime(2006, 5, 12, 12, 0, 0))
+            s = select([datetable.alias('x').c.today], scalar=True)
+            s2 = select([datetable.c.id, s.label('somelabel')])
+            #print s2.c.somelabel.type
+            assert isinstance(s2.execute().fetchone()['somelabel'], datetime.datetime)
+        finally:
+            datetable.drop()
+            
     def test_column_accessor(self):
         self.users.insert().execute(user_id=1, user_name='john')
         self.users.insert().execute(user_id=2, user_name='jack')

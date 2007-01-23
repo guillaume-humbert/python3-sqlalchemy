@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.3   Last Updated: 12/15/06 01:53:03</div>
+<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
 </div>
 
 
@@ -1808,6 +1808,16 @@ Previous: <a href="plugins.html">Plugins</a>
     
             <div class="darkcell">
         <A name=""></a>
+        <b>def __init__(<i>self</i>, <i>*cols</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
         <b>def add(<i>self</i>, <i>column</i>)</b>
         <div class="docstring">
         <p>
@@ -2201,7 +2211,7 @@ Previous: <a href="plugins.html">Plugins</a>
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def corresponding_column(<i>self</i>, <i>column</i>, <i>raiseerr=True</i>, <i>keys_ok=False</i>)</b>
+        <b>def corresponding_column(<i>self</i>, <i>column</i>, <i>raiseerr=True</i>, <i>keys_ok=False</i>, <i>require_exact=False</i>)</b>
         <div class="docstring">
         <p>
     given a ColumnElement, return the ColumnElement object from this 
@@ -3701,6 +3711,16 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
         </div>
         </div>
 
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def remove(<i>self</i>, <i>col</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
 
 
     </div>
@@ -4933,6 +4953,17 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
     
             <div class="darkcell">
         <A name=""></a>
+        <b>def create_cursor(<i>self</i>, <i>connection</i>)</b>
+        <div class="docstring">
+        <p>
+    return a new cursor generated from the given connection
+</p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
         <b>def dbapi(<i>self</i>)</b>
         <div class="docstring">
         <p>
@@ -5542,7 +5573,7 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def __init__(<i>self</i>, <i>engine</i>, <i>connection</i>, <i>cursor</i>, <i>executioncontext=None</i>, <i>typemap=None</i>)</b>
+        <b>def __init__(<i>self</i>, <i>engine</i>, <i>connection</i>, <i>cursor</i>, <i>executioncontext=None</i>, <i>typemap=None</i>, <i>columns=None</i>)</b>
         <div class="docstring">
         <p>
     ResultProxy objects are constructed via the execute() method on SQLEngine.
@@ -5581,6 +5612,17 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
         <div class="docstring">
         <p>
     fetch all rows, just like DBAPI cursor.fetchall().
+</p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def fetchmany(<i>self</i>, <i>size=None</i>)</b>
+        <div class="docstring">
+        <p>
+    fetch many rows, juts like DBAPI cursor.fetchmany(size=cursor.arraysize)
 </p>
         </div>
         </div>
@@ -6154,6 +6196,18 @@ packages and tying operations to class properties and constructors.</p>
     
             <div class="darkcell">
         <A name=""></a>
+        <b>def compile_mappers()</b>
+        <div class="docstring">
+        <p>
+    compile all mappers that have been defined.  </p>
+<p>this is equivalent to calling compile() on any individual mapper.
+</p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
         <b>def contains_eager(<i>key</i>, <i>decorator=None</i>)</b>
         <div class="docstring">
         <p>
@@ -6677,14 +6731,14 @@ packages and tying operations to class properties and constructors.</p>
         all operations by this Mapper.</p>
 <p>order_by - a single Column or list of Columns for which selection operations should use as the default
         ordering for entities.  Defaults to the OID/ROWID of the table if any, or the first primary key column of the table.</p>
-<p>allow_column_override - if True, allows association relationships to be set up which override the usage of 
-        a column that is on the table (based on key/attribute name).</p>
+<p>allow_column_override - if True, allows the usage of a `relation()` which has the same name as a column in the mapped table.
+        The table column will no longer be mapped.</p>
 <p>entity_name - a name to be associated with the class, to allow alternate mappings for a single class.</p>
 <p>always_refresh - if True, all query operations for this mapped class will overwrite all data
         within object instances that already exist within the session, erasing any in-memory changes with whatever
         information was loaded from the database.</p>
 <p>version_id_col - a Column which must have an integer type that will be used to keep a running &quot;version id&quot; of
-        mapped entities in the database.  this is used during save operations to insure that no other thread or process
+        mapped entities in the database.  this is used during save operations to ensure that no other thread or process
         has updated the instance during the lifetime of the entity, else a ConcurrentModificationError exception is thrown.</p>
 <p>polymorphic_on - used with mappers in an inheritance relationship, a Column which will identify the class/mapper
         combination to be used with a particular row.  requires the polymorphic_identity value to be set for all mappers
@@ -7307,7 +7361,7 @@ packages and tying operations to class properties and constructors.</p>
         load the objects.</p>
 <p>For more advanced usage, arg can also be a Select statement object, which
         will be executed and its resulting rowset used to build new object instances.  
-        in this case, the developer must insure that an adequate set of columns exists in the 
+        in this case, the developer must ensure that an adequate set of columns exists in the 
         rowset with which to build new object instances.
 </p>
         </div>
@@ -7975,12 +8029,15 @@ packages and tying operations to class properties and constructors.</p>
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def merge(<i>self</i>, <i>object</i>, <i>entity_name=None</i>)</b>
+        <b>def merge(<i>self</i>, <i>object</i>, <i>entity_name=None</i>, <i>_recursive=None</i>)</b>
         <div class="docstring">
         <p>
-    merge the object into a newly loaded or existing instance from this Session.</p>
-<p>note: this method is currently not completely implemented.
-</p>
+    copy the state of the given object onto the persistent object with the same identifier. </p>
+<p>If there is no persistent instance currently associated with the session, it will be loaded. 
+        Return the persistent instance. If the given instance is unsaved, save a copy of and return it as 
+        a newly persistent instance. The given instance does not become associated with the session. 
+        This operation cascades to associated instances if the association is mapped with cascade=&quot;merge&quot;.</p>
+<p></p>
         </div>
         </div>
 

@@ -132,7 +132,7 @@ Some of the above examples above illustrate the usage of the mapper's Table obje
 
 ### Saving Objects {@name=saving}
 
-When objects corresponding to mapped classes are created or manipulated, all changes are logged by the `Session` object.  The changes are then written to the database when an application calls `flush()`.  This pattern is known as a *Unit of Work*, and has many advantages over saving individual objects or attributes on those objects with individual method invocations.  Domain models can be built with far greater complexity with no concern over the order of saves and deletes, excessive database round-trips and write operations, or deadlocking issues.  The `flush()` operation batches its SQL statements into a transaction, and can also perform optimistic concurrency checks (using a version id column) to insure the proper number of rows were in fact affected (not supported with the current MySQL drivers). 
+When objects corresponding to mapped classes are created or manipulated, all changes are logged by the `Session` object.  The changes are then written to the database when an application calls `flush()`.  This pattern is known as a *Unit of Work*, and has many advantages over saving individual objects or attributes on those objects with individual method invocations.  Domain models can be built with far greater complexity with no concern over the order of saves and deletes, excessive database round-trips and write operations, or deadlocking issues.  The `flush()` operation batches its SQL statements into a transaction, and can also perform optimistic concurrency checks (using a version id column) to ensure the proper number of rows were in fact affected (not supported with the current MySQL drivers). 
 
 The Unit of Work is a powerful tool, and has some important concepts that should be understood in order to use it effectively.  See the [unitofwork](rel:unitofwork) section for a full description on all its operations.
 
@@ -199,6 +199,8 @@ The mapped class can also specify whatever methods and/or constructor it wants:
 
     >>> u
     User id 1 name 'john' password 'foo'
+
+Note that the **__init__() method is not called when the instance is loaded**.  This is so that classes can define operations that are specific to their initial construction which are not re-called when the object is restored from the database, and is similar in concept to how Python's `pickle` module calls `__new__()` when deserializing instances.  To allow `__init__()` to be called at object load time, or to define any other sort of on-load operation, create a `MapperExtension` which supplies the `create_instance()` method (see [advdatamapping_extending](rel:advdatamapping_extending), as well as the example in the FAQ).
 
 SQLAlchemy will only put modified object attributes columns into the UPDATE statements generated upon flush.  This is to conserve database traffic and also to successfully interact with a "deferred" attribute, which is a mapped object attribute against the mapper's primary table that isnt loaded until referenced by the application.
 
@@ -444,7 +446,7 @@ Another way to specify joins more explicitly is to use the `from_obj` parameter 
 
 In the above example, the `join` function by default creates a natural join between the two tables, so we were able to avoid having to specify the join condition between `users` and `addresses` explicitly.
 
-#### Creating Joins Using selectby() {@name=relselectby}
+#### Creating Joins Using select\_by() {@name=relselectby}
 
 Another way that joins can be created is by using the `select_by` method of `Query`, which has the ability to create joins across relationships automatically.  This method is in many circumstances more convenient than, but not as flexible as, the more SQL-level approach using the `select()` method described in the previous section.
 
@@ -471,6 +473,18 @@ The above example is shorthand for:
 All keyword arguments sent to `select_by` are used to create query criterion.  This means that familiar `select` keyword options like `order_by` and `limit` are not directly available.  To enable these options with `select_by`, you can try the [plugins_selectresults](rel:plugins_selectresults) extension which offers transitive methods off the result of a `select` or `select_by` such as `order_by()`, `limit()`, etc.  
 
 Note that the `select_by` method, while it primarily uses keyword arguments, also can accomodate `ClauseElement` objects positionally; recall that a `ClauseElement` is genearated when producing a comparison off of a `Column` expression, such as `users.c.name=='ed'`.  When using `ClauseElements` with `select_by`, these clauses are passed directly to the generated SQL and are **not** used to further locate join criterion.  If criterion is being constructed with these kinds of expressions, consider using the `select()` method which is better designed to accomodate these expressions.
+
+As of SA 0.3.4, `select_by()` and related functions can compare not only column-based attributes to column-based values, but also relations to object instances:
+
+    {python}
+    # get an instance of Address
+    someaddress = session.query(Address).get_by(street='123 Green Street')
+    
+    # look for User instances which have the 
+    # "someaddress" instance in their "addresses" collection
+    l = session.query(User).select_by(addresses=someaddress)
+
+Where above, the comparison denoted by `addresses=someaddress` is constructed by comparing all the primary key columns in the `Address` mapper to each corresponding primary key value in the `someaddress` entity.  In other words, its equivalent to saying `select_by(address_id=someaddress.address_id)` ([Alpha API][alpha_api]).
 
 #### Generating Join Criterion Using join\_to, join\_via {@name=jointo}
 
@@ -754,7 +768,7 @@ The `relation` function handles a basic many-to-many relationship when you speci
 
 ### Association Object {@name=association}
 
-Many to Many can also be done with an association object, that adds additional information about how two items are related.  In this pattern, the "secondary" option to `relation()` is no longer used; instead, the association object becomes a mapped entity itself, mapped to the association table.  If the association table has no explicit primary key columns defined, you also have to tell the mapper what columns will compose its "primary key", which are typically the two (or more) columns involved in the association.  Also, the relation between the parent and association mapping is typically set up with a cascade of `all, delete-orphan`.  This is to insure that when an association object is removed from its parent collection, it is deleted (otherwise, the unit of work tries to null out one of the foreign key columns, which raises an error condition since that column is also part of its "primary key").
+Many to Many can also be done with an association object, that adds additional information about how two items are related.  In this pattern, the "secondary" option to `relation()` is no longer used; instead, the association object becomes a mapped entity itself, mapped to the association table.  If the association table has no explicit primary key columns defined, you also have to tell the mapper what columns will compose its "primary key", which are typically the two (or more) columns involved in the association.  Also, the relation between the parent and association mapping is typically set up with a cascade of `all, delete-orphan`.  This is to ensure that when an association object is removed from its parent collection, it is deleted (otherwise, the unit of work tries to null out one of the foreign key columns, which raises an error condition since that column is also part of its "primary key").
 
     {python}
     from sqlalchemy import *

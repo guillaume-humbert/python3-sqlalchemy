@@ -60,7 +60,20 @@ class AdaptTest(PersistTest):
         assert (t1.impl.length == 20)
         assert isinstance(t2.impl, TEXT)
         assert t2.impl.length is None
-        
+
+
+    def testdialecttypedecorators(self):
+        """test that a a Dialect can provide a dialect-specific subclass of a TypeDecorator subclass."""
+        import sqlalchemy.databases.mssql as mssql
+        dialect = mssql.MSSQLDialect()
+        # run the test twice to insure the caching step works too
+        for x in range(0, 1):
+            col = Column('', Unicode(length=10))
+            dialect_type = col.type.dialect_impl(dialect)
+            assert isinstance(dialect_type, mssql.MSUnicode)
+            assert dialect_type.get_col_spec() == 'NVARCHAR(10)'
+            assert isinstance(dialect_type.impl, mssql.MSString)
+            
 class OverrideTest(PersistTest):
     """tests user-defined types, including a full type as well as a TypeDecorator"""
 
@@ -166,13 +179,14 @@ class UnicodeTest(AssertMixin):
             self.assert_(isinstance(x['plain_data'], unicode) and x['plain_data'] == unicodedata)
         finally:
             db.engine.dialect.convert_unicode = prev_unicode
+    
 
 
 class BinaryTest(AssertMixin):
     def setUpAll(self):
         global binary_table
         binary_table = Table('binary_table', db, 
-        Column('primary_id', Integer, primary_key=True),
+        Column('primary_id', Integer, Sequence('binary_id_seq', optional=True), primary_key=True),
         Column('data', Binary),
         Column('data_slice', Binary(100)),
         Column('misc', String(30)),
@@ -185,16 +199,27 @@ class BinaryTest(AssertMixin):
     def tearDownAll(self):
         binary_table.drop()
 
-    @testbase.unsupported('oracle')
     def testbinary(self):
         testobj1 = pickleable.Foo('im foo 1')
         testobj2 = pickleable.Foo('im foo 2')
 
-        stream1 =self.load_stream('binary_data_one.dat')
-        stream2 =self.load_stream('binary_data_two.dat')
+        if db.name == 'oracle':
+            stream1 =self.load_stream('binary_data_one.dat', len=2000)
+            stream2 =self.load_stream('binary_data_two.dat', len=2000)
+        else:
+            stream1 =self.load_stream('binary_data_one.dat')
+            stream2 =self.load_stream('binary_data_two.dat')
         binary_table.insert().execute(primary_id=1, misc='binary_data_one.dat',    data=stream1, data_slice=stream1[0:100], pickled=testobj1)
         binary_table.insert().execute(primary_id=2, misc='binary_data_two.dat', data=stream2, data_slice=stream2[0:99], pickled=testobj2)
-        l = binary_table.select().execute().fetchall()
+        if db.name == 'oracle':
+            res = binary_table.select().execute()
+            l = []
+            row = res.fetchone()
+            l.append(dict([(k, row[k]) for k in row.keys()]))
+            row = res.fetchone()
+            l.append(dict([(k, row[k]) for k in row.keys()]))
+        else:
+            l = binary_table.select().execute().fetchall()
         print len(stream1), len(l[0]['data']), len(l[0]['data_slice'])
         self.assert_(list(stream1) == list(l[0]['data']))
         self.assert_(list(stream1[0:100]) == list(l[0]['data_slice']))
@@ -202,10 +227,10 @@ class BinaryTest(AssertMixin):
         self.assert_(testobj1 == l[0]['pickled'])
         self.assert_(testobj2 == l[1]['pickled'])
 
-    def load_stream(self, name):
+    def load_stream(self, name, len=12579):
         f = os.path.join(os.path.dirname(testbase.__file__), name)
         # put a number less than the typical MySQL default BLOB size
-        return file(f).read(12579)
+        return file(f).read(len)
         
 class DateTest(AssertMixin):
     def setUpAll(self):
