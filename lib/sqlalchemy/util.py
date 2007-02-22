@@ -4,21 +4,20 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import weakref, UserList, time, string, inspect, sys, sets
 try:
     import thread, threading
 except ImportError:
     import dummy_thread as thread
     import dummy_threading as threading
 
-from sqlalchemy.exceptions import *
 import __builtin__
 
 try:
     Set = set
 except:
+    import sets
     Set = sets.Set
-    
+
 def to_list(x):
     if x is None:
         return None
@@ -35,6 +34,16 @@ def to_set(x):
     else:
         return x
 
+def flatten_iterator(x):
+    """given an iterator of which further sub-elements may also be iterators,
+    flatten the sub-elements into a single iterator."""
+    for elem in x:
+        if hasattr(elem, '__iter__'):
+            for y in flatten_iterator(elem):
+                yield y
+        else:
+            yield elem
+            
 def reversed(seq):
     try:
         return __builtin__.reversed(seq)
@@ -49,6 +58,10 @@ def reversed(seq):
 
 class ArgSingleton(type):
     instances = {}
+    def dispose_static(self, *args):
+        hashkey = (self, args)
+        #if hashkey in ArgSingleton.instances:
+        del ArgSingleton.instances[hashkey]
     def __call__(self, *args):
         hashkey = (self, args)
         try:
@@ -207,12 +220,81 @@ class DictDecorator(dict):
     def __repr__(self):
         return dict.__repr__(self) + repr(self.decorate)
 
-class OrderedSet(sets.Set):
-    def __init__(self, iterable=None):
-        """Construct a set from an optional iterable."""
-        self._data = OrderedDict()
-        if iterable is not None: 
-          self._update(iterable)
+class OrderedSet(Set):
+    def __init__(self, d=None, **kwargs):
+      super(OrderedSet, self).__init__(**kwargs)
+      self._list = []
+      if d: self.update(d, **kwargs)
+
+    def add(self, key):
+      if key not in self:
+          self._list.append(key)
+      super(OrderedSet, self).add(key)
+
+    def remove(self, element):
+      super(OrderedSet, self).remove(element)
+      self._list.remove(element)
+
+    def discard(self, element):
+      try:
+          super(OrderedSet, self).remove(element)
+      except KeyError: pass
+      else:
+          self._list.remove(element)
+
+    def clear(self):
+      super(OrderedSet, self).clear()
+      self._list=[]
+
+    def __iter__(self): return iter(self._list)
+
+    def update(self, iterable):
+      add = self.add
+      for i in iterable: add(i)
+      return self
+
+    def __repr__(self):
+      return '%s(%r)' % (self.__class__.__name__, self._list)
+    __str__ = __repr__
+
+    def union(self, other):
+      result = self.__class__(self)
+      result.update(other)
+      return result
+    __or__ = union
+    def intersection(self, other):
+      return self.__class__([a for a in self if a in other])
+    __and__ = intersection
+    def symmetric_difference(self, other):
+      result = self.__class__([a for a in self if a not in other])
+      result.update([a for a in other if a not in self])
+      return result
+    __xor__ = symmetric_difference
+
+    def difference(self, other):
+      return self.__class__([a for a in self if a not in other])
+    __sub__ = difference
+
+    __ior__ = update
+
+    def intersection_update(self, other):
+      super(OrderedSet, self).intersection_update(other)
+      self._list = [ a for a in self._list if a in other]
+      return self
+    __iand__ = intersection_update
+
+    def symmetric_difference_update(self, other):
+      super(OrderedSet, self).symmetric_difference_update(other)
+      self._list =  [ a for a in self._list if a in self]
+      self._list += [ a for a in other._list if a in self]
+      return self
+    __ixor__ = symmetric_difference_update
+
+    def difference_update(self, other):
+      super(OrderedSet, self).difference_update(other)
+      self._list = [ a for a in self._list if a in self]
+      return self
+    __isub__ = difference_update
 
 class UniqueAppender(object):
     def __init__(self, data):

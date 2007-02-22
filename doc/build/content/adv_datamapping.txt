@@ -321,7 +321,9 @@ Options which can be sent to the `relation()` function.  For arguments to `mappe
 * **backref** - indicates the name of a property to be placed on the related mapper's class that will handle this relationship in the other direction, including synchronizing the object attributes on both sides of the relation.  Can also point to a `backref()` construct for more configurability.  See [datamapping_relations_backreferences](rel:datamapping_relations_backreferences).
 * **cascade** - a string list of cascade rules which determines how persistence operations should be "cascaded" from parent to child. For a description of cascade rules, see [datamapping_relations_lifecycle](rel:datamapping_relations_lifecycle) and [unitofwork_cascade](rel:unitofwork_cascade).
 * **collection_class** - a class or function that returns a new list-holding object.  will be used in place of a plain list for storing elements.  See [advdatamapping_properties_customlist](rel:advdatamapping_properties_customlist).
-* **foreignkey** - deprecated for most uses.  As of 0.3.2, use `remote_side` to indicate the direction of self-referential relationships.  For `ForeignKey` specification, this field is only partially functional (i.e. does not work for many-to-many relationships), but is needed in rare cases when both sides of the primaryjoin condition contain foreign keys to either side of the relationship, and `relation()` cannot determine which side of the relationship is "foreign".  a new field `foreign_keys` will be added in a future release to fully implement this functionality.
+* **foreign_keys** - a list of columns which are to be used as "foreign key" columns.  this parameter should be used in conjunction with explicit
+`primaryjoin` and `secondaryjoin` (if needed) arguments, and the columns within the `foreign_keys` list should be present within those join conditions.  Normally, `relation()` will inspect the columns within the join conditions to determine which columns are the "foreign key" columns, based on information in the `Table` metadata.  Use this argument when no ForeignKey's are present in the join condition, or to override the table-defined foreign keys.
+* **foreignkey** - deprecated.  use the `foreign_keys` argument for foreign key specification, or `remote_side` for "directional" logic.
 * **lazy=True** - specifies how the related items should be loaded.  a value of True indicates they should be loaded lazily when the property is first accessed.  A value of False indicates they should be loaded by joining against the parent object query, so parent and child are loaded in one round trip (i.e. eagerly).  A value of None indicates the related items are not loaded by the mapper in any case; the application will manually insert items into the list in some other way.  In all cases, items added or removed to the parent object's collection (or scalar attribute) will cause the appropriate updates and deletes upon flush(),  i.e. this option only affects load operations, not save operations.  
 * **order_by** - indicates the ordering that should be applied when loading these items.  See the section [advdatamapping_orderby](rel:advdatamapping_orderby) for details.
 * **passive_deletes=False** - Indicates if lazy-loaders should not be executed during the `flush()` process, which normally occurs in order to locate all existing child items when a parent item is to be deleted.  Setting this flag to True is appropriate when `ON DELETE CASCADE` rules have been set up on the actual tables so that the database may handle cascading deletes automatically.  This strategy is useful particularly for handling the deletion of objects that have very large (and/or deep) child-object collections.  See the example in [advdatamapping_properties_working](rel:advdatamapping_properties_working).
@@ -369,7 +371,7 @@ For relations, the "order_by" property can also be specified to all forms of rel
     
     # eager load with ordering - the ORDER BY clauses of parent/child will be organized properly
     mapper = mapper(User, users_table, properties = {
-        'addresses' : relation(mapper(Address, addresses_table), order_by=desc(addresses_table.c.email_address), eager=True)
+        'addresses' : relation(mapper(Address, addresses_table), order_by=desc(addresses_table.c.email_address), lazy=False)
     }, order_by=users_table.c.user_id)
     
 ### Limiting Rows {@name=limits}
@@ -695,7 +697,7 @@ A self-referential mapper where there is more than one relationship on the table
         pass
 
     # define the "children" property as well as the "root" property
-    TreeNode.mapper = mapper(TreeNode, trees, properties={
+    mapper(TreeNode, trees, properties={
             'children' : relation(
                             TreeNode, 
                             primaryjoin=trees.c.parent_node_id==trees.c.node_id
@@ -768,7 +770,7 @@ When result-set mapping is used with a particular Mapper, SQLAlchemy has no acce
     # get results normally
     r = query.instances(statement.execute())
 
-It is often the case with large queries that some of the tables within the query need to be aliased in order to distinguish them from other occurences of the same table within the query.  A query that attempts to add eagerly loaded child items will often have this condition.  Therefore with a little more effort a decorator function can be used to produce translated rows (in the form of a dictionary which accepts Column instances), in the case that aliasing is used for the relationship tables.
+It is often the case with large queries that some of the tables within the query need to be aliased in order to distinguish them from other occurences of the same table within the query.  A query that attempts to add eagerly loaded child items will often have this condition.  The `contains_eager()` function takes a keyword argument `alias` which can either be the string name of an alias, or an actual `Alias` construct used in constructing the query, which will target the eager loading towards the columns of that alias (new in version 0.3.5):
 
     {python}
     # use an alias of the addresses table
@@ -777,23 +779,31 @@ It is often the case with large queries that some of the tables within the query
     # define a query on USERS with an outer join to adalias
     statement = users_table.outerjoin(adalias).select(use_labels=True)
 
-    # define row-translation function.  this should return 
-    # a dictionary-like object that will receive Column instances from the normally expected
-    # table (i.e. addreses_table), and produce results from the actual result set
-    def adtranslator(row):
-        d = {}
-        for c in addresses_table.columns:
-            d[c] = row[adalias.corresponding_column(addresses_table)]
-        return d
-        
     # construct a Query object which expects the "addresses" results 
-    query = session.query(User).options(contains_eager('addresses', decorator=adtranslator))
+    query = session.query(User).options(contains_eager('addresses', alias=adalias))
 
     # get results normally
     {sql}r = query.instances(statement.execute())
     SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, adalias.address_id AS adalias_address_id, 
     adalias.user_id AS adalias_user_id, adalias.email_address AS adalias_email_address, (...other columns...)
     FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias.user_id
+
+In the case that the main table itself is also aliased, the `contains_alias()` option can be used (new in version 0.3.5):
+
+    {python}
+    # define an aliased UNION called 'ulist'
+    statement = users.select(users.c.user_id==7).union(users.select(users.c.user_id>7)).alias('ulist')
+
+    # add on an eager load of "addresses"
+    statement = statement.outerjoin(addresses).select(use_labels=True)
+    
+    # create query, indicating "ulist" is an alias for the main table, "addresses" property should
+    # be eager loaded
+    query = create_session().query(User).options(contains_alias('ulist'), contains_eager('addresses'))
+    
+    # results
+    r = query.instances(statement.execute())
+    
 
 ### Mapper Options {@name=mapperoptions}
 

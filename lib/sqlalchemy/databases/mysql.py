@@ -10,12 +10,14 @@ from sqlalchemy import sql,engine,schema,ansisql
 from sqlalchemy.engine import default
 import sqlalchemy.types as sqltypes
 import sqlalchemy.exceptions as exceptions
+from array import array
 
 try:
     import MySQLdb as mysql
     import MySQLdb.constants.CLIENT as CLIENT_FLAGS
 except:
     mysql = None
+    CLIENT_FLAGS = None
 
 def kw_colspec(self, spec):
     if self.unsigned:
@@ -255,7 +257,7 @@ class MySQLDialect(ansisql.ANSIDialect):
             self.module = mysql
         else:
             self.module = module
-        ansisql.ANSIDialect.__init__(self, **kwargs)
+        ansisql.ANSIDialect.__init__(self, default_paramstyle='format', **kwargs)
 
     def create_connect_args(self, url):
         opts = url.translate_connect_args(['host', 'db', 'user', 'passwd', 'port'])
@@ -273,7 +275,8 @@ class MySQLDialect(ansisql.ANSIDialect):
         # TODO: what about options like "ssl", "cursorclass" and "conv" ?
 
         client_flag = opts.get('client_flag', 0)
-        client_flag |= CLIENT_FLAGS.FOUND_ROWS
+        if CLIENT_FLAGS is not None:
+            client_flag |= CLIENT_FLAGS.FOUND_ROWS
         opts['client_flag'] = client_flag
 
         return [[], opts]
@@ -332,13 +335,17 @@ class MySQLDialect(ansisql.ANSIDialect):
     def dbapi(self):
         return self.module
 
-    def has_table(self, connection, table_name):
+    def has_table(self, connection, table_name, schema=None):
         cursor = connection.execute("show table status like '" + table_name + "'")
         return bool( not not cursor.rowcount )
 
     def reflecttable(self, connection, table):
         # reference:  http://dev.mysql.com/doc/refman/5.0/en/name-case-sensitivity.html
-        case_sensitive = int(connection.execute("show variables like 'lower_case_table_names'").fetchone()[1]) == 0
+        cs = connection.execute("show variables like 'lower_case_table_names'").fetchone()[1]
+        if isinstance(cs, array):
+            cs = cs.tostring()
+        case_sensitive = int(cs) == 0
+        
         if not case_sensitive:
             table.name = table.name.lower()
             table.metadata.tables[table.name]= table

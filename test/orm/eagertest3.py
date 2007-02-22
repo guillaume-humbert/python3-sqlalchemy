@@ -2,6 +2,7 @@ from testbase import PersistTest, AssertMixin
 import testbase
 from sqlalchemy import *
 from sqlalchemy.ext.selectresults import SelectResults
+import random
 
 class EagerTest(AssertMixin):
     def setUpAll(self):
@@ -197,7 +198,224 @@ class EagerTest2(AssertMixin):
         session.clear()
         obj = session.query(Left).get_by(tag='tag1')
         print obj.middle.right[0]
+
+class EagerTest3(testbase.ORMTest):
+    """test eager loading combined with nested SELECT statements, functions, and aggregates"""
+    def define_tables(self, metadata):
+        global datas, foo, stats
+        datas=Table( 'datas',metadata,
+         Column ( 'id', Integer, primary_key=True,nullable=False ),
+         Column ( 'a', Integer , nullable=False ) )
+
+        foo=Table('foo',metadata,
+         Column ( 'data_id', Integer, ForeignKey('datas.id'),nullable=False,primary_key=True ),
+         Column ( 'bar', Integer ) )
+
+        stats=Table('stats',metadata,
+        Column ( 'id', Integer, primary_key=True, nullable=False ),
+        Column ( 'data_id', Integer, ForeignKey('datas.id')),
+        Column ( 'somedata', Integer, nullable=False ))
         
+    def test_nesting_with_functions(self):
+        class Data(object): pass
+        class Foo(object):pass
+        class Stat(object): pass
+
+        Data.mapper=mapper(Data,datas)
+        Foo.mapper=mapper(Foo,foo,properties={'data':relation(Data,backref=backref('foo',uselist=False))})
+        Stat.mapper=mapper(Stat,stats,properties={'data':relation(Data)})
+
+        s=create_session()
+        data = []
+        for x in range(5):
+            d=Data()
+            d.a=x
+            s.save(d)
+            data.append(d)
+            
+        for x in range(10):
+            rid=random.randint(0,len(data) - 1)
+            somedata=random.randint(1,50000)
+            stat=Stat()
+            stat.data = data[rid]
+            stat.somedata=somedata
+            s.save(stat)
+
+        s.flush()
+
+        arb_data=select(
+            [stats.c.data_id,func.max(stats.c.somedata).label('max')],
+            stats.c.data_id<=25,
+            group_by=[stats.c.data_id]).alias('arb')
         
+        arb_result = arb_data.execute().fetchall()
+        # order the result list descending based on 'max'
+        arb_result.sort(lambda a, b:cmp(b['max'],a['max']))
+        # extract just the "data_id" from it
+        arb_result = [row['data_id'] for row in arb_result]
+        
+        # now query for Data objects using that above select, adding the 
+        # "order by max desc" separately
+        q=s.query(Data).options(eagerload('foo')).select(
+            from_obj=[datas.join(arb_data,arb_data.c.data_id==datas.c.id)],
+            order_by=[desc(arb_data.c.max)],limit=10)
+        
+        # extract "data_id" from the list of result objects
+        verify_result = [d.id for d in q]
+        
+        # assert equality including ordering (may break if the DB "ORDER BY" and python's sort() used differing
+        # algorithms and there are repeated 'somedata' values in the list)
+        assert verify_result == arb_result
+
+class EagerTest4(testbase.ORMTest):
+    def define_tables(self, metadata):
+        global departments, employees
+        departments = Table('departments', metadata,
+                            Column('department_id', Integer, primary_key=True),
+                            Column('name', String(50)))
+
+        employees = Table('employees', metadata, 
+                          Column('person_id', Integer, primary_key=True),
+                          Column('name', String(50)),
+                          Column('department_id', Integer,
+                                 ForeignKey('departments.department_id')))
+
+    def test_basic(self):
+        class Department(object):
+            def __init__(self, **kwargs):
+                for k, v in kwargs.iteritems():
+                    setattr(self, k, v)
+            def __repr__(self):
+                return "<Department %s>" % (self.name,)
+
+        class Employee(object):
+            def __init__(self, **kwargs):
+                for k, v in kwargs.iteritems():
+                    setattr(self, k, v)
+            def __repr__(self):
+                return "<Employee %s>" % (self.name,)
+
+        mapper(Employee, employees)
+        mapper(Department, departments,
+                      properties=dict(employees=relation(Employee,
+                                                         lazy=False,
+                                                         backref='department')))
+
+        d1 = Department(name='One')
+        for e in 'Jim Jack John Susan'.split():
+            d1.employees.append(Employee(name=e))
+
+        d2 = Department(name='Two')
+        for e in 'Joe Bob Mary Wally'.split():
+            d2.employees.append(Employee(name=e))
+
+        sess = create_session()
+        sess.save(d1)
+        sess.save(d2)
+        sess.flush()
+
+        q = sess.query(Department)
+        filters = [q.join_to('employees'),
+                   Employee.c.name.startswith('J')]
+
+        d = SelectResults(q)
+        d = d.join_to('employees').filter(Employee.c.name.startswith('J'))
+        d = d.distinct()
+        d = d.order_by([desc(Department.c.name)])
+        assert d.count() == 2
+        assert d[0] is d2
+
+class EagerTest5(testbase.ORMTest):
+    """test the construction of AliasedClauses for the same eager load property but different 
+    parent mappers, due to inheritance"""
+    def define_tables(self, metadata):
+        global base, derived, derivedII, comments
+        base = Table(
+            'base', metadata,
+            Column('uid', String(30), primary_key=True), 
+            Column('x', String(30))
+            )
+
+        derived = Table(
+            'derived', metadata,
+            Column('uid', String(30), ForeignKey(base.c.uid), primary_key=True),
+            Column('y', String(30))
+            )
+
+        derivedII = Table(
+            'derivedII', metadata,
+            Column('uid', String(30), ForeignKey(base.c.uid), primary_key=True),
+            Column('z', String(30))
+            )
+
+        comments = Table(
+            'comments', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('uid', String(30), ForeignKey(base.c.uid)),
+            Column('comment', String(30))
+            )
+    def test_basic(self):
+        class Base(object):
+            def __init__(self, uid, x):
+                self.uid = uid
+                self.x = x
+
+        class Derived(Base):
+            def __init__(self, uid, x, y):
+                self.uid = uid
+                self.x = x
+                self.y = y
+
+        class DerivedII(Base):
+            def __init__(self, uid, x, z):
+                self.uid = uid
+                self.x = x
+                self.z = z
+
+        class Comment(object):
+            def __init__(self, uid, comment):
+                self.uid = uid
+                self.comment = comment
+
+
+        commentMapper = mapper(Comment, comments)
+
+        baseMapper = mapper(
+            Base, base,
+                properties={
+                'comments': relation(
+                    Comment, lazy=False, cascade='all, delete-orphan'
+                    )
+                }
+            )
+
+        derivedMapper = mapper(Derived, derived, inherits=baseMapper)
+        derivedIIMapper = mapper(DerivedII, derivedII, inherits=baseMapper)
+        sess = create_session()
+        d = Derived(1, 'x', 'y')
+        d.comments = [Comment(1, 'comment')]
+        d2 = DerivedII(2, 'xx', 'z')
+        d2.comments = [Comment(2, 'comment')]
+        sess.save(d)
+        sess.save(d2)
+        sess.flush()
+        sess.clear()
+        # this eager load sets up an AliasedClauses for the "comment" relationship,
+        # then stores it in clauses_by_lead_mapper[mapper for Derived]
+        d = sess.query(Derived).get(1)
+        sess.clear()
+        assert len([c for c in d.comments]) == 1
+
+        # this eager load sets up an AliasedClauses for the "comment" relationship,
+        # and should store it in clauses_by_lead_mapper[mapper for DerivedII].
+        # the bug was that the previous AliasedClause create prevented this population
+        # from occurring.
+        d2 = sess.query(DerivedII).get(2)
+        sess.clear()
+        # object is not in the session; therefore the lazy load cant trigger here,
+        # eager load had to succeed
+        assert len([c for c in d2.comments]) == 1
+        
+    
 if __name__ == "__main__":    
     testbase.main()

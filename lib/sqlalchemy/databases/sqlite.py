@@ -165,13 +165,13 @@ class SQLiteDialect(ansisql.ANSIDialect):
     def last_inserted_ids(self):
         return self.context.last_inserted_ids
     
-    def oid_column_name(self):
+    def oid_column_name(self, column):
         return "oid"
 
     def dbapi(self):
         return sqlite
         
-    def has_table(self, connection, table_name):
+    def has_table(self, connection, table_name, schema=None):
         cursor = connection.execute("PRAGMA table_info(" + table_name + ")", {})
         row = cursor.fetchone()
         

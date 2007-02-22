@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
+<div class="">Version: 0.3.5   Last Updated: 02/21/07 21:18:45</div>
 </div>
 
 
@@ -359,7 +359,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
  </li>
 
- <li><p><em>Detached</em> - a detached instance is an instance which has a database identity and corresponding row in the database, but is not attached to any Session.  This occurs when an instance has been removed from a Session, either because the session itself was cleared or closed, or the instance was explicitly removed from the Session.  The object can be re-attached with a session again in which case it becomes Persistent again.  Detached instances are useful when an application needs to represent a long-running operation across multiple Sessions, needs to store an object in a serialized state and then restore it later (such as within an HTTP "session" object), or in some cases where code needs to load instances locally which will later be associated with some other Session.
+ <li><p><em>Detached</em> - a detached instance is an instance which has a database identity and corresponding row in the database, but is not attached to any Session.  This occurs when an instance has been removed from a Session, either because the session itself was cleared or closed, or the instance was explicitly removed from the Session.  The object can be re-attached to a session in which case it becomes Persistent again; any un-persisted changes that exist on the instance, whether they occurred during its previous persistent state or during its detached state will be detected and maintained by the new session.  Detached instances are useful when an application needs to represent a long-running operation across multiple Sessions, needs to store an object in a serialized state and then restore it later (such as within an HTTP "session" object), or in some cases where code needs to load instances locally which will later be associated with some other Session.
 </p>
 
  </li>
@@ -798,6 +798,8 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </p>
 <p>The <code>delete()</code> operation has no relationship to the in-memory status of the instance, including usage of the <code>del</code> Python statement.  An instance marked as deleted and flushed will still exist within memory until references to it are freed; similarly, removing an instance from memory via the <code>del</code> statement will have no effect, since the persistent instance will still be referenced by its Session.  Obviously, if the instance is removed from the Session and then totally dereferenced, it will no longer exist in memory, but also won't exist in any Session and is therefore not deleted from the database.
 </p>
+<p>Note that the "in-memory status" of an instance also refers to its presence in any other collection.  SQLAlchemy does not track the collections to which an instance is a member, and will not remove an instance from its parent collections that were not directly involved in a deletion operation.  The operational and memory overhead implied by this would be too great (such as, if an object belonged to hundreds of collections).  This means if an object <code>A</code> is attached to both an object <code>B</code> and an object <code>C</code>, if you <code>delete()</code> <code>A</code> and flush, <code>A</code> still remains attached to both <code>B</code> and <code>C</code> in a deleted state and must be removed by the application.  Similarly, if a delete on <code>B</code> cascades to <code>A</code>, this <strong>does not</strong> affect <code>A</code> still being present on <code>C</code> - again it must be manually removed.
+</p>
 
 
     </div>
@@ -1099,6 +1101,17 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
     </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
     </span><span class="python_keyword">raise</span><span class="python_operator">
 </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+<p>The SessionTransaction object supports Python 2.5's with statement so that the example above can be written as:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">with sess</span><span class="python_operator">.</span><span class="python_name">create_transaction</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">item1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
+    </span><span class="python_name">item2</span><span class="python_operator">.</span><span class="python_name">bar </span><span class="python_operator">= </span><span class="python_literal">'foo'</span><span class="python_operator"></span></pre></div>
 <p>The <code>create_transaction()</code> method creates a new SessionTransaction object but does not declare any connection/transaction resources.  At the point of the first <code>get()</code> call, a connection resource is opened off the engine that corresponds to the Item classes' mapper and is stored within the <code>SessionTransaction</code> with an open <code>Transaction</code>.  When <code>trans.commit()</code> is called, the <code>flush()</code> method is called on the <code>Session</code> and the corresponding update statements are issued to the database within the scope of the transaction already opened; afterwards, the underying Transaction is committed, and connection resources are freed.
 </p>
 <p><code>SessionTransaction</code>, like the <code>Transaction</code> off of <code>Connection</code> also supports "nested" behavior, and is safe to pass to other functions which then issue their own <code>begin()</code>/<code>commit()</code> pair; only the outermost <code>begin()</code>/<code>commit()</code> pair actually affects the transaction, and any call to <code>rollback()</code> within a particular call stack will issue a rollback.

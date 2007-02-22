@@ -9,17 +9,18 @@ the mapper package provides object-relational functionality, building upon the s
 packages and tying operations to class properties and constructors.
 """
 from sqlalchemy import exceptions
+from sqlalchemy import util as sautil
 from sqlalchemy.orm.mapper import *
 from sqlalchemy.orm import mapper as mapperlib
 from sqlalchemy.orm.query import Query
 from sqlalchemy.orm.util import polymorphic_union
-from sqlalchemy.orm import properties, strategies
+from sqlalchemy.orm import properties, strategies, interfaces
 from sqlalchemy.orm.session import Session as create_session
-from sqlalchemy.orm.session import object_session
+from sqlalchemy.orm.session import object_session, attribute_manager
 
 __all__ = ['relation', 'backref', 'eagerload', 'lazyload', 'noload', 'deferred', 'defer', 'undefer', 'extension', 
         'mapper', 'clear_mappers', 'compile_mappers', 'clear_mapper', 'class_mapper', 'object_mapper', 'MapperExtension', 'Query', 
-        'cascade_mappers', 'polymorphic_union', 'create_session', 'synonym', 'contains_eager', 'EXT_PASS', 'object_session'
+        'cascade_mappers', 'polymorphic_union', 'create_session', 'synonym', 'contains_alias', 'contains_eager', 'EXT_PASS', 'object_session'
         ]
 
 def relation(*args, **kwargs):
@@ -58,7 +59,7 @@ def synonym(name, proxy=False):
     """set up 'name' as a synonym to another MapperProperty.  
     
     Used with the 'properties' dictionary sent to mapper()."""
-    return properties.SynonymProperty(name, proxy=proxy)
+    return interfaces.SynonymProperty(name, proxy=proxy)
 
 def compile_mappers():
     """compile all mappers that have been defined.  
@@ -72,7 +73,12 @@ def clear_mappers():
     """remove all mappers that have been created thus far.  
     
     when new mappers are created, they will be assigned to their classes as their primary mapper."""
+    for mapper in mapper_registry.values():
+        attribute_manager.reset_class_managed(mapper.class_)
+        if hasattr(mapper.class_, 'c'):
+            del mapper.class_.c
     mapper_registry.clear()
+    sautil.ArgSingleton.instances.clear()
     
 def clear_mapper(m):
     """remove the given mapper from the storage of mappers.  
@@ -80,7 +86,11 @@ def clear_mapper(m):
     when a new mapper is created for the previous mapper's class, it will be used as that classes' 
     new primary mapper."""
     del mapper_registry[m.class_key]
-
+    attribute_manager.reset_class_managed(m.class_)
+    if hasattr(m.class_, 'c'):
+        del m.class_.c
+    m.class_key.dispose()
+    
 def extension(ext):
     """return a MapperOption that will insert the given MapperExtension to the 
     beginning of the list of extensions that will be called in the context of the Query.
@@ -109,14 +119,49 @@ def noload(name):
     used with query.options()."""
     return strategies.EagerLazyOption(name, lazy=None)
 
-def contains_eager(key, decorator=None):
-    """return a MapperOption that will indicate to the query that the given 
-    attribute will be eagerly loaded without any row decoration, or using
-    a custom row decorator.  
+def contains_alias(alias):
+    """return a MapperOption that will indicate to the query that the main table
+    has been aliased.
     
+    "alias" is the string name or Alias object representing the alias.
+    """
+    class AliasedRow(MapperExtension):
+        def __init__(self, alias):
+            self.alias = alias
+            if isinstance(self.alias, basestring):
+                self.selectable = None
+            else:
+                self.selectable = alias
+        def get_selectable(self, mapper):
+            if self.selectable is None:
+                self.selectable = mapper.mapped_table.alias(self.alias)
+            return self.selectable
+        def translate_row(self, mapper, context, row):
+            newrow = sautil.DictDecorator(row)
+            selectable = self.get_selectable(mapper)
+            for c in mapper.mapped_table.c:
+                c2 = selectable.corresponding_column(c, keys_ok=True, raiseerr=False)
+                if c2 and row.has_key(c2):
+                    newrow[c] = row[c2]
+            return newrow
+            
+    return ExtensionOption(AliasedRow(alias))
+    
+def contains_eager(key, alias=None, decorator=None):
+    """return a MapperOption that will indicate to the query that the given 
+    attribute will be eagerly loaded.
+
     used when feeding SQL result sets directly into
-    query.instances()."""
-    return strategies.RowDecorateOption(key, decorator=decorator)
+    query.instances().  Also bundles an EagerLazyOption to turn on eager loading 
+    in case it isnt already.
+        
+    "alias" is the string name of an alias, *or* an sql.Alias object, which represents
+    the aliased columns in the query.  this argument is optional.
+    
+    "decorator" is mutually exclusive of "alias" and is a row-processing function which
+    will be applied to the incoming row before sending to the eager load handler.  use this
+    for more sophisticated row adjustments beyond a straight alias."""
+    return (strategies.EagerLazyOption(key, lazy=False), strategies.RowDecorateOption(key, alias=alias, decorator=decorator))
     
 def defer(name):
     """return a MapperOption that will convert the column property of the given 

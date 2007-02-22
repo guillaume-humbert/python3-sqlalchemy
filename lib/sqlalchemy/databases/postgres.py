@@ -32,6 +32,10 @@ except:
     except:
         psycopg = None
 
+class PGInet(sqltypes.TypeEngine):
+    def get_col_spec(self):
+        return "INET"
+
 class PGNumeric(sqltypes.Numeric):
     def get_col_spec(self):
         if not self.precision:
@@ -112,7 +116,10 @@ class PG1Time(sqltypes.Time):
         return value
     def get_col_spec(self):
         return "TIME " + (self.timezone and "WITH" or "WITHOUT") + " TIME ZONE"
-
+class PGInterval(sqltypes.TypeEngine):
+    def get_col_spec(self):
+        return "INTERVAL"
+        
 class PGText(sqltypes.TEXT):
     def get_col_spec(self):
         return "TEXT"
@@ -161,6 +168,7 @@ pg2_ischema_names = {
     'numeric' : PGNumeric,
     'float' : PGFloat,
     'real' : PGFloat,
+    'inet': PGInet,
     'double precision' : PGFloat,
     'timestamp' : PG2DateTime,
     'timestamp with time zone' : PG2DateTime,
@@ -171,6 +179,7 @@ pg2_ischema_names = {
     'time': PG2Time,
     'bytea' : PGBinary,
     'boolean' : PGBoolean,
+    'interval':PGInterval,
 }
 pg1_ischema_names = pg2_ischema_names.copy()
 pg1_ischema_names.update({
@@ -279,7 +288,7 @@ class PGDialect(ansisql.ANSIDialect):
         else:
             return self.context.last_inserted_ids
 
-    def oid_column_name(self):
+    def oid_column_name(self, column):
         if self.use_oids:
             return "oid"
         else:
@@ -396,6 +405,12 @@ class PGDialect(ansisql.ANSIDialect):
                 coltype = coltype(*args, **kwargs)
                 colargs= []
                 if default is not None:
+                    match = re.search(r"""(nextval\(')([^']+)('.*$)""", default)
+                    if match is not None:
+                        # the default is related to a Sequence
+                        sch = table.schema
+                        if '.' not in match.group(2) and sch is not None:
+                            default = match.group(1) + sch + '.' + match.group(2) + match.group(3)
                     colargs.append(PassiveDefault(sql.text(default)))
                 table.append_column(schema.Column(name, coltype, nullable=nullable, *colargs))
     
@@ -450,12 +465,14 @@ class PGDialect(ansisql.ANSIDialect):
 class PGCompiler(ansisql.ANSICompiler):
         
     def visit_insert_column(self, column, parameters):
-        # Postgres advises against OID usage and turns it off in 8.1,
-        # effectively making cursor.lastrowid
-        # useless, effectively making reliance upon SERIAL useless.  
-        # so all column primary key inserts must be explicitly present
+        # all column primary key inserts must be explicitly present
         if column.primary_key:
             parameters[column.key] = None
+
+    def visit_insert_sequence(self, column, sequence, parameters):
+        """this is the 'sequence' equivalent to ANSICompiler's 'visit_insert_column_default' which ensures
+        that the column is present in the generated column list"""
+        parameters.setdefault(column.key, None)
 
     def limit_clause(self, select):
         text = ""

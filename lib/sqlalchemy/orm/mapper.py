@@ -500,8 +500,9 @@ class Mapper(object):
 
 
     def _initialize_properties(self):
-        """calls the init() method on all MapperProperties attached to this mapper.  this will incur the
-        compilation of related mappers."""
+        """calls the init() method on all MapperProperties attached to this mapper.  this happens
+        after all mappers have completed compiling everything else up until this point, so that all
+        dependencies are fully available."""
         self.__log("_initialize_properties() started")
         l = [(key, prop) for key, prop in self.__props.iteritems()]
         for key, prop in l:
@@ -514,10 +515,9 @@ class Mapper(object):
         """if the 'select_table' keyword argument was specified, 
         set up a second "surrogate mapper" that will be used for select operations.
         the columns of select_table should encompass all the columns of the mapped_table either directly
-        or through proxying relationships."""
+        or through proxying relationships. Currently, non-column properties are *not* copied.  this implies
+        that a polymorphic mapper cant do any eager loading right now."""
         if self.select_table is not self.mapped_table:
-            if self.polymorphic_identity is None:
-                raise exceptions.ArgumentError("Could not locate a polymorphic_identity field for mapper '%s'.  This field is required for polymorphic mappers" % str(self))
             props = {}
             if self.properties is not None:
                 for key, prop in self.properties.iteritems():
@@ -531,7 +531,7 @@ class Mapper(object):
         """if this mapper is to be a primary mapper (i.e. the non_primary flag is not set),
         associate this Mapper with the given class_ and entity name.  subsequent
         calls to class_mapper() for the class_/entity name combination will return this 
-        mapper.  also decorates the __init__ method on the mapped class to include auto-session attachment logic."""
+        mapper.  also decorates the __init__ method on the mapped class to include optional auto-session attachment logic."""
         if self.non_primary:
             return
         
@@ -626,7 +626,24 @@ class Mapper(object):
                 for x in iterate(mapper):
                     yield x
         return iterate(self)
-                
+    
+    def _get_inherited_column_equivalents(self):
+        """return a map of all 'equivalent' columns, based on traversing the full set of inherit_conditions across
+        all inheriting mappers and determining column pairs that are equated to one another.
+        
+        this is used when relating columns to those of a polymorphic selectable, as the selectable usually only contains
+        one of two columns that are equated to one another."""
+        result = {}
+        def visit_binary(binary):
+            if binary.operator == '=':
+                result[binary.left] = binary.right
+                result[binary.right] = binary.left
+        vis = mapperutil.BinaryVisitor(visit_binary)
+        for mapper in self.polymorphic_iterator():
+            if mapper.inherit_condition is not None:
+                mapper.inherit_condition.accept_visitor(vis)
+        return result
+            
     def add_properties(self, dict_of_properties):
         """adds the given dictionary of properties to this mapper, using add_property."""
         for key, value in dict_of_properties.iteritems():
@@ -755,8 +772,8 @@ class Mapper(object):
     def identity_key_from_row(self, row):
         """return an identity-map key for use in storing/retrieving an item from the identity map.
 
-        row - a sqlalchemy.dbengine.RowProxy instance or other map corresponding result-set
-        column names to their values within a row.
+        row - a sqlalchemy.engine.base.RowProxy instance or a dictionary corresponding result-set
+        ColumnElement instances to their values within a row.
         """
         return (self.class_, tuple([row[column] for column in self.pks_by_table[self.mapped_table]]), self.entity_name)
         
@@ -1149,18 +1166,31 @@ class Mapper(object):
         this mapper is the same mapper as 'self' unless the select_table argument was specified for this mapper."""
         return self.__surrogate_mapper or self
         
-    def _instance(self, context, row, result = None):
+    def _instance(self, context, row, result = None, skip_polymorphic=False):
         """pulls an object instance from the given row and appends it to the given result
         list. if the instance already exists in the given identity map, its not added.  in
         either case, executes all the property loaders on the instance to also process extra
         information in the row."""
 
-        if self.polymorphic_on is not None:
+        # apply ExtensionOptions applied to the Query to this mapper,
+        # but only if our mapper matches.
+        # TODO: what if our mapper inherits from the mapper (i.e. as in a polymorphic load?)
+        if context.mapper is self:
+            extension = context.extension
+        else:
+            extension = self.extension
+            
+        ret = extension.translate_row(self, context, row)
+        if ret is not EXT_PASS:
+            row = ret
+
+        if not skip_polymorphic and self.polymorphic_on is not None:
             discriminator = row[self.polymorphic_on]
-            mapper = self.polymorphic_map[discriminator]
-            if mapper is not self:
-                row = self.translate_row(mapper, row)
-                return mapper._instance(context, row, result=result)
+            if discriminator is not None:
+                mapper = self.polymorphic_map[discriminator]
+                if mapper is not self:
+                    row = self.translate_row(mapper, row)
+                    return mapper._instance(context, row, result=result, skip_polymorphic=True)
         
         # look in main identity map.  if its there, we dont do anything to it,
         # including modifying any of its related items lists, as its already
@@ -1180,9 +1210,9 @@ class Mapper(object):
                 if not context.identity_map.has_key(identitykey):
                     context.identity_map[identitykey] = instance
                     isnew = True
-                if self.extension.populate_instance(self, context, row, instance, identitykey, isnew) is EXT_PASS:
+                if extension.populate_instance(self, context, row, instance, identitykey, isnew) is EXT_PASS:
                     self.populate_instance(context, instance, row, identitykey, isnew)
-            if self.extension.append_result(self, context, row, instance, identitykey, result, isnew) is EXT_PASS:
+            if extension.append_result(self, context, row, instance, identitykey, result, isnew) is EXT_PASS:
                 if result is not None:
                     result.append(instance)
             return instance
@@ -1208,7 +1238,7 @@ class Mapper(object):
                         return None
             
             # plugin point
-            instance = self.extension.create_instance(self, context, row, self.class_)
+            instance = extension.create_instance(self, context, row, self.class_)
             if instance is EXT_PASS:
                 instance = self._create_instance(context.session)
             else:
@@ -1223,9 +1253,9 @@ class Mapper(object):
 
         # call further mapper properties on the row, to pull further 
         # instances from the row and possibly populate this item.
-        if self.extension.populate_instance(self, context, row, instance, identitykey, isnew) is EXT_PASS:
+        if extension.populate_instance(self, context, row, instance, identitykey, isnew) is EXT_PASS:
             self.populate_instance(context, instance, row, identitykey, isnew)
-        if self.extension.append_result(self, context, row, instance, identitykey, result, isnew) is EXT_PASS:
+        if extension.append_result(self, context, row, instance, identitykey, result, isnew) is EXT_PASS:
             if result is not None:
                 result.append(instance)
         return instance
@@ -1303,6 +1333,13 @@ class MapperExtension(object):
         the return value of this method is used as the result of query.select() if the
         value is anything other than EXT_PASS."""
         return EXT_PASS
+        
+    def translate_row(self, mapper, context, row):
+        """perform pre-processing on the given result row and return a new row instance.
+        
+        this is called as the very first step in the _instance() method."""
+        return EXT_PASS
+        
     def create_instance(self, mapper, selectcontext, row, class_):
         """receieve a row when a new object instance is about to be created from that row.  
         the method can choose to create the instance itself, or it can return 
@@ -1394,6 +1431,8 @@ class _ExtensionCarrier(MapperExtension):
         return self._do('select_by', *args, **kwargs)
     def select(self, *args, **kwargs):
         return self._do('select', *args, **kwargs)
+    def translate_row(self, *args, **kwargs):
+        return self._do('translate_row', *args, **kwargs)
     def create_instance(self, *args, **kwargs):
         return self._do('create_instance', *args, **kwargs)
     def append_result(self, *args, **kwargs):
@@ -1438,7 +1477,9 @@ class ClassKey(object):
         return self is other
     def __repr__(self):
         return "ClassKey(%s, %s)" % (repr(self.class_), repr(self.entity_name))
-
+    def dispose(self):
+        type(self).dispose_static(self.class_, self.entity_name)
+        
 def has_identity(object):
     return hasattr(object, '_instance_key')
     

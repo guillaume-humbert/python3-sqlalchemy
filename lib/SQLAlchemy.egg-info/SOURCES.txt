@@ -138,6 +138,7 @@ test/base/dependency.py
 test/engine/__init__.py
 test/engine/alltests.py
 test/engine/autoconnect_engine.py
+test/engine/execute.py
 test/engine/parseconnect.py
 test/engine/pool.py
 test/engine/proxy_engine.py
@@ -146,6 +147,7 @@ test/engine/transaction.py
 test/ext/__init__.py
 test/ext/activemapper.py
 test/ext/alltests.py
+test/ext/assignmapper.py
 test/ext/legacy_objectstore.py
 test/ext/selectresults.py
 test/ext/wsgi_test.py
@@ -168,6 +170,7 @@ test/orm/inheritance5.py
 test/orm/lazytest1.py
 test/orm/manytomany.py
 test/orm/mapper.py
+test/orm/memusage.py
 test/orm/merge.py
 test/orm/onetoone.py
 test/orm/poly_linked_list.py

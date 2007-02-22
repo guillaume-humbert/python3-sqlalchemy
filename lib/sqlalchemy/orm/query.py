@@ -4,9 +4,9 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-from sqlalchemy import sql, util, exceptions, sql_util, logging
-from sqlalchemy.orm import mapper
-from sqlalchemy.orm.interfaces import OperationContext
+from sqlalchemy import sql, util, exceptions, sql_util, logging, schema
+from sqlalchemy.orm import mapper, class_mapper
+from sqlalchemy.orm.interfaces import OperationContext, SynonymProperty
 
 __all__ = ['Query', 'QueryContext', 'SelectionContext']
 
@@ -18,7 +18,7 @@ class Query(object):
         else:
             self.mapper = class_or_mapper.compile()
         self.with_options = with_options or []
-        self.mapper = self.mapper.get_select_mapper().compile()
+        self.select_mapper = self.mapper.get_select_mapper().compile()
         self.always_refresh = kwargs.pop('always_refresh', self.mapper.always_refresh)
         self.order_by = kwargs.pop('order_by', self.mapper.order_by)
         self.lockmode = lockmode
@@ -26,14 +26,15 @@ class Query(object):
         if extension is not None:
             self.extension.append(extension)
         self.extension.append(self.mapper.extension)
+        self.is_polymorphic = self.mapper is not self.select_mapper
         self._session = session
         if not hasattr(self.mapper, '_get_clause'):
             _get_clause = sql.and_()
-            for primary_key in self.mapper.pks_by_table[self.table]:
+            for primary_key in self.primary_key_columns:
                 _get_clause.clauses.append(primary_key == sql.bindparam(primary_key._label, type=primary_key.type))
             self.mapper._get_clause = _get_clause
         self._get_clause = self.mapper._get_clause
-        for opt in self.with_options:
+        for opt in util.flatten_iterator(self.with_options):
             opt.process_query(self)
     
     def _insert_extension(self, ext):
@@ -44,7 +45,8 @@ class Query(object):
             return self.mapper.get_session()
         else:
             return self._session
-    table = property(lambda s:s.mapper.select_table)
+    table = property(lambda s:s.select_mapper.mapped_table)
+    primary_key_columns = property(lambda s:s.select_mapper.pks_by_table[s.select_mapper.mapped_table])
     session = property(_get_session)
     
     def get(self, ident, **kwargs):
@@ -117,6 +119,10 @@ class Query(object):
 
     def join_by(self, *args, **params):
         """return a ClauseElement representing the WHERE clause that would normally be sent to select_whereclause() by select_by()."""
+        return self._join_by(args, params)
+
+    def _join_by(self, args, params, start=None):
+        """return a ClauseElement representing the WHERE clause that would normally be sent to select_whereclause() by select_by()."""
         clause = None
         for arg in args:
             if clause is None:
@@ -125,7 +131,7 @@ class Query(object):
                 clause &= arg
 
         for key, value in params.iteritems():
-            (keys, prop) = self._locate_prop(key)
+            (keys, prop) = self._locate_prop(key, start=start)
             c = prop.compare(value) & self.join_via(keys)
             if clause is None:
                 clause =  c
@@ -143,7 +149,7 @@ class Query(object):
             seen.add(mapper_)
             if mapper_.props.has_key(key):
                 prop = mapper_.props[key]
-                if isinstance(prop, properties.SynonymProperty):
+                if isinstance(prop, SynonymProperty):
                     prop = mapper_.props[prop.name]
                 if isinstance(prop, properties.PropertyLoader):
                     keys.insert(0, prop.key)
@@ -180,9 +186,9 @@ class Query(object):
         for key in keys:
             prop = mapper.props[key]
             if clause is None:
-                clause = prop.get_join()
+                clause = prop.get_join(mapper)
             else:
-                clause &= prop.get_join()
+                clause &= prop.get_join(mapper)
             mapper = prop.mapper
 
         return clause
@@ -265,7 +271,7 @@ class Query(object):
         if self._nestable(**kwargs):
             s = sql.select([self.table], whereclause, **kwargs).alias('getcount').count()
         else:
-            primary_key = self.mapper.pks_by_table[self.table]
+            primary_key = self.primary_key_columns
             s = sql.select([sql.func.count(list(primary_key)[0])], whereclause, from_obj=from_obj, **kwargs)
         return self.session.scalar(self.mapper, s, params=params)
 
@@ -317,7 +323,7 @@ class Query(object):
 
         session = self.session
         
-        context = SelectionContext(self.mapper, session, with_options=self.with_options, **kwargs)
+        context = SelectionContext(self.select_mapper, session, self.extension, with_options=self.with_options, **kwargs)
 
         result = util.UniqueAppender([])
         if mappers:
@@ -326,7 +332,7 @@ class Query(object):
                 otherresults.append(util.UniqueAppender([]))
 
         for row in cursor.fetchall():
-            self.mapper._instance(context, row, result)
+            self.select_mapper._instance(context, row, result)
             i = 0
             for m in mappers:
                 m._instance(context, row, otherresults[i])
@@ -356,7 +362,7 @@ class Query(object):
             ident = util.to_list(ident)
         i = 0
         params = {}
-        for primary_key in self.mapper.pks_by_table[self.table]:
+        for primary_key in self.primary_key_columns:
             params[primary_key._label] = ident[i]
             # if there are not enough elements in the given identifier, then 
             # use the previous identifier repeatedly.  this is a workaround for the issue 
@@ -392,6 +398,12 @@ class Query(object):
         
     def compile(self, whereclause = None, **kwargs):
         """given a WHERE criterion, produce a ClauseElement-based statement suitable for usage in the execute() method."""
+        
+        if whereclause is not None and self.is_polymorphic:
+            # adapt the given WHERECLAUSE to adjust instances of this query's mapped table to be that of our select_table,
+            # which may be the "polymorphic" selectable used by our mapper.
+            whereclause.accept_visitor(sql_util.ClauseAdapter(self.table))
+        
         context = kwargs.pop('query_context', None)
         if context is None:
             context = QueryContext(self, kwargs)
@@ -412,8 +424,8 @@ class Query(object):
         except KeyError:
             raise exceptions.ArgumentError("Unknown lockmode '%s'" % lockmode)
         
-        if self.mapper.single and self.mapper.polymorphic_on is not None and self.mapper.polymorphic_identity is not None:
-            whereclause = sql.and_(whereclause, self.mapper.polymorphic_on.in_(*[m.polymorphic_identity for m in self.mapper.polymorphic_iterator()]))
+        if self.select_mapper.single and self.select_mapper.polymorphic_on is not None and self.select_mapper.polymorphic_identity is not None:
+            whereclause = sql.and_(whereclause, self.select_mapper.polymorphic_on.in_(*[m.polymorphic_identity for m in self.select_mapper.polymorphic_iterator()]))
         
         alltables = []
         for l in [sql_util.TableFinder(x) for x in from_obj]:
@@ -428,26 +440,21 @@ class Query(object):
             if order_by:
                 order_by = util.to_list(order_by) or []
                 cf = sql_util.ColumnFinder()
-                [o.accept_visitor(cf) for o in order_by]
+                for o in order_by:
+                    o.accept_visitor(cf)
             else:
                 cf = []
                 
             s2 = sql.select(self.table.primary_key + list(cf), whereclause, use_labels=True, from_obj=from_obj, **context.select_args())
-            if not distinct and order_by:
+            if order_by:
                 s2.order_by(*util.to_list(order_by))
             s3 = s2.alias('tbl_row_count')
             crit = s3.primary_key==self.table.primary_key
-            statement = sql.select([], crit, from_obj=[self.table], use_labels=True, for_update=for_update)
+            statement = sql.select([], crit, use_labels=True, for_update=for_update)
             # now for the order by, convert the columns to their corresponding columns
             # in the "rowcount" query, and tack that new order by onto the "rowcount" query
             if order_by:
-                class Aliasizer(sql_util.Aliasizer):
-                    def get_alias(self, table):
-                        return s3
-                order_by = [o.copy_container() for o in order_by]
-                aliasizer = Aliasizer(*[t for t in sql_util.TableFinder(s3)])
-                [o.accept_visitor(aliasizer) for  o in order_by]
-                statement.order_by(*util.to_list(order_by))
+                statement.order_by(*sql_util.ClauseAdapter(s3).copy_and_process(order_by))
         else:
             statement = sql.select([], whereclause, from_obj=from_obj, use_labels=True, for_update=for_update, **context.select_args())
             if order_by:
@@ -460,7 +467,9 @@ class Query(object):
 
         context.statement = statement
         # give all the attached properties a chance to modify the query
-        for value in self.mapper.props.values():
+        # TODO: doing this off the select_mapper.  if its the polymorphic mapper, then
+        # it has no relations() on it.  should we compile those too into the query ?  (i.e. eagerloads)
+        for value in self.select_mapper.props.values():
             value.setup(context) 
         
         return statement
@@ -516,10 +525,11 @@ class SelectionContext(OperationContext):
     to the freshly loaded value
 
     """
-    def __init__(self, mapper, session, **kwargs):
+    def __init__(self, mapper, session, extension, **kwargs):
         self.populate_existing = kwargs.pop('populate_existing', False)
         self.version_check = kwargs.pop('version_check', False)
         self.session = session
+        self.extension = extension
         self.identity_map = {}
         super(SelectionContext, self).__init__(mapper, kwargs.pop('with_options', []), **kwargs)
     def accept_option(self, opt):

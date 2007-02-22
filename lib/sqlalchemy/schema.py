@@ -65,8 +65,7 @@ class SchemaItem(object):
         a local non-None value overrides all others.  after that, the parent item
         (i.e. Column for a Sequence, Table for a Column, MetaData for a Table) is
         searched for a non-None setting, traversing each parent until none are found.
-        finally, case_sensitive is set to True if and only if the name of this item
-        is not all lowercase.
+        finally, case_sensitive is set to True as a default.
         """
         local = getattr(self, '_%s_setting' % keyname, None)
         if local is not None:
@@ -78,7 +77,7 @@ class SchemaItem(object):
                 parentval = getattr(parent, '_case_sensitive_setting', None)
                 if parentval is not None:
                     return parentval
-        return name is not None and name.lower() != name
+        return True 
     def _get_case_sensitive(self):
         try:
             return self.__case_sensitive
@@ -194,11 +193,9 @@ class Table(SchemaItem, sql.TableClause):
         quote_schema=False : indicates that the Namespace identifier must be properly escaped and quoted before being sent 
         to the database. This flag overrides all other quoting behavior.
         
-        case_sensitive=True : indicates that the identifier should be interpreted by the database in the natural case for identifiers.
-        Mixed case is not sufficient to cause this identifier to be quoted; it must contain an illegal character.
+        case_sensitive=True : indicates quoting should be used if the identifier contains mixed case.
         
-        case_sensitive_schema=True : indicates that the identifier should be interpreted by the database in the natural case for identifiers.
-        Mixed case is not sufficient to cause this identifier to be quoted; it must contain an illegal character.
+        case_sensitive_schema=True : indicates quoting should be used if the identifier contains mixed case.
         """
         super(Table, self).__init__(name)
         self._metadata = metadata
@@ -275,7 +272,7 @@ class Table(SchemaItem, sql.TableClause):
 
         def do(conn):
             e = conn.engine
-            return e.dialect.has_table(conn, self.name)
+            return e.dialect.has_table(conn, self.name, schema=self.schema)
         return connectable.run_callable(do)
 
     def create(self, connectable=None, checkfirst=False):
@@ -365,8 +362,7 @@ class Column(SchemaItem, sql._ColumnClause):
         to the database.  This flag should normally not be required as dialects can auto-detect conditions where quoting
         is required.
 
-        case_sensitive=True : indicates that the identifier should be interpreted by the database in the natural case for identifiers.
-        Mixed case is not sufficient to cause this identifier to be quoted; it must contain an illegal character.
+        case_sensitive=True : indicates quoting should be used if the identifier contains mixed case.
         """
         name = str(name) # in case of incoming unicode        
         super(Column, self).__init__(name, None, type)
@@ -463,7 +459,7 @@ class Column(SchemaItem, sql._ColumnClause):
 
     def copy(self): 
         """creates a copy of this Column, unitialized.  this is used in Table.tometadata."""
-        return Column(self.name, self.type, self.default, key = self.key, primary_key = self.primary_key, nullable = self.nullable, _is_oid = self._is_oid, case_sensitive=self._case_sensitive_setting, quote=self.quote)
+        return Column(self.name, self.type, self.default, key = self.key, primary_key = self.primary_key, nullable = self.nullable, _is_oid = self._is_oid, case_sensitive=self._case_sensitive_setting, quote=self.quote, *[c.copy() for c in self.constraints])
         
     def _make_proxy(self, selectable, name = None):
         """create a "proxy" for this column.
@@ -486,7 +482,7 @@ class Column(SchemaItem, sql._ColumnClause):
         """redirect the 'case_sensitive' accessor to use the ultimate parent column which created
         this one."""
         return self.__originating_column._get_case_sensitive()
-    case_sensitive = property(_case_sens)
+    case_sensitive = property(_case_sens, lambda s,v:None)
     
     def accept_schema_visitor(self, visitor, traverse=True):
         """traverses the given visitor to this Column's default and foreign key object,
@@ -709,11 +705,16 @@ class CheckConstraint(Constraint):
         super(CheckConstraint, self).__init__(name)
         self.sqltext = sqltext
     def accept_schema_visitor(self, visitor, traverse=True):
-        visitor.visit_check_constraint(self)
+        if isinstance(self.parent, Table):
+            visitor.visit_check_constraint(self)
+        else:
+            visitor.visit_column_check_constraint(self)
     def _set_parent(self, parent):
         self.parent = parent
         parent.constraints.add(self)
-                
+    def copy(self):
+        return CheckConstraint(self.sqltext, name=self.name)
+                    
 class ForeignKeyConstraint(Constraint):
     """table-level foreign key constraint, represents a colleciton of ForeignKey objects."""
     def __init__(self, columns, refcolumns, name=None, onupdate=None, ondelete=None, use_alter=False):
@@ -780,7 +781,9 @@ class UniqueConstraint(Constraint):
         self.columns.add(col)
     def accept_schema_visitor(self, visitor, traverse=True):
         visitor.visit_unique_constraint(self)
-        
+    def copy(self):
+        return UniqueConstraint(name=self.name, *self.__colnames)
+            
 class Index(SchemaItem):
     """Represents an index of columns from a database table
     """
@@ -918,7 +921,7 @@ class BoundMetaData(MetaData):
     """builds upon MetaData to provide the capability to bind to an Engine implementation."""
     def __init__(self, engine_or_url, name=None, **kwargs):
         super(BoundMetaData, self).__init__(name, **kwargs)
-        if isinstance(engine_or_url, str):
+        if isinstance(engine_or_url, basestring):
             self._engine = sqlalchemy.create_engine(engine_or_url, **kwargs)
         else:
             self._engine = engine_or_url
@@ -996,6 +999,8 @@ class SchemaVisitor(sql.ClauseVisitor):
     def visit_unique_constraint(self, constraint):
         pass
     def visit_check_constraint(self, constraint):
+        pass
+    def visit_column_check_constraint(self, constraint):
         pass
         
 default_metadata = DynamicMetaData('default')

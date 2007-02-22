@@ -1,3 +1,9 @@
+sqlalchemy (0.3.5-1) experimental; urgency=low
+
+  * New upstream release (upload to experimental due to Etch freeze)
+
+ -- Piotr Ozarowski <ozarow@gmail.com>  Thu, 22 Feb 2007 19:03:14 +0100
+
 sqlalchemy (0.3.4-2) experimental; urgency=low
 
   * Replace python-all with pytohn-all-dev build dependency (python2.5 needs

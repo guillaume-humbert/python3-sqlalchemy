@@ -355,14 +355,15 @@ class ReflectionTest(PersistTest):
         finally:
             meta.drop_all()
             
-    def testtoengine(self):
+    def testtometadata(self):
         meta = MetaData('md1')
         meta2 = MetaData('md2')
         
         table = Table('mytable', meta,
             Column('myid', Integer, primary_key=True),
             Column('name', String, nullable=False),
-            Column('description', String(30)),
+            Column('description', String(30), CheckConstraint("description='hi'")),
+            UniqueConstraint('name')
         )
         
         table2 = Table('othertable', meta,
@@ -382,6 +383,20 @@ class ReflectionTest(PersistTest):
         assert [x.name for x in table.primary_key] == [x.name for x in table_c.primary_key]
         assert list(table2_c.c.myid.foreign_keys)[0].column is table_c.c.myid
         assert list(table2_c.c.myid.foreign_keys)[0].column is not table.c.myid
+        for c in table_c.c.description.constraints:
+            if isinstance(c, CheckConstraint):
+                break
+        else:
+            assert False
+        assert c.sqltext=="description='hi'"
+        
+        for c in table_c.constraints:
+            if isinstance(c, UniqueConstraint):
+                break
+        else:
+            assert False
+        assert c.columns.contains_column(table_c.c.name)
+        assert not c.columns.contains_column(table.c.name)
         
     # mysql throws its own exception for no such table, resulting in 
     # a sqlalchemy.SQLError instead of sqlalchemy.NoSuchTableError.
@@ -491,9 +506,37 @@ class SchemaTest(PersistTest):
         print buf
         assert buf.index("CREATE TABLE someschema.table1") > -1
         assert buf.index("CREATE TABLE someschema.table2") > -1
-         
+    
+    @testbase.supported('postgres')
+    def testpg(self):
+        """note: this test requires that the 'test_schema' schema be separate and accessible by the test user"""
         
-        
+        meta1 = BoundMetaData(testbase.db)
+        users = Table('users', meta1,
+            Column('user_id', Integer, primary_key = True),
+            Column('user_name', String(30), nullable = False),
+            schema="test_schema"
+            )
+
+        addresses = Table('email_addresses', meta1,
+            Column('address_id', Integer, primary_key = True),
+            Column('remote_user_id', Integer, ForeignKey(users.c.user_id)),
+            Column('email_address', String(20)),
+            schema="test_schema"
+        )
+        meta1.create_all()
+        try:
+            meta2 = BoundMetaData(testbase.db)
+            addresses = Table('email_addresses', meta2, autoload=True, schema="test_schema")
+            users = Table('users', meta2, mustexist=True, schema="test_schema")
+
+            print users
+            print addresses
+            j = join(users, addresses)
+            print str(j.onclause)
+            self.assert_((users.c.user_id==addresses.c.remote_user_id).compare(j.onclause))
+        finally:
+            meta1.drop_all()
         
 if __name__ == "__main__":
     testbase.main()        

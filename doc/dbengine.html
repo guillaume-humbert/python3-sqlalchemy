@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
+<div class="">Version: 0.3.5   Last Updated: 02/21/07 21:18:45</div>
 </div>
 
 
@@ -365,10 +365,6 @@ Next: <a href="metadata.html">Database Meta Data</a>
  </li>
 
  <li>
-     <strong>max_overflow=10</strong> - the number of connections to allow in connection pool "overflow", that is connections that can be opened above and beyond the initial setting, which defaults to five.  this is only used with <code>QueuePool</code>.
- </li>
-
- <li>
      <strong>module=None</strong> - used by database implementations which support multiple DBAPI modules, this is a reference to a DBAPI2 module to be used instead of the engine's default module.  For Postgres, the default is psycopg2, or psycopg1 if 2 cannot be found.  For Oracle, its cx_Oracle.
  </li>
 
@@ -392,6 +388,10 @@ Next: <a href="metadata.html">Database Meta Data</a>
 <ul>
  <li>
      <strong>poolclass=None</strong> - a <code>sqlalchemy.pool.Pool</code> subclass that will be instantated in place of the default connection pool.
+ </li>
+
+ <li>
+     <strong>max_overflow=10</strong> - the number of connections to allow in connection pool "overflow", that is connections that can be opened above and beyond the pool_size setting, which defaults to five.  this is only used with <code>QueuePool</code>.
  </li>
 
  <li>

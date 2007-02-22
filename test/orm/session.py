@@ -161,6 +161,7 @@ class SessionTest(AssertMixin):
         s.clear()
         assert s.query(Address).selectone().address_id == a.address_id
         assert s.query(User).selectfirst() is None
+
         
 class OrphanDeletionTest(AssertMixin):
 
