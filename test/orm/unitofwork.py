@@ -101,7 +101,6 @@ class VersioningTest(UnitOfWorkTest):
         version_table.delete().execute()
         UnitOfWorkTest.tearDown(self)
     
-    @testbase.unsupported('mssql')
     def testbasic(self):
         s = create_session()
         class Foo(object):pass
@@ -126,7 +125,10 @@ class VersioningTest(UnitOfWorkTest):
         except exceptions.ConcurrentModificationError, e:
             #print e
             success = True
-        assert success
+
+        # Only dialects with a sane rowcount can detect the ConcurrentModificationError
+        if testbase.db.dialect.supports_sane_rowcount():
+            assert success
         
         s.clear()
         f1 = s.query(Foo).get(f1.id)
@@ -142,7 +144,9 @@ class VersioningTest(UnitOfWorkTest):
         except exceptions.ConcurrentModificationError, e:
             #print e
             success = True
-        assert success
+        if testbase.db.dialect.supports_sane_rowcount():
+            assert success
+
     def testversioncheck(self):
         """test that query.with_lockmode performs a 'version check' on an already loaded instance"""
         s1 = create_session()
@@ -328,7 +332,6 @@ class MutableTypesTest(UnitOfWorkTest):
         
         
 class PKTest(UnitOfWorkTest):
-    @testbase.unsupported('mssql')
     def setUpAll(self):
         UnitOfWorkTest.setUpAll(self)
         global table
@@ -356,7 +359,7 @@ class PKTest(UnitOfWorkTest):
         table.create()
         table2.create()
         table3.create()
-    @testbase.unsupported('mssql')
+
     def tearDownAll(self):
         table.drop()
         table2.drop()
@@ -365,7 +368,7 @@ class PKTest(UnitOfWorkTest):
         
     # not support on sqlite since sqlite's auto-pk generation only works with
     # single column primary keys    
-    @testbase.unsupported('sqlite', 'mssql')
+    @testbase.unsupported('sqlite')
     def testprimarykey(self):
         class Entry(object):
             pass
@@ -380,7 +383,6 @@ class PKTest(UnitOfWorkTest):
         self.assert_(e is not e2 and e._instance_key == e2._instance_key)
         
     # this one works with sqlite since we are manually setting up pk values
-    @testbase.unsupported('mssql')
     def testmanualpk(self):
         class Entry(object):
             pass
@@ -391,7 +393,6 @@ class PKTest(UnitOfWorkTest):
         e.data = 'im the data'
         ctx.current.flush()
         
-    @testbase.unsupported('mssql')
     def testkeypks(self):
         import datetime
         class Entity(object):
@@ -1255,7 +1256,7 @@ class ManyToManyTest(UnitOfWorkTest):
         keywordmapper = mapper(Keyword, keywords)
 
         m = mapper(Item, items, properties = dict(
-                keywords = relation(keywordmapper, itemkeywords, lazy = False),
+                keywords = relation(keywordmapper, itemkeywords, lazy = False, order_by=keywords.c.name),
             ))
 
         data = [Item,
@@ -1289,7 +1290,7 @@ class ManyToManyTest(UnitOfWorkTest):
 
         ctx.current.flush()
         
-        l = ctx.current.query(m).select(items.c.item_name.in_(*[e['item_name'] for e in data[1:]]), order_by=[items.c.item_name, keywords.c.name])
+        l = ctx.current.query(m).select(items.c.item_name.in_(*[e['item_name'] for e in data[1:]]), order_by=[items.c.item_name])
         self.assert_result(l, *data)
 
         objects[4].item_name = 'item4updated'
@@ -1408,7 +1409,7 @@ class ManyToManyTest(UnitOfWorkTest):
         # the reorganization of mapper construction affected this, but was fixed again
         m = mapper(Item, items, properties = dict(
                 keywords = relation(mapper(IKAssociation, itemkeywords, properties = dict(
-                    keyword = relation(mapper(Keyword, keywords, non_primary=True), lazy = False, uselist = False)
+                    keyword = relation(mapper(Keyword, keywords, non_primary=True), lazy = False, uselist = False, order_by=keywords.c.name)
                 ), primary_key = [itemkeywords.c.item_id, itemkeywords.c.keyword_id]),
                 lazy = False)
             ))
@@ -1455,7 +1456,7 @@ class ManyToManyTest(UnitOfWorkTest):
 
         ctx.current.flush()
         ctx.current.clear()
-        l = Query(m).select(items.c.item_name.in_(*[e['item_name'] for e in data[1:]]), order_by=[items.c.item_name, keywords.c.name])
+        l = Query(m).select(items.c.item_name.in_(*[e['item_name'] for e in data[1:]]), order_by=[items.c.item_name])
         self.assert_result(l, *data)
 
     def testm2mmultitable(self):

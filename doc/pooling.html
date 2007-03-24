@@ -1,100 +1,105 @@
 <html>
 <head>
-	<title>
-    SQLAlchemy 0.3 Documentation - Connection Pooling
-</title>
-    <link href="style.css" rel="stylesheet" type="text/css"></link>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>SQLAlchemy 0.3 Documentation - Connection Pooling</title>
+	
+    <link rel="stylesheet" href="style.css"></link>
+    <link rel="stylesheet" href="docs.css"></link>
     <link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
-
-    <link href="docs.css" rel="stylesheet" type="text/css"></link>
     <script src="scripts.js"></script>
+
+
+
 </head>
 <body>
 
 
-<div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
 
-<div class="doccontainer">
 
-<div class="docheader">
+
+
+
+
+<div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
 <h1>SQLAlchemy 0.3 Documentation</h1>
 
-<div class="multipage">
-<a href="index.html">Multiple Pages</a> |
-<a href="documentation.html">One Page</a>
-</div>
+<div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="">Version: 0.3.5   Last Updated: 02/21/07 21:18:45</div>
-</div>
+<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
 
 
-<A name="pooling"></a>
-
-	<div class="topnav">
-
-<div class="topnavsectionlink">
-
-<a href="index.html">Table of Contents</a>
-
-<div class="prevnext">
-Previous: <a href="types.html">The Types System</a>
-
-&nbsp; | &nbsp;
 
 
-Next: <a href="plugins.html">Plugins</a>
 
-</div>
-</div>
 
-<div class="topnavmain">
-	<div class="topnavheader">Connection Pooling</div>
-	<div class="topnavitems">
-	
 
-<ul class="toc_list">
+<A name=""></a>
+
+
+    <div class="topnav">
+
     
+    <div class="navbanner">
+        <a href="index.html">Table of Contents</a>
+        
+    <div class="prevnext">
+
+            
+            Previous: <a href="types.html">The Types System</a>
+
+               |   
+            Next: <a href="plugins.html">Plugins</a>
+    </div>
+
+        <h2>Connection Pooling</h2>
+    </div>
+
+	
+	
+    <ul>
         
         <li><A style="" href="pooling.html#pooling_establishing">Establishing a Transparent Connection Pool</a></li>
-    
-    <ul class="small_toc_list">
+        
+            
+    <ul>
     </ul>
 
-    
         
         <li><A style="" href="pooling.html#pooling_configuration">Connection Pool Configuration</a></li>
-    
-    <ul class="small_toc_list">
+        
+            
+    <ul>
     </ul>
 
-    
         
         <li><A style="" href="pooling.html#pooling_custom">Custom Pool Construction</a></li>
-    
-    <ul class="small_toc_list">
+        
+            
+    <ul>
     </ul>
 
-</ul>
+    </ul>
 
 	</div>
-</div>
-
-</div>
-
-<div class="sectioncontent">
-<html>
 
 
 
-<A name="pooling"></a>
-
-<div class="subsection" style="margin-left:10px;">
 
 
 
-    <div class="sectiontext">
+
+
+
+
+
+    
+    <A name="pooling"></a>
+    
+    <div class="section">
+
+    
     
 
 <p>This section describes the connection pool module of SQLAlchemy.  The <code>Pool</code> object it provides is normally embedded within an <code>Engine</code> instance.  For most cases, explicit access to the pool module is not required.  However, the <code>Pool</code> object can be used on its own, without the rest of SA, to manage DBAPI connections; this section describes that usage.  Also, this section will describe in more detail how to customize the pooling strategy used by an <code>Engine</code>.
@@ -103,28 +108,28 @@ Next: <a href="plugins.html">Plugins</a>
 </p>
 
 
+    
+    <A name="pooling_establishing"></a>
+    
+    <div class="subsection">
 
-<A name="pooling_establishing"></a>
-
-<div class="subsection" style="margin-left:20px;">
-
-
-<h3>Establishing a Transparent Connection Pool</h3>
-
-    <div class="sectiontext">
+    <h3>Establishing a Transparent Connection Pool</h3>
+    
     
 
 <p>Any DBAPI module can be "proxied" through the connection pool using the following technique (note that the usage of 'psycopg2' is <strong>just an example</strong>; substitute whatever DBAPI module you'd like):
 </p>
 
+    
 
-<div class="sliding_code">
-<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+    <div class="sliding_code">
+        <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">psycopg2 as psycopg</span><span class="python_operator">
 </span><span class="python_name">psycopg </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">manage</span><span class="python_enclosure">(</span><span class="python_name">psycopg</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># then connect normally
-</span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">psycopg</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">database</span><span class="python_operator">=</span><span class="python_literal">'test'</span><span class="python_operator">, </span><span class="python_name">username</span><span class="python_operator">=</span><span class="python_literal">'scott'</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'tiger'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+</span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">psycopg</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">database</span><span class="python_operator">=</span><span class="python_literal">'test'</span><span class="python_operator">, </span><span class="python_name">username</span><span class="python_operator">=</span><span class="python_literal">'scott'</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'tiger'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
 <p>This produces a <code>sqlalchemy.pool.DBProxy</code> object which supports the same <code>connect()</code> function as the original DBAPI module.  Upon connection, a connection proxy object is returned, which delegates its calls to a real DBAPI connection object.  This connection object is stored persistently within a connection pool (an instance of <code>sqlalchemy.pool.Pool</code>) that corresponds to the exact connection arguments sent to the <code>connect()</code> function.  <br></br>
 </p>
 <p>The connection proxy supports all of the methods on the original connection object, most of which are proxied via <code>__getattr__()</code>.  The <code>close()</code> method will return the connection to the pool, and the <code>cursor()</code> method will return a proxied cursor object.  Both the connection proxy and the cursor proxy will also return the underlying connection to the pool after they have both been garbage collected, which is detected via the <code>__del__()</code> method.
@@ -135,27 +140,24 @@ Next: <a href="plugins.html">Plugins</a>
 </p>
 
 
+
+            <a href="#top">back to section top</a>
     </div>
 
-    <a href="#pooling" class="toclink">back to section top</a>
-</div>
 
 
+    
+    <A name="pooling_configuration"></a>
+    
+    <div class="subsection">
 
-
-<A name="pooling_configuration"></a>
-
-<div class="subsection" style="margin-left:20px;">
-
-
-<h3>Connection Pool Configuration</h3>
-
-    <div class="sectiontext">
+    <h3>Connection Pool Configuration</h3>
+    
     
 
 <p>For all types of Pool construction, which includes the "transparent proxy" described in the previous section, using an <code>Engine</code> via <code>create_engine()</code>, or constructing a pool through direct class instantiation, the options are generally the same.  Additional options may be available based on the specific subclass of <code>Pool</code> being used.
 </p>
-<p>For a description of all pool classes, see the <a href="docstrings.html#docstrings_sqlalchemy.pool">generated documentation</a>.
+<p>For a description of all pool classes, see the <a href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool">generated documentation</a>.
 </p>
 <p>Common options include:
 </p>
@@ -222,31 +224,29 @@ Next: <a href="plugins.html">Plugins</a>
 </ul>
 
 
+
+            <a href="#top">back to section top</a>
     </div>
 
-    <a href="#pooling" class="toclink">back to section top</a>
-</div>
 
 
+    
+    <A name="pooling_custom"></a>
+    
+    <div class="subsection">
 
-
-<A name="pooling_custom"></a>
-
-<div class="subsection" style="margin-left:20px;">
-
-
-<h3>Custom Pool Construction</h3>
-
-    <div class="sectiontext">
+    <h3>Custom Pool Construction</h3>
+    
     
 
 <p>Besides using the transparent proxy, instances of <code>sqlalchemy.pool.Pool</code> can be created directly.  Constructing your own pool involves passing a callable used to create a connection.  Through this method, custom connection schemes can be made, such as a connection that automatically executes some initialization commands to start.  <br></br>
 </p>
 
+    
 
-<div class="sliding_code">
-    <div class="codetitle">Constructing a QueuePool</div>
-<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+    <div class="sliding_code">
+            <div class="codetitle">Constructing a QueuePool</div>
+        <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">psycopg2</span><span class="python_operator">
 </span>
 <span class="python_keyword">def </span><span class="python_name">getconn</span><span class="python_enclosure">()</span><span class="python_operator">:
@@ -255,59 +255,62 @@ Next: <a href="plugins.html">Plugins</a>
     </span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">cursor</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"setup_encodings()"</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_keyword">return </span><span class="python_name">c</span><span class="python_operator">
 </span>
-<span class="python_operator"></span><span class="python_name">p </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">QueuePool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_operator">, </span><span class="python_name">max_overflow</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_operator">, </span><span class="python_name">pool_size</span><span class="python_operator">=</span><span class="python_number">5</span><span class="python_operator">, </span><span class="python_name">use_threadlocal</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<span class="python_operator"></span><span class="python_name">p </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">QueuePool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_operator">, </span><span class="python_name">max_overflow</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_operator">, </span><span class="python_name">pool_size</span><span class="python_operator">=</span><span class="python_number">5</span><span class="python_operator">, </span><span class="python_name">use_threadlocal</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
 <p>Or with SingletonThreadPool:
 </p>
 
+    
 
-<div class="sliding_code">
-    <div class="codetitle">Constructing a SingletonThreadPool</div>
-<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+    <div class="sliding_code">
+            <div class="codetitle">Constructing a SingletonThreadPool</div>
+        <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">sqlite</span><span class="python_operator">
 </span>
 <span class="python_keyword">def </span><span class="python_name">getconn</span><span class="python_enclosure">()</span><span class="python_operator">:
     </span><span class="python_keyword">return </span><span class="python_name">sqlite</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">filename</span><span class="python_operator">=</span><span class="python_literal">'myfile.db'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># SQLite connections require the SingletonThreadPool    
-</span><span class="python_operator"></span><span class="python_name">p </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">SingletonThreadPool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+</span><span class="python_operator"></span><span class="python_name">p </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">SingletonThreadPool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+
 
 
 
     </div>
 
-</div>
 
 
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+</html>
+
+
+    <div class="bottomnav">
+        
+    <div class="prevnext">
+
+            
+            Previous: <a href="types.html">The Types System</a>
+
+               |   
+            Next: <a href="plugins.html">Plugins</a>
+    </div>
 
     </div>
 
-    <a href="#pooling" class="toclink">back to section top</a>
-    
-<div class="sectionnavblock">
-<div class="sectionnav">
-
-        Previous: <a href="types.html#types">The Types System</a>
-
-                |
-
-        Next: <a href="plugins.html#plugins">Plugins</a>
-
-</div>
-</div>
-
-</div>
-
-
-</html></div>
-
-</div>
 
 
 
-<center>
-</center>
+
+
 </body>
 </html>
+
+
 
 
 

@@ -124,6 +124,9 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
     
     def testdontovercorrelate(self):
         self.runtest(select([table1], from_obj=[table1, table1.select()]), """SELECT mytable.myid, mytable.name, mytable.description FROM mytable, (SELECT mytable.myid AS myid, mytable.name AS name, mytable.description AS description FROM mytable)""")
+    
+    def testselectexists(self):
+        self.runtest(exists([table1.c.myid], table1.c.myid==5).select(), "SELECT EXISTS (SELECT mytable.myid AS myid FROM mytable WHERE mytable.myid = :mytable_myid)", params={'mytable_myid':5})
         
     def testwheresubquery(self):
         # TODO: this tests that you dont get a "SELECT column" without a FROM but its not working yet.
@@ -159,6 +162,17 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
             s,
             "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE EXISTS (SELECT 1 FROM myothertable WHERE myothertable.otherid = mytable.myid)"
         )
+    
+    def testorderbysubquery(self):
+        self.runtest(
+            table1.select(order_by=[select([table2.c.otherid], table1.c.myid==table2.c.otherid)]),
+            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable ORDER BY (SELECT myothertable.otherid AS otherid FROM myothertable WHERE mytable.myid = myothertable.otherid)"
+        )
+        self.runtest(
+            table1.select(order_by=[desc(select([table2.c.otherid], table1.c.myid==table2.c.otherid))]),
+            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable ORDER BY (SELECT myothertable.otherid AS otherid FROM myothertable WHERE mytable.myid = myothertable.otherid) DESC"
+        )
+        
         
     def testcolumnsubquery(self):
         s = select([table1.c.myid], scalar=True, correlate=False)
@@ -336,6 +350,26 @@ WHERE mytable.myid = myothertable.otherid) AS t2view WHERE t2view.mytable_myid =
             select(["column1", "column2"], from_obj=[table1]).alias('somealias').select(),
             "SELECT somealias.column1, somealias.column2 FROM (SELECT column1, column2 FROM mytable) AS somealias"
         )
+        
+        # test that use_labels doesnt interfere with literal columns
+        self.runtest(
+            select(["column1", "column2", table1.c.myid], from_obj=[table1], use_labels=True),
+            "SELECT column1, column2, mytable.myid AS mytable_myid FROM mytable"
+        )
+
+        # test that use_labels doesnt interfere with literal columns that have textual labels
+        self.runtest(
+            select(["column1 AS foobar", "column2 AS hoho", table1.c.myid], from_obj=[table1], use_labels=True),
+            "SELECT column1 AS foobar, column2 AS hoho, mytable.myid AS mytable_myid FROM mytable"
+        )
+        
+        # test that "auto-labeling of subquery columns" doesnt interfere with literal columns,
+        # exported columns dont get quoted
+        self.runtest(
+            select(["column1 AS foobar", "column2 AS hoho", table1.c.myid], from_obj=[table1]).select(),
+            "SELECT column1 AS foobar, column2 AS hoho, myid FROM (SELECT column1 AS foobar, column2 AS hoho, mytable.myid AS myid FROM mytable)"
+        )
+
     def testtextbinds(self):
         self.runtest(
             text("select * from foo where lala=:bar and hoho=:whee"), 
@@ -563,23 +597,94 @@ myothertable.othername != :myothertable_othername AND EXISTS (select yay from fo
         self.runtest(query.select(), "SELECT mytable.myid, mytable.name, mytable.description, myothertable.otherid, myothertable.othername, thirdtable.userid, thirdtable.otherstuff FROM mytable, myothertable, thirdtable WHERE mytable.myid = myothertable.otherid(+) AND thirdtable.userid(+) = myothertable.otherid", dialect=oracle.dialect(use_ansi=False))    
 
     def testbindparam(self):
-        self.runtest(select(
-                    [table1, table2],
-                    and_(table1.c.myid == table2.c.otherid,
-                    table1.c.name == bindparam('mytablename'),
-                    )
-                ),
-                "SELECT mytable.myid, mytable.name, mytable.description, myothertable.otherid, myothertable.othername \
-FROM mytable, myothertable WHERE mytable.myid = myothertable.otherid AND mytable.name = :mytablename"
-                )
+        for (
+             stmt,
+             expected_named_stmt,
+             expected_positional_stmt,
+             expected_default_params_dict, 
+             expected_default_params_list,
+             test_param_dict, 
+             expected_test_params_dict,
+             expected_test_params_list
+             ) in [
+              (
+                  select(
+                      [table1, table2],
+                     and_(
+                         table1.c.myid == table2.c.otherid,
+                         table1.c.name == bindparam('mytablename')
+                     )),
+                     """SELECT mytable.myid, mytable.name, mytable.description, myothertable.otherid, myothertable.othername FROM mytable, myothertable WHERE mytable.myid = myothertable.otherid AND mytable.name = :mytablename""",
+                     """SELECT mytable.myid, mytable.name, mytable.description, myothertable.otherid, myothertable.othername FROM mytable, myothertable WHERE mytable.myid = myothertable.otherid AND mytable.name = ?""",
+                 {'mytablename':None}, [None],
+                 {'mytablename':5}, {'mytablename':5}, [5]
+             ),
+             (
+                 select([table1], or_(table1.c.myid==bindparam('myid'), table2.c.otherid==bindparam('myid'))),
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :myid OR myothertable.otherid = :myid",
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = ? OR myothertable.otherid = ?",
+                 {'myid':None}, [None, None],
+                 {'myid':5}, {'myid':5}, [5,5]
+             ),
+             (
+                 text("SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :myid OR myothertable.otherid = :myid"),
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :myid OR myothertable.otherid = :myid",
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = ? OR myothertable.otherid = ?",
+                 {'myid':None}, [None, None],
+                 {'myid':5}, {'myid':5}, [5,5]
+             ),
+             (
+                 select([table1], or_(table1.c.myid==bindparam('myid', unique=True), table2.c.otherid==bindparam('myid', unique=True))),
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :myid OR myothertable.otherid = :my_1",
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = ? OR myothertable.otherid = ?",
+                 {'myid':None, 'my_1':None}, [None, None],
+                 {'myid':5, 'my_1': 6}, {'myid':5, 'my_1':6}, [5,6]
+             ),
+             (
+                 select([table1], or_(table1.c.myid==bindparam('myid', value=7, unique=True), table2.c.otherid==bindparam('myid', value=8, unique=True))),
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :myid OR myothertable.otherid = :my_1",
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = ? OR myothertable.otherid = ?",
+                 {'myid':7, 'my_1':8}, [7,8],
+                 {'myid':5, 'my_1':6}, {'myid':5, 'my_1':6}, [5,6]
+             ),
+             ][2:3]:
+             
+                self.runtest(stmt, expected_named_stmt, params=expected_default_params_dict)
+                self.runtest(stmt, expected_positional_stmt, dialect=sqlite.dialect())
+                nonpositional = stmt.compile()
+                positional = stmt.compile(dialect=sqlite.dialect())
+                assert positional.get_params().get_raw_list() == expected_default_params_list
+                assert nonpositional.get_params(**test_param_dict).get_raw_dict() == expected_test_params_dict, "expected :%s got %s" % (str(expected_test_params_dict), str(nonpositional.get_params(**test_param_dict).get_raw_dict()))
+                assert positional.get_params(**test_param_dict).get_raw_list() == expected_test_params_list
+        
+        # check that conflicts with "unique" params are caught
+        s = select([table1], or_(table1.c.myid==7, table1.c.myid==bindparam('mytable_myid')))
+        try:
+            str(s)
+            assert False
+        except exceptions.CompileError, err:
+            assert str(err) == "Bind parameter 'mytable_myid' conflicts with unique bind parameter of the same name"
 
+        s = select([table1], or_(table1.c.myid==7, table1.c.myid==8, table1.c.myid==bindparam('mytable_my_1')))
+        try:
+            str(s)
+            assert False
+        except exceptions.CompileError, err:
+            assert str(err) == "Bind parameter 'mytable_my_1' conflicts with unique bind parameter of the same name"
+            
         # check that the bind params sent along with a compile() call
         # get preserved when the params are retreived later
         s = select([table1], table1.c.myid == bindparam('test'))
         c = s.compile(parameters = {'test' : 7})
         self.assert_(c.get_params() == {'test' : 7})
 
+    def testbindascol(self):
+        t = table('foo', column('id'))
 
+        s = select([t, literal('lala').label('hoho')])
+        self.runtest(s, "SELECT foo.id, :literal AS hoho FROM foo")
+        assert [str(c) for c in s.c] == ["id", "hoho"]
+        
     def testin(self):
         self.runtest(select([table1], table1.c.myid.in_(1, 2, 3)),
         "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:mytable_myid, :mytable_my_1, :mytable_my_2)")

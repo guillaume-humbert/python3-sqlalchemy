@@ -1,6 +1,5 @@
 from sqlalchemy import *
 import testbase
-from sqlalchemy.ext.selectresults import SelectResults
 
 class AttrSettable(object):
     def __init__(self, **kwargs):
@@ -233,7 +232,7 @@ class RelationTest3(testbase.ORMTest):
         if usedata:
             mapper(Person, people, select_table=poly_union, polymorphic_identity='person', polymorphic_on=people.c.type,
                   properties={
-                    'colleagues':relation(Person, primaryjoin=people.c.colleague_id==people.c.person_id, remote_side=people.c.person_id, uselist=True),
+                    'colleagues':relation(Person, primaryjoin=people.c.colleague_id==people.c.person_id, remote_side=people.c.colleague_id, uselist=True),
                     'data':relation(Data, uselist=False)
                     }        
             )
@@ -241,7 +240,7 @@ class RelationTest3(testbase.ORMTest):
             mapper(Person, people, select_table=poly_union, polymorphic_identity='person', polymorphic_on=people.c.type,
                   properties={
                     'colleagues':relation(Person, primaryjoin=people.c.colleague_id==people.c.person_id, 
-                        remote_side=people.c.person_id, uselist=True)
+                        remote_side=people.c.colleague_id, uselist=True)
                     }        
             )
 
@@ -348,9 +347,12 @@ class RelationTest4(testbase.ORMTest):
         session.flush()
 
         engineer4 = session.query(Engineer).selectfirst_by(name="E4")
-
-        car1 = Car(owner=engineer4.person_id)
+        manager3 = session.query(Manager).selectfirst_by(name="M3")
+        
+        car1 = Car(employee=engineer4)
         session.save(car1)
+        car2 = Car(employee=manager3)
+        session.save(car2)
         session.flush()
 
         session.clear()
@@ -371,8 +373,8 @@ class RelationTest4(testbase.ORMTest):
         assert str(car1.employee) == "Engineer E4, status X"
 
         session.clear()
-        s = SelectResults(session.query(Car))
-        c = s.join_to("employee").select(employee_join.c.name=="E4")[0]
+        s = session.query(Car)
+        c = s.join("employee").select(employee_join.c.name=="E4")[0]
         assert c.car_id==car1.car_id
 
 class RelationTest5(testbase.ORMTest):
@@ -478,7 +480,106 @@ class RelationTest6(testbase.ORMTest):
         m2 = sess.query(Manager).get(m2.person_id)
         assert m.colleague is m2
 
-class SelectResultsTest(testbase.AssertMixin):
+class RelationTest7(testbase.ORMTest):
+    def define_tables(self, metadata):
+        global people, engineers, managers, cars, offroad_cars
+        cars = Table('cars', metadata,
+                Column('car_id', Integer, primary_key=True),
+                Column('name', String(30)))
+
+        offroad_cars = Table('offroad_cars', metadata,
+                Column('car_id',Integer, ForeignKey('cars.car_id'),nullable=False,primary_key=True))
+
+        people = Table('people', metadata,
+                Column('person_id', Integer, primary_key=True),
+                Column('car_id', Integer, ForeignKey('cars.car_id'), nullable=False),
+                Column('name', String(50)))
+
+        engineers = Table('engineers', metadata,
+                Column('person_id', Integer, ForeignKey('people.person_id'), primary_key=True),
+                Column('field', String(30)))
+
+
+        managers = Table('managers', metadata,
+                Column('person_id', Integer, ForeignKey('people.person_id'), primary_key=True),
+                Column('category', String(70)))
+
+    def test_manytoone_lazyload(self):
+        """test that lazy load clause to a polymorphic child mapper generates correctly [ticket:493]"""
+        class PersistentObject(object):
+            def __init__(self, **kwargs):
+                for key, value in kwargs.iteritems():
+                    setattr(self, key, value)
+
+        class Status(PersistentObject):
+            def __repr__(self):
+                return "Status %s" % self.name
+
+        class Person(PersistentObject):
+            def __repr__(self):
+                return "Ordinary person %s" % self.name
+
+        class Engineer(Person):
+            def __repr__(self):
+                return "Engineer %s, field %s" % (self.name, self.field)
+
+        class Manager(Person):
+            def __repr__(self):
+                return "Manager %s, category %s" % (self.name, self.category)
+
+        class Car(PersistentObject):
+            def __repr__(self):
+                return "Car number %d, name %s" % i(self.car_id, self.name)
+
+        class Offraod_Car(Car):
+            def __repr__(self):
+                return "Offroad Car number %d, name %s" % (self.car_id,self.name)
+
+        employee_join = polymorphic_union(
+                {
+                    'engineer':people.join(engineers),
+                    'manager':people.join(managers), 
+                }, "type", 'employee_join')
+
+        car_join = polymorphic_union(
+            {
+                'car' : cars.outerjoin(offroad_cars).select(offroad_cars.c.car_id == None, fold_equivalents=True),
+                'offroad' : cars.join(offroad_cars)
+            }, "type", 'car_join')
+
+        car_mapper  = mapper(Car, cars,
+                select_table=car_join,polymorphic_on=car_join.c.type,
+                polymorphic_identity='car',
+                )
+        offroad_car_mapper = mapper(Offraod_Car, offroad_cars, inherits=car_mapper, polymorphic_identity='offroad')
+        person_mapper = mapper(Person, people,
+                select_table=employee_join,polymorphic_on=employee_join.c.type,
+                polymorphic_identity='person', 
+                properties={
+                    'car':relation(car_mapper)
+                    })
+        engineer_mapper = mapper(Engineer, engineers, inherits=person_mapper, polymorphic_identity='engineer')
+        manager_mapper  = mapper(Manager, managers, inherits=person_mapper, polymorphic_identity='manager')
+
+        session = create_session()
+        basic_car=Car(name="basic")
+        offroad_car=Offraod_Car(name="offroad")
+
+        for i in range(1,4):
+            if i%2:
+                car=Car()
+            else:
+                car=Offraod_Car()
+            session.save(Manager(name="M%d" % i,category="YYYYYYYYY",car=car))
+            session.save(Engineer(name="E%d" % i,field="X",car=car))
+            session.flush()
+            session.clear()
+
+        r = session.query(Person).select()
+        for p in r:
+            assert p.car_id == p.car.car_id
+    
+class GenerativeTest(testbase.AssertMixin):
     def setUpAll(self):
         #  cars---owned by---  people (abstract) --- has a --- status
         #   |                  ^    ^                            |
@@ -591,9 +692,9 @@ class SelectResultsTest(testbase.AssertMixin):
 
         # test these twice because theres caching involved
         for x in range(0, 2):
-            r = SelectResults(session.query(Person)).select_by(people.c.name.like('%2')).join_to('status').select_by(name="active")
+            r = session.query(Person).filter_by(people.c.name.like('%2')).join('status').filter_by(name="active")
             assert str(list(r)) == "[Manager M2, category YYYYYYYYY, status Status active, Engineer E2, field X, status Status active]"
-            r = SelectResults(session.query(Engineer)).join_to('status').select(people.c.name.in_('E2', 'E3', 'E4', 'M4', 'M2', 'M1') & (status.c.name=="active"))
+            r = session.query(Engineer).join('status').filter(people.c.name.in_('E2', 'E3', 'E4', 'M4', 'M2', 'M1') & (status.c.name=="active"))
             assert str(list(r)) == "[Engineer E2, field X, status Status active, Engineer E3, field X, status Status active]"
         
 class MultiLevelTest(testbase.ORMTest):

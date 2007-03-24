@@ -2,7 +2,7 @@ Source: sqlalchemy
 Section: python
 Priority: optional
 Maintainer: Tommi Virtanen <tv@debian.org>
-Uploaders: Piotr Ozarowski <ozarow@gmail.com>
+Uploaders: Piotr Ożarowski <piotr@debian.org>
 Build-Depends: debhelper (>= 5.0.37.2), cdbs (>=0.4.42), python (>= 2.3.5-11), python-central (>= 0.5), python-setuptools (>= 0.6b3-1)
 Build-Depends-Indep: python-all-dev
 Standards-Version: 3.7.2
