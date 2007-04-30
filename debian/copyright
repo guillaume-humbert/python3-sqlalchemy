@@ -2,19 +2,17 @@ This package was debianized by Tommi Virtanen tv@debian.org on
 Sun, 26 Mar 2006 16:53:19 +0300.
 
 Since Thu, 7 Sep 2006 20:58:45 +0200 it is co-maintained by
-Piotr Ożarowski <ozarow@gmail.com>
+Piotr Ożarowski <piotr@debian.org>
 
-It was originally downloaded from http://sqlalchemy.org/
+It was originally downloaded from http://www.sqlalchemy.org/
 
 Upstream Author: Mike Bayer <mike_mp@zzzcomputing.com>
-
-Copyright (C) 2004,2005,2006 Michael Bayer mike_mp@zzzcomputing.com
 
 Copyright:
 
  This is the MIT license: http://www.opensource.org/licenses/mit-license.php
 
- Copyright (c) 2005, 2006 Michael Bayer and contributors. SQLAlchemy is a
+ Copyright (c) 2005, 2006, 2007 Michael Bayer and contributors. SQLAlchemy is a
  trademark of Michael Bayer.
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -70,7 +68,7 @@ test/coverage.py file (only in source package):
 -----------------------------------------------------------
 
 The Debian packaging is (C) 2006-2007 Tommi Virtanen <tv@debian.org> and Piotr
-Ożarowski <ozarow@gmail.com> - it is licensed under the GPL.
+Ożarowski <piotr@debian.org> - it is licensed under the GPL.
 
 On Debian systems, the complete text of the GNU General Public License
 can be found in `/usr/share/common-licenses/GPL'.

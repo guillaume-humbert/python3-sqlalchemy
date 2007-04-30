@@ -19,6 +19,7 @@ doc/metadata.html
 doc/plugins.html
 doc/pooling.html
 doc/scripts.js
+doc/sqlalchemy_ansisql.html
 doc/sqlalchemy_databases_firebird.html
 doc/sqlalchemy_databases_mssql.html
 doc/sqlalchemy_databases_mysql.html
@@ -26,6 +27,9 @@ doc/sqlalchemy_databases_oracle.html
 doc/sqlalchemy_databases_postgres.html
 doc/sqlalchemy_databases_sqlite.html
 doc/sqlalchemy_engine.html
+doc/sqlalchemy_engine_default.html
+doc/sqlalchemy_engine_strategies.html
+doc/sqlalchemy_engine_threadlocal.html
 doc/sqlalchemy_engine_url.html
 doc/sqlalchemy_exceptions.html
 doc/sqlalchemy_ext_proxy.html
@@ -94,6 +98,7 @@ examples/vertical/vertical.py
 lib/SQLAlchemy.egg-info/PKG-INFO
 lib/SQLAlchemy.egg-info/SOURCES.txt
 lib/SQLAlchemy.egg-info/dependency_links.txt
+lib/SQLAlchemy.egg-info/entry_points.txt
 lib/SQLAlchemy.egg-info/top_level.txt
 lib/sqlalchemy/__init__.py
 lib/sqlalchemy/ansisql.py
@@ -110,6 +115,7 @@ lib/sqlalchemy/util.py
 lib/sqlalchemy/databases/__init__.py
 lib/sqlalchemy/databases/firebird.py
 lib/sqlalchemy/databases/information_schema.py
+lib/sqlalchemy/databases/informix.py
 lib/sqlalchemy/databases/mssql.py
 lib/sqlalchemy/databases/mysql.py
 lib/sqlalchemy/databases/oracle.py
@@ -165,6 +171,7 @@ test/engine/execute.py
 test/engine/parseconnect.py
 test/engine/pool.py
 test/engine/proxy_engine.py
+test/engine/reconnect.py
 test/engine/reflection.py
 test/engine/transaction.py
 test/ext/__init__.py
@@ -220,12 +227,14 @@ test/sql/alltests.py
 test/sql/case_statement.py
 test/sql/constraints.py
 test/sql/defaults.py
+test/sql/labels.py
 test/sql/query.py
 test/sql/quote.py
 test/sql/rowcount.py
 test/sql/select.py
 test/sql/selectable.py
 test/sql/testtypes.py
+test/sql/unicode.py
 test/zblog/__init__.py
 test/zblog/alltests.py
 test/zblog/blog.py

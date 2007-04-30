@@ -1,3 +1,151 @@
+0.3.7
+- engines
+    - warnings module used for issuing warnings (instead of logging)
+    - cleanup of DBAPI import strategies across all engines 
+      [ticket:480]
+    - refactoring of engine internals which reduces complexity,
+      number of codepaths; places more state inside of ExecutionContext
+      to allow more dialect control of cursor handling, result sets.
+      ResultProxy totally refactored and also has two versions of
+      "buffered" result sets used for different purposes.
+    - server side cursor support fully functional in postgres
+      [ticket:514].
+    - improved framework for auto-invalidation of connections that have
+      lost their underlying database, via dialect-specific detection
+      of exceptions corresponding to that database's disconnect
+      related error messages.  Additionally, when a "connection no 
+      longer open" condition is detected, the entire connection pool 
+      is discarded and replaced with a new instance.  #516
+    - the dialects within sqlalchemy.databases become a setuptools
+      entry points. loading the built-in database dialects works the
+      same as always, but if none found will fall back to trying
+      pkg_resources to load an external module [ticket:521]
+    - Engine contains a "url" attribute referencing the url.URL object
+      used by create_engine().
+- sql:
+    - keys() of result set columns are not lowercased, come back
+      exactly as they're expressed in cursor.description.  note this
+      causes colnames to be all caps in oracle.
+    - preliminary support for unicode table names, column names and 
+      SQL statements added, for databases which can support them.
+      Works with sqlite and postgres so far.  Mysql *mostly* works
+      except the has_table() function does not work.  Reflection
+      works too.
+    - the Unicode type is now a direct subclass of String, which now
+      contains all the "convert_unicode" logic.  This helps the variety
+      of unicode situations that occur in db's such as MS-SQL to be
+      better handled and allows subclassing of the Unicode datatype.
+      [ticket:522]
+    - ClauseElements can be used in in_() clauses now, such as bind 
+      parameters, etc. #476
+    - reverse operators implemented for `CompareMixin` elements,
+      allows expressions like "5 + somecolumn" etc. #474
+    - the "where" criterion of an update() and delete() now correlates
+      embedded select() statements against the table being updated or
+      deleted.  this works the same as nested select() statement
+      correlation, and can be disabled via the correlate=False flag on 
+      the embedded select().
+    - column labels are now generated in the compilation phase, which
+      means their lengths are dialect-dependent.  So on oracle a label
+      that gets truncated to 30 chars will go out to 63 characters
+      on postgres.  Also, the true labelname is always attached as the
+      accessor on the parent Selectable so theres no need to be aware
+      of the "truncated" label names [ticket:512].
+    - column label and bind param "truncation" also generate 
+      deterministic names now, based on their ordering within the 
+      full statement being compiled.  this means the same statement
+      will produce the same string across application restarts and
+      allowing DB query plan caching to work better.
+    - the "mini" column labels generated when using subqueries, which
+      are to work around glitchy SQLite behavior that doesnt understand
+      "foo.id" as equivalent to "id", are now only generated in the case 
+      that those named columns are selected from (part of [ticket:513])
+    - the label() method on ColumnElement will properly propigate the
+      TypeEngine of the base element out to the label, including a label()
+      created from a scalar=True select() statement.
+    - MS-SQL better detects when a query is a subquery and knows not to
+      generate ORDER BY phrases for those [ticket:513]
+    - fix for fetchmany() "size" argument being positional in most
+      dbapis [ticket:505]
+    - sending None as an argument to func.<something> will produce
+      an argument of NULL
+    - query strings in unicode URLs get keys encoded to ascii
+      for **kwargs compat
+    - slight tweak to raw execute() change to also support tuples
+      for positional parameters, not just lists [ticket:523]
+    - fix to case() construct to propigate the type of the first
+      WHEN condition as the return type of the case statement
+- orm:
+    - fixed critical issue when, after options(eagerload()) is used,
+      the mapper would then always apply query "wrapping" behavior
+      for all subsequent LIMIT/OFFSET/DISTINCT queries, even if no
+      eager loading was applied on those subsequent queries.
+    - added query.with_parent(someinstance) method.  searches for
+      target instance using lazy join criterion from parent instance.
+      takes optional string "property" to isolate the desired relation.
+      also adds static Query.query_from_parent(instance, property)
+      version. [ticket:541]
+    - improved query.XXX_by(someprop=someinstance) querying to use
+      similar methodology to with_parent, i.e. using the "lazy" clause
+      which prevents adding the remote instance's table to the SQL, 
+      thereby making more complex conditions possible [ticket:554]
+    - added generative versions of aggregates, i.e. sum(), avg(), etc.
+      to query. used via query.apply_max(), apply_sum(), etc. 
+      #552
+    - fix to using distinct() or distinct=True in combination with 
+      join() and similar
+    - corresponding to label/bindparam name generation, eager loaders 
+      generate deterministic names for the aliases they create using 
+      md5 hashes.
+    - improved/fixed custom collection classes when giving it "set"/
+      "sets.Set" classes or subclasses (was still looking for append()
+      methods on them during lazy loads)
+    - restored old "column_property()" ORM function (used to be called
+      "column()") to force any column expression to be added as a property
+      on a mapper, particularly those that aren't present in the mapped
+      selectable.  this allows "scalar expressions" of any kind to be
+      added as relations (though they have issues with eager loads).
+    - fix to many-to-many relationships targeting polymorphic mappers
+      [ticket:533]
+    - making progress with session.merge() as well as combining its
+      usage with entity_name [ticket:543]
+    - the usual adjustments to relationships between inheriting mappers,
+      in this case establishing relation()s to subclass mappers where
+      the join conditions come from the superclass' table
+- informix:
+    - informix support added !  courtesy James Zhang, who put a ton
+      of effort in.
+- sqlite:
+    - removed silly behavior where sqlite would reflect UNIQUE indexes
+      as part of the primary key (?!)
+- oracle:
+    - small fix to allow successive compiles of the same SELECT object
+      which features LIMIT/OFFSET.  oracle dialect needs to modify
+      the object to have ROW_NUMBER OVER and wasn't performing 
+      the full series of steps on successive compiles.
+- mysql
+    - support for SSL arguments given as inline within URL query string,
+      prefixed with "ssl_", courtesy terjeros@gmail.com.
+    - mysql uses "DESCRIBE [<schemaname>].<tablename>", catching exceptions
+      if table doesnt exist, in order to determine if a table exists.
+      this supports unicode table names as well as schema names. tested
+      with MySQL5 but should work with 4.1 series as well. (#557)
+- extensions
+    - big fix to AssociationProxy so that multiple AssociationProxy
+      objects can be associated with a single association collection. 
+    - assign_mapper names methods according to their keys (i.e. __name__)
+      #551
+- mssql
+    - pyodbc is now the preferred DB-API for MSSQL, and if no module is 
+      specifically requested, will be loaded first on a module probe.
+
+    - The @@SCOPE_IDENTITY is now used instead of @@IDENTITY. This 
+      behavior may be overridden with the engine_connect
+      "use_scope_identity" keyword parameter, which may also be specified 
+      in the dburi.
+
+
+     
 0.3.6
 - sql:
     - bindparam() names are now repeatable!  specify two

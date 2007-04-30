@@ -12,7 +12,7 @@ module.
 
 from sqlalchemy import schema, sql, engine, util, sql_util, exceptions
 from  sqlalchemy.engine import default
-import string, re, sets, weakref
+import string, re, sets, weakref, random
 
 ANSI_FUNCS = sets.ImmutableSet(['CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_TIMESTAMP',
                                 'CURRENT_USER', 'LOCALTIME', 'LOCALTIMESTAMP',
@@ -49,14 +49,11 @@ class ANSIDialect(default.DefaultDialect):
     def create_connect_args(self):
         return ([],{})
 
-    def dbapi(self):
-        return None
+    def schemagenerator(self, *args, **kwargs):
+        return ANSISchemaGenerator(self, *args, **kwargs)
 
-    def schemagenerator(self, *args, **params):
-        return ANSISchemaGenerator(*args, **params)
-
-    def schemadropper(self, *args, **params):
-        return ANSISchemaDropper(*args, **params)
+    def schemadropper(self, *args, **kwargs):
+        return ANSISchemaDropper(self, *args, **kwargs)
 
     def compiler(self, statement, parameters, **kwargs):
         return ANSICompiler(self, statement, parameters, **kwargs)
@@ -97,8 +94,15 @@ class ANSICompiler(sql.Compiled):
         
         sql.Compiled.__init__(self, dialect, statement, parameters, **kwargs)
 
+        # if we are insert/update.  set to true when we visit an INSERT or UPDATE
+        self.isinsert = self.isupdate = False
+        
         # a dictionary of bind parameter keys to _BindParamClause instances.
         self.binds = {}
+        
+        # a dictionary of _BindParamClause instances to "compiled" names that are
+        # actually present in the generated SQL
+        self.bind_names = {}
 
         # a dictionary which stores the string representation for every ClauseElement
         # processed by this compiler.
@@ -125,9 +129,14 @@ class ANSICompiler(sql.Compiled):
         # which will be passed to a ResultProxy and used for resultset-level value conversion
         self.typemap = {}
 
-        # a dictionary of select columns mapped to their name or key
-        self.columns = {}
+        # a dictionary of select columns labels mapped to their "generated" label
+        self.column_labels = {}
 
+        # a dictionary of ClauseElement subclasses to counters, which are used to
+        # generate truncated identifier names or "anonymous" identifiers such as
+        # for aliases
+        self.generated_ids = {}
+        
         # True if this compiled represents an INSERT
         self.isinsert = False
 
@@ -161,23 +170,23 @@ class ANSICompiler(sql.Compiled):
         # this re will search for params like :param
         # it has a negative lookbehind for an extra ':' so that it doesnt match
         # postgres '::text' tokens
-        match = r'(?<!:):([\w_]+)'
+        match = re.compile(r'(?<!:):([\w_]+)', re.UNICODE)
         if self.paramstyle=='pyformat':
-            self.strings[self.statement] = re.sub(match, lambda m:'%(' + m.group(1) +')s', self.strings[self.statement])
+            self.strings[self.statement] = match.sub(lambda m:'%(' + m.group(1) +')s', self.strings[self.statement])
         elif self.positional:
-            params = re.finditer(match, self.strings[self.statement])
+            params = match.finditer(self.strings[self.statement])
             for p in params:
                 self.positiontup.append(p.group(1))
             if self.paramstyle=='qmark':
-                self.strings[self.statement] = re.sub(match, '?', self.strings[self.statement])
+                self.strings[self.statement] = match.sub('?', self.strings[self.statement])
             elif self.paramstyle=='format':
-                self.strings[self.statement] = re.sub(match, '%s', self.strings[self.statement])
+                self.strings[self.statement] = match.sub('%s', self.strings[self.statement])
             elif self.paramstyle=='numeric':
                 i = [0]
                 def getnum(x):
                     i[0] += 1
                     return str(i[0])
-                self.strings[self.statement] = re.sub(match, getnum, self.strings[self.statement])
+                self.strings[self.statement] = match.sub(getnum, self.strings[self.statement])
 
     def get_from_text(self, obj):
         return self.froms.get(obj, None)
@@ -188,7 +197,7 @@ class ANSICompiler(sql.Compiled):
     def get_whereclause(self, obj):
         return self.wheres.get(obj, None)
 
-    def get_params(self, **params):
+    def construct_params(self, params):
         """Return a structure of bind parameters for this compiled object.
 
         This includes bind parameters that might be compiled in via
@@ -214,17 +223,18 @@ class ANSICompiler(sql.Compiled):
         else:
             bindparams = {}
         bindparams.update(params)
-
         d = sql.ClauseParameters(self.dialect, self.positiontup)
         for b in self.binds.values():
-            d.set_parameter(b, b.value)
+            name = self.bind_names.get(b, b.key)
+            d.set_parameter(b, b.value, name)
 
         for key, value in bindparams.iteritems():
             try:
                 b = self.binds[key]
             except KeyError:
                 continue
-            d.set_parameter(b, value)
+            name = self.bind_names.get(b, b.key)
+            d.set_parameter(b, value, name)
 
         return d
 
@@ -237,18 +247,27 @@ class ANSICompiler(sql.Compiled):
         return ""
 
     def visit_label(self, label):
+        labelname = self._truncated_identifier("colident", label.name)
+        
         if len(self.select_stack):
-            self.typemap.setdefault(label.name.lower(), label.obj.type)
-        self.strings[label] = self.strings[label.obj] + " AS "  + self.preparer.format_label(label)
-
+            self.typemap.setdefault(labelname.lower(), label.obj.type)
+            if isinstance(label.obj, sql._ColumnClause):
+                self.column_labels[label.obj._label] = labelname
+        self.strings[label] = self.strings[label.obj] + " AS "  + self.preparer.format_label(label, labelname)
+        
     def visit_column(self, column):
-        if len(self.select_stack):
-            # if we are within a visit to a Select, set up the "typemap"
-            # for this column which is used to translate result set values
-            self.typemap.setdefault(column.name.lower(), column.type)
-            self.columns.setdefault(column.key, column)
+        # there is actually somewhat of a ruleset when you would *not* necessarily
+        # want to truncate a column identifier, if its mapped to the name of a 
+        # physical column.  but thats very hard to identify at this point, and 
+        # the identifier length should be greater than the id lengths of any physical
+        # columns so should not matter.
+        if not column.is_literal:
+            name = self._truncated_identifier("colident", column.name)
+        else:
+            name = column.name
+                
         if column.table is None or not column.table.named_with_column():
-            self.strings[column] = self.preparer.format_column(column)
+            self.strings[column] = self.preparer.format_column(column, name=name)
         else:
             if column.table.oid_column is column:
                 n = self.dialect.oid_column_name(column)
@@ -259,7 +278,13 @@ class ANSICompiler(sql.Compiled):
                 else:
                     self.strings[column] = None
             else:
-                self.strings[column] = self.preparer.format_column_with_table(column)
+                self.strings[column] = self.preparer.format_column_with_table(column, column_name=name)
+
+        if len(self.select_stack):
+            # if we are within a visit to a Select, set up the "typemap"
+            # for this column which is used to translate result set values
+            self.typemap.setdefault(name.lower(), column.type)
+            self.column_labels.setdefault(column._label, name.lower())
 
     def visit_fromclause(self, fromclause):
         self.froms[fromclause] = fromclause.name
@@ -330,9 +355,7 @@ class ANSICompiler(sql.Compiled):
         group_by = self.get_str(cs.group_by_clause)
         if group_by:
             text += " GROUP BY " + group_by
-        order_by = self.get_str(cs.order_by_clause)
-        if order_by:
-            text += " ORDER BY " + order_by
+        text += self.order_by_clause(cs)            
         text += self.visit_select_postclauses(cs)
         if cs.parens:
             self.strings[cs] = "(" + text + ")"
@@ -353,8 +376,11 @@ class ANSICompiler(sql.Compiled):
         return binary.operator
 
     def visit_bindparam(self, bindparam):
+        # apply truncation to the ultimate generated name
+
         if bindparam.shortname != bindparam.key:
             self.binds.setdefault(bindparam.shortname, bindparam)
+
         if bindparam.unique:
             count = 1
             key = bindparam.key
@@ -362,19 +388,40 @@ class ANSICompiler(sql.Compiled):
             # redefine the generated name of the bind param in the case
             # that we have multiple conflicting bind parameters.
             while self.binds.setdefault(key, bindparam) is not bindparam:
-                # ensure the name doesn't expand the length of the string
-                # in case we're at the edge of max identifier length
                 tag = "_%d" % count
-                key = bindparam.key[0 : len(bindparam.key) - len(tag)] + tag
+                key = bindparam.key + tag
                 count += 1
             bindparam.key = key
-            self.strings[bindparam] = self.bindparam_string(key)
+            self.strings[bindparam] = self.bindparam_string(self._truncate_bindparam(bindparam))
         else:
             existing = self.binds.get(bindparam.key)
             if existing is not None and existing.unique:
                 raise exceptions.CompileError("Bind parameter '%s' conflicts with unique bind parameter of the same name" % bindparam.key)
-            self.strings[bindparam] = self.bindparam_string(bindparam.key)
+            self.strings[bindparam] = self.bindparam_string(self._truncate_bindparam(bindparam))
             self.binds[bindparam.key] = bindparam
+    
+    def _truncate_bindparam(self, bindparam):
+        if bindparam in self.bind_names:
+            return self.bind_names[bindparam]
+            
+        bind_name = bindparam.key
+        if len(bind_name) >= self.dialect.max_identifier_length():
+            bind_name = self._truncated_identifier("bindparam", bind_name)
+            # add to bind_names for translation
+            self.bind_names[bindparam] = bind_name
+        return bind_name
+    
+    def _truncated_identifier(self, ident_class, name):
+        if (ident_class, name) in self.generated_ids:
+            return self.generated_ids[(ident_class, name)]
+        if len(name) >= self.dialect.max_identifier_length():
+            counter = self.generated_ids.get(ident_class, 1)
+            truncname = name[0:self.dialect.max_identifier_length() - 6] + "_" + hex(counter)[2:]
+            self.generated_ids[ident_class] = counter + 1
+        else:
+            truncname = name
+        self.generated_ids[(ident_class, name)] = truncname
+        return truncname
             
     def bindparam_string(self, name):
         return self.bindtemplate % name
@@ -411,7 +458,7 @@ class ANSICompiler(sql.Compiled):
                         inner_columns[self.get_str(co)] = co
                 # TODO: figure this out, a ColumnClause with a select as a parent
                 # is different from any other kind of parent
-                elif select.is_subquery and isinstance(co, sql._ColumnClause) and not co.is_literal and co.table is not None and not isinstance(co.table, sql.Select):
+                elif select.is_selected_from and isinstance(co, sql._ColumnClause) and not co.is_literal and co.table is not None and not isinstance(co.table, sql.Select):
                     # SQLite doesnt like selecting from a subquery where the column
                     # names look like table.colname, so add a label synonomous with
                     # the column name
@@ -480,12 +527,8 @@ class ANSICompiler(sql.Compiled):
             if t:
                 text += " \nHAVING " + t
 
-        order_by = self.get_str(select.order_by_clause)
-        if order_by:
-            text += " ORDER BY " + order_by
-
+        text += self.order_by_clause(select)
         text += self.visit_select_postclauses(select)
-
         text += self.for_update_clause(select)
 
         if getattr(select, 'parens', False):
@@ -506,6 +549,13 @@ class ANSICompiler(sql.Compiled):
         """
 
         return (select.limit or select.offset) and self.limit_clause(select) or ""
+
+    def order_by_clause(self, select):
+        order_by = self.get_str(select.order_by_clause)
+        if order_by:
+            return " ORDER BY " + order_by
+        else:
+            return ""
 
     def for_update_clause(self, select):
         if select.for_update:
@@ -556,7 +606,7 @@ class ANSICompiler(sql.Compiled):
         For each column in the table that contains a ``ColumnDefault``
         object as an onupdate, add a blank *placeholder* parameter so
         the ``Update`` gets compiled with this column's name as one of
-        its ``SET` clauses.
+        its ``SET`` clauses.
         """
 
         parameters.setdefault(column.key, None)
@@ -609,7 +659,7 @@ class ANSICompiler(sql.Compiled):
                 self.binds[p.key] = p
                 if p.shortname is not None:
                     self.binds[p.shortname] = p
-                return self.bindparam_string(p.key)
+                return self.bindparam_string(self._truncate_bindparam(p))
             else:
                 self.inline_params.add(col)
                 self.traverse(p)
@@ -643,7 +693,7 @@ class ANSICompiler(sql.Compiled):
             if isinstance(p, sql._BindParamClause):
                 self.binds[p.key] = p
                 self.binds[p.shortname] = p
-                return self.bindparam_string(p.key)
+                return self.bindparam_string(self._truncate_bindparam(p))
             else:
                 self.traverse(p)
                 self.inline_params.add(col)
@@ -687,7 +737,7 @@ class ANSICompiler(sql.Compiled):
 
         def to_col(key):
             if not isinstance(key, sql._ColumnClause):
-                return stmt.table.columns.get(str(key), key)
+                return stmt.table.columns.get(unicode(key), key)
             else:
                 return key
 
@@ -740,13 +790,12 @@ class ANSISchemaBase(engine.SchemaIterator):
         return alterables
 
 class ANSISchemaGenerator(ANSISchemaBase):
-    def __init__(self, engine, proxy, connection, checkfirst=False, tables=None, **kwargs):
-        super(ANSISchemaGenerator, self).__init__(engine, proxy, **kwargs)
+    def __init__(self, dialect, connection, checkfirst=False, tables=None, **kwargs):
+        super(ANSISchemaGenerator, self).__init__(connection, **kwargs)
         self.checkfirst = checkfirst
         self.tables = tables and util.Set(tables) or None
-        self.connection = connection
-        self.preparer = self.engine.dialect.preparer()
-        self.dialect = self.engine.dialect
+        self.preparer = dialect.preparer()
+        self.dialect = dialect
 
     def get_column_specification(self, column, first_pk=False):
         raise NotImplementedError()
@@ -755,7 +804,7 @@ class ANSISchemaGenerator(ANSISchemaBase):
         collection = [t for t in metadata.table_iterator(reverse=False, tables=self.tables) if (not self.checkfirst or not self.dialect.has_table(self.connection, t.name, schema=t.schema))]
         for table in collection:
             table.accept_visitor(self)
-        if self.supports_alter():
+        if self.dialect.supports_alter():
             for alterable in self.find_alterables(collection):
                 self.add_foreignkey(alterable)
 
@@ -808,7 +857,7 @@ class ANSISchemaGenerator(ANSISchemaBase):
 
     def _compile(self, tocompile, parameters):
         """compile the given string/parameters using this SchemaGenerator's dialect."""
-        compiler = self.engine.dialect.compiler(tocompile, parameters)
+        compiler = self.dialect.compiler(tocompile, parameters)
         compiler.compile()
         return compiler
 
@@ -831,11 +880,8 @@ class ANSISchemaGenerator(ANSISchemaBase):
         self.append("PRIMARY KEY ")
         self.append("(%s)" % (string.join([self.preparer.format_column(c) for c in constraint],', ')))
 
-    def supports_alter(self):
-        return True
-
     def visit_foreign_key_constraint(self, constraint):
-        if constraint.use_alter and self.supports_alter():
+        if constraint.use_alter and self.dialect.supports_alter():
             return
         self.append(", \n\t ")
         self.define_foreign_key(constraint)
@@ -878,24 +924,20 @@ class ANSISchemaGenerator(ANSISchemaBase):
         self.execute()
 
 class ANSISchemaDropper(ANSISchemaBase):
-    def __init__(self, engine, proxy, connection, checkfirst=False, tables=None, **kwargs):
-        super(ANSISchemaDropper, self).__init__(engine, proxy, **kwargs)
+    def __init__(self, dialect, connection, checkfirst=False, tables=None, **kwargs):
+        super(ANSISchemaDropper, self).__init__(connection, **kwargs)
         self.checkfirst = checkfirst
         self.tables = tables
-        self.connection = connection
-        self.preparer = self.engine.dialect.preparer()
-        self.dialect = self.engine.dialect
+        self.preparer = dialect.preparer()
+        self.dialect = dialect
 
     def visit_metadata(self, metadata):
         collection = [t for t in metadata.table_iterator(reverse=True, tables=self.tables) if (not self.checkfirst or  self.dialect.has_table(self.connection, t.name, schema=t.schema))]
-        if self.supports_alter():
+        if self.dialect.supports_alter():
             for alterable in self.find_alterables(collection):
                 self.drop_foreignkey(alterable)
         for table in collection:
             table.accept_visitor(self)
-
-    def supports_alter(self):
-        return True
 
     def visit_index(self, index):
         self.append("\nDROP INDEX " + index.name)
@@ -980,11 +1022,10 @@ class ANSIIdentifierPreparer(object):
 
     def _requires_quotes(self, value, case_sensitive):
         """Return True if the given identifier requires quoting."""
-
         return \
             value in self._reserved_words() \
             or (value[0] in self._illegal_initial_characters()) \
-            or bool(len([x for x in str(value) if x not in self._legal_characters()])) \
+            or bool(len([x for x in unicode(value) if x not in self._legal_characters()])) \
             or (case_sensitive and value.lower() != value)
 
     def __generic_obj_format(self, obj, ident):
@@ -1015,36 +1056,41 @@ class ANSIIdentifierPreparer(object):
     def format_sequence(self, sequence):
         return self.__generic_obj_format(sequence, sequence.name)
 
-    def format_label(self, label):
-        return self.__generic_obj_format(label, label.name)
+    def format_label(self, label, name=None):
+        return self.__generic_obj_format(label, name or label.name)
 
     def format_alias(self, alias):
         return self.__generic_obj_format(alias, alias.name)
 
-    def format_table(self, table, use_schema=True):
+    def format_table(self, table, use_schema=True, name=None):
         """Prepare a quoted table and schema name."""
 
-        result = self.__generic_obj_format(table, table.name)
+        if name is None:
+            name = table.name
+        result = self.__generic_obj_format(table, name)
         if use_schema and getattr(table, "schema", None):
             result = self.__generic_obj_format(table, table.schema) + "." + result
         return result
 
-    def format_column(self, column, use_table=False):
+    def format_column(self, column, use_table=False, name=None):
         """Prepare a quoted column name."""
-
+        if name is None:
+            name = column.name
         if not getattr(column, 'is_literal', False):
             if use_table:
-                return self.format_table(column.table, use_schema=False) + "." + self.__generic_obj_format(column, column.name)
+                return self.format_table(column.table, use_schema=False) + "." + self.__generic_obj_format(column, name)
             else:
-                return self.__generic_obj_format(column, column.name)
+                return self.__generic_obj_format(column, name)
         else:
             # literal textual elements get stuck into ColumnClause alot, which shouldnt get quoted
             if use_table:
-                return self.format_table(column.table, use_schema=False) + "." + column.name
+                return self.format_table(column.table, use_schema=False) + "." + name
             else:
-                return column.name
+                return name
 
-    def format_column_with_table(self, column):
+    def format_column_with_table(self, column, column_name=None):
         """Prepare a quoted column name with table name."""
+        
+        return self.format_column(column, use_table=True, name=column_name)
 
-        return self.format_column(column, use_table=True)
+dialect = ANSIDialect

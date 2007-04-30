@@ -1,6 +1,13 @@
-from sqlalchemy.orm import unitofwork
+# orm/uowdumper.py
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+#
+# This module is part of SQLAlchemy and is released under
+# the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 """Dumps out a string representation of a UOWTask structure"""
+
+from sqlalchemy.orm import unitofwork
+from sqlalchemy.orm import util as mapperutil
 
 class UOWDumper(unitofwork.UOWExecutor):
     def __init__(self, task, buf, verbose=False):
@@ -22,13 +29,8 @@ class UOWDumper(unitofwork.UOWExecutor):
             if len(i):
                 i += "-"
                 #i = i[0:-1] + "-"
-            if task.circular is not None:
-                self.buf.write(self._indent() + "\n")
-                self.buf.write(i + " " + self._repr_task(task))
-                self.buf.write(" (contains cyclical sub-tasks)")
-            else:
-                self.buf.write(self._indent() + "\n")
-                self.buf.write(i + " " + self._repr_task(task))
+            self.buf.write(self._indent() + "\n")
+            self.buf.write(i + " " + self._repr_task(task))
             self.buf.write(" (" + (isdelete and "delete " or "save/update ") + "phase) \n")
             self.indent += 1
             super(UOWDumper, self).execute(trans, task, isdelete)
@@ -162,9 +164,9 @@ class UOWDumper(unitofwork.UOWExecutor):
             objid = "(placeholder)"
         else:
             if attribute is not None:
-                objid = "%s(%s).%s" % (te.obj.__class__.__name__, hex(id(te.obj)), attribute)
+                objid = "%s.%s" % (mapperutil.instance_str(te.obj), attribute)
             else:
-                objid = "%s(%s)" % (te.obj.__class__.__name__, hex(id(te.obj)))
+                objid = mapperutil.instance_str(te.obj)
         if self.verbose:
             return "%s (UOWTaskElement(%s, %s))" % (objid, hex(id(te)), (te.listonly and 'listonly' or (te.isdelete and 'delete' or 'save')))
         elif process:
@@ -180,19 +182,13 @@ class UOWDumper(unitofwork.UOWExecutor):
                 name = repr(task.mapper)
         else:
             name = '(none)'
-        if task.circular_parent:
-            return ("UOWTask(%s->%s, %s)" % (hex(id(task.circular_parent)), hex(id(task)), name))
-        else:
-            return ("UOWTask(%s, %s)" % (hex(id(task)), name))
+        return ("UOWTask(%s, %s)" % (hex(id(task)), name))
 
     def _repr_task_class(self, task):
         if task.mapper is not None and task.mapper.__class__.__name__ == 'Mapper':
             return task.mapper.class_.__name__
         else:
             return '(none)'
-
-    def _repr(self, obj):
-        return "%s(%s)" % (obj.__class__.__name__, hex(id(obj)))
 
     def _indent(self):
         return "   |" * self.indent

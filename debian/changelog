@@ -1,3 +1,12 @@
+sqlalchemy (0.3.7-1) unstable; urgency=low
+
+  * New upstream release
+  * Suggests python-setuptools (dialects within sqlalchemy.databases become a
+    setuptools entry points)
+  * Description updated
+
+ -- Piotr Ożarowski <piotr@debian.org>  Mon, 30 Apr 2007 21:06:19 +0200
+
 sqlalchemy (0.3.6-2) unstable; urgency=low
 
   * Upload to unstable

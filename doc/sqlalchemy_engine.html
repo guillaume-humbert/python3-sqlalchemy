@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -87,7 +87,21 @@
     </ul>
 
         
-        <li><A style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connectable">class Connectable(object)</a></li>
+        <li><A style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_BufferedColumnResultProxy">class BufferedColumnResultProxy(ResultProxy)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_BufferedRowResultProxy">class BufferedRowResultProxy(ResultProxy)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connectable">class Connectable(Executor)</a></li>
         
             
     <ul>
@@ -122,7 +136,7 @@
     </ul>
 
         
-        <li><A style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Engine">class Engine(Executor,Connectable)</a></li>
+        <li><A style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Engine">class Engine(Connectable)</a></li>
         
             
     <ul>
@@ -130,13 +144,6 @@
 
         
         <li><A style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_ExecutionContext">class ExecutionContext(object)</a></li>
-        
-            
-    <ul>
-    </ul>
-
-        
-        <li><A style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_PrefetchingResultProxy">class PrefetchingResultProxy(ResultProxy)</a></li>
         
             
     <ul>
@@ -182,18 +189,55 @@
     
     <A name="docstrings_sqlalchemy.engine"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>module sqlalchemy.engine</h3>
     
     
+    <div class="darkcell"><p>defines the basic components used to interface DBAPI modules with
+higher-level statement-construction, connection-management,
+execution and result contexts.  The primary &quot;entry point&quot; class into
+this package is the Engine.</p>
+<p>The package is represented among several individual modules, including:</p>
+<blockquote>
+<dl class="docutils">
+<dt>base.py</dt>
+<dd>Defines interface classes and some implementation classes
+which comprise the basic components used to interface between
+a DBAPI, constructed and plain-text statements,
+connections, transactions, and results.</dd>
+<dt>default.py</dt>
+<dd>Contains default implementations of some of the components
+defined in base.py.  All current database dialects use the
+classes in default.py as base classes for their own database-specific
+implementations.</dd>
+<dt>strategies.py</dt>
+<dd>the mechanics of constructing <tt class="docutils literal"><span class="pre">Engine</span></tt> objects are represented here.
+Defines the <tt class="docutils literal"><span class="pre">EngineStrategy</span></tt> class which represents how to go from
+arguments specified to the <tt class="docutils literal"><span class="pre">create_engine()</span></tt> function, to a fully
+constructed <tt class="docutils literal"><span class="pre">Engine</span></tt>, including initialization of connection pooling,
+dialects, and specific subclasses of <tt class="docutils literal"><span class="pre">Engine</span></tt>.</dd>
+<dt>threadlocal.py</dt>
+<dd>the <tt class="docutils literal"><span class="pre">TLEngine</span></tt> class is defined here, which is a subclass of the generic
+<tt class="docutils literal"><span class="pre">Engine</span></tt> and tracks <tt class="docutils literal"><span class="pre">Connection</span></tt> and <tt class="docutils literal"><span class="pre">Transaction</span></tt> objects against
+the identity of the current thread.  This allows certain programming patterns
+based around the concept of a &quot;thread-local connection&quot; to be possible.  The
+<tt class="docutils literal"><span class="pre">TLEngine</span></tt> is created by using the &quot;threadlocal&quot; engine strategy in
+conjunction with the <tt class="docutils literal"><span class="pre">create_engine()</span></tt> function.</dd>
+<dt>url.py</dt>
+<dd>Defines the <tt class="docutils literal"><span class="pre">URL</span></tt> class which represents the individual components of a
+string URL passed to <tt class="docutils literal"><span class="pre">create_engine()</span></tt>.  Also defines a basic module-loading
+strategy for the dialect specifier within a URL.</dd>
+</dl>
+</blockquote>
+</div>
     
 
         
     
     <A name="docstrings_sqlalchemy.engine_modfunc"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Module Functions</h3>
     
@@ -209,10 +253,10 @@
 first positional argument, to indicate the appropriate database
 dialect and connection arguments, with additional keyword
 arguments sent as options to the dialect and resulting Engine.</p>
-<p>The URL is in the form
+<p>The URL is a string in the form
 <tt class="docutils literal"><span class="pre">dialect://user:password&#64;host/dbname[?key=value..]</span></tt>, where
 <tt class="docutils literal"><span class="pre">dialect</span></tt> is a name such as <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>, <tt class="docutils literal"><span class="pre">postgres</span></tt>,
-etc.</p>
+etc.  Alternatively, the URL can be an instance of <tt class="docutils literal"><span class="pre">sqlalchemy.engine.url.URL</span></tt>.</p>
 <p><cite>**kwargs</cite> represents options to be sent to the Engine itself as
 well as the components of the Engine, including the Dialect, the
 ConnectionProvider, and the Pool.  A list of common options is as
@@ -293,7 +337,6 @@ information.</p>
 
         
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -304,11 +347,91 @@ information.</p>
 
     
     
+    <A name="docstrings_sqlalchemy.engine_BufferedColumnResultProxy"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class BufferedColumnResultProxy(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_ResultProxy">ResultProxy</a>)</h3>
+    
+    
+    <div class="darkcell"><p><tt class="docutils literal"><span class="pre">ResultProxy</span></tt> that loads all columns into memory each time fetchone() is
+called.  If fetchmany() or fetchall() are called, the full grid of results
+is fetched.  This is to operate with databases where result rows contain &quot;live&quot;
+results that fall out of scope unless explicitly fetched.  Currently this includes
+just cx_Oracle LOB objects, but this behavior is known to exist in other DBAPIs as
+well (Pygresql, currently unsupported).</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def fetchall(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def fetchmany(<i>self</i>, <i>size=None</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.engine_BufferedRowResultProxy"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class BufferedRowResultProxy(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_ResultProxy">ResultProxy</a>)</h3>
+    
+    
+    <div class="darkcell"><p><tt class="docutils literal"><span class="pre">ResultProxy</span></tt> that buffers the contents of a selection of rows before
+<tt class="docutils literal"><span class="pre">fetchone()</span></tt> is called.  This is to allow the results of
+<tt class="docutils literal"><span class="pre">cursor.description</span></tt> to be available immediately, when interfacing
+with a DBAPI that requires rows to be consumed before this information is
+available (currently psycopg2, when used with server-side cursors).</p>
+<p>The pre-fetching behavior fetches only one row initially, and then grows
+its buffer size by a fixed amount with each successive need for additional
+rows up to a size of 100.</p>
+</div>
+    
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
     <A name="docstrings_sqlalchemy.engine_Connectable"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
-    <h3>class Connectable(object)</h3>
+    <h3>class Connectable(<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_Executor">Executor</a>)</h3>
     
     
     <div class="darkcell"><p>Interface for an object that can provide an Engine and a Connection object which correponds to that Engine.</p>
@@ -336,6 +459,16 @@ information.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>dialect = property()</b>
+         <div class="docstring">
+         <p>Dialect which this Connectable is associated with.</p>
+
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -383,7 +516,7 @@ information.</p>
     
     <A name="docstrings_sqlalchemy.engine_Connection"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class Connection(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connectable">Connectable</a>)</h3>
     
@@ -430,6 +563,16 @@ a begin method to return Transaction objects.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def compiler(<i>self</i>, <i>statement</i>, <i>parameters</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def connect(<i>self</i>)</b>
     <div class="docstring">
     <p>connect() is implemented to return self so that an incoming Engine or Connection object can be treated similarly.</p>
@@ -464,7 +607,7 @@ a begin method to return Transaction objects.</p>
     <A name=""></a>
     <b>def create(<i>self</i>, <i>entity</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Create a table or index given an appropriate schema object.</p>
+    <p>Create a Table or Index given an appropriate Schema object.</p>
 
     </div>
     </div>
@@ -480,12 +623,22 @@ a begin method to return Transaction objects.</p>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>dialect = property()</b>
+         <div class="docstring">
+         <p>Dialect used by this Connection.</p>
+
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
     <b>def drop(<i>self</i>, <i>entity</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Drop a table or index given an appropriate schema object.</p>
+    <p>Drop a Table or Index given an appropriate Schema object.</p>
 
     </div>
     </div>
@@ -495,7 +648,7 @@ a begin method to return Transaction objects.</p>
          <A name=""></a>
          <b>engine = property()</b>
          <div class="docstring">
-         <p>The Engine with which this Connection is associated (read only)</p>
+         <p>The Engine with which this Connection is associated.</p>
 
          </div> 
          </div>
@@ -575,26 +728,9 @@ a begin method to return Transaction objects.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def proxy(<i>self</i>, <i>statement=None</i>, <i>parameters=None</i>)</b>
-    <div class="docstring">
-    <p>Execute the given statement string and parameter object.</p>
-<p>The parameter object is expected to be the result of a call to
-<tt class="docutils literal"><span class="pre">compiled.get_params()</span></tt>.  This callable is a generic version
-of a connection/cursor-specific callable that is produced
-within the execute_compiled method, and is used for objects
-that require this style of proxy when outside of an
-execute_compiled method, primarily the DefaultRunner.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def reflecttable(<i>self</i>, <i>table</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Reflect the columns in the given table from the database.</p>
+    <p>Reflect the columns in the given string table name from the database.</p>
 
     </div>
     </div>
@@ -644,7 +780,7 @@ execute_compiled method, primarily the DefaultRunner.</p>
     
     <A name="docstrings_sqlalchemy.engine_ConnectionProvider"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class ConnectionProvider(object)</h3>
     
@@ -695,7 +831,7 @@ member of this object.</p>
     
     <A name="docstrings_sqlalchemy.engine_DefaultRunner"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class DefaultRunner(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaVisitor">SchemaVisitor</a>)</h3>
     
@@ -713,7 +849,7 @@ DefaultRunner to allow database-specific behavior.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>engine</i>, <i>proxy</i>)</b>
+    <b>def __init__(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
     
     </div>
@@ -809,7 +945,7 @@ and are post-fetched to get the DB-side value.</p>
     
     <A name="docstrings_sqlalchemy.engine_Dialect"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class Dialect(<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_AbstractDialect">AbstractDialect</a>)</h3>
     
@@ -866,7 +1002,6 @@ call on ClauseElement.</p>
 <p>The returned object is usually a subclass of
 ansisql.ANSICompiler, and will produce a string representation
 of the given ClauseElement and <cite>parameters</cite> dictionary.</p>
-<p><cite>compiler()</cite> is called within the context of the compile() method.</p>
 
     </div>
     </div>
@@ -906,9 +1041,9 @@ filename.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_cursor(<i>self</i>, <i>connection</i>)</b>
+    <b>def create_execution_context(<i>self</i>, <i>connection</i>, <i>compiled=None</i>, <i>compiled_parameters=None</i>, <i>statement=None</i>, <i>parameters=None</i>)</b>
     <div class="docstring">
-    <p>Return a new cursor generated from the given connection.</p>
+    <p>Return a new ExecutionContext object.</p>
 
     </div>
     </div>
@@ -917,33 +1052,13 @@ filename.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_result_proxy_args(<i>self</i>, <i>connection</i>, <i>cursor</i>)</b>
-    <div class="docstring">
-    <p>Return a dictionary of arguments that should be passed to ResultProxy().</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def dbapi(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Establish a connection to the database.</p>
-<p>Subclasses override this method to provide the DBAPI module
-used to establish connections.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def defaultrunner(<i>self</i>, <i>engine</i>, <i>proxy</i>, <i>**params</i>)</b>
+    <b>def defaultrunner(<i>self</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">schema.SchemaVisitor</span></tt> instance that can execute defaults.</p>
+<dl class="docutils">
+<dt>connection</dt>
+<dd>a Connection to use for statement execution</dd>
+</dl>
 
     </div>
     </div>
@@ -1007,17 +1122,6 @@ used to establish connections.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def execution_context(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Return a new ExecutionContext object.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def get_default_schema_name(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
     <p>Return the currently selected schema given a connection</p>
@@ -1057,9 +1161,32 @@ exists in the database, False otherwise.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def is_disconnect(<i>self</i>, <i>e</i>)</b>
+    <div class="docstring">
+    <p>Return True if the given DBAPI error indicates an invalid connection</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def max_identifier_length(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Return the maximum length of identifier names.</p>
+<p>Return None if no limit.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def oid_column_name(<i>self</i>, <i>column</i>)</b>
     <div class="docstring">
-    <p>Return the oid column name for this dialect, or None if the dialect cant/wont support OID/ROWID.</p>
+    <p>Return the oid column name for this dialect, or None if the dialect can't/won't support OID/ROWID.</p>
 <p>The Column instance which represents OID for the query being
 compiled is passed, so that the dialect can inspect the column
 and its parent selectable to determine if OID/ROWID is not
@@ -1086,9 +1213,15 @@ columns and properties from the database.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def schemadropper(<i>self</i>, <i>engine</i>, <i>proxy</i>, <i>**params</i>)</b>
+    <b>def schemadropper(<i>self</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">schema.SchemaVisitor</span></tt> instance that can drop schemas.</p>
+<blockquote>
+<dl class="docutils">
+<dt>connection</dt>
+<dd>a Connection to use for statement execution</dd>
+</dl>
+</blockquote>
 <p><cite>schemadropper()</cite> is called via the <cite>drop()</cite> method on Table,
 Index, and others.</p>
 
@@ -1099,11 +1232,28 @@ Index, and others.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def schemagenerator(<i>self</i>, <i>engine</i>, <i>proxy</i>, <i>**params</i>)</b>
+    <b>def schemagenerator(<i>self</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">schema.SchemaVisitor</span></tt> instance that can generate schemas.</p>
+<blockquote>
+<dl class="docutils">
+<dt>connection</dt>
+<dd>a Connection to use for statement execution</dd>
+</dl>
+</blockquote>
 <p><cite>schemagenerator()</cite> is called via the <cite>create()</cite> method on Table,
 Index, and others.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def supports_alter(<i>self</i>)</b>
+    <div class="docstring">
+    <p>return True if the database supports ALTER TABLE.</p>
 
     </div>
     </div>
@@ -1115,8 +1265,19 @@ Index, and others.</p>
     <b>def supports_sane_rowcount(<i>self</i>)</b>
     <div class="docstring">
     <p>Indicate whether the dialect properly implements statements rowcount.</p>
-<p>Provided to indicate when MySQL is being used, which does not
-have standard behavior for the &quot;rowcount&quot; function on a statement handle.</p>
+<p>This was needed for MySQL which had non-standard behavior of rowcount,
+but this issue has since been resolved.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def supports_unicode_statements(<i>self</i>)</b>
+    <div class="docstring">
+    <p>indicate whether the DBAPI can receive SQL statements as Python unicode strings</p>
 
     </div>
     </div>
@@ -1127,7 +1288,7 @@ have standard behavior for the &quot;rowcount&quot; function on a statement hand
     <A name=""></a>
     <b>def type_descriptor(<i>self</i>, <i>typeobj</i>)</b>
     <div class="docstring">
-    <p>Trasform the type from generic to database-specific.</p>
+    <p>Transform the type from generic to database-specific.</p>
 <p>Provides a database-specific TypeEngine object, given the
 generic object which comes from the types module.  Subclasses
 will usually use the adapt_type() method in the types module
@@ -1151,9 +1312,9 @@ to make this job easy.</p>
     
     <A name="docstrings_sqlalchemy.engine_Engine"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
-    <h3>class Engine(<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_Executor">Executor</a>,<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connectable">Connectable</a>)</h3>
+    <h3>class Engine(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connectable">Connectable</a>)</h3>
     
     
     <div class="darkcell"><p>Connects a ConnectionProvider, a Dialect and a CompilerFactory together to
@@ -1216,6 +1377,16 @@ provide a default implementation of SchemaEngine.</p>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>dialect = property()</b>
+         <div class="docstring">
+         <p>the <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Dialect">Dialect</a> in use by this engine.</p>
+
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -1235,6 +1406,21 @@ provide a default implementation of SchemaEngine.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>echo = property()</b>
+         <div class="docstring">
+         <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, enable log output for this element.</p>
+<p>This has the effect of setting the Python logging level for the
+namespace of this element's class and object reference.  A value
+of boolean <tt class="docutils literal"><span class="pre">True</span></tt> indicates that the loglevel <tt class="docutils literal"><span class="pre">logging.INFO</span></tt> will be
+set for the logger, whereas the string value <tt class="docutils literal"><span class="pre">debug</span></tt> will set the loglevel
+to <tt class="docutils literal"><span class="pre">logging.DEBUG</span></tt>.</p>
+
+         </div> 
+         </div>
 
                     
          <div class="darkcell">
@@ -1310,7 +1496,8 @@ provide a default implementation of SchemaEngine.</p>
          <A name=""></a>
          <b>name = property()</b>
          <div class="docstring">
-         
+         <p>String name of the <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Dialect">Dialect</a> in use by this <tt class="docutils literal"><span class="pre">Engine</span></tt>.</p>
+
          </div> 
          </div>
 
@@ -1382,6 +1569,16 @@ well as the Connection used in the transaction.</p>
     </div>
     </div>
 
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>url = property()</b>
+         <div class="docstring">
+         <p>The <a href="sqlalchemy_engine_url.html#docstrings_sqlalchemy.engine.url_URL">URL</a> object representing this <tt class="docutils literal"><span class="pre">Engine</span></tt> object's datasource.</p>
+
+         </div> 
+         </div>
+
 
     
 
@@ -1397,18 +1594,40 @@ well as the Connection used in the transaction.</p>
     
     <A name="docstrings_sqlalchemy.engine_ExecutionContext"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class ExecutionContext(object)</h3>
     
     
     <div class="darkcell"><p>A messenger object for a Dialect that corresponds to a single execution.</p>
+<p>ExecutionContext should have these datamembers:</p>
+<blockquote>
+<dl class="docutils">
+<dt>connection</dt>
+<dd>Connection object which initiated the call to the
+dialect to create this ExecutionContext.</dd>
+<dt>dialect</dt>
+<dd>dialect which created this ExecutionContext.</dd>
+<dt>cursor</dt>
+<dd>DBAPI cursor procured from the connection</dd>
+<dt>compiled</dt>
+<dd>if passed to constructor, sql.Compiled object being executed</dd>
+<dt>compiled_parameters</dt>
+<dd>if passed to constructor, sql.ClauseParameters object</dd>
+<dt>statement</dt>
+<dd>string version of the statement to be executed.  Is either
+passed to the constructor, or must be created from the
+sql.Compiled object by the time pre_exec() has completed.</dd>
+<dt>parameters</dt>
+<dd>&quot;raw&quot; parameters suitable for direct execution by the
+dialect.  Either passed to the constructor, or must be
+created from the sql.ClauseParameters object by the time
+pre_exec() has completed.</dd>
+</dl>
+</blockquote>
 <p>The Dialect should provide an ExecutionContext via the
 create_execution_context() method.  The <cite>pre_exec</cite> and <cite>post_exec</cite>
-methods will be called for compiled statements, afterwhich it is
-expected that the various methods <cite>last_inserted_ids</cite>,
-<cite>last_inserted_params</cite>, etc.  will contain appropriate values, if
-applicable.</p>
+methods will be called for compiled statements.</p>
 </div>
     
 
@@ -1416,7 +1635,29 @@ applicable.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_rowcount(<i>self</i>, <i>cursor</i>)</b>
+    <b>def create_cursor(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Return a new cursor generated this ExecutionContext's connection.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_result_proxy(<i>self</i>)</b>
+    <div class="docstring">
+    <p>return a ResultProxy corresponding to this ExecutionContext.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_rowcount(<i>self</i>)</b>
     <div class="docstring">
     <p>Return the count of rows updated/deleted for an UPDATE/DELETE statement.</p>
 
@@ -1432,7 +1673,7 @@ applicable.</p>
     <p>Return the list of the primary key values for the last insert statement executed.</p>
 <p>This does not apply to straight textual clauses; only to
 <tt class="docutils literal"><span class="pre">sql.Insert</span></tt> objects compiled against a <tt class="docutils literal"><span class="pre">schema.Table</span></tt> object,
-which are executed via <cite>statement.execute()</cite>.  The order of
+which are executed via <cite>execute()</cite>.  The order of
 items in the list is the same as that of the Table's
 'primary_key' attribute.</p>
 <p>In some cases, this method may invoke a query back to the
@@ -1484,11 +1725,13 @@ programmatically.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def post_exec(<i>self</i>, <i>engine</i>, <i>proxy</i>, <i>compiled</i>, <i>parameters</i>)</b>
+    <b>def post_exec(<i>self</i>)</b>
     <div class="docstring">
     <p>Called after the execution of a compiled statement.</p>
-<p><cite>proxy</cite> is a callable that takes a string statement and a bind
-parameter list/dictionary.</p>
+<p>If compiled was passed to this ExecutionContext,
+the <cite>last_insert_ids</cite>, <cite>last_inserted_params</cite>, etc.
+datamembers should be available after this method
+completes.</p>
 
     </div>
     </div>
@@ -1497,80 +1740,13 @@ parameter list/dictionary.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def pre_exec(<i>self</i>, <i>engine</i>, <i>proxy</i>, <i>compiled</i>, <i>parameters</i>)</b>
+    <b>def pre_exec(<i>self</i>)</b>
     <div class="docstring">
     <p>Called before an execution of a compiled statement.</p>
-<p><cite>proxy</cite> is a callable that takes a string statement and a bind
-parameter list/dictionary.</p>
+<p>If compiled and compiled_parameters were passed to this
+ExecutionContext, the <cite>statement</cite> and <cite>parameters</cite> datamembers
+must be initialized after this statement is complete.</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def supports_sane_rowcount(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Indicate if the &quot;rowcount&quot; DBAPI cursor function works properly.</p>
-<p>Currently, MySQLDB does not properly implement this function.</p>
-
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
-    <A name="docstrings_sqlalchemy.engine_PrefetchingResultProxy"></a>
-    
-    <div class="subsection">
-
-    <h3>class PrefetchingResultProxy(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_ResultProxy">ResultProxy</a>)</h3>
-    
-    
-    <div class="darkcell"><p>ResultProxy that loads all columns into memory each time fetchone() is
-called.  If fetchmany() or fetchall() are called, the full grid of results
-is fetched.</p>
-</div>
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def fetchall(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def fetchmany(<i>self</i>, <i>size=None</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def fetchone(<i>self</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -1589,7 +1765,7 @@ is fetched.</p>
     
     <A name="docstrings_sqlalchemy.engine_ResultProxy"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class ResultProxy(object)</h3>
     
@@ -1619,7 +1795,7 @@ to obtain information from the underlying ExecutionContext.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>engine</i>, <i>connection</i>, <i>cursor</i>, <i>executioncontext=None</i>, <i>typemap=None</i>, <i>columns=None</i>, <i>should_prefetch=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>context</i>)</b>
     <div class="docstring">
     <p>ResultProxy objects are constructed via the execute() method on SQLEngine.</p>
 
@@ -1645,7 +1821,16 @@ are exhausted.</p>
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>executioncontext = property()</b>
+         <b>connection = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>dialect = property()</b>
          <div class="docstring">
          
          </div> 
@@ -1683,6 +1868,15 @@ are exhausted.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>keys = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -1733,6 +1927,15 @@ are exhausted.</p>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>rowcount = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -1770,12 +1973,12 @@ are exhausted.</p>
     
     <A name="docstrings_sqlalchemy.engine_RowProxy"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class RowProxy(object)</h3>
     
     
-    <div class="darkcell"><p>Proxie a single cursor row for a parent ResultProxy.</p>
+    <div class="darkcell"><p>Proxy a single cursor row for a parent ResultProxy.</p>
 <p>Mostly follows &quot;ordered dictionary&quot; behavior, mapping result
 values to the string-based column name, the integer position of
 the result in the row, as well as Column instances which can be
@@ -1865,7 +2068,7 @@ results that correspond to constructed SQL expressions).</p>
     
     <A name="docstrings_sqlalchemy.engine_SchemaIterator"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class SchemaIterator(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaVisitor">SchemaVisitor</a>)</h3>
     
@@ -1878,17 +2081,9 @@ results that correspond to constructed SQL expressions).</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>engine</i>, <i>proxy</i>, <i>**params</i>)</b>
+    <b>def __init__(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
     <p>Construct a new SchemaIterator.</p>
-<dl class="docutils">
-<dt>engine</dt>
-<dd>the Engine used by this SchemaIterator</dd>
-<dt>proxy</dt>
-<dd>a callable which takes a statement and bind parameters and
-executes it, returning the cursor (the actual DBAPI cursor).
-The callable should use the same cursor repeatedly.</dd>
-</dl>
 
     </div>
     </div>
@@ -1930,7 +2125,7 @@ The callable should use the same cursor repeatedly.</dd>
     
     <A name="docstrings_sqlalchemy.engine_Transaction"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class Transaction(object)</h3>
     
@@ -1992,13 +2187,13 @@ The callable should use the same cursor repeatedly.</dd>
 
     
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
     
 
-            <a href="#top">back to section top</a>
     </div>
 
 

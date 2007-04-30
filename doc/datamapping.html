@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -78,6 +78,34 @@
         
             
     <ul>
+        
+        <li><A style="" href="datamapping.html#datamapping_query_fullselect">Issuing Full SELECT statements</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="datamapping.html#datamapping_query_callingstyles">Two General Calling Styles</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="datamapping.html#datamapping_query_primarykey">Loading by Primary Key</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="datamapping.html#datamapping_query_columnsonclass">Column Objects Available via their Mapped Class</a></li>
+        
+            
+    <ul>
+    </ul>
+
         
         <li><A style="" href="datamapping.html#datamapping_query_generative">Generative Query Methods</a></li>
         
@@ -149,6 +177,13 @@
     </ul>
 
         
+        <li><A style="" href="datamapping.html#datamapping_selectrelations_joinparent">Joining from a Parent Object</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
         <li><A style="" href="datamapping.html#datamapping_selectrelations_eagerload">Eager Loading</a></li>
         
             
@@ -202,7 +237,7 @@
     
     <A name="datamapping"></a>
     
-    <div class="section">
+    <div class="sectionL1">
 
     
     
@@ -212,13 +247,13 @@
     
     <A name="datamapping_datamapping"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Basic Data Mapping</h3>
     
     
 
-<p>Data mapping describes the process of defining <em>Mapper</em> objects, which associate table metadata with user-defined classes.  <br></br>
+<p>Data mapping describes the process of defining <em>Mapper</em> objects, which associate table metadata with user-defined classes.
 </p>
 <p>The <code>Mapper</code>'s role is to perform SQL operations upon the database, associating individual table rows with instances of those classes, and individual database columns with properties upon those instances, to transparently associate in-memory objects with a persistent database representation. 
 </p>
@@ -230,7 +265,7 @@
 </p>
 <p>The three configurational elements to be defined, i.e. the <code>Table</code> metadata, the user-defined class, and the <code>Mapper</code>, are typically defined as module-level variables, and may be defined in any fashion suitable to the application, with the only requirement being that the class and table metadata are described before the mapper.  For the sake of example, we will be defining these elements close together, but this should not be construed as a requirement; since SQLAlchemy is not a framework, those decisions are left to the developer or an external framework.
 </p>
-<p>Also, keep in mind that the examples in this section deal with explicit <code>Session</code> objects mapped directly to <code>Engine</code> objects, which represents the most explicit style of using the ORM.  Options exist for how this is configured, including binding <code>Table</code> objects directly to <code>Engines</code> (described in <a href="metadata.html#metadata_tables_binding">Binding MetaData to an Engine</a>), as well as using the "Threadlocal" plugin which provides various code shortcuts by using an implicit Session associated to the current thread (described in <a href="plugins.html#plugins_threadlocal">threadlocal</a>).
+<p>Also, keep in mind that the examples in this section deal with explicit <code>Session</code> objects mapped directly to <code>Engine</code> objects, which represents the most explicit style of using the ORM.  Options exist for how this is configured, including binding <code>Table</code> objects directly to <code>Engines</code> (described in <a href="metadata.html#metadata_tables_binding">Binding MetaData to an Engine</a>), as well as using an auto-generating "contextual" session via the SessionContext plugin (described in <a href="plugins.html#plugins_sessioncontext">SessionContext</a>).
 </p>
 
 
@@ -243,13 +278,13 @@
     
     <A name="datamapping_synopsis"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Synopsis</h3>
     
     
 
-<p>First, the metadata/mapper configuration code:
+<p>Starting with a <code>Table</code> definition and a minimal class construct, the two are associated with each other via the <code>mapper()</code> function [<a href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_Mapper">api</a>], which generates an object called a <code>Mapper</code>.  SA associates the class and all instances of that class with this particular <code>Mapper</code>, which is then stored in a global registry.
 </p>
 
     
@@ -264,6 +299,7 @@
 </span><span class="python_name">users_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">16</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'fullname'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">100</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'password'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">20</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">)</span><span class="python_operator">
 </span>
@@ -274,31 +310,42 @@
 <span class="python_comment"># create a mapper and associate it with the User class.
 </span><span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>Note that no database definitions are required.  Next we will define an <code>Engine</code> and connect a <code>Session</code> to it, and perform a simple select:
+<p>Thats all for configuration.  Next, we will create an <code>Engine</code> and bind it to a <code>Session</code>, which represents a local collection of mapped objects to be operated upon.
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_comment"># engine
+</span><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">"sqlite://mydb.db"</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># session
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+<p>The <code>session</code> represents a "workspace" which can load objects and persist changes to the database.  A <code>Session</code> [<a href="unitofwork.html">doc</a>] [<a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_Session">api</a>] is best created as local to a particular set of related data operations, such as scoped within a function call, or within a single application request cycle.  Next we illustrate a rudimental query which will load a single object instance.  We will modify one of its attributes and persist the change back to the database.
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_comment"># engine
-</span><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">"sqlite://mydb.db"</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># session
-</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># select
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_1_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
-users.password AS users_password <br/>
+        <pre><span class="python_comment"># select
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">selectfirst_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_1_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
-WHERE users.user_name = :users_user_name ORDER BY users.oid<br/>
+WHERE users.user_name = :users_user_name ORDER BY users.oid LIMIT 1<br/>
 {'users_user_name': 'fred'}</div><pre><span class="python_comment"># modify
 </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">= </span><span class="python_literal">'fred jones'</span><span class="python_operator">
 </span>
 <span class="python_comment"># flush - saves everything that changed
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">UPDATE users SET user_name=:user_name <br/>
+# within the scope of our Session
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">BEGIN<br/>
+UPDATE users SET user_name=:user_name <br/>
  WHERE users.user_id = :user_id<br/>
-[{'user_name': 'fred jones', 'user_id': 1}]</div><pre><span class="python_operator"></span></pre>
+[{'user_name': 'fred jones', 'user_id': 1}]        <br/>
+COMMIT</div><pre><span class="python_operator"></span></pre>
     </div>
+<p>Things to note from the above include that the loaded <code>User</code> object has an attribute named <code>user_name</code> on it, which corresponds to the <code>user_name</code> column in the <code>users_table</code>; this attribute was configured at the class level when the <code>Mapper</code> which we created first compiled itself.  Our modify operation on this attribute caused the object to be marked as <code>dirty</code>, which was picked up automatically within the subsequent <code>flush()</code> process.  The <code>flush()</code> is the point at which all changes to objects within the <code>Session</code> are persisted to the database, and the <code>User</code> object is no longer marked as <code>dirty</code> until it is again modified.
+</p>
 
 
 
@@ -310,67 +357,244 @@ WHERE users.user_name = :users_user_name ORDER BY users.oid<br/>
     
     <A name="datamapping_query"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>The Query Object</h3>
     
     
 
-<p>The method <code>session.query(class_or_mapper)</code> returns a <code>Query</code> object.  Below is a synopsis of things you can do with <code>Query</code>:
+<p>The method <code>session.query(class_or_mapper)</code> returns a <code>Query</code> object [<a href="sqlalchemy_orm_query.html#docstrings_sqlalchemy.orm.query_Query">api</a>].  <code>Query</code> implements a large set of methods which are used to produce and execute select statements tailored for loading object instances.  It returns objects in most cases either as lists of objects or as single instances, depending on the type of query issued.
+</p>
+<p>A <code>Query</code> is always initially generated starting with the <code>Session</code> that we're working with, and is always created relative to a particular class, which is the primary class we wish to load.
 </p>
 
     
 
     <div class="sliding_code">
         <pre><span class="python_comment"># get a query from a Session based on class:
-</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># get a query from a Session given a Mapper:
-</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">usermapper</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># select_by, which takes keyword arguments.  the
-# keyword arguments represent property names and the values
-# represent values which will be compared via the = operator.
-# the comparisons are joined together via "AND".
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 green street'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># select_by can also combine ClauseElements with key/value properties.
-# all ClauseElements and keyword-based criterion are combined together
-# via "AND". 
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_operator">, </span>
-        <span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">zip_code</span><span class="python_operator">==</span><span class="python_literal">'12345'</span><span class="python_operator">, </span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 green street'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># get_by, which takes the same arguments as select_by
-# returns a single scalar result or None if no results
-</span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">id</span><span class="python_operator">=</span><span class="python_number">12</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># "dynamic" versions of select_by and get_by - everything past the 
-# "select_by_" or "get_by_" is used as the key, and the function argument
-# as the value
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select_by_name</span><span class="python_enclosure">(</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get_by_name</span><span class="python_enclosure">(</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># get an object directly from its primary key.  this will bypass the SQL
-# call if the object has already been loaded
-</span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">15</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># get an object that has a composite primary key of three columns.
-# the order of the arguments matches that of the table meta data.
-</span><span class="python_name">myobj </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">((</span><span class="python_number">27</span><span class="python_operator">, </span><span class="python_number">3</span><span class="python_operator">, </span><span class="python_literal">'receipts'</span><span class="python_enclosure">))</span><span class="python_operator">
-</span>
-<span class="python_comment"># using a WHERE criterion
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">or_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">== </span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">))</span><span class="python_operator">
-</span>
-<span class="python_comment"># using a WHERE criterion to get a scalar
-</span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">selectfirst</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># selectone() is a stricter version of selectfirst() which
-# will raise an exception if there is not exactly one row
-</span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">selectone</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># using a full select object
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre>
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
+<p>Alternatively, an actual <code>Mapper</code> instance can be specified instead of a class:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_comment"># locate the mapper corresponding to the User class
+</span><span class="python_name">usermapper </span><span class="python_operator">= </span><span class="python_name">class_mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># create query for the User
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">usermapper</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+<p>Dealing with mappers explicitly as above is usually not needed except for more advanced patterns where a class may have multiple mappers associated with it.
+</p>
+<p>Once we have a query, we can start loading objects.  The two most rudimental and general purpose methods are <code>select()</code> and <code>select_by()</code>.  <code>select()</code> is oriented towards query criterion constructed as a <code>ClauseElement</code> object, which is the kind of object generated when constructing SQL expressions as described in the <a href="sqlconstruction.html">SQL</a> section.  <code>select_by()</code> can also accomodate <code>ClauseElement</code> objects but is generally more oriented towards keyword arguments which correspond to mapped attribute names.  In both cases, the criterion specified is used to construct the <code>WHERE</code> criterion of the generated SQL.  The <code>Query</code> object will use this criterion to <strong>compile</strong> the full SQL query issued to the database, combining the <code>WHERE</code> condition with the appropriate column selection clauses and <code>FROM</code> criterion, incuding whatever modifications are required to control ordering, number of rows returned, joins for loading related objects, etc.
+</p>
+<p>The general form of <code>select_by()</code> is:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_keyword">def </span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, *</span><span class="python_name">clause_elements</span><span class="python_operator">, **</span><span class="python_name">keyword_criterion</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+<p>Where <code>*clause_elements</code> is a set of zero or more <code>ClauseElement</code> objects, and <code>**keyword_criterion</code> are key/value pairs each of which correspond to a simple equality comparison.  The full set of clause elements and key/value pairs are joined together in the resulting SQL statement via <code>AND</code>.
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_comment"># using select_by with keyword arguments
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_name">fullname</span><span class="python_operator">=</span><span class="python_literal">'John Smith'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.user_name = :users_user_name AND users.fullname = :users_fullname<br/>
+ORDER BY users.oid<br/>
+{'users_user_name': 'john', 'users_fullname': 'John Smith'}</div><pre><span class="python_comment"># using select_by with preceding ClauseElements followed by keywords
+</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">></span><span class="python_number">224</span><span class="python_operator">, </span>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_4', 'show', 'hide')" class="codepoplink">sql</a>        </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_name">fullname</span><span class="python_operator">=</span><span class="python_literal">'John Smith'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_4_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.user_id>:users_user_id AND users.user_name = :users_user_name <br/>
+AND users.fullname = :users_fullname<br/>
+ORDER BY users.oid<br/>
+{'users_user_name': 'john', 'users_fullname': 'John Smith', 'users_user_id': 224}</div><pre><span class="python_operator"></span></pre>
+    </div>
+<p>Note that a <code>ClauseElement</code> is generated by each boolean operator (i.e. <code>==</code>, <code>&gt;</code>) that's performed against a <code>Column</code> object - recall that this operator is overloaded to return a binary clause construct.  But the <code>fullname=&quot;John Smith&quot;</code> argument is not using any kind of overloading, and is a regular Python keyword argument.   Additionally, while <code>ClauseElements</code> are constructed against the <code>Column</code> elements configured on the mapped <code>Table</code>, the keyword-based criterion is constructed against the class-level attribute names which were configured by the mapper.  While they are the same name as their columns in this particular example, they can be configured to have names distinct from their columns.  So it follows that using <code>ClauseElements</code> for criterion are closer to the relational side of things, and using keyword arguments are closer towards the domain object side of things.
+</p>
+<p>The <code>select()</code> method, unlike the <code>select_by()</code> method, is purely <code>ClauseElement</code>/relationally oriented and has no domain-level awareness.  Its basic argument signature:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_keyword">def </span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">clause_element</span><span class="python_operator">, **</span><span class="python_name">additional_options</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+<p>The <code>clause_element</code> argument again represents a <code>ClauseElement</code> which corresponds to the <code>WHERE</code> criterion of a <code>SELECT</code> statement.  Here, there is only a single <code>ClauseElement</code> and it will be used to form the entire set of criterion.  A basic <code>select()</code> operation looks like this:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+<p>To generate <code>AND</code> criterion the way <code>select_by()</code> does, you use the <code>and_()</code> construct from the sql construction system, which generates just another <code>ClauseElement</code> containing two sub-<code>ClauseElement</code>s:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_operator">, </span>
+    <span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_operator">==</span><span class="python_literal">'John Smith'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre>
+    </div>
+<p>From this, one can see that <code>select()</code> is stricter in its operation and does not make any kind of assumptions about how to join multiple criterion together.  Of course in all cases where <code>ClauseElement</code> is used, any expression can be created using combinations of <code>and_()</code>, <code>or_()</code>, <code>not_()</code>, etc.
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span>
+    <span class="python_name">or_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">== </span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_5', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_5_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.user_name = :users_user_name  OR users.user_name = :users_user_name_1<br/>
+ORDER BY users.oid<br/>
+{'users_user_name': 'john', 'users_user_name_1': 'fred'}</div><pre><span class="python_operator"></span></pre>
+    </div>
+<p>The keyword portion of <code>select()</code> is used to indicate further modifications to the generated SQL, including common arguments like ordering, limits and offsets:
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_operator">, </span>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_6', 'show', 'hide')" class="codepoplink">sql</a>            </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">limit</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_operator">, </span><span class="python_name">offset</span><span class="python_operator">=</span><span class="python_number">12</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_6_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.user_name = :users_user_name <br/>
+ORDER BY users.fullname LIMIT 10 OFFSET 12<br/>
+{'users_user_name': 'john'}</div><pre><span class="python_operator"></span></pre>
+    </div>
+
+
+    
+    <A name="datamapping_query_fullselect"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Issuing Full SELECT statements</h3>
+    
+    
+
+<p><code>select()</code> also provides an additional calling style, which is to pass a fully constructed <code>Select</code> construct to it.
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_comment"># using a full select object
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_7', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre><div id="popbox_7_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.user_name = :users_user_name<br/>
+{'users_user_name': 'john'}</div><pre><span class="python_operator"></span></pre>
+    </div>
+<p>When a full select is passed, the <code>Query</code> object does not generate its own SQL.  Instead, the select construct passed in is used without modification, except that its <code>use_labels</code> flag is switched on to prevent column name collisions.  Therefore its expected that the construct will include the proper column clause as appropriate to the mapped class being loaded.
+</p>
+<p>The techniques used when querying with a full select construct are similar to another query method called <code>instances()</code>, which is described in <a href="adv_datamapping.html#advdatamapping_resultset">Result-Set Mapping</a>.
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="datamapping_query_callingstyles"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Two General Calling Styles</h3>
+    
+    
+
+<p>The twin calling styles presented by <code>select()</code> and <code>select_by()</code> are mirrored in several other methods on <code>Query</code>.  For each method that indicates a verb such as <code>select()</code> and accepts a single <code>ClauseElement</code> followed by keyword-based options, the <code>_by()</code> version accepts a list of <code>ClauseElement</code> objects followed by keyword-based argument criterion.  These include:
+</p>
+<ul>
+ <li>
+     <code>selectfirst()</code> / <code>selectfirst_by()</code> - select with LIMIT 1 and return a single object instance
+ </li>
+
+ <li>
+     <code>selectone()</code> / <code>selectone_by()</code> - select with LIMIT 2, assert that only one row is present, and return a single object instance
+ </li>
+
+ <li>
+     <code>filter()</code> / <code>filter_by()</code> - apply the criterion to the <code>Query</code> object generatively, and return a new <code>Query</code> object with the criterion built in.
+ </li>
+
+ <li>
+     <code>count()</code> / <code>count_by()</code> - return the total number of object instances that would be returned.
+ </li>
+</ul>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="datamapping_query_primarykey"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Loading by Primary Key</h3>
+    
+    
+
+<p>The <code>get()</code> method loads a single instance, given the primary key value of the desired entity:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_comment"># load user with primary key 15
+</span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">15</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+<p>The <code>get()</code> method, because it has the actual primary key value of the instance, can return an already-loaded instance from the <code>Session</code> without performing any SQL.  It is the only method on <code>Query</code> that does not issue SQL to the database in all cases.
+</p>
+<p>To issue a composite primary key to <code>get()</code>, use a tuple.  The order of the arguments matches that of the table meta data.
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_name">myobj </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">((</span><span class="python_number">27</span><span class="python_operator">, </span><span class="python_number">3</span><span class="python_operator">, </span><span class="python_literal">'receipts'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre>
+    </div>
+<p>Another special method on <code>Query</code> is <code>load()</code>.  This method has the same signature as <code>get()</code>, except it always <strong>refreshes</strong> the returned instance with the latest data from the database.  This is in fact a unique behavior, since as we will see in the <a href="unitofwork.html">Session / Unit of Work</a> chapter, the <code>Query</code> usually does not refresh the contents of instances which are already present in the session.
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="datamapping_query_columnsonclass"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Column Objects Available via their Mapped Class</h3>
+    
+    
+
 <p>Some of the above examples above illustrate the usage of the mapper's Table object to provide the columns for a WHERE Clause.  These columns are also accessible off of the mapped class directly.  When a mapper is assigned to a class, it also attaches a special property accessor <code>c</code> to the class itself, which can be used just like the table metadata to access the columns of the table:
 </p>
 
@@ -381,16 +605,22 @@ WHERE users.user_name = :users_user_name ORDER BY users.oid<br/>
     </div>
 
 
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
     
     <A name="datamapping_query_generative"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Generative Query Methods</h3>
     
     
 
-<p>The Query also includes as of version 0.3.6 "generative" methods, used for building more complex queries.  These methods imitate the behavior of the <a href="plugins.html#plugins_selectresults">SelectResults</a> plugin which is effectively replaced by these methods.  The key behavior of a "generative" method is that calling it produces a <strong>new</strong> <code>Query</code> object,which contains all the attributes of the previous <code>Query</code> object plus some new modifications.  The simplest example is the <code>filter_by()</code> method:
+<p>The <code>filter()</code> and <code>filter_by()</code> methods on <code>Query</code> are known as "generative" methods, in that instead of returning results, they return a newly constructed <code>Query</code> object which contains the "filter" criterion as part of its internal state.  This is another method of stringing together criterion via <code>AND</code> clauses.  But when using the <code>Query</code> generatively, it becomes a much more flexible object, as there are generative methods for adding all kinds of criterion and modifiers, some of which are relationally oriented and others which are domain oriented.  The key behavior of a "generative" method is that calling it produces a <strong>new</strong> <code>Query</code> object, which contains all the attributes of the previous <code>Query</code> object plus some new modifications.  <br></br>
 </p>
 
     
@@ -403,14 +633,49 @@ WHERE users.user_name = :users_user_name ORDER BY users.oid<br/>
 </span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">"john"</span><span class="python_enclosure">) </span><span class="python_operator">
 </span>
 <span class="python_comment"># filter by email address column using filter()
-</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">"john@foo.com"</span><span class="python_enclosure">)  </span><span class="python_operator">
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_operator">==</span><span class="python_literal">"John Smith"</span><span class="python_enclosure">)  </span><span class="python_operator">
 </span>
 <span class="python_comment"># execute - the list() method returns a list.  this is equivalent to just saying query.select()
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_8', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_8_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, users.fullname as users_fullname,<br/>
 users.password AS users_password, users.user_id AS users_user_id <br/>
 FROM users <br/>
 WHERE ((users.user_name = :users_user_name) <br/>
-AND users.password = :users_password) ORDER BY users.oid</div><pre><span class="python_operator"></span></pre>
+AND users.fullname = :users_fullname) ORDER BY users.oid</div><pre><span class="python_operator"></span></pre>
+    </div>
+<p>Other generative behavior includes list-based indexing and slice operations, which translate into <code>LIMIT</code> and <code>OFFSET</code> criterion:
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_9', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">user_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'j%'</span><span class="python_enclosure">))[</span><span class="python_number">20</span><span class="python_operator">:</span><span class="python_number">30</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_9_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, users.fullname as users_fullname,<br/>
+users.password AS users_password, users.user_id AS users_user_id <br/>
+FROM users <br/>
+WHERE users.fullname LIKE :users_fullname <br/>
+ORDER BY users.oid LIMIT 10 OFFSET 20<br/>
+{'users_fullname': 'j%'}</div><pre><span class="python_operator"></span></pre>
+    </div>
+<p>Iterable behavior:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_keyword">for </span><span class="python_name">user </span><span class="python_keyword">in </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'john'</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_comment"># etc.</span><span class="python_operator"></span></pre>
+    </div>
+<p>Applying modifiers generatively:
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_10', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">user_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'j%'</span><span class="python_enclosure">))</span><span class="python_operator">.
+    </span><span class="python_name">limit</span><span class="python_enclosure">(</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">offset</span><span class="python_enclosure">(</span><span class="python_number">20</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">user_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_10_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, users.fullname as users_fullname,<br/>
+users.password AS users_password, users.user_id AS users_user_id <br/>
+FROM users <br/>
+WHERE users.fullname LIKE :users_fullname <br/>
+ORDER BY users.user_id LIMIT 10 OFFSET 20</div><pre><span class="python_operator"></span></pre>
     </div>
 <p>There is no restriction to mixing the "generative" methods like <code>filter()</code>, <code>join()</code>, <code>order_by()</code> etc. with the "non-generative" methods like <code>select()</code> and <code>select_by()</code>.  The only difference is that <code>select...</code> methods return results immediately, whereas generative methods return a new <code>Query</code> from which results can be retrieved using any number of methods such as <code>list()</code>, <code>select()</code>, <code>select_by()</code>, <code>selectfirst()</code>, etc.  Options that are specified to the <code>select...</code> methods build upon options that were already built up generatively.
 </p>
@@ -419,12 +684,12 @@ AND users.password = :users_password) ORDER BY users.oid</div><pre><span class="
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -432,17 +697,17 @@ AND users.password = :users_password) ORDER BY users.oid</div><pre><span class="
     
     <A name="datamapping_saving"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Saving Objects</h3>
     
     
 
-<p>When objects corresponding to mapped classes are created or manipulated, all changes are logged by the <code>Session</code> object.  The changes are then written to the database when an application calls <code>flush()</code>.  This pattern is known as a <em>Unit of Work</em>, and has many advantages over saving individual objects or attributes on those objects with individual method invocations.  Domain models can be built with far greater complexity with no concern over the order of saves and deletes, excessive database round-trips and write operations, or deadlocking issues.  The <code>flush()</code> operation batches its SQL statements into a transaction, and can also perform optimistic concurrency checks (using a version id column) to ensure the proper number of rows were in fact affected (not supported with the current MySQL drivers). 
+<p>When objects corresponding to mapped classes are created or manipulated, all changes are logged by the <code>Session</code> object.  The changes are then written to the database when an application calls <code>flush()</code>.  This pattern is known as a <em>Unit of Work</em>, and has many advantages over saving individual objects or attributes on those objects with individual method invocations.  Domain models can be built with far greater complexity with no concern over the order of saves and deletes, excessive database round-trips and write operations, or deadlocking issues.  The <code>flush()</code> operation batches its SQL statements into a transaction, and can also perform optimistic concurrency checks (using a version id column) to ensure the proper number of rows were in fact affected. 
 </p>
 <p>The Unit of Work is a powerful tool, and has some important concepts that should be understood in order to use it effectively.  See the <a href="unitofwork.html">Session / Unit of Work</a> section for a full description on all its operations.
 </p>
-<p>When a mapper is created, the target class has its mapped properties decorated by specialized property accessors that track changes.  New objects by default must be explicitly added to the <code>Session</code> using the <code>save()</code> method, however this can be made automatic by using the <a href="plugins.html#plugins_sessioncontext">SessionContext</a> extension.
+<p>When a mapper is created, the target class has its mapped properties decorated by specialized property accessors that track changes.  New objects by default must be explicitly added to the <code>Session</code> using the <code>save()</code> method:
 </p>
 
     
@@ -466,13 +731,13 @@ AND users.password = :users_password) ORDER BY users.oid</div><pre><span class="
 </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">myuser2</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># load a third User from the database            
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_4', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">myuser3 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_4_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_11', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">myuser3 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_11_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
 users.user_name AS users_user_name, users.password AS users_password<br/>
 FROM users WHERE users.user_name = :users_user_name<br/>
 {'users_user_name': 'fred'}</div><pre><span class="python_name">myuser3</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">= </span><span class="python_literal">'fredjones'</span><span class="python_operator">
 </span>
 <span class="python_comment"># save all changes            
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_5', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_5_div" class="codepop" style="display:none;">UPDATE users SET user_name=:user_name<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_12', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_12_div" class="codepop" style="display:none;">UPDATE users SET user_name=:user_name<br/>
 WHERE users.user_id =:users_user_id<br/>
 [{'users_user_id': 1, 'user_name': 'fredjones'}]<br/>
 INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
@@ -480,6 +745,8 @@ INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
 INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
 {'password': 'lalalala', 'user_name': 'ed'}</div><pre><span class="python_operator"></span></pre>
     </div>
+<p>The requirement that new instances be explicitly stored in the <code>Session</code> via <code>save()</code> operation can be modified by using the <a href="plugins.html#plugins_sessioncontext">SessionContext</a> extension module.
+</p>
 <p>The mapped class can also specify whatever methods and/or constructor it wants:
 </p>
 
@@ -501,7 +768,7 @@ INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
 <span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_literal">'foo'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">u</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_6', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_6_div" class="codepop" style="display:none;">INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_13', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_13_div" class="codepop" style="display:none;">INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
 {'password': 'foo', 'user_name': 'john'}</div><pre><span class="python_literal">>>> </span><span class="python_name">u</span><span class="python_operator">
 </span><span class="python_name">User id </span><span class="python_number">1 </span><span class="python_name">name </span><span class="python_literal">'john' </span><span class="python_name">password </span><span class="python_literal">'foo'</span><span class="python_operator"></span></pre>
     </div>
@@ -520,20 +787,20 @@ INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
     
     <A name="datamapping_relations"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Defining and Using Relationships</h3>
     
     
 
-<p>So that covers how to map the columns in a table to an object, how to load objects, create new ones, and save changes.  The next step is how to define an object's relationships to other database-persisted objects.  This is done via the <code>relation</code> function provided by the <code>orm</code> module.
+<p>So that covers how to map the columns in a table to an object, how to load objects, create new ones, and save changes.  The next step is how to define an object's relationships to other database-persisted objects.  This is done via the <code>relation</code> function [<a href="adv_datamapping.html#advdatamapping_properties_relationoptions">doc</a>][<a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_relation">api</a>] provided by the <code>orm</code> module.
 </p>
 
 
     
     <A name="datamapping_relations_onetomany"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>One to Many</h3>
     
@@ -652,7 +919,7 @@ VALUES (:user_id, :street, :city, :state, :zip)<br/>
     
     <A name="datamapping_relations_lifecycle"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Lifecycle Relations</h3>
     
@@ -695,7 +962,7 @@ DELETE FROM addresses WHERE addresses.address_id = :address_id<br/>
     
     <A name="datamapping_relations_backreferences"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Backreferences</h3>
     
@@ -754,12 +1021,12 @@ DELETE FROM addresses WHERE addresses.address_id = :address_id<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -767,7 +1034,7 @@ DELETE FROM addresses WHERE addresses.address_id = :address_id<br/>
     
     <A name="datamapping_selectrelations"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Selecting from Relationships</h3>
     
@@ -786,12 +1053,12 @@ DELETE FROM addresses WHERE addresses.address_id = :address_id<br/>
 </span>
 <span class="python_comment"># select users where username is 'jane', get the first element of the list
 # this will incur a load operation for the parent table
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_7', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'jane'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_7_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_14', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'jane'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_14_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
 users.user_name AS users_user_name, users.password AS users_password<br/>
 FROM users WHERE users.user_name = :users_user_name ORDER BY users.oid<br/>
 {'users_user_name': 'jane'}</div><pre><span class="python_comment"># iterate through the User object's addresses.  this will incur an
 # immediate load of those child items
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_8', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_keyword">for </span><span class="python_name">a </span><span class="python_keyword">in </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">:</span></pre><div id="popbox_8_div" class="codepop" style="display:none;">SELECT addresses.address_id AS addresses_address_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_15', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_keyword">for </span><span class="python_name">a </span><span class="python_keyword">in </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">:</span></pre><div id="popbox_15_div" class="codepop" style="display:none;">SELECT addresses.address_id AS addresses_address_id, <br/>
 addresses.user_id AS addresses_user_id, addresses.street AS addresses_street, <br/>
 addresses.city AS addresses_city, addresses.state AS addresses_state, <br/>
 addresses.zip AS addresses_zip FROM addresses<br/>
@@ -803,7 +1070,7 @@ WHERE addresses.user_id = :users_user_id ORDER BY addresses.oid<br/>
     
     <A name="datamapping_selectrelations_queryjoins"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Selecting With Joins</h3>
     
@@ -817,8 +1084,8 @@ WHERE addresses.user_id = :users_user_id ORDER BY addresses.oid<br/>
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_9', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
-             <span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre><div id="popbox_9_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_16', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
+             <span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre><div id="popbox_16_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
 users.user_name AS users_user_name, users.password AS users_password<br/>
 FROM users, addresses <br/>
 WHERE users.user_id=addresses.user_id<br/>
@@ -833,7 +1100,7 @@ ORDER BY users.oid<br/>
 
     <div class="code">
         <pre><span class="python_comment"># this is usually not what you want to do
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_10', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_10_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_17', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_17_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
 users.user_name AS users_user_name, users.password AS users_password<br/>
 FROM users, addresses <br/>
 WHERE addresses.street=:addresses_street<br/>
@@ -848,8 +1115,8 @@ ORDER BY users.oid<br/>
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_11', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_operator">, </span>
-                <span class="python_name">from_obj</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">)])</span><span class="python_operator"></span></pre><div id="popbox_11_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_18', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_operator">, </span>
+                <span class="python_name">from_obj</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">)])</span><span class="python_operator"></span></pre><div id="popbox_18_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
 users.user_name AS users_user_name, users.password AS users_password<br/>
 FROM users JOIN addresses ON users.user_id=addresses.user_id<br/>
 WHERE addresses.street=:addresses_street<br/>
@@ -864,8 +1131,8 @@ ORDER BY users.oid<br/>
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_12', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator">.
-            </span><span class="python_name">select_from</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_12_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_19', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator">.
+            </span><span class="python_name">select_from</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_19_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
 users.user_name AS users_user_name, users.password AS users_password<br/>
 FROM users JOIN addresses ON users.user_id=addresses.user_id<br/>
 WHERE addresses.street=:addresses_street<br/>
@@ -885,7 +1152,7 @@ ORDER BY users.oid<br/>
     
     <A name="datamapping_selectrelations_relselectby"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Creating Joins Using filter_by() and select_by()</h3>
     
@@ -893,13 +1160,13 @@ ORDER BY users.oid<br/>
 
 <p>Another way that joins can be created is by using the <code>select_by</code> method or the generative <code>filter_by</code> methods of <code>Query</code>, which have the ability to create joins across relationships automatically.  These methods are in many circumstances more convenient than, but not as flexible as, the more SQL-level approach using the <code>select()</code>/<code>select_from()</code> methods described in the previous section.
 </p>
-<p>To issue a join using <code>select_by()</code>, just specify a key in the argument list which is not present in the primary mapper's list of properties or columns, but <em>is</em> present in the property list of some relationship down the line of objects.  The <code>Query</code> object will recursively traverse along the mapped relationships starting with the lead class and descending into child classes, until it finds a property matching the given name.  For each new mapper it encounters along the path to the located property, it constructs a join across that relationship:
+<p>To issue a join using <code>select_by()</code>, just specify a key in the keyword-based argument list which is not present in the primary mapper's list of properties or columns, but <em>is</em> present in the property list of some relationship down the line of objects.  The <code>Query</code> object will recursively traverse along the mapped relationships starting with the lead class and descending into child classes, until it finds a property matching the given name.  For each new mapper it encounters along the path to the located property, it constructs a join across that relationship:
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_13', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_13_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_20', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_20_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
 users.user_name AS users_user_name, users.password AS users_password<br/>
 FROM users, addresses <br/>
 WHERE users.user_id=addresses.user_id<br/>
@@ -918,35 +1185,25 @@ ORDER BY users.oid<br/>
          <span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_operator">==</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span>
    <span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>All keyword arguments sent to <code>select_by()</code> and <code>filter_by()</code> are used to create WHERE criterion.  To add modifiers such as <code>order_by</code> and <code>limit</code>, use the "generative" methods, such as <code>order_by()</code>, <code>limit()</code>, <code>offset()</code>, etc. (new in 0.3.6).  Here is an example using <code>filter_by()</code>:
-</p>
-
-    
-
-    <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_14', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator">.
-            </span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">limit</span><span class="python_enclosure">(</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">offset</span><span class="python_enclosure">(</span><span class="python_number">5</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_14_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
-users.user_name AS users_user_name, users.password AS users_password<br/>
-FROM users, addresses <br/>
-WHERE (addresses.street=:addresses_street<br/>
-AND users.user_id=addresses.user_id)<br/>
-ORDER BY users.user_name LIMIT 10 OFFSET 5<br/>
-{'addresses_street', '123 Green Street'}</div><pre><span class="python_operator"></span></pre>
-    </div>
-<p>Note that the <code>select_by()</code> and <code>filter_by()</code> methods, while they primarily use keyword arguments, also can accomodate <code>ClauseElement</code> objects positionally; recall that a <code>ClauseElement</code> is genearated when producing a comparison off of a <code>Column</code> expression, such as <code>users.c.name=='ed'</code>.  When using <code>ClauseElements</code> with <code>select_by()</code> or <code>filter_by()</code>, these clauses are passed directly to the generated SQL and are <strong>not</strong> used to further locate join criterion.  <br></br>
-</p>
 <p><code>select_by()</code> and its related functions can compare not only column-based attributes to column-based values, but also relations to object instances:
 </p>
 
     
 
-    <div class="sliding_code">
-        <pre><span class="python_comment"># get an instance of Address
+    <div class="code">
+        <pre><span class="python_comment"># get an instance of Address. assume its primary key identity
+# is 12.
 </span><span class="python_name">someaddress </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># look for User instances which have the 
 # "someaddress" instance in their "addresses" collection
-</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">=</span><span class="python_name">someaddress</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_21', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">=</span><span class="python_name">someaddress</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_21_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+users.user_name AS users_user_name, users.password AS users_password<br/>
+FROM users, addresses <br/>
+WHERE users.user_id=addresses.user_id<br/>
+AND addresses.address_id=:addresses_address_id<br/>
+ORDER BY users.oid<br/>
+{'addresses_addresses_id': 12}</div><pre><span class="python_operator"></span></pre>
     </div>
 <p>Where above, the comparison denoted by <code>addresses=someaddress</code> is constructed by comparing all the primary key columns in the <code>Address</code> mapper to each corresponding primary key value in the <code>someaddress</code> entity.  In other words, its equivalent to saying <code>select_by(address_id=someaddress.address_id)</code>.
 </p>
@@ -961,19 +1218,19 @@ ORDER BY users.user_name LIMIT 10 OFFSET 5<br/>
     
     <A name="datamapping_selectrelations_jointo"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Generating Join Criterion Using join()</h3>
     
     
 
-<p>The <code>join()</code> method, new in version 0.3.6, is a generative method which can apply join conditions to a <code>Query</code> based on the names of relationships, using a similar mechanism as that of <code>select_by()</code> and similar methods.  By specifying the string name of a relation as its only argument, the resulting <code>Query</code> will automatically join from the starting class' mapper to the target mapper, indicated by searching for a relationship of that name along the relationship path.
+<p>The <code>join()</code> method is a generative method which can apply join conditions to a <code>Query</code> based on the names of relationships, using a similar mechanism as that of <code>select_by()</code> and similar methods.  By specifying the string name of a relation as its only argument, the resulting <code>Query</code> will automatically join from the starting class' mapper to the target mapper, indicated by searching for a relationship of that name along the relationship path.
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_15', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_15_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, users.password AS users_password, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_22', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_22_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, users.password AS users_password, <br/>
 users.user_id AS users_user_id <br/>
 FROM users JOIN addresses ON users.user_id = addresses.user_id <br/>
 ORDER BY users.oid</div><pre><span class="python_operator"></span></pre>
@@ -998,8 +1255,50 @@ ORDER BY users.oid</div><pre><span class="python_operator"></span></pre>
     <div class="sliding_code">
         <pre><span class="python_name">orders </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Order</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">([</span><span class="python_literal">'customer'</span><span class="python_operator">, </span><span class="python_literal">'addresses'</span><span class="python_enclosure">])</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">email_address</span><span class="python_operator">=</span><span class="python_literal">"foo@bar.com"</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>The <code>join()</code> method is an easier-to-use version of the <code>join_by()</code>, <code>join_to()</code> and <code>join_via()</code> methods, all of which produce <code>ClauseElements</code> that can be constructed into a query criterion.  Consult the generated documentation for information on these methods.
+<p>For those familiar with older versions of <code>Query</code>, the <code>join()</code> method is an easier-to-use version of the <code>join_by()</code>, <code>join_to()</code> and <code>join_via()</code> methods, all of which produce <code>ClauseElements</code> that can be constructed into a query criterion.  Consult the generated documentation for information on these methods.
 </p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="datamapping_selectrelations_joinparent"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Joining from a Parent Object</h3>
+    
+    
+
+<p>(new in 0.3.7) To help in navigating collections, the <code>with_parent()</code> generative method adds criterion which corresponds to instances which belong to a particular parent.  This method makes use of the same "lazy loading" criterion used to load relationships normally, which means for a typical non-many-to-many relationship it will <strong>not</strong> actually create a join, and instead places bind parameters at the point at which the parent table's columns are normally specified.  This means you get a lighter weight query which also works with self-referential relationships, which otherwise would require an explicit <code>alias</code> object in order to create self-joins.  For example, to load all the <code>Address</code> objects which belong to a particular <code>User</code>:
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_comment"># load a user
+</span><span class="python_name">someuser </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># load the addresses of that user
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_23', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">addresses </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">with_parent</span><span class="python_enclosure">(</span><span class="python_name">someuser</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_23_div" class="codepop" style="display:none;">SELECT addresses.address_id AS addresses_address_id, <br/>
+addresses.user_id AS addresses_user_id, addresses.street AS addresses_street, <br/>
+addresses.city AS addresses_city, addresses.state AS addresses_state, <br/>
+addresses.zip AS addresses_zip FROM addresses<br/>
+WHERE addresses.user_id = :users_user_id ORDER BY addresses.oid<br/>
+{'users_user_id': 1}</div><pre><span class="python_comment"># filter the results
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_24', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">someaddresses </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">with_parent</span><span class="python_enclosure">(</span><span class="python_name">someuser</span><span class="python_enclosure">)</span><span class="python_operator">.
+    </span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">email_address</span><span class="python_operator">=</span><span class="python_literal">"foo@bar.com"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_24_div" class="codepop" style="display:none;">SELECT addresses.address_id AS addresses_address_id, <br/>
+addresses.user_id AS addresses_user_id, addresses.street AS addresses_street, <br/>
+addresses.city AS addresses_city, addresses.state AS addresses_state, <br/>
+addresses.zip AS addresses_zip FROM addresses<br/>
+WHERE addresses.email_address =  :addresses_email_address AND <br/>
+addresses.user_id = :users_user_id ORDER BY addresses.oid<br/>
+{'users_user_id': 1, 'addresses_email_address': 'foo@bar.com'}</div><pre><span class="python_operator"></span></pre>
+    </div>
 
 
 
@@ -1011,7 +1310,7 @@ ORDER BY users.oid</div><pre><span class="python_operator"></span></pre>
     
     <A name="datamapping_selectrelations_eagerload"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Eager Loading</h3>
     
@@ -1035,7 +1334,7 @@ ORDER BY users.oid</div><pre><span class="python_operator"></span></pre>
     <span class="python_enclosure">}</span>
   <span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_16', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'Jane'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_16_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, users.password AS users_password, <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_25', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'Jane'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_25_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, users.password AS users_password, <br/>
 users.user_id AS users_user_id, addresses_4fb8.city AS addresses_4fb8_city, <br/>
 addresses_4fb8.address_id AS addresses_4fb8_address_id, addresses_4fb8.user_id AS addresses_4fb8_user_id, <br/>
 addresses_4fb8.zip AS addresses_4fb8_zip, addresses_4fb8.state AS addresses_4fb8_state, <br/>
@@ -1055,7 +1354,7 @@ WHERE users.user_name = :users_user_name ORDER BY users.oid, addresses_4fb8.oid<
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_17', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_17_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_26', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_26_div" class="codepop" style="display:none;">SELECT users.user_name AS users_user_name, <br/>
 users.password AS users_password, users.user_id AS users_user_id, <br/>
 addresses_6ca7.city AS addresses_6ca7_city, <br/>
 addresses_6ca7.address_id AS addresses_6ca7_address_id, <br/>
@@ -1079,7 +1378,7 @@ WHERE addresses.street = :addresses_street AND users.user_id = addresses.user_id
     
     <A name="datamapping_selectrelations_options"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Using Options to Change the Loading Strategy</h3>
     
@@ -1116,12 +1415,12 @@ WHERE addresses.street = :addresses_street AND users.user_id = addresses.user_id
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1129,7 +1428,7 @@ WHERE addresses.street = :addresses_street AND users.user_id = addresses.user_id
     
     <A name="datamapping_onetoone"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>One to One/Many to One</h3>
     
@@ -1182,7 +1481,7 @@ WHERE addresses.street = :addresses_street AND users.user_id = addresses.user_id
 </span>
 <span class="python_comment"># select
 </span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_18', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_18_div" class="codepop" style="display:none;">SELECT users.preference_id AS users_preference_id, users.user_name AS users_user_name, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_27', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_27_div" class="codepop" style="display:none;">SELECT users.preference_id AS users_preference_id, users.user_name AS users_user_name, <br/>
 users.password AS users_password, users.user_id AS users_user_id, <br/>
 user_prefs_4eb2.timezone AS user_prefs_4eb2_timezone, user_prefs_4eb2.stylename AS user_prefs_4eb2_stylename, <br/>
 user_prefs_4eb2.save_password AS user_prefs_4eb2_save_password, user_prefs_4eb2.pref_id AS user_prefs_4eb2_pref_id <br/>
@@ -1196,7 +1495,7 @@ WHERE rowcount.users_user_id = users.user_id ORDER BY users.oid, user_prefs_4eb2
 </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">preferences</span><span class="python_operator">.</span><span class="python_name">stylename </span><span class="python_operator">= </span><span class="python_literal">'bluesteel'</span><span class="python_operator">
 </span>
 <span class="python_comment"># flush
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_19', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_19_div" class="codepop" style="display:none;">UPDATE user_prefs SET stylename=:stylename<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_28', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_28_div" class="codepop" style="display:none;">UPDATE user_prefs SET stylename=:stylename<br/>
 WHERE user_prefs.pref_id = :pref_id<br/>
 [{'stylename': 'bluesteel', 'pref_id': 1}]</div><pre><span class="python_operator"></span></pre>
     </div>
@@ -1211,7 +1510,7 @@ WHERE user_prefs.pref_id = :pref_id<br/>
     
     <A name="datamapping_manytomany"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Many to Many</h3>
     
@@ -1270,7 +1569,7 @@ WHERE user_prefs.pref_id = :pref_id<br/>
 </span><span class="python_name">article</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_enclosure">(</span><span class="python_literal">'entertainment'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">article</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_20', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_20_div" class="codepop" style="display:none;">INSERT INTO keywords (name) VALUES (:name)<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_29', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_29_div" class="codepop" style="display:none;">INSERT INTO keywords (name) VALUES (:name)<br/>
 {'name': 'politics'}<br/>
 INSERT INTO keywords (name) VALUES (:name)<br/>
 {'name': 'entertainment'}<br/>
@@ -1278,7 +1577,7 @@ INSERT INTO articles (article_headline, article_body) VALUES (:article_headline,
 {'article_body': 'this is the body', 'article_headline': 'a headline'}<br/>
 INSERT INTO article_keywords (article_id, keyword_id) VALUES (:article_id, :keyword_id)<br/>
 [{'keyword_id': 1, 'article_id': 1}, {'keyword_id': 2, 'article_id': 1}]</div><pre><span class="python_comment"># select articles based on a keyword.  select_by will handle the extra joins.
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_21', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">articles </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Article</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">keyword_name</span><span class="python_operator">=</span><span class="python_literal">'politics'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_21_div" class="codepop" style="display:none;">SELECT keywords_e2f2.keyword_id AS keywords_e2f2_keyword_id, keywords_e2f2.keyword_name AS keywords_e2f2_keyword_name, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_30', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">articles </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Article</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">keyword_name</span><span class="python_operator">=</span><span class="python_literal">'politics'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_30_div" class="codepop" style="display:none;">SELECT keywords_e2f2.keyword_id AS keywords_e2f2_keyword_id, keywords_e2f2.keyword_name AS keywords_e2f2_keyword_name, <br/>
 articles.headline AS articles_headline, articles.body AS articles_body, articles.article_id AS articles_article_id <br/>
 FROM keywords, article_keywords, articles <br/>
 LEFT OUTER JOIN article_keywords AS article_keyword_3da2 ON articles.article_id = article_keyword_3da2.article_id <br/>
@@ -1293,7 +1592,7 @@ AND keywords.keyword_id = article_keywords.keyword_id ORDER BY articles.oid, art
 </span><span class="python_name">a</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_enclosure">(</span><span class="python_literal">'government'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
 <span class="python_comment"># flush
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_22', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_22_div" class="codepop" style="display:none;">INSERT INTO keywords (name) VALUES (:name)<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_31', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_31_div" class="codepop" style="display:none;">INSERT INTO keywords (name) VALUES (:name)<br/>
 {'name': 'topstories'}<br/>
 INSERT INTO keywords (name) VALUES (:name)<br/>
 {'name': 'government'}<br/>
@@ -1315,7 +1614,7 @@ INSERT INTO article_keywords (article_id, keyword_id) VALUES (:article_id, :keyw
     
     <A name="datamapping_association"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Association Object</h3>
     
@@ -1391,7 +1690,7 @@ INSERT INTO article_keywords (article_id, keyword_id) VALUES (:article_id, :keyw
 </span>
 <span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_comment"># select by keyword
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_23', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">alist </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Article</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">keyword_name</span><span class="python_operator">=</span><span class="python_literal">'jacks_stories'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_23_div" class="codepop" style="display:none;">SELECT article_keyword_f9af.keyword_id AS article_keyword_f9af_key_b3e1, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_32', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">alist </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Article</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">keyword_name</span><span class="python_operator">=</span><span class="python_literal">'jacks_stories'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_32_div" class="codepop" style="display:none;">SELECT article_keyword_f9af.keyword_id AS article_keyword_f9af_key_b3e1, <br/>
 article_keyword_f9af.attached_by AS article_keyword_f9af_att_95d4, <br/>
 article_keyword_f9af.article_id AS article_keyword_f9af_art_fd49, <br/>
 users_9c30.user_name AS users_9c30_user_name, users_9c30.user_id AS users_9c30_user_id, <br/>
@@ -1444,12 +1743,12 @@ ORDER BY articles.oid, article_keyword_f9af.oid, users_9c30.oid, keywords_dc54.o
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 

@@ -1,9 +1,9 @@
-from testbase import PersistTest, AssertMixin
+from testbase import PersistTest, AssertMixin, ORMTest
 import testbase
 import tables
 
 from sqlalchemy import *
-
+from sqlalchemy import exceptions
 
 class Foo(object):
     pass
@@ -59,6 +59,7 @@ class GenerativeQueryTest(PersistTest):
         assert self.query.count() == 100
         assert self.query.filter(foo.c.bar<30).min(foo.c.bar) == 0
         assert self.query.filter(foo.c.bar<30).max(foo.c.bar) == 29
+        assert self.query.filter(foo.c.bar<30).apply_max(foo.c.bar).scalar() == 29
 
     @testbase.unsupported('mysql')
     def test_aggregate_1(self):
@@ -73,6 +74,10 @@ class GenerativeQueryTest(PersistTest):
     def test_aggregate_2_int(self):
         assert int(self.res.filter(foo.c.bar<30).avg(foo.c.bar)) == 14
 
+    @testbase.unsupported('postgres', 'mysql', 'firebird', 'mssql')
+    def test_aggregate_3(self):
+        assert self.res.filter(foo.c.bar<30).apply_avg(foo.c.bar).scalar() == 14.5
+        
     def test_filter(self):
         assert self.query.count() == 100
         assert self.query.filter(Foo.c.bar < 30).count() == 30
@@ -233,6 +238,30 @@ class CaseSensitiveTest(PersistTest):
         res = self.query.filter(and_(table1.c.ID==table2.c.T1ID,table2.c.T1ID==1)).distinct()
         self.assertEqual(res.count(), 1)
 
+class SelfRefTest(ORMTest):
+    def define_tables(self, metadata):
+        global t1
+        t1 = Table('t1', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('parent_id', Integer, ForeignKey('t1.id'))
+            )
+    def test_noautojoin(self):
+        class T(object):pass
+        mapper(T, t1, properties={'children':relation(T)})
+        sess = create_session()
+        try:
+            sess.query(T).join('children').select_by(id=7)
+            assert False
+        except exceptions.InvalidRequestError, e:
+            assert str(e) == "Self-referential query on 'T.children (T)' property must be constructed manually using an Alias object for the related table.", str(e)
 
+        try:
+            sess.query(T).join(['children']).select_by(id=7)
+            assert False
+        except exceptions.InvalidRequestError, e:
+            assert str(e) == "Self-referential query on 'T.children (T)' property must be constructed manually using an Alias object for the related table.", str(e)
+        
+            
+            
 if __name__ == "__main__":
     testbase.main()        

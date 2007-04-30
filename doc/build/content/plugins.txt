@@ -271,23 +271,10 @@ To continue the `MyClass` example:
     # delete it
     result.delete()
     
-    # commit the change
-    result.flush()
-
-It should be noted that the `flush()` method on the instance need not be called.  You're probably better off calling `flush()` on the actual session, so that all changes are properly written to the database simultaneously:
-
-    {python}
-    # create a MyClass.
-    mc = MyClass()
-
-    # load some MyClass objects
-    result = MyClass.select(MyClass.c.name=='bar')
-
-    # delete one of them
-    result[1].delete()
-
     # commit all changes
     ctx.current.flush()
+
+**Note:** : while the `flush()` method is also available on individual object instances, the instance-local flush() **does not flush dependent objects**.  For this reason this method may be removed in a future release and replaced with a more explicit version.
 
 ### associationproxy
 
@@ -448,6 +435,8 @@ To use `assign_mapper`:
 ### ActiveMapper
 
 **Author:** Jonathan LaCour
+
+Please note that ActiveMapper has been deprecated in favor of [Elixir](http://elixir.ematia.de/), a more comprehensive solution to declarative mapping, of which Jonathan is a co-author.
 
 ActiveMapper is a so-called "declarative layer" which allows the construction of a class, a `Table`, and a `Mapper` all in one step:
 

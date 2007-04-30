@@ -62,9 +62,10 @@ class PropertyLoader(StrategizedProperty):
     of items that correspond to a related database table.
     """
 
-    def __init__(self, argument, secondary, primaryjoin, secondaryjoin, foreign_keys=None, foreignkey=None, uselist=None, private=False, association=None, order_by=False, attributeext=None, backref=None, is_backref=False, post_update=False, cascade=None, viewonly=False, lazy=True, collection_class=None, passive_deletes=False, remote_side=None, enable_typechecks=True):
+    def __init__(self, argument, secondary, primaryjoin, secondaryjoin, entity_name=None, foreign_keys=None, foreignkey=None, uselist=None, private=False, association=None, order_by=False, attributeext=None, backref=None, is_backref=False, post_update=False, cascade=None, viewonly=False, lazy=True, collection_class=None, passive_deletes=False, remote_side=None, enable_typechecks=True):
         self.uselist = uselist
         self.argument = argument
+        self.entity_name = entity_name
         self.secondary = secondary
         self.primaryjoin = primaryjoin
         self.secondaryjoin = secondaryjoin
@@ -120,24 +121,24 @@ class PropertyLoader(StrategizedProperty):
         return str(self.parent.class_.__name__) + "." + self.key + " (" + str(self.mapper.class_.__name__)  + ")"
 
     def merge(self, session, source, dest, _recursive):
-        if not "merge" in self.cascade or source in _recursive:
+        if not "merge" in self.cascade or self.mapper in _recursive:
             return
-        _recursive.add(source)
-        try:
-            childlist = sessionlib.attribute_manager.get_history(source, self.key, passive=True)
-            if childlist is None:
-                return
-            if self.uselist:
-                # sets a blank list according to the correct list class
-                dest_list = getattr(self.parent.class_, self.key).initialize(dest)
-                for current in list(childlist):
-                    dest_list.append(session.merge(current, _recursive=_recursive))
-            else:
-                current = list(childlist)[0]
-                if current is not None:
-                    setattr(dest, self.key, session.merge(current, _recursive=_recursive))
-        finally:
-            _recursive.remove(source)
+        childlist = sessionlib.attribute_manager.get_history(source, self.key, passive=True)
+        if childlist is None:
+            return
+        if self.uselist:
+            # sets a blank list according to the correct list class
+            dest_list = getattr(self.parent.class_, self.key).initialize(dest)
+            for current in list(childlist):
+                obj = session.merge(current, entity_name=self.mapper.entity_name, _recursive=_recursive)
+                if obj is not None:
+                    dest_list.append(obj)
+        else:
+            current = list(childlist)[0]
+            if current is not None:
+                obj = session.merge(current, entity_name=self.mapper.entity_name, _recursive=_recursive)
+                if obj is not None:
+                    setattr(dest, self.key, obj)
 
     def cascade_iterator(self, type, object, recursive, halt_on=None):
         if not type in self.cascade:
@@ -188,7 +189,7 @@ class PropertyLoader(StrategizedProperty):
 
     def _determine_targets(self):
         if isinstance(self.argument, type):
-            self.mapper = mapper.class_mapper(self.argument, compile=False)._check_compile()
+            self.mapper = mapper.class_mapper(self.argument, entity_name=self.entity_name, compile=False)._check_compile()
         elif isinstance(self.argument, mapper.Mapper):
             self.mapper = self.argument._check_compile()
         else:
@@ -199,7 +200,7 @@ class PropertyLoader(StrategizedProperty):
 
         if self.association is not None:
             if isinstance(self.association, type):
-                self.association = mapper.class_mapper(self.association, compile=False)._check_compile()
+                self.association = mapper.class_mapper(self.association, entity_name=self.entity_name, compile=False)._check_compile()
 
         self.target = self.mapper.mapped_table
         self.select_mapper = self.mapper.get_select_mapper()
@@ -215,17 +216,28 @@ class PropertyLoader(StrategizedProperty):
         if self.secondaryjoin is not None and self.secondary is None:
             raise exceptions.ArgumentError("Property '" + self.key + "' specified with secondary join condition but no secondary argument")
         # if join conditions were not specified, figure them out based on foreign keys
+        
+        def _search_for_join(mapper, table):
+            """find a join between the given mapper's mapped table and the given table.
+            will try the mapper's local table first for more specificity, then if not 
+            found will try the more general mapped table, which in the case of inheritance
+            is a join."""
+            try:
+                return sql.join(mapper.local_table, table)
+            except exceptions.ArgumentError, e:
+                return sql.join(mapper.mapped_table, table)
+        
         try:
             if self.secondary is not None:
                 if self.secondaryjoin is None:
-                    self.secondaryjoin = sql.join(self.mapper.unjoined_table, self.secondary).onclause
+                    self.secondaryjoin = _search_for_join(self.mapper, self.secondary).onclause
                 if self.primaryjoin is None:
-                    self.primaryjoin = sql.join(self.parent.unjoined_table, self.secondary).onclause
+                    self.primaryjoin = _search_for_join(self.parent, self.secondary).onclause
             else:
                 if self.primaryjoin is None:
-                    self.primaryjoin = sql.join(self.parent.unjoined_table, self.target).onclause
+                    self.primaryjoin = _search_for_join(self.parent, self.target).onclause
         except exceptions.ArgumentError, e:
-            raise exceptions.ArgumentError("Error determining primary and/or secondary join for relationship '%s'.  If the underlying error cannot be corrected, you should specify the 'primaryjoin' (and 'secondaryjoin', if there is an association table present) keyword arguments to the relation() function (or for backrefs, by specifying the backref using the backref() function with keyword arguments) to explicitly specify the join conditions.  Nested error is \"%s\"" % (str(self), str(e)))
+            raise exceptions.ArgumentError("""Error determining primary and/or secondary join for relationship '%s'. If the underlying error cannot be corrected, you should specify the 'primaryjoin' (and 'secondaryjoin', if there is an association table present) keyword arguments to the relation() function (or for backrefs, by specifying the backref using the backref() function with keyword arguments) to explicitly specify the join conditions. Nested error is \"%s\"""" % (str(self), str(e)))
 
         # if using polymorphic mapping, the join conditions must be agasint the base tables of the mappers,
         # as the loader strategies expect to be working with those now (they will adapt the join conditions
@@ -245,10 +257,10 @@ class PropertyLoader(StrategizedProperty):
 
         def col_is_part_of_mappings(col):
             if self.secondary is None:
-                return self.parent.unjoined_table.corresponding_column(col, raiseerr=False) is not None or \
+                return self.parent.mapped_table.corresponding_column(col, raiseerr=False) is not None or \
                     self.target.corresponding_column(col, raiseerr=False) is not None
             else:
-                return self.parent.unjoined_table.corresponding_column(col, raiseerr=False) is not None or \
+                return self.parent.mapped_table.corresponding_column(col, raiseerr=False) is not None or \
                     self.target.corresponding_column(col, raiseerr=False) is not None or \
                     self.secondary.corresponding_column(col, raiseerr=False) is not None
 
@@ -288,7 +300,11 @@ class PropertyLoader(StrategizedProperty):
             mapperutil.BinaryVisitor(visit_binary).traverse(self.primaryjoin)
 
             if len(self.foreign_keys) == 0:
-                raise exceptions.ArgumentError("Cant locate any foreign key columns in primary join condition '%s' for relationship '%s'.  Specify 'foreign_keys' argument to indicate which columns in the join condition are foreign." %(str(self.primaryjoin), str(self)))
+                raise exceptions.ArgumentError(
+                    "Can't locate any foreign key columns in primary join "
+                    "condition '%s' for relationship '%s'.  Specify "
+                    "'foreign_keys' argument to indicate which columns in "
+                    "the join condition are foreign." %(str(self.primaryjoin), str(self)))
             if self.secondaryjoin is not None:
                 mapperutil.BinaryVisitor(visit_binary).traverse(self.secondaryjoin)
 
@@ -321,17 +337,29 @@ class PropertyLoader(StrategizedProperty):
             else:
                 self.direction = sync.ONETOMANY
         else:
-            onetomany = len([c for c in self.foreign_keys if self.mapper.unjoined_table.c.contains_column(c)])
-            manytoone = len([c for c in self.foreign_keys if self.parent.unjoined_table.c.contains_column(c)])
+            for mappedtable, parenttable in [(self.mapper.mapped_table, self.parent.mapped_table), (self.mapper.local_table, self.parent.local_table)]:
+                onetomany = len([c for c in self.foreign_keys if mappedtable.c.contains_column(c)])
+                manytoone = len([c for c in self.foreign_keys if parenttable.c.contains_column(c)])
 
-            if not onetomany and not manytoone:
-                raise exceptions.ArgumentError("Cant determine relation direction for relationship '%s' - foreign key columns are not present in neither the parent nor the child's mapped tables" %(str(self)))
-            elif onetomany and manytoone:
-                raise exceptions.ArgumentError("Cant determine relation direction for relationship '%s' - foreign key columns are present in both the parent and the child's mapped tables.  Specify 'foreign_keys' argument." %(str(self)))
-            elif onetomany:
-                self.direction = sync.ONETOMANY
-            elif manytoone:
-                self.direction = sync.MANYTOONE
+                if not onetomany and not manytoone:
+                    raise exceptions.ArgumentError(
+                        "Can't determine relation direction for relationship '%s' "
+                        "- foreign key columns are present in neither the "
+                        "parent nor the child's mapped tables" %(str(self)))
+                elif onetomany and manytoone:
+                    continue
+                elif onetomany:
+                    self.direction = sync.ONETOMANY
+                    break
+                elif manytoone:
+                    self.direction = sync.MANYTOONE
+                    break
+            else:
+                raise exceptions.ArgumentError(
+                    "Can't determine relation direction for relationship '%s' "
+                    "- foreign key columns are present in both the parent and "
+                    "the child's mapped tables.  Specify 'foreign_keys' "
+                    "argument." % (str(self)))
 
     def _determine_remote_side(self):
         if len(self.remote_side):
@@ -373,6 +401,8 @@ class PropertyLoader(StrategizedProperty):
             # load "polymorphic" versions of the columns present in "remote_side" - this is
             # important for lazy-clause generation which goes off the polymorphic target selectable
             for c in list(self.remote_side):
+                if self.secondary and c in self.secondary.columns:
+                    continue
                 for equiv in [c] + (c in target_equivalents and target_equivalents[c] or []): 
                     corr = self.mapper.select_table.corresponding_column(equiv, raiseerr=False)
                     if corr:
@@ -476,15 +506,22 @@ class BackRef(object):
             parent = prop.parent.primary_mapper()
             self.kwargs.setdefault('viewonly', prop.viewonly)
             self.kwargs.setdefault('post_update', prop.post_update)
-            relation = PropertyLoader(parent, prop.secondary, pj, sj, backref=prop.key, is_backref=True, **self.kwargs)
+            relation = PropertyLoader(parent, prop.secondary, pj, sj,
+                                      backref=prop.key, is_backref=True,
+                                      **self.kwargs)
             mapper._compile_property(self.key, relation);
         elif not isinstance(mapper.props[self.key], PropertyLoader):
-            raise exceptions.ArgumentError("Cant create backref '%s' on mapper '%s'; an incompatible property of that name already exists" % (self.key, str(mapper)))
+            raise exceptions.ArgumentError(
+                "Can't create backref '%s' on mapper '%s'; an incompatible "
+                "property of that name already exists" % (self.key, str(mapper)))
         else:
             # else set one of us as the "backreference"
             parent = prop.parent.primary_mapper()
             if parent.class_ is not mapper.props[self.key]._get_target_class():
-                raise exceptions.ArgumentError("Backrefs do not match:  backref '%s' expects to connect to %s, but found a backref already connected to %s" % (self.key, str(parent.class_), str(mapper.props[self.key].mapper.class_)))
+                raise exceptions.ArgumentError(
+                    "Backrefs do not match:  backref '%s' expects to connect to %s, "
+                    "but found a backref already connected to %s" %
+                    (self.key, str(parent.class_), str(mapper.props[self.key].mapper.class_)))
             if not mapper.props[self.key].is_backref:
                 prop.is_backref=True
                 if not prop.viewonly:

@@ -516,7 +516,7 @@ class RelationTest5(testbase.ORMTest):
         
         container_select = select(
             [items.c.policyNum, items.c.policyEffDate, items.c.type],
-            distinct=True,
+            distinct=True, 
             ).alias('container_select')
 
         mapper(LineItem, items)
@@ -672,6 +672,242 @@ class TypeMatchTest(testbase.ORMTest):
             assert False
         except exceptions.AssertionError, err:
             assert str(err) == "Attribute 'a' on class '%s' doesn't handle objects of type '%s'" % (D, B)
+
+class CustomCollectionsTest(testbase.ORMTest):
+    def define_tables(self, metadata):
+        global sometable, someothertable
+        sometable = Table('sometable', metadata,
+            Column('col1',Integer, primary_key=True),
+            Column('data', String(30)))
+        someothertable = Table('someothertable', metadata, 
+            Column('col1', Integer, primary_key=True),
+            Column('scol1', Integer, ForeignKey(sometable.c.col1)),
+            Column('data', String(20))
+        )
+    def testbasic(self):
+        class MyList(list):
+            pass
+        class Foo(object):
+            pass
+        class Bar(object):
+            pass
+        mapper(Foo, sometable, properties={
+            'bars':relation(Bar, collection_class=MyList)
+        })
+        mapper(Bar, someothertable)
+        f = Foo()
+        assert isinstance(f.bars.data, MyList)
+    def testlazyload(self):
+        """test that a 'set' can be used as a collection and can lazyload."""
+        class Foo(object):
+            pass
+        class Bar(object):
+            pass
+        mapper(Foo, sometable, properties={
+            'bars':relation(Bar, collection_class=set)
+        })
+        mapper(Bar, someothertable)
+        f = Foo()
+        f.bars.add(Bar())
+        f.bars.add(Bar())
+        sess = create_session()
+        sess.save(f)
+        sess.flush()
+        sess.clear()
+        f = sess.query(Foo).get(f.col1)
+        assert len(list(f.bars)) == 2
+        f.bars.clear()
+        
+    def testdict(self):
+        """test that a 'dict' can be used as a collection and can lazyload."""
+        class Foo(object):
+            pass
+        class Bar(object):
+            pass
+        class AppenderDict(dict):
+            def append(self, item):
+                self[id(item)] = item
+            def __iter__(self):
+                return iter(self.values())
+                
+        mapper(Foo, sometable, properties={
+            'bars':relation(Bar, collection_class=AppenderDict)
+        })
+        mapper(Bar, someothertable)
+        f = Foo()
+        f.bars.append(Bar())
+        f.bars.append(Bar())
+        sess = create_session()
+        sess.save(f)
+        sess.flush()
+        sess.clear()
+        f = sess.query(Foo).get(f.col1)
+        assert len(list(f.bars)) == 2
+        f.bars.clear()
+
+    def testlist(self):
+        class Parent(object):
+            pass
+        class Child(object):
+            pass
+
+        mapper(Parent, sometable, properties={
+            'children':relation(Child, collection_class=list)
+        })
+        mapper(Child, someothertable)
+
+        control = list()
+        p = Parent()
+
+        o = Child()
+        control.append(o)
+        p.children.append(o)
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        o = [Child(), Child(), Child(), Child()]
+        control.extend(o)
+        p.children.extend(o)
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        assert control[0] == p.children[0]
+        assert control[-1] == p.children[-1]
+        assert control[1:3] == p.children[1:3]
+
+        del control[1]
+        del p.children[1]
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        o = [Child()]
+        control[1:3] = o
+        p.children[1:3] = o
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        o = [Child(), Child(), Child(), Child()]
+        control[1:3] = o
+        p.children[1:3] = o
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        o = [Child(), Child(), Child(), Child()]
+        control[-1:-2] = o
+        p.children[-1:-2] = o
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        o = [Child(), Child(), Child(), Child()]
+        control[4:] = o
+        p.children[4:] = o
+        assert control == p.children.data
+        assert control == list(p.children)
+        
+        o = Child()
+        control.insert(0, o)
+        p.children.insert(0, o)
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        o = Child()
+        control.insert(3, o)
+        p.children.insert(3, o)
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        o = Child()
+        control.insert(999, o)
+        p.children.insert(999, o)
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        del control[0:1]
+        del p.children[0:1]
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        del control[1:1]
+        del p.children[1:1]
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        del control[1:3]
+        del p.children[1:3]
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        del control[7:]
+        del p.children[7:]
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        assert control.pop() == p.children.pop()
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        assert control.pop(0) == p.children.pop(0)
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        assert control.pop(2) == p.children.pop(2)
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        o = Child()
+        control.insert(2, o)
+        p.children.insert(2, o)
+        assert control == p.children.data
+        assert control == list(p.children)
+
+        control.remove(o)
+        p.children.remove(o)
+        assert control == p.children.data
+        assert control == list(p.children)
+
+    def testobj(self):
+        class Parent(object):
+            pass
+        class Child(object):
+            pass
+
+        class MyCollection(object):
+            def __init__(self): self.data = []
+            def append(self, value): self.data.append(value)
+            def __iter__(self): return iter(self.data)
+            def clear(self): self.data.clear()
+
+        mapper(Parent, sometable, properties={
+            'children':relation(Child, collection_class=MyCollection)
+        })
+        mapper(Child, someothertable)
+
+        control = list()
+        p1 = Parent()
+
+        o = Child()
+        control.append(o)
+        p1.children.append(o)
+        assert control == list(p1.children)
+
+        o = Child()
+        control.append(o)
+        p1.children.append(o)
+        assert control == list(p1.children)
+
+        o = Child()
+        control.append(o)
+        p1.children.append(o)
+        assert control == list(p1.children)
+
+        sess = create_session()
+        sess.save(p1)
+        sess.flush()
+        sess.clear()
+        
+        p2 = sess.query(Parent).get(p1.col1)
+        o = list(p2.children)
+        assert len(o) == 3
 
 class ViewOnlyTest(testbase.ORMTest):
     """test a view_only mapping where a third table is pulled into the primary join condition,

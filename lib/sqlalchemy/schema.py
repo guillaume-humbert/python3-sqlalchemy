@@ -138,7 +138,6 @@ class _TableSingleton(type):
         if metadata is None:
             metadata = default_metadata
 
-        name = str(name)    # in case of incoming unicode
         schema = kwargs.get('schema', None)
         autoload = kwargs.pop('autoload', False)
         autoload_with = kwargs.pop('autoload_with', False)
@@ -318,7 +317,7 @@ class Table(SchemaItem, sql.TableClause):
             , ',')
 
     def __str__(self):
-        return _get_table_key(self.name, self.schema)
+        return _get_table_key(self.encodedname, self.schema)
 
     def append_column(self, column):
         """Append a ``Column`` to this ``Table``."""
@@ -494,7 +493,6 @@ class Column(SchemaItem, sql._ColumnClause):
             identifier contains mixed case.
         """
 
-        name = str(name) # in case of incoming unicode
         super(Column, self).__init__(name, None, type)
         self.args = args
         self.key = kwargs.pop('key', name)
@@ -521,11 +519,11 @@ class Column(SchemaItem, sql._ColumnClause):
     def __str__(self):
         if self.table is not None:
             if self.table.named_with_column():
-                return self.table.name + "." + self.name
+                return (self.table.encodedname + "." + self.encodedname)
             else:
-                return self.name
+                return self.encodedname
         else:
-            return self.name
+            return self.encodedname
 
     def _derived_metadata(self):
         return self.table.metadata
@@ -572,12 +570,12 @@ class Column(SchemaItem, sql._ColumnClause):
         self.table = table
 
         if self.index:
-            if isinstance(self.index, str):
-                raise exceptions.ArgumentError("The 'index' keyword argument on Column is boolean only.  To create indexes with a specific name, append an explicit Index object to the Table's list of elements.")
+            if isinstance(self.index, basestring):
+                raise exceptions.ArgumentError("The 'index' keyword argument on Column is boolean only.  To create indexes with a specific name, create an explicit Index object external to the Table.")
             Index('ix_%s' % self._label, self, unique=self.unique)
         elif self.unique:
-            if isinstance(self.unique, str):
-                raise exceptions.ArgumentError("The 'unique' keyword argument on Column is boolean only.  To create unique constraints or indexes with a specific name, append an explicit UniqueConstraint or Index object to the Table's list of elements.")
+            if isinstance(self.unique, basestring):
+                raise exceptions.ArgumentError("The 'unique' keyword argument on Column is boolean only.  To create unique constraints or indexes with a specific name, append an explicit UniqueConstraint to the Table's list of elements, or create an explicit Index object external to the Table.")
             table.append_constraint(UniqueConstraint(self.key))
 
         toinit = list(self.args)
@@ -594,7 +592,7 @@ class Column(SchemaItem, sql._ColumnClause):
         This is used in ``Table.tometadata``.
         """
 
-        return Column(self.name, self.type, self.default, key = self.key, primary_key = self.primary_key, nullable = self.nullable, _is_oid = self._is_oid, case_sensitive=self._case_sensitive_setting, quote=self.quote, *[c.copy() for c in self.constraints])
+        return Column(self.name, self.type, self.default, key = self.key, primary_key = self.primary_key, nullable = self.nullable, _is_oid = self._is_oid, case_sensitive=self._case_sensitive_setting, quote=self.quote, index=self.index, *[c.copy() for c in self.constraints])
 
     def _make_proxy(self, selectable, name = None):
         """Create a *proxy* for this column.
@@ -614,6 +612,7 @@ class Column(SchemaItem, sql._ColumnClause):
                 selectable.primary_key.add(c)
         [c._init_items(f) for f in fk]
         return c
+
 
     def _case_sens(self):
         """Redirect the `case_sensitive` accessor to use the ultimate
@@ -654,8 +653,6 @@ class ForeignKey(SchemaItem):
           created and added to the parent table.
         """
 
-        if isinstance(column, unicode):
-            column = str(column)
         self._colspec = column
         self._column = None
         self.constraint = constraint
@@ -673,7 +670,7 @@ class ForeignKey(SchemaItem):
         return ForeignKey(self._get_colspec())
 
     def _get_colspec(self):
-        if isinstance(self._colspec, str):
+        if isinstance(self._colspec, basestring):
             return self._colspec
         elif self._colspec.table.schema is not None:
             return "%s.%s.%s" % (self._colspec.table.schema, self._colspec.table.name, self._colspec.key)
@@ -684,12 +681,12 @@ class ForeignKey(SchemaItem):
         """Return True if the given table is referenced by this ``ForeignKey``."""
 
         return table.corresponding_column(self.column, False) is not None
-
+    
     def _init_column(self):
         # ForeignKey inits its remote column as late as possible, so tables can
         # be defined without dependencies
         if self._column is None:
-            if isinstance(self._colspec, str):
+            if isinstance(self._colspec, basestring):
                 # locate the parent table this foreign key is attached to.
                 # we use the "original" column which our parent column represents
                 # (its a list of columns/other ColumnElements if the parent table is a UNION)
@@ -699,7 +696,7 @@ class ForeignKey(SchemaItem):
                         break
                 else:
                     raise exceptions.ArgumentError("Parent column '%s' does not descend from a table-attached Column" % str(self.parent))
-                m = re.match(r"^([\w_-]+)(?:\.([\w_-]+))?(?:\.([\w_-]+))?$", self._colspec)
+                m = re.match(r"^([\w_-]+)(?:\.([\w_-]+))?(?:\.([\w_-]+))?$", self._colspec, re.UNICODE)
                 if m is None:
                     raise exceptions.ArgumentError("Invalid foreign key column specification: " + self._colspec)
                 if m.group(3) is None:
@@ -710,12 +707,15 @@ class ForeignKey(SchemaItem):
                 table = Table(tname, parenttable.metadata, mustexist=True, schema=schema)
                 try:
                     if colname is None:
+                        # colname is None in the case that ForeignKey argument was specified
+                        # as table name only, in which case we match the column name to the same
+                        # column on the parent.
                         key = self.parent
                         self._column = table.c[self.parent.key]
                     else:
                         self._column = table.c[colname]
                 except KeyError, e:
-                    raise exceptions.ArgumentError("Could not create ForeignKey '%s' on table '%s': table '%s' has no column named '%s'" % (self._colspec, parenttable.name, table.name, e.args[0]))
+                    raise exceptions.ArgumentError("Could not create ForeignKey '%s' on table '%s': table '%s' has no column named '%s'" % (self._colspec, parenttable.name, table.name, str(e)))
             else:
                 self._column = self._colspec
         # propigate TypeEngine to parent if it didnt have one

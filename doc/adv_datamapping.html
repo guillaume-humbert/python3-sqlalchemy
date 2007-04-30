@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -237,7 +237,7 @@
     
     <A name="advdatamapping"></a>
     
-    <div class="section">
+    <div class="sectionL1">
 
     
     
@@ -288,7 +288,7 @@
     
     <A name="advdatamapping_properties"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>More On Mapper Properties</h3>
     
@@ -299,7 +299,7 @@
     
     <A name="advdatamapping_properties_colname"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Overriding Column Names</h3>
     
@@ -341,7 +341,7 @@
     
     <A name="advdatamapping_properties_overriding"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Overriding Properties</h3>
     
@@ -412,7 +412,7 @@
     
     <A name="advdatamapping_properties_customlist"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Custom List Classes</h3>
     
@@ -467,7 +467,7 @@
     
     <A name="advdatamapping_properties_customjoin"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Custom Join Conditions</h3>
     
@@ -520,7 +520,7 @@
     
     <A name="advdatamapping_properties_multiplejoin"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Lazy/Eager Joins Multiple Times to One Table</h3>
     
@@ -554,7 +554,7 @@
     
     <A name="advdatamapping_properties_deferred"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Deferred Column Loading</h3>
     
@@ -635,7 +635,7 @@
     
     <A name="advdatamapping_properties_working"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Working with Large Collections</h3>
     
@@ -659,7 +659,8 @@
 
  </li>
 
- <li><p>To load child objects, just use a query:
+ <li><p>To load child objects, just use a query.  Of particular convenience is that <code>Query</code> is a generative object, so you can return
+   it as is, allowing additional criterion to be added as needed:
 </p>
 
     
@@ -668,9 +669,15 @@
         <pre><span class="python_keyword">class </span><span class="python_name">Organization</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">name</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">= </span><span class="python_name">name</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">find_members</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">criterion</span><span class="python_enclosure">)</span><span class="python_operator">:
-        </span><span class="python_literal">"""locate a subset of the members associated with this Organization"""</span><span class="python_operator">
-        </span><span class="python_keyword">return </span><span class="python_name">object_session</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Member</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">member_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_name">criterion</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">org_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">org_id</span><span class="python_operator">==</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">org_id</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">from_obj</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">org_table</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">member_table</span><span class="python_enclosure">)])</span><span class="python_operator"></span></pre>
+    </span><span class="python_name">member_query </span><span class="python_operator">= </span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_keyword">lambda </span><span class="python_name">self</span><span class="python_operator">: </span><span class="python_name">object_session</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Member</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">with_parent</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">myorg </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Organization</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">5</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get all members
+</span><span class="python_name">members </span><span class="python_operator">= </span><span class="python_name">myorg</span><span class="python_operator">.</span><span class="python_name">member_query</span><span class="python_operator">.</span><span class="python_name">list</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># query a subset of members using LIMIT/OFFSET
+</span><span class="python_name">members </span><span class="python_operator">= </span><span class="python_name">myorg</span><span class="python_operator">.</span><span class="python_name">member_query</span><span class="python_enclosure">[</span><span class="python_number">5</span><span class="python_operator">:</span><span class="python_number">10</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre>
     </div>
 
  </li>
@@ -732,7 +739,7 @@
     
     <A name="advdatamapping_properties_relationoptions"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Relation Options</h3>
     
@@ -813,12 +820,12 @@
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -826,7 +833,7 @@
     
     <A name="advdatamapping_orderby"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Controlling Ordering</h3>
     
@@ -888,7 +895,7 @@
     
     <A name="advdatamapping_limits"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Limiting Rows</h3>
     
@@ -948,7 +955,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_inheritance"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Mapping a Class with Table Inheritance</h3>
     
@@ -997,7 +1004,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_inheritance_single"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Single Table Inheritance</h3>
     
@@ -1032,7 +1039,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_inheritance_concrete"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Concrete Table Inheritance</h3>
     
@@ -1089,7 +1096,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_inheritance_multiple"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Multiple Table Inheritance</h3>
     
@@ -1154,12 +1161,12 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1167,7 +1174,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_joins"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Mapping a Class against Multiple Tables</h3>
     
@@ -1227,7 +1234,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_selects"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Mapping a Class against Arbitrary Selects</h3>
     
@@ -1263,7 +1270,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_multiple"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Multiple Mappers for One Class</h3>
     
@@ -1334,7 +1341,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_selfreferential"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Self Referential Mappers</h3>
     
@@ -1419,7 +1426,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_resultset"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Result-Set Mapping</h3>
     
@@ -1465,7 +1472,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <A name="advdatamapping_resultset_combining"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Combining Eager Loads with Result Set Mappings</h3>
     
@@ -1533,12 +1540,12 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1546,7 +1553,7 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
     
     <A name="advdatamapping_mapperoptions"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Mapper Options</h3>
     
@@ -1640,7 +1647,7 @@ performing queries.
     
     <A name="advdatamapping_extending"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Extending Mapper</h3>
     
@@ -1758,12 +1765,12 @@ performing queries.
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 

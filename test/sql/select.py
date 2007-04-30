@@ -1,8 +1,9 @@
 from testbase import PersistTest
 import testbase
 from sqlalchemy import *
-from sqlalchemy.databases import sqlite, postgres, mysql, oracle, firebird
-import unittest, re
+from sqlalchemy.databases import sqlite, postgres, mysql, oracle, firebird, mssql
+import unittest, re, operator
+
 
 # the select test now tests almost completely with TableClause/ColumnClause objects,
 # which are free-roaming table/column objects not attached to any database.  
@@ -58,9 +59,9 @@ class SQLTest(PersistTest):
         self.assert_(cc == result, "\n'" + cc + "'\n does not match \n'" + result + "'")
         if checkparams is not None:
             if isinstance(checkparams, list):
-                self.assert_(c.get_params().values() == checkparams, "params dont match ")
+                self.assert_(c.get_params().get_raw_list() == checkparams, "params dont match ")
             else:
-                self.assert_(c.get_params() == checkparams, "params dont match" + repr(c.get_params()))
+                self.assert_(c.get_params().get_original_dict() == checkparams, "params dont match" + repr(c.get_params()))
             
 class SelectTest(SQLTest):
     def testtableselect(self):
@@ -122,6 +123,14 @@ sq2.sq_myothertable_otherid, sq2.sq_myothertable_othername FROM \
 sq.mytable_description AS sq_mytable_description, sq.myothertable_otherid AS sq_myothertable_otherid, \
 sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") AS sq) AS sq2")
     
+    def testmssql_noorderbyinsubquery(self):
+        """test that the ms-sql dialect removes ORDER BY clauses from subqueries"""
+        dialect = mssql.dialect()
+        q = select([table1.c.myid], order_by=[table1.c.myid]).alias('foo')
+        crit = q.c.myid == table1.c.myid
+        self.runtest(select(['*'], crit), """SELECT * FROM (SELECT mytable.myid AS myid FROM mytable ORDER BY mytable.myid) AS foo, mytable WHERE foo.myid = mytable.myid""", dialect=sqlite.dialect())
+        self.runtest(select(['*'], crit), """SELECT * FROM (SELECT mytable.myid AS myid FROM mytable) AS foo, mytable WHERE foo.myid = mytable.myid""", dialect=mssql.dialect())
+        
     def testdontovercorrelate(self):
         self.runtest(select([table1], from_obj=[table1, table1.select()]), """SELECT mytable.myid, mytable.name, mytable.description FROM mytable, (SELECT mytable.myid AS myid, mytable.name AS name, mytable.description AS description FROM mytable)""")
     
@@ -136,7 +145,7 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
         
         self.runtest(
             table1.select(table1.c.myid == select([table2.c.otherid], table1.c.name == table2.c.othername)),
-            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = (SELECT myothertable.otherid AS otherid FROM myothertable WHERE mytable.name = myothertable.othername)"
+            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = (SELECT myothertable.otherid FROM myothertable WHERE mytable.name = myothertable.othername)"
         )
 
         self.runtest(
@@ -166,20 +175,20 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
     def testorderbysubquery(self):
         self.runtest(
             table1.select(order_by=[select([table2.c.otherid], table1.c.myid==table2.c.otherid)]),
-            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable ORDER BY (SELECT myothertable.otherid AS otherid FROM myothertable WHERE mytable.myid = myothertable.otherid)"
+            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable ORDER BY (SELECT myothertable.otherid FROM myothertable WHERE mytable.myid = myothertable.otherid)"
         )
         self.runtest(
             table1.select(order_by=[desc(select([table2.c.otherid], table1.c.myid==table2.c.otherid))]),
-            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable ORDER BY (SELECT myothertable.otherid AS otherid FROM myothertable WHERE mytable.myid = myothertable.otherid) DESC"
+            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable ORDER BY (SELECT myothertable.otherid FROM myothertable WHERE mytable.myid = myothertable.otherid) DESC"
         )
         
         
     def testcolumnsubquery(self):
         s = select([table1.c.myid], scalar=True, correlate=False)
-        self.runtest(select([table1, s]), "SELECT mytable.myid, mytable.name, mytable.description, (SELECT mytable.myid AS myid FROM mytable) FROM mytable")
+        self.runtest(select([table1, s]), "SELECT mytable.myid, mytable.name, mytable.description, (SELECT mytable.myid FROM mytable) FROM mytable")
 
         s = select([table1.c.myid], scalar=True)
-        self.runtest(select([table2, s]), "SELECT myothertable.otherid, myothertable.othername, (SELECT mytable.myid AS myid FROM mytable) FROM myothertable")
+        self.runtest(select([table2, s]), "SELECT myothertable.otherid, myothertable.othername, (SELECT mytable.myid FROM mytable) FROM myothertable")
         
 
         zips = table('zips',
@@ -200,7 +209,7 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
                          order_by = ['dist', places.c.nm]
                          )
 
-        self.runtest(q,"SELECT places.id, places.nm, zips.zipcode, latlondist((SELECT zips.latitude AS latitude FROM zips WHERE zips.zipcode = :zips_zipco_1), (SELECT zips.longitude AS longitude FROM zips WHERE zips.zipcode = :zips_zipco_2)) AS dist FROM places, zips WHERE zips.zipcode = :zips_zipcode ORDER BY dist, places.nm")
+        self.runtest(q,"SELECT places.id, places.nm, zips.zipcode, latlondist((SELECT zips.latitude FROM zips WHERE zips.zipcode = :zips_zipcode_1), (SELECT zips.longitude FROM zips WHERE zips.zipcode = :zips_zipcode_2)) AS dist FROM places, zips WHERE zips.zipcode = :zips_zipcode ORDER BY dist, places.nm")
         
         zalias = zips.alias('main_zip')
         qlat = select([zips.c.latitude], zips.c.zipcode == zalias.c.zipcode, scalar=True)
@@ -208,7 +217,7 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
         q = select([places.c.id, places.c.nm, zalias.c.zipcode, func.latlondist(qlat, qlng).label('dist')],
                          order_by = ['dist', places.c.nm]
                          )
-        self.runtest(q, "SELECT places.id, places.nm, main_zip.zipcode, latlondist((SELECT zips.latitude AS latitude FROM zips WHERE zips.zipcode = main_zip.zipcode), (SELECT zips.longitude AS longitude FROM zips WHERE zips.zipcode = main_zip.zipcode)) AS dist FROM places, zips AS main_zip ORDER BY dist, places.nm")
+        self.runtest(q, "SELECT places.id, places.nm, main_zip.zipcode, latlondist((SELECT zips.latitude FROM zips WHERE zips.zipcode = main_zip.zipcode), (SELECT zips.longitude FROM zips WHERE zips.zipcode = main_zip.zipcode)) AS dist FROM places, zips AS main_zip ORDER BY dist, places.nm")
             
     def testand(self):
         self.runtest(
@@ -223,8 +232,8 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
                 or_(table2.c.othername=='asdf', table2.c.othername == 'foo', table2.c.otherid == 9),
                 "sysdate() = today()", 
             )),
-            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :mytable_myid AND (myothertable.othername = :myothertable_othername OR myothertable.othername = :myothertable_otherna_1 OR myothertable.otherid = :myothertable_otherid) AND sysdate() = today()",
-            checkparams = {'myothertable_othername': 'asdf', 'myothertable_otherna_1':'foo', 'myothertable_otherid': 9, 'mytable_myid': 12}
+            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :mytable_myid AND (myothertable.othername = :myothertable_othername OR myothertable.othername = :myothertable_othername_1 OR myothertable.otherid = :myothertable_otherid) AND sysdate() = today()",
+            checkparams = {'myothertable_othername': 'asdf', 'myothertable_othername_1':'foo', 'myothertable_otherid': 9, 'mytable_myid': 12}
         )
 
     def testoperators(self):
@@ -234,8 +243,52 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
         )
         
         self.runtest(
-            literal("a") + literal("b") * literal("c"), ":literal + (:liter_1 * :liter_2)"
+            literal("a") + literal("b") * literal("c"), ":literal + (:literal_1 * :literal_2)"
         )
+
+        # exercise arithmetic operators
+        for (py_op, sql_op) in ((operator.add, '+'), (operator.mul, '*'),
+                                (operator.sub, '-'), (operator.div, '/'),
+                                ):
+            for (lhs, rhs, res) in (
+                ('a', table1.c.myid, ':mytable_myid %s mytable.myid'),
+                ('a', literal('b'), ':literal %s :literal_1'),
+                (table1.c.myid, 'b', 'mytable.myid %s :mytable_myid'),
+                (table1.c.myid, literal('b'), 'mytable.myid %s :literal'),
+                (table1.c.myid, table1.c.myid, 'mytable.myid %s mytable.myid'),
+                (literal('a'), 'b', ':literal %s :literal_1'),
+                (literal('a'), table1.c.myid, ':literal %s mytable.myid'),
+                (literal('a'), literal('b'), ':literal %s :literal_1'),
+                ):
+                self.runtest(py_op(lhs, rhs), res % sql_op)
+
+        # exercise comparison operators
+        for (py_op, fwd_op, rev_op) in ((operator.lt, '<', '>'),
+                                        (operator.gt, '>', '<'),
+                                        (operator.eq, '=', '='),
+                                        (operator.ne, '!=', '!='),
+                                        (operator.le, '<=', '>='),
+                                        (operator.ge, '>=', '<=')):
+            for (lhs, rhs, l_sql, r_sql) in (
+                ('a', table1.c.myid, ':mytable_myid', 'mytable.myid'),
+                ('a', literal('b'), ':literal_1', ':literal'), # note swap!
+                (table1.c.myid, 'b', 'mytable.myid', ':mytable_myid'),
+                (table1.c.myid, literal('b'), 'mytable.myid', ':literal'),
+                (table1.c.myid, table1.c.myid, 'mytable.myid', 'mytable.myid'),
+                (literal('a'), 'b', ':literal', ':literal_1'),
+                (literal('a'), table1.c.myid, ':literal', 'mytable.myid'),
+                (literal('a'), literal('b'), ':literal', ':literal_1'),
+                ):
+
+                # the compiled clause should match either (e.g.):
+                # 'a' < 'b' -or- 'b' > 'a'.
+                compiled = str(py_op(lhs, rhs))
+                fwd_sql = "%s %s %s" % (l_sql, fwd_op, r_sql)
+                rev_sql = "%s %s %s" % (r_sql, rev_op, l_sql)
+
+                self.assert_(compiled == fwd_sql or compiled == rev_sql,
+                             "\n'" + compiled + "'\n does not match\n'" +
+                             fwd_sql + "'\n or\n'" + rev_sql + "'")
 
         # test the op() function, also that its results are further usable in expressions
         self.runtest(
@@ -254,7 +307,7 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
     def testmultiparam(self):
         self.runtest(
             select(["*"], or_(table1.c.myid == 12, table1.c.myid=='asdf', table1.c.myid == 'foo')), 
-            "SELECT * FROM mytable WHERE mytable.myid = :mytable_myid OR mytable.myid = :mytable_my_1 OR mytable.myid = :mytable_my_2"
+            "SELECT * FROM mytable WHERE mytable.myid = :mytable_myid OR mytable.myid = :mytable_myid_1 OR mytable.myid = :mytable_myid_2"
         )
 
     def testorderby(self):
@@ -271,7 +324,9 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
     def testoraclelimit(self):
         metadata = MetaData()
         users = Table('users', metadata, Column('name', String(10), key='username'))
-        self.runtest(select([users.c.username], limit=5), "SELECT name FROM (SELECT users.name AS name, ROW_NUMBER() OVER (ORDER BY users.rowid) AS ora_rn FROM users) WHERE ora_rn<=5", dialect=oracle.dialect())
+        s = select([users.c.username], limit=5)
+        self.runtest(s, "SELECT name FROM (SELECT users.name AS name, ROW_NUMBER() OVER (ORDER BY users.rowid) AS ora_rn FROM users) WHERE ora_rn<=5", dialect=oracle.dialect())
+        self.runtest(s, "SELECT name FROM (SELECT users.name AS name, ROW_NUMBER() OVER (ORDER BY users.rowid) AS ora_rn FROM users) WHERE ora_rn<=5", dialect=oracle.dialect())
 
     def testgroupby_and_orderby(self):
         self.runtest(
@@ -418,7 +473,7 @@ FROM mytable, myothertable WHERE foo.id = foofoo(lala) AND datetime(foo) = Today
 
     def testliteral(self):
         self.runtest(select([literal("foo") + literal("bar")], from_obj=[table1]), 
-            "SELECT :literal + :liter_1 FROM mytable")
+            "SELECT :literal + :literal_1 FROM mytable")
 
     def testcalculatedcolumns(self):
          value_tbl = table('values',
@@ -448,7 +503,7 @@ FROM mytable, myothertable WHERE foo.id = foofoo(lala) AND datetime(foo) = Today
         """tests the generation of functions using the func keyword"""
         # test an expression with a function
         self.runtest(func.lala(3, 4, literal("five"), table1.c.myid) * table2.c.otherid, 
-            "lala(:lala, :la_1, :literal, mytable.myid) * myothertable.otherid")
+            "lala(:lala, :lala_1, :literal, mytable.myid) * myothertable.otherid")
 
         # test it in a SELECT
         self.runtest(select([func.count(table1.c.myid)]), 
@@ -465,12 +520,15 @@ FROM mytable, myothertable WHERE foo.id = foofoo(lala) AND datetime(foo) = Today
 
         # test a dotted func off the engine itself
         self.runtest(func.lala.hoho(7), "lala.hoho(:hoho)")
-    
+        
+        # test None becomes NULL
+        self.runtest(func.my_func(1,2,None,3), "my_func(:my_func, :my_func_1, NULL, :my_func_2)")
+        
     def testextract(self):
         """test the EXTRACT function"""
         self.runtest(select([extract("month", table3.c.otherstuff)]), "SELECT extract(month FROM thirdtable.otherstuff) FROM thirdtable")
         
-        self.runtest(select([extract("day", func.to_date("03/20/2005", "MM/DD/YYYY"))]), "SELECT extract(day FROM to_date(:to_date, :to_da_1))")
+        self.runtest(select([extract("day", func.to_date("03/20/2005", "MM/DD/YYYY"))]), "SELECT extract(day FROM to_date(:to_date, :to_date_1))")
         
     def testjoin(self):
         self.runtest(
@@ -525,7 +583,7 @@ mytable.description FROM myothertable JOIN mytable ON mytable.myid = myothertabl
             self.runtest(x, "SELECT mytable.myid, mytable.name, mytable.description \
 FROM mytable WHERE mytable.myid = :mytable_myid UNION \
 SELECT mytable.myid, mytable.name, mytable.description \
-FROM mytable WHERE mytable.myid = :mytable_my_1 ORDER BY mytable.myid")
+FROM mytable WHERE mytable.myid = :mytable_myid_1 ORDER BY mytable.myid")
   
             self.runtest(
                     union(
@@ -635,17 +693,17 @@ myothertable.othername != :myothertable_othername AND EXISTS (select yay from fo
              ),
              (
                  select([table1], or_(table1.c.myid==bindparam('myid', unique=True), table2.c.otherid==bindparam('myid', unique=True))),
-                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :myid OR myothertable.otherid = :my_1",
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :myid OR myothertable.otherid = :myid_1",
                  "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = ? OR myothertable.otherid = ?",
-                 {'myid':None, 'my_1':None}, [None, None],
-                 {'myid':5, 'my_1': 6}, {'myid':5, 'my_1':6}, [5,6]
+                 {'myid':None, 'myid_1':None}, [None, None],
+                 {'myid':5, 'myid_1': 6}, {'myid':5, 'myid_1':6}, [5,6]
              ),
              (
                  select([table1], or_(table1.c.myid==bindparam('myid', value=7, unique=True), table2.c.otherid==bindparam('myid', value=8, unique=True))),
-                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :myid OR myothertable.otherid = :my_1",
+                 "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = :myid OR myothertable.otherid = :myid_1",
                  "SELECT mytable.myid, mytable.name, mytable.description FROM mytable, myothertable WHERE mytable.myid = ? OR myothertable.otherid = ?",
-                 {'myid':7, 'my_1':8}, [7,8],
-                 {'myid':5, 'my_1':6}, {'myid':5, 'my_1':6}, [5,6]
+                 {'myid':7, 'myid_1':8}, [7,8],
+                 {'myid':5, 'myid_1':6}, {'myid':5, 'myid_1':6}, [5,6]
              ),
              ][2:3]:
              
@@ -665,18 +723,18 @@ myothertable.othername != :myothertable_othername AND EXISTS (select yay from fo
         except exceptions.CompileError, err:
             assert str(err) == "Bind parameter 'mytable_myid' conflicts with unique bind parameter of the same name"
 
-        s = select([table1], or_(table1.c.myid==7, table1.c.myid==8, table1.c.myid==bindparam('mytable_my_1')))
+        s = select([table1], or_(table1.c.myid==7, table1.c.myid==8, table1.c.myid==bindparam('mytable_myid_1')))
         try:
             str(s)
             assert False
         except exceptions.CompileError, err:
-            assert str(err) == "Bind parameter 'mytable_my_1' conflicts with unique bind parameter of the same name"
+            assert str(err) == "Bind parameter 'mytable_myid_1' conflicts with unique bind parameter of the same name"
             
         # check that the bind params sent along with a compile() call
         # get preserved when the params are retreived later
         s = select([table1], table1.c.myid == bindparam('test'))
         c = s.compile(parameters = {'test' : 7})
-        self.assert_(c.get_params() == {'test' : 7})
+        self.assert_(c.get_params().get_original_dict() == {'test' : 7})
 
     def testbindascol(self):
         t = table('foo', column('id'))
@@ -686,14 +744,62 @@ myothertable.othername != :myothertable_othername AND EXISTS (select yay from fo
         assert [str(c) for c in s.c] == ["id", "hoho"]
         
     def testin(self):
+        self.runtest(select([table1], table1.c.myid.in_('a')),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :mytable_myid")
+
+        self.runtest(select([table1], table1.c.myid.in_('a', 'b')),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:mytable_myid, :mytable_myid_1)")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a'))),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :literal")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a'), 'b')),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:literal, :mytable_myid)")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a'), literal('b'))),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:literal, :literal_1)")
+
+        self.runtest(select([table1], table1.c.myid.in_('a', literal('b'))),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:mytable_myid, :literal)")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a') + 'a')),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = (:literal + :literal_1)")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a') +'a', 'b')),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:literal + :literal_1, :mytable_myid)")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a') + literal('a'), literal('b'))),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:literal + :literal_1, :literal_2)")
+
+        self.runtest(select([table1], table1.c.myid.in_('a', literal('b') +'b')),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:mytable_myid, :literal + :literal_1)")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a') < 'b')),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = (:literal < :literal_1)")
+
+        self.runtest(select([table1], table1.c.myid.in_(table1.c.myid)),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = mytable.myid")
+
+        self.runtest(select([table1], table1.c.myid.in_('a', table1.c.myid)),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:mytable_myid, mytable.myid)")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a'), table1.c.myid)),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:literal, mytable.myid)")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a'), table1.c.myid +'a')),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:literal, mytable.myid + :mytable_myid)")
+
+        self.runtest(select([table1], table1.c.myid.in_(literal('a'), 'a' + table1.c.myid)),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:literal, :mytable_myid + mytable.myid)")
+
         self.runtest(select([table1], table1.c.myid.in_(1, 2, 3)),
-        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:mytable_myid, :mytable_my_1, :mytable_my_2)")
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (:mytable_myid, :mytable_myid_1, :mytable_myid_2)")
 
         self.runtest(select([table1], table1.c.myid.in_(select([table2.c.otherid]))),
-        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (SELECT myothertable.otherid AS otherid FROM myothertable)")
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (SELECT myothertable.otherid FROM myothertable)")
 
         self.runtest(select([table1], ~table1.c.myid.in_(select([table2.c.otherid]))),
-        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid NOT IN (SELECT myothertable.otherid AS otherid FROM myothertable)")
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid NOT IN (SELECT myothertable.otherid FROM myothertable)")
         
         # test that putting a select in an IN clause does not blow away its ORDER BY clause
         self.runtest(
@@ -703,7 +809,7 @@ myothertable.othername != :myothertable_othername AND EXISTS (select yay from fo
                 ),
                 from_obj=[table1.join(table2, table1.c.myid==table2.c.otherid)], order_by=[table1.c.myid]
             ),
-            "SELECT mytable.myid, mytable.name, mytable.description, myothertable.otherid, myothertable.othername FROM mytable JOIN myothertable ON mytable.myid = myothertable.otherid WHERE myothertable.otherid IN (SELECT myothertable.otherid AS otherid FROM myothertable ORDER BY myothertable.othername  LIMIT 10) ORDER BY mytable.myid"
+            "SELECT mytable.myid, mytable.name, mytable.description, myothertable.otherid, myothertable.othername FROM mytable JOIN myothertable ON mytable.myid = myothertable.otherid WHERE myothertable.otherid IN (SELECT myothertable.otherid FROM myothertable ORDER BY myothertable.othername  LIMIT 10) ORDER BY mytable.myid"
         )
         
     
@@ -751,9 +857,9 @@ myothertable.othername != :myothertable_othername AND EXISTS (select yay from fo
         import datetime
         table = Table('dt', metadata, 
             Column('date', Date))
-        self.runtest(table.select(table.c.date.between(datetime.date(2006,6,1), datetime.date(2006,6,5))), "SELECT dt.date FROM dt WHERE dt.date BETWEEN :dt_date AND :dt_da_1", checkparams={'dt_date':datetime.date(2006,6,1), 'dt_da_1':datetime.date(2006,6,5)})
+        self.runtest(table.select(table.c.date.between(datetime.date(2006,6,1), datetime.date(2006,6,5))), "SELECT dt.date FROM dt WHERE dt.date BETWEEN :dt_date AND :dt_date_1", checkparams={'dt_date':datetime.date(2006,6,1), 'dt_date_1':datetime.date(2006,6,5)})
 
-        self.runtest(table.select(sql.between(table.c.date, datetime.date(2006,6,1), datetime.date(2006,6,5))), "SELECT dt.date FROM dt WHERE dt.date BETWEEN :literal AND :liter_1", checkparams={'literal':datetime.date(2006,6,1), 'liter_1':datetime.date(2006,6,5)})
+        self.runtest(table.select(sql.between(table.c.date, datetime.date(2006,6,1), datetime.date(2006,6,5))), "SELECT dt.date FROM dt WHERE dt.date BETWEEN :literal AND :literal_1", checkparams={'literal':datetime.date(2006,6,1), 'literal_1':datetime.date(2006,6,5)})
 
 class CRUDTest(SQLTest):
     def testinsert(self):
@@ -802,7 +908,7 @@ class CRUDTest(SQLTest):
             values = {
             table1.c.name : table1.c.name + "lala",
             table1.c.myid : func.do_stuff(table1.c.myid, literal('hoho'))
-            }), "UPDATE mytable SET myid=do_stuff(mytable.myid, :liter_2), name=mytable.name + :mytable_name WHERE mytable.myid = hoho(:hoho) AND mytable.name = ((:literal + mytable.name) + :liter_1)")
+            }), "UPDATE mytable SET myid=do_stuff(mytable.myid, :literal_2), name=mytable.name + :mytable_name WHERE mytable.myid = hoho(:hoho) AND mytable.name = ((:literal + mytable.name) + :literal_1)")
         
     def testcorrelatedupdate(self):
         # test against a straight text subquery
@@ -814,10 +920,15 @@ class CRUDTest(SQLTest):
         u = update(table1, table1.c.name == 'jack', values = {table1.c.name : s})
         self.runtest(u, "UPDATE mytable SET name=(SELECT myothertable.otherid, myothertable.othername FROM myothertable WHERE myothertable.otherid = mytable.myid) WHERE mytable.name = :mytable_name")
 
-        # test a correlated WHERE clause
+        # test a non-correlated WHERE clause
         s = select([table2.c.othername], table2.c.otherid == 7)
         u = update(table1, table1.c.name==s)
         self.runtest(u, "UPDATE mytable SET myid=:myid, name=:name, description=:description WHERE mytable.name = (SELECT myothertable.othername FROM myothertable WHERE myothertable.otherid = :myothertable_otherid)")
+
+        # test one that is actually correlated...
+        s = select([table2.c.othername], table2.c.otherid == table1.c.myid)
+        u = table1.update(table1.c.name==s)
+        self.runtest(u, "UPDATE mytable SET myid=:myid, name=:name, description=:description WHERE mytable.name = (SELECT myothertable.othername FROM myothertable WHERE myothertable.otherid = mytable.myid)")
         
     def testdelete(self):
         self.runtest(delete(table1, table1.c.myid == 7), "DELETE FROM mytable WHERE mytable.myid = :mytable_myid")
