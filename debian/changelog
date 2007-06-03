@@ -1,3 +1,10 @@
+sqlalchemy (0.3.8-1) unstable; urgency=low
+
+  * New upstream release
+  * python-central and python-setuptools moved to Build-Depends-Indep
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 03 Jun 2007 16:15:05 +0200
+
 sqlalchemy (0.3.7-1) unstable; urgency=low
 
   * New upstream release

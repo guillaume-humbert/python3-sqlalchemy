@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
+<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
 
 
 
@@ -89,6 +89,13 @@
 
         
         <li><A style="" href="plugins.html#plugins_associationproxy">associationproxy</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="plugins.html#plugins_orderinglist">orderinglist</a></li>
         
             
     <ul>
@@ -552,7 +559,7 @@
     
     
 
-<p><strong>Author:</strong> Mike Bayer<br></br>
+<p><strong>Author:</strong> Mike Bayer and Jason Kirtland<br></br>
    <strong>Version:</strong> 0.3.1 or greater
 </p>
 <p><code>associationproxy</code> is used to create a transparent proxy to the associated object in an association relationship, thereby decreasing the verbosity of the pattern in cases where explicit access to the association object is not required.  The association relationship pattern is a richer form of a many-to-many relationship, which is described in <a href="datamapping.html#datamapping_association">Association Object</a>.  It is strongly recommended to fully understand the association object pattern in its explicit form before using this extension; see the examples in the SQLAlchemy distribution under the directory <code>examples/association/</code>.
@@ -563,7 +570,7 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">associationproxy </span><span class="python_keyword">import </span><span class="python_name">AssociationProxy</span><span class="python_operator">
+        <pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">associationproxy </span><span class="python_keyword">import </span><span class="python_name">association_proxy</span><span class="python_operator">
 </span>
 <span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">pass</span><span class="python_operator">
@@ -577,7 +584,7 @@
     # the collection is called 'keyword_associations', the endpoint
     # attribute of each association object is called 'keyword'.  the 
     # class itself of the association object will be figured out automatically  .
-</span><span class="python_operator">    </span><span class="python_name">keywords </span><span class="python_operator">= </span><span class="python_name">AssociationProxy</span><span class="python_enclosure">(</span><span class="python_literal">'keyword_associations'</span><span class="python_operator">, </span><span class="python_literal">'keyword'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_operator">    </span><span class="python_name">keywords </span><span class="python_operator">= </span><span class="python_name">association_proxy</span><span class="python_enclosure">(</span><span class="python_literal">'keyword_associations'</span><span class="python_operator">, </span><span class="python_literal">'keyword'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">KeywordAssociation</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">pass</span><span class="python_operator">
@@ -600,7 +607,7 @@
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">keywords_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># now, Keywords can be attached to an Article directly;
-# KeywordAssociation will be created by the AssociationProxy, and have the 
+# KeywordAssociation will be created by the association_proxy, and have the 
 # 'keyword' attribute set to the new Keyword.
 # note that these KeywordAssociation objects will not have a User attached to them.
 </span><span class="python_name">article </span><span class="python_operator">= </span><span class="python_name">Article</span><span class="python_enclosure">()</span><span class="python_operator">
@@ -618,9 +625,9 @@
 </span><span class="python_operator"></span><span class="python_name">article</span><span class="python_operator">.</span><span class="python_name">keyword_associations</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">KeywordAssociation</span><span class="python_enclosure">())</span><span class="python_operator">
 </span><span class="python_keyword">print </span><span class="python_enclosure">[</span><span class="python_name">ka </span><span class="python_keyword">for </span><span class="python_name">ka </span><span class="python_keyword">in </span><span class="python_name">article</span><span class="python_operator">.</span><span class="python_name">keyword_associations</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre>
     </div>
-<p>Note that the above operations on the <code>keywords</code> collection are proxying operations to and from the <code>keyword_associations</code> collection, which exists normally and can be accessed directly.  <code>AssociationProxy</code> will also detect if the collection is list or scalar based and will configure the proxied property to act the same way.
+<p>Note that the above operations on the <code>keywords</code> collection are proxying operations to and from the <code>keyword_associations</code> collection, which exists normally and can be accessed directly.  <code>association_proxy</code> will also detect if the collection is list or scalar based and will configure the proxied property to act the same way.
 </p>
-<p>For the common case where the association object's creation needs to be specified by the application, <code>AssociationProxy</code> takes an optional callable <code>creator()</code> which takes a single associated object as an argument, and returns a new association object.
+<p>For the common case where the association object's creation needs to be specified by the application, <code>association_proxy</code> takes an optional callable <code>creator()</code> which takes a single associated object as an argument, and returns a new association object.
 </p>
 
     
@@ -633,8 +640,124 @@
 </span>
 <span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Article</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_comment"># create "keywords" proxied association
-</span><span class="python_operator">    </span><span class="python_name">keywords </span><span class="python_operator">= </span><span class="python_name">AssociationProxy</span><span class="python_enclosure">(</span><span class="python_literal">'keyword_associations'</span><span class="python_operator">, </span><span class="python_literal">'keyword'</span><span class="python_operator">, </span><span class="python_name">creator</span><span class="python_operator">=</span><span class="python_name">create_keyword_association</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+</span><span class="python_operator">    </span><span class="python_name">keywords </span><span class="python_operator">= </span><span class="python_name">association_proxy</span><span class="python_enclosure">(</span><span class="python_literal">'keyword_associations'</span><span class="python_operator">, </span><span class="python_literal">'keyword'</span><span class="python_operator">, </span><span class="python_name">creator</span><span class="python_operator">=</span><span class="python_name">create_keyword_association</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
+<p>Proxy properties are implemented by the <code>AssociationProxy</code> class, which is
+   also available in the module.  The <code>association_proxy</code> function is not present
+   in SQLAlchemy versions 0.3.1 through 0.3.7, instead instantiate the class
+   directly:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">associationproxy </span><span class="python_keyword">import </span><span class="python_name">AssociationProxy</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">Article</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+   </span><span class="python_name">keywords </span><span class="python_operator">= </span><span class="python_name">AssociationProxy</span><span class="python_enclosure">(</span><span class="python_literal">'keyword_associations'</span><span class="python_operator">, </span><span class="python_literal">'keyword'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="plugins_orderinglist"></a>
+    
+    <div class="sectionL2">
+
+    <h3>orderinglist</h3>
+    
+    
+
+<p><strong>Author:</strong> Jason Kirtland
+</p>
+<p><code>orderinglist</code> is a helper for mutable ordered relations.  It will intercept
+   list operations performed on a relation collection and automatically
+   synchronize changes in list position with an attribute on the related objects.
+   (See <a href="adv_datamapping.html#advdatamapping_properties_customlist">Custom List Classes</a> for more information on the general pattern.)
+</p>
+<p>Example: Two tables that store slides in a presentation.  Each slide
+   has a number of bullet points, displayed in order by the 'position'
+   column on the bullets table.  These bullets can be inserted and re-ordered
+   by your end users, and you need to update the 'position' column of all
+   affected rows when changes are made.
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_name">slides_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'Slides'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
+                     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+                     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_name">bullets_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'Bullets'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
+                      <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+                      <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'slide_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'Slides.id'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+                      <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'position'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+                      <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'text'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_operator"> </span><span class="python_keyword">class </span><span class="python_name">Slide</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+     </span><span class="python_keyword">pass</span><span class="python_operator">
+ </span><span class="python_keyword">class </span><span class="python_name">Bullet</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+     </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+ <span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Slide</span><span class="python_operator">, </span><span class="python_name">slides_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+       <span class="python_literal">'bullets'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Bullet</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">bullets_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">position</span><span class="python_enclosure">])</span>
+ <span class="python_enclosure">})</span><span class="python_operator">
+ </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Bullet</span><span class="python_operator">, </span><span class="python_name">bullets_table</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+<p>The standard relation mapping will produce a list-like attribute on each Slide
+   containing all related Bullets, but coping with changes in ordering is totally
+   your responsibility.  If you insert a Bullet into that list, there is no
+   magic- it won't have a position attribute unless you assign it it one, and
+   you'll need to manually renumber all the subsequent Bullets in the list to
+   accommodate the insert.
+</p>
+<p>An <code>orderinglist</code> can automate this and manage the 'position' attribute on all
+   related bullets for you.
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre> 
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Slide</span><span class="python_operator">, </span><span class="python_name">slides_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+<span class="python_literal">'bullets'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Bullet</span><span class="python_operator">,</span>
+                    <span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">ordering_list</span><span class="python_enclosure">(</span><span class="python_literal">'position'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+                    <span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">bullets_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">position</span><span class="python_enclosure">])</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Bullet</span><span class="python_operator">, </span><span class="python_name">bullets_table</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">Slide</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">bullets</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">Bullet</span><span class="python_enclosure">())</span><span class="python_operator">
+</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">bullets</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">Bullet</span><span class="python_enclosure">())</span><span class="python_operator">
+</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">bullets</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator">.</span><span class="python_name">position</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_number">1</span><span class="python_operator">
+</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">bullets</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_operator">, </span><span class="python_name">Bullet</span><span class="python_enclosure">())</span><span class="python_operator">
+</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">bullets</span><span class="python_enclosure">[</span><span class="python_number">2</span><span class="python_enclosure">]</span><span class="python_operator">.</span><span class="python_name">position</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_number">2</span><span class="python_operator"></span></pre>
+    </div>
+<p>Use the <code>ordering_list</code> function to set up the <code>collection_class</code> on relations
+   (as in the mapper example above).  This implementation depends on the list
+   starting in the proper order, so be SURE to put an order_by on your relation.
+</p>
+<p><code>ordering_list</code> takes the name of the related object's ordering attribute as
+   an argument.  By default, the zero-based integer index of the object's
+   position in the <code>ordering_list</code> is synchronized with the ordering attribute:
+   index 0 will get position 0, index 1 position 1, etc.  To start numbering at 1
+   or some other integer, provide <code>count_from=1</code>.
+</p>
+<p>Ordering values are not limited to incrementing integers.  Almost any scheme
+   can implemented by supplying a custom <code>ordering_func</code> that maps a Python list
+   index to any value you require.  See the <a href="sqlalchemy_ext_orderinglist.html#docstrings_sqlalchemy.ext.orderinglist">module
+documentation</a> for more
+   information, and also check out the unit tests for examples of stepped
+   numbering, alphabetical and Fibonacci numbering.
+</p>
 
 
 

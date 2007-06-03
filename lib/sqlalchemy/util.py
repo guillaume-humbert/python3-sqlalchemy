@@ -103,12 +103,30 @@ def coerce_kw_type(kw, key, type_, flexi_bool=True):
     necessary.  If 'flexi_bool' is True, the string '0' is considered false
     when coercing to boolean.
     """
+
     if key in kw and type(kw[key]) is not type_ and kw[key] is not None:
         if type_ is bool and flexi_bool and kw[key] == '0':
             kw[key] = False
         else:
             kw[key] = type_(kw[key])
 
+def duck_type_collection(col, default=None):
+    """Given an instance or class, guess if it is or is acting as one of
+    the basic collection types: list, set and dict.  If the __emulates__
+    property is present, return that preferentially.
+    """
+    
+    if hasattr(col, '__emulates__'):
+        return getattr(col, '__emulates__')
+    elif hasattr(col, 'append'):
+        return list
+    elif hasattr(col, 'add'):
+        return Set
+    elif hasattr(col, 'set'):
+        return dict
+    else:
+        return default
+    
 class SimpleProperty(object):
     """A *default* property accessor."""
 
@@ -330,6 +348,9 @@ class OrderedSet(Set):
     def clear(self):
       super(OrderedSet, self).clear()
       self._list=[]
+
+    def __getitem__(self, key):
+        return self._list[key]
 
     def __iter__(self):
         return iter(self._list)

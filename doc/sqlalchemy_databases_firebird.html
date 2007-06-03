@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
+<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
 
 
 
@@ -388,13 +388,9 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_insert(<i>self</i>, <i>insert</i>)</b>
+    <b>def visit_insert_column(<i>self</i>, <i>column</i>, <i>parameters</i>)</b>
     <div class="docstring">
-    <p>Inserts are required to have the primary keys be explicitly present.</p>
-<p>mapper will by default not put them in the insert statement
-to comply with autoincrement fields that require they not be
-present. So, put them all in for all primary key columns.</p>
-
+    
     </div>
     </div>
 
@@ -644,6 +640,16 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     
     <A name=""></a>
     <b>def is_disconnect(<i>self</i>, <i>e</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def max_identifier_length(<i>self</i>)</b>
     <div class="docstring">
     
     </div>

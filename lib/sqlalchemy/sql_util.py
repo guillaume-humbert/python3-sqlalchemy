@@ -65,14 +65,19 @@ class TableCollection(object):
 
 
 class TableFinder(TableCollection, sql.NoColumnVisitor):
-    """Given a ``Clause``, locate all the ``Tables`` within it into a list."""
+    """locate all Tables within a clause."""
 
-    def __init__(self, table, check_columns=False):
+    def __init__(self, table, check_columns=False, include_aliases=False):
         TableCollection.__init__(self)
         self.check_columns = check_columns
+        self.include_aliases = include_aliases
         if table is not None:
             self.traverse(table)
 
+    def visit_alias(self, alias):
+        if self.include_aliases:
+            self.tables.append(alias)
+            
     def visit_table(self, table):
         self.tables.append(table)
 
@@ -133,16 +138,23 @@ class AbstractClauseProcessor(sql.NoColumnVisitor):
                 list_[i] = elem
             else:
                 self.traverse(list_[i])
-
-    def visit_compound(self, compound):
-        self.visit_clauselist(compound)
-
+    
+    def visit_grouping(self, grouping):
+        elem = self.convert_element(grouping.elem)
+        if elem is not None:
+            grouping.elem = elem
+            
     def visit_clauselist(self, clist):
         for i in range(0, len(clist.clauses)):
             n = self.convert_element(clist.clauses[i])
             if n is not None:
                 clist.clauses[i] = n
-
+    
+    def visit_unary(self, unary):
+        elem = self.convert_element(unary.element)
+        if elem is not None:
+            unary.element = elem
+            
     def visit_binary(self, binary):
         elem = self.convert_element(binary.left)
         if elem is not None:
@@ -151,31 +163,8 @@ class AbstractClauseProcessor(sql.NoColumnVisitor):
         if elem is not None:
             binary.right = elem
 
-class Aliasizer(AbstractClauseProcessor):
-    """Convert a table instance within an expression to be an alias of that table."""
-
-    def __init__(self, *tables, **kwargs):
-        self.tables = {}
-        self.aliases = kwargs.get('aliases', {})
-        for t in tables:
-            self.tables[t] = t
-            if not self.aliases.has_key(t):
-                self.aliases[t] = sql.alias(t)
-            if isinstance(t, sql.Join):
-                for t2 in t.columns:
-                    self.tables[t2.table] = t2
-                    self.aliases[t2.table] = self.aliases[t]
-        self.binary = None
-
-    def get_alias(self, table):
-        return self.aliases[table]
-
-    def convert_element(self, elem):
-        if isinstance(elem, sql.ColumnElement) and hasattr(elem, 'table') and self.tables.has_key(elem.table):
-            return self.get_alias(elem.table).corresponding_column(elem)
-        else:
-            return None
-
+    # TODO: visit_select().  
+    
 class ClauseAdapter(AbstractClauseProcessor):
     """Given a clause (like as in a WHERE criterion), locate columns
     which are embedded within a given selectable, and changes those

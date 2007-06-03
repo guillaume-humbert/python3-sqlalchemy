@@ -162,10 +162,14 @@ class LazyLoader(AbstractRelationLoader):
     def init(self):
         super(LazyLoader, self).init()
         (self.lazywhere, self.lazybinds, self.lazyreverse) = self._create_lazy_clause(self)
+        
+        self.logger.info(str(self.parent_property) + " lazy loading clause " + str(self.lazywhere))
 
         # determine if our "lazywhere" clause is the same as the mapper's
         # get() clause.  then we can just use mapper.get()
         self.use_get = not self.uselist and query.Query(self.mapper)._get_clause.compare(self.lazywhere)
+        if self.use_get:
+            self.logger.info(str(self.parent_property) + " will use query.get() to optimize instance loads")
 
     def init_class_attribute(self):
         self._register_attribute(self.parent.class_, callable_=lambda i: self.setup_loader(i))
@@ -253,7 +257,7 @@ class LazyLoader(AbstractRelationLoader):
         reverse = {}
 
         def should_bind(targetcol, othercol):
-            if reverse_direction:
+            if reverse_direction and not secondaryjoin:
                 return targetcol in remote_side
             else:
                 return othercol in remote_side
@@ -293,14 +297,16 @@ class LazyLoader(AbstractRelationLoader):
 
         lazywhere = primaryjoin.copy_container()
         li = mapperutil.BinaryVisitor(visit_binary)
-        li.traverse(lazywhere)
+        
+        if not secondaryjoin or not reverse_direction:
+            li.traverse(lazywhere)
         
         if secondaryjoin is not None:
             secondaryjoin = secondaryjoin.copy_container()
+            if reverse_direction:
+                li.traverse(secondaryjoin)
             lazywhere = sql.and_(lazywhere, secondaryjoin)
- 
-        if hasattr(cls, 'parent_property'):
-            LazyLoader.logger.info(str(cls.parent_property) + " lazy loading clause " + str(lazywhere))
+
         return (lazywhere, binds, reverse)
     _create_lazy_clause = classmethod(_create_lazy_clause)
     
@@ -363,27 +369,31 @@ class EagerLoader(AbstractRelationLoader):
             self.target = eagerloader.select_table
             self.eagertarget = eagerloader.select_table.alias(self._aliashash("/target"))
             self.extra_cols = {}
-            
+
             if eagerloader.secondary:
                 self.eagersecondary = eagerloader.secondary.alias(self._aliashash("/secondary"))
-                self.aliasizer = sql_util.Aliasizer(eagerloader.target, eagerloader.secondary, aliases={
-                        eagerloader.target:self.eagertarget,
-                        eagerloader.secondary:self.eagersecondary
-                        })
+                if parentclauses is not None:
+                    aliasizer = sql_util.ClauseAdapter(self.eagertarget).\
+                            chain(sql_util.ClauseAdapter(self.eagersecondary)).\
+                            chain(sql_util.ClauseAdapter(parentclauses.eagertarget))
+                else:
+                    aliasizer = sql_util.ClauseAdapter(self.eagertarget).\
+                        chain(sql_util.ClauseAdapter(self.eagersecondary))
                 self.eagersecondaryjoin = eagerloader.polymorphic_secondaryjoin.copy_container()
-                self.aliasizer.traverse(self.eagersecondaryjoin)
+                aliasizer.traverse(self.eagersecondaryjoin)
                 self.eagerprimary = eagerloader.polymorphic_primaryjoin.copy_container()
-                self.aliasizer.traverse(self.eagerprimary)
+                aliasizer.traverse(self.eagerprimary)
             else:
                 self.eagerprimary = eagerloader.polymorphic_primaryjoin.copy_container()
-                self.aliasizer = sql_util.Aliasizer(self.target, aliases={self.target:self.eagertarget})
-                self.aliasizer.traverse(self.eagerprimary)
-
-            if parentclauses is not None:
-                parentclauses.aliasizer.traverse(self.eagerprimary)
+                if parentclauses is not None: 
+                    aliasizer = sql_util.ClauseAdapter(self.eagertarget)
+                    aliasizer.chain(sql_util.ClauseAdapter(parentclauses.eagertarget, exclude=eagerloader.parent_property.remote_side))
+                else:
+                    aliasizer = sql_util.ClauseAdapter(self.eagertarget)
+                aliasizer.traverse(self.eagerprimary)
 
             if eagerloader.order_by:
-                self.eager_order_by = self._aliasize_orderby(eagerloader.order_by)
+                self.eager_order_by = sql_util.ClauseAdapter(self.eagertarget).copy_and_process(util.to_list(eagerloader.order_by))
             else:
                 self.eager_order_by = None
 
@@ -413,14 +423,6 @@ class EagerLoader(AbstractRelationLoader):
             # use the first 4 digits of an MD5 hash
             return "anon_" + util.hash(self.id + extra)[0:4]
             
-        def _aliasize_orderby(self, orderby, copy=True):
-            if copy:
-                return self.aliasizer.copy_and_process(util.to_list(orderby))
-            else:
-                orderby = util.to_list(orderby)
-                self.aliasizer.process_list(orderby)
-                return orderby
-
         def _create_decorator_row(self):
             class EagerRowAdapter(object):
                 def __init__(self, row):
@@ -468,22 +470,23 @@ class EagerLoader(AbstractRelationLoader):
         
         if hasattr(statement, '_outerjoin'):
             towrap = statement._outerjoin
-        elif isinstance(localparent.mapped_table, schema.Table):
-            # if the mapper is against a plain Table, look in the from_obj of the select statement
-            # to join against whats already there.
-            for (fromclause, finder) in [(x, sql_util.TableFinder(x)) for x in statement.froms]:
-                # dont join against an Alias'ed Select.  we are really looking either for the 
-                # table itself or a Join that contains the table.  this logic still might need
-                # adjustments for scenarios not thought of yet.
-                if not isinstance(fromclause, sql.Alias) and localparent.mapped_table in finder:
+        elif isinstance(localparent.mapped_table, sql.Join):
+            towrap = localparent.mapped_table
+        else:
+            # look for the mapper's selectable expressed within the current "from" criterion.
+            # this will locate the selectable inside of any containers it may be a part of (such
+            # as a join).  if its inside of a join, we want to outer join on that join, not the 
+            # selectable.
+            for fromclause in statement.froms:
+                if fromclause is localparent.mapped_table:
                     towrap = fromclause
                     break
+                elif isinstance(fromclause, sql.Join):
+                    if localparent.mapped_table in sql_util.TableFinder(fromclause, include_aliases=True):
+                        towrap = fromclause
+                        break
             else:
-                raise exceptions.InvalidRequestError("EagerLoader cannot locate a clause with which to outer join to, in query '%s' %s" % (str(statement), self.localparent.mapped_table))
-        else:
-            # if the mapper is against a select statement or something, we cant handle that at the
-            # same time as a custom FROM clause right now.
-            towrap = localparent.mapped_table
+                raise exceptions.InvalidRequestError("EagerLoader cannot locate a clause with which to outer join to, in query '%s' %s" % (str(statement), localparent.mapped_table))
         
         try:
             clauses = self.clauses[parentclauses]

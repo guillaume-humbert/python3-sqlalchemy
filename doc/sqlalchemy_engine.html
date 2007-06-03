@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
+<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
 
 
 
@@ -623,6 +623,22 @@ a begin method to return Transaction objects.</p>
     </div>
 
                     
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def detach(<i>self</i>)</b>
+    <div class="docstring">
+    <p>detach the underlying DBAPI connection from its connection pool.</p>
+<p>This Connection instance will remain useable.  When closed, the
+DBAPI connection will be literally closed and not returned to its pool.
+The pool will typically create a new connection to replace it, once requested.</p>
+<p>This method can be used to insulate the rest of an application from a modified
+state on a connection (such as a transaction isolation level or similar).</p>
+
+    </div>
+    </div>
+
+                    
          <div class="darkcell">
          <A name=""></a>
          <b>dialect = property()</b>
@@ -721,6 +737,20 @@ a begin method to return Transaction objects.</p>
     <b>def in_transaction(<i>self</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def invalidate(<i>self</i>)</b>
+    <div class="docstring">
+    <p>invalidate the underying DBAPI connection and immediately close this Connection.</p>
+<p>The underlying DBAPI connection is literally closed (if possible), and is discarded.
+Its source connection pool will typically create a new connection to replace it, once
+requested.</p>
+
     </div>
     </div>
 
@@ -958,24 +988,18 @@ The Dialect acts as a factory for other database-specific object
 implementations including ExecutionContext, Compiled,
 DefaultGenerator, and TypeEngine.</p>
 <p>All Dialects implement the following attributes:</p>
+<blockquote>
 <dl class="docutils">
 <dt>positional</dt>
 <dd>True if the paramstyle for this Dialect is positional</dd>
 <dt>paramstyle</dt>
 <dd>The paramstyle to be used (some DBAPIs support multiple paramstyles)</dd>
-<dt>supports_autoclose_results</dt>
-<dd>Usually True; if False, indicates that rows returned by
-fetchone() might not be just plain tuples, and may be
-&quot;live&quot; proxy objects which still require the cursor to be open
-in order to be read (such as pyPgSQL which has active
-filehandles for BLOBs).  In that case, an auto-closing
-ResultProxy cannot automatically close itself after results are
-consumed.</dd>
 <dt>convert_unicode</dt>
 <dd>True if unicode conversion should be applied to all str types</dd>
 <dt>encoding</dt>
 <dd>type of encoding to use for unicode, usually defaults to 'utf-8'</dd>
 </dl>
+</blockquote>
 </div>
     
 
@@ -985,9 +1009,9 @@ consumed.</dd>
     <A name=""></a>
     <b>def compile(<i>self</i>, <i>clauseelement</i>, <i>parameters=None</i>)</b>
     <div class="docstring">
-    <p>Compile the given ClauseElement using this Dialect.</p>
-<p>A convenience method which simply flips around the compile()
-call on ClauseElement.</p>
+    <p>Compile the given <a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_ClauseElement">ClauseElement</a> using this Dialect.</p>
+<p>Returns <a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_Compiled">Compiled</a>.  A convenience method which
+flips around the compile() call on <tt class="docutils literal"><span class="pre">ClauseElement</span></tt>.</p>
 
     </div>
     </div>
@@ -998,10 +1022,8 @@ call on ClauseElement.</p>
     <A name=""></a>
     <b>def compiler(<i>self</i>, <i>statement</i>, <i>parameters</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">sql.ClauseVisitor</span></tt> able to transform a <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> into a string.</p>
-<p>The returned object is usually a subclass of
-ansisql.ANSICompiler, and will produce a string representation
-of the given ClauseElement and <cite>parameters</cite> dictionary.</p>
+    <p>Return a <a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_Compiled">Compiled</a> object for the given statement/parameters.</p>
+<p>The returned object is usually a subclass of <a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSICompiler">ANSICompiler</a>.</p>
 
     </div>
     </div>
@@ -1012,9 +1034,8 @@ of the given ClauseElement and <cite>parameters</cite> dictionary.</p>
     <A name=""></a>
     <b>def convert_compiled_params(<i>self</i>, <i>parameters</i>)</b>
     <div class="docstring">
-    <p>Build DBAPI execute arguments from a ClauseParameters.</p>
-<p>Given a sql.ClauseParameters object, returns an array or
-dictionary suitable to pass directly to this Dialect's DBAPI's
+    <p>Build DBAPI execute arguments from a <a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_ClauseParameters">ClauseParameters</a> instance.</p>
+<p>Returns an array or dictionary suitable to pass directly to this <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance's DBAPI's
 execute method.</p>
 
     </div>
@@ -1024,15 +1045,12 @@ execute method.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_connect_args(<i>self</i>, <i>opts</i>)</b>
+    <b>def create_connect_args(<i>self</i>, <i>url</i>)</b>
     <div class="docstring">
     <p>Build DBAPI compatible connection arguments.</p>
-<p>Given a dictionary of key-valued connect parameters, returns a
+<p>Given a <a href="sqlalchemy_engine_url.html#docstrings_sqlalchemy.engine.url_URL">URL</a> object, returns a
 tuple consisting of a <cite>*args</cite>/<cite>**kwargs</cite> suitable to send directly
-to the dbapi's connect function.  The connect args will have
-any number of the following keynames: host, hostname,
-database, dbname, user, username, password, pw, passwd,
-filename.</p>
+to the dbapi's connect function.</p>
 
     </div>
     </div>
@@ -1043,7 +1061,7 @@ filename.</p>
     <A name=""></a>
     <b>def create_execution_context(<i>self</i>, <i>connection</i>, <i>compiled=None</i>, <i>compiled_parameters=None</i>, <i>statement=None</i>, <i>parameters=None</i>)</b>
     <div class="docstring">
-    <p>Return a new ExecutionContext object.</p>
+    <p>Return a new <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_ExecutionContext">ExecutionContext</a> object.</p>
 
     </div>
     </div>
@@ -1054,10 +1072,10 @@ filename.</p>
     <A name=""></a>
     <b>def defaultrunner(<i>self</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">schema.SchemaVisitor</span></tt> instance that can execute defaults.</p>
+    <p>Return a <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaVisitor">SchemaVisitor</a> instance that can execute defaults.</p>
 <dl class="docutils">
 <dt>connection</dt>
-<dd>a Connection to use for statement execution</dd>
+<dd>a <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connection">Connection</a> to use for statement execution</dd>
 </dl>
 
     </div>
@@ -1069,7 +1087,7 @@ filename.</p>
     <A name=""></a>
     <b>def do_begin(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
-    <p>Provide an implementation of connection.begin().</p>
+    <p>Provide an implementation of <em>connection.begin()</em>, given a DBAPI connection.</p>
 
     </div>
     </div>
@@ -1080,7 +1098,7 @@ filename.</p>
     <A name=""></a>
     <b>def do_commit(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
-    <p>Provide an implementation of connection.commit()</p>
+    <p>Provide an implementation of <em>connection.commit()</em>, given a DBAPI connection.</p>
 
     </div>
     </div>
@@ -1091,7 +1109,7 @@ filename.</p>
     <A name=""></a>
     <b>def do_execute(<i>self</i>, <i>cursor</i>, <i>statement</i>, <i>parameters</i>)</b>
     <div class="docstring">
-    <p>Execute a single SQL statement with given parameters.</p>
+    <p>Provide an implementation of <em>cursor.execute(statement, parameters)</em>.</p>
 
     </div>
     </div>
@@ -1102,7 +1120,7 @@ filename.</p>
     <A name=""></a>
     <b>def do_executemany(<i>self</i>, <i>cursor</i>, <i>statement</i>, <i>parameters</i>)</b>
     <div class="docstring">
-    <p>Execute a single SQL statement looping over a sequence of parameters.</p>
+    <p>Provide an implementation of <em>cursor.executemany(statement, parameters)</em>.</p>
 
     </div>
     </div>
@@ -1113,7 +1131,7 @@ filename.</p>
     <A name=""></a>
     <b>def do_rollback(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
-    <p>Provide an implementation of connection.rollback().</p>
+    <p>Provide an implementation of <em>connection.rollback()</em>, given a DBAPI connection.</p>
 
     </div>
     </div>
@@ -1124,7 +1142,7 @@ filename.</p>
     <A name=""></a>
     <b>def get_default_schema_name(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
-    <p>Return the currently selected schema given a connection</p>
+    <p>Return the string name of the currently selected schema given a <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connection">Connection</a>.</p>
 
     </div>
     </div>
@@ -1136,7 +1154,7 @@ filename.</p>
     <b>def has_sequence(<i>self</i>, <i>connection</i>, <i>sequence_name</i>)</b>
     <div class="docstring">
     <p>Check the existence of a particular sequence in the database.</p>
-<p>Given a <tt class="docutils literal"><span class="pre">Connection</span></tt> object and a <cite>sequence_name</cite>, return
+<p>Given a <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connection">Connection</a> object and a string <cite>sequence_name</cite>, return
 True if the given sequence exists in the database, False
 otherwise.</p>
 
@@ -1150,7 +1168,7 @@ otherwise.</p>
     <b>def has_table(<i>self</i>, <i>connection</i>, <i>table_name</i>, <i>schema=None</i>)</b>
     <div class="docstring">
     <p>Check the existence of a particular table in the database.</p>
-<p>Given a <tt class="docutils literal"><span class="pre">Connection</span></tt> object and a <cite>table_name</cite>, return True
+<p>Given a <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connection">Connection</a> object and a string <cite>table_name</cite>, return True
 if the given table (possibly within the specified <cite>schema</cite>)
 exists in the database, False otherwise.</p>
 
@@ -1175,7 +1193,7 @@ exists in the database, False otherwise.</p>
     <b>def max_identifier_length(<i>self</i>)</b>
     <div class="docstring">
     <p>Return the maximum length of identifier names.</p>
-<p>Return None if no limit.</p>
+<p>Return <tt class="docutils literal"><span class="pre">None</span></tt> if no limit.</p>
 
     </div>
     </div>
@@ -1186,8 +1204,8 @@ exists in the database, False otherwise.</p>
     <A name=""></a>
     <b>def oid_column_name(<i>self</i>, <i>column</i>)</b>
     <div class="docstring">
-    <p>Return the oid column name for this dialect, or None if the dialect can't/won't support OID/ROWID.</p>
-<p>The Column instance which represents OID for the query being
+    <p>Return the oid column name for this dialect, or <tt class="docutils literal"><span class="pre">None</span></tt> if the dialect can't/won't support OID/ROWID.</p>
+<p>The <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Column">Column</a> instance which represents OID for the query being
 compiled is passed, so that the dialect can inspect the column
 and its parent selectable to determine if OID/ROWID is not
 selected for a particular selectable (i.e. oracle doesnt
@@ -1203,7 +1221,7 @@ support ROWID for UNION, GROUP BY, DISTINCT, etc.)</p>
     <b>def reflecttable(<i>self</i>, <i>connection</i>, <i>table</i>)</b>
     <div class="docstring">
     <p>Load table description from the database.</p>
-<p>Given a <tt class="docutils literal"><span class="pre">Connection</span></tt> and a <tt class="docutils literal"><span class="pre">Table</span></tt> object, reflect its
+<p>Given a <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connection">Connection</a> and a <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Table">Table</a> object, reflect its
 columns and properties from the database.</p>
 
     </div>
@@ -1215,11 +1233,11 @@ columns and properties from the database.</p>
     <A name=""></a>
     <b>def schemadropper(<i>self</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">schema.SchemaVisitor</span></tt> instance that can drop schemas.</p>
+    <p>Return a <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaVisitor">SchemaVisitor</a> instance that can drop schemas.</p>
 <blockquote>
 <dl class="docutils">
 <dt>connection</dt>
-<dd>a Connection to use for statement execution</dd>
+<dd>a <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connection">Connection</a> to use for statement execution</dd>
 </dl>
 </blockquote>
 <p><cite>schemadropper()</cite> is called via the <cite>drop()</cite> method on Table,
@@ -1234,11 +1252,11 @@ Index, and others.</p>
     <A name=""></a>
     <b>def schemagenerator(<i>self</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">schema.SchemaVisitor</span></tt> instance that can generate schemas.</p>
+    <p>Return a <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaVisitor">SchemaVisitor</a> instance that can generate schemas.</p>
 <blockquote>
 <dl class="docutils">
 <dt>connection</dt>
-<dd>a Connection to use for statement execution</dd>
+<dd>a <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connection">Connection</a> to use for statement execution</dd>
 </dl>
 </blockquote>
 <p><cite>schemagenerator()</cite> is called via the <cite>create()</cite> method on Table,
@@ -1253,7 +1271,7 @@ Index, and others.</p>
     <A name=""></a>
     <b>def supports_alter(<i>self</i>)</b>
     <div class="docstring">
-    <p>return True if the database supports ALTER TABLE.</p>
+    <p>return <tt class="docutils literal"><span class="pre">True</span></tt> if the database supports <tt class="docutils literal"><span class="pre">ALTER</span> <span class="pre">TABLE</span></tt>.</p>
 
     </div>
     </div>
@@ -1264,7 +1282,7 @@ Index, and others.</p>
     <A name=""></a>
     <b>def supports_sane_rowcount(<i>self</i>)</b>
     <div class="docstring">
-    <p>Indicate whether the dialect properly implements statements rowcount.</p>
+    <p>Indicate whether the dialect properly implements rowcount for <tt class="docutils literal"><span class="pre">UPDATE</span></tt> and <tt class="docutils literal"><span class="pre">DELETE</span></tt> statements.</p>
 <p>This was needed for MySQL which had non-standard behavior of rowcount,
 but this issue has since been resolved.</p>
 
@@ -1288,10 +1306,8 @@ but this issue has since been resolved.</p>
     <A name=""></a>
     <b>def type_descriptor(<i>self</i>, <i>typeobj</i>)</b>
     <div class="docstring">
-    <p>Transform the type from generic to database-specific.</p>
-<p>Provides a database-specific TypeEngine object, given the
-generic object which comes from the types module.  Subclasses
-will usually use the adapt_type() method in the types module
+    <p>Transform the given <a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TypeEngine">TypeEngine</a> instance from generic to database-specific.</p>
+<p>Subclasses will usually use the <b>adapt_type()</b> method in the types module
 to make this job easy.</p>
 
     </div>
@@ -1822,15 +1838,6 @@ are exhausted.</p>
          <div class="darkcell">
          <A name=""></a>
          <b>connection = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>dialect = property()</b>
          <div class="docstring">
          
          </div> 

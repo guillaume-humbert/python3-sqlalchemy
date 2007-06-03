@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
+<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
 
 
 
@@ -201,7 +201,7 @@
     
     
 
-<p>Engines exist for SQLite, Postgres, MySQL, and Oracle, using the Pysqlite, Psycopg2 (Psycopg1 will work to a limited degree, but it is <strong>not supported</strong>), MySQLDB, and cx_Oracle modules.  There is also preliminary support for MS-SQL using pyodbc, adodbapi or pymssql, Firebird with kinterbasdb, and Informix with informixdb.   For each engine, a distinct Python module exists in the <code>sqlalchemy.databases</code> package, which provides implementations of some of the objects mentioned in the previous section.
+<p>Engines exist for SQLite, Postgres, MySQL, MS-SQL, Firebird, Informix, and Oracle.  For each engine, the appropriate DBAPI drivers must be installed separately.  A distinct Python module exists in the <code>sqlalchemy.databases</code> package for each type of database as well, which provides implementations of some of the objects mentioned in the previous section.
 </p>
 <p>Downloads for each DBAPI at the time of this writing are as follows:
 </p>
@@ -223,7 +223,7 @@
  </li>
 
  <li>
-     MS-SQL:  <a href='http://adodbapi.sourceforge.net/'>adodbapi</a>  <a href='http://pymssql.sourceforge.net/'>pymssql</a>
+     MS-SQL:  <a href='http://pyodbc.sourceforge.net/'>pyodbc</a> (recommended) <a href='http://adodbapi.sourceforge.net/'>adodbapi</a>  <a href='http://pymssql.sourceforge.net/'>pymssql</a>
  </li>
 
  <li>
