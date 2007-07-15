@@ -2,7 +2,6 @@ import testbase
 import unittest, sys, datetime
 
 db = testbase.db
-#db. 
 
 from sqlalchemy import *
 
@@ -106,7 +105,7 @@ class RelationTest2(testbase.PersistTest):
     is 'joined to itself'."""
     def setUpAll(self):
         global metadata, company_tbl, employee_tbl
-        metadata = BoundMetaData(testbase.db)
+        metadata = MetaData(testbase.db)
         
         company_tbl = Table('company', metadata,
              Column('company_id', Integer, primary_key=True),
@@ -221,7 +220,7 @@ class RelationTest3(testbase.PersistTest):
     def setUpAll(self):
         global jobs, pageversions, pages, metadata, Job, Page, PageVersion, PageComment
         import datetime
-        metadata = BoundMetaData(testbase.db)  
+        metadata = MetaData(testbase.db)  
         jobs = Table("jobs", metadata,
                         Column("jobno", Unicode(15), primary_key=True),
                         Column("created", DateTime, nullable=False, default=datetime.datetime.now),
@@ -560,19 +559,19 @@ class TypeMatchTest(testbase.ORMTest):
     def define_tables(self, metadata):
         global a, b, c, d
         a = Table("a", metadata, 
-            Column('id', Integer, primary_key=True),
+            Column('aid', Integer, primary_key=True),
             Column('data', String(30)))
         b = Table("b", metadata, 
-            Column('id', Integer, primary_key=True),
-            Column("a_id", Integer, ForeignKey("a.id")),
+            Column('bid', Integer, primary_key=True),
+            Column("a_id", Integer, ForeignKey("a.aid")),
             Column('data', String(30)))
         c = Table("c", metadata, 
-            Column('id', Integer, primary_key=True),
-            Column("b_id", Integer, ForeignKey("b.id")),
+            Column('cid', Integer, primary_key=True),
+            Column("b_id", Integer, ForeignKey("b.bid")),
             Column('data', String(30)))
         d = Table("d", metadata, 
-            Column('id', Integer, primary_key=True),
-            Column("a_id", Integer, ForeignKey("a.id")),
+            Column('did', Integer, primary_key=True),
+            Column("a_id", Integer, ForeignKey("a.aid")),
             Column('data', String(30)))
     def test_o2m_oncascade(self):
         class A(object):pass

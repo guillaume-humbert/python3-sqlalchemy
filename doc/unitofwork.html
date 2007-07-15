@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -234,13 +234,6 @@
 
     </ul>
 
-        
-        <li><A style="" href="unitofwork.html#unitofwork_logging">Analyzing Object Flushes</a></li>
-        
-            
-    <ul>
-    </ul>
-
     </ul>
 
 	</div>
@@ -383,13 +376,13 @@
 </span>
 <span class="python_comment"># create a Session that will use this engine for all operations.
 # it will open and close Connections as needed.
-</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># open a Connection
 </span><span class="python_name">conn </span><span class="python_operator">= </span><span class="python_name">e</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># create a Session that will use this specific Connection for all operations
-</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">conn</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">conn</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
 <p>The session to which an object is attached can be acquired via the <code>object_session()</code> function, which returns the appropriate <code>Session</code> if the object is pending or persistent, or <code>None</code> if the object is transient or detached:
 </p>
@@ -403,7 +396,7 @@
 </p>
 <ul>
  <li>
-     the Session object is <strong>not threadsafe</strong>.  For thread-local management of Sessions, the recommended approch is to use the <a href="plugins.html#plugins_sessioncontext">SessionContext</a> extension module.
+     the Session object is <strong>not threadsafe</strong>.  For thread-local management of Sessions, the recommended approach is to use the <a href="plugins.html#plugins_sessioncontext">SessionContext</a> extension module.
  </li>
 </ul>
 <p>We will now cover some of the key concepts used by Sessions and its underlying Unit of Work.
@@ -438,13 +431,13 @@
         <pre><span class="python_name">mymapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">obj1 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">selectfirst</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">15</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">obj2 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">selectfirst</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">15</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">obj1 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">15</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">obj2 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">15</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_literal">>>> </span><span class="python_name">obj1 </span><span class="python_keyword">is </span><span class="python_name">obj2</span><span class="python_operator">
 </span><span class="python_name">True</span><span class="python_operator"></span></pre>
     </div>
-<p>The Identity Map is an instance of <code>dict</code> by default.  (This is new as of version 0.3.2).  As an option, you can specify the flag <code>weak_identity_map=True</code> to the <code>create_session</code> function so that it will use a <code>weakref.WeakValueDictionary</code>, so that when an in-memory object falls out of scope, it will be removed automatically, thereby providing some automatic management of memory.   However, this may not be instant if there are circular references upon the object.  To guarantee that an instance is removed from the identity map before removing references to it, use the <code>expunge()</code> method, described later, to remove it.  Additionally, note that an object that has changes marked on it (i.e. "dirty") can still fall out of scope when using <code>weak_identity_map</code>.
+<p>The Identity Map is an instance of <code>dict</code> by default.  As an option, you can specify the flag <code>weak_identity_map=True</code> to the <code>create_session</code> function so that it will use a <code>weakref.WeakValueDictionary</code>, so that when an in-memory object falls out of scope, it will be removed automatically, thereby providing some automatic management of memory.   However, this may not be instant if there are circular references upon the object.  To guarantee that an instance is removed from the identity map before removing references to it, use the <code>expunge()</code> method, described later, to remove it.  Additionally, note that an object that has changes marked on it (i.e. "dirty") can still fall out of scope when using <code>weak_identity_map</code>.
 </p>
 <p>The Session supports an iterator interface in order to see all objects in the identity map:
 </p>
@@ -553,14 +546,17 @@
     
     
 
-<p>The <code>query()</code> function takes a class or <code>Mapper</code> as an argument, along with an optional <code>entity_name</code> parameter, and returns a new <code>Query</code> object which will issue mapper queries within the context of this Session.  If a Mapper is passed, then the Query uses that mapper.  Otherwise, if a class is sent, it will locate the primary mapper for that class which is used to construct the Query.  <br></br>
+<p>The <code>query()</code> function takes one or more classes and/or mappers, along with an optional <code>entity_name</code> parameter, and returns a new <code>Query</code> object which will issue mapper queries within the context of this Session.  For each mapper is passed, the Query uses that mapper.  For each class, the Query will locate the primary mapper for the class using <code>class_mapper()</code>.
 </p>
 
     
 
     <div class="sliding_code">
         <pre><span class="python_comment"># query from a class
-</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># query with multiple classes, returns tuples
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># query from a mapper
 </span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">usermapper</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -568,7 +564,7 @@
 </span>
 <span class="python_comment"># query from a class mapped with entity name 'alt_users'
 </span><span class="python_name">q </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'alt_users'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">y </span><span class="python_operator">= </span><span class="python_name">q</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'orders'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">y </span><span class="python_operator">= </span><span class="python_name">q</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'orders'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
     </div>
 <p><code>entity_name</code> is an optional keyword argument sent with a class object, in order to further qualify which primary mapper to be used; this only applies if there was a <code>Mapper</code> created with that particular class/entity name combination, else an exception is raised.  All of the methods on Session which take a class or mapper argument also take the <code>entity_name</code> argument, so that a given class can be properly matched to the desired primary mapper.
 </p>
@@ -899,7 +895,7 @@
 <span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">bind_mapper</span><span class="python_enclosure">(</span><span class="python_name">mymapper</span><span class="python_operator">, </span><span class="python_name">sqlite_connection</span><span class="python_enclosure">)  </span><span class="python_comment"># bind mymapper operations to a single SQLite connection</span><span class="python_operator">
 </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">bind_table</span><span class="python_enclosure">(</span><span class="python_name">email_addresses_table</span><span class="python_operator">, </span><span class="python_name">engine2</span><span class="python_enclosure">) </span><span class="python_comment"># bind operations with the email_addresses_table to mysql</span><span class="python_operator"></span></pre>
     </div>
-<p>Normally, when a <code>Session</code> is created via <code>create_session()</code> with no arguments, the Session has no awareness of individual <code>Engines</code>, and when mappers use the <code>Session</code> to retrieve connections, the underlying <code>MetaData</code> each <code>Table</code> is associated with is expected to be "bound" to an <code>Engine</code>, else no engine can be located and an exception is raised.  A second form of <code>create_session()</code> takes the argument <code>bind_to=engine_or_connection</code>, where all SQL operations performed by this <code>Session</code> use the single <code>Engine</code> or <code>Connection</code> (collectively known as a <code>Connectable</code>) passed to the constructor.  With <code>bind_mapper()</code> and <code>bind_table()</code>,  the operations of individual mapper and/or tables are bound to distinct engines or connections, thereby overriding not only the engine which may be "bound" to the underlying <code>MetaData</code>, but also the <code>Engine</code> or <code>Connection</code> which may have been passed to the <code>create_session()</code> function.  Configurations which interact with multiple explicit database connections at one time must use either or both of these methods in order to associate <code>Session</code> operations with the appropriate connection resource.  <br></br>
+<p>Normally, when a <code>Session</code> is created via <code>create_session()</code> with no arguments, the Session has no awareness of individual <code>Engines</code>, and when mappers use the <code>Session</code> to retrieve connections, the underlying <code>MetaData</code> each <code>Table</code> is associated with is expected to be "bound" to an <code>Engine</code>, else no engine can be located and an exception is raised.  A second form of <code>create_session()</code> takes the argument <code>bind=engine_or_connection</code>, where all SQL operations performed by this <code>Session</code> use the single <code>Engine</code> or <code>Connection</code> (collectively known as a <code>Connectable</code>) passed to the constructor.  With <code>bind_mapper()</code> and <code>bind_table()</code>,  the operations of individual mapper and/or tables are bound to distinct engines or connections, thereby overriding not only the engine which may be "bound" to the underlying <code>MetaData</code>, but also the <code>Engine</code> or <code>Connection</code> which may have been passed to the <code>create_session()</code> function.  Configurations which interact with multiple explicit database connections at one time must use either or both of these methods in order to associate <code>Session</code> operations with the appropriate connection resource.  <br></br>
 </p>
 <p>Binding a <code>Mapper</code> to a resource takes precedence over a <code>Table</code> bind, meaning if mapper A is associated with table B, and the Session binds mapper A to connection X and table B to connection Y, an operation with mapper A will use connection X, not connection Y.
 </p>
@@ -962,8 +958,6 @@
     
     
 
-<p>Feature Status: <a href='javascript:alphaImplementation()'>Alpha Implementation</a> 
-</p>
 <p><code>merge()</code> is used to return the persistent version of an instance that is not attached to this Session.  When passed an instance, if an instance with its database identity already exists within this Session, it is returned.  If the instance does not exist in this Session, it is loaded from the database and then returned.  <br></br>
 </p>
 <p>A future version of <code>merge()</code> will also update the Session's instance with the state of the given instance (hence the name "merge").
@@ -1005,8 +999,6 @@
     
     
 
-<p>Feature Status: <a href='javascript:alphaImplementation()'>Alpha Implementation</a> 
-</p>
 <p>Mappers support the concept of configurable <em>cascade</em> behavior on <code>relation()</code>s.  This behavior controls how the Session should treat the instances that have a parent-child relationship with another instance that is operated upon by the Session.  Cascade is indicated as a comma-separated list of string keywords, with the possible values <code>all</code>, <code>delete</code>, <code>save-update</code>, <code>refresh-expire</code>, <code>merge</code>, <code>expunge</code>, and <code>delete-orphan</code>.
 </p>
 <p>Cascading is configured by setting the <code>cascade</code> keyword argument on a <code>relation()</code>:
@@ -1092,6 +1084,11 @@
  <li>
      SessionTransaction, like its parent Session object, is <strong>not threadsafe</strong>.
  </li>
+
+ <li>
+     SessionTransaction will no longer be necessary in SQLAlchemy 0.4, where its functionality is to be merged with the Session itself.
+       <br></br>
+ </li>
 </ul>
 
 
@@ -1169,7 +1166,7 @@
     <div class="sliding_code">
             <div class="codetitle">Transactions with Sessions</div>
         <pre><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()   </span><span class="python_comment"># Connection</span><span class="python_operator">
-</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">connection</span><span class="python_enclosure">) </span><span class="python_comment"># Session bound to the Connection</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">connection</span><span class="python_enclosure">) </span><span class="python_comment"># Session bound to the Connection</span><span class="python_operator">
 </span><span class="python_name">trans </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()      </span><span class="python_comment"># start transaction</span><span class="python_operator">
 </span><span class="python_keyword">try</span><span class="python_operator">:
     </span><span class="python_name">stuff </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()     </span><span class="python_comment"># Session operation uses connection</span><span class="python_operator">
@@ -1184,63 +1181,13 @@
 
 
 
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
-
-    </div>
-
-
-
-    
-    <A name="unitofwork_logging"></a>
-    
-    <div class="sectionL2">
-
-    <h3>Analyzing Object Flushes</h3>
-    
-    
-
-<p>The session module can log an extensive display of its "flush plans", which is a graph of its internal representation of objects before they are written to the database.  To turn this logging on:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre><span class="python_comment"># make an Session with echo_uow
-</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">echo_uow</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
-    </div>
-<p>The <code>flush()</code> operation will then dump to the standard output displays like the following:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>Task dump:
-
- UOWTask(6034768, 'User/users/None')
-  |
-  |- Save User(6016624)
-  |       |-Process User(6016624).addresses
-  |
-  |- UOWTask(6034832, 'Address/email_addresses/None')
-  |   |- Save Address(6034384)
-  |   |- Save Address(6034256)
-  |   |----
-  | 
-  |----</pre>
-    </div>
-<p>The above graph can be read straight downwards to determine the order of operations.  It indicates "save User 6016624, process each element in the 'addresses' list on User 6016624, save Address 6034384, Address 6034256".
-</p>
-<p>Of course, one can also get a good idea of the order of operations just by logging the actual SQL statements executed.
-</p>
-
-
-
 
             <a href="#top">back to section top</a>
+    </div>
+
+
+
+
     </div>
 
 

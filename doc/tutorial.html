@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -438,25 +438,26 @@
     
     
 
-<p>Configuring SQLAlchemy for your database consists of creating objects called <code>Tables</code>, each of which represent an actual table in the database.  A collection of <code>Table</code> objects resides in a <code>MetaData</code> object which is essentially a table collection.  We will create a handy form of <code>MetaData</code> that automatically connects to our <code>Engine</code> (connecting a schema object to an Engine is called <em>binding</em>):
+<p>Configuring SQLAlchemy for your database consists of creating objects called <code>Tables</code>, each of which represent an actual table in the database.  A collection of <code>Table</code> objects resides in a <code>MetaData</code> object which is essentially a table collection.  We will create a <code>MetaData</code> and connect it to our <code>Engine</code> (connecting a schema object to an Engine is called <em>binding</em>):
 </p>
 
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_name">db</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+        <pre><span class="python_literal">>>> </span><span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">bind </span><span class="python_operator">= </span><span class="python_name">db</span><span class="python_operator"></span></pre>
     </div>
-<p>An equivalent operation is to create the <code>BoundMetaData</code> object directly with an Engine URL, which calls the <code>create_engine</code> call for us:
+<p>An equivalent operation is to create the <code>MetaData</code> object directly with the Engine:
 </p>
 
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///tutorial.db'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+        <pre><span class="python_literal">>>> </span><span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_name">db</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
 <p>Now, when we tell "metadata" about the tables in our database, we can issue CREATE statements for those tables, as well as execute SQL statements derived from them, without needing to open or close any connections; that will be all done automatically.
 </p>
-<p>Note that SQLALchemy fully supports the usage of explicit Connection objects for all SQL operations, which may be in conjunction with plain <code>MetaData</code> objects that are entirely unbound to any Engine, providing a more decoupled pattern that allows finer-grained control of connections than the "bound" approach this tutorial will present.  For the purposes of this tutorial, we will stick with "bound" objects, as it allows us to focus more on SA's general concepts, leaving explicit connection management as a more advanced topic.
+<p>Note that SQLALchemy allows us to use explicit connection objects for everything, if we wanted to, and there are reasons why you might want to do this.  But for the purposes of this tutorial, using <code>bind</code> removes the need for us to deal with explicit connections.
 </p>
 
 
@@ -484,10 +485,10 @@
         <pre><span class="python_literal">>>> </span><span class="python_name">users_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
 <span class="python_operator">...     </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 <span class="python_operator">...     </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">40</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
-<span class="python_operator">...     </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'password'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">10</span><span class="python_enclosure">))</span>
+<span class="python_operator">...     </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'password'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">15</span><span class="python_enclosure">))</span>
 <span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>As you might have guessed, we have just defined a table named <code>users</code> which has three columns: <code>user_id</code> (which is a primary key column), <code>user_name</code> and <code>password</code>. Currently it is just an object that doesn't necessarily correspond to an existing table in our database.  To actually create the table, we use the <code>create()</code> method.  To make it interesting, we will have SQLAlchemy echo the SQL statements it sends to the database, by setting the <code>echo</code> flag on the <code>Engine</code> associated with our <code>BoundMetaData</code>:
+<p>As you might have guessed, we have just defined a table named <code>users</code> which has three columns: <code>user_id</code> (which is a primary key column), <code>user_name</code> and <code>password</code>. Currently it is just an object that doesn't necessarily correspond to an existing table in our database.  To actually create the table, we use the <code>create()</code> method.  To make it interesting, we will have SQLAlchemy echo the SQL statements it sends to the database, by setting the <code>echo</code> flag on the <code>Engine</code> associated with our <code>MetaData</code>:
 </p>
 
     
@@ -498,7 +499,7 @@
 </span><span class="python_name">CREATE TABLE users </span><span class="python_enclosure">(</span>
     <span class="python_name">user_id INTEGER NOT NULL</span><span class="python_operator">,</span>
     <span class="python_name">user_name VARCHAR</span><span class="python_enclosure">(</span><span class="python_number">40</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-    <span class="python_name">password VARCHAR</span><span class="python_enclosure">(</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">password VARCHAR</span><span class="python_enclosure">(</span><span class="python_number">15</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">PRIMARY KEY </span><span class="python_enclosure">(</span><span class="python_name">user_id</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">)</span><span class="python_operator">
 ...</span></pre>
@@ -650,7 +651,7 @@
     
     
 
-<p>You can see that when we print out the rows returned by an execution result, it prints the rows as tuples.  These rows in fact support both the list and dictionary interfaces.  The dictionary interface allows the addressing of columns by string column name, or even the original <code>Column</code> object:
+<p>You can see that when we print out the rows returned by an execution result, it prints the rows as tuples.  These rows support both the list and dictionary interfaces.  The dictionary interface allows the addressing of columns by string column name, or even the original <code>Column</code> object:
 </p>
 
     
@@ -745,7 +746,7 @@
 </span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_enclosure">[</span><span class="python_name">row </span><span class="python_keyword">for </span><span class="python_name">row </span><span class="python_keyword">in </span><span class="python_name">r</span><span class="python_enclosure">]</span><span class="python_operator">
 </span><span class="python_enclosure">[(</span><span class="python_number">1</span><span class="python_operator">, </span><span class="python_literal">u'Mary'</span><span class="python_operator">, </span><span class="python_literal">u'secure'</span><span class="python_operator">, </span><span class="python_number">2</span><span class="python_operator">, </span><span class="python_literal">u'mary@mary.com'</span><span class="python_operator">, </span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_operator">, </span><span class="python_literal">u'Tom'</span><span class="python_operator">, </span><span class="python_name">None</span><span class="python_operator">, </span><span class="python_number">1</span><span class="python_operator">, </span><span class="python_literal">u'tom@tom.com'</span><span class="python_operator">, </span><span class="python_number">2</span><span class="python_enclosure">)]</span><span class="python_operator"></span></pre>
     </div>
-<p>The <code>join</code> method is also a standalone function in the <code>sqlalchemy</code> namespace.  The join condition is figured out from the foreign keys of the Table objects given.  The condition (also called the "ON clause") can be specified explicitly, such as in this example where we locate all users that used their email address as their password:
+<p>The <code>join</code> method is also a standalone function in the <code>sqlalchemy</code> namespace.  The join condition is figured out from the foreign keys of the Table objects given.  The condition (also called the "ON clause") can be specified explicitly, such as in this example which creates a join representing all users that used their email address as their password:
 </p>
 
     
@@ -882,7 +883,7 @@
 
     <div class="sliding_code">
         <pre><span class="python_literal">>>> </span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Harry'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Harry'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">SELECT users</span><span class="python_operator">.</span><span class="python_name">user_name AS users_user_name</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">password AS users_password</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">user_id AS users_user_id </span><span class="python_operator">
 </span><span class="python_name">FROM users </span><span class="python_operator">
 </span><span class="python_name">WHERE users</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">= ? </span><span class="python_name">ORDER BY users</span><span class="python_operator">.</span><span class="python_name">oid</span><span class="python_operator">
@@ -891,25 +892,25 @@
     </div>
 <p>All querying for objects is performed via an instance of <code>Query</code>.  The various <code>select</code> methods on an instance of <code>Mapper</code> also use an underlying <code>Query</code> object to perform the operation.  A <code>Query</code> is always bound to a specific <code>Session</code>.
 </p>
-<p>Lets turn off the database echoing for a moment, and try out a few methods on <code>Query</code>.  Methods that end with the suffix <code>_by</code> primarily take keyword arguments which correspond to properties on the object.  Other methods take <code>ClauseElement</code> objects, which are constructed by using <code>Column</code> objects inside of Python expressions, in the same way as we did with our SQL select example in the previous section of this tutorial.  Using <code>ClauseElement</code> structures to query objects is more verbose but more flexible:
+<p>Lets turn off the database echoing for a moment, and try out a few methods on <code>Query</code>.  The two methods used to narrow results are <code>filter()</code> and <code>filter_by()</code>, and the two most common methods used to load results are <code>all()</code> and <code>first()</code>.   The <code>get()</code> method is used for a quick lookup by primary key.  <code>filter_by()</code> works with keyword arguments, and <code>filter()</code> works with <code>ClauseElement</code> objects, which are constructed by using <code>Column</code> objects inside of Python expressions, in the same way as we did with our SQL select example in the previous section of this tutorial.  Using <code>ClauseElement</code> structures to query objects is more verbose but more flexible:
 </p>
 
     
 
     <div class="sliding_code">
         <pre><span class="python_literal">>>> </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">echo </span><span class="python_operator">= </span><span class="python_name">False</span><span class="python_operator">
-</span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_number">3</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_number">3</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_enclosure">[</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'Fred'</span><span class="python_operator">,</span><span class="python_name">None</span><span class="python_enclosure">)]</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'Tom'</span><span class="python_operator">,</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'Mary'</span><span class="python_operator">,</span><span class="python_literal">u'secure'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">selectfirst</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">password</span><span class="python_operator">==</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">password</span><span class="python_operator">==</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'Tom'</span><span class="python_operator">,</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_number">4</span><span class="python_operator"></span></pre>
     </div>
-<p>Notice that our <code>User</code> class has a special attribute <code>c</code> attached to it.  This 'c' represents the columns on the User's mapper's Table object.  Saying <code>User.c.user_name</code> is synonymous with saying <code>users_table.c.user_name</code>, recalling that <code>User</code> is the Python class and <code>users</code> is our <code>Table</code> object.
+<p>Notice that our <code>User</code> class has a special attribute <code>c</code> attached to it.  This 'c' represents the columns on the User's mapper's Table object.  Saying <code>User.c.user_name</code> is synonymous with saying <code>users_table.c.user_name</code>, recalling that <code>User</code> is the Python class and <code>users_table</code> is our <code>Table</code> object.
 </p>
 
 
@@ -947,8 +948,8 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">mary </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal">>>> </span><span class="python_name">harry </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Harry'</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre><span class="python_literal">>>> </span><span class="python_name">mary </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_name">harry </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Harry'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_name">mary</span><span class="python_operator">.</span><span class="python_name">password </span><span class="python_operator">= </span><span class="python_literal">'marysnewpassword'</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_name">harry</span><span class="python_operator">.</span><span class="python_name">password </span><span class="python_operator">= </span><span class="python_literal">'harrysnewpassword'</span><span class="python_operator"></span></pre>
     </div>
@@ -958,7 +959,7 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">mary2 </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre><span class="python_literal">>>> </span><span class="python_name">mary2 </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_name">mary </span><span class="python_keyword">is </span><span class="python_name">mary2</span><span class="python_operator">
 </span><span class="python_name">True</span><span class="python_operator"></span></pre>
     </div>
@@ -989,7 +990,7 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">fred </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Fred'</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre><span class="python_literal">>>> </span><span class="python_name">fred </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Fred'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">delete</span><span class="python_enclosure">(</span><span class="python_name">fred</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
 <p>Then to send all of our changes to the database, we <code>flush()</code> the Session.  Lets turn echo back on to see this happen!:
@@ -1084,7 +1085,7 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">mary </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_enclosure">) </span><span class="python_operator">
+        <pre><span class="python_literal">>>> </span><span class="python_name">mary </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">() </span><span class="python_operator">
 </span><span class="python_name">SELECT users</span><span class="python_operator">.</span><span class="python_name">user_name AS users_user_name</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">password AS users_password</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">user_id AS users_user_id </span><span class="python_operator">
 </span><span class="python_name">FROM users </span><span class="python_operator">
 </span><span class="python_name">WHERE users</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">= ? </span><span class="python_name">ORDER BY users</span><span class="python_operator">.</span><span class="python_name">oid </span><span class="python_operator">
@@ -1137,9 +1138,9 @@
     <div class="sliding_code">
         <pre><span class="python_literal">>>> </span><span class="python_name">transaction </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">create_transaction</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_keyword">try</span><span class="python_operator">: 
-...     </span><span class="python_enclosure">(</span><span class="python_name">ed</span><span class="python_operator">, </span><span class="python_name">harry</span><span class="python_operator">, </span><span class="python_name">mary</span><span class="python_enclosure">) </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span>
-<span class="python_operator">...         </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">(</span><span class="python_literal">'Ed'</span><span class="python_operator">, </span><span class="python_literal">'Harry'</span><span class="python_operator">, </span><span class="python_literal">'Mary'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span>
-<span class="python_operator">...     </span><span class="python_enclosure">)</span><span class="python_operator">
+...     </span><span class="python_enclosure">(</span><span class="python_name">ed</span><span class="python_operator">, </span><span class="python_name">harry</span><span class="python_operator">, </span><span class="python_name">mary</span><span class="python_enclosure">) </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
+<span class="python_operator">...         </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">(</span><span class="python_literal">'Ed'</span><span class="python_operator">, </span><span class="python_literal">'Harry'</span><span class="python_operator">, </span><span class="python_literal">'Mary'</span><span class="python_enclosure">)</span>
+<span class="python_operator">...     </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
 ...     </span><span class="python_keyword">del </span><span class="python_name">mary</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator">
 ...     </span><span class="python_name">harry</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'harry2@gmail.com'</span><span class="python_enclosure">))</span><span class="python_operator">
 ...     </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
@@ -1175,6 +1176,8 @@
 </span><span class="python_enclosure">[</span><span class="python_literal">'fredsnewemail@fred.com'</span><span class="python_operator">, </span><span class="python_number">6</span><span class="python_enclosure">]</span><span class="python_operator">
 </span><span class="python_name">COMMIT</span><span class="python_operator"></span></pre>
     </div>
+<p>The <code>SessionTransaction</code> process above is due to be greatly simplified in version 0.4 of SQLAlchemy, where the <code>Session</code> will be able to wrap its whole lifespan in a transaction automatically.
+</p>
 <p>Main documentation:  <a href="unitofwork.html">Session / Unit of Work</a>
 </p>
 

@@ -7,7 +7,7 @@ from sqlalchemy.util import OrderedDict
 
 engine = create_engine('sqlite:///:memory:', echo=True)
 
-metadata = BoundMetaData(engine)
+metadata = MetaData(engine)
 
 """create the treenodes table.  This is ia basic adjacency list model table.
 One additional column, "root_node_id", references a "root node" row and is used
@@ -99,7 +99,7 @@ class TreeLoader(MapperExtension):
         if instance.parent_id is None:
             result.append(instance)
         else:
-            if isnew or populate_existing:
+            if isnew or context.populate_existing:
                 parentnode = selectcontext.identity_map[mapper.identity_key(instance.parent_id)]
                 parentnode.children.append_without_event(instance)
         # fire off lazy loader before the instance is part of the session

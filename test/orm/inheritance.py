@@ -427,7 +427,7 @@ class InheritTest7(testbase.ORMTest):
                 'roles' : relation(Role, secondary=user_roles, lazy=False, private=False) 
             }
         )
-        admin_mapper = mapper(Admin, admins, inherits=user_mapper)
+        admin_mapper = mapper(Admin, admins, inherits=user_mapper, properties={'aid':admins.c.id})
         sess = create_session()
         adminrole = Role('admin')
         sess.save(adminrole)
@@ -463,7 +463,7 @@ class InheritTest7(testbase.ORMTest):
             }
         )
 
-        admin_mapper = mapper(Admin, admins, inherits=user_mapper) 
+        admin_mapper = mapper(Admin, admins, inherits=user_mapper, properties={'aid':admins.c.id}) 
 
         # create roles
         adminrole = Role('admin')
@@ -481,6 +481,95 @@ class InheritTest7(testbase.ORMTest):
         a.password = 'sadmin'
         sess.flush()
         assert user_roles.count().scalar() == 1
+
+class InheritTest8(testbase.ORMTest):
+    """test the construction of mapper.primary_key when an inheriting relationship
+    joins on a column other than primary key column."""
+    keep_data = True
+    
+    def define_tables(self, metadata):
+        global person_table, employee_table, Person, Employee
+        
+        person_table = Table("persons", metadata,
+                Column("id", Integer, primary_key=True),
+                Column("name", String(80)),
+                )
+
+        employee_table = Table("employees", metadata,
+                Column("id", Integer, primary_key=True),
+                Column("salary", Integer),
+                Column("person_id", Integer, ForeignKey("persons.id")),
+                )
+
+        class Person(object):
+            def __init__(self, name):
+                self.name = name
+
+        class Employee(Person): pass
+
+        import warnings
+        warnings.filterwarnings("error", r".*On mapper.*distinct primary key")
+    
+    def insert_data(self):
+        person_insert = person_table.insert()
+        person_insert.execute(id=1, name='alice')
+        person_insert.execute(id=2, name='bob')
+
+        employee_insert = employee_table.insert()
+        employee_insert.execute(id=2, salary=250, person_id=1) # alice
+        employee_insert.execute(id=3, salary=200, person_id=2) # bob
+        
+    def test_implicit(self):
+        person_mapper = mapper(Person, person_table)
+        mapper(Employee, employee_table, inherits=person_mapper)
+        try:
+            print class_mapper(Employee).primary_key
+            assert list(class_mapper(Employee).primary_key) == [person_table.c.id, employee_table.c.id]
+            assert False
+        except RuntimeWarning, e:
+            assert str(e) == "On mapper Mapper|Employee|employees, primary key column 'employees.id' is being combined with distinct primary key column 'persons.id' in attribute 'id'.  Use explicit properties to give each column its own mapped attribute name."
+
+    def test_explicit_props(self):
+        person_mapper = mapper(Person, person_table)
+        mapper(Employee, employee_table, inherits=person_mapper, properties={'pid':person_table.c.id, 'eid':employee_table.c.id})
+        self._do_test(True)
+    
+    def test_explicit_composite_pk(self):
+        person_mapper = mapper(Person, person_table)
+        mapper(Employee, employee_table, inherits=person_mapper, primary_key=[person_table.c.id, employee_table.c.id])
+        try:
+            self._do_test(True)
+            assert False
+        except RuntimeWarning, e:
+            assert str(e) == "On mapper Mapper|Employee|employees, primary key column 'employees.id' is being combined with distinct primary key column 'persons.id' in attribute 'id'.  Use explicit properties to give each column its own mapped attribute name."
+
+    def test_explicit_pk(self):
+        person_mapper = mapper(Person, person_table)
+        mapper(Employee, employee_table, inherits=person_mapper, primary_key=[person_table.c.id])
+        self._do_test(False)
+        
+    def _do_test(self, composite):
+        session = create_session()
+        query = session.query(Employee)
+
+        if composite:
+            try:
+                query.get(1)
+                assert False
+            except exceptions.InvalidRequestError, e:
+                assert str(e) == "Could not find enough values to formulate primary key for query.get(); primary key columns are 'persons.id', 'employees.id'"
+            alice1 = query.get([1,2])
+            bob = query.get([2,3])
+            alice2 = query.get([1,2])
+        else:
+            alice1 = query.get(1)
+            bob = query.get(2)
+            alice2 = query.get(1)
+            
+            assert alice1.name == alice2.name == 'alice'
+            assert bob.name == 'bob'
+        
+
         
 if __name__ == "__main__":    
     testbase.main()

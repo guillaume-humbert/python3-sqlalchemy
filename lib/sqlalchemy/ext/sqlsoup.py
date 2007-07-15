@@ -22,7 +22,7 @@ engine::
 
 or, you can re-use an existing metadata::
 
-    >>> db = SqlSoup(BoundMetaData(e))
+    >>> db = SqlSoup(MetaData(e))
 
 You can optionally specify a schema within the database for your
 SqlSoup::
@@ -266,7 +266,7 @@ directly.  The engine's ``execute`` method corresponds to the one of a
 DBAPI cursor, and returns a ``ResultProxy`` that has ``fetch`` methods
 you would also see on a cursor::
 
-    >>> rp = db.engine.execute('select name, email from users order by name')
+    >>> rp = db.bind.execute('select name, email from users order by name')
     >>> for name, email in rp.fetchall(): print name, email
     Bhargan Basepair basepair+nospam@example.edu
     Joe Student student@example.edu
@@ -490,15 +490,16 @@ class SqlSoup:
             if args or kwargs:
                 raise ArgumentError('Extra arguments not allowed when metadata is given')
         else:
-            metadata = BoundMetaData(*args, **kwargs)
+            metadata = MetaData(*args, **kwargs)
         self._metadata = metadata
         self._cache = {}
         self.schema = None
 
     def engine(self):
-        return self._metadata._engine
+        return self._metadata.bind
 
     engine = property(engine)
+    bind = engine
 
     def delete(self, *args, **kwargs):
         objectstore.delete(*args, **kwargs)

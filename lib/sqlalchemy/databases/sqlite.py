@@ -32,11 +32,14 @@ class SLSmallInteger(sqltypes.Smallinteger):
 class DateTimeMixin(object):
     def convert_bind_param(self, value, dialect):
         if value is not None:
-            return str(value)
+            if getattr(value, 'microsecond', None) is not None:
+                return value.strftime(self.__format__ + "." + str(value.microsecond))
+            else:
+                return value.strftime(self.__format__)
         else:
             return None
 
-    def _cvt(self, value, dialect, fmt):
+    def _cvt(self, value, dialect):
         if value is None:
             return None
         try:
@@ -44,30 +47,36 @@ class DateTimeMixin(object):
             microsecond = int(microsecond)
         except ValueError:
             (value, microsecond) = (value, 0)
-        return time.strptime(value, fmt)[0:6] + (microsecond,)
+        return time.strptime(value, self.__format__)[0:6] + (microsecond,)
 
 class SLDateTime(DateTimeMixin,sqltypes.DateTime):
+    __format__ = "%Y-%m-%d %H:%M:%S"
+    
     def get_col_spec(self):
         return "TIMESTAMP"
 
     def convert_result_value(self, value, dialect):
-        tup = self._cvt(value, dialect, "%Y-%m-%d %H:%M:%S")
+        tup = self._cvt(value, dialect)
         return tup and datetime.datetime(*tup)
 
 class SLDate(DateTimeMixin, sqltypes.Date):
+    __format__ = "%Y-%m-%d"
+
     def get_col_spec(self):
         return "DATE"
 
     def convert_result_value(self, value, dialect):
-        tup = self._cvt(value, dialect, "%Y-%m-%d")
+        tup = self._cvt(value, dialect)
         return tup and datetime.date(*tup[0:3])
 
 class SLTime(DateTimeMixin, sqltypes.Time):
+    __format__ = "%H:%M:%S"
+
     def get_col_spec(self):
         return "TIME"
 
     def convert_result_value(self, value, dialect):
-        tup = self._cvt(value, dialect, "%H:%M:%S")
+        tup = self._cvt(value, dialect)
         return tup and datetime.time(*tup[3:7])
 
 class SLText(sqltypes.TEXT):
@@ -139,7 +148,9 @@ def descriptor():
 class SQLiteExecutionContext(default.DefaultExecutionContext):
     def post_exec(self):
         if self.compiled.isinsert:
-            self._last_inserted_ids = [self.cursor.lastrowid]
+            if not len(self._last_inserted_ids) or self._last_inserted_ids[0] is None:
+                self._last_inserted_ids = [self.cursor.lastrowid] + self._last_inserted_ids[1:]
+                
         super(SQLiteExecutionContext, self).post_exec()
         
 class SQLiteDialect(ansisql.ANSIDialect):
@@ -148,13 +159,13 @@ class SQLiteDialect(ansisql.ANSIDialect):
         ansisql.ANSIDialect.__init__(self, default_paramstyle='qmark', **kwargs)
         def vers(num):
             return tuple([int(x) for x in num.split('.')])
-        self.supports_cast = (self.dbapi is None or vers(self.dbapi.sqlite_version) >= vers("3.2.3"))
         if self.dbapi is not None:
             sqlite_ver = self.dbapi.version_info
             if sqlite_ver < (2,1,'3'):
                 warnings.warn(RuntimeWarning("The installed version of pysqlite2 (%s) is out-dated, and will cause errors in some cases.  Version 2.1.3 or greater is recommended." % '.'.join([str(subver) for subver in sqlite_ver])))
             if vers(self.dbapi.sqlite_version) < vers("3.3.13"):
                 warnings.warn(RuntimeWarning("The installed version of sqlite (%s) is out-dated, and will cause errors in some cases.  Version 3.3.13 or greater is recommended." % self.dbapi.sqlite_version))
+        self.supports_cast = (self.dbapi is None or vers(self.dbapi.sqlite_version) >= vers("3.2.3"))
         
     def dbapi(cls):
         try:

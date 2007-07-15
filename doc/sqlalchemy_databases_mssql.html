@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -122,6 +122,34 @@
     </ul>
 
         
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDateTime_adodbapi">class MSDateTime_adodbapi(MSDateTime)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDateTime_pyodbc">class MSDateTime_pyodbc(MSDateTime)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDate_pymssql">class MSDate_pymssql(MSDate)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDate_pyodbc">class MSDate_pyodbc(MSDate)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
         <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSFloat">class MSFloat(Float)</a></li>
         
             
@@ -143,7 +171,7 @@
     </ul>
 
         
-        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSNVarchar">class MSNVarchar(MSString)</a></li>
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSNVarchar">class MSNVarchar(Unicode)</a></li>
         
             
     <ul>
@@ -255,6 +283,13 @@
     </ul>
 
         
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSTimeStamp">class MSTimeStamp(TIMESTAMP)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
         <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSTinyInteger">class MSTinyInteger(Integer)</a></li>
         
             
@@ -309,8 +344,6 @@ and will default to 1,1.</p>
 <p>Known issues / TODO:</p>
 <ul class="simple">
 <li>No support for more than one <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> column per table</li>
-<li>No support for table reflection of <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> columns with
-(seed,increment) values other than (1,1)</li>
 <li>No support for <tt class="docutils literal"><span class="pre">GUID</span></tt> type columns (yet)</li>
 <li>pymssql has problems with binary and unicode data that this module
 does <strong>not</strong> work around</li>
@@ -532,26 +565,6 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def get_col_spec(<i>self</i>)</b>
     <div class="docstring">
     
@@ -594,11 +607,33 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def get_col_spec(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
     </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSDateTime_adodbapi"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSDateTime_adodbapi(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDateTime">MSDateTime</a>)</h3>
+    
+    
+    
 
                     
     <div class="darkcell">
@@ -610,11 +645,107 @@ does <strong>not</strong> work around</li>
     </div>
     </div>
 
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSDateTime_pyodbc"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSDateTime_pyodbc(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDateTime">MSDateTime</a>)</h3>
+    
+    
+    
+
                     
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_col_spec(<i>self</i>)</b>
+    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSDate_pymssql"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSDate_pymssql(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDate">MSDate</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSDate_pyodbc"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSDate_pyodbc(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDate">MSDate</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -744,7 +875,7 @@ does <strong>not</strong> work around</li>
     
     <div class="sectionL3">
 
-    <h3>class MSNVarchar(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSString">MSString</a>)</h3>
+    <h3>class MSNVarchar(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Unicode">Unicode</a>)</h3>
     
     
     
@@ -1242,6 +1373,17 @@ does <strong>not</strong> work around</li>
     </div>
     </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def supports_unicode_statements(<i>self</i>)</b>
+    <div class="docstring">
+    <p>indicate whether the DBAPI can receive SQL statements as Python unicode strings</p>
+
+    </div>
+    </div>
+
 
     
 
@@ -1263,6 +1405,16 @@ does <strong>not</strong> work around</li>
     
     
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>**params</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
 
                     
     <div class="darkcell">
@@ -1318,6 +1470,16 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def max_identifier_length(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def supports_sane_rowcount(<i>self</i>)</b>
     <div class="docstring">
     
@@ -1360,6 +1522,16 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def do_execute(<i>self</i>, <i>cursor</i>, <i>statement</i>, <i>parameters</i>, <i>context=None</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def import_dbapi(<i>cls</i>)</b>
     <div class="docstring">
     
@@ -1393,6 +1565,17 @@ does <strong>not</strong> work around</li>
     <b>def supports_sane_rowcount(<i>self</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def supports_unicode_statements(<i>self</i>)</b>
+    <div class="docstring">
+    <p>indicate whether the DBAPI can receive SQL statements as Python unicode strings</p>
+
     </div>
     </div>
 
@@ -1475,6 +1658,16 @@ into IDENTITY columns.</p>
     
     
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def post_exec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
 
                     
     <div class="darkcell">
@@ -1666,6 +1859,38 @@ workaround for multiple result set issues.</p>
     <div class="sectionL3">
 
     <h3>class MSText(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TEXT">TEXT</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSTimeStamp"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSTimeStamp(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TIMESTAMP">TIMESTAMP</a>)</h3>
     
     
     

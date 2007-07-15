@@ -33,7 +33,7 @@ class _CollectionOperations(PersistTest):
     def setUp(self):
         collection_class = self.collection_class
 
-        metadata = BoundMetaData(db)
+        metadata = MetaData(db)
     
         parents_table = Table('Parent', metadata,
                               Column('id', Integer, primary_key=True),
@@ -130,7 +130,10 @@ class _CollectionOperations(PersistTest):
 
         self.assert_(len(p1._children) == 3)
         self.assert_(len(p1.children) == 3)
-        
+
+        p1._children = []
+        self.assert_(len(p1.children) == 0)
+
 class DefaultTest(_CollectionOperations):
     def __init__(self, *args, **kw):
         super(DefaultTest, self).__init__(*args, **kw)
@@ -208,10 +211,18 @@ class CustomDictTest(DictTest):
         self.assert_(len(p1._children) == 3)
         self.assert_(len(p1.children) == 3)
 
+        self.assert_(set(p1.children) == set(['d','e','f']))
+
         del ch
         p1 = self.roundtrip(p1)
         self.assert_(len(p1._children) == 3)
         self.assert_(len(p1.children) == 3)
+
+        p1.children['d'] = 'new d'
+        assert p1.children['d'] == 'new d'
+
+        p1._children = {}
+        self.assert_(len(p1.children) == 0)
     
 
 class SetTest(_CollectionOperations):
@@ -310,6 +321,9 @@ class SetTest(_CollectionOperations):
         p1.children.remove('a')
         p1 = self.roundtrip(p1)
         self.assert_(p1.children == set(['c']))
+
+        p1._children = []
+        self.assert_(len(p1.children) == 0)
 
     def test_set_comparisons(self):
         Parent, Child = self.Parent, self.Child
@@ -420,7 +434,7 @@ class CustomObjectTest(_CollectionOperations):
 
 class ScalarTest(PersistTest):
     def test_scalar_proxy(self):
-        metadata = BoundMetaData(db)
+        metadata = MetaData(db)
     
         parents_table = Table('Parent', metadata,
                               Column('id', Integer, primary_key=True),
@@ -536,7 +550,7 @@ class ScalarTest(PersistTest):
 
 class LazyLoadTest(PersistTest):
     def setUp(self):
-        metadata = BoundMetaData(db)
+        metadata = MetaData(db)
     
         parents_table = Table('Parent', metadata,
                               Column('id', Integer, primary_key=True),

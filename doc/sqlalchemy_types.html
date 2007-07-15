@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -165,6 +165,13 @@
 
         
         <li><A style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Integer">class Integer(TypeEngine)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Interval">class Interval(TypeDecorator)</a></li>
         
             
     <ul>
@@ -756,6 +763,70 @@
 
     
     
+    <A name="docstrings_sqlalchemy.types_Interval"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class Interval(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TypeDecorator">TypeDecorator</a>)</h3>
+    
+    
+    <div class="darkcell"><p>Type to be used in Column statements to store python timedeltas.</p>
+<p>If it's possible it uses native engine features to store timedeltas
+(now it's only PostgreSQL Interval type), if there is no such it
+fallbacks to DateTime storage with converting from/to timedelta on the fly</p>
+<p>Converting is very simple - just use epoch(zero timestamp, 01.01.1970) as
+base, so if we need to store timedelta = 1 day (24 hours) in database it
+will be stored as DateTime = '2nd Jan 1970 00:00', see convert_bind_param
+and convert_result_value to actual conversion code</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def load_dialect_impl(<i>self</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    <p>Checks if engine has native implementation of timedelta python type,
+if so it returns right class to handle it, if there is no native support,
+it fallback to engine's DateTime implementation class</p>
+
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
     <A name="docstrings_sqlalchemy.types_NCHAR"></a>
     
     <div class="sectionL3">
@@ -1328,6 +1399,19 @@
     <b>def is_mutable(<i>self</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def load_dialect_impl(<i>self</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    <p>loads the dialect-specific implementation of this type.</p>
+<p>by default calls dialect.type_descriptor(self.impl), but
+can be overridden to provide different behavior.</p>
+
     </div>
     </div>
 

@@ -10,7 +10,10 @@ except ImportError:
     import dummy_thread as thread
     import dummy_threading as threading
 
+from sqlalchemy import exceptions
 import md5
+import sys
+import warnings
 
 import __builtin__
 
@@ -126,6 +129,22 @@ def duck_type_collection(col, default=None):
         return dict
     else:
         return default
+
+def assert_arg_type(arg, argtype, name):
+    if isinstance(arg, argtype):
+        return arg
+    else:
+        if isinstance(argtype, tuple):
+            raise exceptions.ArgumentError("Argument '%s' is expected to be one of type %s, got '%s'" % (name, ' or '.join(["'%s'" % str(a) for a in argtype]), str(type(arg))))
+        else:
+            raise exceptions.ArgumentError("Argument '%s' is expected to be of type '%s', got '%s'" % (name, str(argtype), str(type(arg))))
+        
+def warn_exception(func):
+    """executes the given function, catches all exceptions and converts to a warning."""
+    try:
+        return func()
+    except:
+        warnings.warn(RuntimeWarning("%s('%s') ignored" % sys.exc_info()[0:2]))
     
 class SimpleProperty(object):
     """A *default* property accessor."""
@@ -229,24 +248,23 @@ class OrderedDict(dict):
 
     def __init__(self, d=None, **kwargs):
         self._list = []
-        self.update(d, **kwargs)
-
-    def keys(self):
-        return list(self._list)
+        if d is None:
+            self.update(**kwargs)
+        else:
+            self.update(d, **kwargs)
 
     def clear(self):
         self._list = []
         dict.clear(self)
 
-    def update(self, d=None, **kwargs):
-        # d can be a dict or sequence of keys/values
-        if d:
-            if hasattr(d, 'iteritems'):
-                seq = d.iteritems()
+    def update(self, ____sequence=None, **kwargs):
+        if ____sequence is not None:
+            if hasattr(____sequence, 'keys'):
+                for key in ____sequence.keys():
+                    self.__setitem__(key, ____sequence[key])
             else:
-                seq = d
-            for key, value in seq:
-                self.__setitem__(key, value)
+                for key, value in ____sequence:
+                    self[key] = value
         if kwargs:
             self.update(kwargs)
 
@@ -257,35 +275,45 @@ class OrderedDict(dict):
         else:
             return self.__getitem__(key)
 
-    def values(self):
-        return [self[key] for key in self._list]
-
     def __iter__(self):
         return iter(self._list)
 
+    def values(self):
+        return [self[key] for key in self._list]
+
     def itervalues(self):
-        return iter([self[key] for key in self._list])
+        return iter(self.values())
+
+    def keys(self):
+        return list(self._list)
 
     def iterkeys(self):
-        return self.__iter__()
+        return iter(self.keys())
+
+    def items(self):
+        return [(key, self[key]) for key in self.keys()]
 
     def iteritems(self):
-        return iter([(key, self[key]) for key in self.keys()])
-
-    def __delitem__(self, key):
-        try:
-            del self._list[self._list.index(key)]
-        except ValueError:
-            raise KeyError(key)
-        dict.__delitem__(self, key)
+        return iter(self.items())
 
     def __setitem__(self, key, object):
         if not self.has_key(key):
             self._list.append(key)
         dict.__setitem__(self, key, object)
 
-    def __getitem__(self, key):
-        return dict.__getitem__(self, key)
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        self._list.remove(key)
+
+    def pop(self, key):
+        value = dict.pop(self, key)
+        self._list.remove(key)
+        return value
+
+    def popitem(self):
+        item = dict.popitem(self)
+        self._list.remove(item[0])
+        return item
 
 class ThreadLocal(object):
     """An object in which attribute access occurs only within the context of the current thread."""

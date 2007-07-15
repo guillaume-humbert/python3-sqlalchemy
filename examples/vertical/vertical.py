@@ -5,7 +5,7 @@ fields that are all persisted in a normalized fashion."""
 from sqlalchemy import *
 import datetime
 
-e = BoundMetaData('sqlite://', echo=True)
+e = MetaData('sqlite://', echo=True)
 
 # this table represents Entity objects.  each Entity gets a row in this table,
 # with a primary key and a title.
@@ -123,7 +123,7 @@ mapper(
 )
 
 mapper(Entity, entities, properties = {
-    '_entities' : relation(EntityValue, lazy=False, cascade='save-update', collection_class=EntityDict)
+    '_entities' : relation(EntityValue, lazy=False, cascade='all', collection_class=EntityDict)
 })
 
 # create two entities.  the objects can be used about as regularly as
@@ -174,3 +174,7 @@ session.clear()
 entities = session.query(Entity).select()
 for entity in entities:
     print entity.title, entity.name, entity.price, entity.data
+
+for entity in entities:
+    session.delete(entity)
+session.flush()
