@@ -464,10 +464,60 @@ class ReflectionTest(PersistTest):
         meta2 = MetaData(testbase.db)
         try:
             table2 = Table('identity_test', meta2, autoload=True)
-            print table2.c['col1'].sequence
+            assert table2.c['col1'].sequence.start == 2
+            assert table2.c['col1'].sequence.increment == 3
         finally:
             table.drop()
 
+    def testreserved(self):
+        # check a table that uses an SQL reserved name doesn't cause an error
+        meta = MetaData(testbase.db)
+        table_a = Table('select', meta, 
+                       Column('not', Integer, primary_key=True),
+                       Column('from', String(12), nullable=False),
+                       UniqueConstraint('from', name='when'))
+        Index('where', table_a.c['from'])
+
+        quoter = meta.bind.dialect.identifier_preparer.quote_identifier
+
+        table_b = Table('false', meta,
+                        Column('create', Integer, primary_key=True),
+                        Column('true', Integer, ForeignKey('select.not')),
+                        CheckConstraint('%s <> 1' % quoter('true'), name='limit'))
+
+        table_c = Table('is', meta,
+                        Column('or', Integer, nullable=False, primary_key=True),
+                        Column('join', Integer, nullable=False, primary_key=True),
+                        PrimaryKeyConstraint('or', 'join', name='to'))
+
+        index_c = Index('else', table_c.c.join)
+
+        #meta.bind.echo = True
+        meta.create_all()
+
+        index_c.drop()
+        
+        meta2 = MetaData(testbase.db)
+        try:
+            table_a2 = Table('select', meta2, autoload=True)
+            table_b2 = Table('false', meta2, autoload=True)
+            table_c2 = Table('is', meta2, autoload=True)
+        finally:
+            meta.drop_all()
+
+
+        meta = MetaData(testbase.db)
+        table = Table(
+            'select', meta, 
+            Column('col1', Integer, primary_key=True)
+        )
+        table.create()
+        
+        meta2 = MetaData(testbase.db)
+        try:
+            table2 = Table('select', meta2, autoload=True)
+        finally:
+            table.drop()
 
 class CreateDropTest(PersistTest):
     def setUpAll(self):
@@ -557,6 +607,30 @@ class SchemaTest(PersistTest):
         print buf
         assert buf.index("CREATE TABLE someschema.table1") > -1
         assert buf.index("CREATE TABLE someschema.table2") > -1
+
+    @testbase.unsupported('sqlite', 'postgres')
+    def test_create_with_defaultschema(self):
+        engine = testbase.db
+        schema = engine.dialect.get_default_schema_name(engine)
+
+        # test reflection of tables with an explcit schemaname
+        # matching the default
+        metadata = MetaData(testbase.db)
+        table1 = Table('table1', metadata, 
+            Column('col1', Integer, primary_key=True),
+            schema=schema)
+        table2 = Table('table2', metadata, 
+            Column('col1', Integer, primary_key=True),
+            Column('col2', Integer, ForeignKey('%s.table1.col1' % schema)),
+            schema=schema)
+        metadata.create_all()
+        metadata.create_all(checkfirst=True)
+        metadata.clear()
+        table1 = Table('table1', metadata, autoload=True, schema=schema)
+        table2 = Table('table2', metadata, autoload=True, schema=schema)
+        assert table1.schema == table2.schema == schema
+        assert len(metadata.tables) == 2
+        metadata.drop_all()
     
         
 if __name__ == "__main__":

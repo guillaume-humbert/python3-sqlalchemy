@@ -2163,10 +2163,10 @@ class _UnaryExpression(ColumnElement):
         visitor.visit_unary(self)
 
     def compare(self, other):
-        """Compare this ``_UnaryClause`` against the given ``ClauseElement``."""
+        """Compare this ``_UnaryExpression`` against the given ``ClauseElement``."""
 
         return (
-            isinstance(other, _UnaryClause) and self.operator == other.operator and
+            isinstance(other, _UnaryExpression) and self.operator == other.operator and
             self.modifier == other.modifier and 
             self.element.compare(other.element)
         )
@@ -2210,7 +2210,13 @@ class _BinaryExpression(ColumnElement):
 
         return (
             isinstance(other, _BinaryExpression) and self.operator == other.operator and
-            self.left.compare(other.left) and self.right.compare(other.right)
+                (
+                    self.left.compare(other.left) and self.right.compare(other.right)
+                    or (
+                        self.operator in ['=', '!=', '+', '*'] and
+                        self.left.compare(other.right) and self.right.compare(other.left)
+                    )
+                )
         )
         
     def self_group(self, against=None):
