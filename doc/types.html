@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.3 Documentation - The Types System</title>
+	<title>SQLAlchemy 0.4 Documentation - The Types System</title>
 	
     <link rel="stylesheet" href="style.css"></link>
     <link rel="stylesheet" href="docs.css"></link>
@@ -23,11 +23,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.3 Documentation</h1>
+<h1>SQLAlchemy 0.4 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
 
 
 
@@ -47,7 +47,7 @@
     <div class="prevnext">
 
             
-            Previous: <a href="adv_datamapping.html">Advanced Data Mapping</a>
+            Previous: <a href="metadata.html">Database Meta Data</a>
 
                |   
             Next: <a href="pooling.html">Connection Pooling</a>
@@ -60,26 +60,14 @@
 	
     <ul>
         
-        <li><A style="" href="types.html#types_standard">Built-in Types</a></li>
+        <li><a style="" href="types.html#types_standard">Built-in Types</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="types.html#types_dialect">Dialect Specific Types</a></li>
+        <li><a style="" href="types.html#types_dialect">Dialect Specific Types</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="types.html#types_custom">Creating your Own Types</a></li>
+        <li><a style="" href="types.html#types_custom">Creating your Own Types</a></li>
         
-            
-    <ul>
-    </ul>
-
     </ul>
 
 	</div>
@@ -124,7 +112,8 @@
 
     <div class="sliding_code">
             <div class="codetitle">package sqlalchemy.types</div>
-        <pre><span class="python_keyword">class </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">length</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Integer</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -159,7 +148,8 @@
 <span class="python_comment"># uses the pickle protocol to serialize data
 # in/out of Binary columns
 </span><span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">PickleType</span><span class="python_enclosure">(</span><span class="python_name">TypeDecorator</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">Binary</span><span class="python_operator"></span></pre>
+    </span><span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">Binary</span><span class="python_operator">
+</span></pre>
     </div>
 <p>More specific subclasses of these types are available, which various database engines may choose to implement specifically, allowing finer grained control over types:
 </p>
@@ -167,7 +157,8 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">class </span><span class="python_name">FLOAT</span><span class="python_enclosure">(</span><span class="python_name">Numeric</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">FLOAT</span><span class="python_enclosure">(</span><span class="python_name">Numeric</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">class </span><span class="python_name">TEXT</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">class </span><span class="python_name">DECIMAL</span><span class="python_enclosure">(</span><span class="python_name">Numeric</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">class </span><span class="python_name">INT</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -178,7 +169,8 @@
 </span><span class="python_keyword">class </span><span class="python_name">VARCHAR</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">class </span><span class="python_name">CHAR</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">class </span><span class="python_name">BLOB</span><span class="python_enclosure">(</span><span class="python_name">Binary</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_keyword">class </span><span class="python_name">BOOLEAN</span><span class="python_enclosure">(</span><span class="python_name">Boolean</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+</span><span class="python_keyword">class </span><span class="python_name">BOOLEAN</span><span class="python_enclosure">(</span><span class="python_name">Boolean</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>When using a specific database engine, these types are adapted even further via a set of database-specific subclasses defined by the database engine.
    There may eventually be more type objects that are defined for specific databases.  An example of this would be Postgres' Array type.
@@ -189,13 +181,15 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'mytable'</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_operator">, </span>
+        <pre>
+<span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'mytable'</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_operator">, </span>
     <span class="python_comment"># define type using a class</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'my_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">, </span>
 
     <span class="python_comment"># define type using an object instance</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'value'</span><span class="python_operator">, </span><span class="python_name">Number</span><span class="python_enclosure">(</span><span class="python_number">7</span><span class="python_operator">,</span><span class="python_number">4</span><span class="python_enclosure">)) </span>
-<span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 
 
@@ -220,12 +214,14 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">databases</span><span class="python_operator">.</span><span class="python_name">mysql </span><span class="python_keyword">import </span><span class="python_name">MSEnum</span><span class="python_operator">, </span><span class="python_name">MSBigInteger</span><span class="python_operator">
+        <pre>
+<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">databases</span><span class="python_operator">.</span><span class="python_name">mysql </span><span class="python_keyword">import </span><span class="python_name">MSEnum</span><span class="python_operator">, </span><span class="python_name">MSBigInteger</span><span class="python_operator">
 </span>
 <span class="python_name">table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'enumerates'</span><span class="python_operator">, </span><span class="python_name">MSEnum</span><span class="python_enclosure">(</span><span class="python_literal">'a'</span><span class="python_operator">, </span><span class="python_literal">'b'</span><span class="python_operator">, </span><span class="python_literal">'c'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">MSBigInteger</span><span class="python_enclosure">)</span>
-<span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Or some postgres types:
 </p>
@@ -233,12 +229,14 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">databases</span><span class="python_operator">.</span><span class="python_name">postgres </span><span class="python_keyword">import </span><span class="python_name">PGInet</span><span class="python_operator">, </span><span class="python_name">PGArray</span><span class="python_operator">
+        <pre>
+<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">databases</span><span class="python_operator">.</span><span class="python_name">postgres </span><span class="python_keyword">import </span><span class="python_name">PGInet</span><span class="python_operator">, </span><span class="python_name">PGArray</span><span class="python_operator">
 </span>
 <span class="python_name">table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'ipaddress'</span><span class="python_operator">, </span><span class="python_name">PGInet</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'elements'</span><span class="python_operator">, </span><span class="python_name">PGArray</span><span class="python_enclosure">(</span><span class="python_name">str</span><span class="python_enclosure">))   </span><span class="python_comment"># PGArray is available in 0.4, and takes a type argument</span>
-    <span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    <span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 
 
@@ -263,7 +261,8 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types as types</span><span class="python_operator">
+        <pre>
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types as types</span><span class="python_operator">
 </span>
 <span class="python_keyword">class </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">TypeDecorator</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_literal">"""basic type that decorates String, prefixes values with "PREFIX:" on 
@@ -272,7 +271,8 @@
     </span><span class="python_keyword">def </span><span class="python_name">convert_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_literal">"PREFIX:" </span><span class="python_operator">+ </span><span class="python_name">value</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
-        </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_enclosure">[</span><span class="python_number">7</span><span class="python_operator">:</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre>
+        </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_enclosure">[</span><span class="python_number">7</span><span class="python_operator">:</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
     </div>
 <p>The <code>PickleType</code> class is an instance of <code>TypeDecorator</code> already and can be subclassed directly.
 </p>
@@ -282,7 +282,8 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types as types</span><span class="python_operator">
+        <pre>
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types as types</span><span class="python_operator">
 </span>
 <span class="python_keyword">class </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">precision </span><span class="python_operator">= </span><span class="python_number">8</span><span class="python_enclosure">)</span><span class="python_operator">:
@@ -292,7 +293,8 @@
     </span><span class="python_keyword">def </span><span class="python_name">convert_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
-        </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator"></span></pre>
+        </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Once you make your type, its immediately useable:
 </p>
@@ -300,10 +302,12 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+        <pre>
+<span class="python_name">table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'data'</span><span class="python_operator">, </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_number">16</span><span class="python_enclosure">))</span>
-    <span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    <span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 
 
@@ -318,7 +322,7 @@
     </div>
 
 
-</html>
+
 
 
     <div class="bottomnav">
@@ -326,7 +330,7 @@
     <div class="prevnext">
 
             
-            Previous: <a href="adv_datamapping.html">Advanced Data Mapping</a>
+            Previous: <a href="metadata.html">Database Meta Data</a>
 
                |   
             Next: <a href="pooling.html">Connection Pooling</a>

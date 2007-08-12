@@ -1,23 +1,25 @@
 """illustrates one way to use a custom pickler that is session-aware."""
 
 from sqlalchemy import *
+from sqlalchemy.orm import *
 from sqlalchemy.orm.session import object_session
 from cStringIO import StringIO
 from pickle import Pickler, Unpickler
 import threading
 
-meta = MetaData('sqlite://', echo=True)
+meta = MetaData('sqlite://')
+meta.bind.echo = True
 
 class MyExt(MapperExtension):
     def populate_instance(self, mapper, selectcontext, row, instance, identitykey, isnew):
         MyPickler.sessions.current = selectcontext.session
-        return EXT_PASS
+        return EXT_CONTINUE
     def before_insert(self, mapper, connection, instance):
         MyPickler.sessions.current = object_session(instance)
-        return EXT_PASS
+        return EXT_CONTINUE
     def before_update(self, mapper, connection, instance):
         MyPickler.sessions.current = object_session(instance)
-        return EXT_PASS
+        return EXT_CONTINUE
     
 class MyPickler(object):
     sessions = threading.local()
@@ -25,7 +27,7 @@ class MyPickler(object):
     def persistent_id(self, obj):
         if getattr(obj, "id", None) is None:
             sess = MyPickler.sessions.current
-            newsess = create_session(bind_to=sess.connection(class_mapper(Bar)))
+            newsess = create_session(bind=sess.connection(class_mapper(Bar)))
             newsess.save(obj)
             newsess.flush()
         key = "%s:%s" % (type(obj).__name__, obj.id)

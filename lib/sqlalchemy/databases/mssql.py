@@ -25,29 +25,25 @@
 
 * Support for auto-fetching of ``@@IDENTITY/@@SCOPE_IDENTITY()`` on ``INSERT``
 
-* ``select.limit`` implemented as ``SELECT TOP n``
+* ``select._limit`` implemented as ``SELECT TOP n``
 
 
 Known issues / TODO:
 
 * No support for more than one ``IDENTITY`` column per table
 
+* No support for ``GUID`` type columns (yet)
+
 * pymssql has problems with binary and unicode data that this module
   does **not** work around
   
 """
 
-import sys, StringIO, string, types, re, datetime, random
+import datetime, random, warnings, re
 
-import sqlalchemy.sql as sql
-import sqlalchemy.engine as engine
-import sqlalchemy.engine.default as default
-import sqlalchemy.schema as schema
-import sqlalchemy.ansisql as ansisql
+from sqlalchemy import sql, schema, ansisql, exceptions
 import sqlalchemy.types as sqltypes
-import sqlalchemy.exceptions as exceptions
-import sys
-
+from sqlalchemy.engine import default
     
 class MSNumeric(sqltypes.Numeric):
     def convert_result_value(self, value, dialect):
@@ -80,15 +76,11 @@ class MSInteger(sqltypes.Integer):
     def get_col_spec(self):
         return "INTEGER"
 
-class MSBigInteger(MSInteger):
-    def get_col_spec(self):
-        return "BIGINT"
-
-class MSTinyInteger(MSInteger):
+class MSTinyInteger(sqltypes.Integer): 
     def get_col_spec(self):
         return "TINYINT"
 
-class MSSmallInteger(MSInteger):
+class MSSmallInteger(sqltypes.Smallinteger):
     def get_col_spec(self):
         return "SMALLINT"
 
@@ -229,22 +221,6 @@ class MSTimeStamp(sqltypes.TIMESTAMP):
     def get_col_spec(self):
         return "TIMESTAMP"
         
-class MSMoney(sqltypes.TypeEngine):
-    def get_col_spec(self):
-        return "MONEY"
-        
-class MSSmallMoney(MSMoney):
-    def get_col_spec(self):
-        return "SMALLMONEY"
-        
-class MSUniqueIdentifier(sqltypes.TypeEngine):
-    def get_col_spec(self):
-        return "UNIQUEIDENTIFIER"
-        
-class MSVariant(sqltypes.TypeEngine):
-    def get_col_spec(self):
-        return "SQL_VARIANT"
-        
 def descriptor():
     return {'name':'mssql',
     'description':'MSSQL',
@@ -318,6 +294,12 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
                     # print "LAST ROW ID", self._last_inserted_ids
             self.HASIDENT = False
         super(MSSQLExecutionContext, self).post_exec()
+    
+    _ms_is_select = re.compile(r'\s*(?:SELECT|sp_columns)',
+                               re.I | re.UNICODE)
+    
+    def is_select(self):
+        return self._ms_is_select.match(self.statement) is not None
 
 
 class MSSQLExecutionContext_pyodbc (MSSQLExecutionContext):    
@@ -364,7 +346,6 @@ class MSSQLDialect(ansisql.ANSIDialect):
 
     ischema_names = {
         'int' : MSInteger,
-        'bigint': MSBigInteger,
         'smallint' : MSSmallInteger,
         'tinyint' : MSTinyInteger,
         'varchar' : MSString,
@@ -379,15 +360,10 @@ class MSSQLDialect(ansisql.ANSIDialect):
         'datetime' : MSDateTime,
         'smalldatetime' : MSDate,
         'binary' : MSBinary,
-        'varbinary' : MSBinary,
         'bit': MSBoolean,
         'real' : MSFloat,
         'image' : MSBinary,
         'timestamp': MSTimeStamp,
-        'money': MSMoney,
-        'smallmoney': MSSmallMoney,
-        'uniqueidentifier': MSUniqueIdentifier,
-        'sql_variant': MSVariant,
     }
 
     def __new__(cls, dbapi=None, *args, **kwargs):
@@ -492,6 +468,10 @@ class MSSQLDialect(ansisql.ANSIDialect):
         except Exception, e:
             raise exceptions.SQLError(statement, parameters, e)
 
+    def table_names(self, connection, schema):
+        from sqlalchemy.databases import information_schema as ischema
+        return ischema.table_names(connection, schema)
+
     def raw_connection(self, connection):
         """Pull the raw pymmsql connection out--sensative to "pool.ConnectionFairy" and pymssql.pymssqlCnx Classes"""
         try:
@@ -525,7 +505,7 @@ class MSSQLDialect(ansisql.ANSIDialect):
         row  = c.fetchone()
         return row is not None
         
-    def reflecttable(self, connection, table):
+    def reflecttable(self, connection, table, include_columns):
         import sqlalchemy.databases.information_schema as ischema
         
         # Get base columns
@@ -557,16 +537,22 @@ class MSSQLDialect(ansisql.ANSIDialect):
                 row[columns.c.numeric_scale],
                 row[columns.c.column_default]
             )
+            if include_columns and name not in include_columns:
+                continue
 
             args = []
             for a in (charlen, numericprec, numericscale):
                 if a is not None:
                     args.append(a)
-            coltype = self.ischema_names[type]
+            coltype = self.ischema_names.get(type, None)
             if coltype == MSString and charlen == -1:
                 coltype = MSText()                
             else:
-                if coltype == MSNVarchar and charlen == -1:
+                if coltype is None:
+                    warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (type, name)))
+                    coltype = sqltypes.NULLTYPE
+                    
+                elif coltype == MSNVarchar and charlen == -1:
                     charlen = None
                 coltype = coltype(*args)
             colargs= []
@@ -758,19 +744,15 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
 
     def supports_unicode_statements(self):
         """indicate whether the DBAPI can receive SQL statements as Python unicode strings"""
-        # PyODBC unicode is broken on UCS-4 builds
-        return sys.maxunicode == 65535
+        return True
 
     def make_connect_string(self, keys):
-        if 'dsn' in keys:
-            connectors = ['dsn=%s' % keys['dsn']]
+        connectors = ["Driver={SQL Server}"]
+        if 'port' in keys:
+            connectors.append('Server=%s,%d' % (keys.get('host'), keys.get('port')))
         else:
-            connectors = ["Driver={SQL Server}"]
-            if 'port' in keys:
-                connectors.append('Server=%s,%d' % (keys.get('host'), keys.get('port')))
-            else:
-                connectors.append('Server=%s' % keys.get('host'))
-            connectors.append("Database=%s" % keys.get("database"))
+            connectors.append('Server=%s' % keys.get('host'))
+        connectors.append("Database=%s" % keys.get("database"))
         user = keys.get("user")
         if user:
             connectors.append("UID=%s" % user)
@@ -850,12 +832,12 @@ class MSSQLCompiler(ansisql.ANSICompiler):
         super(MSSQLCompiler, self).__init__(dialect, statement, parameters, **kwargs)
         self.tablealiases = {}
 
-    def visit_select_precolumns(self, select):
+    def get_select_precolumns(self, select):
         """ MS-SQL puts TOP, it's version of LIMIT here """
-        s = select.distinct and "DISTINCT " or ""
-        if select.limit:
-            s += "TOP %s " % (select.limit,)
-        if select.offset:
+        s = select._distinct and "DISTINCT " or ""
+        if select._limit:
+            s += "TOP %s " % (select._limit,)
+        if select._offset:
             raise exceptions.InvalidRequestError('MSSQL does not support LIMIT with an offset')
         return s
 
@@ -863,49 +845,51 @@ class MSSQLCompiler(ansisql.ANSICompiler):
         # Limit in mssql is after the select keyword
         return ""
             
-    def visit_table(self, table):
+    def _schema_aliased_table(self, table):
+        if getattr(table, 'schema', None) is not None:
+            if not self.tablealiases.has_key(table):
+                self.tablealiases[table] = table.alias()
+            return self.tablealiases[table]
+        else:
+            return None
+            
+    def visit_table(self, table, mssql_aliased=False, **kwargs):
+        if mssql_aliased:
+            return super(MSSQLCompiler, self).visit_table(table, **kwargs)
+
         # alias schema-qualified tables
-        if getattr(table, 'schema', None) is not None and not self.tablealiases.has_key(table):
-            alias = table.alias()
-            self.tablealiases[table] = alias
-            self.traverse(alias)
-            self.froms[('alias', table)] = self.froms[table]
-            for c in alias.c:
-                self.traverse(c)
-            self.traverse(alias.oid_column)
-            self.tablealiases[alias] = self.froms[table]
-            self.froms[table] = self.froms[alias]
+        alias = self._schema_aliased_table(table)
+        if alias is not None:
+            return self.process(alias, mssql_aliased=True, **kwargs)
         else:
-           super(MSSQLCompiler, self).visit_table(table)
+            return super(MSSQLCompiler, self).visit_table(table, **kwargs)
  
-    def visit_alias(self, alias):
+    def visit_alias(self, alias, **kwargs):
         # translate for schema-qualified table aliases
-        if self.froms.has_key(('alias', alias.original)):
-            self.froms[alias] = self.froms[('alias', alias.original)] + " AS " + alias.name
-            self.strings[alias] = ""
-        else:
-            super(MSSQLCompiler, self).visit_alias(alias)
+        self.tablealiases[alias.original] = alias
+        kwargs['mssql_aliased'] = True
+        return super(MSSQLCompiler, self).visit_alias(alias, **kwargs)
 
     def visit_column(self, column):
-        # translate for schema-qualified table aliases
-        super(MSSQLCompiler, self).visit_column(column)
-        if column.table is not None and self.tablealiases.has_key(column.table):
-            self.strings[column] = \
-                self.strings[self.tablealiases[column.table].corresponding_column(column)]
+        if column.table is not None:
+            # translate for schema-qualified table aliases
+            t = self._schema_aliased_table(column.table)
+            if t is not None:
+                return self.process(t.corresponding_column(column))
+        return super(MSSQLCompiler, self).visit_column(column)
 
     def visit_binary(self, binary):
         """Move bind parameters to the right-hand side of an operator, where possible."""
-        if isinstance(binary.left, sql._BindParamClause) and binary.operator == '=':
-            binary.left, binary.right = binary.right, binary.left
-        super(MSSQLCompiler, self).visit_binary(binary)
+        if isinstance(binary.left, sql._BindParamClause) and binary.operator == operator.eq:
+            return self.process(sql._BinaryExpression(binary.right, binary.left, binary.operator))
+        else:
+            return super(MSSQLCompiler, self).visit_binary(binary)
 
-    def visit_select(self, select):        
-        # label function calls, so they return a name in cursor.description        
-        for i,c in enumerate(select._raw_columns):
-            if isinstance(c, sql._Function):
-                select._raw_columns[i] = c.label(c.name + "_" + hex(random.randint(0, 65535))[2:])        
-
-        super(MSSQLCompiler, self).visit_select(select)
+    def label_select_column(self, select, column):
+        if isinstance(column, sql._Function):
+            return column.label(column.name + "_" + hex(random.randint(0, 65535))[2:])        
+        else:
+            return super(MSSQLCompiler, self).label_select_column(select, column)
 
     function_rewrites =  {'current_date': 'getdate',
                           'length':     'len',
@@ -919,10 +903,10 @@ class MSSQLCompiler(ansisql.ANSICompiler):
         return ''
 
     def order_by_clause(self, select):
-        order_by = self.get_str(select.order_by_clause)
+        order_by = self.process(select._order_by_clause)
 
         # MSSQL only allows ORDER BY in subqueries if there is a LIMIT
-        if order_by and (not select.is_subquery or select.limit):
+        if order_by and (not self.is_subquery(select) or select._limit):
             return " ORDER BY " + order_by
         else:
             return ""
@@ -954,9 +938,11 @@ class MSSQLSchemaGenerator(ansisql.ANSISchemaGenerator):
 class MSSQLSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX %s.%s" % (
-                    self.preparer.quote_identifier(index.table.name),
-                    self.preparer.quote_identifier(index.name)))
+            self.preparer.quote_identifier(index.table.name),
+            self.preparer.quote_identifier(index.name)
+            ))
         self.execute()
+
 
 class MSSQLDefaultRunner(ansisql.ANSIDefaultRunner):
     # TODO: does ms-sql have standalone sequences ?
@@ -975,7 +961,6 @@ class MSSQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
         return value
 
 dialect = MSSQLDialect
-
 
 
 

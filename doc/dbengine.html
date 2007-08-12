@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.3 Documentation - Database Engines</title>
+	<title>SQLAlchemy 0.4 Documentation - Database Engines</title>
 	
     <link rel="stylesheet" href="style.css"></link>
     <link rel="stylesheet" href="docs.css"></link>
@@ -23,11 +23,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.3 Documentation</h1>
+<h1>SQLAlchemy 0.4 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
 
 
 
@@ -47,7 +47,7 @@
     <div class="prevnext">
 
             
-            Previous: <a href="tutorial.html">Tutorial</a>
+            Previous: <a href="session.html">Using the Session</a>
 
                |   
             Next: <a href="metadata.html">Database Meta Data</a>
@@ -60,75 +60,53 @@
 	
     <ul>
         
-        <li><A style="" href="dbengine.html#dbengine_supported">Supported Databases</a></li>
+        <li><a style="" href="dbengine.html#dbengine_supported">Supported Databases</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="dbengine.html#dbengine_establishing">create_engine() URL Arguments</a></li>
+        <li><a style="" href="dbengine.html#dbengine_establishing">create_engine() URL Arguments</a></li>
         
-            
+	        <li>
+                
     <ul>
         
-        <li><A style="" href="dbengine.html#dbengine_establishing_custom">Custom DBAPI connect() arguments</a></li>
+        <li><a style="" href="dbengine.html#dbengine_establishing_custom">Custom DBAPI connect() arguments</a></li>
         
-            
-    <ul>
     </ul>
 
-    </ul>
-
+	        </li>
         
-        <li><A style="" href="dbengine.html#dbengine_options">Database Engine Options</a></li>
+        <li><a style="" href="dbengine.html#dbengine_options">Database Engine Options</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="dbengine.html#dbengine_connections">More On Connections</a></li>
+        <li><a style="" href="dbengine.html#dbengine_connections">More On Connections</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="dbengine.html#dbengine_transactions">Using Transactions with Connection</a></li>
+        <li><a style="" href="dbengine.html#dbengine_transactions">Using Transactions with Connection</a></li>
         
-            
+	        <li>
+                
     <ul>
         
-        <li><A style="" href="dbengine.html#dbengine_transactions_understanding">Understanding Autocommit</a></li>
+        <li><a style="" href="dbengine.html#dbengine_transactions_understanding">Understanding Autocommit</a></li>
         
-            
-    <ul>
     </ul>
 
-    </ul>
-
+	        </li>
         
-        <li><A style="" href="dbengine.html#dbengine_implicit">Connectionless Execution, Implicit Execution</a></li>
+        <li><a style="" href="dbengine.html#dbengine_implicit">Connectionless Execution, Implicit Execution</a></li>
         
-            
+	        <li>
+                
     <ul>
         
-        <li><A style="" href="dbengine.html#dbengine_implicit_strategies">Using the Threadlocal Execution Strategy</a></li>
+        <li><a style="" href="dbengine.html#dbengine_implicit_strategies">Using the Threadlocal Execution Strategy</a></li>
         
-            
-    <ul>
     </ul>
 
-    </ul>
-
+	        </li>
         
-        <li><A style="" href="dbengine.html#dbengine_logging">Configuring Logging</a></li>
+        <li><a style="" href="dbengine.html#dbengine_logging">Configuring Logging</a></li>
         
-            
-    <ul>
-    </ul>
-
     </ul>
 
 	</div>
@@ -155,14 +133,21 @@
 </p>
 <p>The general structure is this:
 </p>
-<pre><code>                                     +-----------+                        __________
+
+    
+
+    <div class="sliding_code">
+        <pre>
+                                     +-----------+                        __________
                                  /---|   Pool    |---\                   (__________)
              +-------------+    /    +-----------+    \     +--------+   |          |
 connect() <--|   Engine    |---x                       x----| DBAPI  |---| database |
              +-------------+    \    +-----------+    /     +--------+   |          |
                                  \---|  Dialect  |---/                   |__________|
                                      +-----------+                       (__________)
-</code></pre><p>Where above, a <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Engine">sqlalchemy.engine.Engine</a> references both a  <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Dialect">sqlalchemy.engine.Dialect</a> and <a href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">sqlalchemy.pool.Pool</a>, which together interpret the DBAPI's module functions as well as the behavior of the database.
+</pre>
+    </div>
+<p>Where above, a <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Engine">sqlalchemy.engine.Engine</a> references both a  <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Dialect">sqlalchemy.engine.Dialect</a> and <a href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">sqlalchemy.pool.Pool</a>, which together interpret the DBAPI's module functions as well as the behavior of the database.
 </p>
 <p>Creating an engine is just a matter of issuing a single call, <code>create_engine()</code>:
 </p>
@@ -170,7 +155,9 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost:5432/mydatabase'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+        <pre>
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost:5432/mydatabase'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>The above engine invokes the <code>postgres</code> dialect and a connection pool which references <code>localhost:5432</code>.
 </p>
@@ -180,11 +167,13 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
+        <pre>
+<span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select username from users"</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">for </span><span class="python_name">row </span><span class="python_keyword">in </span><span class="python_name">result</span><span class="python_operator">:
     </span><span class="python_keyword">print </span><span class="python_literal">"username:"</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_enclosure">[</span><span class="python_literal">'username'</span><span class="python_enclosure">]</span><span class="python_operator">
-</span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>The connection is an instance of <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Connection">sqlalchemy.engine.Connection</a>, which is a <strong>proxy</strong> object for an actual DBAPI connection.  The returned result is an instance of <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_ResultProxy">sqlalchemy.engine.ResultProxy</a>, which acts very much like a DBAPI cursor.
 </p>
@@ -196,10 +185,12 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select username from users"</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre>
+<span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select username from users"</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">for </span><span class="python_name">row </span><span class="python_keyword">in </span><span class="python_name">result</span><span class="python_operator">:
     </span><span class="python_keyword">print </span><span class="python_literal">"username:"</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_enclosure">[</span><span class="python_literal">'username'</span><span class="python_enclosure">]</span><span class="python_operator">
-</span><span class="python_name">result</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">result</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Where above, the <code>execute()</code> method on the <code>Engine</code> does the <code>connect()</code> part for you, and returns the <code>ResultProxy</code> directly.  The actual <code>Connection</code> is <em>inside</em> the <code>ResultProxy</code>, waiting for you to finish reading the result.  In this case, when you <code>close()</code> the <code>ResultProxy</code>, the underlying <code>Connection</code> is closed, which returns the DBAPI connection to the pool. 
 </p>
@@ -279,7 +270,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_comment"># postgres
+        <pre>
+<span class="python_comment"># postgres
 </span><span class="python_name">pg_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost:5432/mydatabase'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># sqlite (note the four slashes for an absolute path)
@@ -295,7 +287,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 </span><span class="python_name">oracle_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'oracle://scott:tiger@dsn'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># oracle will feed host/port/SID into cx_oracle.makedsn
-</span><span class="python_name">oracle_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'oracle://scott:tiger@127.0.0.1:1521/sidname'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+</span><span class="python_name">oracle_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'oracle://scott:tiger@127.0.0.1:1521/sidname'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>The <code>Engine</code> will ask the connection pool for a connection when the <code>connect()</code> or <code>execute()</code> methods are called.  The default connection pool, <code>QueuePool</code>, as well as the default connection pool used with SQLite, <code>SingletonThreadPool</code>, will open connections to the database on an as-needed basis.  As concurrent statements are executed, <code>QueuePool</code> will grow its pool of connections to a default size of five, and will allow a default "overflow" of ten.   Since the <code>Engine</code> is essentially "home base" for the connection pool, it follows that you should keep a single <code>Engine</code> per database established within an application, rather than creating a new one for each connection.
 </p>
@@ -316,7 +309,9 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test?argument1=foo&argument2=bar'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+        <pre>
+<span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test?argument1=foo&amp;argument2=bar'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>If SQLAlchemy's database connector is aware of a particular query argument, it may convert its type from string to its proper type.
 </p>
@@ -326,7 +321,9 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test'</span><span class="python_operator">, </span><span class="python_name">connect_args </span><span class="python_operator">= </span><span class="python_enclosure">{</span><span class="python_literal">'argument1'</span><span class="python_operator">:</span><span class="python_number">17</span><span class="python_operator">, </span><span class="python_literal">'argument2'</span><span class="python_operator">:</span><span class="python_literal">'bar'</span><span class="python_enclosure">})</span><span class="python_operator"></span></pre>
+        <pre>
+<span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test'</span><span class="python_operator">, </span><span class="python_name">connect_args </span><span class="python_operator">= </span><span class="python_enclosure">{</span><span class="python_literal">'argument1'</span><span class="python_operator">:</span><span class="python_number">17</span><span class="python_operator">, </span><span class="python_literal">'argument2'</span><span class="python_operator">:</span><span class="python_literal">'bar'</span><span class="python_enclosure">})</span><span class="python_operator">
+</span></pre>
     </div>
 <p>The most customizable connection method of all is to pass a <code>creator</code> argument, which specifies a callable that returns a DBAPI connection:
 </p>
@@ -334,10 +331,12 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">def </span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">:
+        <pre>
+<span class="python_keyword">def </span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">:
     </span><span class="python_keyword">return </span><span class="python_name">psycopg</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">user</span><span class="python_operator">=</span><span class="python_literal">'scott'</span><span class="python_operator">, </span><span class="python_name">host</span><span class="python_operator">=</span><span class="python_literal">'localhost'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_operator"></span><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://'</span><span class="python_operator">, </span><span class="python_name">creator</span><span class="python_operator">=</span><span class="python_name">connect</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_operator"></span><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://'</span><span class="python_operator">, </span><span class="python_name">creator</span><span class="python_operator">=</span><span class="python_name">connect</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 
 
@@ -367,7 +366,9 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://...'</span><span class="python_operator">, </span><span class="python_name">encoding</span><span class="python_operator">=</span><span class="python_literal">'latin1'</span><span class="python_operator">, </span><span class="python_name">echo</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+        <pre>
+<span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://...'</span><span class="python_operator">, </span><span class="python_name">encoding</span><span class="python_operator">=</span><span class="python_literal">'latin1'</span><span class="python_operator">, </span><span class="python_name">echo</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>A list of all standard options, as well as several that are used by particular database dialects, is as follows:
 </p>
@@ -465,13 +466,15 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
+        <pre>
+<span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">table1</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">table1</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">col1</span><span class="python_operator">==</span><span class="python_number">5</span><span class="python_enclosure">))</span><span class="python_operator">
 </span><span class="python_keyword">for </span><span class="python_name">row </span><span class="python_keyword">in </span><span class="python_name">result</span><span class="python_operator">:
     </span><span class="python_keyword">print </span><span class="python_name">row</span><span class="python_enclosure">[</span><span class="python_literal">'col1'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_enclosure">[</span><span class="python_literal">'col2'</span><span class="python_enclosure">]</span><span class="python_operator">
-</span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
-<p>The above SQL construct is known as a <code>select()</code>.  The full range of SQL constructs available are described in <a href="sqlconstruction.html">Constructing SQL Queries via Python Expressions</a>.
+<p>The above SQL construct is known as a <code>select()</code>.  The full range of SQL constructs available are described in <a href="sqlexpression.html">SQL Expression Language Tutorial</a>.
 </p>
 <p>Both <code>Connection</code> and <code>Engine</code> fulfill an interface known as <code>Connectable</code> which specifies common functionality between the two objects, namely being able to call <code>connect()</code> to return a <code>Connection</code> object (<code>Connection</code> just returns itself), and being able to call <code>execute()</code> to get a result set.   Following this, most SQLAlchemy functions and objects which accept an <code>Engine</code> as a parameter or attribute with which to execute SQL will also accept a <code>Connection</code>.  As of SQLAlchemy 0.3.9, this argument is named <code>bind</code>.
 </p>
@@ -480,7 +483,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
     <div class="sliding_code">
             <div class="codetitle">Specify Engine or Connection</div>
-        <pre><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///:memory:'</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre>
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///:memory:'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># specify some Table metadata
 </span><span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
@@ -491,7 +495,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 </span>
 <span class="python_comment"># drop the table with a Connection off the Engine
 </span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">connection</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">connection</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Connection facts:
 </p>
@@ -527,14 +532,16 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">trans </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+        <pre>
+<span class="python_name">trans </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">try</span><span class="python_operator">:
     </span><span class="python_name">r1 </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">table1</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">())</span><span class="python_operator">
     </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">table1</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_name">col1</span><span class="python_operator">=</span><span class="python_number">7</span><span class="python_operator">, </span><span class="python_name">col2</span><span class="python_operator">=</span><span class="python_literal">'this is some data'</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
     </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
-    </span><span class="python_keyword">raise</span><span class="python_operator"></span></pre>
+    </span><span class="python_keyword">raise</span><span class="python_operator">
+</span></pre>
     </div>
 <p>The <code>Transaction</code> object also handles "nested" behavior by keeping track of the outermost begin/commit pair.  In this example, two functions both issue a transaction on a Connection, but only the outermost Transaction object actually takes effect when it is committed.
 </p>
@@ -542,7 +549,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_comment"># method_a starts a transaction and calls method_b
+        <pre>
+<span class="python_comment"># method_a starts a transaction and calls method_b
 </span><span class="python_keyword">def </span><span class="python_name">method_a</span><span class="python_enclosure">(</span><span class="python_name">connection</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_name">trans </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">() </span><span class="python_comment"># open a transaction</span><span class="python_operator">
     </span><span class="python_keyword">try</span><span class="python_operator">:
@@ -566,11 +574,12 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 <span class="python_comment"># open a Connection and call method_a
 </span><span class="python_operator"></span><span class="python_name">conn </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()                </span><span class="python_operator">
 </span><span class="python_name">method_a</span><span class="python_enclosure">(</span><span class="python_name">conn</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Above, <code>method_a</code> is called first, which calls <code>connection.begin()</code>.  Then it calls <code>method_b</code>. When <code>method_b</code> calls <code>connection.begin()</code>, it just increments a counter that is decremented when it calls <code>commit()</code>.  If either <code>method_a</code> or <code>method_b</code> calls <code>rollback()</code>, the whole transaction is rolled back.  The transaction is not committed until <code>method_a</code> calls the <code>commit()</code> method.  This "nesting" behavior allows the creation of functions which "guarantee" that a transaction will be used if one was not already available, but will automatically participate in an enclosing transaction if one exists.
 </p>
-<p>Note that SQLAlchemy's Object Relational Mapper also provides a way to control transaction scope at a higher level; this is described in <a href="unitofwork.html#unitofwork_transaction">SessionTransaction</a>.
+<p>Note that SQLAlchemy's Object Relational Mapper also provides a way to control transaction scope at a higher level; this is described in <b>unitofwork_transaction</b>.
 </p>
 <p>Transaction Facts:
 </p>
@@ -600,8 +609,10 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">conn </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"INSERT INTO users VALUES (1, 'john')"</span><span class="python_enclosure">)  </span><span class="python_comment"># autocommits</span><span class="python_operator"></span></pre>
+        <pre>
+<span class="python_name">conn </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"INSERT INTO users VALUES (1, 'john')"</span><span class="python_enclosure">)  </span><span class="python_comment"># autocommits</span><span class="python_operator">
+</span></pre>
     </div>
 
 
@@ -625,7 +636,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
     
 
-<p>Recall from the first section we mentioned executing with and without a <code>Connection</code>.  <code>Connectionless</code> execution refers to calling the <code>execute()</code> method on an object which is not a <code>Connection</code>, which could be on the the <code>Engine</code> itself, or could be a constructed SQL object.  When we say "implicit", we mean that we are calling the <code>execute()</code> method on an object which is neither a <code>Connection</code> nor an <code>Engine</code> object; this can only be used with constructed SQL objects which have their own <code>execute()</code> method, and can be "bound" to an <code>Engine</code>.  A description of "constructed SQL objects" may be found in <a href="sqlconstruction.html">Constructing SQL Queries via Python Expressions</a>.
+<p>Recall from the first section we mentioned executing with and without a <code>Connection</code>.  <code>Connectionless</code> execution refers to calling the <code>execute()</code> method on an object which is not a <code>Connection</code>, which could be on the the <code>Engine</code> itself, or could be a constructed SQL object.  When we say "implicit", we mean that we are calling the <code>execute()</code> method on an object which is neither a <code>Connection</code> nor an <code>Engine</code> object; this can only be used with constructed SQL objects which have their own <code>execute()</code> method, and can be "bound" to an <code>Engine</code>.  A description of "constructed SQL objects" may be found in <a href="sqlexpression.html">SQL Expression Language Tutorial</a>.
 </p>
 <p>A summary of all three methods follows below.  First, assume the usage of the following <code>MetaData</code> and <code>Table</code> objects; while we haven't yet introduced these concepts, for now you only need to know that we are representing a database table, and are creating an "executeable" SQL construct which issues a statement to the database.  These objects are described in <a href="metadata.html">Database Meta Data</a>.
 </p>
@@ -633,11 +644,13 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
+        <pre>
+<span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">users_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">, </span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span>
-<span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Explicit execution delivers the SQL text or constructed SQL expression to the <code>execute()</code> method of <code>Connection</code>:
 </p>
@@ -645,12 +658,14 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///file.db'</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre>
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///file.db'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">())</span><span class="python_operator">
 </span><span class="python_keyword">for </span><span class="python_name">row </span><span class="python_keyword">in </span><span class="python_name">result</span><span class="python_operator">:
     </span><span class="python_comment"># ....
-</span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Explicit, connectionless execution delivers the expression to the <code>execute()</code> method of <code>Engine</code>:
 </p>
@@ -658,11 +673,13 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///file.db'</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre>
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///file.db'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">())</span><span class="python_operator">
 </span><span class="python_keyword">for </span><span class="python_name">row </span><span class="python_keyword">in </span><span class="python_name">result</span><span class="python_operator">:
     </span><span class="python_comment"># ....
-</span><span class="python_name">result</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">result</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Implicit execution is also connectionless, and calls the <code>execute()</code> method on the expression itself, utilizing the fact that either an <code>Engine</code> or <code>Connection</code> has been <em>bound</em> to the expression object (binding is discussed further in the next section, <a href="metadata.html">Database Meta Data</a>):
 </p>
@@ -670,12 +687,14 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///file.db'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre>
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///file.db'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">bind </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">
 </span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">for </span><span class="python_name">row </span><span class="python_keyword">in </span><span class="python_name">result</span><span class="python_operator">:
     </span><span class="python_comment"># ....
-</span><span class="python_name">result</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">result</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>In both "connectionless" examples, the <code>Connection</code> is created behind the scenes; the <code>ResultProxy</code> returned by the <code>execute()</code> call references the <code>Connection</code> used to issue the SQL statement.   When we issue <code>close()</code> on the <code>ResultProxy</code>, or if the result set object falls out of scope and is garbage collected, the underlying <code>Connection</code> is closed for us, resulting in the DBAPI connection being returned to the pool.
 </p>
@@ -696,7 +715,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://localhost/test'</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre>
+<span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://localhost/test'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># execute one statement and receive results.  r1 now references a DBAPI connection resource.
 </span><span class="python_name">r1 </span><span class="python_operator">= </span><span class="python_name">db</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select * from table1"</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -711,7 +731,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 </span><span class="python_operator"></span><span class="python_name">r1</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># release connection 2
-</span><span class="python_name">r2</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">r2</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Where above, we have two result sets in scope at the same time, therefore we have two distinct DBAPI connections, both separately checked out from the connection pool, in scope at the same time.
 </p>
@@ -724,7 +745,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
     <div class="sliding_code">
             <div class="codetitle">Threadlocal Strategy</div>
-        <pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://localhost/test'</span><span class="python_operator">, </span><span class="python_name">strategy</span><span class="python_operator">=</span><span class="python_literal">'threadlocal'</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre>
+<span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://localhost/test'</span><span class="python_operator">, </span><span class="python_name">strategy</span><span class="python_operator">=</span><span class="python_literal">'threadlocal'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># execute one statement and receive results.  r1 now references a DBAPI connection resource.
 </span><span class="python_name">r1 </span><span class="python_operator">= </span><span class="python_name">db</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select * from table1"</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -741,7 +763,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 </span>
 <span class="python_comment"># close r2.  with no more references to the underlying connection resources, they
 # are returned to the pool.
-</span><span class="python_name">r2</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">r2</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Where above, we again have two result sets in scope at the same time, but because they are present in the same thread, there is only <strong>one DBAPI connection in use</strong>.
 </p>
@@ -754,7 +777,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
     <div class="sliding_code">
             <div class="codetitle">threadlocal connection sharing</div>
-        <pre><span class="python_comment"># get a TLEngine
+        <pre>
+<span class="python_comment"># get a TLEngine
 </span><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://localhost/test'</span><span class="python_operator">, </span><span class="python_name">strategy</span><span class="python_operator">=</span><span class="python_literal">'threadlocal'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
@@ -763,7 +787,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_number">5</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
-    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Notice that no <code>Connection</code> needed to be used; the <code>begin()</code> method on <code>TLEngine</code> (which note is not available on the regular <code>Engine</code>) created a <code>Transaction</code> as well as a <code>Connection</code>, and held onto both in a context corresponding to the current thread.  Each <code>execute()</code> call made use of the same connection, allowing them all to participate in the same transaction.
 </p>
@@ -774,7 +799,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
     <div class="sliding_code">
             <div class="codetitle">threadlocal connection sharing</div>
-        <pre><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://localhost/test'</span><span class="python_operator">, </span><span class="python_name">strategy</span><span class="python_operator">=</span><span class="python_literal">'threadlocal'</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre>
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://localhost/test'</span><span class="python_operator">, </span><span class="python_name">strategy</span><span class="python_operator">=</span><span class="python_literal">'threadlocal'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_keyword">def </span><span class="python_name">dosomethingimplicit</span><span class="python_enclosure">()</span><span class="python_operator">:
     </span><span class="python_name">table1</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"some sql"</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -800,7 +826,8 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     </span><span class="python_name">dosomethingtransactional</span><span class="python_enclosure">()</span><span class="python_operator">
     </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
-    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>In the above example, the program calls three functions <code>dosomethingimplicit()</code>, <code>dosomethingelse()</code> and <code>dosomethingtransactional()</code>.  All three functions use either connectionless execution, or a special function <code>contextual_connect()</code> which we will describe in a moment.  These two styles of execution both indicate that all executions will use the same connection object.  Additionally, the method <code>dosomethingtransactional()</code> begins and commits its own <code>Transaction</code>.  But only one transaction is used, too; it's controlled completely by the <code>engine.begin()</code>/<code>engine.commit()</code> calls at the bottom.  Recall that <code>Transaction</code> supports "nesting" behavior, whereby transactions begun on a <code>Connection</code> which already has a tranasaction open, will "nest" into the enclosing transaction.  Since the transaction opened in <code>dosomethingtransactional()</code> occurs using the same connection which already has a transaction begun, it "nests" into that transaction and therefore has no effect on the actual transaction scope (unless it calls <code>rollback()</code>).
 </p>
@@ -811,14 +838,16 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
     <div class="sliding_code">
             <div class="codetitle">Contextual Connection</div>
-        <pre><span class="python_comment"># threadlocal strategy
+        <pre>
+<span class="python_comment"># threadlocal strategy
 </span><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://localhost/test'</span><span class="python_operator">, </span><span class="python_name">strategy</span><span class="python_operator">=</span><span class="python_literal">'threadlocal'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_name">conn1 </span><span class="python_operator">= </span><span class="python_name">db</span><span class="python_operator">.</span><span class="python_name">contextual_connect</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">conn2 </span><span class="python_operator">= </span><span class="python_name">db</span><span class="python_operator">.</span><span class="python_name">contextual_connect</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
-<span class="python_literal">>>> </span><span class="python_name">conn1</span><span class="python_operator">.</span><span class="python_name">connection </span><span class="python_keyword">is </span><span class="python_name">conn2</span><span class="python_operator">.</span><span class="python_name">connection</span><span class="python_operator">
-</span><span class="python_name">True</span><span class="python_operator"></span></pre>
+<span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">conn1</span><span class="python_operator">.</span><span class="python_name">connection </span><span class="python_keyword">is </span><span class="python_name">conn2</span><span class="python_operator">.</span><span class="python_name">connection</span><span class="python_operator">
+</span><span class="python_name">True</span><span class="python_operator">
+</span></pre>
     </div>
 <p>The basic idea of <code>contextual_connect()</code> is that its the "connection used by connectionless execution".  It's different from the <code>connect()</code> method in that <code>connect()</code> is always used when handling an explicit <code>Connection</code>, which will always reference distinct DBAPI connection.  Using <code>connect()</code> in combination with <code>TLEngine</code> allows one to "circumvent" the current thread local context, as in this example where a single statement issues data to the database externally to the current transaction:
 </p>
@@ -826,11 +855,13 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+        <pre>
+<span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"insert into users values (?, ?)"</span><span class="python_operator">, </span><span class="python_number">1</span><span class="python_operator">, </span><span class="python_literal">"john"</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_number">5</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_enclosure">))</span><span class="python_operator">
-</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
     </div>
 <p>In the above example, a thread-local transaction is begun, but is later rolled back.  The statement <code>insert into users values (?, ?)</code> is executed without using a connection, therefore uses the thread-local transaction.  So its data is rolled back when the transaction is rolled back.  However, the <code>users.update()</code> statement is executed using a distinct <code>Connection</code> returned by the <code>engine.connect()</code> method, so it therefore is not part of the threadlocal transaction; it autocommits immediately.
 </p>
@@ -900,11 +931,13 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">import </span><span class="python_name">logging</span><span class="python_operator">
+        <pre>
+<span class="python_keyword">import </span><span class="python_name">logging</span><span class="python_operator">
 </span>
 <span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">basicConfig</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">getLogger</span><span class="python_enclosure">(</span><span class="python_literal">'sqlalchemy.engine'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">setLevel</span><span class="python_enclosure">(</span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">INFO</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">getLogger</span><span class="python_enclosure">(</span><span class="python_literal">'sqlalchemy.orm.unitofwork'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">setLevel</span><span class="python_enclosure">(</span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">DEBUG</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+</span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">getLogger</span><span class="python_enclosure">(</span><span class="python_literal">'sqlalchemy.orm.unitofwork'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">setLevel</span><span class="python_enclosure">(</span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">DEBUG</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>By default, the log level is set to <code>logging.ERROR</code> within the entire <code>sqlalchemy</code> namespace so that no log operations occur, even within an application that has logging enabled otherwise.
 </p>
@@ -923,7 +956,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     </div>
 
 
-</html>
+
 
 
     <div class="bottomnav">
@@ -931,7 +964,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     <div class="prevnext">
 
             
-            Previous: <a href="tutorial.html">Tutorial</a>
+            Previous: <a href="session.html">Using the Session</a>
 
                |   
             Next: <a href="metadata.html">Database Meta Data</a>

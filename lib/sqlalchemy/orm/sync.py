@@ -4,16 +4,15 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-
-
-from sqlalchemy import sql, schema, exceptions, util
-from sqlalchemy import logging
-from sqlalchemy.orm import util as mapperutil
-
 """Contains the ClauseSynchronizer class, which is used to map
 attributes between two objects in a manner corresponding to a SQL
 clause that compares column values.
 """
+
+from sqlalchemy import sql, schema, exceptions
+from sqlalchemy import logging
+from sqlalchemy.orm import util as mapperutil
+import operator
 
 ONETOMANY = 0
 MANYTOONE = 1
@@ -44,7 +43,7 @@ class ClauseSynchronizer(object):
         def compile_binary(binary):
             """Assemble a SyncRule given a single binary condition."""
 
-            if binary.operator != '=' or not isinstance(binary.left, schema.Column) or not isinstance(binary.right, schema.Column):
+            if binary.operator != operator.eq or not isinstance(binary.left, schema.Column) or not isinstance(binary.right, schema.Column):
                 return
 
             source_column = None
@@ -54,10 +53,10 @@ class ClauseSynchronizer(object):
                 if binary.left.table == binary.right.table:
                     raise exceptions.ArgumentError("need foreign_keys argument for self-referential sync")
 
-                if binary.left in util.Set([f.column for f in binary.right.foreign_keys]):
+                if binary.left in [f.column for f in binary.right.foreign_keys]:
                     dest_column = binary.right
                     source_column = binary.left
-                elif binary.right in util.Set([f.column for f in binary.left.foreign_keys]):
+                elif binary.right in [f.column for f in binary.left.foreign_keys]:
                     dest_column = binary.left
                     source_column = binary.right
             else:

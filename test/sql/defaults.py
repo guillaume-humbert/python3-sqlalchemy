@@ -1,52 +1,68 @@
-from testbase import PersistTest
-import sqlalchemy.util as util
-import unittest, sys, os
-import sqlalchemy.schema as schema
 import testbase
 from sqlalchemy import *
-import sqlalchemy
-
-db = testbase.db
+import sqlalchemy.util as util
+import sqlalchemy.schema as schema
+from sqlalchemy.orm import mapper, create_session
+from testlib import *
+import datetime
 
 class DefaultTest(PersistTest):
 
     def setUpAll(self):
-        global t, f, f2, ts, currenttime
+        global t, f, f2, ts, currenttime, metadata
+
+        db = testbase.db
+        metadata = MetaData(db)
         x = {'x':50}
         def mydefault():
             x['x'] += 1
             return x['x']
 
+        def myupdate_with_ctx(ctx):
+            return len(ctx.compiled_parameters['col2'])
+        
+        def mydefault_using_connection(ctx):
+            conn = ctx.connection
+            try:
+                if db.engine.name == 'oracle':
+                    return conn.execute("select 12 from dual").scalar()
+                else:
+                    return conn.execute("select 12").scalar()
+            finally:
+                # ensure a "close()" on this connection does nothing,
+                # since its a "branched" connection
+                conn.close()
+            
         use_function_defaults = db.engine.name == 'postgres' or db.engine.name == 'oracle'
         is_oracle = db.engine.name == 'oracle'
  
         # select "count(1)" returns different results on different DBs
         # also correct for "current_date" compatible as column default, value differences
-        currenttime = func.current_date(type=Date, engine=db);
+        currenttime = func.current_date(type_=Date, bind=db);
         if is_oracle:
             ts = db.func.trunc(func.sysdate(), literal_column("'DAY'")).scalar()
-            f = select([func.count(1) + 5], engine=db).scalar()
-            f2 = select([func.count(1) + 14], engine=db).scalar()
+            f = select([func.count(1) + 5], bind=db).scalar()
+            f2 = select([func.count(1) + 14], bind=db).scalar()
             # TODO: engine propigation across nested functions not working
-            currenttime = func.trunc(currenttime, literal_column("'DAY'"), engine=db)
+            currenttime = func.trunc(currenttime, literal_column("'DAY'"), bind=db)
             def1 = currenttime
             def2 = func.trunc(text("sysdate"), literal_column("'DAY'"))
             deftype = Date
         elif use_function_defaults:
-            f = select([func.count(1) + 5], engine=db).scalar()
-            f2 = select([func.count(1) + 14], engine=db).scalar()
+            f = select([func.count(1) + 5], bind=db).scalar()
+            f2 = select([func.count(1) + 14], bind=db).scalar()
             def1 = currenttime
             def2 = text("current_date")
             deftype = Date
             ts = db.func.current_date().scalar()
         else:
-            f = select([func.count(1) + 5], engine=db).scalar()
-            f2 = select([func.count(1) + 14], engine=db).scalar()
+            f = select([func.count(1) + 5], bind=db).scalar()
+            f2 = select([func.count(1) + 14], bind=db).scalar()
             def1 = def2 = "3"
             ts = 3
             deftype = Integer
             
-        t = Table('default_test1', db,
+        t = Table('default_test1', metadata,
             # python function
             Column('col1', Integer, primary_key=True, default=mydefault),
             
@@ -66,7 +82,13 @@ class DefaultTest(PersistTest):
             Column('col6', Date, default=currenttime, onupdate=currenttime),
             
             Column('boolcol1', Boolean, default=True),
-            Column('boolcol2', Boolean, default=False)
+            Column('boolcol2', Boolean, default=False),
+            
+            # python function which uses ExecutionContext
+            Column('col7', Integer, default=mydefault_using_connection, onupdate=myupdate_with_ctx),
+            
+            # python builtin
+            Column('col8', Date, default=datetime.date.today, onupdate=datetime.date.today)
         )
         t.create()
 
@@ -75,9 +97,18 @@ class DefaultTest(PersistTest):
     
     def tearDown(self):
         t.delete().execute()
-        
+    
+    def testargsignature(self):
+        def mydefault(x, y):
+            pass
+        try:
+            c = ColumnDefault(mydefault)
+            assert False
+        except exceptions.ArgumentError, e:
+            assert str(e) == "ColumnDefault Python function takes zero or one positional arguments", str(e)
+            
     def teststandalone(self):
-        c = db.engine.contextual_connect()
+        c = testbase.db.engine.contextual_connect()
         x = c.execute(t.c.col1.default)
         y = t.c.col2.default.execute()
         z = c.execute(t.c.col3.default)
@@ -94,9 +125,10 @@ class DefaultTest(PersistTest):
         t.insert().execute()
 
         ctexec = currenttime.scalar()
-        self.echo("Currenttime "+ repr(ctexec))
+        print "Currenttime "+ repr(ctexec)
         l = t.select().execute()
-        self.assert_(l.fetchall() == [(51, 'imthedefault', f, ts, ts, ctexec, True, False), (52, 'imthedefault', f, ts, ts, ctexec, True, False), (53, 'imthedefault', f, ts, ts, ctexec, True, False)])
+        today = datetime.date.today()
+        self.assert_(l.fetchall() == [(51, 'imthedefault', f, ts, ts, ctexec, True, False, 12, today), (52, 'imthedefault', f, ts, ts, ctexec, True, False, 12, today), (53, 'imthedefault', f, ts, ts, ctexec, True, False, 12, today)])
 
     def testinsertvalues(self):
         t.insert(values={'col3':50}).execute()
@@ -109,10 +141,10 @@ class DefaultTest(PersistTest):
         pk = r.last_inserted_ids()[0]
         t.update(t.c.col1==pk).execute(col4=None, col5=None)
         ctexec = currenttime.scalar()
-        self.echo("Currenttime "+ repr(ctexec))
+        print "Currenttime "+ repr(ctexec)
         l = t.select(t.c.col1==pk).execute()
         l = l.fetchone()
-        self.assert_(l == (pk, 'im the update', f2, None, None, ctexec, True, False))
+        self.assert_(l == (pk, 'im the update', f2, None, None, ctexec, True, False, 13, datetime.date.today()))
         # mysql/other db's return 0 or 1 for count(1)
         self.assert_(14 <= f2 <= 15)
 
@@ -124,14 +156,41 @@ class DefaultTest(PersistTest):
         l = l.fetchone()
         self.assert_(l['col3'] == 55)
 
+    @testing.supported('postgres')
+    def testpassiveoverride(self):
+        """primarily for postgres, tests that when we get a primary key column back 
+        from reflecting a table which has a default value on it, we pre-execute
+        that PassiveDefault upon insert, even though PassiveDefault says 
+        "let the database execute this", because in postgres we must have all the primary
+        key values in memory before insert; otherwise we cant locate the just inserted row."""
+
+        try:
+            meta = MetaData(testbase.db)
+            testbase.db.execute("""
+             CREATE TABLE speedy_users
+             (
+                 speedy_user_id   SERIAL     PRIMARY KEY,
+
+                 user_name        VARCHAR    NOT NULL,
+                 user_password    VARCHAR    NOT NULL
+             );
+            """, None)
+
+            t = Table("speedy_users", meta, autoload=True)
+            t.insert().execute(user_name='user', user_password='lala')
+            l = t.select().execute().fetchall()
+            self.assert_(l == [(1, 'user', 'lala')])
+        finally:
+            testbase.db.execute("drop table speedy_users", None)
+
 class AutoIncrementTest(PersistTest):
-    @testbase.supported('postgres', 'mysql')
+    @testing.supported('postgres', 'mysql')
     def testnonautoincrement(self):
         meta = MetaData(testbase.db)
         nonai_table = Table("aitest", meta, 
             Column('id', Integer, autoincrement=False, primary_key=True),
             Column('data', String(20)))
-        nonai_table.create()
+        nonai_table.create(checkfirst=True)
         try:
             try:
                 # postgres will fail on first row, mysql fails on second row
@@ -149,9 +208,9 @@ class AutoIncrementTest(PersistTest):
     def testwithautoincrement(self):
         meta = MetaData(testbase.db)
         table = Table("aitest", meta, 
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, Sequence('ai_id_seq', optional=True), primary_key=True),
             Column('data', String(20)))
-        table.create()
+        table.create(checkfirst=True)
         try:
             table.insert().execute(data='row 1')
             table.insert().execute(data='row 2')
@@ -159,17 +218,20 @@ class AutoIncrementTest(PersistTest):
             table.drop()    
 
     def testfetchid(self):
+        
+        # TODO: what does this test do that all the various ORM tests dont ?
+        
         meta = MetaData(testbase.db)
         table = Table("aitest", meta, 
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, Sequence('ai_id_seq', optional=True), primary_key=True),
             Column('data', String(20)))
-        table.create()
+        table.create(checkfirst=True)
 
         try:
             # simulate working on a table that doesn't already exist
             meta2 = MetaData(testbase.db)
             table2 = Table("aitest", meta2,
-                Column('id', Integer, primary_key=True),
+                Column('id', Integer, Sequence('ai_id_seq', optional=True), primary_key=True),
                 Column('data', String(20)))
             class AiTest(object):
                 pass
@@ -186,7 +248,7 @@ class AutoIncrementTest(PersistTest):
         
 
 class SequenceTest(PersistTest):
-    @testbase.supported('postgres', 'oracle')
+    @testing.supported('postgres', 'oracle')
     def setUpAll(self):
         global cartitems, sometable, metadata
         metadata = MetaData(testbase.db)
@@ -197,13 +259,13 @@ class SequenceTest(PersistTest):
         )
         sometable = Table( 'Manager', metadata,
                Column( 'obj_id', Integer, Sequence('obj_id_seq'), ),
-               Column( 'name', type= String, ),
-               Column( 'id', Integer, primary_key= True, ),
+               Column( 'name', String, ),
+               Column( 'id', Integer, Sequence('Manager_id_seq', optional=True), primary_key=True),
            )
         
         metadata.create_all()
     
-    @testbase.supported('postgres', 'oracle')
+    @testing.supported('postgres', 'oracle')
     def testseqnonpk(self):
         """test sequences fire off as defaults on non-pk columns"""
         sometable.insert().execute(name="somename")
@@ -213,7 +275,7 @@ class SequenceTest(PersistTest):
             (2, "someother", 2),
         ]
         
-    @testbase.supported('postgres', 'oracle')
+    @testing.supported('postgres', 'oracle')
     def testsequence(self):
         cartitems.insert().execute(description='hi')
         cartitems.insert().execute(description='there')
@@ -222,8 +284,8 @@ class SequenceTest(PersistTest):
         cartitems.select().execute().fetchall()
    
    
-    @testbase.supported('postgres', 'oracle')
-    def teststandalone(self):
+    @testing.supported('postgres', 'oracle')
+    def test_implicit_sequence_exec(self):
         s = Sequence("my_sequence", metadata=MetaData(testbase.db))
         s.create()
         try:
@@ -232,7 +294,7 @@ class SequenceTest(PersistTest):
         finally:
             s.drop()
 
-    @testbase.supported('postgres', 'oracle')
+    @testing.supported('postgres', 'oracle')
     def teststandalone_explicit(self):
         s = Sequence("my_sequence")
         s.create(bind=testbase.db)
@@ -242,12 +304,20 @@ class SequenceTest(PersistTest):
         finally:
             s.drop(testbase.db)
     
-    @testbase.supported('postgres', 'oracle')
+    @testing.supported('postgres', 'oracle')
+    def test_checkfirst(self):
+        s = Sequence("my_sequence")
+        s.create(testbase.db, checkfirst=False)
+        s.create(testbase.db, checkfirst=True)
+        s.drop(testbase.db, checkfirst=False)
+        s.drop(testbase.db, checkfirst=True)
+        
+    @testing.supported('postgres', 'oracle')
     def teststandalone2(self):
         x = cartitems.c.cart_id.sequence.execute()
         self.assert_(1 <= x <= 4)
         
-    @testbase.supported('postgres', 'oracle')
+    @testing.supported('postgres', 'oracle')
     def tearDownAll(self): 
         metadata.drop_all()
 

@@ -1,32 +1,24 @@
-from sqlalchemy.util import ScopedRegistry
-from sqlalchemy.orm.mapper import MapperExtension
+from sqlalchemy.orm.scoping import ScopedSession, _ScopedExt
+from sqlalchemy.util import warn_deprecated
+from sqlalchemy.orm import create_session
 
 __all__ = ['SessionContext', 'SessionContextExt']
 
-class SessionContext(object):
-    """A simple wrapper for ``ScopedRegistry`` that provides a
-    `current` property which can be used to get, set, or remove the
-    session in the current scope.
 
-    By default this object provides thread-local scoping, which is the
-    default scope provided by sqlalchemy.util.ScopedRegistry.
+class SessionContext(ScopedSession):
+    """Provides thread-local management of Sessions.
 
     Usage::
 
-      engine = create_engine(...)
-      def session_factory():
-          return Session(bind_to=engine)
-      context = SessionContext(session_factory)
+      context = SessionContext(sessionmaker(autoflush=True))
 
-      s = context.current # get thread-local session
-      context.current = Session(bind_to=other_engine) # set current session
-      del context.current # discard the thread-local session (a new one will
-                          # be created on the next call to context.current)
     """
 
-    def __init__(self, session_factory, scopefunc=None):
-        self.registry = ScopedRegistry(session_factory, scopefunc)
-        super(SessionContext, self).__init__()
+    def __init__(self, session_factory=None, scopefunc=None):
+        warn_deprecated("SessionContext is deprecated.  Use scoped_session().")
+        if session_factory is None:
+            session_factory=create_session
+        super(SessionContext, self).__init__(session_factory, scopefunc=scopefunc)
 
     def get_current(self):
         return self.registry()
@@ -48,15 +40,11 @@ class SessionContext(object):
             return ext
 
     mapper_extension = property(_get_mapper_extension,
-                                doc="""Get a mapper extension that implements `get_session` using this context.""")
+                                doc="""Get a mapper extension that implements `get_session` using this context.  Deprecated.""")
 
 
-class SessionContextExt(MapperExtension):
-    """A mapper extension that provides sessions to a mapper using ``SessionContext``."""
+class SessionContextExt(_ScopedExt):
+    def __init__(self, *args, **kwargs):
+        warn_deprecated("SessionContextExt is deprecated.  Use ScopedSession(enhance_classes=True)")
+        super(SessionContextExt, self).__init__(*args, **kwargs)
 
-    def __init__(self, context):
-        MapperExtension.__init__(self)
-        self.context = context
-
-    def get_session(self):
-        return self.context.current

@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.3 Documentation - module sqlalchemy.pool</title>
+	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.pool</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.3 Documentation</h1>
+<h1>SQLAlchemy 0.4 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
 
 
 
@@ -50,13 +50,13 @@
         <a href="index.html">Table of Contents</a>
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_exceptions.html">module sqlalchemy.exceptions</a>
+            Previous: <a href="sqlalchemy_schema.html">module sqlalchemy.schema</a>
 
                |   
-            Next: <a href="sqlalchemy_ext_sessioncontext.html">module sqlalchemy.ext.sessioncontext</a>
+            Next: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
     </div>
 
         <h2>module sqlalchemy.pool</h2>
@@ -66,68 +66,38 @@
 	
     <ul>
         
-        <li><A style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc">Module Functions</a></li>
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc">Module Functions</a></li>
         
-            
+	        <li>
+                
     <ul>
         
-        <li><A style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_clear_managers">clear_managers()</a></li>
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_clear_managers">clear_managers()</a></li>
         
-            
-    <ul>
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_manage">manage()</a></li>
+        
     </ul>
 
+	        </li>
         
-        <li><A style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_manage">manage()</a></li>
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_AssertionPool">class AssertionPool(Pool)</a></li>
         
-            
-    <ul>
-    </ul>
-
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_AssertionPool">class AssertionPool(Pool)</a></li>
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_NullPool">class NullPool(Pool)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_NullPool">class NullPool(Pool)</a></li>
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">class Pool(object)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">class Pool(object)</a></li>
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_QueuePool">class QueuePool(Pool)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_QueuePool">class QueuePool(Pool)</a></li>
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_SingletonThreadPool">class SingletonThreadPool(Pool)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_SingletonThreadPool">class SingletonThreadPool(Pool)</a></li>
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_StaticPool">class StaticPool(Pool)</a></li>
         
-            
-    <ul>
-    </ul>
-
-        
-        <li><A style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_StaticPool">class StaticPool(Pool)</a></li>
-        
-            
-    <ul>
-    </ul>
-
     </ul>
 
 	</div>
@@ -410,18 +380,11 @@ Defaults to True.</dd>
 recycling, which means upon checkout, if this timeout is
 surpassed the connection will be closed and replaced with a
 newly opened connection. Defaults to -1.</dd>
-<dt>auto_close_cursors</dt>
-<dd>Cursors, returned by <tt class="docutils literal"><span class="pre">connection.cursor()</span></tt>, are tracked and
-are automatically closed when the connection is returned to the
-pool.  Some DBAPIs like MySQLDB become unstable if cursors
-remain open. Defaults to True.</dd>
-<dt>disallow_open_cursors</dt>
-<dd>If <cite>auto_close_cursors</cite> is False, and <cite>disallow_open_cursors</cite> is
-True, will raise an exception if an open cursor is detected upon
-connection checkin. Defaults to False.</dd>
+<dt>listeners</dt>
+<dd>A list of <tt class="docutils literal"><span class="pre">PoolListener</span></tt>-like objects that receive events when
+DBAPI connections are created, checked out and checked in to the
+pool.</dd>
 </dl>
-<p>If <cite>auto_close_cursors</cite> and <cite>disallow_open_cursors</cite> are both
-False, then no cursor processing occurs upon checkin.</p>
 </div>
     
 
@@ -429,9 +392,20 @@ False, then no cursor processing occurs upon checkin.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>creator</i>, <i>recycle=-1</i>, <i>echo=None</i>, <i>use_threadlocal=False</i>, <i>auto_close_cursors=True</i>, <i>disallow_open_cursors=False</i>)</b>
+    <b>def __init__(<i>self</i>, <i>creator</i>, <i>recycle=-1</i>, <i>echo=None</i>, <i>use_threadlocal=False</i>, <i>listeners=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Pool</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def add_listener(<i>self</i>, <i>listener</i>)</b>
+    <div class="docstring">
+    <p>Add a <tt class="docutils literal"><span class="pre">PoolListener</span></tt>-like object to this pool.</p>
 
     </div>
     </div>
@@ -939,13 +913,13 @@ returned for all requests.</p>
     <div class="bottomnav">
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_exceptions.html">module sqlalchemy.exceptions</a>
+            Previous: <a href="sqlalchemy_schema.html">module sqlalchemy.schema</a>
 
                |   
-            Next: <a href="sqlalchemy_ext_sessioncontext.html">module sqlalchemy.ext.sessioncontext</a>
+            Next: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
     </div>
 
     </div>

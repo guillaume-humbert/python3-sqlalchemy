@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.3 Documentation - module sqlalchemy.engine.threadlocal</title>
+	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.engine.threadlocal</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.3 Documentation</h1>
+<h1>SQLAlchemy 0.4 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
 
 
 
@@ -50,7 +50,7 @@
         <a href="index.html">Table of Contents</a>
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
             Previous: <a href="sqlalchemy_engine_default.html">module sqlalchemy.engine.default</a>
@@ -66,40 +66,17 @@
 	
     <ul>
         
-        <li><A style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLConnection">class TLConnection(Connection)</a></li>
+        <li><a style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLConnection">class TLConnection(Connection)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLEngine">class TLEngine(Engine)</a></li>
+        <li><a style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLEngine">class TLEngine(Engine)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLSession">class TLSession(object)</a></li>
+        <li><a style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLSession">class TLSession(object)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLTransaction">class TLTransaction(Transaction)</a></li>
+        <li><a style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLTransaction">class TLTransaction(RootTransaction)</a></li>
         
-            
-    <ul>
-    </ul>
-
-        
-        <li><A style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLocalConnectionProvider">class TLocalConnectionProvider(PoolConnectionProvider)</a></li>
-        
-            
-    <ul>
-    </ul>
-
     </ul>
 
 	</div>
@@ -216,7 +193,7 @@ object.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>The TLEngine relies upon the ConnectionProvider having
+    <p>The TLEngine relies upon the Pool having
 &quot;threadlocal&quot; behavior, so that once a connection is checked out
 for the current thread, you get that same connection
 repeatedly.</p>
@@ -419,7 +396,7 @@ ComposedSQLEngine.</p>
     
     <div class="sectionL3">
 
-    <h3>class TLTransaction(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Transaction">Transaction</a>)</h3>
+    <h3>class TLTransaction(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_RootTransaction">RootTransaction</a>)</h3>
     
     
     
@@ -452,38 +429,6 @@ ComposedSQLEngine.</p>
 
 
 
-            
-    
-
-    
-    
-    <A name="docstrings_sqlalchemy.engine.threadlocal_TLocalConnectionProvider"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class TLocalConnectionProvider(<a href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_PoolConnectionProvider">PoolConnectionProvider</a>)</h3>
-    
-    
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def unique_connection(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
     
 
     </div>
@@ -495,7 +440,7 @@ ComposedSQLEngine.</p>
     <div class="bottomnav">
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
             Previous: <a href="sqlalchemy_engine_default.html">module sqlalchemy.engine.default</a>

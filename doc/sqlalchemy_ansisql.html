@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.3 Documentation - module sqlalchemy.ansisql</title>
+	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.ansisql</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.3 Documentation</h1>
+<h1>SQLAlchemy 0.4 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
 
 
 
@@ -50,13 +50,13 @@
         <a href="index.html">Table of Contents</a>
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
             Previous: <a href="sqlalchemy_engine_threadlocal.html">module sqlalchemy.engine.threadlocal</a>
 
                |   
-            Next: <a href="sqlalchemy_orm.html">module sqlalchemy.orm</a>
+            Next: <a href="sqlalchemy_interfaces.html">module sqlalchemy.interfaces</a>
     </div>
 
         <h2>module sqlalchemy.ansisql</h2>
@@ -66,54 +66,26 @@
 	
     <ul>
         
-        <li><A style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSICompiler">class ANSICompiler(Compiled)</a></li>
+        <li><a style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSICompiler">class ANSICompiler(Compiled,ClauseVisitor)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDefaultRunner">class ANSIDefaultRunner(DefaultRunner)</a></li>
+        <li><a style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDefaultRunner">class ANSIDefaultRunner(DefaultRunner)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDialect">class ANSIDialect(DefaultDialect)</a></li>
+        <li><a style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDialect">class ANSIDialect(DefaultDialect)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIIdentifierPreparer">class ANSIIdentifierPreparer(object)</a></li>
+        <li><a style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIIdentifierPreparer">class ANSIIdentifierPreparer(object)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaBase">class ANSISchemaBase(SchemaIterator)</a></li>
+        <li><a style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaBase">class ANSISchemaBase(SchemaIterator)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaDropper">class ANSISchemaDropper(ANSISchemaBase)</a></li>
+        <li><a style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaDropper">class ANSISchemaDropper(ANSISchemaBase)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaGenerator">class ANSISchemaGenerator(ANSISchemaBase)</a></li>
+        <li><a style="" href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaGenerator">class ANSISchemaGenerator(ANSISchemaBase)</a></li>
         
-            
-    <ul>
-    </ul>
-
     </ul>
 
 	</div>
@@ -147,7 +119,7 @@ module.</p>
     
     <div class="sectionL3">
 
-    <h3>class ANSICompiler(<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_Compiled">Compiled</a>)</h3>
+    <h3>class ANSICompiler(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Compiled">Compiled</a>,<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_ClauseVisitor">ClauseVisitor</a>)</h3>
     
     
     <div class="darkcell"><p>Default implementation of Compiled.</p>
@@ -203,7 +175,7 @@ correspond to the keys present in the parameters.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def binary_operator_string(<i>self</i>, <i>binary</i>)</b>
+    <b>def bindparam_string(<i>self</i>, <i>name</i>)</b>
     <div class="docstring">
     
     </div>
@@ -213,7 +185,7 @@ correspond to the keys present in the parameters.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def bindparam_string(<i>self</i>, <i>name</i>)</b>
+    <b>def compile(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -225,21 +197,11 @@ correspond to the keys present in the parameters.</dd>
     <A name=""></a>
     <b>def construct_params(<i>self</i>, <i>params</i>)</b>
     <div class="docstring">
-    <p>Return a structure of bind parameters for this compiled object.</p>
-<p>This includes bind parameters that might be compiled in via
-the <cite>values</cite> argument of an <tt class="docutils literal"><span class="pre">Insert</span></tt> or <tt class="docutils literal"><span class="pre">Update</span></tt> statement
-object, and also the given <cite>**params</cite>.  The keys inside of
-<cite>**params</cite> can be any key that matches the
-<tt class="docutils literal"><span class="pre">BindParameterClause</span></tt> objects compiled within this object.</p>
-<p>The output is dependent on the paramstyle of the DBAPI being
-used; if a named style, the return result will be a dictionary
-with keynames matching the compiled statement.  If a
-positional style, the output will be a list, with an iterator
-that will return parameter values in an order corresponding to
-the bind positions in the compiled statement.</p>
-<p>For an executemany style of call, this method should be called
-for each element in the list of parameter groups that will
-ultimately be executed.</p>
+    <p>Return a sql.ClauseParameters object.</p>
+<p>Combines the given bind parameter dictionary (string keys to object values)
+with the _BindParamClause objects stored within this Compiled object
+to produce a ClauseParameters structure, representing the bind arguments
+for a single statement execution, or one element of an executemany execution.</p>
 
     </div>
     </div>
@@ -270,19 +232,10 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_from_text(<i>self</i>, <i>obj</i>)</b>
+    <b>def get_select_precolumns(<i>self</i>, <i>select</i>)</b>
     <div class="docstring">
-    
-    </div>
-    </div>
+    <p>Called when building a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement, position is just before column list.</p>
 
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_str(<i>self</i>, <i>obj</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -292,7 +245,37 @@ ultimately be executed.</p>
     <A name=""></a>
     <b>def get_whereclause(<i>self</i>, <i>obj</i>)</b>
     <div class="docstring">
+    <p>given a FROM clause, return an additional WHERE condition that should be
+applied to a SELECT.</p>
+<p>Currently used by Oracle to provide WHERE criterion for JOIN and OUTER JOIN
+constructs in non-ansi mode.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
     
+    <A name=""></a>
+    <b>def is_subquery(<i>self</i>, <i>select</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def label_select_column(<i>self</i>, <i>select</i>, <i>column</i>)</b>
+    <div class="docstring">
+    <p>convert a column from a select's &quot;columns&quot; clause.</p>
+<p>given a select() and a column element from its inner_columns collection, return a
+Label object if this column should be labeled in the columns clause.  Otherwise,
+return None and the column will be used as-is.</p>
+<p>The calling method will traverse the returned label to acquire its string
+representation.</p>
+
     </div>
     </div>
 
@@ -310,6 +293,16 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def operator_string(<i>self</i>, <i>operator</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def order_by_clause(<i>self</i>, <i>select</i>)</b>
     <div class="docstring">
     
@@ -317,10 +310,21 @@ ultimately be executed.</p>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>params = property()</b>
+         <div class="docstring">
+         <p>Return the <cite>ClauseParameters</cite> corresponding to this compiled object.
+A shortcut for <cite>construct_params()</cite>.</p>
+
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_alias(<i>self</i>, <i>alias</i>)</b>
+    <b>def process(<i>self</i>, <i>obj</i>, <i>stack=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -330,7 +334,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_binary(<i>self</i>, <i>binary</i>)</b>
+    <b>def uses_sequences_for_inserts(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -340,7 +344,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_bindparam(<i>self</i>, <i>bindparam</i>)</b>
+    <b>def visit_alias(<i>self</i>, <i>alias</i>, <i>asfrom=False</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -350,7 +354,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_calculatedclause(<i>self</i>, <i>clause</i>)</b>
+    <b>def visit_binary(<i>self</i>, <i>binary</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -360,7 +364,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_cast(<i>self</i>, <i>cast</i>)</b>
+    <b>def visit_bindparam(<i>self</i>, <i>bindparam</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -370,7 +374,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_clauselist(<i>self</i>, <i>list</i>)</b>
+    <b>def visit_calculatedclause(<i>self</i>, <i>clause</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -380,7 +384,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_column(<i>self</i>, <i>column</i>)</b>
+    <b>def visit_cast(<i>self</i>, <i>cast</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -390,7 +394,27 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_compound_select(<i>self</i>, <i>cs</i>)</b>
+    <b>def visit_clauselist(<i>self</i>, <i>clauselist</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_column(<i>self</i>, <i>column</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_compound_select(<i>self</i>, <i>cs</i>, <i>asfrom=False</i>, <i>parens=True</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -410,7 +434,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_fromclause(<i>self</i>, <i>fromclause</i>)</b>
+    <b>def visit_fromclause(<i>self</i>, <i>fromclause</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -420,7 +444,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_function(<i>self</i>, <i>func</i>)</b>
+    <b>def visit_function(<i>self</i>, <i>func</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -430,7 +454,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_grouping(<i>self</i>, <i>grouping</i>)</b>
+    <b>def visit_grouping(<i>self</i>, <i>grouping</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -440,7 +464,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_index(<i>self</i>, <i>index</i>)</b>
+    <b>def visit_index(<i>self</i>, <i>index</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -460,53 +484,7 @@ ultimately be executed.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_insert_column(<i>self</i>, <i>column</i>, <i>parameters</i>)</b>
-    <div class="docstring">
-    <p>Called when visiting an <tt class="docutils literal"><span class="pre">Insert</span></tt> statement.</p>
-<p>This may be overridden by compilers who disallow NULL columns
-being set in an <tt class="docutils literal"><span class="pre">Insert</span></tt> where there is a default value on
-the column (i.e. postgres), to remove the column for which
-there is a NULL insert from the parameter list.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_insert_column_default(<i>self</i>, <i>column</i>, <i>default</i>, <i>parameters</i>)</b>
-    <div class="docstring">
-    <p>Called when visiting an <tt class="docutils literal"><span class="pre">Insert</span></tt> statement.</p>
-<p>For each column in the table that contains a <tt class="docutils literal"><span class="pre">ColumnDefault</span></tt>
-object, add a blank <em>placeholder</em> parameter so the <tt class="docutils literal"><span class="pre">Insert</span></tt>
-gets compiled with this column's name in its column and
-<tt class="docutils literal"><span class="pre">VALUES</span></tt> clauses.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_insert_sequence(<i>self</i>, <i>column</i>, <i>sequence</i>, <i>parameters</i>)</b>
-    <div class="docstring">
-    <p>Called when visiting an <tt class="docutils literal"><span class="pre">Insert</span></tt> statement.</p>
-<p>This may be overridden compilers that support sequences to
-place a blank <em>placeholder</em> parameter for each column in the
-table that contains a Sequence object, so the Insert gets
-compiled with this column's name in its column and <tt class="docutils literal"><span class="pre">VALUES</span></tt>
-clauses.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_join(<i>self</i>, <i>join</i>)</b>
+    <b>def visit_join(<i>self</i>, <i>join</i>, <i>asfrom=False</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -526,7 +504,7 @@ clauses.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_null(<i>self</i>, <i>null</i>)</b>
+    <b>def visit_null(<i>self</i>, <i>null</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -536,7 +514,7 @@ clauses.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_select(<i>self</i>, <i>select</i>)</b>
+    <b>def visit_release_savepoint(<i>self</i>, <i>savepoint_stmt</i>)</b>
     <div class="docstring">
     
     </div>
@@ -546,30 +524,7 @@ clauses.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_select_postclauses(<i>self</i>, <i>select</i>)</b>
-    <div class="docstring">
-    <p>Called when building a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement, position is after all other <tt class="docutils literal"><span class="pre">SELECT</span></tt> clauses.</p>
-<p>Most DB syntaxes put <tt class="docutils literal"><span class="pre">LIMIT</span></tt>/<tt class="docutils literal"><span class="pre">OFFSET</span></tt> here.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_select_precolumns(<i>self</i>, <i>select</i>)</b>
-    <div class="docstring">
-    <p>Called when building a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement, position is just before column list.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_table(<i>self</i>, <i>table</i>)</b>
+    <b>def visit_rollback_to_savepoint(<i>self</i>, <i>savepoint_stmt</i>)</b>
     <div class="docstring">
     
     </div>
@@ -579,7 +534,7 @@ clauses.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_textclause(<i>self</i>, <i>textclause</i>)</b>
+    <b>def visit_savepoint(<i>self</i>, <i>savepoint_stmt</i>)</b>
     <div class="docstring">
     
     </div>
@@ -589,7 +544,7 @@ clauses.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_typeclause(<i>self</i>, <i>typeclause</i>)</b>
+    <b>def visit_select(<i>self</i>, <i>select</i>, <i>asfrom=False</i>, <i>parens=True</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -599,7 +554,37 @@ clauses.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_unary(<i>self</i>, <i>unary</i>)</b>
+    <b>def visit_table(<i>self</i>, <i>table</i>, <i>asfrom=False</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_textclause(<i>self</i>, <i>textclause</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_typeclause(<i>self</i>, <i>typeclause</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_unary(<i>self</i>, <i>unary</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -612,21 +597,6 @@ clauses.</p>
     <b>def visit_update(<i>self</i>, <i>update_stmt</i>)</b>
     <div class="docstring">
     
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_update_column_default(<i>self</i>, <i>column</i>, <i>default</i>, <i>parameters</i>)</b>
-    <div class="docstring">
-    <p>Called when visiting an <tt class="docutils literal"><span class="pre">Update</span></tt> statement.</p>
-<p>For each column in the table that contains a <tt class="docutils literal"><span class="pre">ColumnDefault</span></tt>
-object as an onupdate, add a blank <em>placeholder</em> parameter so
-the <tt class="docutils literal"><span class="pre">Update</span></tt> gets compiled with this column's name as one of
-its <tt class="docutils literal"><span class="pre">SET</span></tt> clauses.</p>
-
     </div>
     </div>
 
@@ -786,7 +756,7 @@ not support schemae.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def format_alias(<i>self</i>, <i>alias</i>)</b>
+    <b>def format_alias(<i>self</i>, <i>alias</i>, <i>name=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -796,7 +766,7 @@ not support schemae.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def format_column(<i>self</i>, <i>column</i>, <i>use_table=False</i>, <i>name=None</i>)</b>
+    <b>def format_column(<i>self</i>, <i>column</i>, <i>use_table=False</i>, <i>name=None</i>, <i>table_name=None</i>)</b>
     <div class="docstring">
     <p>Prepare a quoted column name.</p>
 
@@ -807,7 +777,7 @@ not support schemae.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def format_column_with_table(<i>self</i>, <i>column</i>, <i>column_name=None</i>)</b>
+    <b>def format_column_with_table(<i>self</i>, <i>column</i>, <i>column_name=None</i>, <i>table_name=None</i>)</b>
     <div class="docstring">
     <p>Prepare a quoted column name with table name.</p>
 
@@ -848,6 +818,16 @@ not support schemae.</dd>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def format_savepoint(<i>self</i>, <i>savepoint</i>, <i>name=None</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def format_sequence(<i>self</i>, <i>sequence</i>)</b>
     <div class="docstring">
     
@@ -869,9 +849,10 @@ not support schemae.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def is_natural_case(<i>self</i>, <i>object</i>)</b>
+    <b>def format_table_seq(<i>self</i>, <i>table</i>, <i>use_schema=True</i>)</b>
     <div class="docstring">
-    
+    <p>Format table name and schema as a tuple.</p>
+
     </div>
     </div>
 
@@ -895,6 +876,17 @@ quoting behavior.</p>
     <b>def should_quote(<i>self</i>, <i>object</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def unformat_identifiers(<i>self</i>, <i>identifiers</i>)</b>
+    <div class="docstring">
+    <p>Unpack 'schema.table.column'-like strings into components.</p>
+
     </div>
     </div>
 
@@ -1195,13 +1187,13 @@ quoting behavior.</p>
     <div class="bottomnav">
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
             Previous: <a href="sqlalchemy_engine_threadlocal.html">module sqlalchemy.engine.threadlocal</a>
 
                |   
-            Next: <a href="sqlalchemy_orm.html">module sqlalchemy.orm</a>
+            Next: <a href="sqlalchemy_interfaces.html">module sqlalchemy.interfaces</a>
     </div>
 
     </div>

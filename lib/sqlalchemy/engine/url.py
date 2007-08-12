@@ -1,10 +1,8 @@
-import re
-import cgi
-import sys
-import urllib
+"""Provide the URL object as well as the make_url parsing function."""
+
+import re, cgi, sys, urllib
 from sqlalchemy import exceptions
 
-"""Provide the URL object as well as the make_url parsing function."""
 
 class URL(object):
     """Represent the components of a URL used to connect to a database.
@@ -63,7 +61,7 @@ class URL(object):
             s += ':' + str(self.port)
         if self.database is not None:
             s += '/' + self.database
-        if len(self.query):
+        if self.query:
             keys = self.query.keys()
             keys.sort()
             s += '?' + "&".join(["%s=%s" % (k, self.query[k]) for k in keys])

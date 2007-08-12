@@ -1,7 +1,9 @@
-from sqlalchemy import *
 import testbase
+from sqlalchemy import *
+from testlib import *
 
-class FoundRowsTest(testbase.AssertMixin):
+
+class FoundRowsTest(AssertMixin):
     """tests rowcount functionality"""
     def setUpAll(self):
         metadata = MetaData(testbase.db)
@@ -9,7 +11,7 @@ class FoundRowsTest(testbase.AssertMixin):
         global employees_table
 
         employees_table = Table('employees', metadata,
-            Column('employee_id', Integer, primary_key=True),
+            Column('employee_id', Integer, Sequence('employee_id_seq', optional=True), primary_key=True),
             Column('name', String(50)),
             Column('department', String(1)),
         )

@@ -1,18 +1,21 @@
 import testbase
 import unittest
 
+import inheritance.alltests as inheritance
+import sharding.alltests as sharding
+
 def suite():
     modules_to_test = (
-	'orm.attributes',
-        'orm.mapper',
+    'orm.attributes',
         'orm.query',
         'orm.lazy_relations',
         'orm.eager_relations',
+        'orm.mapper',
+        'orm.selectable',
+        'orm.collection',
         'orm.generative',
         'orm.lazytest1',
-        'orm.eagertest1',
-        'orm.eagertest2',
-        'orm.eagertest3',
+        'orm.assorted_eager',
         
         'orm.sessioncontext', 
         'orm.unitofwork',
@@ -24,20 +27,12 @@ def suite():
         'orm.memusage',
         
         'orm.cycles',
-        'orm.poly_linked_list',
 
         'orm.entity',
         'orm.compile',
         'orm.manytomany',
         'orm.onetoone',
-        'orm.inheritance',
-        'orm.inheritance2',
-        'orm.inheritance3',
-        'orm.inheritance4',
-        'orm.inheritance5',
-        'orm.abc_inheritance',
-        'orm.single',
-        'orm.polymorph'        
+        'orm.dynamic',
         )
     alltests = unittest.TestSuite()
     for name in modules_to_test:
@@ -45,6 +40,8 @@ def suite():
         for token in name.split('.')[1:]:
             mod = getattr(mod, token)
         alltests.addTest(unittest.findTestCases(mod, suiteClass=None))
+    alltests.addTest(inheritance.suite())
+    alltests.addTest(sharding.suite())
     return alltests
 
 

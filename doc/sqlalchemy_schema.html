@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.3 Documentation - module sqlalchemy.schema</title>
+	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.schema</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.3 Documentation</h1>
+<h1>SQLAlchemy 0.4 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
 
 
 
@@ -50,13 +50,13 @@
         <a href="index.html">Table of Contents</a>
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
             Previous: <a href="sqlalchemy_sql.html">module sqlalchemy.sql</a>
 
                |   
-            Next: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
+            Next: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>
     </div>
 
         <h2>module sqlalchemy.schema</h2>
@@ -66,145 +66,56 @@
 	
     <ul>
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_modfunc">Module Functions</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_CheckConstraint">class CheckConstraint(Constraint)</a></li>
         
-            
-    <ul>
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_modfunc_DynamicMetaData">DynamicMetaData()</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Column">class Column(SchemaItem,_ColumnClause)</a></li>
         
-            
-    <ul>
-    </ul>
-
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_BoundMetaData">class BoundMetaData(MetaData)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ColumnDefault">class ColumnDefault(DefaultGenerator)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_CheckConstraint">class CheckConstraint(Constraint)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Constraint">class Constraint(SchemaItem)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Column">class Column(SchemaItem,_ColumnClause)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultGenerator">class DefaultGenerator(SchemaItem)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ColumnDefault">class ColumnDefault(DefaultGenerator)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ForeignKey">class ForeignKey(SchemaItem)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Constraint">class Constraint(SchemaItem)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ForeignKeyConstraint">class ForeignKeyConstraint(Constraint)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultGenerator">class DefaultGenerator(SchemaItem)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Index">class Index(SchemaItem)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ForeignKey">class ForeignKey(SchemaItem)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_MetaData">class MetaData(SchemaItem)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ForeignKeyConstraint">class ForeignKeyConstraint(Constraint)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_PassiveDefault">class PassiveDefault(DefaultGenerator)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Index">class Index(SchemaItem)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">class PrimaryKeyConstraint(Constraint)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_MetaData">class MetaData(SchemaItem)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">class SchemaItem(object)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_PassiveDefault">class PassiveDefault(DefaultGenerator)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaVisitor">class SchemaVisitor(ClauseVisitor)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">class PrimaryKeyConstraint(Constraint)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Sequence">class Sequence(DefaultGenerator)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">class SchemaItem(object)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Table">class Table(SchemaItem,TableClause)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaVisitor">class SchemaVisitor(ClauseVisitor)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ThreadLocalMetaData">class ThreadLocalMetaData(MetaData)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Sequence">class Sequence(DefaultGenerator)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_UniqueConstraint">class UniqueConstraint(Constraint)</a></li>
         
-            
-    <ul>
-    </ul>
-
-        
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Table">class Table(SchemaItem,TableClause)</a></li>
-        
-            
-    <ul>
-    </ul>
-
-        
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ThreadLocalMetaData">class ThreadLocalMetaData(MetaData)</a></li>
-        
-            
-    <ul>
-    </ul>
-
-        
-        <li><A style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_UniqueConstraint">class UniqueConstraint(Constraint)</a></li>
-        
-            
-    <ul>
-    </ul>
-
     </ul>
 
 	</div>
@@ -233,67 +144,6 @@ objects as well as the visitor interface, so that the schema package
 <em>plugs in</em> to the SQL package.</p>
 </div>
     
-
-        
-    
-    <A name="docstrings_sqlalchemy.schema_modfunc"></a>
-    
-    <div class="sectionL3">
-
-    <h3>Module Functions</h3>
-    
-    
-                
-    <div class="darkcell">
-    
-    <A name="docstrings_sqlalchemy.schema_modfunc_DynamicMetaData"></a>
-    <b>def DynamicMetaData(<i>name=None</i>, <i>threadlocal=True</i>, <i>**kw</i>)</b>
-    <div class="docstring">
-    <p>Deprecated.  Use <tt class="docutils literal"><span class="pre">MetaData</span></tt> or <tt class="docutils literal"><span class="pre">ThreadLocalMetaData</span></tt>.</p>
-
-    </div>
-    </div>
-
-        
-
-    </div>
-
-
-
-
-            
-    
-
-    
-    
-    <A name="docstrings_sqlalchemy.schema_BoundMetaData"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class BoundMetaData(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_MetaData">MetaData</a>)</h3>
-    
-    
-    <div class="darkcell"><p>Deprecated.  Use <tt class="docutils literal"><span class="pre">MetaData</span></tt>.</p>
-</div>
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>engine_or_url</i>, <i>name=None</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">BoundMetaData</span></tt>.</p>
-
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top">back to section top</a>
-    </div>
-
 
 
             
@@ -325,21 +175,20 @@ objects as well as the visitor interface, so that the schema package
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
+    <b>def copy(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
     </div>
 
                     
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def copy(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
+         <div class="darkcell">
+         <A name=""></a>
+         <b>__visit_name__ = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
 
     
@@ -372,7 +221,7 @@ actual existing table in the database, in a similar fashion as
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>name</i>, <i>type</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>name</i>, <i>type_</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Column</span></tt> object.</p>
 <p>Arguments are:</p>
@@ -380,7 +229,7 @@ actual existing table in the database, in a similar fashion as
 <dt>name</dt>
 <dd>The name of this column.  This should be the identical name
 as it appears, or will appear, in the database.</dd>
-<dt>type</dt>
+<dt>type_</dt>
 <dd>The <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> for this column.  This can be any
 subclass of <tt class="docutils literal"><span class="pre">types.AbstractType</span></tt>, including the
 database-agnostic types defined in the types module,
@@ -454,9 +303,6 @@ must be properly escaped and quoted before being sent to
 the database.  This flag should normally not be required
 as dialects can auto-detect conditions where quoting is
 required.</dd>
-<dt>case_sensitive</dt>
-<dd>Defaults to True: indicates quoting should be used if the
-identifier contains mixed case.</dd>
 </dl>
 </dd>
 </dl>
@@ -473,15 +319,6 @@ identifier contains mixed case.</dd>
     
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>case_sensitive = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
          <div class="darkcell">
@@ -583,15 +420,13 @@ clause.</p>
     </div>
 
                     
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
-    <div class="docstring">
-    <p>Call the visit_column_default method on the given visitor.</p>
-
-    </div>
-    </div>
+         <div class="darkcell">
+         <A name=""></a>
+         <b>__visit_name__ = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
 
     
@@ -785,17 +620,6 @@ created and added to the parent table.</dd>
     </div>
 
                     
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
-    <div class="docstring">
-    <p>Call the <cite>visit_foreign_key</cite> method on the given visitor.</p>
-
-    </div>
-    </div>
-
-                    
          <div class="darkcell">
          <A name=""></a>
          <b>column = property()</b>
@@ -865,16 +689,6 @@ created and added to the parent table.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def append_element(<i>self</i>, <i>col</i>, <i>refcol</i>)</b>
     <div class="docstring">
     
@@ -933,21 +747,11 @@ the same table, and no column may appear more than once.</dd>
 <dd><p class="first">Keyword arguments include:</p>
 <dl class="last docutils">
 <dt>unique</dt>
-<dd>Defaults to True: create a unique index.</dd>
+<dd>Defaults to False: create a unique index.</dd>
 </dl>
 </dd>
 </dl>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -965,7 +769,7 @@ the same table, and no column may appear more than once.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create(<i>self</i>, <i>connectable=None</i>)</b>
+    <b>def create(<i>self</i>, <i>bind=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -975,7 +779,7 @@ the same table, and no column may appear more than once.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def drop(<i>self</i>, <i>connectable=None</i>)</b>
+    <b>def drop(<i>self</i>, <i>bind=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1001,7 +805,24 @@ the same table, and no column may appear more than once.</dd>
     <h3>class MetaData(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>)</h3>
     
     
-    <div class="darkcell"><p>Represent a collection of Tables and their associated schema constructs.</p>
+    <div class="darkcell"><p>A collection of Tables and their associated schema constructs.</p>
+<p>Holds a collection of Tables and an optional binding to an
+<tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>.  If bound, the
+<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Table">Table</a> objects in the collection and their
+columns may participate in implicit SQL execution.</p>
+<p>The <tt class="docutils literal"><span class="pre">bind</span></tt> property may be assigned to dynamically.  A common
+pattern is to start unbound and then bind later when an engine is
+available:</p>
+<pre class="literal-block">
+metadata = MetaData()
+# define tables
+Table('mytable', metadata, ...)
+# connect to an engine later, perhaps after loading a URL from a
+# configuration file
+metadata.bind = an_engine
+</pre>
+<p>MetaData is a thread-safe object after tables have been explicitly
+defined or loaded via reflection.</p>
 </div>
     
 
@@ -1009,40 +830,21 @@ the same table, and no column may appear more than once.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>engine_or_url=None</i>, <i>url=None</i>, <i>bind=None</i>, <i>engine=None</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>bind=None</i>, <i>reflect=False</i>)</b>
     <div class="docstring">
-    <p>create a new MetaData object.</p>
+    <p>Create a new MetaData object.</p>
 <dl class="docutils">
 <dt>bind</dt>
-<dd>an Engine, or a string or URL instance which will be passed
-to create_engine(), along with **kwargs - this MetaData will
-be bound to the resulting engine.</dd>
-<dt>engine_or_url</dt>
-<dd>deprecated; a synonym for 'bind'</dd>
-<dt>url</dt>
-<dd>deprecated.  a string or URL instance which will be passed to
-create_engine(), along with **kwargs - this MetaData will be
-bound to the resulting engine.</dd>
-<dt>engine</dt>
-<dd>deprecated. an Engine instance to which this MetaData will
-be bound.</dd>
-<dt>case_sensitive</dt>
-<dd>popped from **kwargs, indicates default case sensitive
-setting for all contained objects.  defaults to True.</dd>
-<dt>name</dt>
-<dd>deprecated, optional name for this MetaData instance.</dd>
+<dd>An Engine or Connection to bind to.  May also be a string or
+URL instance, these are passed to create_engine() and this
+MetaData will be bound to the resulting engine.</dd>
+<dt>reflect</dt>
+<dd>Optional, automatically load all tables from the bound database.
+Defaults to False. <tt class="docutils literal"><span class="pre">bind</span></tt> is required when this option is
+set.  For finer control over loaded tables, use the <tt class="docutils literal"><span class="pre">reflect</span></tt>
+method of <tt class="docutils literal"><span class="pre">MetaData</span></tt>.</dd>
 </dl>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -1051,7 +853,11 @@ setting for all contained objects.  defaults to True.</dd>
          <A name=""></a>
          <b>bind = property()</b>
          <div class="docstring">
-         <p>an Engine or Connection to which this MetaData is bound.  this is a settable property as well.</p>
+         <p>An Engine or Connection to which this MetaData is bound.</p>
+<p>This property may be assigned an <tt class="docutils literal"><span class="pre">Engine</span></tt> or
+<tt class="docutils literal"><span class="pre">Connection</span></tt>, or assigned a string or URL to
+automatically create a basic <tt class="docutils literal"><span class="pre">Engine</span></tt> for this bind
+with <tt class="docutils literal"><span class="pre">create_engine()</span></tt>.</p>
 
          </div> 
          </div>
@@ -1070,19 +876,20 @@ setting for all contained objects.  defaults to True.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def connect(<i>self</i>, <i>bind=None</i>, <i>**kwargs</i>)</b>
+    <b>def connect(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>bind this MetaData to an Engine.</p>
-<p>DEPRECATED.  use metadata.bind = &lt;engine&gt; or metadata.bind = &lt;url&gt;.</p>
+    <p>Deprecated.
+Bind this MetaData to an Engine.</p>
+<blockquote>
+<p>Use <tt class="docutils literal"><span class="pre">metadata.bind</span> <span class="pre">=</span> <span class="pre">&lt;engine&gt;</span></tt> or <tt class="docutils literal"><span class="pre">metadata.bind</span> <span class="pre">=</span> <span class="pre">&lt;url&gt;</span></tt>.</p>
 <dl class="docutils">
 <dt>bind</dt>
-<dd>a string, URL or Engine instance.  If a string or URL,
-will be passed to create_engine() along with **kwargs to
-produce the engine which to connect to.  otherwise connects
-directly to the given Engine.</dd>
-<dt>engine_or_url</dt>
-<dd>deprecated.  synonymous with &quot;bind&quot;</dd>
+<dd>A string, <tt class="docutils literal"><span class="pre">URL</span></tt>, <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> instance.  If
+a string or <tt class="docutils literal"><span class="pre">URL</span></tt>, will be passed to <tt class="docutils literal"><span class="pre">create_engine()</span></tt> along
+with <tt class="docutils literal"><span class="pre">\**kwargs</span></tt> to produce the engine which to connect to.
+Otherwise connects directly to the given <tt class="docutils literal"><span class="pre">Engine</span></tt>.</dd>
 </dl>
+</blockquote>
 
     </div>
     </div>
@@ -1091,7 +898,7 @@ directly to the given Engine.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_all(<i>self</i>, <i>bind=None</i>, <i>tables=None</i>, <i>checkfirst=True</i>, <i>connectable=None</i>)</b>
+    <b>def create_all(<i>self</i>, <i>bind=None</i>, <i>tables=None</i>, <i>checkfirst=True</i>)</b>
     <div class="docstring">
     <p>Create all tables stored in this metadata.</p>
 <p>This will conditionally create tables depending on if they do
@@ -1100,11 +907,9 @@ not yet exist in the database.</p>
 <dt>bind</dt>
 <dd>A <tt class="docutils literal"><span class="pre">Connectable</span></tt> used to access the database; if None, uses
 the existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if any.</dd>
-<dt>connectable</dt>
-<dd>deprecated.  synonymous with &quot;bind&quot;</dd>
 <dt>tables</dt>
-<dd>Optional list of tables, which is a subset of the total
-tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt> (others are ignored).</dd>
+<dd>Optional list of <tt class="docutils literal"><span class="pre">Table</span></tt> objects, which is a subset of the
+total tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt> (others are ignored).</dd>
 </dl>
 
     </div>
@@ -1114,7 +919,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def drop_all(<i>self</i>, <i>bind=None</i>, <i>tables=None</i>, <i>checkfirst=True</i>, <i>connectable=None</i>)</b>
+    <b>def drop_all(<i>self</i>, <i>bind=None</i>, <i>tables=None</i>, <i>checkfirst=True</i>)</b>
     <div class="docstring">
     <p>Drop all tables stored in this metadata.</p>
 <p>This will conditionally drop tables depending on if they
@@ -1123,11 +928,9 @@ currently exist in the database.</p>
 <dt>bind</dt>
 <dd>A <tt class="docutils literal"><span class="pre">Connectable</span></tt> used to access the database; if None, uses
 the existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if any.</dd>
-<dt>connectable</dt>
-<dd>deprecated.  synonymous with &quot;bind&quot;</dd>
 <dt>tables</dt>
-<dd>Optional list of tables, which is a subset of the total
-tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt> (others are ignored).</dd>
+<dd>Optional list of <tt class="docutils literal"><span class="pre">Table</span></tt> objects, which is a subset of the
+total tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt> (others are ignored).</dd>
 </dl>
 
     </div>
@@ -1139,7 +942,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     <A name=""></a>
     <b>def is_bound(<i>self</i>)</b>
     <div class="docstring">
-    <p>return True if this MetaData is bound to an Engine.</p>
+    <p>True if this MetaData is bound to an Engine or Connection.</p>
 
     </div>
     </div>
@@ -1148,7 +951,62 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def reflect(<i>self</i>, <i>bind=None</i>, <i>schema=None</i>, <i>only=None</i>)</b>
+    <div class="docstring">
+    <p>Load all available table definitions from the database.</p>
+<p>Automatically creates <tt class="docutils literal"><span class="pre">Table</span></tt> entries in this <tt class="docutils literal"><span class="pre">MetaData</span></tt> for any
+table available in the database but not yet present in the <tt class="docutils literal"><span class="pre">MetaData</span></tt>.
+May be called multiple times to pick up tables recently added to the
+database, however no special action is taken if a table in this
+<tt class="docutils literal"><span class="pre">MetaData</span></tt> no longer exists in the database.</p>
+<dl class="docutils">
+<dt>bind</dt>
+<dd>A <tt class="docutils literal"><span class="pre">Connectable</span></tt> used to access the database; if None, uses
+the existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if any.</dd>
+<dt>schema</dt>
+<dd>Optional, query and reflect tables from an alterate schema.</dd>
+<dt>only</dt>
+<dd><p class="first">Optional.  Load only a sub-set of available named tables.  May
+be specified as a sequence of names or a callable.</p>
+<p>If a sequence of names is provided, only those tables will be
+reflected.  An error is raised if a table is requested but not
+available.  Named tables already present in this <tt class="docutils literal"><span class="pre">MetaData</span></tt> are
+ignored.</p>
+<p class="last">If a callable is provided, it will be used as a boolean predicate
+to filter the list of potential table names.  The callable is
+called with a table name and this <tt class="docutils literal"><span class="pre">MetaData</span></tt> instance as positional
+arguments and should return a true value for any table to reflect.</p>
+</dd>
+</dl>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def remove(<i>self</i>, <i>table</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def table_iterator(<i>self</i>, <i>reverse=True</i>, <i>tables=None</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __contains__(<i>self</i>, <i>key</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1189,16 +1047,6 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     </div>
     </div>
 
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
 
     
 
@@ -1229,16 +1077,6 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt>.</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -1326,42 +1164,12 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
          </div>
 
                     
-         <div class="darkcell">
-         <A name=""></a>
-         <b>case_sensitive = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>engine = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
     <div class="darkcell">
     
     <A name=""></a>
     <b>def get_children(<i>self</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>used to allow SchemaVisitor access</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_engine(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Return the engine or raise an error if no engine.</p>
-<p>Deprecated.  use the &quot;bind&quot; attribute.</p>
 
     </div>
     </div>
@@ -1398,160 +1206,6 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     <div class="darkcell"><p>Define the visiting for <tt class="docutils literal"><span class="pre">SchemaItem</span></tt> objects.</p>
 </div>
     
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_check_constraint(<i>self</i>, <i>constraint</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">CheckConstraint</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_column(<i>self</i>, <i>column</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">Column</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_column_check_constraint(<i>self</i>, <i>constraint</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">CheckConstraint</span></tt> on a <tt class="docutils literal"><span class="pre">Column</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_column_default(<i>self</i>, <i>default</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">ColumnDefault</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_column_onupdate(<i>self</i>, <i>onupdate</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">ColumnDefault</span></tt> with the <cite>for_update</cite> flag set.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_foreign_key(<i>self</i>, <i>join</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">ForeignKey</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_foreign_key_constraint(<i>self</i>, <i>constraint</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">ForeignKeyConstraint</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_index(<i>self</i>, <i>index</i>)</b>
-    <div class="docstring">
-    <p>Visit an <tt class="docutils literal"><span class="pre">Index</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_passive_default(<i>self</i>, <i>default</i>)</b>
-    <div class="docstring">
-    <p>Visit a passive default.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_primary_key_constraint(<i>self</i>, <i>constraint</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_schema(<i>self</i>, <i>schema</i>)</b>
-    <div class="docstring">
-    <p>Visit a generic <tt class="docutils literal"><span class="pre">SchemaItem</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_sequence(<i>self</i>, <i>sequence</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">Sequence</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_table(<i>self</i>, <i>table</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">Table</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def visit_unique_constraint(<i>self</i>, <i>constraint</i>)</b>
-    <div class="docstring">
-    <p>Visit a <tt class="docutils literal"><span class="pre">UniqueConstraint</span></tt>.</p>
-
-    </div>
-    </div>
 
 
     
@@ -1592,18 +1246,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
-    <div class="docstring">
-    <p>Call the visit_seauence method on the given visitor.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def create(<i>self</i>, <i>bind=None</i>)</b>
+    <b>def create(<i>self</i>, <i>bind=None</i>, <i>checkfirst=True</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1613,7 +1256,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def drop(<i>self</i>, <i>bind=None</i>)</b>
+    <b>def drop(<i>self</i>, <i>bind=None</i>, <i>checkfirst=True</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1642,7 +1285,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     <div class="darkcell"><p>Represent a relational database table.</p>
 <p>This subclasses <tt class="docutils literal"><span class="pre">sql.TableClause</span></tt> to provide a table that is
 associated with an instance of <tt class="docutils literal"><span class="pre">MetaData</span></tt>, which in turn
-may be associated with an instance of <tt class="docutils literal"><span class="pre">SQLEngine</span></tt>.</p>
+may be associated with an instance of <tt class="docutils literal"><span class="pre">Engine</span></tt>.</p>
 <p>Whereas <tt class="docutils literal"><span class="pre">TableClause</span></tt> represents a table as its used in an SQL
 expression, <tt class="docutils literal"><span class="pre">Table</span></tt> represents a table as it exists in a
 database schema.</p>
@@ -1681,17 +1324,27 @@ combination will return the same Table instance.</p>
 <dt>*args</dt>
 <dd>Should contain a listing of the Column objects for this table.</dd>
 <dt>**kwargs</dt>
-<dd><p class="first">options include:</p>
+<dd><p class="first">Options include:</p>
 <dl class="last docutils">
 <dt>schema</dt>
-<dd>Defaults to None: the <em>schema name</em> for this table, which is
+<dd>The <em>schema name</em> for this table, which is
 required if the table resides in a schema other than the
 default selected schema for the engine's database
-connection.</dd>
+connection.  Defaults to <tt class="docutils literal"><span class="pre">None</span></tt>.</dd>
 <dt>autoload</dt>
 <dd>Defaults to False: the Columns for this table should be
 reflected from the database.  Usually there will be no
 Column objects in the constructor if this property is set.</dd>
+<dt>autoload_with</dt>
+<dd>if autoload==True, this is an optional Engine or Connection
+instance to be used for the table reflection.  If <tt class="docutils literal"><span class="pre">None</span></tt>,
+the underlying MetaData's bound connectable will be used.</dd>
+<dt>include_columns</dt>
+<dd>A list of strings indicating a subset of columns to be
+loaded via the <tt class="docutils literal"><span class="pre">autoload</span></tt> operation; table columns who
+aren't present in this list will not be represented on the resulting
+<tt class="docutils literal"><span class="pre">Table</span></tt> object.  Defaults to <tt class="docutils literal"><span class="pre">None</span></tt> which indicates all
+columns should be reflected.</dd>
 <dt>mustexist</dt>
 <dd>Defaults to False: indicates that this Table must already
 have been defined elsewhere in the application, else an
@@ -1714,12 +1367,6 @@ behavior.</dd>
 must be properly escaped and quoted before being sent to
 the database. This flag overrides all other quoting
 behavior.</dd>
-<dt>case_sensitive</dt>
-<dd>Defaults to True: indicates quoting should be used if the
-identifier contains mixed case.</dd>
-<dt>case_sensitive_schema</dt>
-<dd>Defaults to True: indicates quoting should be used if the
-identifier contains mixed case.</dd>
 </dl>
 </dd>
 </dl>
@@ -1750,19 +1397,10 @@ identifier contains mixed case.</dd>
     </div>
 
                     
-         <div class="darkcell">
-         <A name=""></a>
-         <b>case_sensitive_schema = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create(<i>self</i>, <i>bind=None</i>, <i>checkfirst=False</i>, <i>connectable=None</i>)</b>
+    <b>def create(<i>self</i>, <i>bind=None</i>, <i>checkfirst=False</i>)</b>
     <div class="docstring">
     <p>Issue a <tt class="docutils literal"><span class="pre">CREATE</span></tt> statement for this table.</p>
 <p>See also <tt class="docutils literal"><span class="pre">metadata.create_all()</span></tt>.</p>
@@ -1774,7 +1412,7 @@ identifier contains mixed case.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def drop(<i>self</i>, <i>bind=None</i>, <i>checkfirst=False</i>, <i>connectable=None</i>)</b>
+    <b>def drop(<i>self</i>, <i>bind=None</i>, <i>checkfirst=False</i>)</b>
     <div class="docstring">
     <p>Issue a <tt class="docutils literal"><span class="pre">DROP</span></tt> statement for this table.</p>
 <p>See also <tt class="docutils literal"><span class="pre">metadata.drop_all()</span></tt>.</p>
@@ -1786,7 +1424,7 @@ identifier contains mixed case.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def exists(<i>self</i>, <i>bind=None</i>, <i>connectable=None</i>)</b>
+    <b>def exists(<i>self</i>, <i>bind=None</i>)</b>
     <div class="docstring">
     <p>Return True if this table exists.</p>
 
@@ -1802,6 +1440,15 @@ identifier contains mixed case.</dd>
     
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>key = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
          <div class="darkcell">
@@ -1843,7 +1490,16 @@ identifier contains mixed case.</dd>
     <h3>class ThreadLocalMetaData(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_MetaData">MetaData</a>)</h3>
     
     
-    <div class="darkcell"><p>A <tt class="docutils literal"><span class="pre">MetaData</span></tt> that binds to multiple <tt class="docutils literal"><span class="pre">Engine</span></tt> implementations on a thread-local basis.</p>
+    <div class="darkcell"><p>A MetaData variant that presents a different <tt class="docutils literal"><span class="pre">bind</span></tt> in every thread.</p>
+<p>Makes the <tt class="docutils literal"><span class="pre">bind</span></tt> property of the MetaData a thread-local value,
+allowing this collection of tables to be bound to different <tt class="docutils literal"><span class="pre">Engine</span></tt>
+implementations or connections in each thread.</p>
+<p>The ThreadLocalMetaData starts off bound to None in each thread.
+Binds must be made explicitly by assigning to the <tt class="docutils literal"><span class="pre">bind</span></tt> property or
+using <tt class="docutils literal"><span class="pre">connect()</span></tt>.  You can also re-bind dynamically multiple times per
+thread, just like a regular <tt class="docutils literal"><span class="pre">MetaData</span></tt>.</p>
+<p>Use this type of MetaData when your tables are present in more than
+one database and you need to address them simultanesouly.</p>
 </div>
     
 
@@ -1851,9 +1507,10 @@ identifier contains mixed case.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>name=None</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>)</b>
     <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">ThreadLocalMetaData</span></tt>.</p>
+    <p>Construct a ThreadLocalMetaData.</p>
+<p>Takes no arguments.</p>
 
     </div>
     </div>
@@ -1863,7 +1520,11 @@ identifier contains mixed case.</dd>
          <A name=""></a>
          <b>bind = property()</b>
          <div class="docstring">
-         
+         <p>The bound Engine or Connection for this thread.</p>
+<p>This property may be assigned an Engine or Connection,
+or assigned a string or URL to automatically create a
+basic Engine for this bind with <tt class="docutils literal"><span class="pre">create_engine()</span></tt>.</p>
+
          </div> 
          </div>
 
@@ -1871,9 +1532,21 @@ identifier contains mixed case.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def connect(<i>self</i>, <i>engine_or_url</i>, <i>**kwargs</i>)</b>
+    <b>def connect(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Deprecated.
+Bind to an Engine in the caller's thread.</p>
+<blockquote>
+<p>Use <tt class="docutils literal"><span class="pre">metadata.bind=&lt;engine&gt;</span></tt> or <tt class="docutils literal"><span class="pre">metadata.bind=&lt;url&gt;</span></tt>.</p>
+<dl class="docutils">
+<dt>bind</dt>
+<dd>A string, <tt class="docutils literal"><span class="pre">URL</span></tt>, <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> instance.  If
+a string or <tt class="docutils literal"><span class="pre">URL</span></tt>, will be passed to <tt class="docutils literal"><span class="pre">create_engine()</span></tt> along
+with <tt class="docutils literal"><span class="pre">\**kwargs</span></tt> to produce the engine which to connect to.
+Otherwise connects directly to the given <tt class="docutils literal"><span class="pre">Engine</span></tt>.</dd>
+</dl>
+</blockquote>
+
     </div>
     </div>
 
@@ -1883,19 +1556,10 @@ identifier contains mixed case.</dd>
     <A name=""></a>
     <b>def dispose(<i>self</i>)</b>
     <div class="docstring">
-    <p>Dispose all <tt class="docutils literal"><span class="pre">Engines</span></tt> to which this <tt class="docutils literal"><span class="pre">ThreadLocalMetaData</span></tt> has been connected.</p>
+    <p>Dispose any and all <tt class="docutils literal"><span class="pre">Engines</span></tt> to which this <tt class="docutils literal"><span class="pre">ThreadLocalMetaData</span></tt> has been connected.</p>
 
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>engine = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -1903,7 +1567,8 @@ identifier contains mixed case.</dd>
     <A name=""></a>
     <b>def is_bound(<i>self</i>)</b>
     <div class="docstring">
-    
+    <p>True if there is a bind for this thread.</p>
+
     </div>
     </div>
 
@@ -1937,16 +1602,6 @@ identifier contains mixed case.</dd>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">UniqueConstraint</span></tt>.</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -1989,13 +1644,13 @@ identifier contains mixed case.</dd>
     <div class="bottomnav">
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
             Previous: <a href="sqlalchemy_sql.html">module sqlalchemy.sql</a>
 
                |   
-            Next: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
+            Next: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>
     </div>
 
     </div>

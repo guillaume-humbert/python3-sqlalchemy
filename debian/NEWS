@@ -1,3 +1,19 @@
+python-sqlalchemy (0.4.0~beta1-1) experimental; urgency=low
+
+  From version 0.3 to version 0.4 of SQLAlchemy, some conventions have
+  changed. Most of these conventions are available in the most recent releases
+  of the 0.3 series starting with version 0.3.9, so that you can make a 0.3
+  application compatible with 0.4 in most cases. 
+
+  Things that have changed in a backwards-incompatible manner are documented
+  in "0.3 to 0.4 Migration" section (#overview_migration) in
+  /usr/share/doc/python-sqlalchemy-doc/doc/intro.html file
+  
+  For a full overview of everything that's new and changed, see
+  http://www.sqlalchemy.org/trac/wiki/WhatsNewIn04
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 12 Aug 2007 21:44:53 +0200
+
 python-sqlalchemy (0.3.0-1) unstable; urgency=low
 
   SQLAlchemy 0.2 -> 0.3 migration notes can be found on the wiki page:
