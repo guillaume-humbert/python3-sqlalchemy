@@ -1,9 +1,11 @@
 import testbase
 from sqlalchemy import *
 from sqlalchemy.orm import *
+from sqlalchemy.orm.session import Session as SessionCls
 from testlib import *
 from testlib.tables import *
 import testlib.tables as tables
+import fixtures
 
 class SessionTest(AssertMixin):
     def setUpAll(self):
@@ -11,6 +13,7 @@ class SessionTest(AssertMixin):
     def tearDownAll(self):
         tables.drop()
     def tearDown(self):
+        SessionCls.close_all()
         tables.delete()
         clear_mappers()
     def setUp(self):
@@ -73,7 +76,23 @@ class SessionTest(AssertMixin):
         # then see if expunge fails
         session.expunge(u)
     
-    @testing.unsupported('sqlite')    
+    def test_binds_from_expression(self):
+        """test that Session can extract Table objects from ClauseElements and match them to tables."""
+        Session = sessionmaker(binds={users:testbase.db, addresses:testbase.db})
+        sess = Session()
+        sess.execute(users.insert(), params=dict(user_id=1, user_name='ed'))
+        assert sess.execute(users.select()).fetchall() == [(1, 'ed')]
+        
+        mapper(Address, addresses)
+        mapper(User, users, properties={
+            'addresses':relation(Address, backref=backref("user", cascade="all"), cascade="all")
+        })
+        Session = sessionmaker(binds={User:testbase.db, Address:testbase.db})
+        sess.execute(users.insert(), params=dict(user_id=2, user_name='fred'))
+        assert sess.execute(users.select()).fetchall() == [(1, 'ed'), (2, 'fred')]
+        
+        
+    @testing.unsupported('sqlite', 'mssql') # TEMP: test causes mssql to hang
     def test_transaction(self):
         class User(object):pass
         mapper(User, users)
@@ -90,7 +109,7 @@ class SessionTest(AssertMixin):
         assert conn1.execute("select count(1) from users").scalar() == 1
         assert testbase.db.connect().execute("select count(1) from users").scalar() == 1
     
-    @testing.unsupported('sqlite')
+    @testing.unsupported('sqlite', 'mssql') # TEMP: test causes mssql to hang
     def test_autoflush(self):
         class User(object):pass
         mapper(User, users)
@@ -109,7 +128,7 @@ class SessionTest(AssertMixin):
         assert conn1.execute("select count(1) from users").scalar() == 1
         assert testbase.db.connect().execute("select count(1) from users").scalar() == 1
 
-    @testing.unsupported('sqlite')
+    @testing.unsupported('sqlite', 'mssql') # TEMP: test causes mssql to hang
     def test_autoflush_unbound(self):
         class User(object):pass
         mapper(User, users)
@@ -438,8 +457,40 @@ class SessionTest(AssertMixin):
         self._assert_key(key, (User, (1,), None))
         key = s.identity_key(User, row=row, entity_name="en")
         self._assert_key(key, (User, (1,), "en"))
+
+class ScopedSessionTest(ORMTest):
+
+    def define_tables(self, metadata):
+        global table, table2
+        table = Table('sometable', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('data', String(30)))
+        table2 = Table('someothertable', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('someid', None, ForeignKey('sometable.id'))
+            )
+    
+    def test_basic(self):
+        Session = scoped_session(sessionmaker())
+
+        class SomeObject(fixtures.Base):pass
+        class SomeOtherObject(fixtures.Base):pass
+
+        mapper(SomeObject, table, properties={
+            'options':relation(SomeOtherObject)
+        })
+        mapper(SomeOtherObject, table2)
+
+        s = SomeObject(id=1, data="hello")
+        sso = SomeOtherObject()
+        s.options.append(sso)
+        Session.save(s)
+        Session.commit()
+        Session.clear()
         
-class ScopedSessionTest(PersistTest):
+        assert SomeObject(id=1, data="hello", options=[SomeOtherObject(someid=1)]) == Session.query(SomeObject).one()
+        
+class ScopedMapperTest(PersistTest):
     def setUpAll(self):
         global metadata, table, table2
         metadata = MetaData(testbase.db)

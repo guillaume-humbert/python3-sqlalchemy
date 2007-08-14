@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/14/07 11:13:06</div>
 
 
 
@@ -155,7 +155,7 @@ a thread-managed Session adapter, provided by the <a href="sqlalchemy_orm.html#d
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>bind=None</i>, <i>autoflush=True</i>, <i>transactional=False</i>, <i>twophase=False</i>, <i>echo_uow=False</i>, <i>weak_identity_map=False</i>, <i>binds=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>bind=None</i>, <i>autoflush=True</i>, <i>transactional=False</i>, <i>twophase=False</i>, <i>echo_uow=False</i>, <i>weak_identity_map=False</i>, <i>binds=None</i>, <i>extension=None</i>)</b>
     <div class="docstring">
     <p>Construct a new Session.</p>
 <dl class="docutils">
@@ -193,6 +193,11 @@ sess = Session(binds={
 <dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, configure Python logging to dump all unit-of-work
 transactions. This is the equivalent of
 <tt class="docutils literal"><span class="pre">logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG)</span></tt>.</dd>
+<dt>extension</dt>
+<dd>an optional <b>SessionExtension</b> instance, which will receive
+pre- and post- commit and flush events, as well as a post-rollback event.  User-
+defined code may be placed within these hooks using a user-defined subclass
+of <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</dd>
 <dt>transactional</dt>
 <dd>Set up this <tt class="docutils literal"><span class="pre">Session</span></tt> to automatically begin transactions. Setting this
 flag to <tt class="docutils literal"><span class="pre">True</span></tt> is the rough equivalent of calling <tt class="docutils literal"><span class="pre">begin()</span></tt> after each
@@ -486,28 +491,9 @@ query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_bind(<i>self</i>, <i>mapper</i>)</b>
+    <b>def get_bind(<i>self</i>, <i>mapper</i>, <i>clause=None</i>)</b>
     <div class="docstring">
-    <p>Return the <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> which is used to execute
-statements on behalf of the given <cite>mapper</cite>.</p>
-<p>Calling <tt class="docutils literal"><span class="pre">connect()</span></tt> on the return result will always result
-in a <tt class="docutils literal"><span class="pre">Connection</span></tt> object.  This method disregards any
-<tt class="docutils literal"><span class="pre">SessionTransaction</span></tt> that may be in progress.</p>
-<p>The order of searching is as follows:</p>
-<ol class="arabic simple">
-<li>if an <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> was bound to this <tt class="docutils literal"><span class="pre">Mapper</span></tt>
-specifically within this <tt class="docutils literal"><span class="pre">Session</span></tt>, return that <tt class="docutils literal"><span class="pre">Engine</span></tt> or
-<tt class="docutils literal"><span class="pre">Connection</span></tt>.</li>
-<li>if an <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> was bound to this <cite>mapper</cite> 's
-underlying <tt class="docutils literal"><span class="pre">Table</span></tt> within this <tt class="docutils literal"><span class="pre">Session</span></tt> (i.e. not to the <tt class="docutils literal"><span class="pre">Table</span></tt>
-directly), return that <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>.</li>
-<li>if an <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> was bound to this <tt class="docutils literal"><span class="pre">Session</span></tt>,
-return that <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>.</li>
-<li>finally, return the <tt class="docutils literal"><span class="pre">Engine</span></tt> which was bound directly to the
-<tt class="docutils literal"><span class="pre">Table</span></tt> 's <tt class="docutils literal"><span class="pre">MetaData</span></tt> object.</li>
-</ol>
-<p>If no <tt class="docutils literal"><span class="pre">Engine</span></tt> is bound to the <tt class="docutils literal"><span class="pre">Table</span></tt>, an exception is raised.</p>
-
+    
     </div>
     </div>
 

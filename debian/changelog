@@ -1,3 +1,17 @@
+sqlalchemy (0.4.0~beta2-1) experimental; urgency=low
+
+  * New upstream release
+  * debian/watch file updated ("~" character issue fixed)
+  * Don't provide python2.X-sqlalchemy packages anymore (it's arch. indep.
+    package)
+  * Add "python (>=2.5) |" before all SQLite packages in Suggests (python2.5
+    provides sqlite3 module which is used by SQLAlchemy if available)
+  * Extend README.Debian file (add notes about database <-> required package
+    relation)
+  * Add info about access.py and interfaces.py files to debian/copyright
+
+ -- Piotr Ożarowski <piotr@debian.org>  Tue, 14 Aug 2007 20:19:11 +0200
+
 sqlalchemy (0.4.0~beta1-1) experimental; urgency=low
 
   * New upstream release (closes: #421101)

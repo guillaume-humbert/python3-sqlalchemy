@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/14/07 11:13:06</div>
 
 
 
@@ -207,17 +207,6 @@ using <cite>add_property</cite>.</p>
 property to the initial properties dictionary sent to the
 constructor.  If this Mapper has already been compiled, then
 the given MapperProperty is compiled immediately.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def base_mapper(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Return the ultimate base mapper in an inheritance chain.</p>
 
     </div>
     </div>
@@ -503,7 +492,7 @@ all descendant mappers.</p>
 <p>This includes not just the immediately inheriting mappers but
 all their inheriting mappers as well.</p>
 <p>To iterate through an entire hierarchy, use
-<tt class="docutils literal"><span class="pre">mapper.base_mapper().polymorphic_iterator()</span></tt>.</p>
+<tt class="docutils literal"><span class="pre">mapper.base_mapper.polymorphic_iterator()</span></tt>.</p>
 
     </div>
     </div>
