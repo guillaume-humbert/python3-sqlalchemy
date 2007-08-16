@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/14/07 11:13:06</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
 
 
 
@@ -1394,13 +1394,9 @@ parameter.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def compare(<i>self</i>, <i>other</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
-    <p>Compare this <tt class="docutils literal"><span class="pre">_BindParamClause</span></tt> to the given clause.</p>
-<p>Since <tt class="docutils literal"><span class="pre">compare()</span></tt> is meant to compare statement syntax, this
-method returns True if the two <tt class="docutils literal"><span class="pre">_BindParamClauses</span></tt> have just
-the same type.</p>
-
+    
     </div>
     </div>
 
@@ -1408,9 +1404,13 @@ the same type.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def typeprocess(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def compare(<i>self</i>, <i>other</i>)</b>
     <div class="docstring">
-    
+    <p>Compare this <tt class="docutils literal"><span class="pre">_BindParamClause</span></tt> to the given clause.</p>
+<p>Since <tt class="docutils literal"><span class="pre">compare()</span></tt> is meant to compare statement syntax, this
+method returns True if the two <tt class="docutils literal"><span class="pre">_BindParamClauses</span></tt> have just
+the same type.</p>
+
     </div>
     </div>
 
@@ -1924,7 +1924,7 @@ the <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> object
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_processed(<i>self</i>, <i>key</i>)</b>
+    <b>def get_processed(<i>self</i>, <i>key</i>, <i>processors</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1934,7 +1934,18 @@ the <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> object
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_raw_dict(<i>self</i>, <i>encode_keys=False</i>)</b>
+    <b>def get_processors(<i>self</i>)</b>
+    <div class="docstring">
+    <p>return a dictionary of bind 'processing' functions</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_raw_dict(<i>self</i>, <i>processors</i>, <i>encode_keys=False</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1944,7 +1955,7 @@ the <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> object
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_raw_list(<i>self</i>)</b>
+    <b>def get_raw_list(<i>self</i>, <i>processors</i>)</b>
     <div class="docstring">
     
     </div>

@@ -12,12 +12,11 @@ For SQLite3:
 
 For PostgreSQL:
 	python-psycopg2
-	please note: SQLAlchemy doesn't work well with python-psycopg (version 1)
 
 For MySQL:
 	python-mysqldb
 
-For Interbase / Firebird:
+For Firebird:
 	python-kinterbasdb
 
 

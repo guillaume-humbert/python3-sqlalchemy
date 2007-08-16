@@ -556,7 +556,7 @@ class CommittedState(object):
 
     def rollback(self, manager, obj):
         for attr in manager.managed_attributes(obj.__class__):
-            if self.data.has_key(attr.key):
+            if attr.key in self.data:
                 if not isinstance(attr, InstrumentedCollectionAttribute):
                     obj.__dict__[attr.key] = self.data[attr.key]
                 else:
@@ -707,17 +707,6 @@ class AttributeManager(object):
             if attr.check_mutable_modified(object):
                 return True
         return object._state.get('modified', False)
-
-    def init_attr(self, obj):
-        """Sets up the __sa_attr_state dictionary on the given instance.
-
-        This dictionary is automatically created when the `_state`
-        attribute of the class is first accessed, but calling it here
-        will save a single throw of an ``AttributeError`` that occurs
-        in that creation step.
-        """
-
-        setattr(obj, '_%s__sa_attr_state' % obj.__class__.__name__, {})
 
     def get_history(self, obj, key, **kwargs):
         """Return a new ``AttributeHistory`` object for the given

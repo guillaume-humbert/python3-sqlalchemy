@@ -7,7 +7,14 @@ class Base(object):
     def __init__(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])
-            
+    
+    # TODO: add recursion checks to this
+    #def __repr__(self):
+    #    return "%s(%s)" % (
+    #        (self.__class__.__name__), 
+    #        ','.join(["%s=%s" % (key, repr(getattr(self, key))) for key in self.__dict__ if not key.startswith('_')])
+    #    )
+    
     def __ne__(self, other):
         return not self.__eq__(other)
         
@@ -17,7 +24,6 @@ class Base(object):
         only look at attributes that are present on the source object.
         
         """
-        
         if self in _recursion_stack:
             return True
         _recursion_stack.add(self)
@@ -42,6 +48,7 @@ class Base(object):
                         continue
                 else:
                     if value is not None:
+                        print "KEY", attr, "COMPARING", value, "TO", getattr(other, attr, None)
                         if value != getattr(other, attr, None):
                             return False
             else:
@@ -168,9 +175,8 @@ def install_fixture_data():
 
 class FixtureTest(ORMTest):
     def define_tables(self, meta):
-        # a slight dirty trick here. 
-        meta.tables = metadata.tables
-        metadata.connect(meta.bind)
+        pass
+FixtureTest.metadata = metadata
     
 class Fixtures(object):
     @property

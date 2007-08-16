@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/14/07 11:13:06</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
 
 
 
@@ -539,6 +539,10 @@ inheritance relationship with.</dd>
 <dd>For joined table inheritance, a SQL expression (constructed
 <tt class="docutils literal"><span class="pre">ClauseElement</span></tt>) which will define how the two tables are
 joined; defaults to a natural join between the two tables.</dd>
+<dt>inherit_foreign_keys</dt>
+<dd>when inherit_condition is used and the condition contains no
+ForeignKey columns, specify the &quot;foreign&quot; columns of the join
+condition in this list.  else leave as None.</dd>
 <dt>order_by</dt>
 <dd>A single <tt class="docutils literal"><span class="pre">Column</span></tt> or list of <tt class="docutils literal"><span class="pre">Columns</span></tt> for which
 selection operations should use as the default ordering for

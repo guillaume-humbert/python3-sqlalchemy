@@ -1,3 +1,11 @@
+sqlalchemy (0.4.0~beta3-1) experimental; urgency=low
+
+  * New upstream release
+  * Removing python-psycopg from Conflicts (0.4 doesn't try to import psycopg
+    anymore)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Thu, 16 Aug 2007 16:57:58 +0000
+
 sqlalchemy (0.4.0~beta2-1) experimental; urgency=low
 
   * New upstream release

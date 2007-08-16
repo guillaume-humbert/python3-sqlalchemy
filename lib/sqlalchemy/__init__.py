@@ -10,4 +10,4 @@ from sqlalchemy.schema import *
 from sqlalchemy.engine import create_engine, engine_from_config
 
 
-__version__ = '0.4.0beta2'
+__version__ = '0.4.0beta3'
