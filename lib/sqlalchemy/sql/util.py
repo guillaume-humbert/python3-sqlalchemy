@@ -1,6 +1,109 @@
-from sqlalchemy import sql, util, schema, topological
+from sqlalchemy import util, schema, topological
+from sqlalchemy.sql import expression, visitors
 
 """Utility functions that build upon SQL and Schema constructs."""
+
+class ClauseParameters(object):
+    """Represent a dictionary/iterator of bind parameter key names/values.
+
+    Tracks the original [sqlalchemy.sql#_BindParamClause] objects as well as the
+    keys/position of each parameter, and can return parameters as a
+    dictionary or a list.  Will process parameter values according to
+    the ``TypeEngine`` objects present in the ``_BindParamClause`` instances.
+    """
+
+    __slots__ = 'dialect', '_binds', 'positional'
+
+    def __init__(self, dialect, positional=None):
+        self.dialect = dialect
+        self._binds = {}
+        if positional is None:
+            self.positional = []
+        else:
+            self.positional = positional
+
+    def get_parameter(self, key):
+        return self._binds[key]
+
+    def set_parameter(self, bindparam, value, name):
+        self._binds[name] = [bindparam, name, value]
+        
+    def get_original(self, key):
+        return self._binds[key][2]
+
+    def get_type(self, key):
+        return self._binds[key][0].type
+
+    def get_processors(self):
+        """return a dictionary of bind 'processing' functions"""
+        return dict([
+            (key, value) for key, value in 
+            [(
+                key,
+                self._binds[key][0].bind_processor(self.dialect)
+            ) for key in self._binds]
+            if value is not None
+        ])
+    
+    def get_processed(self, key, processors):
+        if key in processors:
+            return processors[key](self._binds[key][2])
+        else:
+            return self._binds[key][2]
+            
+    def keys(self):
+        return self._binds.keys()
+
+    def __iter__(self):
+        return iter(self.keys())
+        
+    def __getitem__(self, key):
+        (bind, name, value) = self._binds[key]
+        processor = bind.bind_processor(self.dialect)
+        if processor is not None:
+            return processor(value)
+        else:
+            return value
+ 
+    def __contains__(self, key):
+        return key in self._binds
+    
+    def set_value(self, key, value):
+        self._binds[key][2] = value
+            
+    def get_original_dict(self):
+        return dict([(name, value) for (b, name, value) in self._binds.values()])
+
+    def get_raw_list(self, processors):
+        binds, res = self._binds, []
+        for key in self.positional:
+            if key in processors:
+                res.append(processors[key](binds[key][2]))
+            else:
+                res.append(binds[key][2])
+        return res
+
+    def get_raw_dict(self, processors, encode_keys=False):
+        binds, res = self._binds, {}
+        if encode_keys:
+            encoding = self.dialect.encoding
+            for key in self.keys():
+                if key in processors:
+                    res[key.encode(encoding)] = processors[key](binds[key][2])
+                else:
+                    res[key.encode(encoding)] = binds[key][2]
+        else:
+            for key in self.keys():
+                if key in processors:
+                    res[key] = processors[key](binds[key][2])
+                else:
+                    res[key] = binds[key][2]
+        return res
+        
+    def __repr__(self):
+        return self.__class__.__name__ + ":" + repr(self.get_original_dict())
+
+
 
 class TableCollection(object):
     def __init__(self, tables=None):
@@ -64,7 +167,7 @@ class TableCollection(object):
         return sequence
 
 
-class TableFinder(TableCollection, sql.NoColumnVisitor):
+class TableFinder(TableCollection, visitors.NoColumnVisitor):
     """locate all Tables within a clause."""
 
     def __init__(self, clause, check_columns=False, include_aliases=False):
@@ -85,7 +188,7 @@ class TableFinder(TableCollection, sql.NoColumnVisitor):
         if self.check_columns:
             self.tables.append(column.table)
 
-class ColumnFinder(sql.ClauseVisitor):
+class ColumnFinder(visitors.ClauseVisitor):
     def __init__(self):
         self.columns = util.Set()
 
@@ -95,7 +198,7 @@ class ColumnFinder(sql.ClauseVisitor):
     def __iter__(self):
         return iter(self.columns)
 
-class ColumnsInClause(sql.ClauseVisitor):
+class ColumnsInClause(visitors.ClauseVisitor):
     """Given a selectable, visit clauses and determine if any columns
     from the clause are in the selectable.
     """
@@ -108,7 +211,7 @@ class ColumnsInClause(sql.ClauseVisitor):
         if self.selectable.c.get(column.key) is column:
             self.result = True
 
-class AbstractClauseProcessor(sql.NoColumnVisitor):
+class AbstractClauseProcessor(visitors.NoColumnVisitor):
     """Traverse a clause and attempt to convert the contents of container elements
     to a converted element.
 
@@ -224,10 +327,10 @@ class ClauseAdapter(AbstractClauseProcessor):
         self.equivalents = equivalents
 
     def convert_element(self, col):
-        if isinstance(col, sql.FromClause):
+        if isinstance(col, expression.FromClause):
             if self.selectable.is_derived_from(col):
                 return self.selectable
-        if not isinstance(col, sql.ColumnElement):
+        if not isinstance(col, expression.ColumnElement):
             return None
         if self.include is not None:
             if col not in self.include:

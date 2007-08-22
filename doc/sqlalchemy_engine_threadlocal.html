@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
 
 
 
@@ -56,7 +56,7 @@
             Previous: <a href="sqlalchemy_engine_default.html">module sqlalchemy.engine.default</a>
 
                |   
-            Next: <a href="sqlalchemy_ansisql.html">module sqlalchemy.ansisql</a>
+            Next: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>
     </div>
 
         <h2>module sqlalchemy.engine.threadlocal</h2>
@@ -75,7 +75,7 @@
         <li><a style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLSession">class TLSession(object)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLTransaction">class TLTransaction(RootTransaction)</a></li>
+        <li><a style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLTransaction">class TLTransaction(Transaction)</a></li>
         
     </ul>
 
@@ -115,7 +115,7 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>session</i>, <i>close_with_result</i>)</b>
+    <b>def __init__(<i>self</i>, <i>session</i>, <i>connection</i>, <i>close_with_result</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">TLConnection</span></tt>.</p>
 
@@ -126,7 +126,17 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def begin(<i>self</i>)</b>
+    <b>def begin(<i>self</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def begin_twophase(<i>self</i>, <i>xid=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -182,8 +192,9 @@
     
     
     <div class="darkcell"><p>An Engine that includes support for thread-local managed transactions.</p>
-<p>This engine is better suited to be used with threadlocal Pool
-object.</p>
+<p>The TLEngine relies upon its Pool having &quot;threadlocal&quot; behavior,
+so that once a connection is checked out for the current thread,
+you get that same connection repeatedly.</p>
 </div>
     
 
@@ -193,10 +204,7 @@ object.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>The TLEngine relies upon the Pool having
-&quot;threadlocal&quot; behavior, so that once a connection is checked out
-for the current thread, you get that same connection
-repeatedly.</p>
+    <p>Construct a new TLEngine.</p>
 
     </div>
     </div>
@@ -205,7 +213,7 @@ repeatedly.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def begin(<i>self</i>)</b>
+    <b>def begin(<i>self</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -225,33 +233,9 @@ repeatedly.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def connect(<i>self</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Return a Connection that is not thread-locally scoped.</p>
-<p>This is the equivalent to calling <tt class="docutils literal"><span class="pre">connect()</span></tt> on a
-ComposedSQLEngine.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def contextual_connect(<i>self</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a TLConnection which is thread-locally scoped.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def raw_connection(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Return a DBAPI connection.</p>
 
     </div>
     </div>
@@ -271,7 +255,7 @@ ComposedSQLEngine.</p>
          <A name=""></a>
          <b>session = property()</b>
          <div class="docstring">
-         <p>returns the current thread's TLSession</p>
+         <p>Returns the current thread's TLSession</p>
 
          </div> 
          </div>
@@ -313,7 +297,17 @@ ComposedSQLEngine.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def begin(<i>self</i>)</b>
+    <b>def begin(<i>self</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def begin_twophase(<i>self</i>, <i>xid=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -363,6 +357,16 @@ ComposedSQLEngine.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def prepare(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def reset(<i>self</i>)</b>
     <div class="docstring">
     
@@ -396,10 +400,21 @@ ComposedSQLEngine.</p>
     
     <div class="sectionL3">
 
-    <h3>class TLTransaction(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_RootTransaction">RootTransaction</a>)</h3>
+    <h3>class TLTransaction(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Transaction">Transaction</a>)</h3>
     
     
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>trans</i>, <i>session</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">TLTransaction</span></tt>.</p>
+
+    </div>
+    </div>
 
                     
     <div class="darkcell">
@@ -412,10 +427,58 @@ ComposedSQLEngine.</p>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>connection = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>is_active = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def prepare(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
     <b>def rollback(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __enter__(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __exit__(<i>self</i>, <i>type</i>, <i>value</i>, <i>traceback</i>)</b>
     <div class="docstring">
     
     </div>
@@ -446,7 +509,7 @@ ComposedSQLEngine.</p>
             Previous: <a href="sqlalchemy_engine_default.html">module sqlalchemy.engine.default</a>
 
                |   
-            Next: <a href="sqlalchemy_ansisql.html">module sqlalchemy.ansisql</a>
+            Next: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>
     </div>
 
     </div>

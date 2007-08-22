@@ -1,22 +1,18 @@
-# ansisql.py
+# compiler.py
 # Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-"""Defines ANSI SQL operations.
+"""SQL expression compilation routines and DDL implementations."""
 
-Contains default implementations for the abstract objects in the sql
-module.
-"""
+import string, re
+from sqlalchemy import schema, engine, util, exceptions
+from sqlalchemy.sql import operators, visitors
+from sqlalchemy.sql import util as sql_util
+from sqlalchemy.sql import expression as sql
 
-import string, re, sets, operator
-
-from sqlalchemy import schema, sql, engine, util, exceptions
-from  sqlalchemy.engine import default
-
-
-ANSI_FUNCS = sets.ImmutableSet([
+ANSI_FUNCS = util.Set([
     'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_TIMESTAMP',
     'CURRENT_USER', 'LOCALTIME', 'LOCALTIMESTAMP',
     'SESSION_USER', 'USER'])
@@ -50,71 +46,44 @@ BIND_PARAMS_ESC = re.compile(r'\x5c(:[\w\$]+)(?![:\w\$])', re.UNICODE)
 ANONYMOUS_LABEL = re.compile(r'{ANON (-?\d+) (.*)}')
 
 OPERATORS =  {
-    operator.and_ : 'AND',
-    operator.or_ : 'OR',
-    operator.inv : 'NOT',
-    operator.add : '+',
-    operator.mul : '*',
-    operator.sub : '-',
-    operator.div : '/',
-    operator.mod : '%',
-    operator.truediv : '/',
-    operator.lt : '<',
-    operator.le : '<=',
-    operator.ne : '!=',
-    operator.gt : '>',
-    operator.ge : '>=',
-    operator.eq : '=',
-    sql.ColumnOperators.distinct_op : 'DISTINCT',
-    sql.ColumnOperators.concat_op : '||',
-    sql.ColumnOperators.like_op : 'LIKE',
-    sql.ColumnOperators.notlike_op : 'NOT LIKE',
-    sql.ColumnOperators.ilike_op : 'ILIKE',
-    sql.ColumnOperators.notilike_op : 'NOT ILIKE',
-    sql.ColumnOperators.between_op : 'BETWEEN',
-    sql.ColumnOperators.in_op : 'IN',
-    sql.ColumnOperators.notin_op : 'NOT IN',
-    sql.ColumnOperators.comma_op : ', ',
-    sql.ColumnOperators.desc_op : 'DESC',
-    sql.ColumnOperators.asc_op : 'ASC',
-    
-    sql.Operators.from_ : 'FROM',
-    sql.Operators.as_ : 'AS',
-    sql.Operators.exists : 'EXISTS',
-    sql.Operators.is_ : 'IS',
-    sql.Operators.isnot : 'IS NOT'
+    operators.and_ : 'AND',
+    operators.or_ : 'OR',
+    operators.inv : 'NOT',
+    operators.add : '+',
+    operators.mul : '*',
+    operators.sub : '-',
+    operators.div : '/',
+    operators.mod : '%',
+    operators.truediv : '/',
+    operators.lt : '<',
+    operators.le : '<=',
+    operators.ne : '!=',
+    operators.gt : '>',
+    operators.ge : '>=',
+    operators.eq : '=',
+    operators.distinct_op : 'DISTINCT',
+    operators.concat_op : '||',
+    operators.like_op : 'LIKE',
+    operators.notlike_op : 'NOT LIKE',
+    operators.ilike_op : 'ILIKE',
+    operators.notilike_op : 'NOT ILIKE',
+    operators.between_op : 'BETWEEN',
+    operators.in_op : 'IN',
+    operators.notin_op : 'NOT IN',
+    operators.comma_op : ', ',
+    operators.desc_op : 'DESC',
+    operators.asc_op : 'ASC',
+    operators.from_ : 'FROM',
+    operators.as_ : 'AS',
+    operators.exists : 'EXISTS',
+    operators.is_ : 'IS',
+    operators.isnot : 'IS NOT'
 }
 
-class ANSIDialect(default.DefaultDialect):
-    def __init__(self, cache_identifiers=True, **kwargs):
-        super(ANSIDialect,self).__init__(**kwargs)
-        self.identifier_preparer = self.preparer()
-        self.cache_identifiers = cache_identifiers
-
-    def create_connect_args(self):
-        return ([],{})
-
-    def schemagenerator(self, *args, **kwargs):
-        return ANSISchemaGenerator(self, *args, **kwargs)
-
-    def schemadropper(self, *args, **kwargs):
-        return ANSISchemaDropper(self, *args, **kwargs)
-
-    def compiler(self, statement, parameters, **kwargs):
-        return ANSICompiler(self, statement, parameters, **kwargs)
-
-    def preparer(self):
-        """Return an IdentifierPreparer.
-
-        This object is used to format table and column names including
-        proper quoting and case conventions.
-        """
-        return ANSIIdentifierPreparer(self)
-
-class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
+class DefaultCompiler(engine.Compiled, visitors.ClauseVisitor):
     """Default implementation of Compiled.
 
-    Compiles ClauseElements into ANSI-compliant SQL strings.
+    Compiles ClauseElements into SQL strings.
     """
 
     __traverse_options__ = {'column_collections':False, 'entry':True}
@@ -122,7 +91,7 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
     operators = OPERATORS
     
     def __init__(self, dialect, statement, parameters=None, **kwargs):
-        """Construct a new ``ANSICompiler`` object.
+        """Construct a new ``DefaultCompiler`` object.
 
         dialect
           Dialect to be used
@@ -139,7 +108,7 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
           correspond to the keys present in the parameters.
         """
         
-        super(ANSICompiler, self).__init__(dialect, statement, parameters, **kwargs)
+        super(DefaultCompiler, self).__init__(dialect, statement, parameters, **kwargs)
 
         # if we are insert/update.  set to true when we visit an INSERT or UPDATE
         self.isinsert = self.isupdate = False
@@ -169,18 +138,18 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
         # default formatting style for bind parameters
         self.bindtemplate = ":%s"
 
-        # paramstyle from the dialect (comes from DBAPI)
-        self.paramstyle = dialect.paramstyle
+        # paramstyle from the dialect (comes from DB-API)
+        self.paramstyle = self.dialect.paramstyle
 
         # true if the paramstyle is positional
-        self.positional = dialect.positional
+        self.positional = self.dialect.positional
 
         # a list of the compiled's bind parameter names, used to help
         # formulate a positional argument list
         self.positiontup = []
 
-        # an ANSIIdentifierPreparer that formats the quoting of identifiers
-        self.preparer = dialect.identifier_preparer
+        # an IdentifierPreparer that formats the quoting of identifiers
+        self.preparer = self.dialect.identifier_preparer
         
         # for UPDATE and INSERT statements, a set of columns whos values are being set
         # from a SQL expression (i.e., not one of the bind parameter values).  if present,
@@ -243,8 +212,8 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
         
         return None
 
-    def construct_params(self, params):
-        """Return a sql.ClauseParameters object.
+    def construct_params(self, params=None):
+        """Return a sql.util.ClauseParameters object.
         
         Combines the given bind parameter dictionary (string keys to object values)
         with the _BindParamClause objects stored within this Compiled object
@@ -252,17 +221,20 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
         for a single statement execution, or one element of an executemany execution.
         """
         
-        d = sql.ClauseParameters(self.dialect, self.positiontup)
+        d = sql_util.ClauseParameters(self.dialect, self.positiontup)
 
         pd = self.parameters or {}
-        pd.update(params)
+        if params is not None:
+            pd.update(params)
 
+        bind_names = self.bind_names
         for key, bind in self.binds.iteritems():
-            d.set_parameter(bind, pd.get(key, bind.value), self.bind_names[bind])
-        
+            # the following is an inlined ClauseParameters.set_parameter()
+            name = bind_names[bind]
+            d._binds[name] = [bind, name, pd.get(key, bind.value)]
         return d
 
-    params = property(lambda self:self.construct_params({}), doc="""Return the `ClauseParameters` corresponding to this compiled object.  
+    params = property(lambda self:self.construct_params(), doc="""Return the `ClauseParameters` corresponding to this compiled object.  
         A shortcut for `construct_params()`.""")
         
     def default_from(self):
@@ -284,7 +256,7 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
             if isinstance(label.obj, sql._ColumnClause):
                 self.column_labels[label.obj._label] = labelname
             self.column_labels[label.name] = labelname
-        return " ".join([self.process(label.obj), self.operator_string(sql.ColumnOperators.as_), self.preparer.format_label(label, labelname)])
+        return " ".join([self.process(label.obj), self.operator_string(operators.as_), self.preparer.format_label(label, labelname)])
         
     def visit_column(self, column, **kwargs):
         # there is actually somewhat of a ruleset when you would *not* necessarily
@@ -343,7 +315,7 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
         sep = clauselist.operator
         if sep is None:
             sep = " "
-        elif sep == sql.ColumnOperators.comma_op:
+        elif sep == operators.comma_op:
             sep = ', '
         else:
             sep = " " + self.operator_string(clauselist.operator) + " "
@@ -452,9 +424,9 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
         
         anonname = ANONYMOUS_LABEL.sub(self._process_anon, name)
 
-        if len(anonname) > self.dialect.max_identifier_length():
+        if len(anonname) > self.dialect.max_identifier_length:
             counter = self.generated_ids.get(ident_class, 1)
-            truncname = name[0:self.dialect.max_identifier_length() - 6] + "_" + hex(counter)[2:]
+            truncname = name[0:self.dialect.max_identifier_length - 6] + "_" + hex(counter)[2:]
             self.generated_ids[ident_class] = counter + 1
         else:
             truncname = anonname
@@ -546,7 +518,6 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
                     l = co.label(labelname)
                     inner_columns.add(self.process(l))
                 else:
-                    self.traverse(co)
                     inner_columns.add(self.process(co))
             else:
                 l = self.label_select_column(select, co)
@@ -651,20 +622,16 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
         # for inserts, this includes Python-side defaults, columns with sequences for dialects
         # that support sequences, and primary key columns for dialects that explicitly insert
         # pre-generated primary key values
-        required_cols = util.Set()
-        class DefaultVisitor(schema.SchemaVisitor):
-            def visit_column(s, cd):
-                if c.primary_key and self.uses_sequences_for_inserts():
-                    required_cols.add(c)
-            def visit_column_default(s, cd):
-                required_cols.add(c)
-            def visit_sequence(s, seq):
-                if self.uses_sequences_for_inserts():
-                    required_cols.add(c)
-        vis = DefaultVisitor()
-        for c in insert_stmt.table.c:
-            if (isinstance(c, schema.SchemaItem) and (self.parameters is None or self.parameters.get(c.key, None) is None)):
-                vis.traverse(c)
+        required_cols = [
+            c for c in insert_stmt.table.c
+            if \
+                isinstance(c, schema.SchemaItem) and \
+                (self.parameters is None or self.parameters.get(c.key, None) is None) and \
+                (
+                    ((c.primary_key or isinstance(c.default, schema.Sequence)) and self.uses_sequences_for_inserts()) or 
+                    isinstance(c.default, schema.ColumnDefault)
+                )
+        ]
 
         self.isinsert = True
         colparams = self._get_colparams(insert_stmt, required_cols)
@@ -677,14 +644,12 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
         
         # search for columns who will be required to have an explicit bound value.
         # for updates, this includes Python-side "onupdate" defaults.
-        required_cols = util.Set()
-        class OnUpdateVisitor(schema.SchemaVisitor):
-            def visit_column_onupdate(s, cd):
-                required_cols.add(c)
-        vis = OnUpdateVisitor()
-        for c in update_stmt.table.c:
-            if (isinstance(c, schema.SchemaItem) and (self.parameters is None or self.parameters.get(c.key, None) is None)):
-                vis.traverse(c)
+        required_cols = [c for c in update_stmt.table.c 
+            if
+            isinstance(c, schema.SchemaItem) and \
+            (self.parameters is None or self.parameters.get(c.key, None) is None) and
+            isinstance(c.onupdate, schema.ColumnDefault)
+        ]
 
         self.isupdate = True
         colparams = self._get_colparams(update_stmt, required_cols)
@@ -712,16 +677,6 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
             self.binds[col.key] = bindparam
             return self.bindparam_string(self._truncate_bindparam(bindparam))
 
-        # no parameters in the statement, no parameters in the
-        # compiled params - return binds for all columns
-        if self.parameters is None and stmt.parameters is None:
-            return [(c, create_bind_param(c, None)) for c in stmt.table.columns]
-
-        def create_clause_param(col, value):
-            self.traverse(value)
-            self.inline_params.add(col)
-            return self.process(value)
-
         self.inline_params = util.Set()
 
         def to_col(key):
@@ -730,30 +685,38 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
             else:
                 return key
 
+        # no parameters in the statement, no parameters in the
+        # compiled params - return binds for all columns
+        if self.parameters is None and stmt.parameters is None:
+            return [(c, create_bind_param(c, None)) for c in stmt.table.columns]
+
         # if we have statement parameters - set defaults in the
         # compiled params
         if self.parameters is None:
             parameters = {}
         else:
-            parameters = dict([(to_col(k), v) for k, v in self.parameters.iteritems()])
+            parameters = dict([(getattr(k, 'key', k), v) for k, v in self.parameters.iteritems()])
 
         if stmt.parameters is not None:
             for k, v in stmt.parameters.iteritems():
-                parameters.setdefault(to_col(k), v)
+                parameters.setdefault(getattr(k, 'key', k), v)
 
         for col in required_cols:
-            parameters.setdefault(col, None)
+            parameters.setdefault(col.key, None)
 
         # create a list of column assignment clauses as tuples
         values = []
         for c in stmt.table.columns:
-            if c in parameters:
-                value = parameters[c]
-                if sql._is_literal(value):
-                    value = create_bind_param(c, value)
-                else:
-                    value = create_clause_param(c, value)
-                values.append((c, value))
+            if c.key in parameters:
+                value = parameters[c.key]
+            else:
+                continue
+            if sql._is_literal(value):
+                value = create_bind_param(c, value)
+            else:
+                self.inline_params.add(c)
+                value = self.process(value)
+            values.append((c, value))
         
         return values
 
@@ -781,7 +744,7 @@ class ANSICompiler(engine.Compiled, sql.ClauseVisitor):
     def __str__(self):
         return self.string
 
-class ANSISchemaBase(engine.SchemaIterator):
+class DDLBase(engine.SchemaIterator):
     def find_alterables(self, tables):
         alterables = []
         class FindAlterables(schema.SchemaVisitor):
@@ -794,12 +757,12 @@ class ANSISchemaBase(engine.SchemaIterator):
                 findalterables.traverse(c)
         return alterables
 
-class ANSISchemaGenerator(ANSISchemaBase):
+class SchemaGenerator(DDLBase):
     def __init__(self, dialect, connection, checkfirst=False, tables=None, **kwargs):
-        super(ANSISchemaGenerator, self).__init__(connection, **kwargs)
+        super(SchemaGenerator, self).__init__(connection, **kwargs)
         self.checkfirst = checkfirst
         self.tables = tables and util.Set(tables) or None
-        self.preparer = dialect.preparer()
+        self.preparer = dialect.identifier_preparer
         self.dialect = dialect
 
     def get_column_specification(self, column, first_pk=False):
@@ -809,7 +772,7 @@ class ANSISchemaGenerator(ANSISchemaBase):
         collection = [t for t in metadata.table_iterator(reverse=False, tables=self.tables) if (not self.checkfirst or not self.dialect.has_table(self.connection, t.name, schema=t.schema))]
         for table in collection:
             self.traverse_single(table)
-        if self.dialect.supports_alter():
+        if self.dialect.supports_alter:
             for alterable in self.find_alterables(collection):
                 self.add_foreignkey(alterable)
 
@@ -860,7 +823,7 @@ class ANSISchemaGenerator(ANSISchemaBase):
 
     def _compile(self, tocompile, parameters):
         """compile the given string/parameters using this SchemaGenerator's dialect."""
-        compiler = self.dialect.compiler(tocompile, parameters)
+        compiler = self.dialect.statement_compiler(self.dialect, tocompile, parameters)
         compiler.compile()
         return compiler
 
@@ -884,7 +847,7 @@ class ANSISchemaGenerator(ANSISchemaBase):
         self.append("(%s)" % ', '.join([self.preparer.format_column(c) for c in constraint]))
 
     def visit_foreign_key_constraint(self, constraint):
-        if constraint.use_alter and self.dialect.supports_alter():
+        if constraint.use_alter and self.dialect.supports_alter:
             return
         self.append(", \n\t ")
         self.define_foreign_key(constraint)
@@ -930,17 +893,17 @@ class ANSISchemaGenerator(ANSISchemaBase):
                        string.join([preparer.format_column(c) for c in index.columns], ', ')))
         self.execute()
 
-class ANSISchemaDropper(ANSISchemaBase):
+class SchemaDropper(DDLBase):
     def __init__(self, dialect, connection, checkfirst=False, tables=None, **kwargs):
-        super(ANSISchemaDropper, self).__init__(connection, **kwargs)
+        super(SchemaDropper, self).__init__(connection, **kwargs)
         self.checkfirst = checkfirst
         self.tables = tables
-        self.preparer = dialect.preparer()
+        self.preparer = dialect.identifier_preparer
         self.dialect = dialect
 
     def visit_metadata(self, metadata):
         collection = [t for t in metadata.table_iterator(reverse=True, tables=self.tables) if (not self.checkfirst or  self.dialect.has_table(self.connection, t.name, schema=t.schema))]
-        if self.dialect.supports_alter():
+        if self.dialect.supports_alter:
             for alterable in self.find_alterables(collection):
                 self.drop_foreignkey(alterable)
         for table in collection:
@@ -964,14 +927,17 @@ class ANSISchemaDropper(ANSISchemaBase):
         self.append("\nDROP TABLE " + self.preparer.format_table(table))
         self.execute()
 
-class ANSIDefaultRunner(engine.DefaultRunner):
-    pass
-
-class ANSIIdentifierPreparer(object):
+class IdentifierPreparer(object):
     """Handle quoting and case-folding of identifiers based on options."""
 
+    reserved_words = RESERVED_WORDS
+
+    legal_characters = LEGAL_CHARACTERS
+
+    illegal_initial_characters = ILLEGAL_INITIAL_CHARACTERS
+
     def __init__(self, dialect, initial_quote='"', final_quote=None, omit_schema=False):
-        """Construct a new ``ANSIIdentifierPreparer`` object.
+        """Construct a new ``IdentifierPreparer`` object.
 
         initial_quote
           Character that begins a delimited identifier.
@@ -1029,40 +995,25 @@ class ANSIIdentifierPreparer(object):
         # some tests would need to be rewritten if this is done.
         #return value.upper()
 
-    def _reserved_words(self):
-        return RESERVED_WORDS
-
-    def _legal_characters(self):
-        return LEGAL_CHARACTERS
-
-    def _illegal_initial_characters(self):
-        return ILLEGAL_INITIAL_CHARACTERS
-
     def _requires_quotes(self, value):
         """Return True if the given identifier requires quoting."""
         return \
-            value in self._reserved_words() \
-            or (value[0] in self._illegal_initial_characters()) \
-            or bool(len([x for x in unicode(value) if x not in self._legal_characters()])) \
+            value in self.reserved_words \
+            or (value[0] in self.illegal_initial_characters) \
+            or bool(len([x for x in unicode(value) if x not in self.legal_characters])) \
             or (value.lower() != value)
 
     def __generic_obj_format(self, obj, ident):
         if getattr(obj, 'quote', False):
             return self.quote_identifier(ident)
-        if self.dialect.cache_identifiers:
-            try:
-                return self.__strings[ident]
-            except KeyError:
-                if self._requires_quotes(ident):
-                    self.__strings[ident] = self.quote_identifier(ident)
-                else:
-                    self.__strings[ident] = ident
-                return self.__strings[ident]
-        else:
+        try:
+            return self.__strings[ident]
+        except KeyError:
             if self._requires_quotes(ident):
-                return self.quote_identifier(ident)
+                self.__strings[ident] = self.quote_identifier(ident)
             else:
-                return ident
+                self.__strings[ident] = ident
+            return self.__strings[ident]
 
     def should_quote(self, object):
         return object.quote or self._requires_quotes(object.name)
@@ -1152,5 +1103,3 @@ class ANSIIdentifierPreparer(object):
         return [self._unescape_identifier(i)
                 for i in [a or b for a, b in r.findall(identifiers)]]
 
-
-dialect = ANSIDialect

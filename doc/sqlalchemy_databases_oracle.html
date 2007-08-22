@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
 
 
 
@@ -87,7 +87,7 @@
         <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleChar">class OracleChar(CHAR)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleCompiler">class OracleCompiler(ANSICompiler)</a></li>
+        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleCompiler">class OracleCompiler(DefaultCompiler)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleDate">class OracleDate(Date)</a></li>
@@ -96,16 +96,16 @@
         <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleDateTime">class OracleDateTime(DateTime)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleDefaultRunner">class OracleDefaultRunner(ANSIDefaultRunner)</a></li>
+        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleDefaultRunner">class OracleDefaultRunner(DefaultRunner)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleDialect">class OracleDialect(ANSIDialect)</a></li>
+        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleDialect">class OracleDialect(DefaultDialect)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleExecutionContext">class OracleExecutionContext(DefaultExecutionContext)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleIdentifierPreparer">class OracleIdentifierPreparer(ANSIIdentifierPreparer)</a></li>
+        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleIdentifierPreparer">class OracleIdentifierPreparer(IdentifierPreparer)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleInteger">class OracleInteger(Integer)</a></li>
@@ -117,10 +117,10 @@
         <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleRaw">class OracleRaw(Binary)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleSchemaDropper">class OracleSchemaDropper(ANSISchemaDropper)</a></li>
+        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleSchemaDropper">class OracleSchemaDropper(SchemaDropper)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleSchemaGenerator">class OracleSchemaGenerator(ANSISchemaGenerator)</a></li>
+        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleSchemaGenerator">class OracleSchemaGenerator(SchemaGenerator)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleSmallInteger">class OracleSmallInteger(SmallInteger)</a></li>
@@ -334,7 +334,7 @@
     
     <div class="sectionL3">
 
-    <h3>class OracleCompiler(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSICompiler">ANSICompiler</a>)</h3>
+    <h3>class OracleCompiler(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DefaultCompiler">DefaultCompiler</a>)</h3>
     
     
     <div class="darkcell"><p>Oracle compiler modifies the lexical structure of Select
@@ -584,7 +584,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <div class="sectionL3">
 
-    <h3>class OracleDefaultRunner(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDefaultRunner">ANSIDefaultRunner</a>)</h3>
+    <h3>class OracleDefaultRunner(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_DefaultRunner">DefaultRunner</a>)</h3>
     
     
     
@@ -626,7 +626,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <div class="sectionL3">
 
-    <h3>class OracleDialect(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDialect">ANSIDialect</a>)</h3>
+    <h3>class OracleDialect(<a href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_DefaultDialect">DefaultDialect</a>)</h3>
     
     
     
@@ -639,16 +639,6 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">OracleDialect</span></tt>.</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def compiler(<i>self</i>, <i>statement</i>, <i>bindparams</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -700,16 +690,6 @@ do_commit_twophase().  its format is unspecified.</p>
     
     <A name=""></a>
     <b>def dbapi_type_map(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def defaultrunner(<i>self</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -809,27 +789,7 @@ do_commit_twophase().  its format is unspecified.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def max_identifier_length(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def oid_column_name(<i>self</i>, <i>column</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def preparer(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -842,37 +802,6 @@ do_commit_twophase().  its format is unspecified.</p>
     <b>def reflecttable(<i>self</i>, <i>connection</i>, <i>table</i>, <i>include_columns</i>)</b>
     <div class="docstring">
     
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def schemadropper(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def schemagenerator(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def supports_unicode_statements(<i>self</i>)</b>
-    <div class="docstring">
-    <p>indicate whether the DBAPI can receive SQL statements as Python unicode strings</p>
-
     </div>
     </div>
 
@@ -955,7 +884,7 @@ do_commit_twophase().  its format is unspecified.</p>
     
     <div class="sectionL3">
 
-    <h3>class OracleIdentifierPreparer(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIIdentifierPreparer">ANSIIdentifierPreparer</a>)</h3>
+    <h3>class OracleIdentifierPreparer(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_IdentifierPreparer">IdentifierPreparer</a>)</h3>
     
     
     
@@ -1083,7 +1012,7 @@ do_commit_twophase().  its format is unspecified.</p>
     
     <div class="sectionL3">
 
-    <h3>class OracleSchemaDropper(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaDropper">ANSISchemaDropper</a>)</h3>
+    <h3>class OracleSchemaDropper(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_SchemaDropper">SchemaDropper</a>)</h3>
     
     
     
@@ -1115,7 +1044,7 @@ do_commit_twophase().  its format is unspecified.</p>
     
     <div class="sectionL3">
 
-    <h3>class OracleSchemaGenerator(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaGenerator">ANSISchemaGenerator</a>)</h3>
+    <h3>class OracleSchemaGenerator(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_SchemaGenerator">SchemaGenerator</a>)</h3>
     
     
     

@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
 
 
 
@@ -115,11 +115,13 @@
     <h3>module sqlalchemy.pool</h3>
     
     
-    <div class="darkcell"><p>Provide a connection pool implementation, which optionally manages
-connections on a thread local basis.</p>
-<p>Also provides a DBAPI2 transparency layer so that pools can be managed
-automatically, based on module type and connect arguments, simply by
-calling regular DBAPI connect() methods.</p>
+    <div class="darkcell"><p>Connection pooling for DB-API connections.</p>
+<p>Provides a number of connection pool implementations for a variety of
+usage scenarios and thread behavior requirements imposed by the
+application, DB-API or database itself.</p>
+<p>Also provides a DB-API 2.0 connection proxying mechanism allowing
+regular DB-API connect() methods to be transparently managed by a
+SQLAlchemy connection pool.</p>
 </div>
     
 
@@ -138,7 +140,7 @@ calling regular DBAPI connect() methods.</p>
     <A name="docstrings_sqlalchemy.pool_modfunc_clear_managers"></a>
     <b>def clear_managers()</b>
     <div class="docstring">
-    <p>Remove all current DBAPI2 managers.</p>
+    <p>Remove all current DB-API 2.0 managers.</p>
 <p>All pools and connections are disposed.</p>
 
     </div>
@@ -150,18 +152,18 @@ calling regular DBAPI connect() methods.</p>
     <A name="docstrings_sqlalchemy.pool_modfunc_manage"></a>
     <b>def manage(<i>module</i>, <i>**params</i>)</b>
     <div class="docstring">
-    <p>Return a proxy for module that automatically pools connections.</p>
-<p>Given a DBAPI2 module and pool management parameters, returns a
-proxy for the module that will automatically pool connections,
+    <p>Returns a proxy for module that automatically pools connections.</p>
+<p>Given a DB-API 2.0 module and pool management parameters, returns
+a proxy for the module that will automatically pool connections,
 creating new connection pools for each distinct set of connection
 arguments sent to the decorated module's connect() function.</p>
 <p>Arguments:</p>
 <dl class="docutils">
 <dt>module</dt>
-<dd>A DBAPI2 database module.</dd>
+<dd>A DB-API 2.0 database module.</dd>
 <dt>poolclass</dt>
-<dd>The class used by the pool module to provide pooling.
-Defaults to <tt class="docutils literal"><span class="pre">QueuePool</span></tt>.</dd>
+<dd>The class used by the pool module to provide pooling.  Defaults
+to <tt class="docutils literal"><span class="pre">QueuePool</span></tt>.</dd>
 </dl>
 <p>See the <tt class="docutils literal"><span class="pre">Pool</span></tt> class for options.</p>
 
@@ -277,7 +279,7 @@ more connections than desired.</p>
     
     
     <div class="darkcell"><p>A Pool implementation which does not pool connections.</p>
-<p>Instead it literally opens and closes the underlying DBAPI
+<p>Instead it literally opens and closes the underlying DB-API
 connection per each connection open/close.</p>
 </div>
     
@@ -342,9 +344,9 @@ connection per each connection open/close.</p>
     <h3>class Pool(object)</h3>
     
     
-    <div class="darkcell"><p>Base Pool class.</p>
-<p>This is an abstract class, which is implemented by various
-subclasses including:</p>
+    <div class="darkcell"><p>Base class for connection pools.</p>
+<p>This is an abstract class, implemented by various subclasses
+including:</p>
 <dl class="docutils">
 <dt>QueuePool</dt>
 <dd>Pools multiple connections using <tt class="docutils literal"><span class="pre">Queue.Queue</span></tt>.</dd>
@@ -357,7 +359,7 @@ subclasses including:</p>
 is checked out at a time.</dd>
 </dl>
 <p>The main argument, <cite>creator</cite>, is a callable function that returns
-a newly connected DBAPI connection object.</p>
+a newly connected DB-API connection object.</p>
 <p>Options that are understood by Pool are:</p>
 <dl class="docutils">
 <dt>echo</dt>
@@ -382,8 +384,8 @@ surpassed the connection will be closed and replaced with a
 newly opened connection. Defaults to -1.</dd>
 <dt>listeners</dt>
 <dd>A list of <tt class="docutils literal"><span class="pre">PoolListener</span></tt>-like objects that receive events when
-DBAPI connections are created, checked out and checked in to the
-pool.</dd>
+DB-API connections are created, checked out and checked in to
+the pool.</dd>
 </dl>
 </div>
     
@@ -392,7 +394,7 @@ pool.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>creator</i>, <i>recycle=-1</i>, <i>echo=None</i>, <i>use_threadlocal=False</i>, <i>listeners=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>creator</i>, <i>recycle=-1</i>, <i>echo=None</i>, <i>use_threadlocal=True</i>, <i>listeners=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Pool</span></tt>.</p>
 
@@ -465,21 +467,6 @@ use a new pool constructed by the recreate() method.</p>
     </div>
 
                     
-         <div class="darkcell">
-         <A name=""></a>
-         <b>echo = property()</b>
-         <div class="docstring">
-         <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, enable log output for this element.</p>
-<p>This has the effect of setting the Python logging level for the
-namespace of this element's class and object reference.  A value
-of boolean <tt class="docutils literal"><span class="pre">True</span></tt> indicates that the loglevel <tt class="docutils literal"><span class="pre">logging.INFO</span></tt> will be
-set for the logger, whereas the string value <tt class="docutils literal"><span class="pre">debug</span></tt> will set the loglevel
-to <tt class="docutils literal"><span class="pre">logging.DEBUG</span></tt>.</p>
-
-         </div> 
-         </div>
-
-                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -514,7 +501,7 @@ to <tt class="docutils literal"><span class="pre">logging.DEBUG</span></tt>.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def return_conn(<i>self</i>, <i>agent</i>)</b>
+    <b>def return_conn(<i>self</i>, <i>record</i>)</b>
     <div class="docstring">
     
     </div>
@@ -710,14 +697,15 @@ connection. Defaults to 30.</dd>
     <h3>class SingletonThreadPool(<a href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">Pool</a>)</h3>
     
     
-    <div class="darkcell"><p>Maintain one connection per each thread, never moving a
+    <div class="darkcell"><p>Maintains a single connection per thread.</p>
+<p>Maintains one connection per each thread, never moving a
 connection to a thread other than the one which it was created in.</p>
 <p>This is used for SQLite, which both does not handle multithreading
 by default, and also requires a singleton connection if a :memory:
 database is being used.</p>
 <p>Options are the same as those of Pool, as well as:</p>
 <dl class="docutils">
-<dt>pool_size <span class="classifier-delimiter">:</span> <span class="classifier">5</span></dt>
+<dt>pool_size: 5</dt>
 <dd>The number of threads in which to maintain connections at once.</dd>
 </dl>
 </div>
@@ -750,10 +738,11 @@ database is being used.</p>
     <A name=""></a>
     <b>def dispose(<i>self</i>)</b>
     <div class="docstring">
-    <p>dispose of this pool.</p>
-<p>this method leaves the possibility of checked-out connections remaining opened,
-so it is advised to not reuse the pool once dispose() is called, and to instead
-use a new pool constructed by the recreate() method.</p>
+    <p>Dispose of this pool.</p>
+<p>this method leaves the possibility of checked-out connections
+remaining opened, so it is advised to not reuse the pool once
+dispose() is called, and to instead use a new pool constructed
+by the recreate() method.</p>
 
     </div>
     </div>

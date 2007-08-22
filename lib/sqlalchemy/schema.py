@@ -18,8 +18,11 @@ objects as well as the visitor interface, so that the schema package
 """
 
 import re, inspect
-from sqlalchemy import sql, types, exceptions, util, databases
+from sqlalchemy import types, exceptions, util, databases
+from sqlalchemy.sql import expression, visitors
 import sqlalchemy
+
+
 URL = None
 
 __all__ = ['SchemaItem', 'Table', 'Column', 'ForeignKey', 'Sequence', 'Index',
@@ -31,7 +34,7 @@ __all__ = ['SchemaItem', 'Table', 'Column', 'ForeignKey', 'Sequence', 'Index',
 class SchemaItem(object):
     """Base class for items that define a database schema."""
 
-    __metaclass__ = sql._FigureVisitName
+    __metaclass__ = expression._FigureVisitName
 
     def _init_items(self, *args):
         """Initialize the list of child items for this SchemaItem."""
@@ -55,27 +58,21 @@ class SchemaItem(object):
     def __repr__(self):
         return "%s()" % self.__class__.__name__
 
-    def _derived_metadata(self):
-        """Return the the MetaData to which this item is bound."""
-
-        return None
-
     def _get_bind(self, raiseerr=False):
         """Return the engine or None if no engine."""
 
         if raiseerr:
-            m = self._derived_metadata()
+            m = self.metadata
             e = m and m.bind or None
             if e is None:
                 raise exceptions.InvalidRequestError("This SchemaItem is not connected to any Engine or Connection.")
             else:
                 return e
         else:
-            m = self._derived_metadata()
+            m = self.metadata
             return m and m.bind or None
 
 
-    metadata = property(lambda s:s._derived_metadata())
     bind = property(lambda s:s._get_bind())
     
 def _get_table_key(name, schema):
@@ -84,7 +81,7 @@ def _get_table_key(name, schema):
     else:
         return schema + "." + name
 
-class _TableSingleton(sql._FigureVisitName):
+class _TableSingleton(expression._FigureVisitName):
     """A metaclass used by the ``Table`` object to provide singleton behavior."""
 
     def __call__(self, name, metadata, *args, **kwargs):
@@ -124,10 +121,10 @@ class _TableSingleton(sql._FigureVisitName):
             return table
 
 
-class Table(SchemaItem, sql.TableClause):
+class Table(SchemaItem, expression.TableClause):
     """Represent a relational database table.
 
-    This subclasses ``sql.TableClause`` to provide a table that is
+    This subclasses ``expression.TableClause`` to provide a table that is
     associated with an instance of ``MetaData``, which in turn
     may be associated with an instance of ``Engine``.  
 
@@ -225,11 +222,11 @@ class Table(SchemaItem, sql.TableClause):
 
         """
         super(Table, self).__init__(name)
-        self._metadata = metadata
+        self.metadata = metadata
         self.schema = kwargs.pop('schema', None)
         self.indexes = util.Set()
         self.constraints = util.Set()
-        self._columns = sql.ColumnCollection()
+        self._columns = expression.ColumnCollection()
         self.primary_key = PrimaryKeyConstraint()
         self._foreign_keys = util.OrderedSet()
         self.quote = kwargs.pop('quote', False)
@@ -260,9 +257,6 @@ class Table(SchemaItem, sql.TableClause):
         self.constraints.add(pk)
     primary_key = property(lambda s:s._primary_key, _set_primary_key)
 
-    def _derived_metadata(self):
-        return self._metadata
-
     def __repr__(self):
         return "Table(%s)" % ', '.join(
             [repr(self.name)] + [repr(self.metadata)] +
@@ -283,15 +277,15 @@ class Table(SchemaItem, sql.TableClause):
         constraint._set_parent(self)
 
     def _get_parent(self):
-        return self._metadata
+        return self.metadata
 
     def _set_parent(self, metadata):
         metadata.tables[_get_table_key(self.name, self.schema)] = self
-        self._metadata = metadata
+        self.metadata = metadata
 
     def get_children(self, column_collections=True, schema_visitor=False, **kwargs):
         if not schema_visitor:
-            return sql.TableClause.get_children(self, column_collections=column_collections, **kwargs)
+            return expression.TableClause.get_children(self, column_collections=column_collections, **kwargs)
         else:
             if column_collections:
                 return [c for c in self.columns]
@@ -338,10 +332,10 @@ class Table(SchemaItem, sql.TableClause):
                 args.append(c.copy())
             return Table(self.name, metadata, schema=schema, *args)
 
-class Column(SchemaItem, sql._ColumnClause):
+class Column(SchemaItem, expression._ColumnClause):
     """Represent a column in a database table.
 
-    This is a subclass of ``sql.ColumnClause`` and represents an
+    This is a subclass of ``expression.ColumnClause`` and represents an
     actual existing table in the database, in a similar fashion as
     ``TableClause``/``Table``.
     """
@@ -473,9 +467,6 @@ class Column(SchemaItem, sql._ColumnClause):
         else:
             return self.encodedname
 
-    def _derived_metadata(self):
-        return self.table.metadata
-
     def _get_bind(self):
         return self.table.bind
 
@@ -512,6 +503,7 @@ class Column(SchemaItem, sql._ColumnClause):
         return self.table
 
     def _set_parent(self, table):
+        self.metadata = table.metadata
         if getattr(self, 'table', None) is not None:
             raise exceptions.ArgumentError("this Column already has a table!")
         if not self._is_oid:
@@ -575,7 +567,7 @@ class Column(SchemaItem, sql._ColumnClause):
             return [x for x in (self.default, self.onupdate) if x is not None] + \
                 list(self.foreign_keys) + list(self.constraints)
         else:
-            return sql._ColumnClause.get_children(self, **kwargs)
+            return expression._ColumnClause.get_children(self, **kwargs)
 
 
 class ForeignKey(SchemaItem):
@@ -696,20 +688,14 @@ class DefaultGenerator(SchemaItem):
 
     def __init__(self, for_update=False, metadata=None):
         self.for_update = for_update
-        self._metadata = util.assert_arg_type(metadata, (MetaData, type(None)), 'metadata')
-
-    def _derived_metadata(self):
-        try:
-            return self.column.table.metadata
-        except AttributeError:
-            return self._metadata
+        self.metadata = util.assert_arg_type(metadata, (MetaData, type(None)), 'metadata')
 
     def _get_parent(self):
         return getattr(self, 'column', None)
 
     def _set_parent(self, column):
         self.column = column
-        self._metadata = self.column.table.metadata
+        self.metadata = self.column.table.metadata
         if self.for_update:
             self.column.onupdate = self
         else:
@@ -749,10 +735,14 @@ class ColumnDefault(DefaultGenerator):
                 argspec = inspect.getargspec(arg)
                 if len(argspec[0]) == 0:
                     self.arg = lambda ctx: arg()
-                elif len(argspec[0]) != 1:
-                    raise exceptions.ArgumentError("ColumnDefault Python function takes zero or one positional arguments")
                 else:
-                    self.arg = arg
+                    defaulted = argspec[3] is not None and len(argspec[3]) or 0
+                    if len(argspec[0]) - defaulted > 1:
+                        raise exceptions.ArgumentError(
+                            "ColumnDefault Python function takes zero or one "
+                            "positional arguments")
+                    else:
+                        self.arg = arg
         else:
             self.arg = arg
 
@@ -806,7 +796,7 @@ class Constraint(SchemaItem):
 
     def __init__(self, name=None):
         self.name = name
-        self.columns = sql.ColumnCollection()
+        self.columns = expression.ColumnCollection()
 
     def __contains__(self, x):
         return self.columns.contains_column(x)
@@ -954,9 +944,6 @@ class Index(SchemaItem):
         self.unique = kwargs.pop('unique', False)
         self._init_items(*columns)
 
-    def _derived_metadata(self):
-        return self.table.metadata
-
     def _init_items(self, *args):
         for column in args:
             self.append_column(column)
@@ -966,6 +953,7 @@ class Index(SchemaItem):
 
     def _set_parent(self, table):
         self.table = table
+        self.metadata = table.metadata
         table.indexes.add(self)
 
     def append_column(self, column):
@@ -1050,6 +1038,7 @@ class MetaData(SchemaItem):
 
         self.tables = {}
         self.bind = bind
+        self.metadata = self
         if reflect:
             if not bind:
                 raise exceptions.ArgumentError(
@@ -1124,12 +1113,12 @@ class MetaData(SchemaItem):
         del self.tables[table.key]
         
     def table_iterator(self, reverse=True, tables=None):
-        import sqlalchemy.sql_util
+        from sqlalchemy.sql import util as sql_util
         if tables is None:
             tables = self.tables.values()
         else:
             tables = util.Set(tables).intersection(self.tables.values())
-        sorter = sqlalchemy.sql_util.TableCollection(list(tables))
+        sorter = sql_util.TableCollection(list(tables))
         return iter(sorter.sort(reverse=reverse))
 
     def _get_parent(self):
@@ -1235,9 +1224,6 @@ class MetaData(SchemaItem):
         if bind is None:
             bind = self._get_bind(raiseerr=True)
         bind.drop(self, checkfirst=checkfirst, tables=tables)
-
-    def _derived_metadata(self):
-        return self
 
     def _get_bind(self, raiseerr=False):
         if not self.is_bound():
@@ -1356,7 +1342,7 @@ class ThreadLocalMetaData(MetaData):
                 e.dispose()
 
 
-class SchemaVisitor(sql.ClauseVisitor):
+class SchemaVisitor(visitors.ClauseVisitor):
     """Define the visiting for ``SchemaItem`` objects."""
 
     __traverse_options__ = {'schema_visitor':True}

@@ -1,10 +1,9 @@
 import testbase
 import operator
 from sqlalchemy import *
-from sqlalchemy import ansisql
 from sqlalchemy.orm import *
 from testlib import *
-from fixtures import *
+from testlib.fixtures import *
 
 from query import QueryTest
 
@@ -75,6 +74,7 @@ class FlushTest(FixtureTest):
         sess.delete(u.addresses[3])
         assert [Address(email_address='a'), Address(email_address='b'), Address(email_address='d')] == list(u.addresses)
         
+        sess.delete(u)
         sess.close()
 
     def test_remove_orphans(self):
@@ -108,7 +108,8 @@ class FlushTest(FixtureTest):
         assert [Address(email_address='a'), Address(email_address='b'), Address(email_address='d')] == list(u.addresses)
 
         assert [Address(email_address='a'), Address(email_address='b'), Address(email_address='d')] == sess.query(Address).all()
-        
+
+        sess.delete(u)
         sess.close()
 
 def create_backref_test(autoflush, saveuser):

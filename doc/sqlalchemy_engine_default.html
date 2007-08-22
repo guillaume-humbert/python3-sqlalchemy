@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
 
 
 
@@ -88,7 +88,7 @@
     <h3>module sqlalchemy.engine.default</h3>
     
     
-    <div class="darkcell"><p>Provide default implementations of per-dialect sqlalchemy.engine classes</p>
+    <div class="darkcell"><p>Default implementations of per-dialect sqlalchemy.engine classes.</p>
 </div>
     
 
@@ -124,7 +124,7 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_execution_context(<i>self</i>, <i>**kwargs</i>)</b>
+    <b>def create_execution_context(<i>self</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -136,9 +136,9 @@
     <A name=""></a>
     <b>def create_xid(<i>self</i>)</b>
     <div class="docstring">
-    <p>create a two-phase transaction ID.</p>
-<p>this id will be passed to do_begin_twophase(), do_rollback_twophase(),
-do_commit_twophase().  its format is unspecified.</p>
+    <p>Create a random two-phase transaction ID.</p>
+<p>This id will be passed to do_begin_twophase(), do_rollback_twophase(),
+do_commit_twophase().  Its format is unspecified.</p>
 
     </div>
     </div>
@@ -148,16 +148,6 @@ do_commit_twophase().  its format is unspecified.</p>
     
     <A name=""></a>
     <b>def dbapi_type_map(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def defaultrunner(<i>self</i>, <i>context</i>)</b>
     <div class="docstring">
     
     </div>
@@ -191,7 +181,7 @@ autocommit on/off, etc.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def do_execute(<i>self</i>, <i>cursor</i>, <i>statement</i>, <i>parameters</i>, <i>**kwargs</i>)</b>
+    <b>def do_execute(<i>self</i>, <i>cursor</i>, <i>statement</i>, <i>parameters</i>, <i>context=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -201,7 +191,7 @@ autocommit on/off, etc.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def do_executemany(<i>self</i>, <i>cursor</i>, <i>statement</i>, <i>parameters</i>, <i>**kwargs</i>)</b>
+    <b>def do_executemany(<i>self</i>, <i>cursor</i>, <i>statement</i>, <i>parameters</i>, <i>context=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -273,59 +263,9 @@ autocommit on/off, etc.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def max_identifier_length(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def oid_column_name(<i>self</i>, <i>column</i>)</b>
     <div class="docstring">
     
-    </div>
-    </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>paramstyle = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def supports_alter(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def supports_sane_rowcount(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def supports_unicode_statements(<i>self</i>)</b>
-    <div class="docstring">
-    <p>indicate whether the DBAPI can receive SQL statements as Python unicode strings</p>
-
     </div>
     </div>
 
@@ -396,15 +336,6 @@ types module to make this job easy.</p>
     </div>
 
                     
-         <div class="darkcell">
-         <A name=""></a>
-         <b>engine = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -434,24 +365,6 @@ types module to make this job easy.</p>
 
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>isinsert = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>isupdate = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -569,7 +482,7 @@ types module to make this job easy.</p>
     <b>def set_input_sizes(<i>self</i>)</b>
     <div class="docstring">
     <p>Given a cursor and ClauseParameters, call the appropriate
-style of <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt> on the cursor, using DBAPI types
+style of <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt> on the cursor, using DB-API types
 from the bind parameter's <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> objects.</p>
 
     </div>

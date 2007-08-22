@@ -2,8 +2,7 @@ import testbase
 import pickle, StringIO, unicodedata
 
 from sqlalchemy import *
-import sqlalchemy.ansisql as ansisql
-from sqlalchemy.exceptions import NoSuchTableError
+from sqlalchemy import exceptions
 from testlib import *
 from testlib import engines
 
@@ -421,7 +420,7 @@ class ReflectionTest(PersistTest):
             meta.drop_all(testbase.db)
             
     def test_nonexistent(self):
-        self.assertRaises(NoSuchTableError, Table,
+        self.assertRaises(exceptions.NoSuchTableError, Table,
                           'fake_table',
                           MetaData(testbase.db), autoload=True)
         
@@ -686,7 +685,7 @@ class SchemaTest(PersistTest):
         def foo(s, p=None):
             buf.write(s)
         gen = create_engine(testbase.db.name + "://", strategy="mock", executor=foo)
-        gen = gen.dialect.schemagenerator(gen)
+        gen = gen.dialect.schemagenerator(gen.dialect, gen)
         gen.traverse(table1)
         gen.traverse(table2)
         buf = buf.getvalue()

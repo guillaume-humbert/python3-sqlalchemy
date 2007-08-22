@@ -1,10 +1,12 @@
 import testbase
 import operator
 from sqlalchemy import *
-from sqlalchemy import ansisql
+from sqlalchemy import exceptions
+from sqlalchemy.sql import compiler
+from sqlalchemy.engine import default
 from sqlalchemy.orm import *
 from testlib import *
-from fixtures import *
+from testlib.fixtures import *
 
 class QueryTest(FixtureTest):
     keep_mappers = True
@@ -141,7 +143,7 @@ class OperatorTest(QueryTest):
     """test sql.Comparator implementation for MapperProperties"""
     
     def _test(self, clause, expected):
-        c = str(clause.compile(dialect=ansisql.ANSIDialect()))
+        c = str(clause.compile(dialect = default.DefaultDialect()))
         assert c == expected, "%s != %s" % (c, expected)
         
     def test_arithmetic(self):
@@ -182,7 +184,7 @@ class OperatorTest(QueryTest):
 
                 # the compiled clause should match either (e.g.):
                 # 'a' < 'b' -or- 'b' > 'a'.
-                compiled = str(py_op(lhs, rhs).compile(dialect=ansisql.ANSIDialect()))
+                compiled = str(py_op(lhs, rhs).compile(dialect=default.DefaultDialect()))
                 fwd_sql = "%s %s %s" % (l_sql, fwd_op, r_sql)
                 rev_sql = "%s %s %s" % (r_sql, rev_op, l_sql)
 
@@ -201,7 +203,7 @@ class OperatorTest(QueryTest):
             # this one would require adding compile() to InstrumentedScalarAttribute.  do we want this ?
             #(User.id, "users.id")
         ):
-            c = expr.compile(dialect=ansisql.ANSIDialect())
+            c = expr.compile(dialect=default.DefaultDialect())
             assert str(c) == compare, "%s != %s" % (str(c), compare)
             
             

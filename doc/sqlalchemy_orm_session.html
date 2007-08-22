@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
 
 
 
@@ -401,15 +401,6 @@ to multiple engines or connections, or is not bound to any connectable.</p>
          </div>
 
                     
-         <div class="darkcell">
-         <A name=""></a>
-         <b>echo_uow = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -501,17 +492,6 @@ query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def has_key(<i>self</i>, <i>key</i>)</b>
-    <div class="docstring">
-    <p>return True if the given identity key is present within this Session's identity map.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def identity_key(<i>cls</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Get an identity key.</p>
@@ -554,16 +534,6 @@ query.</p>
 
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>identity_map = property()</b>
-         <div class="docstring">
-         <p>A dictionary consisting of all objects within this <tt class="docutils literal"><span class="pre">Session</span></tt> keyed to their <cite>_instance_key</cite> value.</p>
-
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -644,6 +614,20 @@ association is mapped with <tt class="docutils literal"><span class="pre">cascad
     <b>def object_session(<i>cls</i>, <i>obj</i>)</b>
     <div class="docstring">
     <p>return the <tt class="docutils literal"><span class="pre">Session</span></tt> to which the given object belongs.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def prune(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Removes unreferenced instances cached in the identity map.</p>
+<p>Removes any object in this Session'sidentity map that is not
+referenced in user code, modified, new or scheduled for deletion.
+Returns the number of objects pruned.</p>
 
     </div>
     </div>

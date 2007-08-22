@@ -128,6 +128,8 @@ class ExecutionContextWrapper(object):
         ctx = self.ctx
         statement = unicode(ctx.compiled)
         statement = re.sub(r'\n', '', ctx.statement)
+        if config.db.name == 'mssql' and statement.endswith('; select scope_identity()'):
+            statement = statement[:-25]
         if testdata.buffer is not None:
             testdata.buffer.write(statement + "\n")
 
@@ -161,14 +163,13 @@ class ExecutionContextWrapper(object):
             if params is not None and isinstance(params, list) and len(params) == 1:
                 params = params[0]
             
-            if isinstance(ctx.compiled_parameters, sql.ClauseParameters):
+            from sqlalchemy.sql.util import ClauseParameters
+            if isinstance(ctx.compiled_parameters, ClauseParameters):
                 parameters = ctx.compiled_parameters.get_original_dict()
             elif isinstance(ctx.compiled_parameters, list):
                 parameters = [p.get_original_dict() for p in ctx.compiled_parameters]
                     
             query = self.convert_statement(query)
-            if config.db.name == 'mssql' and statement.endswith('; select scope_identity()'):
-                statement = statement[:-25]
             testdata.unittest.assert_(statement == query and (params is None or params == parameters), "Testing for query '%s' params %s, received '%s' with params %s" % (query, repr(params), statement, repr(parameters)))
         testdata.sql_count += 1
         self.ctx.post_execution()
@@ -340,7 +341,10 @@ class ORMTest(AssertMixin):
             clear_mappers()
         if not self.keep_data:
             for t in _otest_metadata.table_iterator(reverse=True):
-                t.delete().execute().close()
+                try:
+                    t.delete().execute().close()
+                except Exception, e:
+                    print "EXCEPTION DELETING...", e
 
 
 class TTestSuite(unittest.TestSuite):

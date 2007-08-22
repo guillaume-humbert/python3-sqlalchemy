@@ -7,16 +7,26 @@
 
 import re
 
-from sqlalchemy import schema, ansisql, exceptions, pool, PassiveDefault
-import sqlalchemy.engine.default as default
+from sqlalchemy import schema, exceptions, pool, PassiveDefault
+from sqlalchemy.engine import default
 import sqlalchemy.types as sqltypes
 import datetime,time, warnings
 import sqlalchemy.util as util
+from sqlalchemy.sql import compiler
 
 
 SELECT_REGEXP = re.compile(r'\s*(?:SELECT|PRAGMA)', re.I | re.UNICODE)
     
 class SLNumeric(sqltypes.Numeric):
+    def bind_processor(self, dialect):
+        type_ = self.asdecimal and str or float
+        def process(value):
+            if value is not None:
+                return type_(value)
+            else:
+                return value
+        return process
+
     def get_col_spec(self):
         if self.precision is None:
             return "NUMERIC"
@@ -32,6 +42,8 @@ class SLSmallInteger(sqltypes.Smallinteger):
         return "SMALLINT"
 
 class DateTimeMixin(object):
+    __format__ = "%Y-%m-%d %H:%M:%S"
+
     def bind_processor(self, dialect):
         def process(value):
             if isinstance(value, basestring):
@@ -53,7 +65,7 @@ class DateTimeMixin(object):
             (value, microsecond) = value.split('.')
             microsecond = int(microsecond)
         except ValueError:
-            (value, microsecond) = (value, 0)
+            microsecond = 0
         return time.strptime(value, self.__format__)[0:6] + (microsecond,)
 
 class SLDateTime(DateTimeMixin,sqltypes.DateTime):
@@ -172,10 +184,12 @@ class SQLiteExecutionContext(default.DefaultExecutionContext):
     def is_select(self):
         return SELECT_REGEXP.match(self.statement)
         
-class SQLiteDialect(ansisql.ANSIDialect):
+class SQLiteDialect(default.DefaultDialect):
+    supports_alter = False
+    supports_unicode_statements = True
     
     def __init__(self, **kwargs):
-        ansisql.ANSIDialect.__init__(self, default_paramstyle='qmark', **kwargs)
+        default.DefaultDialect.__init__(self, default_paramstyle='qmark', **kwargs)
         def vers(num):
             return tuple([int(x) for x in num.split('.')])
         if self.dbapi is not None:
@@ -195,23 +209,8 @@ class SQLiteDialect(ansisql.ANSIDialect):
         return sqlite
     dbapi = classmethod(dbapi)
 
-    def compiler(self, statement, bindparams, **kwargs):
-        return SQLiteCompiler(self, statement, bindparams, **kwargs)
-
-    def schemagenerator(self, *args, **kwargs):
-        return SQLiteSchemaGenerator(self, *args, **kwargs)
-
-    def schemadropper(self, *args, **kwargs):
-        return SQLiteSchemaDropper(self, *args, **kwargs)
-
     def server_version_info(self, connection):
         return self.dbapi.sqlite_version_info
-
-    def supports_alter(self):
-        return False
-
-    def preparer(self):
-        return SQLiteIdentifierPreparer(self)
 
     def create_connect_args(self, url):
         filename = url.database or ':memory:'
@@ -228,14 +227,8 @@ class SQLiteDialect(ansisql.ANSIDialect):
     def type_descriptor(self, typeobj):
         return sqltypes.adapt_type(typeobj, colspecs)
 
-    def create_execution_context(self, **kwargs):
-        return SQLiteExecutionContext(self, **kwargs)
-
-    def supports_unicode_statements(self):
-        return True
-
-    def last_inserted_ids(self):
-        return self.context.last_inserted_ids
+    def create_execution_context(self, connection, **kwargs):
+        return SQLiteExecutionContext(self, connection, **kwargs)
 
     def oid_column_name(self, column):
         return "oid"
@@ -255,19 +248,19 @@ class SQLiteDialect(ansisql.ANSIDialect):
         return (row is not None)
 
     def reflecttable(self, connection, table, include_columns):
-        c = connection.execute("PRAGMA table_info(%s)" % self.preparer().format_table(table), {})
+        c = connection.execute("PRAGMA table_info(%s)" % self.identifier_preparer.format_table(table), {})
         found_table = False
         while True:
             row = c.fetchone()
             if row is None:
                 break
-            #print "row! " + repr(row)
+
             found_table = True
-            (name, type, nullable, has_default, primary_key) = (row[1], row[2].upper(), not row[3], row[4] is not None, row[5])
+            (name, type_, nullable, has_default, primary_key) = (row[1], row[2].upper(), not row[3], row[4] is not None, row[5])
             name = re.sub(r'^\"|\"$', '', name)
             if include_columns and name not in include_columns:
                 continue
-            match = re.match(r'(\w+)(\(.*?\))?', type)
+            match = re.match(r'(\w+)(\(.*?\))?', type_)
             if match:
                 coltype = match.group(1)
                 args = match.group(2)
@@ -275,7 +268,6 @@ class SQLiteDialect(ansisql.ANSIDialect):
                 coltype = "VARCHAR"
                 args = ''
 
-            #print "coltype: " + repr(coltype) + " args: " + repr(args)
             try:
                 coltype = pragma_names[coltype]
             except KeyError:
@@ -284,7 +276,6 @@ class SQLiteDialect(ansisql.ANSIDialect):
                 
             if args is not None:
                 args = re.findall(r'(\d+)', args)
-                #print "args! " +repr(args)
                 coltype = coltype(*[int(a) for a in args])
 
             colargs= []
@@ -295,7 +286,7 @@ class SQLiteDialect(ansisql.ANSIDialect):
         if not found_table:
             raise exceptions.NoSuchTableError(table.name)
 
-        c = connection.execute("PRAGMA foreign_key_list(%s)" % self.preparer().format_table(table), {})
+        c = connection.execute("PRAGMA foreign_key_list(%s)" % self.identifier_preparer.format_table(table), {})
         fks = {}
         while True:
             row = c.fetchone()
@@ -324,7 +315,7 @@ class SQLiteDialect(ansisql.ANSIDialect):
         for name, value in fks.iteritems():
             table.append_constraint(schema.ForeignKeyConstraint(value[0], value[1]))
         # check for UNIQUE indexes
-        c = connection.execute("PRAGMA index_list(%s)" % self.preparer().format_table(table), {})
+        c = connection.execute("PRAGMA index_list(%s)" % self.identifier_preparer.format_table(table), {})
         unique_indexes = []
         while True:
             row = c.fetchone()
@@ -341,14 +332,14 @@ class SQLiteDialect(ansisql.ANSIDialect):
                 if row is None:
                     break
                 cols.append(row[2])
-                col = table.columns[row[2]]
 
-class SQLiteCompiler(ansisql.ANSICompiler):
-    def visit_cast(self, cast):
+
+class SQLiteCompiler(compiler.DefaultCompiler):
+    def visit_cast(self, cast, **kwargs):
         if self.dialect.supports_cast:
             return super(SQLiteCompiler, self).visit_cast(cast)
         else:
-            if self.select_stack:
+            if self.stack and self.stack[-1].get('select'):
                 # not sure if we want to set the typemap here...
                 self.typemap.setdefault("CAST", cast.type)
             return self.process(cast.clause)
@@ -369,7 +360,8 @@ class SQLiteCompiler(ansisql.ANSICompiler):
         # sqlite has no "FOR UPDATE" AFAICT
         return ''
 
-class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
+
+class SQLiteSchemaGenerator(compiler.SchemaGenerator):
 
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect).get_col_spec()
@@ -391,12 +383,17 @@ class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
     #    else:
     #        super(SQLiteSchemaGenerator, self).visit_primary_key_constraint(constraint)
 
-class SQLiteSchemaDropper(ansisql.ANSISchemaDropper):
+class SQLiteSchemaDropper(compiler.SchemaDropper):
     pass
 
-class SQLiteIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
+class SQLiteIdentifierPreparer(compiler.IdentifierPreparer):
     def __init__(self, dialect):
         super(SQLiteIdentifierPreparer, self).__init__(dialect, omit_schema=True)
 
 dialect = SQLiteDialect
 dialect.poolclass = pool.SingletonThreadPool
+dialect.statement_compiler = SQLiteCompiler
+dialect.schemagenerator = SQLiteSchemaGenerator
+dialect.schemadropper = SQLiteSchemaDropper
+dialect.preparer = SQLiteIdentifierPreparer
+

@@ -7,9 +7,10 @@
 
 import warnings
 
-from sqlalchemy import util, sql, schema, ansisql, exceptions
-import sqlalchemy.engine.default as default
-import sqlalchemy.types as sqltypes
+from sqlalchemy import util, sql, schema, exceptions
+from sqlalchemy.sql import compiler
+from sqlalchemy.engine import default, base
+from sqlalchemy import types as sqltypes
 
 
 _initialized_kb = False
@@ -99,9 +100,12 @@ class FBExecutionContext(default.DefaultExecutionContext):
         return True
 
 
-class FBDialect(ansisql.ANSIDialect):
+class FBDialect(default.DefaultDialect):
+    supports_sane_rowcount = False
+    max_identifier_length = 31
+
     def __init__(self, type_conv=200, concurrency_level=1, **kwargs):
-        ansisql.ANSIDialect.__init__(self, **kwargs)
+        default.DefaultDialect.__init__(self, **kwargs)
 
         self.type_conv = type_conv
         self.concurrency_level= concurrency_level
@@ -132,27 +136,6 @@ class FBDialect(ansisql.ANSIDialect):
     def type_descriptor(self, typeobj):
         return sqltypes.adapt_type(typeobj, colspecs)
 
-    def supports_sane_rowcount(self):
-        return False
-
-    def compiler(self, statement, bindparams, **kwargs):
-        return FBCompiler(self, statement, bindparams, **kwargs)
-
-    def schemagenerator(self, *args, **kwargs):
-        return FBSchemaGenerator(self, *args, **kwargs)
-
-    def schemadropper(self, *args, **kwargs):
-        return FBSchemaDropper(self, *args, **kwargs)
-
-    def defaultrunner(self, connection):
-        return FBDefaultRunner(connection)
-
-    def preparer(self):
-        return FBIdentifierPreparer(self)
-
-    def max_identifier_length(self):
-        return 31
-    
     def table_names(self, connection, schema):
         s = "SELECT R.RDB$RELATION_NAME FROM RDB$RELATIONS R"
         return [row[0] for row in connection.execute(s)]
@@ -307,7 +290,7 @@ class FBDialect(ansisql.ANSIDialect):
         connection.commit(True)
 
 
-class FBCompiler(ansisql.ANSICompiler):
+class FBCompiler(compiler.DefaultCompiler):
     """Firebird specific idiosincrasies"""
 
     def visit_alias(self, alias, asfrom=False, **kwargs):
@@ -346,7 +329,7 @@ class FBCompiler(ansisql.ANSICompiler):
         return ""
 
 
-class FBSchemaGenerator(ansisql.ANSISchemaGenerator):
+class FBSchemaGenerator(compiler.SchemaGenerator):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
         colspec += " " + column.type.dialect_impl(self.dialect).get_col_spec()
@@ -365,13 +348,13 @@ class FBSchemaGenerator(ansisql.ANSISchemaGenerator):
         self.execute()
 
 
-class FBSchemaDropper(ansisql.ANSISchemaDropper):
+class FBSchemaDropper(compiler.SchemaDropper):
     def visit_sequence(self, sequence):
         self.append("DROP GENERATOR %s" % sequence.name)
         self.execute()
 
 
-class FBDefaultRunner(ansisql.ANSIDefaultRunner):
+class FBDefaultRunner(base.DefaultRunner):
     def exec_default_sql(self, default):
         c = sql.select([default.arg], from_obj=["rdb$database"]).compile(bind=self.connection)
         return self.connection.execute_compiled(c).scalar()
@@ -421,12 +404,17 @@ RESERVED_WORDS = util.Set(
      "whenever", "where", "while", "with", "work", "write", "year", "yearday" ])
 
 
-class FBIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
+class FBIdentifierPreparer(compiler.IdentifierPreparer):
+    reserved_words = RESERVED_WORDS
+    
     def __init__(self, dialect):
         super(FBIdentifierPreparer,self).__init__(dialect, omit_schema=True)
 
-    def _reserved_words(self):
-        return RESERVED_WORDS
-
 
 dialect = FBDialect
+dialect.statement_compiler = FBCompiler
+dialect.schemagenerator = FBSchemaGenerator
+dialect.schemadropper = FBSchemaDropper
+dialect.defaultrunner = FBDefaultRunner
+dialect.preparer = FBIdentifierPreparer
+

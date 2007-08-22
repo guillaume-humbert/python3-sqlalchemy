@@ -11,8 +11,12 @@ class DomainReflectionTest(AssertMixin):
     @testing.supported('postgres')
     def setUpAll(self):
         con = testbase.db.connect()
-        con.execute('CREATE DOMAIN testdomain INTEGER NOT NULL DEFAULT 42')
-        con.execute('CREATE DOMAIN alt_schema.testdomain INTEGER DEFAULT 0')
+        try:
+            con.execute('CREATE DOMAIN testdomain INTEGER NOT NULL DEFAULT 42')
+            con.execute('CREATE DOMAIN alt_schema.testdomain INTEGER DEFAULT 0')
+        except exceptions.SQLError, e:
+            if not "already exists" in str(e):
+                raise e
         con.execute('CREATE TABLE testtable (question integer, answer testdomain)')
         con.execute('CREATE TABLE alt_schema.testtable(question integer, answer alt_schema.testdomain, anything integer)')
         con.execute('CREATE TABLE crosschema (question integer, answer alt_schema.testdomain)')
@@ -109,6 +113,24 @@ class MiscTest(AssertMixin):
             t.create(checkfirst=True)
         finally:
             t.drop(checkfirst=True)
+
+    @testing.supported('postgres')
+    def test_distinct_on(self):
+        t = Table('mytable', MetaData(testbase.db),
+                  Column('id', Integer, primary_key=True),
+                  Column('a', String(8)))
+        self.assertEquals(
+            str(t.select(distinct=t.c.a)),
+            'SELECT DISTINCT ON (mytable.a) mytable.id, mytable.a \n'
+            'FROM mytable')
+        self.assertEquals(
+            str(t.select(distinct=['id','a'])),
+            'SELECT DISTINCT ON (id, a) mytable.id, mytable.a \n'
+            'FROM mytable')
+        self.assertEquals(
+            str(t.select(distinct=[t.c.id, t.c.a])),
+            'SELECT DISTINCT ON (mytable.id, mytable.a) mytable.id, mytable.a \n'
+            'FROM mytable')
 
     @testing.supported('postgres')
     def test_schema_reflection(self):

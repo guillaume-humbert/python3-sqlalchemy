@@ -1,6 +1,7 @@
 import testbase
 import sets
 from sqlalchemy import *
+from sqlalchemy import sql, exceptions
 from sqlalchemy.databases import mysql
 from testlib import *
 
@@ -154,7 +155,7 @@ class TypesTest(AssertMixin):
             table_args.append(Column('c%s' % index, type_(*args, **kw)))
 
         numeric_table = Table(*table_args)
-        gen = testbase.db.dialect.schemagenerator(testbase.db, None, None)
+        gen = testbase.db.dialect.schemagenerator(testbase.db.dialect, testbase.db, None, None)
         
         for col in numeric_table.c:
             index = int(col.name[1:])
@@ -238,7 +239,7 @@ class TypesTest(AssertMixin):
             table_args.append(Column('c%s' % index, type_(*args, **kw)))
 
         charset_table = Table(*table_args)
-        gen = testbase.db.dialect.schemagenerator(testbase.db, None, None)
+        gen = testbase.db.dialect.schemagenerator(testbase.db.dialect, testbase.db, None, None)
         
         for col in charset_table.c:
             index = int(col.name[1:])
@@ -568,8 +569,8 @@ class TypesTest(AssertMixin):
                  ( NCHAR(2), mysql.MSChar(2), ),
                  ( mysql.MSNChar(2), mysql.MSChar(2), ), # N is CREATE only
                  ( mysql.MSNVarChar(22), mysql.MSString(22), ),
-                 ( Smallinteger(), mysql.MSSmallInteger(), ),
-                 ( Smallinteger(4), mysql.MSSmallInteger(4), ),
+                 ( SmallInteger(), mysql.MSSmallInteger(), ),
+                 ( SmallInteger(4), mysql.MSSmallInteger(4), ),
                  ( mysql.MSSmallInteger(), ),
                  ( mysql.MSSmallInteger(4), mysql.MSSmallInteger(4), ),
                  ( Binary(3), mysql.MSBlob(3), ),
@@ -667,10 +668,47 @@ class TypesTest(AssertMixin):
             print "Expected %s" % wanted
             print "Found %s" % got
         self.assertEqual(got, wanted)
-    
+
+
+class SQLTest(AssertMixin):
+    """Tests MySQL-dialect specific compilation."""
+
+    @testing.supported('mysql')
+    def test_precolumns(self):
+        dialect = testbase.db.dialect
+
+        def gen(distinct=None, prefixes=None):
+            kw = {}
+            if distinct is not None:
+                kw['distinct'] = distinct
+            if prefixes is not None:
+                kw['prefixes'] = prefixes
+            return str(select(['q'], **kw).compile(dialect=dialect))
+
+        self.assertEqual(gen(None), 'SELECT q')
+        self.assertEqual(gen(True), 'SELECT DISTINCT q')
+        self.assertEqual(gen(1), 'SELECT DISTINCT q')
+        self.assertEqual(gen('diSTInct'), 'SELECT DISTINCT q')
+        self.assertEqual(gen('DISTINCT'), 'SELECT DISTINCT q')
+
+        # Standard SQL
+        self.assertEqual(gen('all'), 'SELECT ALL q')
+        self.assertEqual(gen('distinctrow'), 'SELECT DISTINCTROW q')
+
+        # Interaction with MySQL prefix extensions
+        self.assertEqual(
+            gen(None, ['straight_join']),
+            'SELECT straight_join q')
+        self.assertEqual(
+            gen('all', ['HIGH_PRIORITY SQL_SMALL_RESULT']),
+            'SELECT HIGH_PRIORITY SQL_SMALL_RESULT ALL q')
+        self.assertEqual(
+            gen(True, ['high_priority', sql.text('sql_cache')]),
+            'SELECT high_priority sql_cache DISTINCT q')
+
 
 def colspec(c):
-    return testbase.db.dialect.schemagenerator(
+    return testbase.db.dialect.schemagenerator(testbase.db.dialect, 
         testbase.db, None, None).get_column_specification(c)
 
 if __name__ == "__main__":

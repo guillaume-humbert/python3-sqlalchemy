@@ -27,7 +27,7 @@ class LongLabelsTest(PersistTest):
         metadata.create_all()
         
         maxlen = testbase.db.dialect.max_identifier_length
-        testbase.db.dialect.max_identifier_length = lambda: 29
+        testbase.db.dialect.max_identifier_length = 29
         
     def tearDown(self):
         table1.delete().execute()
@@ -78,7 +78,7 @@ class LongLabelsTest(PersistTest):
       # this is the test that fails if the "max identifier length" is shorter than the 
       # length of the actual columns created, because the column names get truncated.
       # if you try to separate "physical columns" from "labels", and only truncate the labels,
-      # the ansisql.visit_select() logic which auto-labels columns in a subquery (for the purposes of sqlite compat) breaks the code,
+      # the compiler.DefaultCompiler.visit_select() logic which auto-labels columns in a subquery (for the purposes of sqlite compat) breaks the code,
       # since it is creating "labels" on the fly but not affecting derived columns, which think they are
       # still "physical"
       q = table1.select(table1.c.this_is_the_primarykey_column == 4).alias('foo')
@@ -89,7 +89,7 @@ class LongLabelsTest(PersistTest):
         """test that a primary key column compiled as the 'oid' column gets proper length truncation"""
         from sqlalchemy.databases import postgres
         dialect = postgres.PGDialect()
-        dialect.max_identifier_length = lambda: 30
+        dialect.max_identifier_length = 30
         tt = table1.select(use_labels=True).alias('foo')
         x = select([tt], use_labels=True, order_by=tt.oid_column).compile(dialect=dialect)
         #print x
