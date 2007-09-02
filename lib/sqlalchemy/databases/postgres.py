@@ -227,6 +227,8 @@ class PGDialect(default.DefaultDialect):
     supports_unicode_statements = False
     max_identifier_length = 63
     supports_sane_rowcount = True
+    supports_sane_multi_rowcount = False
+    preexecute_sequences = True
 
     def __init__(self, use_oids=False, server_side_cursors=False, **kwargs):
         default.DefaultDialect.__init__(self, default_paramstyle='pyformat', **kwargs)
@@ -240,7 +242,7 @@ class PGDialect(default.DefaultDialect):
     dbapi = classmethod(dbapi)
     
     def create_connect_args(self, url):
-        opts = url.translate_connect_args(['host', 'database', 'user', 'password', 'port'])
+        opts = url.translate_connect_args(username='user')
         if 'port' in opts:
             opts['port'] = int(opts['port'])
         opts.update(url.query)
@@ -296,19 +298,6 @@ class PGDialect(default.DefaultDialect):
             return "oid"
         else:
             return None
-
-    def do_executemany(self, c, statement, parameters, context=None):
-        """We need accurate rowcounts for updates, inserts and deletes.
-
-        ``psycopg2`` is not nice enough to produce this correctly for
-        an executemany, so we do our own executemany here.
-        """
-        rowcount = 0
-        for param in parameters:
-            c.execute(statement, param)
-            rowcount += c.rowcount
-        if context is not None:
-            context._rowcount = rowcount
 
     def has_table(self, connection, table_name, schema=None):
         # seems like case gets folded in pg_class...
@@ -473,7 +462,10 @@ class PGDialect(default.DefaultDialect):
         c = connection.execute(t, table=table_oid)
         for row in c.fetchall():
             pk = row[0]
-            table.primary_key.add(table.c[pk])
+            col = table.c[pk]
+            table.primary_key.add(col)
+            if col.default is None:
+                col.autoincrement=False
 
         # Foreign keys
         FK_SQL = """
@@ -552,9 +544,12 @@ class PGCompiler(compiler.DefaultCompiler):
         }
     )
 
-    def uses_sequences_for_inserts(self):
-        return True
-
+    def visit_sequence(self, seq):
+        if seq.optional:
+            return None
+        else:
+            return "nextval('%s')" % self.preparer.format_sequence(seq)
+        
     def limit_clause(self, select):
         text = ""
         if select._limit is not None:
@@ -616,9 +611,9 @@ class PGSchemaDropper(compiler.SchemaDropper):
 class PGDefaultRunner(base.DefaultRunner):
     def get_column_default(self, column, isinsert=True):
         if column.primary_key:
-            # passive defaults on primary keys have to be overridden
+            # pre-execute passive defaults on primary keys
             if isinstance(column.default, schema.PassiveDefault):
-                return self.connection.execute("select %s" % column.default.arg).scalar()
+                return self.execute_string("select %s" % column.default.arg)
             elif (isinstance(column.type, sqltypes.Integer) and column.autoincrement) and (column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional)):
                 sch = column.table.schema
                 # TODO: this has to build into the Sequence object so we can get the quoting
@@ -627,13 +622,13 @@ class PGDefaultRunner(base.DefaultRunner):
                     exc = "select nextval('\"%s\".\"%s_%s_seq\"')" % (sch, column.table.name, column.name)
                 else:
                     exc = "select nextval('\"%s_%s_seq\"')" % (column.table.name, column.name)
-                return self.connection.execute(exc).scalar()
+                return self.execute_string(exc.encode(self.dialect.encoding))
 
         return super(PGDefaultRunner, self).get_column_default(column)
 
     def visit_sequence(self, seq):
         if not seq.optional:
-            return self.connection.execute("select nextval('%s')" % self.dialect.identifier_preparer.format_sequence(seq)).scalar()
+            return self.execute_string(("select nextval('%s')" % self.dialect.identifier_preparer.format_sequence(seq)).encode(self.dialect.encoding))
         else:
             return None
 

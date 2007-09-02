@@ -2,6 +2,53 @@
 CHANGES
 =======
 
+0.4.0beta5
+----------
+
+- connection pool fixes; the better performance of beta4
+  remains but fixes "connection overflow" and other bugs
+  which were present (like [ticket:754])
+  
+- fixed bugs in determining proper sync clauses from custom inherit
+  conditions [ticket:769]
+  
+- Extended 'engine_from_config' coercion for QueuePool size / overflow.
+  [ticket:763]
+
+- mysql views can be reflected again. [ticket:748]
+
+- AssociationProxy can now take custom getters and setters.
+
+- Fixed malfunctioning BETWEEN in orm queries.
+
+- Fixed OrderedProperties pickling [ticket:762]
+
+- SQL-expression defaults and sequences now execute "inline" for all non-primary key
+  columns during an INSERT or UPDATE, and for all columns during an executemany()-style 
+  call. inline=True flag on any insert/update statement also forces the same 
+  behavior with a single execute().  result.postfetch_cols() is a collection of columns
+  for which the previous single insert or update statement contained a SQL-side 
+  default expression.
+
+- fixed PG executemany() behavior, [ticket:759]
+
+- postgres reflects tables with autoincrement=False for primary key
+  columns which have no defaults.
+    
+- postgres no longer wraps executemany() with 
+  individual execute() calls, instead favoring performance.  
+  "rowcount"/"concurrency" checks with deleted items (which use executemany) 
+  are disabled with PG since psycopg2 does not report proper rowcount for 
+  executemany().
+  
+- Tickets fixed:
+
+  - [ticket:742]
+  - [ticket:748]
+  - [ticket:760]
+  - [ticket:762]
+  - [ticket:763]
+
 0.4.0beta4
 ----------
 
@@ -13,13 +60,14 @@ CHANGES
     sql.expressions.table instead of schema.Table when just starting out
     with SQLAlchemy, likewise column.
 
-  - internal-ish classes like ClauseElement, FromClause, NullTypeEngine, etc.,
-    are also no longer imported into your namespace
+  - Internal-ish classes like ClauseElement, FromClause, NullTypeEngine,
+    etc., are also no longer imported into your namespace
 
-  - the 'Smallinteger' compatiblity name (small i!) is no longer imported, but
-    remains in schema.py for now.  SmallInteger (big I!) is still imported.
+  - The 'Smallinteger' compatiblity name (small i!) is no longer imported,
+    but remains in schema.py for now.  SmallInteger (big I!) is still
+    imported.
 
-- the connection pool uses a "threadlocal" strategy internally to return
+- The connection pool uses a "threadlocal" strategy internally to return
   the same connection already bound to a thread, for "contextual" connections;
   these are the connections used when you do a "connectionless" execution
   like insert().execute().  This is like a "partial" version of the
@@ -64,8 +112,13 @@ CHANGES
 - Connection.begin() no longer accepts nested=True, this logic is now
   all in begin_nested().
 
-- fixes to new "dynamic" relation loader involving cascades
-    
+- Fixes to new "dynamic" relation loader involving cascades
+
+- Tickets fixed:
+
+  - [ticket:735]
+  - [ticket:752]
+
 0.4.0beta3
 ----------
 

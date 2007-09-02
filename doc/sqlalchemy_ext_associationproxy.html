@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
+<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
 
 
 
@@ -185,7 +185,7 @@ on an object.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>targetcollection</i>, <i>attr</i>, <i>creator=None</i>, <i>proxy_factory=None</i>, <i>proxy_bulk_set=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>targetcollection</i>, <i>attr</i>, <i>creator=None</i>, <i>getset_factory=None</i>, <i>proxy_factory=None</i>, <i>proxy_bulk_set=None</i>)</b>
     <div class="docstring">
     <p>Arguments are:</p>
 <dl class="docutils">
@@ -205,6 +205,16 @@ constructor will be called with the 'value' for the new instance.
 For dict types, two arguments are passed: key and value.</p>
 <p class="last">If you want to construct instances differently, supply a 'creator'
 function that takes arguments as above and returns instances.</p>
+</dd>
+<dt>getset_factory</dt>
+<dd><p class="first">Optional.  Proxied attribute access is automatically handled
+by routines that get and set values based on the <cite>attr</cite> argument
+for this proxy.</p>
+<p class="last">If you would like to customize this behavior, you may supply a
+<cite>getset_factory</cite> callable that produces a tuple of <cite>getter</cite> and
+<cite>setter</cite> functions.  The factory is called with two arguments,
+the abstract type of the underlying collection and this proxy
+instance.</p>
 </dd>
 <dt>proxy_factory</dt>
 <dd>Optional.  The type of collection to emulate is determined by

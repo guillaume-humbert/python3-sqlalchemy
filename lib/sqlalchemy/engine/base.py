@@ -75,6 +75,13 @@ class Dialect(object):
     supports_sane_rowcount
       Indicate whether the dialect properly implements rowcount for ``UPDATE`` and ``DELETE`` statements.
 
+    supports_sane_multi_rowcount
+      Indicate whether the dialect properly implements rowcount for ``UPDATE`` and ``DELETE`` statements
+      when executed via executemany.
+
+    preexecute_sequences
+      Indicate if the dialect should pre-execute sequences on primary key columns during an INSERT,
+      if it's desired that the new row's primary key be available after execution.
     """
 
     def create_connect_args(self, url):
@@ -388,11 +395,9 @@ class ExecutionContext(object):
         raise NotImplementedError()
 
     def lastrow_has_defaults(self):
-        """Return True if the last row INSERTED via a compiled insert statement contained PassiveDefaults.
+        """Return True if the last INSERT or UPDATE row contained 
+        inlined or database-side defaults.
 
-        The presence of PassiveDefaults indicates that the database
-        inserted data beyond that which we passed to the query
-        programmatically.
         """
 
         raise NotImplementedError()
@@ -677,7 +682,7 @@ class Connection(Connectable):
             try:
                 self.__engine.dialect.do_begin(self.connection)
             except Exception, e:
-                raise exceptions.SQLError(None, None, e)
+                raise exceptions.DBAPIError.instance(None, None, e)
 
     def _rollback_impl(self):
         if self.__connection.is_valid:
@@ -686,7 +691,7 @@ class Connection(Connectable):
             try:
                 self.__engine.dialect.do_rollback(self.connection)
             except Exception, e:
-                raise exceptions.SQLError(None, None, e)
+                raise exceptions.DBAPIError.instance(None, None, e)
         self.__transaction = None
 
     def _commit_impl(self):
@@ -696,7 +701,7 @@ class Connection(Connectable):
             try:
                 self.__engine.dialect.do_commit(self.connection)
             except Exception, e:
-                raise exceptions.SQLError(None, None, e)
+                raise exceptions.DBAPIError.instance(None, None, e)
         self.__transaction = None
 
     def _savepoint_impl(self, name=None):
@@ -807,12 +812,13 @@ class Connection(Connectable):
         return self._execute_clauseelement(func.select(), multiparams, params)
 
     def _execute_clauseelement(self, elem, multiparams=None, params=None):
-        executemany = multiparams is not None and len(multiparams) > 0
-        if executemany:
+        if multiparams:
             param = multiparams[0]
+            executemany = len(multiparams) > 1
         else:
             param = params
-        return self._execute_compiled(elem.compile(dialect=self.dialect, parameters=param), multiparams, params)
+            executemany = False
+        return self._execute_compiled(elem.compile(dialect=self.dialect, parameters=param, inline=executemany), multiparams, params)
 
     def _execute_compiled(self, compiled, multiparams=None, params=None):
         """Execute a sql.Compiled object."""
@@ -831,45 +837,50 @@ class Connection(Connectable):
         return self.__engine.dialect.create_execution_context(connection=self, **kwargs)
 
     def __execute_raw(self, context):
-        if self.__engine._should_log_info:
-            self.__engine.logger.info(context.statement)
-            self.__engine.logger.info(repr(context.parameters))
         if context.parameters is not None and isinstance(context.parameters, list) and len(context.parameters) > 0 and isinstance(context.parameters[0], (list, tuple, dict)):
-            self.__executemany(context)
+            self._cursor_executemany(context.cursor, context.statement, context.parameters, context=context)
         else:
-            self.__execute(context)
+            if context.parameters is None:
+                if context.dialect.positional:
+                    parameters = ()
+                else:
+                    parameters = {}
+            else:
+                parameters = context.parameters
+            self._cursor_execute(context.cursor, context.statement, parameters, context=context)
         self._autocommit(context)
 
-    def __execute(self, context):
-        if context.parameters is None:
-            if context.dialect.positional:
-                context.parameters = ()
-            else:
-                context.parameters = {}
+    def _cursor_execute(self, cursor, statement, parameters, context=None):
+        if self.__engine._should_log_info:
+            self.__engine.logger.info(statement)
+            self.__engine.logger.info(repr(parameters))
         try:
-            context.dialect.do_execute(context.cursor, context.statement, context.parameters, context=context)
+            self.dialect.do_execute(cursor, statement, parameters, context=context)
         except Exception, e:
             if self.dialect.is_disconnect(e):
                 self.__connection.invalidate(e=e)
                 self.engine.dispose()
-            context.cursor.close()
+            cursor.close()
             self._autorollback()
             if self.__close_with_result:
                 self.close()
-            raise exceptions.SQLError(context.statement, context.parameters, e)
+            raise exceptions.DBAPIError.instance(statement, parameters, e)
 
-    def __executemany(self, context):
+    def _cursor_executemany(self, cursor, statement, parameters, context=None):
+        if self.__engine._should_log_info:
+            self.__engine.logger.info(statement)
+            self.__engine.logger.info(repr(parameters))
         try:
-            context.dialect.do_executemany(context.cursor, context.statement, context.parameters, context=context)
+            self.dialect.do_executemany(cursor, statement, parameters, context=context)
         except Exception, e:
             if self.dialect.is_disconnect(e):
                 self.__connection.invalidate(e=e)
                 self.engine.dispose()
-            context.cursor.close()
+            cursor.close()
             self._autorollback()
             if self.__close_with_result:
                 self.close()
-            raise exceptions.SQLError(context.statement, context.parameters, e)
+            raise exceptions.DBAPIError.instance(statement, parameters, e)
 
     # poor man's multimethod/generic function thingy
     executors = {
@@ -1344,14 +1355,25 @@ class ResultProxy(object):
         """
 
         return self.context.lastrow_has_defaults()
-
-    def supports_sane_rowcount(self):
-        """Return ``supports_sane_rowcount()`` from the underlying ExecutionContext.
+    
+    def postfetch_cols(self):
+        """Return ``postfetch_cols()`` from the underlying ExecutionContext.
 
         See ExecutionContext for details.
         """
+        return self.context.postfetch_cols()
+        
+    def supports_sane_rowcount(self):
+        """Return ``supports_sane_rowcount`` from the dialect.
 
-        return self.context.supports_sane_rowcount()
+        """
+        return self.dialect.supports_sane_rowcount
+
+    def supports_sane_multi_rowcount(self):
+        """Return ``supports_sane_multi_rowcount`` from the dialect.
+        """
+
+        return self.dialect.supports_sane_multi_rowcount
 
     def _get_col(self, row, key):
         rec = self._key_cache[key]
@@ -1615,7 +1637,6 @@ class DefaultRunner(schema.SchemaVisitor):
 
     def __init__(self, context):
         self.context = context
-        self.connection = context._connection._branch()
         self.dialect = context.dialect
 
     def get_column_default(self, column):
@@ -1648,9 +1669,17 @@ class DefaultRunner(schema.SchemaVisitor):
         return None
 
     def exec_default_sql(self, default):
-        c = expression.select([default.arg]).compile(bind=self.connection)
-        return self.connection._execute_compiled(c).scalar()
-
+        conn = self.context.connection
+        c = expression.select([default.arg]).compile(bind=conn)
+        return conn._execute_compiled(c).scalar()
+    
+    def execute_string(self, stmt, params=None):
+        """execute a string statement, using the raw cursor,
+        and return a scalar result."""
+        conn = self.context._connection
+        conn._cursor_execute(self.context.cursor, stmt, params)
+        return self.context.cursor.fetchone()[0]
+        
     def visit_column_onupdate(self, onupdate):
         if isinstance(onupdate.arg, expression.ClauseElement):
             return self.exec_default_sql(onupdate)

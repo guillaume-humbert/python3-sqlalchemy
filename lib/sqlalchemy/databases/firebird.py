@@ -103,6 +103,7 @@ class FBExecutionContext(default.DefaultExecutionContext):
 class FBDialect(default.DefaultDialect):
     supports_sane_rowcount = False
     max_identifier_length = 31
+    preexecute_sequences = True
 
     def __init__(self, type_conv=200, concurrency_level=1, **kwargs):
         default.DefaultDialect.__init__(self, **kwargs)
@@ -116,7 +117,7 @@ class FBDialect(default.DefaultDialect):
     dbapi = classmethod(dbapi)
     
     def create_connect_args(self, url):
-        opts = url.translate_connect_args(['host', 'database', 'user', 'password', 'port'])
+        opts = url.translate_connect_args(username='user')
         if opts.get('port'):
             opts['host'] = "%s/%s" % (opts['host'], opts['port'])
             del opts['port']
@@ -306,9 +307,12 @@ class FBCompiler(compiler.DefaultCompiler):
         else:
             return func.name
 
-    def uses_sequences_for_inserts(self):
-        return True
+    def default_from(self):
+        return " FROM rdb$database"
 
+    def visit_sequence(self, seq):
+        return "gen_id(" + seq.name + ", 1)"
+        
     def get_select_precolumns(self, select):
         """Called when building a ``SELECT`` statement, position is just
         before column list Firebird puts the limit and offset right
@@ -355,12 +359,8 @@ class FBSchemaDropper(compiler.SchemaDropper):
 
 
 class FBDefaultRunner(base.DefaultRunner):
-    def exec_default_sql(self, default):
-        c = sql.select([default.arg], from_obj=["rdb$database"]).compile(bind=self.connection)
-        return self.connection.execute_compiled(c).scalar()
-
     def visit_sequence(self, seq):
-        return self.connection.execute_text("SELECT gen_id(" + seq.name + ", 1) FROM rdb$database").scalar()
+        return self.execute_string("SELECT gen_id(" + seq.name + ", 1) FROM rdb$database")
 
 
 RESERVED_WORDS = util.Set(

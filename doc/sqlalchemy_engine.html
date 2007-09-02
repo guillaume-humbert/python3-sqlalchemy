@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
+<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
 
 
 
@@ -305,8 +305,8 @@ information.</p>
 are prefixed, such as sqlalchemy.url, sqlalchemy.echo, etc.  The
 'prefix' argument indicates the prefix to be searched for.</p>
 <p>A select set of keyword arguments will be &quot;coerced&quot; to their
-expected type based on string values.  in a future release, this
-functionality will be expanded to include dialect-specific
+expected type based on string values.  In a future release, this
+functionality will be expanded and include dialect-specific
 arguments.</p>
 
     </div>
@@ -1012,6 +1012,18 @@ DefaultRunner to allow database-specific behavior.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def execute_string(<i>self</i>, <i>stmt</i>, <i>params=None</i>)</b>
+    <div class="docstring">
+    <p>execute a string statement, using the raw cursor,
+and return a scalar result.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def get_column_default(<i>self</i>, <i>column</i>)</b>
     <div class="docstring">
     
@@ -1135,6 +1147,12 @@ quote identifiers.</dd>
 <dd>Indicate whether the DB-API can receive SQL statements as Python unicode strings</dd>
 <dt>supports_sane_rowcount</dt>
 <dd>Indicate whether the dialect properly implements rowcount for <tt class="docutils literal"><span class="pre">UPDATE</span></tt> and <tt class="docutils literal"><span class="pre">DELETE</span></tt> statements.</dd>
+<dt>supports_sane_multi_rowcount</dt>
+<dd>Indicate whether the dialect properly implements rowcount for <tt class="docutils literal"><span class="pre">UPDATE</span></tt> and <tt class="docutils literal"><span class="pre">DELETE</span></tt> statements
+when executed via executemany.</dd>
+<dt>preexecute_sequences</dt>
+<dd>Indicate if the dialect should pre-execute sequences on primary key columns during an INSERT,
+if it's desired that the new row's primary key be available after execution.</dd>
 </dl>
 </div>
     
@@ -1832,10 +1850,8 @@ the Table's 'primary_key' attribute.</p>
     <A name=""></a>
     <b>def lastrow_has_defaults(<i>self</i>)</b>
     <div class="docstring">
-    <p>Return True if the last row INSERTED via a compiled insert statement contained PassiveDefaults.</p>
-<p>The presence of PassiveDefaults indicates that the database
-inserted data beyond that which we passed to the query
-programmatically.</p>
+    <p>Return True if the last INSERT or UPDATE row contained
+inlined or database-side defaults.</p>
 
     </div>
     </div>
@@ -2122,6 +2138,18 @@ are exhausted.</p>
          </div>
 
                     
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def postfetch_cols(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Return <tt class="docutils literal"><span class="pre">postfetch_cols()</span></tt> from the underlying ExecutionContext.</p>
+<p>See ExecutionContext for details.</p>
+
+    </div>
+    </div>
+
+                    
          <div class="darkcell">
          <A name=""></a>
          <b>rowcount = property()</b>
@@ -2145,10 +2173,20 @@ are exhausted.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def supports_sane_multi_rowcount(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Return <tt class="docutils literal"><span class="pre">supports_sane_multi_rowcount</span></tt> from the dialect.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def supports_sane_rowcount(<i>self</i>)</b>
     <div class="docstring">
-    <p>Return <tt class="docutils literal"><span class="pre">supports_sane_rowcount()</span></tt> from the underlying ExecutionContext.</p>
-<p>See ExecutionContext for details.</p>
+    <p>Return <tt class="docutils literal"><span class="pre">supports_sane_rowcount</span></tt> from the dialect.</p>
 
     </div>
     </div>

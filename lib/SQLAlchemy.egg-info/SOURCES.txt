@@ -269,6 +269,7 @@ test/profiling/__init__.py
 test/profiling/alltests.py
 test/profiling/compiler.py
 test/profiling/pool.py
+test/profiling/zoomark.py
 test/sql/__init__.py
 test/sql/alltests.py
 test/sql/case_statement.py
