@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
+<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
 
 
 
@@ -180,11 +180,11 @@ be against the single shard regardless of other state.</p>
     <p>construct a ShardedSession.</p>
 <dl class="docutils">
 <dt>shard_chooser</dt>
-<dd>a callable which, passed a Mapper and a mapped instance, returns a
-shard ID.  this id may be based off of the attributes present within the
-object, or on some round-robin scheme.  If the scheme is based on a
-selection, it should set whatever state on the instance to mark it in
-the future as participating in that shard.</dd>
+<dd>a callable which, passed a Mapper, a mapped instance, and possibly a
+SQL clause, returns a shard ID. this id may be based off of the
+attributes present within the object, or on some round-robin scheme. If
+the scheme is based on a selection, it should set whatever state on the
+instance to mark it in the future as participating in that shard.</dd>
 <dt>id_chooser</dt>
 <dd>a callable, passed a query and a tuple of identity values,
 which should return a list of shard ids where the ID might
@@ -223,7 +223,7 @@ combined together into a single listing.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_bind(<i>self</i>, <i>mapper</i>, <i>shard_id=None</i>, <i>instance=None</i>)</b>
+    <b>def get_bind(<i>self</i>, <i>mapper</i>, <i>shard_id=None</i>, <i>instance=None</i>, <i>clause=None</i>)</b>
     <div class="docstring">
     
     </div>

@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
+<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
 
 
 
@@ -267,7 +267,7 @@ Table('mytable', metadata,
       Column('gid', Integer, primary_key=True, autoincrement=False),
       Column('id', Integer, primary_key=True))
 </pre>
-<p>MySQL SQL modes are supported.  Modes that enable <tt class="docutils literal"><span class="pre">ANSI_QUOTE</span></tt> (such as
+<p>MySQL SQL modes are supported.  Modes that enable <tt class="docutils literal"><span class="pre">ANSI_QUOTES</span></tt> (such as
 <tt class="docutils literal"><span class="pre">ANSI</span></tt>) require an engine option to modify SQLAlchemy's quoting style.
 When using an ANSI-quoting mode, supply <tt class="docutils literal"><span class="pre">use_ansiquotes=True</span></tt> when
 creating your <tt class="docutils literal"><span class="pre">Engine</span></tt>:</p>
@@ -869,7 +869,10 @@ Column('myenum', MSEnum(&quot;'foo'&quot;, &quot;'bar'&quot;, &quot;'baz'&quot;)
 <dl class="docutils">
 <dt>enums</dt>
 <dd>The range of valid values for this ENUM.  Values will be used
-exactly as they appear when generating schemas</dd>
+exactly as they appear when generating schemas.  Strings must
+be quoted, as in the example above.  Single-quotes are suggested
+for ANSI compatability and are required for portability to servers
+with ANSI_QUOTES enabled.</dd>
 <dt>strict</dt>
 <dd>Defaults to False: ensure that a given value is in this ENUM's
 range of permissible values when inserting or updating rows.
@@ -1475,7 +1478,10 @@ Column('myset', MSSet(&quot;'foo'&quot;, &quot;'bar'&quot;, &quot;'baz'&quot;))
 <dl class="docutils">
 <dt>values</dt>
 <dd>The range of valid values for this SET.  Values will be used
-exactly as they appear when generating schemas.</dd>
+exactly as they appear when generating schemas.  Strings must
+be quoted, as in the example above.  Single-quotes are suggested
+for ANSI compatability and are required for portability to servers
+with ANSI_QUOTES enabled.</dd>
 <dt>charset</dt>
 <dd>Optional, a column-level character set for this string
 value.  Takes precendence to 'ascii' or 'unicode' short-hand.</dd>

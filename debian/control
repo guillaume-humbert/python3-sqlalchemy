@@ -7,6 +7,7 @@ Build-Depends: debhelper (>=5.0.37.2), cdbs (>=0.4.42), python (>=2.3.5-11)
 Build-Depends-Indep: python-all-dev, python-central (>=0.5), python-setuptools (>=0.6b3-1)
 Standards-Version: 3.7.2
 XS-Python-Version: >= 2.3
+Homepage: http://www.sqlalchemy.org/
 
 Package: python-sqlalchemy
 Architecture: all
@@ -42,8 +43,6 @@ Description: SQL toolkit and Object Relational Mapper for Python
     is constructed in an open style that allows plenty of customization, with
     an architecture that supports custom datatypes, custom SQL extensions, and
     ORM plugins which can augment or extend mapping functionality.
- .
-  Homepage: http://www.sqlalchemy.org/
 
 Package: python-sqlalchemy-doc
 Section: doc

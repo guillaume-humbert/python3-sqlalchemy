@@ -11,7 +11,7 @@ from sqlalchemy.sql import util as sqlutil
 from sqlalchemy.orm import util as mapperutil
 from sqlalchemy.orm.util import ExtensionCarrier
 from sqlalchemy.orm import sync
-from sqlalchemy.orm.interfaces import MapperProperty, EXT_CONTINUE, SynonymProperty
+from sqlalchemy.orm.interfaces import MapperProperty, EXT_CONTINUE, SynonymProperty, PropComparator
 deferred_load = None
 
 __all__ = ['Mapper', 'class_mapper', 'object_mapper', 'mapper_registry']
@@ -141,28 +141,32 @@ class Mapper(object):
         # was sent to this mapper.
         self.__surrogate_mapper = None
 
-        # whether or not our compile() method has been called already.
-        self.__is_compiled = False
+        self.__props_init = False
 
-        # if this mapper is to be a primary mapper (i.e. the non_primary flag is not set),
-        # associate this Mapper with the given class_ and entity name.  subsequent
-        # calls to class_mapper() for the class_/entity name combination will return this
-        # mapper.
-        self._compile_class()
-
+        self.__should_log_info = logging.is_info_enabled(self.logger)
         self.__should_log_debug = logging.is_debug_enabled(self.logger)
+        
+        self._compile_class()
+        self._compile_extensions()
+        self._compile_inheritance()
+        self._compile_tables()
+        self._compile_properties()
+        self._compile_selectable()
+
         self.__log("constructed")
 
     def __log(self, msg):
-        self.logger.info("(" + self.class_.__name__ + "|" + (self.entity_name is not None and "/%s" % self.entity_name or "") + (self.local_table and self.local_table.name or str(self.local_table)) + (not self._is_primary_mapper() and "|non-primary" or "") + ") " + msg)
+        if self.__should_log_info:
+            self.logger.info("(" + self.class_.__name__ + "|" + (self.entity_name is not None and "/%s" % self.entity_name or "") + (self.local_table and self.local_table.name or str(self.local_table)) + (not self._is_primary_mapper() and "|non-primary" or "") + ") " + msg)
 
     def __log_debug(self, msg):
-        self.logger.debug("(" + self.class_.__name__ + "|" + (self.entity_name is not None and "/%s" % self.entity_name or "") + (self.local_table and self.local_table.name or str(self.local_table)) + (not self._is_primary_mapper() and "|non-primary" or "") + ") " + msg)
+        if self.__should_log_debug:
+            self.logger.debug("(" + self.class_.__name__ + "|" + (self.entity_name is not None and "/%s" % self.entity_name or "") + (self.local_table and self.local_table.name or str(self.local_table)) + (not self._is_primary_mapper() and "|non-primary" or "") + ") " + msg)
 
     def _is_orphan(self, obj):
         optimistic = has_identity(obj)
         for (key,klass) in self.delete_orphans:
-            if getattr(klass, key).hasparent(obj, optimistic=optimistic):
+            if attribute_manager.has_parent(klass, obj, key, optimistic=optimistic):
                return False
         else:
             if self.delete_orphans:
@@ -179,7 +183,6 @@ class Mapper(object):
 
     def get_property(self, key, resolve_synonyms=False, raiseerr=True):
         """return MapperProperty with the given key."""
-        self.compile()
         prop = self.__props.get(key, None)
         if resolve_synonyms:
             while isinstance(prop, SynonymProperty):
@@ -189,81 +192,62 @@ class Mapper(object):
         return prop
     
     def iterate_properties(self):
-        self.compile()
         return self.__props.itervalues()
     iterate_properties = property(iterate_properties, doc="returns an iterator of all MapperProperty objects.")
     
     def dispose(self):
-        attribute_manager.reset_class_managed(self.class_)
+        # disaable any attribute-based compilation
+        self.__props_init = True
         if hasattr(self.class_, 'c'):
             del self.class_.c
-        if hasattr(self.class_, '__init__') and hasattr(self.class_.__init__, '_oldinit'):
-            if self.class_.__init__._oldinit is not None:
-                self.class_.__init__ = self.class_.__init__._oldinit
-            else:
-                delattr(self.class_, '__init__')
+        attribute_manager.unregister_class(self.class_)
         
     def compile(self):
         """Compile this mapper into its final internal format.
-
-        This is the *external* version of the method which is not
-        reentrant.
         """
 
-        if self.__is_compiled:
+        if self.__props_init:
             return self
         _COMPILE_MUTEX.acquire()
         try:
             # double-check inside mutex
-            if self.__is_compiled:
+            if self.__props_init:
                 return self
-            self._compile_all()
+            # initialize properties on all mappers
+            for mapper in mapper_registry.values():
+                if not mapper.__props_init:
+                    mapper.__initialize_properties()
 
             # if we're not primary, compile us
             if self.non_primary:
-                self._do_compile()
-                self._initialize_properties()
+                self.__initialize_properties()
 
             return self
         finally:
             _COMPILE_MUTEX.release()
 
-    def _compile_all(self):
-        # compile all primary mappers
-        for mapper in mapper_registry.values():
-            if not mapper.__is_compiled:
-                mapper._do_compile()
-
-        # initialize properties on all mappers
-        for mapper in mapper_registry.values():
-            if not mapper.__props_init:
-                mapper._initialize_properties()
-
     def _check_compile(self):
-        if self.non_primary:
-            self._do_compile()
-            self._initialize_properties()
+        if self.non_primary and not self.__props_init:
+            self.__initialize_properties()
         return self
+        
+    def __initialize_properties(self):
+        """Call the ``init()`` method on all ``MapperProperties``
+        attached to this mapper.
 
-    def _do_compile(self):
-        """Compile this mapper into its final internal format.
-
-        This is the *internal* version of the method which is assumed
-        to be called within compile() and is reentrant.
+        This happens after all mappers have completed compiling
+        everything else up until this point, so that all dependencies
+        are fully available.
         """
 
-        if self.__is_compiled:
-            return self
-        self.__log("_do_compile() started")
-        self.__is_compiled = True
-        self.__props_init = False
-        self._compile_extensions()
-        self._compile_inheritance()
-        self._compile_tables()
-        self._compile_properties()
-        self._compile_selectable()
-        self.__log("_do_compile() complete")
-        return self
+        self.__log("_initialize_properties() started")
+        l = [(key, prop) for key, prop in self.__props.iteritems()]
+        for key, prop in l:
+            if getattr(prop, 'key', None) is None:
+                prop.init(key, self)
+        self.__log("_initialize_properties() complete")
+        self.__props_init = True
+
 
     def _compile_extensions(self):
         """Go through the global_extensions list as well as the list
@@ -301,9 +285,9 @@ class Mapper(object):
 
         if self.inherits is not None:
             if isinstance(self.inherits, type):
-                self.inherits = class_mapper(self.inherits, compile=False)._do_compile()
+                self.inherits = class_mapper(self.inherits, compile=False)
             else:
-                self.inherits = self.inherits._do_compile()
+                self.inherits = self.inherits
             if not issubclass(self.class_, self.inherits.class_):
                 raise exceptions.ArgumentError("Class '%s' does not inherit from '%s'" % (self.class_.__name__, self.inherits.class_.__name__))
             if self._is_primary_mapper() != self.inherits._is_primary_mapper():
@@ -537,15 +521,36 @@ class Mapper(object):
                     result.setdefault(fk.column, util.Set()).add(col)
 
         return result
-        
+    
+    class _CompileOnAttr(PropComparator):
+        """placeholder class attribute which fires mapper compilation on access"""
+        def __init__(self, class_, key):
+            self.class_ = class_
+            self.key = key
+        def __getattribute__(self, key):
+            cls = object.__getattribute__(self, 'class_')
+            clskey = object.__getattribute__(self, 'key')
+
+            if key.startswith('__'):
+                return object.__getattribute__(self, key)
+
+            class_mapper(cls)
+            
+            if cls.__dict__.get(clskey) is self:
+                # FIXME: there should not be any scenarios where 
+                # a mapper compile leaves this CompileOnAttr in 
+                # place.  
+                warnings.warn(RuntimeWarning("Attribute '%s' on class '%s' was not replaced during mapper compilation operation" % (clskey, cls.__name__)))
+                # clean us up explicitly
+                delattr(cls, clskey)
+                
+            return getattr(getattr(cls, clskey), key)
+            
     def _compile_properties(self):
         """Inspect the properties dictionary sent to the Mapper's
         constructor as well as the mapped_table, and create
         ``MapperProperty`` objects corresponding to each mapped column
         and relation.
-
-        Also grab ``MapperProperties`` from the inherited mapper, if
-        any, and create copies of them to attach to this Mapper.
         """
 
         # object attribute names mapped to MapperProperty objects
@@ -575,7 +580,7 @@ class Mapper(object):
                 self.columns[column.key] = self.select_table.corresponding_column(column, keys_ok=True, raiseerr=True)
 
             column_key = (self.column_prefix or '') + column.key
-            prop = self.__props.get(column.key, None)
+            prop = self.__props.get(column_key, None)
 
             if prop is None:
                 if (self.include_properties is not None and
@@ -590,6 +595,11 @@ class Mapper(object):
                 
                 prop = ColumnProperty(column)
                 self.__props[column_key] = prop
+
+                # TODO: centralize _CompileOnAttr logic, move into MapperProperty classes
+                if not hasattr(self.class_, column_key) and not self.non_primary:
+                    setattr(self.class_, column_key, Mapper._CompileOnAttr(self.class_, column_key))
+                
                 prop.set_parent(self)
                 self.__log("adding ColumnProperty %s" % (column_key))
             elif isinstance(prop, ColumnProperty):
@@ -611,23 +621,6 @@ class Mapper(object):
             # back to the property
             self.columntoproperty.setdefault(column, []).append(prop)
 
-
-    def _initialize_properties(self):
-        """Call the ``init()`` method on all ``MapperProperties``
-        attached to this mapper.
-
-        This happens after all mappers have completed compiling
-        everything else up until this point, so that all dependencies
-        are fully available.
-        """
-
-        self.__log("_initialize_properties() started")
-        l = [(key, prop) for key, prop in self.__props.iteritems()]
-        for key, prop in l:
-            if getattr(prop, 'key', None) is None:
-                prop.init(key, self)
-        self.__log("_initialize_properties() complete")
-        self.__props_init = True
 
     def _compile_selectable(self):
         """If the 'select_table' keyword argument was specified, set
@@ -668,34 +661,14 @@ class Mapper(object):
         if not self.non_primary and (self.class_key in mapper_registry):
              raise exceptions.ArgumentError("Class '%s' already has a primary mapper defined with entity name '%s'.  Use non_primary=True to create a non primary Mapper, or to create a new primary mapper, remove this mapper first via sqlalchemy.orm.clear_mapper(mapper), or preferably sqlalchemy.orm.clear_mappers() to clear all mappers." % (self.class_, self.entity_name))
 
-        attribute_manager.reset_class_managed(self.class_)
-
-        oldinit = self.class_.__init__
-        doinit = oldinit is not None and oldinit is not object.__init__
-            
-        def init(instance, *args, **kwargs):
+        def extra_init(class_, oldinit, instance, args, kwargs):
             self.compile()
-            self.extension.init_instance(self, self.class_, oldinit, instance, args, kwargs)
+            self.extension.init_instance(self, class_, oldinit, instance, args, kwargs)
+        
+        def on_exception(class_, oldinit, instance, args, kwargs):
+            util.warn_exception(self.extension.init_failed, self, class_, oldinit, instance, args, kwargs)
 
-            if doinit:
-                try:
-                    oldinit(instance, *args, **kwargs)
-                except:
-                    # call init_failed but suppress exceptions into warnings so that original __init__ 
-                    # exception is raised
-                    util.warn_exception(self.extension.init_failed, self, self.class_, oldinit, instance, args, kwargs)
-                    raise
-
-        # override oldinit, ensuring that its not already a Mapper-decorated init method
-        if oldinit is None or not hasattr(oldinit, '_oldinit'):
-            try:
-                init.__name__ = oldinit.__name__
-                init.__doc__ = oldinit.__doc__
-            except:
-                # cant set __name__ in py 2.3 !
-                pass
-            init._oldinit = oldinit
-            self.class_.__init__ = init
+        attribute_manager.register_class(self.class_, extra_init=extra_init, on_exception=on_exception)
 
         _COMPILE_MUTEX.acquire()
         try:
@@ -762,10 +735,7 @@ class Mapper(object):
         """
 
         self.properties[key] = prop
-        if self.__is_compiled:
-            # if we're compiled, make sure all the other mappers are compiled too
-            self._compile_all()
-            self._compile_property(key, prop, init=True)
+        self._compile_property(key, prop, init=self.__props_init)
 
     def _create_prop_from_column(self, column):
         column = util.to_list(column)
@@ -805,8 +775,14 @@ class Mapper(object):
             prop = col
 
         self.__props[key] = prop
+        
+
         if setparent:
             prop.set_parent(self)
+
+            # TODO: centralize _CompileOnAttr logic, move into MapperProperty classes
+            if (not isinstance(prop, SynonymProperty) or prop.proxy) and not self.non_primary and not hasattr(self.class_, key):
+                setattr(self.class_, key, Mapper._CompileOnAttr(self.class_, key))
 
         if isinstance(prop, ColumnProperty):
             # relate the mapper's "select table" to the given ColumnProperty
@@ -831,6 +807,7 @@ class Mapper(object):
 
     def _is_primary_mapper(self):
         """Return True if this mapper is the primary mapper for its class key (class + entity_name)."""
+        # FIXME: cant we just look at "non_primary" flag ?
         return mapper_registry.get(self.class_key, None) is self
 
     def primary_mapper(self):
@@ -864,7 +841,6 @@ class Mapper(object):
         from the extension chain.
         """
 
-        self.compile()
         s = self.extension.get_session()
         if s is EXT_CONTINUE:
             raise exceptions.InvalidRequestError("No contextual Session is established.  Use a MapperExtension that implements get_session or use 'import sqlalchemy.mods.threadlocal' to establish a default thread-local contextual session.")
@@ -1395,21 +1371,27 @@ class Mapper(object):
         # been exposed to being modified by the application.
 
         identitykey = self.identity_key_from_row(row)
-        populate_existing = context.populate_existing or self.always_refresh
-        if identitykey in context.session.identity_map:
-            instance = context.session._get(identitykey)
+        (session_identity_map, local_identity_map) = (context.session.identity_map, context.identity_map)
+        
+        if identitykey in session_identity_map:
+            instance = session_identity_map[identitykey]
+
             if self.__should_log_debug:
                 self.__log_debug("_instance(): using existing instance %s identity %s" % (mapperutil.instance_str(instance), str(identitykey)))
+                
             isnew = False
+
             if context.version_check and self.version_id_col is not None and self.get_attr_by_column(instance, self.version_id_col) != row[self.version_id_col]:
                 raise exceptions.ConcurrentModificationError("Instance '%s' version of %s does not match %s" % (instance, self.get_attr_by_column(instance, self.version_id_col), row[self.version_id_col]))
 
-            if populate_existing or context.session.is_expired(instance, unexpire=True):
-                if identitykey not in context.identity_map:
-                    context.identity_map[identitykey] = instance
+            if context.populate_existing or self.always_refresh or instance._state.trigger is not None:
+                instance._state.trigger = None
+                if identitykey not in local_identity_map:
+                    local_identity_map[identitykey] = instance
                     isnew = True
                 if extension.populate_instance(self, context, row, instance, instancekey=identitykey, isnew=isnew) is EXT_CONTINUE:
                     self.populate_instance(context, instance, row, instancekey=identitykey, isnew=isnew)
+
             if extension.append_result(self, context, row, instance, result, instancekey=identitykey, isnew=isnew) is EXT_CONTINUE:
                 if result is not None:
                     result.append(instance)
@@ -1417,9 +1399,9 @@ class Mapper(object):
         else:
             if self.__should_log_debug:
                 self.__log_debug("_instance(): identity key %s not in session" % str(identitykey))
+                
         # look in result-local identitymap for it.
-        exists = identitykey in context.identity_map
-        if not exists:
+        if identitykey not in local_identity_map:
             if self.allow_null_pks:
                 # check if *all* primary key cols in the result are None - this indicates
                 # an instance of the object is not present in the row.
@@ -1437,14 +1419,14 @@ class Mapper(object):
             # plugin point
             instance = extension.create_instance(self, context, row, self.class_)
             if instance is EXT_CONTINUE:
-                instance = self._create_instance(context.session)
+                instance = attribute_manager.new_instance(self.class_)
             instance._entity_name = self.entity_name
             if self.__should_log_debug:
                 self.__log_debug("_instance(): created new instance %s identity %s" % (mapperutil.instance_str(instance), str(identitykey)))
-            context.identity_map[identitykey] = instance
+            local_identity_map[identitykey] = instance
             isnew = True
         else:
-            instance = context.identity_map[identitykey]
+            instance = local_identity_map[identitykey]
             isnew = False
 
         # call further mapper properties on the row, to pull further
@@ -1455,13 +1437,10 @@ class Mapper(object):
         if extension.append_result(self, context, row, instance, result, **flags) is EXT_CONTINUE:
             if result is not None:
                 result.append(instance)
+                
+        instance._instance_key = identitykey
+        
         return instance
-
-    def _create_instance(self, session):
-        obj = self.class_.__new__(self.class_)
-        obj._entity_name = self.entity_name
-
-        return obj
 
     def _deferred_inheritance_condition(self, needs_tables):
         cond = self.inherit_condition
@@ -1496,26 +1475,29 @@ class Mapper(object):
                 newrow[c] = row[c2]
         return newrow
 
-    def populate_instance(self, selectcontext, instance, row, ispostselect=None, **flags):
+    def populate_instance(self, selectcontext, instance, row, ispostselect=None, isnew=False, **flags):
         """populate an instance from a result row."""
 
-        selectcontext.stack.push_mapper(self)
+        snapshot = selectcontext.stack.push_mapper(self)
         # retrieve a set of "row population" functions derived from the MapperProperties attached
         # to this Mapper.  These are keyed in the select context based primarily off the 
         # "snapshot" of the stack, which represents a path from the lead mapper in the query to this one,
         # including relation() names.  the key also includes "self", and allows us to distinguish between
         # other mappers within our inheritance hierarchy
-        populators = selectcontext.attributes.get(('instance_populators', self, selectcontext.stack.snapshot(), ispostselect), None)
+        populators = selectcontext.attributes.get(((isnew or ispostselect) and 'new_populators' or 'existing_populators', self, snapshot, ispostselect), None)
         if populators is None:
             # no populators; therefore this is the first time we are receiving a row for
             # this result set.  issue create_row_processor() on all MapperProperty objects
             # and cache in the select context.
-            populators = []
+            new_populators = []
+            existing_populators = []
             post_processors = []
             for prop in self.__props.values():
-                (pop, post_proc) = prop.create_row_processor(selectcontext, self, row)
-                if pop is not None:
-                    populators.append(pop)
+                (newpop, existingpop, post_proc) = prop.create_row_processor(selectcontext, self, row)
+                if newpop is not None:
+                    new_populators.append(newpop)
+                if existingpop is not None:
+                    existing_populators.append(existingpop)
                 if post_proc is not None:
                     post_processors.append(post_proc)
                     
@@ -1523,11 +1505,16 @@ class Mapper(object):
             if poly_select_loader is not None:
                 post_processors.append(poly_select_loader)
                 
-            selectcontext.attributes[('instance_populators', self, selectcontext.stack.snapshot(), ispostselect)] = populators
+            selectcontext.attributes[('new_populators', self, snapshot, ispostselect)] = new_populators
+            selectcontext.attributes[('existing_populators', self, snapshot, ispostselect)] = existing_populators
             selectcontext.attributes[('post_processors', self, ispostselect)] = post_processors
-
+            if isnew or ispostselect:
+                populators = new_populators
+            else:
+                populators = existing_populators
+                
         for p in populators:
-            p(instance, row, ispostselect=ispostselect, **flags)
+            p(instance, row, ispostselect=ispostselect, isnew=isnew, **flags)
         
         selectcontext.stack.pop()
             
@@ -1571,9 +1558,10 @@ class ClassKey(object):
     def __init__(self, class_, entity_name):
         self.class_ = class_
         self.entity_name = entity_name
-
+        self._hash = hash((self.class_, self.entity_name))
+        
     def __hash__(self):
-        return hash((self.class_, self.entity_name))
+        return self._hash
 
     def __eq__(self, other):
         return self is other
@@ -1581,9 +1569,7 @@ class ClassKey(object):
     def __repr__(self):
         return "ClassKey(%s, %s)" % (repr(self.class_), repr(self.entity_name))
 
-    def dispose(self):
-        type(self).dispose_static(self.class_, self.entity_name)
-
+    
 def has_identity(object):
     return hasattr(object, '_instance_key')
 
@@ -1618,7 +1604,7 @@ def object_mapper(object, entity_name=None, raiseerror=True):
             raise exceptions.InvalidRequestError("Class '%s' entity name '%s' has no mapper associated with it" % (object.__class__.__name__, getattr(object, '_entity_name', entity_name)))
         else:
             return None
-    return mapper.compile()
+    return mapper
 
 def class_mapper(class_, entity_name=None, compile=True):
     """Given a class and optional entity_name, return the primary Mapper associated with the key.

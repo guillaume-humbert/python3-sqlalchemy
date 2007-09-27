@@ -580,8 +580,8 @@ class MSSQLDialect(default.DefaultDialect):
                     warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (type, name)))
                     coltype = sqltypes.NULLTYPE
                     
-                elif coltype == MSNVarchar and charlen == -1:
-                    charlen = None
+                elif coltype in (MSNVarchar, AdoMSNVarchar) and charlen == -1:
+                    args[0] = None
                 coltype = coltype(*args)
             colargs= []
             if default is not None:
@@ -593,7 +593,7 @@ class MSSQLDialect(default.DefaultDialect):
             raise exceptions.NoSuchTableError(table.name)
 
         # We also run an sp_columns to check for identity columns:
-        cursor = connection.execute("sp_columns " + self.identifier_preparer.format_table(table))
+        cursor = connection.execute("sp_columns [%s]" % self.identifier_preparer.format_table(table))
         ic = None
         while True:
             row = cursor.fetchone()
@@ -662,6 +662,7 @@ class MSSQLDialect(default.DefaultDialect):
 
 class MSSQLDialect_pymssql(MSSQLDialect):
     supports_sane_rowcount = False
+    supports_sane_multi_rowcount = False
 
     def import_dbapi(cls):
         import pymssql as module
@@ -739,8 +740,10 @@ class MSSQLDialect_pymssql(MSSQLDialect):
 
 class MSSQLDialect_pyodbc(MSSQLDialect):
     supports_sane_rowcount = False
+    supports_sane_multi_rowcount = False
     # PyODBC unicode is broken on UCS-4 builds
-    supports_unicode_statements = sys.maxunicode == 65535
+    supports_unicode = sys.maxunicode == 65535
+    supports_unicode_statements = supports_unicode
     
     def __init__(self, **params):
         super(MSSQLDialect_pyodbc, self).__init__(**params)
@@ -757,12 +760,14 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
     import_dbapi = classmethod(import_dbapi)
     
     colspecs = MSSQLDialect.colspecs.copy()
-    colspecs[sqltypes.Unicode] = AdoMSNVarchar
+    if supports_unicode:
+        colspecs[sqltypes.Unicode] = AdoMSNVarchar
     colspecs[sqltypes.Date] = MSDate_pyodbc
     colspecs[sqltypes.DateTime] = MSDateTime_pyodbc
 
     ischema_names = MSSQLDialect.ischema_names.copy()
-    ischema_names['nvarchar'] = AdoMSNVarchar
+    if supports_unicode:
+        ischema_names['nvarchar'] = AdoMSNVarchar
     ischema_names['smalldatetime'] = MSDate_pyodbc
     ischema_names['datetime'] = MSDateTime_pyodbc
 
@@ -806,6 +811,7 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
 
 class MSSQLDialect_adodbapi(MSSQLDialect):
     supports_sane_rowcount = True
+    supports_sane_multi_rowcount = True
     supports_unicode_statements = True
 
     def import_dbapi(cls):
@@ -847,8 +853,8 @@ dialect_mapping = {
 
 
 class MSSQLCompiler(compiler.DefaultCompiler):
-    def __init__(self, dialect, statement, parameters, **kwargs):
-        super(MSSQLCompiler, self).__init__(dialect, statement, parameters, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(MSSQLCompiler, self).__init__(*args, **kwargs)
         self.tablealiases = {}
 
     def get_select_precolumns(self, select):

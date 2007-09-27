@@ -304,11 +304,13 @@ class String(TypeEngine, Concatenable):
 
     def get_search_list(self):
         l = super(String, self).get_search_list()
-        if self.length is None:
+        # if we are String or Unicode with no length,
+        # return TEXT as the highest-priority type
+        # to be adapted by the dialect
+        if self.length is None and l[0] in (String, Unicode):
             return (TEXT,) + l
         else:
             return l
-
 
     def get_dbapi_type(self, dbapi):
         return dbapi.STRING
@@ -421,10 +423,11 @@ class Binary(TypeEngine):
 class PickleType(MutableType, TypeDecorator):
     impl = Binary
 
-    def __init__(self, protocol=pickle.HIGHEST_PROTOCOL, pickler=None, mutable=True):
+    def __init__(self, protocol=pickle.HIGHEST_PROTOCOL, pickler=None, mutable=True, comparator=None):
         self.protocol = protocol
         self.pickler = pickler or pickle
         self.mutable = mutable
+        self.comparator = comparator
         super(PickleType, self).__init__()
 
     def bind_processor(self, dialect):
@@ -455,7 +458,9 @@ class PickleType(MutableType, TypeDecorator):
             return value
 
     def compare_values(self, x, y):
-        if self.mutable:
+        if self.comparator:
+            return self.comparator(x, y)
+        elif self.mutable:
             return self.pickler.dumps(x, self.protocol) == self.pickler.dumps(y, self.protocol)
         else:
             return x is y

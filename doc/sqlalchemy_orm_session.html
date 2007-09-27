@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
+<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
 
 
 
@@ -155,7 +155,7 @@ a thread-managed Session adapter, provided by the <a href="sqlalchemy_orm.html#d
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>bind=None</i>, <i>autoflush=True</i>, <i>transactional=False</i>, <i>twophase=False</i>, <i>echo_uow=False</i>, <i>weak_identity_map=False</i>, <i>binds=None</i>, <i>extension=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>bind=None</i>, <i>autoflush=True</i>, <i>transactional=False</i>, <i>twophase=False</i>, <i>echo_uow=False</i>, <i>weak_identity_map=True</i>, <i>binds=None</i>, <i>extension=None</i>)</b>
     <div class="docstring">
     <p>Construct a new Session.</p>
 <dl class="docutils">
@@ -215,11 +215,15 @@ method on each database's <tt class="docutils literal"><span class="pre">TwoPhas
 each database to roll back the entire transaction, before each transaction is
 committed.</dd>
 <dt>weak_identity_map</dt>
-<dd>when <tt class="docutils literal"><span class="pre">True</span></tt>, use a <tt class="docutils literal"><span class="pre">WeakValueDictionary</span></tt> instead of a regular <tt class="docutils literal"><span class="pre">dict</span></tt>
-for this <tt class="docutils literal"><span class="pre">Session</span></tt> object's identity map. This will allow objects which
-fall out of scope to be automatically removed from the <tt class="docutils literal"><span class="pre">Session</span></tt>. However,
-objects who have been marked as &quot;dirty&quot; will also be garbage collected, and
-those changes will not be persisted.</dd>
+<dd>When set to the default value of <tt class="docutils literal"><span class="pre">False</span></tt>, a weak-referencing map is used;
+instances which are not externally referenced will be garbage collected
+immediately. For dereferenced instances which have pending changes present,
+the attribute management system will create a temporary strong-reference to
+the object which lasts until the changes are flushed to the database, at which
+point it's again dereferenced. Alternatively, when using the value <tt class="docutils literal"><span class="pre">True</span></tt>,
+the identity map uses a regular Python dictionary to store instances. The
+session will maintain all instances present until they are removed using
+expunge(), clear(), or purge().</dd>
 </dl>
 
     </div>
@@ -355,15 +359,14 @@ is reached does an actual database-level commit occur.</p>
 transactional context, if any.</p>
 <p>If this <tt class="docutils literal"><span class="pre">Session</span></tt> is transactional, the connection will be in
 the context of this session's transaction.  Otherwise, the
-connection is returned by the <tt class="docutils literal"><span class="pre">contextual_connect()</span></tt> method, which
-some Engines override to return a thread-local connection, and
-will have <cite>close_with_result</cite> set to <cite>True</cite>.</p>
-<p>The given <cite>**kwargs</cite> will be sent to the engine's
-<tt class="docutils literal"><span class="pre">contextual_connect()</span></tt> method, if no transaction is in
-progress.</p>
+connection is returned by the <tt class="docutils literal"><span class="pre">contextual_connect()</span></tt> method
+on the engine.</p>
 <p>the &quot;mapper&quot; argument is a class or mapper to which a bound engine
 will be located; use this when the Session itself is either bound
 to multiple engines or connections, or is not bound to any connectable.</p>
+<p>**kwargs are additional arguments which will be passed to get_bind().
+See the get_bind() method for details.  Note that the &quot;ShardedSession&quot;
+subclass takes a different get_bind() argument signature.</p>
 
     </div>
     </div>
@@ -395,7 +398,15 @@ to multiple engines or connections, or is not bound to any connectable.</p>
          <A name=""></a>
          <b>dirty = property()</b>
          <div class="docstring">
-         <p>A <tt class="docutils literal"><span class="pre">Set</span></tt> of all objects marked as 'dirty' within this <tt class="docutils literal"><span class="pre">Session</span></tt></p>
+         <p>A <tt class="docutils literal"><span class="pre">Set</span></tt> of all objects marked as 'dirty' within this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+<p>Note that the 'dirty' state here is 'optimistic'; most attribute-setting or collection
+modification operations will mark an instance as 'dirty' and place it in this set,
+even if there is no net change to the attribute's value.  At flush time, the value
+of each attribute is compared to its previously saved value,
+and if there's no net change, no SQL operation will occur (this is a more expensive
+operation so it's only done at flush time).</p>
+<p>To check if an instance has actionable net changes to its attributes, use the
+is_modified() method.</p>
 
          </div> 
          </div>
@@ -482,9 +493,22 @@ query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_bind(<i>self</i>, <i>mapper</i>, <i>clause=None</i>)</b>
+    <b>def get_bind(<i>self</i>, <i>mapper</i>, <i>clause=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>return an engine corresponding to the given arguments.</p>
+<dl class="docutils">
+<dt>mapper</dt>
+<dd>mapper relative to the desired operation</dd>
+<dt>clause</dt>
+<dd>a ClauseElement which is to be executed.  if
+mapper is not present, this may be used to locate
+Table objects, which are then associated with mappers
+which have associated binds.</dd>
+<dt>**kwargs</dt>
+<dd>Subclasses (i.e. ShardedSession) may add additional arguments
+to get_bind() which are passed through here.</dd>
+</dl>
+
     </div>
     </div>
 
@@ -539,10 +563,9 @@ query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def import_instance(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def is_expired(<i>self</i>, <i>obj</i>, <i>unexpire=False</i>)</b>
     <div class="docstring">
-    <p>Deprecated.
-A synynom for <tt class="docutils literal"><span class="pre">merge()</span></tt>.</p>
+    <p>Return True if the given object has been marked as expired.</p>
 
     </div>
     </div>
@@ -551,9 +574,19 @@ A synynom for <tt class="docutils literal"><span class="pre">merge()</span></tt>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def is_expired(<i>self</i>, <i>obj</i>, <i>unexpire=False</i>)</b>
+    <b>def is_modified(<i>self</i>, <i>obj</i>, <i>include_collections=True</i>, <i>passive=False</i>)</b>
     <div class="docstring">
-    <p>Return True if the given object has been marked as expired.</p>
+    <p>return True if the given object has modified attributes.</p>
+<p>This method retrieves a history instance for each instrumented attribute
+on the instance and performs a comparison of the current value to its
+previously committed value.  Note that instances present in the 'dirty'
+collection may result in a value of <tt class="docutils literal"><span class="pre">False</span></tt> when tested with this method.</p>
+<p>'include_collections' indicates if multivalued collections should be included
+in the operation.  Setting this to False is a way to detect only local-column
+based properties (i.e. scalar columns or many-to-one foreign keys) that would
+result in an UPDATE for this instance upon flush.</p>
+<p>the 'passive' flag indicates if unloaded attributes and collections should
+not be loaded in the course of performing this test.</p>
 
     </div>
     </div>
@@ -625,7 +658,9 @@ association is mapped with <tt class="docutils literal"><span class="pre">cascad
     <b>def prune(<i>self</i>)</b>
     <div class="docstring">
     <p>Removes unreferenced instances cached in the identity map.</p>
-<p>Removes any object in this Session'sidentity map that is not
+<p>Note that this method is only meaningful if &quot;weak_identity_map&quot;
+is set to False.</p>
+<p>Removes any object in this Session's identity map that is not
 referenced in user code, modified, new or scheduled for deletion.
 Returns the number of objects pruned.</p>
 

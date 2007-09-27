@@ -2,6 +2,7 @@ import testbase
 from sqlalchemy import *
 from sqlalchemy import exceptions
 from sqlalchemy.orm import *
+from sqlalchemy.orm.session import SessionExtension
 from sqlalchemy.orm.session import Session as SessionCls
 from testlib import *
 from testlib.tables import *
@@ -397,7 +398,6 @@ class SessionTest(AssertMixin):
     @engines.close_open_connections
     def test_update(self):
         """test that the update() method functions and doesnet blow away changes"""
-        tables.delete()
         s = create_session()
         class User(object):pass
         mapper(User, users)
@@ -426,10 +426,74 @@ class SessionTest(AssertMixin):
         assert user in s
         assert user not in s.dirty
     
-    def test_strong_ref(self):
-        """test that the session is strong-referencing"""
-        tables.delete()
+    def test_is_modified(self):
         s = create_session()
+        class User(object):pass
+        class Address(object):pass
+        
+        mapper(User, users, properties={'addresses':relation(Address)})
+        mapper(Address, addresses)
+        
+        # save user
+        u = User()
+        u.user_name = 'fred'
+        s.save(u)
+        s.flush()
+        s.clear()
+        
+        user = s.query(User).one()
+        assert user not in s.dirty
+        assert not s.is_modified(user)
+        user.user_name = 'fred'
+        assert user in s.dirty
+        assert not s.is_modified(user)
+        user.user_name = 'ed'
+        assert user in s.dirty
+        assert s.is_modified(user)
+        s.flush()
+        assert user not in s.dirty
+        assert not s.is_modified(user)
+        
+        a = Address()
+        user.addresses.append(a)
+        assert user in s.dirty
+        assert s.is_modified(user)
+        assert not s.is_modified(user, include_collections=False)
+        
+        
+    def test_weak_ref(self):
+        """test the weak-referencing identity map, which strongly-references modified items."""
+        
+        s = create_session()
+        class User(object):pass
+        mapper(User, users)
+        
+        # save user
+        s.save(User())
+        s.flush()
+        user = s.query(User).one()
+        user = None
+        import gc
+        gc.collect()
+        assert len(s.identity_map) == 0
+        assert len(s.identity_map.data) == 0
+        
+        user = s.query(User).one()
+        user.user_name = 'fred'
+        user = None
+        gc.collect()
+        assert len(s.identity_map) == 1
+        assert len(s.identity_map.data) == 1
+        
+        s.flush()
+        gc.collect()
+        assert len(s.identity_map) == 0
+        assert len(s.identity_map.data) == 0
+        
+        assert s.query(User).one().user_name == 'fred'
+        
+    def test_strong_ref(self):
+        s = create_session(weak_identity_map=False)
         class User(object):pass
         mapper(User, users)
         
@@ -444,8 +508,7 @@ class SessionTest(AssertMixin):
         assert len(s.identity_map) == 1
 
     def test_prune(self):
-        tables.delete()
-        s = create_session()
+        s = create_session(weak_identity_map=False)
         class User(object):pass
         mapper(User, users)
 
@@ -456,6 +519,8 @@ class SessionTest(AssertMixin):
         self.assert_(len(s.identity_map) == 0)
         self.assert_(s.prune() == 0)
         s.flush()
+        import gc
+        gc.collect()
         self.assert_(s.prune() == 9)
         self.assert_(len(s.identity_map) == 1)
 
@@ -563,7 +628,42 @@ class SessionTest(AssertMixin):
         self._assert_key(key, (User, (1,), None))
         key = s.identity_key(User, row=row, entity_name="en")
         self._assert_key(key, (User, (1,), "en"))
+        
+    def test_extension(self):
+        mapper(User, users)
+        log = []
+        class MyExt(SessionExtension):
+            def before_commit(self, session):
+                log.append('before_commit')
+            def after_commit(self, session):
+                log.append('after_commit')
+            def after_rollback(self, session):
+                log.append('after_rollback')
+            def before_flush(self, session, flush_context, objects):
+                log.append('before_flush')
+            def after_flush(self, session, flush_context):
+                log.append('after_flush')
+            def after_flush_postexec(self, session, flush_context):
+                log.append('after_flush_postexec')
+        sess = create_session(extension = MyExt())
+        u = User()
+        sess.save(u)
+        sess.flush()
+        
+        assert log == ['before_flush', 'after_flush', 'before_commit', 'after_commit', 'after_flush_postexec']
+        
+        log = []
+        sess = create_session(transactional=True, extension=MyExt())
+        u = User()
+        sess.save(u)
+        sess.flush()
+        assert log == ['before_flush', 'after_flush', 'after_flush_postexec']
 
+        log = []
+        sess.commit()
+        assert log == ['before_commit', 'before_flush', 'after_flush', 'after_flush_postexec', 'after_commit']
+        
+        
 class ScopedSessionTest(ORMTest):
 
     def define_tables(self, metadata):

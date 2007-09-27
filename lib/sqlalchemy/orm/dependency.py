@@ -55,7 +55,8 @@ class DependencyProcessor(object):
         """return True if the given object instance has a parent, 
         according to the ``InstrumentedAttribute`` handled by this ``DependencyProcessor``."""
         
-        return self._get_instrumented_attribute().hasparent(obj)
+        # TODO: use correct API for this
+        return self._get_instrumented_attribute().impl.hasparent(obj._state)
         
     def register_dependencies(self, uowcommit):
         """Tell a ``UOWTransaction`` what mappers are dependent on
@@ -188,7 +189,7 @@ class OneToManyDP(DependencyProcessor):
             # the child objects have to have their foreign key to the parent set to NULL
             # this phase can be called safely for any cascade but is unnecessary if delete cascade
             # is on.
-            if not self.cascade.delete or self.post_update:
+            if (not self.cascade.delete or self.post_update) and not self.passive_deletes=='all':
                 for obj in deplist:
                     childlist = self.get_object_dependencies(obj, uowcommit, passive=self.passive_deletes)
                     if childlist is not None:
@@ -217,7 +218,7 @@ class OneToManyDP(DependencyProcessor):
         if delete:
             # head object is being deleted, and we manage its list of child objects
             # the child objects have to have their foreign key to the parent set to NULL
-            if not self.post_update and not self.cascade.delete:
+            if not self.post_update and not self.cascade.delete and not self.passive_deletes=='all':
                 for obj in deplist:
                     childlist = self.get_object_dependencies(obj, uowcommit, passive=self.passive_deletes)
                     if childlist is not None:
@@ -265,7 +266,7 @@ class ManyToOneDP(DependencyProcessor):
     def process_dependencies(self, task, deplist, uowcommit, delete = False):
         #print self.mapper.mapped_table.name + " " + self.key + " " + repr(len(deplist)) + " process_dep isdelete " + repr(delete) + " direction " + repr(self.direction)
         if delete:
-            if self.post_update and not self.cascade.delete_orphan:
+            if self.post_update and not self.cascade.delete_orphan and not self.passive_deletes=='all':
                 # post_update means we have to update our row to not reference the child object
                 # before we can DELETE the row
                 for obj in deplist:

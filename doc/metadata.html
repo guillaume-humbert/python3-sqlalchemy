@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
+<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
 
 
 
@@ -862,6 +862,17 @@ CREATE TABLE test (
 </p>
 <p>The flag <code>optional=True</code> on <code>Sequence</code> will produce a sequence that is only used on databases which have no "autoincrementing" capability.  For example, Postgres supports primary key generation using the SERIAL keyword, whereas Oracle has no such capability.  Therefore, a <code>Sequence</code> placed on a primary key column with <code>optional=True</code> will only be used with an Oracle backend but not Postgres.
 </p>
+<p>A sequence can also be executed standalone, using an <code>Engine</code> or <code>Connection</code>, returning its next value in a database-independent fashion:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">seq </span><span class="python_operator">= </span><span class="python_name">Sequence</span><span class="python_enclosure">(</span><span class="python_literal">'some_sequence'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">nextid </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">seq</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
 
 
 

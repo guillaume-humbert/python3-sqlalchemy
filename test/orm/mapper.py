@@ -47,13 +47,18 @@ class MapperTest(MapperSuperTest):
             assert str(e) == "Invalid cascade option 'fake'"
         
     def testcolumnprefix(self):
-        mapper(User, users, column_prefix='_')
+        mapper(User, users, column_prefix='_', properties={ 
+            'user_name':synonym('_user_name') 
+        })
+
         s = create_session()
         u = s.get(User, 7)
         assert u._user_name=='jack'
     	assert u._user_id ==7
         assert not hasattr(u, 'user_name')
-          
+        u2 = s.query(User).filter_by(user_name='jack').one() 
+        assert u is u2
+        
     def testrefresh(self):
         mapper(User, users, properties={'addresses':relation(mapper(Address, addresses), backref='user')})
         s = create_session()
@@ -114,6 +119,15 @@ class MapperTest(MapperSuperTest):
         assert len(u.addresses) == 3
         s.expire(u)
         assert len(u.addresses) == 3
+    
+    def testincompletecolumns(self):
+        """test loading from a select which does not contain all columns"""
+        mapper(Address, addresses)
+        s = create_session()
+        a = s.query(Address).from_statement(select([addresses.c.address_id, addresses.c.user_id])).first()
+        assert a.user_id == 7
+        assert a.address_id == 1
+        assert a.email_address is None
         
     def testbadconstructor(self):
         """test that if the construction of a mapped class fails, the instnace does not get placed in the session"""
@@ -212,14 +226,7 @@ class MapperTest(MapperSuperTest):
         m1 = mapper(Address, addresses)
 
         m2 = mapper(User, users, properties = dict(addresses=relation(Address,private=True,lazy=False)) )
-        assert m1._Mapper__is_compiled is False
-        assert m2._Mapper__is_compiled is False
-        
-#        compile_mappers()
-        print "NEW USER"
         u=User()
-        print "NEW USER DONE"
-        assert m2._Mapper__is_compiled is True
         u.user_name='Justin'
         a = Address()
         a.address_id=17  # to work around the hardcoded IDs in this test suite....
@@ -236,12 +243,30 @@ class MapperTest(MapperSuperTest):
         s.refresh(u) #hangs
         
     def testprops(self):
-        """tests the various attributes of the properties attached to classes"""
         m = mapper(User, users, properties = {
             'addresses' : relation(mapper(Address, addresses))
         }).compile()
         self.assert_(User.addresses.property is m.get_property('addresses'))
+    
+    def testcompileonprop(self):
+        mapper(User, users, properties = {
+            'addresses' : relation(mapper(Address, addresses))
+        })
+        User.addresses.any(Address.email_address=='foo@bar.com')
+        clear_mappers()
 
+        mapper(User, users, properties = {
+            'addresses' : relation(mapper(Address, addresses))
+        })
+        assert (User.user_id==3).compare(users.c.user_id==3)
+
+        clear_mappers()
+
+        class Foo(User):pass
+        mapper(User, users)
+        mapper(Foo, addresses, inherits=User)
+        assert getattr(Foo().__class__, 'user_name').impl is not None
+        
     def testpropfilters(self):
         t = Table('person', MetaData(),
                   Column('id', Integer, primary_key=True),
@@ -276,12 +301,13 @@ class MapperTest(MapperSuperTest):
                      column_prefix="p_")
 
         p_m.compile()
+        #compile_mappers()
         
         def assert_props(cls, want):
             have = set([n for n in dir(cls) if not n.startswith('_')])
             want = set(want)
             want.add('c')
-            self.assert_(have == want)
+            self.assert_(have == want, repr(have) + " " + repr(want))
 
         assert_props(Person, ['id', 'name', 'type'])
         assert_props(Employee, ['boss', 'boss_id', 'employee_number',
@@ -439,6 +465,9 @@ class MapperTest(MapperSuperTest):
             adlist = synonym('addresses', proxy=True),
             adname = synonym('addresses')
         ))
+        
+        assert hasattr(User, 'adlist')
+        assert not hasattr(User, 'adname')
         
         u = sess.query(User).get_by(uname='jack')
         self.assert_result(u.adlist, Address, *(user_address_result[0]['addresses'][1]))
