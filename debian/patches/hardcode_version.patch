@@ -1,0 +1,13 @@
+Index: sqlalchemy-0.3.11/lib/sqlalchemy/__init__.py
+===================================================================
+--- sqlalchemy-0.3.11.orig/lib/sqlalchemy/__init__.py
++++ sqlalchemy-0.3.11/lib/sqlalchemy/__init__.py
+@@ -26,7 +26,7 @@ def __figure_version():
+     except:
+         return '(not installed)'
+ 
+-__version__ = __figure_version()
++__version__ = '0.3.11'
+ 
+ def global_connect(*args, **kwargs):
+     default_metadata.connect(*args, **kwargs)

@@ -776,7 +776,7 @@ class OneToManyTest(UnitOfWorkTest):
 
         ctx.current.delete(u)
         ctx.current.flush()
-
+    
     def testdoublerelation(self):
         m2 = mapper(Address, addresses)
         m = mapper(User, users, properties={
@@ -1154,6 +1154,31 @@ class ManyToOneTest(UnitOfWorkTest):
         u1 = ctx.current.query(User).get(u1.user_id)
         u2 = ctx.current.query(User).get(u2.user_id)
         assert a1.user is u2
+
+    def testbidirectional_noload(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, backref='user', lazy=None)
+        })
+        mapper(Address, addresses)
+
+        sess = ctx.current
+
+        # try it on unsaved objects
+        u1 = User()
+        a1 = Address()
+        a1.user = u1
+        sess.save(u1)
+        sess.flush()
+        sess.clear()
+
+        a1 = sess.query(Address).get(a1.address_id)
+
+        a1.user = None
+        sess.flush()
+        sess.clear()
+        assert sess.query(Address).get(a1.address_id).user is None
+        assert sess.query(User).get(u1.user_id).addresses == []
+
         
 class ManyToManyTest(UnitOfWorkTest):
     def setUpAll(self):
@@ -1389,37 +1414,6 @@ class ManyToManyTest(UnitOfWorkTest):
         ctx.current.clear()
         l = Query(m).select(items.c.item_name.in_(*[e['item_name'] for e in data[1:]]), order_by=[items.c.item_name])
         self.assert_result(l, *data)
-
-    def testm2mmultitable(self):
-        # many-to-many join on an association table
-        j = join(users, userkeywords, 
-                users.c.user_id==userkeywords.c.user_id).join(keywords, 
-                   userkeywords.c.keyword_id==keywords.c.keyword_id)
-        print "PK", j.primary_key
-        # a class 
-        class KeywordUser(object):
-            pass
-
-        # map to it - the identity of a KeywordUser object will be
-        # (user_id, keyword_id) since those are the primary keys involved
-        m = mapper(KeywordUser, j, properties={
-            'user_id':[users.c.user_id, userkeywords.c.user_id],
-            'keyword_id':[userkeywords.c.keyword_id, keywords.c.keyword_id],
-            'keyword_name':keywords.c.name,
-        }, )
-
-        k = KeywordUser()
-        k.user_name = 'keyworduser'
-        k.keyword_name = 'a keyword'
-        ctx.current.flush()
-        print m.instance_key(k)
-        
-        id = (k.user_id, k.keyword_id)
-        ctx.current.clear()
-        k = ctx.current.query(KeywordUser).get(id)
-        assert k.user_name == 'keyworduser'
-        assert k.keyword_name == 'a keyword'
-
     
 class SaveTest2(UnitOfWorkTest):
 

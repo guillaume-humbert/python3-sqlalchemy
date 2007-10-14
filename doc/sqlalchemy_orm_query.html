@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.10   Last Updated: 07/20/07 17:20:04</div>
+<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
 
 
 
@@ -131,7 +131,8 @@ in the 0.4 series.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>class_or_mapper</i>, <i>session=None</i>, <i>entity_name=None</i>, <i>lockmode=None</i>, <i>with_options=None</i>, <i>extension=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+
     </div>
     </div>
 
@@ -944,6 +945,36 @@ future may be enhanced to work across a chain of parent mappers.</p>
     </div>
     </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __getattr__(<i>self</i>, <i>key</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __getitem__(<i>self</i>, <i>item</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __iter__(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
 
     
 
@@ -976,7 +1007,8 @@ in a query construction.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>query</i>, <i>kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">QueryContext</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1057,7 +1089,8 @@ this attribute compared to the freshly loaded value.</dd>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>mapper</i>, <i>session</i>, <i>extension</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">SelectionContext</span></tt>.</p>
+
     </div>
     </div>
 

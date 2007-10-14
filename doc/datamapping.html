@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.10   Last Updated: 07/20/07 17:20:04</div>
+<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
 
 
 
@@ -218,9 +218,9 @@
     
     
 
-<p>Data mapping describes the process of defining <code>Mapper</code> objects, which associate table metadata with user-defined classes.
+<p>Data mapping describes the process of defining <code>Mapper</code> objects, which associate <code>Table</code> objects with user-defined classes.
 </p>
-<p>When a <code>Mapper</code> is created to associate a <code>Table</code> object with a class, all of the columns defined in the <code>Table</code> object are associated with the class via property accessors, which add overriding functionality to the normal process of setting and getting object attributes.  These property accessors keep track of changes to object attributes; these changes will be stored to the database when the application "flushes" the current state of objects.  This pattern is called a <em>Unit of Work</em> pattern.
+<p>When a <code>Mapper</code> is created to associate a <code>Table</code> object with a class, all of the columns defined in the <code>Table</code> object are associated with the class via property accessors, which add overriding functionality to the normal process of setting and getting object attributes.  These property accessors keep track of changes to object attributes, so that they may be stored to the database when the application "flushes" the current state of objects.  This pattern is called a <em>Unit of Work</em> pattern.
 </p>
 
 
@@ -239,7 +239,7 @@
     
     
 
-<p>Starting with a <code>Table</code> definition and a minimal class construct, the two are associated with each other via the <code>mapper()</code> function [<a href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_Mapper">api</a>], which generates an object called a <code>Mapper</code>.  SA associates the class and all instances of that class with this particular <code>Mapper</code>, which is then stored in a global registry.
+<p>Starting with a <code>Table</code> definition and a minimal class construct, the two are associated with each other via the <code>mapper()</code> function [<a href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_Mapper">api</a>], which generates an object called a <code>Mapper</code>.  SA associates the class and all instances of that class with this particular <code>Mapper</code>, which is stored in a registry such that SQLAlchemy knows how to find it automatically.
 </p>
 
     
@@ -284,7 +284,7 @@
 
     <div class="code">
         <pre><span class="python_comment"># select
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_1_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_1_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
 users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
 WHERE users.user_name = :users_user_name ORDER BY users.oid LIMIT 1<br/>
@@ -299,7 +299,7 @@ UPDATE users SET user_name=:user_name <br/>
 [{'user_name': 'fred jones', 'user_id': 1}]        <br/>
 COMMIT</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>Things to note from the above include that the loaded <code>User</code> object has an attribute named <code>user_name</code> on it, which corresponds to the <code>user_name</code> column in  <code>users_table</code>; this attribute was configured at the class level by the <code>Mapper</code>, as part of it's post-initialization process (this process occurs normally when the mapper is first used).  Our modify operation on this attribute caused the object to be marked as "dirty", which was picked up automatically within the subsequent <code>flush()</code> process.  The <code>flush()</code> is the point at which all changes to objects within the <code>Session</code> are persisted to the database, and the <code>User</code> object is no longer marked as "dirty" until it is again modified.
+<p>Things to note from the above include that the loaded <code>User</code> object has an attribute named <code>user_name</code> on it, which corresponds to the <code>user_name</code> column in  <code>users_table</code>; this attribute was configured at the class level by the <code>Mapper</code>, as part of it's post-initialization process (this process occurs normally when the mapper is first used).  Our modify operation on this attribute caused the object to be marked as "dirty", which was picked up automatically within the subsequent <code>flush()</code> process.  The <code>flush()</code> is the point at which all changes to objects within the <code>Session</code> are persisted to the database; afterwards, the <code>User</code> object is no longer marked as "dirty" until it is again modified.
 </p>
 
 
@@ -349,41 +349,123 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
     <div class="sliding_code">
         <pre><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>Once we have a query, we can start loading objects.  The methods <code>filter()</code> and <code>filter_by()</code> handle narrowing results, and the methods <code>all()</code>, <code>one()</code>, and <code>first()</code> exist to return all, exactly one, or the first result of the total set of results.   Note that all methods are <em>generative</em>, meaning that on each call that doesn't return results, you get a <strong>new</strong> <code>Query</code> instance.
-</p>
-<p>The <code>filter_by()</code> method works with keyword arguments, which are combined together via AND:
+<p>Once we have a query, we can start loading objects.  The Query object, when first created, represents all the instances of its main class.  You can iterate through it directly:
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_name">fullname</span><span class="python_operator">=</span><span class="python_literal">'John Smith'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_keyword">for </span><span class="python_name">user </span><span class="python_keyword">in </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">print </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+ORDER BY users.oid<br/>
+{}</div><pre><span class="python_operator"></span></pre>
+    </div>
+<p>...and the SQL will be issued at the point where the query is evaluated as a list.  To narrow results, the two main methods are <code>filter()</code> and <code>filter_by()</code>.  <code>filter_by()</code> uses keyword arguments, which translate into equality clauses joined together via 'AND':
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_4', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_keyword">for </span><span class="python_name">user </span><span class="python_keyword">in </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_name">fullname</span><span class="python_operator">=</span><span class="python_literal">'John Smith'</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">print </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator"></span></pre><div id="popbox_4_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
 users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
 WHERE users.user_name = :users_user_name AND users.fullname = :users_fullname<br/>
 ORDER BY users.oid<br/>
 {'users_user_name': 'john', 'users_fullname': 'John Smith'}</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>Whereas <code>filter()</code> works with constructed SQL expressions, i.e. those described in <a href="sqlconstruction.html">Constructing SQL Queries via Python Expressions</a>:
+<p><code>filter()</code>, on the other hand, works with constructed SQL expressions, like those described in <a href="sqlconstruction.html">Constructing SQL Queries via Python Expressions</a>:
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_4', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_4_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_5', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_keyword">for </span><span class="python_name">user </span><span class="python_keyword">in </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">print </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator"></span></pre><div id="popbox_5_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
 users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
 WHERE users.user_name = :users_user_name <br/>
 ORDER BY users.oid<br/>
 {'users_user_name': 'john'}</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>Sometimes, constructing SQL via expressions can be cumbersome.  For quick SQL expression, the <code>filter()</code> method can also accomodate straight text:
+<p>Evaluating the query using an array slice returns a new Query which will apply LIMIT and OFFSET clauses when iterated:
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_5', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_literal">"user_id>224"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_5_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_6', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_keyword">for </span><span class="python_name">u </span><span class="python_keyword">in </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)[</span><span class="python_number">1</span><span class="python_operator">:</span><span class="python_number">3</span><span class="python_enclosure">]</span><span class="python_operator">:
+    </span><span class="python_keyword">print </span><span class="python_name">u</span><span class="python_operator"></span></pre><div id="popbox_6_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users ORDER BY users.oid<br/>
+LIMIT 2 OFFSET 1<br/>
+{}</div><pre><span class="python_operator"></span></pre>
+    </div>
+<p>A single array index adds LIMIT/OFFSET and returns a result immediately:
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_7', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">user_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_enclosure">)[</span><span class="python_number">2</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_7_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.user_name = :users_user_name <br/>
+ORDER BY users.oid<br/>
+LIMIT 1 OFFSET 2<br/>
+{'users_user_name': 'john'}</div><pre><span class="python_operator"></span></pre>
+    </div>
+<p>There are also methods which will immediately issue the SQL represented by a <code>Query</code> without using an iterative context or array index; these methods are <code>all()</code>, <code>one()</code>, and <code>first()</code>.  <code>all()</code> returns a list of all instances, <code>one()</code> returns exactly one instance as a scalar, and <code>first()</code> returns the first instance also as a scalar:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get all results into a list
+</span><span class="python_name">allusers </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># get the first user
+</span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># get exactly one user; raises an exception if not exactly one result is returned
+</span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+    </div>
+<p>Note that most methods on <code>Query</code> are <em>generative</em>, in that they return a new <code>Query</code> instance that is a modified version of the previous one.  It's only when you evaluate the query in an iterative context, use an array index, or call <code>all()</code>, <code>first()</code>, or <code>one()</code> (as well as some other methods we'll cover later), that SQL is issued.   For example, you can issue <code>filter()</code> or <code>filter_by()</code> as many times as needed; the various criteria are joined together using <code>AND</code>:
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">></span><span class="python_number">224</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'john'</span><span class="python_enclosure">)</span><span class="python_operator">.
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_8', 'show', 'hide')" class="codepoplink">sql</a>            </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_operator">==</span><span class="python_literal">'John Smith'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_8_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.user_id>:users_user_id AND users.user_name = :users_user_name <br/>
+AND users.fullname = :users_fullname<br/>
+ORDER BY users.oid<br/>
+{'users_user_name': 'john', 'users_fullname': 'John Smith', 'users_user_id': 224}</div><pre><span class="python_operator"></span></pre>
+    </div>
+<p>If you need to use other conjunctions besides <code>AND</code>, all SQL conjunctions are available explicitly within expressions, such as <code>and_()</code> and <code>or_()</code>, when using <code>filter()</code>:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
+    <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">></span><span class="python_number">224</span><span class="python_operator">, </span><span class="python_name">or_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'ed'</span><span class="python_enclosure">))</span>
+    <span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+    </div>
+<p>Sometimes, constructing criterion via expressions can be cumbersome.  For a quick, string-based expression, the <code>filter()</code> method can also accomodate straight text:
+</p>
+
+    
+
+    <div class="code">
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_9', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_literal">"user_id>224"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_9_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
 users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
 WHERE users.user_id>224<br/>
@@ -396,156 +478,81 @@ ORDER BY users.oid<br/>
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_6', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_literal">"user_id>:value"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">params</span><span class="python_enclosure">(</span><span class="python_name">value</span><span class="python_operator">=</span><span class="python_number">224</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_6_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_10', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_literal">"user_id>:value and user_name=:name"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">params</span><span class="python_enclosure">(</span><span class="python_name">value</span><span class="python_operator">=</span><span class="python_number">224</span><span class="python_operator">, </span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_10_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
 users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
-WHERE users.user_id>:value<br/>
+WHERE users.user_id>:value and user_name=:name<br/>
 ORDER BY users.oid<br/>
-{'value': 224}</div><pre><span class="python_operator"></span></pre>
+{'value': 224, 'name': 'jack'}</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>Multiple <code>filter()</code> and <code>filter_by()</code> expressions may be combined together.  The resulting statement groups them using AND.
+<p>It's also straightforward to use an entirely string-based statement, using <code>from_statement()</code>; just ensure that the columns clause of the statement contains the column names normally used by the mapper (below illustrated using an asterisk):
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">></span><span class="python_number">224</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'john'</span><span class="python_enclosure">)</span><span class="python_operator">.
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_7', 'show', 'hide')" class="codepoplink">sql</a>            </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_operator">==</span><span class="python_literal">'John Smith'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_7_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
-users.fullname AS users_fullname, users.password AS users_password <br/>
-FROM users <br/>
-WHERE users.user_id>:users_user_id AND users.user_name = :users_user_name <br/>
-AND users.fullname = :users_fullname<br/>
-ORDER BY users.oid<br/>
-{'users_user_name': 'john', 'users_fullname': 'John Smith', 'users_user_id': 224}</div><pre><span class="python_operator"></span></pre>
-    </div>
-<p><code>filter_by()</code>'s keyword arguments can also take mapped object instances as comparison arguments.  We'll illustrate this later when we talk about object relationships.
-</p>
-<p>Note that all conjunctions are available explicitly, such as <code>and_()</code> and <code>or_()</code>, when using <code>filter()</code>:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
-    <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">></span><span class="python_number">224</span><span class="python_operator">, </span><span class="python_name">or_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'john'</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'ed'</span><span class="python_enclosure">))</span>
-    <span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
-    </div>
-<p>Its also straightforward to use an entirely string-based statement, using <code>from_statement()</code>; just ensure that the columns clause of the statement contains the column names normally used by the mapper (here illustrated using an asterisk):
-</p>
-
-    
-
-    <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_8', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">from_statement</span><span class="python_enclosure">(</span><span class="python_literal">"SELECT * FROM users"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_8_div" class="codepop" style="display:none;">SELECT * FROM users<br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_11', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">from_statement</span><span class="python_enclosure">(</span><span class="python_literal">"SELECT * FROM users"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_11_div" class="codepop" style="display:none;">SELECT * FROM users<br/>
 {}</div><pre><span class="python_operator"></span></pre>
     </div>
-<p><code>from_statement()</code> can also accomodate <code>select()</code> constructs:
+<p><code>from_statement()</code> can also accomodate full <code>select()</code> constructs:
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">from_statement</span><span class="python_enclosure">(</span>
-    <span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator"><</span><span class="python_literal">'e'</span><span class="python_operator">, </span><span class="python_name">having</span><span class="python_operator">=</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">max</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">group_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">c </span><span class="python_keyword">for </span><span class="python_name">c </span><span class="python_keyword">in </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_enclosure">])</span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_9', 'show', 'hide')" class="codepoplink">sql</a>    </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_9_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
-users.fullname AS users_fullname, users.password AS users_password <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_12', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">from_statement</span><span class="python_enclosure">(</span>
+     <span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">max</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_enclosure">)]</span><span class="python_operator">, </span><span class="python_name">scalar</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">label</span><span class="python_enclosure">(</span><span class="python_literal">'maxuser'</span><span class="python_enclosure">)</span><span class="python_operator">==</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_enclosure">) </span>
+    <span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_12_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
-WHERE users.user_name>:users_user_name HAVING users.user_name == max(users.user_name)<br/>
-GROUP BY users.user_id, users.user_name, users.fullname, users.password<br/>
-ORDER BY users.oid<br/>
-{'users_user_name': 'e'}</div><pre><span class="python_operator"></span></pre>
+WHERE (SELECT max(users.name) <br/>
+FROM users) = users.name<br/>
+{}</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>Any set of filtered criterion (or no criterion) can be distilled into a count of rows using <code>count()</code>:
+<p>The current criterion represented by a <code>Query</code> can be distilled into a count of rows using <code>count()</code>.  This is another function which executes SQL immediately, returning an integer result:
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_10', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">num </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Users</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">></span><span class="python_number">224</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_10_div" class="codepop" style="display:none;">SELECT count(users.id) FROM users WHERE users.user_id>:users_user_id<br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_13', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">num </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Users</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">></span><span class="python_number">224</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_13_div" class="codepop" style="display:none;">SELECT count(users.id) FROM users WHERE users.user_id>:users_user_id<br/>
 {'users_user_id': 224}</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>Rows are limited and offset using <code>limit()</code> and <code>offset()</code>:
+<p>To add limit and offset values explicitly at any time, you can use <code>limit()</code> and <code>offset()</code>:
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_11', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">limit</span><span class="python_enclosure">(</span><span class="python_number">20</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">offset</span><span class="python_enclosure">(</span><span class="python_number">5</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_11_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_14', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">limit</span><span class="python_enclosure">(</span><span class="python_number">20</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">offset</span><span class="python_enclosure">(</span><span class="python_number">5</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_14_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
 users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users ORDER BY users.oid<br/>
 LIMIT 20 OFFSET 5<br/>
 {}</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>And ordering is applied, using <code>Column</code> objects and related SQL constructs, with <code>order_by()</code>:
+<p>Ordering is applied, using <code>Column</code> objects and related SQL constructs, with <code>order_by()</code>:
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_12', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_12_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+        <pre><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">))</span><span class="python_operator">
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_15', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_keyword">for </span><span class="python_name">user </span><span class="python_keyword">in </span><span class="python_name">query</span><span class="python_operator">:
+    </span><span class="python_keyword">print </span><span class="python_name">user</span><span class="python_operator"></span></pre><div id="popbox_15_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
 users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users ORDER BY users.user_name DESC<br/>
 {}</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>The <code>first()</code> and <code>one()</code> methods will also limit rows, and both will return a single object, instead of a list.  In the case of <code>first()</code>, rows are limited to just one, and the result is returned as a scalar.  In the case of <code>one()</code>, rows are limited to <em>two</em>; however, only one is returned.  If two rows are matched, an exception is raised.
+<p>There's also a way to combine scalar results with objects, using <code>add_column()</code>.  This is often used for functions and aggregates.  When <code>add_column()</code> (or its cousin <code>add_entity()</code>, described later) is used, tuples are returned:
 </p>
 
     
 
     <div class="sliding_code">
-        <pre><span class="python_comment"># load the first result
-</span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">first</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># load exactly *one* result - if more than one result matches, an exception is raised
-</span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
-    </div>
-<p>The <code>Query</code>, when evaluated as an iterator, executes results immediately, using whatever state has been built up:
-</p>
-
-    
-
-    <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_13', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">list</span><span class="python_enclosure">(</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre><div id="popbox_13_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
-users.fullname AS users_fullname, users.password AS users_password <br/>
-FROM users ORDER BY users.oid<br/>
-{}</div><pre><span class="python_operator"></span></pre>
-    </div>
-<p>Array indexes and slices work too, adding the corresponding LIMIT and OFFSET clauses:
-</p>
-
-    
-
-    <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_14', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">list</span><span class="python_enclosure">(</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)[</span><span class="python_number">1</span><span class="python_operator">:</span><span class="python_number">3</span><span class="python_enclosure">])</span><span class="python_operator"></span></pre><div id="popbox_14_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
-users.fullname AS users_fullname, users.password AS users_password <br/>
-FROM users ORDER BY users.oid<br/>
-LIMIT 2 OFFSET 1<br/>
-{}</div><pre><span class="python_operator"></span></pre>
-    </div>
-<p>A scalar index returns a scalar result immediately:
-</p>
-
-    
-
-    <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_15', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)[</span><span class="python_number">2</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre><div id="popbox_15_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
-users.fullname AS users_fullname, users.password AS users_password <br/>
-FROM users ORDER BY users.oid<br/>
-LIMIT 1 OFFSET 2<br/>
-{}</div><pre><span class="python_operator"></span></pre>
-    </div>
-<p>Theres also a way to combine scalar results with objects, using <code>add_column()</code>.  This is often used for functions and aggregates.  When <code>add_column()</code> (or its cousin <code>add_entity()</code>, described later) is used, tuples are returned:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">add_column</span><span class="python_enclosure">(</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">max</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">group_by</span><span class="python_enclosure">([</span><span class="python_name">c </span><span class="python_keyword">for </span><span class="python_name">c </span><span class="python_keyword">in </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_enclosure">])</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_keyword">for </span><span class="python_name">r </span><span class="python_keyword">in </span><span class="python_name">result</span><span class="python_operator">:
+        <pre><span class="python_keyword">for </span><span class="python_name">r </span><span class="python_keyword">in </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">add_column</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">max</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_enclosure">)]</span><span class="python_operator">, </span><span class="python_name">scalar</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">label</span><span class="python_enclosure">(</span><span class="python_literal">'maxuser'</span><span class="python_enclosure">))</span><span class="python_operator">:
     </span><span class="python_keyword">print </span><span class="python_literal">"user:"</span><span class="python_operator">, </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator">
     </span><span class="python_keyword">print </span><span class="python_literal">"max name:"</span><span class="python_operator">, </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre>
     </div>
-<p>Later in this chapter, we'll discuss how to configure relations between mapped classes.  Once that's done, we'll discuss how to use table joins in <a href="datamapping.html#datamapping_joins">Querying with Joins</a>.
+<p>Later in this chapter, we'll discuss how to configure relations between mapped classes.  Once that's done, we'll discuss how to return multiple objects at once, as well as how to join, in <a href="datamapping.html#datamapping_joins">Querying with Joins</a>.
 </p>
 
 
@@ -856,17 +863,12 @@ VALUES (:user_id, :street, :city, :state, :zip)<br/>
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">clear</span><span class="python_enclosure">()  </span><span class="python_comment"># clear session</span><span class="python_operator">
-</span><span class="python_name">clear_mappers</span><span class="python_enclosure">()  </span><span class="python_comment"># clear mappers from the previous example</span><span class="python_operator">
-</span>
-<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre><span class="python_name">clear_mappers</span><span class="python_enclosure">()  </span><span class="python_comment"># clear mappers from the previous example</span><span class="python_operator">
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
         <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all, delete-orphan"</span><span class="python_enclosure">)</span>
     <span class="python_enclosure">}</span>
   <span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># reload the user
-</span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_name">u</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_keyword">del </span><span class="python_name">u</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator">
 </span><span class="python_name">u</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'27 New Place'</span><span class="python_operator">, </span><span class="python_literal">'Houston'</span><span class="python_operator">, </span><span class="python_literal">'TX'</span><span class="python_operator">, </span><span class="python_literal">'34839'</span><span class="python_enclosure">))</span><span class="python_operator">

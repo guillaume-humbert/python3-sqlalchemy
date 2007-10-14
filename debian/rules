@@ -1,24 +1,53 @@
 #!/usr/bin/make -f
 
-DEB_PYTHON_SYSTEM := pycentral
+#export DH_VERBOSE=1
+p_name=python-sqlalchemy
+m_name=SQLAlchemy
 
-include /usr/share/cdbs/1/rules/simple-patchsys.mk
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/python-distutils.mk
+DEB_UPSTREAM_VERSION=$(shell dpkg-parsechangelog | sed -rne 's,^Version: ([^-]+).*,\1,p')
+UPSTREAM_VERSION=$(subst ~,,$(DEB_UPSTREAM_VERSION))
+PYVERS=$(shell pyversions -vr)
 
-DEB_PYTHON_INSTALL_ARGS_ALL += --single-version-externally-managed
-DEB_COMPRESS_EXCLUDE := .py
-DEB_DESTDIR = $(CURDIR)/debian/python-sqlalchemy
+include /usr/share/quilt/quilt.make
 
-PYVER=$(shell pyversions -vd)
 
-clean::
-	-rm -rf lib/SQLAlchemy.egg-info build/
+clean: unpatch
+	dh_testdir
+	dh_testroot
+	-rm -rf $(CURDIR)/lib/${m_name}.egg-info $(CURDIR)/build/
+	rm -f build-*
+	find . -name '*\.py[co]' -delete
+	dh_clean
 
-binary-post-install/python-sqlalchemy::
-	mv debian/python-sqlalchemy/usr/share/pycentral/python-sqlalchemy/site-packages/SQLAlchemy-${DEB_UPSTREAM_VERSION}-py${PYVER}.egg-info \
-	   debian/python-sqlalchemy/usr/share/pycentral/python-sqlalchemy/site-packages/SQLAlchemy-${DEB_UPSTREAM_VERSION}.egg-info
+build: patch
 
-binary-post-install/python-sqlalchemy-doc::
-	rm -rf debian/python-sqlalchemy-doc/usr/share/doc/python-sqlalchemy-doc/doc/build \
-	       debian/python-sqlalchemy-doc/usr/share/doc/python-sqlalchemy-doc/examples/README
+install: $(PYVERS:%=install-python%)
+install-python%:
+	python$* setup.py install \
+		--single-version-externally-managed \
+		--root $(CURDIR)/debian/${p_name}
+	# share Egg dir - remove Python version from dir name
+	mv debian/${p_name}/usr/lib/python$*/site-packages/${m_name}-${UPSTREAM_VERSION}-py$*.egg-info \
+	   debian/${p_name}/usr/lib/python$*/site-packages/${m_name}-${UPSTREAM_VERSION}.egg-info
+
+binary-indep: build install
+	dh_testdir -i
+	dh_testroot -i
+	dh_installchangelogs -i CHANGES
+	dh_installdocs -i
+	dh_installexamples -i
+	rm -rf debian/${p_name}-doc/usr/share/doc/${p_name}-doc/doc/build \
+	       debian/${p_name}-doc/usr/share/doc/${p_name}-doc/examples/README
+	dh_pycentral -i
+	dh_compress -i -X.py
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+binary-arch:
+
+binary: binary-indep binary-arch
+
+.PHONY: build clean binary-indep binary-arch binary install

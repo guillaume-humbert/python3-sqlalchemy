@@ -172,6 +172,7 @@ test/base/alltests.py
 test/base/dependency.py
 test/dialect/__init__.py
 test/dialect/alltests.py
+test/dialect/mssql.py
 test/dialect/mysql.py
 test/dialect/postgres.py
 test/engine/__init__.py
@@ -230,6 +231,7 @@ test/orm/sessioncontext.py
 test/orm/single.py
 test/orm/unitofwork.py
 test/perf/cascade_speed.py
+test/perf/insertspeed.py
 test/perf/masscreate.py
 test/perf/masscreate2.py
 test/perf/masseagerload.py

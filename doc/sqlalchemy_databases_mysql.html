@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.10   Last Updated: 07/20/07 17:20:04</div>
+<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
 
 
 
@@ -269,7 +269,7 @@
     </ul>
 
         
-        <li><A style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSYear">class MSYear(String)</a></li>
+        <li><A style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSYear">class MSYear(TypeEngine)</a></li>
         
             
     <ul>
@@ -1849,12 +1849,23 @@ collation of character data.</dd>
     
     <div class="sectionL3">
 
-    <h3>class MSYear(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">String</a>)</h3>
+    <h3>class MSYear(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TypeEngine">TypeEngine</a>)</h3>
     
     
     <div class="darkcell"><p>MySQL YEAR type, for single byte storage of years 1901-2155</p>
 </div>
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>length=None</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSYear</span></tt>.</p>
+
+    </div>
+    </div>
 
                     
     <div class="darkcell">
@@ -1956,7 +1967,8 @@ collation of character data.</dd>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MySQLDialect</span></tt>.</p>
+
     </div>
     </div>
 
@@ -2222,7 +2234,8 @@ collation of character data.</dd>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MySQLIdentifierPreparer</span></tt>.</p>
+
     </div>
     </div>
 
