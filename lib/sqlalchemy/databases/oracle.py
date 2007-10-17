@@ -203,21 +203,21 @@ class OracleExecutionContext(default.DefaultExecutionContext):
         super(OracleExecutionContext, self).pre_exec()
         if self.dialect.auto_setinputsizes:
             self.set_input_sizes()
-        if self.compiled_parameters is not None and not isinstance(self.compiled_parameters, list):
-            for key in self.compiled_parameters:
-                (bindparam, name, value) = self.compiled_parameters.get_parameter(key)
+        if self.compiled_parameters is not None and len(self.compiled_parameters) == 1:
+            for key in self.compiled_parameters[0]:
+                (bindparam, name, value) = self.compiled_parameters[0].get_parameter(key)
                 if bindparam.isoutparam:
                     dbtype = bindparam.type.dialect_impl(self.dialect).get_dbapi_type(self.dialect.dbapi)
                     if not hasattr(self, 'out_parameters'):
                         self.out_parameters = {}
                     self.out_parameters[name] = self.cursor.var(dbtype)
-                    self.parameters[name] = self.out_parameters[name]
+                    self.parameters[0][name] = self.out_parameters[name]
 
     def get_result_proxy(self):
         if hasattr(self, 'out_parameters'):
-            if self.compiled_parameters is not None:
+            if self.compiled_parameters is not None and len(self.compiled_parameters) == 1:
                  for k in self.out_parameters:
-                     type = self.compiled_parameters.get_type(k)
+                     type = self.compiled_parameters[0].get_type(k)
                      self.out_parameters[k] = type.dialect_impl(self.dialect).result_processor(self.dialect)(self.out_parameters[k].getvalue())
             else:
                  for k in self.out_parameters:
@@ -257,14 +257,13 @@ class OracleDialect(default.DefaultDialect):
         if self.dbapi is None or not self.auto_convert_lobs:
             return {}
         else:
+            # only use this for LOB objects.  using it for strings, dates
+            # etc. leads to a little too much magic, reflection doesn't know if it should
+            # expect encoded strings or unicodes, etc.
             return {
-                self.dbapi.NUMBER: OracleInteger(), 
                 self.dbapi.CLOB: OracleText(), 
                 self.dbapi.BLOB: OracleBinary(), 
-                self.dbapi.STRING: OracleString(), 
-                self.dbapi.TIMESTAMP: OracleTimestamp(), 
                 self.dbapi.BINARY: OracleRaw(), 
-                datetime.datetime: OracleDate()
             }
 
     def dbapi(cls):
@@ -273,6 +272,13 @@ class OracleDialect(default.DefaultDialect):
     dbapi = classmethod(dbapi)
     
     def create_connect_args(self, url):
+        dialect_opts = dict(url.query)
+        for opt in ('use_ansi', 'auto_setinputsizes', 'auto_convert_lobs',
+                    'threaded', 'allow_twophase'):
+            if opt in dialect_opts:
+                util.coerce_kw_type(dialect_opts, opt, bool)
+                setattr(self, opt, dialect_opts[opt])
+
         if url.database:
             # if we have a database, then we have a remote host
             port = url.port
@@ -280,19 +286,30 @@ class OracleDialect(default.DefaultDialect):
                 port = int(port)
             else:
                 port = 1521
-            dsn = self.dbapi.makedsn(url.host,port,url.database)
+            dsn = self.dbapi.makedsn(url.host, port, url.database)
         else:
             # we have a local tnsname
             dsn = url.host
+
         opts = dict(
             user=url.username,
             password=url.password,
-            dsn = dsn,
-            threaded = self.threaded,
-            twophase = self.allow_twophase,
+            dsn=dsn,
+            threaded=self.threaded,
+            twophase=self.allow_twophase,
             )
-        opts.update(url.query)
-        util.coerce_kw_type(opts, 'use_ansi', bool)
+        if 'mode' in url.query:
+            opts['mode'] = url.query['mode']
+            if isinstance(opts['mode'], basestring):
+                mode = opts['mode'].upper()
+                if mode == 'SYSDBA':
+                    opts['mode'] = self.dbapi.SYSDBA
+                elif mode == 'SYSOPER':
+                    opts['mode'] = self.dbapi.SYSOPER
+                else:
+                    util.coerce_kw_type(opts, 'mode', int)
+        # Can't set 'handle' or 'pool' via URL query args, use connect_args
+
         return ([], opts)
 
     def type_descriptor(self, typeobj):
@@ -408,18 +425,18 @@ class OracleDialect(default.DefaultDialect):
     def _normalize_name(self, name):
         if name is None:
             return None
-        elif name.upper() == name and not self.identifier_preparer._requires_quotes(name.lower()):
-            return name.lower()
+        elif name.upper() == name and not self.identifier_preparer._requires_quotes(name.lower().decode(self.encoding)):
+            return name.lower().decode(self.encoding)
         else:
-            return name
+            return name.decode(self.encoding)
     
     def _denormalize_name(self, name):
         if name is None:
             return None
         elif name.lower() == name and not self.identifier_preparer._requires_quotes(name.lower()):
-            return name.upper()
+            return name.upper().encode(self.encoding)
         else:
-            return name
+            return name.encode(self.encoding)
     
     def table_names(self, connection, schema):
         # note that table_names() isnt loading DBLINKed or synonym'ed tables
@@ -578,12 +595,18 @@ class OracleCompiler(compiler.DefaultCompiler):
                         binary.left = _OuterJoinColumn(binary.left)
                     elif binary.right.table is join.right:
                         binary.right = _OuterJoinColumn(binary.right)
-                        
-        if where is not None:
-            self.__wheres[join.left] = self.__wheres[parentjoin] = (sql.and_(VisitOn().traverse(join.onclause, clone=True), where), parentjoin)
+        
+        if join.isouter:
+            if where is not None:
+                self.__wheres[join.left] = self.__wheres[parentjoin] = (sql.and_(VisitOn().traverse(join.onclause, clone=True), where), parentjoin)
+            else:
+                self.__wheres[join.left] = self.__wheres[join] = (VisitOn().traverse(join.onclause, clone=True), join)
         else:
-            self.__wheres[join.left] = self.__wheres[join] = (VisitOn().traverse(join.onclause, clone=True), join)
-
+            if where is not None:
+                self.__wheres[join.left] = self.__wheres[parentjoin] = (sql.and_(join.onclause, where), parentjoin)
+            else:
+                self.__wheres[join.left] = self.__wheres[join] = (join.onclause, join)
+            
         return self.process(join.left, asfrom=True) + ", " + self.process(join.right, asfrom=True)
     
     def get_whereclause(self, f):

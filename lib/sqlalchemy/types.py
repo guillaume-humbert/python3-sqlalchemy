@@ -59,42 +59,54 @@ class AbstractType(object):
         return value
 
     def convert_result_value(self, value, dialect):
-        """legacy convert_result_value() method.
-        
-        this method is only used when called via a user-defined
-        subclass' own convert_result_value() method, and adapts
-        the call to use the result_processor() callable.
+        """Legacy convert_result_value() compatibility method.
 
-        The method is configured at class definition time 
-        by a legacy adapter metaclass, and
-        will not work with a subclass that does not 
-        define a convert_result_value() method of its own.
+        This adapter method is provided for user-defined types that implement
+        the older convert_* interface and need to call their super method.
+        These calls are adapted behind the scenes to use the newer
+        callable-based interface via result_processor().
+
+        Compatibility is configured on a case-by-case basis at class
+        definition time by a legacy adapter metaclass.  This method is only
+        available and functional if the concrete subclass implements the
+        legacy interface.
         """
-        return self.super_result_processor(dialect)(value)
+
+        processor = self.super_result_processor(dialect)
+        if processor:
+            return processor(value)
+        else:
+            return value
     convert_result_value._sa_override = True
     
     def convert_bind_param(self, value, dialect):
-        """legacy convert_bind_param() method.
+        """Legacy convert_bind_param() compatability method.
         
-        this method is only used when called via a user-defined
-        subclass' own convert_bind_param() method, and adapts
-        the call to use the bind_processor() callable.
-        
-        The method is configured at class definition time 
-        by a legacy adapter metaclass, and
-        will not work with a subclass that does not 
-        define a convert_bind_param() method of its own.
+        This adapter method is provided for user-defined types that implement
+        the older convert_* interface and need to call their super method.
+        These calls are adapted behind the scenes to use the newer
+        callable-based interface via bind_processor().
+
+        Compatibility is configured on a case-by-case basis at class
+        definition time by a legacy adapter metaclass.  This method is only
+        available and functional if the concrete subclass implements the
+        legacy interface.
         """
-        return self.super_bind_processor(dialect)(value)
+
+        processor = self.super_bind_processor(dialect)
+        if processor:
+            return processor(value)
+        else:
+            return value
     convert_bind_param._sa_override = True
     
     def bind_processor(self, dialect):
-        """define a bind parameter processing function."""
+        """Defines a bind parameter processing function."""
         
         return None
 
     def result_processor(self, dialect):
-        """define a result-column processing function."""
+        """Defines a result-column processing function."""
         
         return None
 
@@ -407,9 +419,10 @@ class Binary(TypeEngine):
         self.length = length
 
     def bind_processor(self, dialect):
+        DBAPIBinary = dialect.dbapi.Binary
         def process(value):
             if value is not None:
-                return dialect.dbapi.Binary(value)
+                return DBAPIBinary(value)
             else:
                 return None
         return process
@@ -432,23 +445,33 @@ class PickleType(MutableType, TypeDecorator):
 
     def bind_processor(self, dialect):
         impl_process = self.impl.bind_processor(dialect)
-        def process(value):
-            if value is None:
-                return None
-            if impl_process is None:
-                return self.pickler.dumps(value, self.protocol)
-            else:
-                return impl_process(self.pickler.dumps(value, self.protocol))
+        dumps = self.pickler.dumps
+        protocol = self.protocol
+        if impl_process is None:
+            def process(value):
+                if value is None:
+                    return None
+                return dumps(value, protocol)
+        else:
+            def process(value):
+                if value is None:
+                    return None
+                return impl_process(dumps(value, protocol))
         return process
     
     def result_processor(self, dialect):
         impl_process = self.impl.result_processor(dialect)
-        def process(value):
-            if value is None:
-                return None
-            if impl_process is not None:
-                value = impl_process(value)
-            return self.pickler.loads(str(value))
+        loads = self.pickler.loads
+        if impl_process is None:
+            def process(value):
+                if value is None:
+                    return None
+                return loads(str(value))
+        else:
+            def process(value):
+                if value is None:
+                    return None
+                return loads(str(impl_process(value)))
         return process
         
     def copy_value(self, value):
@@ -512,14 +535,17 @@ class Interval(TypeDecorator):
         if self.__hasNativeImpl(dialect):
             return impl_processor
         else:
-            def process(value):
-                if value is None:
-                    return None
-                tmpval = dt.datetime.utcfromtimestamp(0) + value
-                if impl_processor is not None:
-                    return impl_processor(tmpval)
-                else:
-                    return tmpval
+            zero_timestamp = dt.datetime.utcfromtimestamp(0)
+            if impl_processor is None:
+                def process(value):
+                    if value is None:
+                        return None
+                    return zero_timestamp + value
+            else:
+                def process(value):
+                    if value is None:
+                        return None
+                    return impl_processor(zero_timestamp + value)
             return process
             
     def result_processor(self, dialect):
@@ -527,12 +553,17 @@ class Interval(TypeDecorator):
         if self.__hasNativeImpl(dialect):
             return impl_processor
         else:
-            def process(value):
-                if value is None:
-                    return None
-                if impl_processor is not None:
-                    value = impl_processor(value)
-                return value - dt.datetime.utcfromtimestamp(0)
+            zero_timestamp = dt.datetime.utcfromtimestamp(0)
+            if impl_processor is None:
+                def process(value):
+                    if value is None:
+                        return None
+                    return value - zero_timestamp
+            else:
+                def process(value):
+                    if value is None:
+                        return None
+                    return impl_processor(value) - zero_timestamp
             return process
             
 class FLOAT(Float):pass

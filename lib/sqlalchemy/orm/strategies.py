@@ -89,7 +89,7 @@ class ColumnLoader(LoaderStrategy):
             # 'deferred' polymorphic row fetcher, put a callable on the property.
             def new_execute(instance, row, isnew, **flags):
                 if isnew:
-                    sessionlib.attribute_manager.init_instance_attribute(instance, self.key, callable_=self._get_deferred_inheritance_loader(instance, mapper, needs_tables))
+                    sessionlib.attribute_manager.init_instance_attribute(instance, self.key, callable_=self._get_deferred_inheritance_loader(instance, mapper, hosted_mapper, needs_tables))
             if self._should_log_debug:
                 self.logger.debug("Returning deferred column fetcher for %s %s" % (mapper, self.key))
             return (new_execute, None, None)
@@ -99,18 +99,30 @@ class ColumnLoader(LoaderStrategy):
                 self.logger.debug("Returning no column fetcher for %s %s" % (mapper, self.key))
             return (None, None, None)
 
-    def _get_deferred_inheritance_loader(self, instance, mapper, needs_tables):
+    def _get_deferred_inheritance_loader(self, instance, mapper, hosted_mapper, needs_tables):
+        # create a deferred column loader which will query the remaining not-yet-loaded tables in an inheritance load.
+        # the mapper for the object creates the WHERE criterion using the mapper who originally 
+        # "hosted" the query and the list of tables which are unloaded between the "hosted" mapper
+        # and this mapper.  (i.e. A->B->C, the query used mapper A.  therefore will need B's and C's tables
+        # in the query).
         def create_statement():
-            cond, param_names = mapper._deferred_inheritance_condition(needs_tables)
+            # TODO: the SELECT statement here should be cached in the selectcontext.  we are somewhat duplicating 
+            # efforts from mapper._get_poly_select_loader as well and should look
+            # for ways to simplify.
+            cond, param_names = mapper._deferred_inheritance_condition(hosted_mapper, needs_tables)
             statement = sql.select(needs_tables, cond, use_labels=True)
             params = {}
             for c in param_names:
                 params[c.name] = mapper.get_attr_by_column(instance, c)
             return (statement, params)
             
+        # install the create_statement() callable using the deferred loading strategy
         strategy = self.parent_property._get_strategy(DeferredColumnLoader)
 
+        # assemble list of all ColumnProperties which will need to be loaded
         props = [p for p in mapper.iterate_properties if isinstance(p.strategy, ColumnLoader) and p.columns[0].table in needs_tables]
+        
+        # set the deferred loader on the instance attribute
         return strategy.setup_loader(instance, props=props, create_statement=create_statement)
 
 
@@ -188,15 +200,17 @@ class DeferredColumnLoader(LoaderStrategy):
                 raise exceptions.InvalidRequestError("Parent instance %s is not bound to a Session; deferred load operation of attribute '%s' cannot proceed" % (instance.__class__, self.key))
 
             if create_statement is None:
-                clause = localparent._get_clause
+                (clause, param_map) = localparent._get_clause
                 ident = instance._instance_key[1]
                 params = {}
                 for i, primary_key in enumerate(localparent.primary_key):
-                    params[primary_key._label] = ident[i]
+                    params[param_map[primary_key].key] = ident[i]
                 statement = sql.select([p.columns[0] for p in group], clause, from_obj=[localparent.mapped_table], use_labels=True)
             else:
                 statement, params = create_statement()
             
+            # TODO: have the "fetch of one row" operation go through the same channels as a query._get()
+            # deferred load of several attributes should be a specialized case of a query refresh operation
             conn = session.connection(mapper=localparent, instance=instance)
             result = conn.execute(statement, params)
             try:
@@ -280,7 +294,7 @@ class LazyLoader(AbstractRelationLoader):
         # determine if our "lazywhere" clause is the same as the mapper's
         # get() clause.  then we can just use mapper.get()
         #from sqlalchemy.orm import query
-        self.use_get = not self.uselist and self.mapper._get_clause.compare(self.lazywhere)
+        self.use_get = not self.uselist and self.mapper._get_clause[0].compare(self.lazywhere)
         if self.use_get:
             self.logger.info(str(self.parent_property) + " will use query.get() to optimize instance loads")
 
@@ -336,9 +350,15 @@ class LazyLoader(AbstractRelationLoader):
                 for col, bind in self.lazybinds.iteritems():
                     params[bind.key] = self.parent.get_attr_by_column(instance, col)
                 ident = []
+                nonnulls = False
                 for primary_key in self.select_mapper.primary_key: 
                     bind = self.lazyreverse[primary_key]
-                    ident.append(params[bind.key])
+                    v = params[bind.key]
+                    if v is not None:
+                        nonnulls = True
+                    ident.append(v)
+                if not nonnulls:
+                    return None
                 if options:
                     q = q.options(*options)
                 return q.get(ident)

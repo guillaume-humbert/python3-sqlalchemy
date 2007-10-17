@@ -3,8 +3,8 @@ Section: python
 Priority: optional
 Maintainer: Tommi Virtanen <tv@debian.org>
 Uploaders: Piotr Ożarowski <piotr@debian.org>
-Build-Depends: debhelper (>=5.0.37.2), cdbs (>=0.4.42), python (>=2.3.5-11)
-Build-Depends-Indep: python-all-dev, python-central (>=0.5), python-setuptools (>=0.6b3-1)
+Build-Depends: debhelper (>=5.0.37.2), quilt (>=0.40-1)
+Build-Depends-Indep: python-all-dev (>=2.3.5-11), python-central (>=0.5), python-setuptools (>=0.6b3-1)
 Standards-Version: 3.7.2
 XS-Python-Version: >= 2.3
 Homepage: http://www.sqlalchemy.org/
@@ -16,7 +16,7 @@ Conflicts: python2.4-sqlalchemy (<<0.2.3-0.1)
 Replaces: python2.4-sqlalchemy (<<0.2.3-0.1)
 Suggests: python-sqlalchemy-doc, python-psycopg2, python-mysqldb (>=1.2.1-p2-2),
  python (>=2.5) | python-pysqlite2 (>=2.3.0-1) | python-pysqlite1.1 (>=1.1.7-2) | python-sqlite (>=1.0.1-5),
- python-kinterbasdb (>=3.1.2-0.3), python-setuptools (>=0.6b3-1)
+ python-kinterbasdb (>=3.1.2-0.3)
 XB-Python-Version: ${python:Versions}
 Description: SQL toolkit and Object Relational Mapper for Python
  SQLAlchemy is an SQL database abstraction library for Python.

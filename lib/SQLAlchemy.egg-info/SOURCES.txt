@@ -24,12 +24,14 @@ doc/plugins.html
 doc/pooling.html
 doc/scripts.js
 doc/session.html
+doc/sqlalchemy_databases_access.html
 doc/sqlalchemy_databases_firebird.html
 doc/sqlalchemy_databases_mssql.html
 doc/sqlalchemy_databases_mysql.html
 doc/sqlalchemy_databases_oracle.html
 doc/sqlalchemy_databases_postgres.html
 doc/sqlalchemy_databases_sqlite.html
+doc/sqlalchemy_databases_sybase.html
 doc/sqlalchemy_engine.html
 doc/sqlalchemy_engine_default.html
 doc/sqlalchemy_engine_strategies.html
@@ -50,8 +52,8 @@ doc/sqlalchemy_orm_session.html
 doc/sqlalchemy_orm_shard.html
 doc/sqlalchemy_pool.html
 doc/sqlalchemy_schema.html
-doc/sqlalchemy_sql.html
 doc/sqlalchemy_sql_compiler.html
+doc/sqlalchemy_sql_expression.html
 doc/sqlalchemy_types.html
 doc/sqlexpression.html
 doc/style.css
@@ -74,7 +76,6 @@ doc/build/content/ormtutorial.txt
 doc/build/content/plugins.txt
 doc/build/content/pooling.txt
 doc/build/content/session.txt
-doc/build/content/sqlconstruction.txt
 doc/build/content/sqlexpression.txt
 doc/build/content/tutorial.txt
 doc/build/content/types.txt
@@ -134,10 +135,12 @@ lib/sqlalchemy/databases/firebird.py
 lib/sqlalchemy/databases/information_schema.py
 lib/sqlalchemy/databases/informix.py
 lib/sqlalchemy/databases/mssql.py
+lib/sqlalchemy/databases/mxODBC.py
 lib/sqlalchemy/databases/mysql.py
 lib/sqlalchemy/databases/oracle.py
 lib/sqlalchemy/databases/postgres.py
 lib/sqlalchemy/databases/sqlite.py
+lib/sqlalchemy/databases/sybase.py
 lib/sqlalchemy/engine/__init__.py
 lib/sqlalchemy/engine/base.py
 lib/sqlalchemy/engine/default.py
@@ -196,6 +199,8 @@ test/dialect/mssql.py
 test/dialect/mysql.py
 test/dialect/oracle.py
 test/dialect/postgres.py
+test/dialect/sqlite.py
+test/dialect/sybase.py
 test/engine/__init__.py
 test/engine/alltests.py
 test/engine/bind.py
@@ -240,6 +245,7 @@ test/orm/sessioncontext.py
 test/orm/unitofwork.py
 test/orm/inheritance/__init__.py
 test/orm/inheritance/abc_inheritance.py
+test/orm/inheritance/abc_polymorphic.py
 test/orm/inheritance/alltests.py
 test/orm/inheritance/basic.py
 test/orm/inheritance/concrete.py

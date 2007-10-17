@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
+<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
 
 
 
@@ -53,10 +53,10 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_sql.html">module sqlalchemy.sql</a>
+            Previous: <a href="sqlalchemy_exceptions.html">module sqlalchemy.exceptions</a>
 
                |   
-            Next: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>
+            Next: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>
     </div>
 
         <h2>module sqlalchemy.schema</h2>
@@ -207,7 +207,7 @@ objects as well as the visitor interface, so that the schema package
     
     <div class="sectionL3">
 
-    <h3>class Column(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>,_ColumnClause)</h3>
+    <h3>class Column(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>,<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__ColumnClause">_ColumnClause</a>)</h3>
     
     
     <div class="darkcell"><p>Represent a column in a database table.</p>
@@ -748,6 +748,8 @@ the same table, and no column may appear more than once.</dd>
 <dl class="last docutils">
 <dt>unique</dt>
 <dd>Defaults to False: create a unique index.</dd>
+<dt>postgres_where</dt>
+<dd>Defaults to None: create a partial index when using PostgreSQL</dd>
 </dl>
 </dd>
 </dl>
@@ -1191,7 +1193,7 @@ arguments and should return a true value for any table to reflect.</p>
     
     <div class="sectionL3">
 
-    <h3>class SchemaVisitor(<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_ClauseVisitor">ClauseVisitor</a>)</h3>
+    <h3>class SchemaVisitor(ClauseVisitor)</h3>
     
     
     <div class="darkcell"><p>Define the visiting for <tt class="docutils literal"><span class="pre">SchemaItem</span></tt> objects.</p>
@@ -1218,7 +1220,7 @@ arguments and should return a true value for any table to reflect.</p>
     <h3>class Sequence(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultGenerator">DefaultGenerator</a>)</h3>
     
     
-    <div class="darkcell"><p>Represent a sequence, which applies to Oracle and Postgres databases.</p>
+    <div class="darkcell"><p>Represents a named sequence.</p>
 </div>
     
 
@@ -1239,7 +1241,8 @@ arguments and should return a true value for any table to reflect.</p>
     <A name=""></a>
     <b>def create(<i>self</i>, <i>bind=None</i>, <i>checkfirst=True</i>)</b>
     <div class="docstring">
-    
+    <p>Creates this sequence in the database.</p>
+
     </div>
     </div>
 
@@ -1249,7 +1252,8 @@ arguments and should return a true value for any table to reflect.</p>
     <A name=""></a>
     <b>def drop(<i>self</i>, <i>bind=None</i>, <i>checkfirst=True</i>)</b>
     <div class="docstring">
-    
+    <p>Drops this sequence from the database.</p>
+
     </div>
     </div>
 
@@ -1270,7 +1274,7 @@ arguments and should return a true value for any table to reflect.</p>
     
     <div class="sectionL3">
 
-    <h3>class Table(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>,<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_TableClause">TableClause</a>)</h3>
+    <h3>class Table(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>,<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_TableClause">TableClause</a>)</h3>
     
     
     <div class="darkcell"><p>Represent a relational database table.</p>
@@ -1638,10 +1642,10 @@ Otherwise connects directly to the given <tt class="docutils literal"><span clas
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_sql.html">module sqlalchemy.sql</a>
+            Previous: <a href="sqlalchemy_exceptions.html">module sqlalchemy.exceptions</a>
 
                |   
-            Next: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>
+            Next: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>
     </div>
 
     </div>

@@ -1,3 +1,24 @@
+sqlalchemy (0.4.0-1) unstable; urgency=low
+
+  * New upstream release
+  * hardcode_version patch removed (it's hardcoded by upstream now)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Wed, 17 Oct 2007 23:58:26 +0200
+
+sqlalchemy (0.3.11-1) unstable; urgency=low
+
+  * New upstream release
+  * Convert from CDBS to pure debhelper & quilt
+  * Applied all Debian packaging related changes from 0.4.0~ (currently in
+    experimental) except the ones from NEWS and copyright files
+    (closes: #438340)
+  * Replace setuptools_version patch with disable_ez_setup
+  * sqlalchemy.__version__ works without setuptools (LP: #136719):
+    - hardcode_version patch added,
+    - python-setuptools removed from Suggests
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 14 Oct 2007 22:04:08 +0200
+
 sqlalchemy (0.4.0~beta6-1) experimental; urgency=low
 
   * New upstream release

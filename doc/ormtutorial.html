@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
+<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
 
 
 
@@ -92,6 +92,15 @@
         
         <li><a style="" href="ormtutorial.html#datamapping_joins">Querying with Joins</a></li>
         
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="ormtutorial.html#datamapping_joins_relation">Relation Operators</a></li>
+        
+    </ul>
+
+	        </li>
         
         <li><a style="" href="ormtutorial.html#datamapping_deleting">Deleting</a></li>
         
@@ -1136,12 +1145,280 @@ WHERE addresses_1.email_address = ? AND addresses_2.email_address = ? ORDER BY u
 ['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The key thing which occured above is that our SQL criterion were <strong>aliased</strong> as appropriate corresponding to the alias generated in the most recent <code>join()</code> call.  <br></br>
+<p>The key thing which occured above is that our SQL criterion were <strong>aliased</strong> as appropriate corresponding to the alias generated in the most recent <code>join()</code> call.
 </p>
+<p>The next section describes some "higher level" operators, including <code>any()</code> and <code>has()</code>, which make patterns like joining to multiple aliases unnecessary in most cases.
+</p>
+
+
+    
+    <A name="datamapping_joins_relation"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Relation Operators</h3>
+    
+    
+
+<p>A summary of all operators usable on relations:
+</p>
+<ul>
+ <li><p>Filter on explicit column criterion, combined with a join.  Column criterion can make usage of all supported SQL operators and expression constructs:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_32', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">)</span><span class="python_operator">.\
+...    </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_32_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users JOIN addresses ON users.id = addresses.user_id <br/>
+WHERE addresses.email_address = ? ORDER BY users.oid<br/>
+['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Criterion placed in <code>filter()</code> usually correspond to the last <code>join()</code> call; if the join was specified with <code>aliased=True</code>, class-level criterion against the join's target (or targets) will be appropriately aliased as well.  
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_33', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">aliased</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.\
+...    </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_33_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id <br/>
+WHERE addresses_1.email_address = ? ORDER BY users.oid<br/>
+['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+
+ </li>
+
+ <li><p>Filter_by on key=value criterion, combined with a join.  Same as <code>filter()</code> on column criterion except keyword arguments are used.
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_34', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">)</span><span class="python_operator">.\
+...    </span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">email_address</span><span class="python_operator">=</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_34_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users JOIN addresses ON users.id = addresses.user_id <br/>
+WHERE addresses.email_address = ? ORDER BY users.oid<br/>
+['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+
+ </li>
+
+ <li><p>Filter on explicit column criterion using <code>any()</code> (for collections) or <code>has()</code> (for scalar relations).  This is a more succinct method than joining, as an <code>EXISTS</code> subquery is generated automatically.  <code>any()</code> means, "find all parent items where any child item of its collection meets this criterion":
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_35', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.\
+...    </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_35_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE EXISTS (SELECT 1 <br/>
+FROM addresses <br/>
+WHERE users.id = addresses.user_id AND addresses.email_address = ?) ORDER BY users.oid<br/>
+['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+<p><code>has()</code> means, "find all parent items where the child item meets this criterion":
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_36', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.\
+...    </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">has</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'jack'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_36_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
+FROM addresses <br/>
+WHERE EXISTS (SELECT 1 <br/>
+FROM users <br/>
+WHERE users.id = addresses.user_id AND users.name = ?) ORDER BY addresses.oid<br/>
+['jack']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Both <code>has()</code> and <code>any()</code> also accept keyword arguments which are interpreted against the child classes' attributes:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_37', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.\
+...    </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">email_address</span><span class="python_operator">=</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_37_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE EXISTS (SELECT 1 <br/>
+FROM addresses <br/>
+WHERE users.id = addresses.user_id AND addresses.email_address = ?) ORDER BY users.oid<br/>
+['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+
+ </li>
+
+ <li><p>Filter_by on instance identity criterion.  When comparing to a related instance, <code>filter_by()</code> will in most cases not need to reference the child table, since a child instance already contains enough information with which to generate criterion against the parent table.  <code>filter_by()</code> uses an equality comparison for all relationship types.  For many-to-one and one-to-one, this represents all objects which reference the given child object:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_comment"># locate a user
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_38', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_38_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.name = ? ORDER BY users.oid <br/>
+LIMIT 2 OFFSET 0<br/>
+['jack']</div><pre>
+
+<span class="python_comment"># use the user in a filter_by() expression
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_39', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">user</span><span class="python_operator">=</span><span class="python_name">user</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_39_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
+FROM addresses <br/>
+WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
+[5]</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>For one-to-many and many-to-many, it represents all objects which contain the given child object in the related collection:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_comment"># locate an address
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_40', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">address </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.\
+...    </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_40_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
+FROM addresses <br/>
+WHERE addresses.email_address = ? ORDER BY addresses.oid <br/>
+LIMIT 2 OFFSET 0</div><pre><span class="python_enclosure">[</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">]</span><span class="python_operator">
+</span>
+<span class="python_comment"># use the address in a filter_by expression
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_41', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">=</span><span class="python_name">address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_41_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.id = ? ORDER BY users.oid<br/>
+[5]</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+
+ </li>
+
+ <li><p>Select instances with a particular parent.  This is the "reverse" operation of filtering by instance identity criterion; the criterion is against a relation pointing <em>to</em> the desired class, instead of one pointing <em>from</em> it.  This will utilize the same "optimized" query criterion, usually not requiring any joins:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_42', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">with_parent</span><span class="python_enclosure">(</span><span class="python_name">user</span><span class="python_operator">, </span><span class="python_name">property</span><span class="python_operator">=</span><span class="python_literal">'addresses'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_42_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
+FROM addresses <br/>
+WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
+[5]</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+
+ </li>
+
+ <li><p>Filter on a many-to-one/one-to-one instance identity criterion.  The class-level <code>==</code> operator will act the same as <code>filter_by()</code> for a scalar relation:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_43', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">user</span><span class="python_operator">==</span><span class="python_name">user</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_43_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
+FROM addresses <br/>
+WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
+[5]</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>whereas the <code>!=</code> operator will generate a negated EXISTS clause:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_44', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">user</span><span class="python_operator">!=</span><span class="python_name">user</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_44_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
+FROM addresses <br/>
+WHERE NOT (EXISTS (SELECT 1 <br/>
+FROM users <br/>
+WHERE users.id = addresses.user_id AND users.id = ?)) ORDER BY addresses.oid<br/>
+[5]</div><pre><span class="python_enclosure">[]</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>a comparison to <code>None</code> also generates a negated EXISTS clause:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_45', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">user</span><span class="python_operator">==</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_45_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
+FROM addresses <br/>
+WHERE NOT (EXISTS (SELECT 1 <br/>
+FROM users <br/>
+WHERE users.id = addresses.user_id)) ORDER BY addresses.oid<br/>
+[]</div><pre><span class="python_enclosure">[]</span><span class="python_operator">
+</span></pre>
+    </div>
+
+ </li>
+
+ <li><p>Filter on a one-to-many instance identity criterion.  The <code>contains()</code> operator returns all parent objects which contain the given object as one of its collection members:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_46', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">contains</span><span class="python_enclosure">(</span><span class="python_name">address</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_46_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE users.id = ? ORDER BY users.oid<br/>
+[5]</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+
+ </li>
+
+ <li><p>Filter on a multiple one-to-many instance identity criterion.  The <code>==</code> operator can be used with a collection-based attribute against a list of items, which will generate multiple <code>EXISTS</code> clauses:
+</p>
+
+    
+
+    <div class="code">
+        <pre>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_47', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">addresses </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">user</span><span class="python_operator">==</span><span class="python_name">user</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_47_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
+FROM addresses <br/>
+WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
+[5]</div><pre>
+
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_48', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">addresses </span><span class="python_operator">== </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_48_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+FROM users <br/>
+WHERE (EXISTS (SELECT 1 <br/>
+FROM addresses <br/>
+WHERE users.id = addresses.user_id AND addresses.id = ?)) AND (EXISTS (SELECT 1 <br/>
+FROM addresses <br/>
+WHERE users.id = addresses.user_id AND addresses.id = ?)) ORDER BY users.oid<br/>
+[1, 2]</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span></pre>
+    </div>
+
+ </li>
+</ul>
 
 
 
             <a href="#top">back to section top</a>
+    </div>
+
+
+
+
     </div>
 
 
@@ -1163,7 +1440,7 @@ WHERE addresses_1.email_address = ? AND addresses_2.email_address = ? ORDER BY u
     <div class="code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">delete</span><span class="python_enclosure">(</span><span class="python_name">jack</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_32', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_32_div" class="codepop" style="display:none;">UPDATE addresses SET user_id=? WHERE addresses.id = ?<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_49', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_49_div" class="codepop" style="display:none;">UPDATE addresses SET user_id=? WHERE addresses.id = ?<br/>
 [None, 1]<br/>
 UPDATE addresses SET user_id=? WHERE addresses.id = ?<br/>
 [None, 2]<br/>
@@ -1182,9 +1459,9 @@ WHERE users.name = ?<br/>
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_33', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
-<span class="python_operator">...     </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_operator">, </span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span>
-<span class="python_operator">...  </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_33_div" class="codepop" style="display:none;">SELECT count(addresses.id) <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_50', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
+<span class="python_operator">...     </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">([</span><span class="python_literal">'jack@google.com'</span><span class="python_operator">, </span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">])</span>
+<span class="python_operator">...  </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_50_div" class="codepop" style="display:none;">SELECT count(addresses.id) <br/>
 FROM addresses <br/>
 WHERE addresses.email_address IN (?, ?)<br/>
 ['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_number">2</span><span class="python_operator">
@@ -1199,7 +1476,7 @@ WHERE addresses.email_address IN (?, ?)<br/>
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_34', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()  </span><span class="python_comment"># roll back the transaction</span><span class="python_operator"></span></pre><div id="popbox_34_div" class="codepop" style="display:none;">ROLLBACK</div><pre><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">clear</span><span class="python_enclosure">() </span><span class="python_comment"># clear the session</span><span class="python_operator">
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_51', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()  </span><span class="python_comment"># roll back the transaction</span><span class="python_operator"></span></pre><div id="popbox_51_div" class="codepop" style="display:none;">ROLLBACK</div><pre><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">clear</span><span class="python_enclosure">() </span><span class="python_comment"># clear the session</span><span class="python_operator">
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">clear_mappers</span><span class="python_enclosure">() </span><span class="python_comment"># clear mappers</span><span class="python_operator">
 </span></pre>
     </div>
@@ -1227,23 +1504,22 @@ WHERE addresses.email_address IN (?, ?)<br/>
     <div class="code">
         <pre>
 <span class="python_comment"># load Jack by primary key
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_35', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">jack </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">    </span></pre><div id="popbox_35_div" class="codepop" style="display:none;">BEGIN<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_52', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">jack </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">    </span></pre><div id="popbox_52_div" class="codepop" style="display:none;">BEGIN<br/>
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
 WHERE users.id = ? ORDER BY users.oid <br/>
-LIMIT 1 OFFSET 0<br/>
 [5]</div><pre>
 
 <span class="python_comment"># remove one Address (lazy load fires off)
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_36', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_keyword">del </span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator">  </span></pre><div id="popbox_36_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_53', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_keyword">del </span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator">  </span></pre><div id="popbox_53_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
 FROM addresses <br/>
 WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
 [5]</div><pre>
 
 <span class="python_comment"># only one address remains
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_37', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
-<span class="python_operator">...     </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_operator">, </span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span>
-<span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_37_div" class="codepop" style="display:none;">DELETE FROM addresses WHERE addresses.id = ?<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_54', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
+<span class="python_operator">...     </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">([</span><span class="python_literal">'jack@google.com'</span><span class="python_operator">, </span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">])</span>
+<span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_54_div" class="codepop" style="display:none;">DELETE FROM addresses WHERE addresses.id = ?<br/>
 [2]<br/>
 SELECT count(addresses.id) <br/>
 FROM addresses <br/>
@@ -1260,21 +1536,21 @@ WHERE addresses.email_address IN (?, ?)<br/>
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">delete</span><span class="python_enclosure">(</span><span class="python_name">jack</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_38', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_38_div" class="codepop" style="display:none;">DELETE FROM addresses WHERE addresses.id = ?<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_55', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_55_div" class="codepop" style="display:none;">DELETE FROM addresses WHERE addresses.id = ?<br/>
 [1]<br/>
 DELETE FROM users WHERE users.id = ?<br/>
 [5]<br/>
 COMMIT</div><pre>
 
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_39', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_39_div" class="codepop" style="display:none;">BEGIN<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_56', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_56_div" class="codepop" style="display:none;">BEGIN<br/>
 SELECT count(users.id) <br/>
 FROM users <br/>
 WHERE users.name = ?<br/>
 ['jack']</div><pre><span class="python_number">0</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_40', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
-<span class="python_operator">...    </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_operator">, </span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span>
-<span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_40_div" class="codepop" style="display:none;">SELECT count(addresses.id) <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_57', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
+<span class="python_operator">...    </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">([</span><span class="python_literal">'jack@google.com'</span><span class="python_operator">, </span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">])</span>
+<span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_57_div" class="codepop" style="display:none;">SELECT count(addresses.id) <br/>
 FROM addresses <br/>
 WHERE addresses.email_address IN (?, ?)<br/>
 ['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_number">0</span><span class="python_operator">
@@ -1321,7 +1597,7 @@ WHERE addresses.email_address IN (?, ?)<br/>
 <span class="python_operator">...        </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 <span class="python_operator">...        </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'keyword'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">unique</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_41', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator"> </span></pre><div id="popbox_41_div" class="codepop" style="display:none;">PRAGMA table_info(&quot;users&quot;)<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_58', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator"> </span></pre><div id="popbox_58_div" class="codepop" style="display:none;">PRAGMA table_info(&quot;users&quot;)<br/>
 {}<br/>
 PRAGMA table_info(&quot;posts&quot;)<br/>
 {}<br/>
@@ -1419,7 +1695,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_42', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">wendy </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'wendy'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_42_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_59', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">wendy </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'wendy'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_59_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
 WHERE users.name = ? ORDER BY users.oid <br/>
  LIMIT 2 OFFSET 0<br/>
@@ -1445,7 +1721,7 @@ WHERE users.name = ? ORDER BY users.oid <br/>
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_43', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_43_div" class="codepop" style="display:none;">INSERT INTO keywords (keyword) VALUES (?)<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_60', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_60_div" class="codepop" style="display:none;">INSERT INTO keywords (keyword) VALUES (?)<br/>
 ['wendy']<br/>
 INSERT INTO keywords (keyword) VALUES (?)<br/>
 ['firstpost']<br/>
@@ -1468,8 +1744,8 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_44', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">with_parent</span><span class="python_enclosure">(</span><span class="python_name">wendy</span><span class="python_enclosure">)</span><span class="python_operator">.\
-... </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_44_div" class="codepop" style="display:none;">SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_61', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">with_parent</span><span class="python_enclosure">(</span><span class="python_name">wendy</span><span class="python_enclosure">)</span><span class="python_operator">.\
+... </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_61_div" class="codepop" style="display:none;">SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body <br/>
 FROM posts <br/>
 WHERE ? = posts.user_id AND (EXISTS (SELECT 1 <br/>
 FROM post_keywords, keywords <br/>
@@ -1484,7 +1760,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_45', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">wendy</span><span class="python_operator">.</span><span class="python_name">posts</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_45_div" class="codepop" style="display:none;">SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_62', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">wendy</span><span class="python_operator">.</span><span class="python_name">posts</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_62_div" class="codepop" style="display:none;">SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body <br/>
 FROM posts <br/>
 WHERE ? = posts.user_id AND (EXISTS (SELECT 1 <br/>
 FROM post_keywords, keywords <br/>

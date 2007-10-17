@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
+<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
 
 
 
@@ -163,6 +163,20 @@
     <h3>module sqlalchemy.databases.postgres</h3>
     
     
+    <div class="darkcell"><p>Support for the PostgreSQL database.</p>
+<p>PostgreSQL supports partial indexes. To create them pass a posgres_where
+option to the Index constructor:</p>
+<pre class="literal-block">
+Index('my_index', my_table.c.id, postgres_where=tbl.c.value &gt; 10)
+</pre>
+<p>PostgreSQL 8.2+ supports returning a result set from inserts and updates.
+To use this pass the column/expression list to the postgres_returning
+parameter when creating the queries:</p>
+<pre class="literal-block">
+raises = tbl.update(empl.c.sales &gt; 100, values=dict(salary=empl.c.salary * 1.1),
+  postgres_returning=[empl.c.id, empl.c.salary]).execute().fetchall()
+</pre>
+</div>
     
 
         
@@ -440,7 +454,27 @@
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def visit_insert(<i>self</i>, <i>insert_stmt</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def visit_sequence(<i>self</i>, <i>seq</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_update(<i>self</i>, <i>update_stmt</i>)</b>
     <div class="docstring">
     
     </div>
@@ -730,6 +764,16 @@
     
     <A name=""></a>
     <b>def reflecttable(<i>self</i>, <i>connection</i>, <i>table</i>, <i>include_columns</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def server_version_info(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1078,6 +1122,16 @@
     
     <A name=""></a>
     <b>def get_column_specification(<i>self</i>, <i>column</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_index(<i>self</i>, <i>index</i>)</b>
     <div class="docstring">
     
     </div>

@@ -41,7 +41,6 @@ class QueryTest(PersistTest):
         assert users.select().execute().fetchall() == [(7, 'jack'), (8, 'ed'), (9, None)]
         
     def testupdate(self):
-
         users.insert().execute(user_id = 7, user_name = 'jack')
         assert users.count().scalar() == 1
 
@@ -49,12 +48,12 @@ class QueryTest(PersistTest):
         assert users.select(users.c.user_id==7).execute().fetchone()['user_name'] == 'fred'
 
     def test_lastrow_accessor(self):
-        """test the last_inserted_ids() and lastrow_has_id() functions"""
+        """Tests the last_inserted_ids() and lastrow_has_id() functions."""
 
         def insert_values(table, values):
-            """insert a row into a table, return the full list of values INSERTed including defaults
-            that fired off on the DB side.  
-            
+            """
+            Inserts a row into a table, returns the full list of values
+            INSERTed including defaults that fired off on the DB side and
             detects rows that had defaults and post-fetches.
             """
             
@@ -161,8 +160,11 @@ class QueryTest(PersistTest):
         assert c.execute(s, id=7).fetchall()[0]['user_id'] == 7
 
     def test_repeated_bindparams(self):
-        """test that a BindParam can be used more than once.  
-        this should be run for dbs with both positional and named paramstyles."""
+        """Tests that a BindParam can be used more than once.
+        
+        This should be run for DB-APIs with both positional and named
+        paramstyles.
+        """
         users.insert().execute(user_id = 7, user_name = 'jack')
         users.insert().execute(user_id = 8, user_name = 'fred')
 
@@ -269,7 +271,69 @@ class QueryTest(PersistTest):
             assert isinstance(s2.execute().fetchone()['somelabel'], datetime.datetime)
         finally:
             datetable.drop()
-            
+
+    def test_order_by(self):
+        """Exercises ORDER BY clause generation.
+
+        Tests simple, compound, aliased and DESC clauses.
+        """
+        
+        users.insert().execute(user_id=1, user_name='c')
+        users.insert().execute(user_id=2, user_name='b')
+        users.insert().execute(user_id=3, user_name='a')
+
+        def a_eq(executable, wanted):
+            got = list(executable.execute())
+            self.assertEquals(got, wanted)
+
+        for labels in False, True:
+            a_eq(users.select(order_by=[users.c.user_id],
+                              use_labels=labels),
+                 [(1, 'c'), (2, 'b'), (3, 'a')])
+        
+            a_eq(users.select(order_by=[users.c.user_name, users.c.user_id],
+                              use_labels=labels),
+                 [(3, 'a'), (2, 'b'), (1, 'c')])
+
+            a_eq(select([users.c.user_id.label('foo')],
+                        use_labels=labels,
+                        order_by=[users.c.user_id]),
+                 [(1,), (2,), (3,)])
+             
+            a_eq(select([users.c.user_id.label('foo'), users.c.user_name],
+                        use_labels=labels,
+                        order_by=[users.c.user_name, users.c.user_id]),
+                 [(3, 'a'), (2, 'b'), (1, 'c')])
+
+            a_eq(users.select(distinct=True,
+                              use_labels=labels,
+                              order_by=[users.c.user_id]),
+                 [(1, 'c'), (2, 'b'), (3, 'a')])
+
+            a_eq(select([users.c.user_id.label('foo')],
+                        distinct=True,
+                        use_labels=labels,
+                        order_by=[users.c.user_id]),
+                 [(1,), (2,), (3,)])
+
+            a_eq(select([users.c.user_id.label('a'),
+                         users.c.user_id.label('b'),
+                         users.c.user_name],
+                        use_labels=labels,
+                        order_by=[users.c.user_id]),
+                 [(1, 1, 'c'), (2, 2, 'b'), (3, 3, 'a')])
+
+            a_eq(users.select(distinct=True,
+                              use_labels=labels,
+                              order_by=[desc(users.c.user_id)]),
+                 [(3, 'a'), (2, 'b'), (1, 'c')])
+
+            a_eq(select([users.c.user_id.label('foo')],
+                        distinct=True,
+                        use_labels=labels,
+                        order_by=[users.c.user_id.desc()]),
+                 [(3,), (2,), (1,)])
+
     def test_column_accessor(self):
         users.insert().execute(user_id=1, user_name='john')
         users.insert().execute(user_id=2, user_name='jack')
@@ -296,8 +360,20 @@ class QueryTest(PersistTest):
             print r['user_id']
             assert False
         except exceptions.InvalidRequestError, e:
-            assert str(e) == "Ambiguous column name 'user_id' in result set! try 'use_labels' option on select statement."
-            
+            assert str(e) == "Ambiguous column name 'user_id' in result set! try 'use_labels' option on select statement." or \
+                   str(e) == "Ambiguous column name 'USER_ID' in result set! try 'use_labels' option on select statement."
+    
+    def test_column_label_targeting(self):
+        users.insert().execute(user_id=7, user_name='ed')
+
+        for s in (
+            users.select().alias('foo'),
+            users.select().alias(users.name),
+        ):
+            row = s.select(use_labels=True).execute().fetchone()
+            assert row[s.c.user_id] == 7
+            assert row[s.c.user_name] == 'ed'
+        
     def test_keys(self):
         users.insert().execute(user_id=1, user_name='foo')
         r = users.select().execute().fetchone()
@@ -324,7 +400,7 @@ class QueryTest(PersistTest):
         try:
             users.join(addresses).execute()
         except exceptions.ArgumentError, e:
-            assert str(e) == """Not an executeable clause: query_users JOIN query_addresses ON query_users.user_id = query_addresses.user_id"""
+            assert str(e).startswith('Not an executable clause: ')
             
     def test_functions(self):
         x = testbase.db.func.current_date().execute().scalar()
@@ -356,7 +432,7 @@ class QueryTest(PersistTest):
         )
         t2 = Table('t2', meta,
             Column('id', Integer, Sequence('t2idseq', optional=True), primary_key=True),
-            Column('value', Integer, default="7"),
+            Column('value', Integer, default=7),
             Column('stuff', String(20), onupdate="thisisstuff")
         )
         meta.create_all()
@@ -368,6 +444,7 @@ class QueryTest(PersistTest):
 
             r = t.insert(values=dict(value=func.length("sfsaafsda"))).execute()
             id = r.last_inserted_ids()[0]
+
             assert t.select(t.c.id==id).execute().fetchone()['value'] == 9
             t.update(values={t.c.value:func.length("asdf")}).execute()
             assert t.select().execute().fetchone()['value'] == 4
@@ -429,7 +506,7 @@ class QueryTest(PersistTest):
         self.assertEqual([x.lower() for x in r.keys()], ['user_name', 'user_id'])
         self.assertEqual(r.values(), ['foo', 1])
     
-    @testing.unsupported('oracle', 'firebird') 
+    @testing.unsupported('oracle', 'firebird')
     def test_column_accessor_shadow(self):
         meta = MetaData(testbase.db)
         shadowed = Table('test_shadowed', meta,
@@ -513,7 +590,6 @@ class QueryTest(PersistTest):
         finally:
             table.drop()
 
-    
     def test_in_filtering(self):
         """test the behavior of the in_() function."""
         
@@ -521,49 +597,49 @@ class QueryTest(PersistTest):
         users.insert().execute(user_id = 8, user_name = 'fred')
         users.insert().execute(user_id = 9, user_name = None)
         
-        s = users.select(users.c.user_name.in_())
+        s = users.select(users.c.user_name.in_([]))
         r = s.execute().fetchall()
         # No username is in empty set
         assert len(r) == 0
         
-        s = users.select(not_(users.c.user_name.in_()))
+        s = users.select(not_(users.c.user_name.in_([])))
         r = s.execute().fetchall()
         # All usernames with a value are outside an empty set
         assert len(r) == 2
         
-        s = users.select(users.c.user_name.in_('jack','fred'))
+        s = users.select(users.c.user_name.in_(['jack','fred']))
         r = s.execute().fetchall()
         assert len(r) == 2
         
-        s = users.select(not_(users.c.user_name.in_('jack','fred')))
+        s = users.select(not_(users.c.user_name.in_(['jack','fred'])))
         r = s.execute().fetchall()
         # Null values are not outside any set
         assert len(r) == 0
         
         u = bindparam('search_key')
         
-        s = users.select(u.in_())
+        s = users.select(u.in_([]))
         r = s.execute(search_key='john').fetchall()
         assert len(r) == 0
         r = s.execute(search_key=None).fetchall()
         assert len(r) == 0
         
-        s = users.select(not_(u.in_()))
+        s = users.select(not_(u.in_([])))
         r = s.execute(search_key='john').fetchall()
         assert len(r) == 3
         r = s.execute(search_key=None).fetchall()
         assert len(r) == 0
         
-        s = users.select(users.c.user_name.in_() == True)
+        s = users.select(users.c.user_name.in_([]) == True)
         r = s.execute().fetchall()
         assert len(r) == 0
-        s = users.select(users.c.user_name.in_() == False)
+        s = users.select(users.c.user_name.in_([]) == False)
         r = s.execute().fetchall()
         assert len(r) == 2
-        s = users.select(users.c.user_name.in_() == None)
+        s = users.select(users.c.user_name.in_([]) == None)
         r = s.execute().fetchall()
         assert len(r) == 1
-        
+
 
 class CompoundTest(PersistTest):
     """test compound statements like UNION, INTERSECT, particularly their ability to nest on
@@ -607,45 +683,117 @@ class CompoundTest(PersistTest):
         
     def tearDownAll(self):
         metadata.drop_all()
-        
+
+    def _fetchall_sorted(self, executed):
+        return sorted([tuple(row) for row in executed.fetchall()])
+
     def test_union(self):
         (s1, s2) = (
-                    select([t1.c.col3.label('col3'), t1.c.col4.label('col4')], t1.c.col2.in_("t1col2r1", "t1col2r2")),
-            select([t2.c.col3.label('col3'), t2.c.col4.label('col4')], t2.c.col2.in_("t2col2r2", "t2col2r3"))
+            select([t1.c.col3.label('col3'), t1.c.col4.label('col4')],
+                   t1.c.col2.in_(["t1col2r1", "t1col2r2"])),
+            select([t2.c.col3.label('col3'), t2.c.col4.label('col4')],
+                   t2.c.col2.in_(["t2col2r2", "t2col2r3"]))
+        )        
+        u = union(s1, s2)
+
+        wanted = [('aaa', 'aaa'), ('bbb', 'bbb'), ('bbb', 'ccc'),
+                  ('ccc', 'aaa')]
+        found1 = self._fetchall_sorted(u.execute())
+        self.assertEquals(found1, wanted)
+
+        found2 = self._fetchall_sorted(u.alias('bar').select().execute())
+        self.assertEquals(found2, wanted)
+        
+    def test_union_ordered(self):
+        (s1, s2) = (
+            select([t1.c.col3.label('col3'), t1.c.col4.label('col4')],
+                   t1.c.col2.in_(["t1col2r1", "t1col2r2"])),
+            select([t2.c.col3.label('col3'), t2.c.col4.label('col4')],
+                   t2.c.col2.in_(["t2col2r2", "t2col2r3"]))
         )        
         u = union(s1, s2, order_by=['col3', 'col4'])
-        assert u.execute().fetchall() == [('aaa', 'aaa'), ('bbb', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
-        assert u.alias('bar').select().execute().fetchall() == [('aaa', 'aaa'), ('bbb', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
-        
-    @testing.unsupported('mysql')
+
+        wanted = [('aaa', 'aaa'), ('bbb', 'bbb'), ('bbb', 'ccc'),
+                  ('ccc', 'aaa')]
+        self.assertEquals(u.execute().fetchall(), wanted)
+
+    def test_union_ordered_alias(self):
+        (s1, s2) = (
+            select([t1.c.col3.label('col3'), t1.c.col4.label('col4')],
+                   t1.c.col2.in_(["t1col2r1", "t1col2r2"])),
+            select([t2.c.col3.label('col3'), t2.c.col4.label('col4')],
+                   t2.c.col2.in_(["t2col2r2", "t2col2r3"]))
+        )        
+        u = union(s1, s2, order_by=['col3', 'col4'])
+
+        wanted = [('aaa', 'aaa'), ('bbb', 'bbb'), ('bbb', 'ccc'),
+                  ('ccc', 'aaa')]
+        self.assertEquals(u.alias('bar').select().execute().fetchall(), wanted)
+
+    @testing.unsupported('sqlite', 'mysql', 'oracle')
+    def test_union_all(self):
+        e = union_all(
+            select([t1.c.col3]),
+            union(
+                select([t1.c.col3]),
+                select([t1.c.col3]),
+            )
+        )
+
+        wanted = [('aaa',),('aaa',),('bbb',), ('bbb',), ('ccc',),('ccc',)]
+        found1 = self._fetchall_sorted(e.execute())
+        self.assertEquals(found1, wanted)
+
+        found2 = self._fetchall_sorted(e.alias('foo').select().execute())
+        self.assertEquals(found2, wanted)
+
+    @testing.unsupported('mysql', 'sybase')
     def test_intersect(self):
         i = intersect(
             select([t2.c.col3, t2.c.col4]),
             select([t2.c.col3, t2.c.col4], t2.c.col4==t3.c.col3)
         )
-        assert i.execute().fetchall() == [('aaa', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
-        assert i.alias('bar').select().execute().fetchall() == [('aaa', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
 
-    @testing.unsupported('mysql', 'oracle')
+        wanted = [('aaa', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
+
+        found1 = self._fetchall_sorted(i.execute())
+        self.assertEquals(found1, wanted)
+
+        found2 = self._fetchall_sorted(i.alias('bar').select().execute())
+        self.assertEquals(found2, wanted)
+
+    @testing.unsupported('mysql', 'oracle', 'sybase')
     def test_except_style1(self):
         e = except_(union(
             select([t1.c.col3, t1.c.col4]),
             select([t2.c.col3, t2.c.col4]),
             select([t3.c.col3, t3.c.col4]),
         ), select([t2.c.col3, t2.c.col4]))
-        assert e.alias('bar').select().execute().fetchall() == [('aaa', 'aaa'), ('aaa', 'ccc'), ('bbb', 'aaa'), ('bbb', 'bbb'), ('ccc', 'bbb'), ('ccc', 'ccc')]
 
-    @testing.unsupported('mysql', 'oracle')
+        wanted = [('aaa', 'aaa'), ('aaa', 'ccc'), ('bbb', 'aaa'),
+                  ('bbb', 'bbb'), ('ccc', 'bbb'), ('ccc', 'ccc')]
+
+        found = self._fetchall_sorted(e.alias('bar').select().execute())
+        self.assertEquals(found, wanted)
+
+    @testing.unsupported('mysql', 'oracle', 'sybase')
     def test_except_style2(self):
         e = except_(union(
             select([t1.c.col3, t1.c.col4]),
             select([t2.c.col3, t2.c.col4]),
             select([t3.c.col3, t3.c.col4]),
         ).alias('foo').select(), select([t2.c.col3, t2.c.col4]))
-        assert e.execute().fetchall() == [('aaa', 'aaa'), ('aaa', 'ccc'), ('bbb', 'aaa'), ('bbb', 'bbb'), ('ccc', 'bbb'), ('ccc', 'ccc')]
-        assert e.alias('bar').select().execute().fetchall() == [('aaa', 'aaa'), ('aaa', 'ccc'), ('bbb', 'aaa'), ('bbb', 'bbb'), ('ccc', 'bbb'), ('ccc', 'ccc')]
 
-    @testing.unsupported('sqlite', 'mysql', 'oracle')
+        wanted = [('aaa', 'aaa'), ('aaa', 'ccc'), ('bbb', 'aaa'),
+                  ('bbb', 'bbb'), ('ccc', 'bbb'), ('ccc', 'ccc')]
+
+        found1 = self._fetchall_sorted(e.execute())
+        self.assertEquals(found1, wanted)
+
+        found2 = self._fetchall_sorted(e.alias('bar').select().execute())
+        self.assertEquals(found2, wanted)
+
+    @testing.unsupported('sqlite', 'mysql', 'oracle', 'sybase')
     def test_except_style3(self):
         # aaa, bbb, ccc - (aaa, bbb, ccc - (ccc)) = ccc
         e = except_(
@@ -656,17 +804,8 @@ class CompoundTest(PersistTest):
             )
         )
         self.assertEquals(e.execute().fetchall(), [('ccc',)])
-
-    @testing.unsupported('sqlite', 'mysql', 'oracle')
-    def test_union_union_all(self):
-        e = union_all(
-            select([t1.c.col3]),
-            union(
-                select([t1.c.col3]),
-                select([t1.c.col3]),
-            )
-        )
-        self.assertEquals(e.execute().fetchall(), [('aaa',),('bbb',),('ccc',),('aaa',),('bbb',),('ccc',)])
+        self.assertEquals(e.alias('foo').select().execute().fetchall(),
+                          [('ccc',)])
 
     @testing.unsupported('mysql')
     def test_composite(self):
@@ -678,8 +817,294 @@ class CompoundTest(PersistTest):
                 select([t3.c.col3, t3.c.col4]),
             ).alias('foo').select()
         )
-        assert u.execute().fetchall() == [('aaa', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
-        assert u.alias('foo').select().execute().fetchall() == [('aaa', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
+        wanted = [('aaa', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
+        found = self._fetchall_sorted(u.execute())
+        
+        self.assertEquals(found, wanted)
+
+    @testing.unsupported('mysql')
+    def test_composite_alias(self):
+        ua = intersect(
+            select([t2.c.col3, t2.c.col4]),
+            union(
+                select([t1.c.col3, t1.c.col4]),
+                select([t2.c.col3, t2.c.col4]),
+                select([t3.c.col3, t3.c.col4]),
+            ).alias('foo').select()
+        ).alias('bar')
+
+        wanted = [('aaa', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
+        found = self._fetchall_sorted(ua.select().execute())
+        self.assertEquals(found, wanted)
+
+
+class JoinTest(PersistTest):
+    """Tests join execution.
+
+    The compiled SQL emitted by the dialect might be ANSI joins or
+    theta joins ('old oracle style', with (+) for OUTER).  This test
+    tries to exercise join syntax and uncover any inconsistencies in
+    `JOIN rhs ON lhs.col=rhs.col` vs `rhs.col=lhs.col`.  At least one
+    database seems to be sensitive to this.
+    """
+
+    def setUpAll(self):
+        global metadata
+        global t1, t2, t3
+
+        metadata = MetaData(testbase.db)
+        t1 = Table('t1', metadata,
+                   Column('t1_id', Integer, primary_key=True),
+                   Column('name', String(32)))
+        t2 = Table('t2', metadata,
+                   Column('t2_id', Integer, primary_key=True),
+                   Column('t1_id', Integer, ForeignKey('t1.t1_id')),
+                   Column('name', String(32)))
+        t3 = Table('t3', metadata,
+                   Column('t3_id', Integer, primary_key=True),
+                   Column('t2_id', Integer, ForeignKey('t2.t2_id')),
+                   Column('name', String(32)))
+        metadata.drop_all()
+        metadata.create_all()
+
+        # t1.10 -> t2.20 -> t3.30
+        # t1.11 -> t2.21
+        # t1.12
+        t1.insert().execute({'t1_id': 10, 'name': 't1 #10'},
+                            {'t1_id': 11, 'name': 't1 #11'},
+                            {'t1_id': 12, 'name': 't1 #12'})
+        t2.insert().execute({'t2_id': 20, 't1_id': 10, 'name': 't2 #20'},
+                            {'t2_id': 21, 't1_id': 11, 'name': 't2 #21'})
+        t3.insert().execute({'t3_id': 30, 't2_id': 20, 'name': 't3 #30'})
+
+    def tearDownAll(self):
+        metadata.drop_all()
+
+    def assertRows(self, statement, expected):
+        """Execute a statement and assert that rows returned equal expected."""
+        
+        found = exec_sorted(statement)
+        self.assertEquals(found, sorted(expected))
+
+    def test_join_x1(self):
+        """Joins t1->t2."""
+
+        for criteria in (t1.c.t1_id==t2.c.t1_id, t2.c.t1_id==t1.c.t1_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id],
+                from_obj=[t1.join(t2, criteria)])
+            self.assertRows(expr, [(10, 20), (11, 21)])
+
+    def test_join_x2(self):
+        """Joins t1->t2->t3."""
+
+        for criteria in (t1.c.t1_id==t2.c.t1_id, t2.c.t1_id==t1.c.t1_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id],
+                from_obj=[t1.join(t2, criteria)])
+            self.assertRows(expr, [(10, 20), (11, 21)])
+
+    def test_outerjoin_x1(self):
+        """Outer joins t1->t2."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id],
+                from_obj=[t1.join(t2).join(t3, criteria)])
+            self.assertRows(expr, [(10, 20)])
+
+    def test_outerjoin_x2(self):
+        """Outer joins t1->t2,t3."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                from_obj=[t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id). \
+                          outerjoin(t3, criteria)])
+            self.assertRows(expr, [(10, 20, 30), (11, 21, None), (12, None, None)])
+
+    def test_outerjoin_where_x2_t1(self):
+        """Outer joins t1->t2,t3, where on t1."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                t1.c.name == 't1 #10',
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                t1.c.t1_id < 12,
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30), (11, 21, None)])
+
+    def test_outerjoin_where_x2_t2(self):
+        """Outer joins t1->t2,t3, where on t2."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                t2.c.name == 't2 #20',
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                t2.c.t2_id < 29,
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30), (11, 21, None)])
+
+    def test_outerjoin_where_x2_t1t2(self):
+        """Outer joins t1->t2,t3, where on t1 and t2."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.name == 't1 #10', t2.c.name == 't2 #20'),
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.t1_id < 19, 29 > t2.c.t2_id),
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30), (11, 21, None)])
+
+    def test_outerjoin_where_x2_t3(self):
+        """Outer joins t1->t2,t3, where on t3."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                t3.c.name == 't3 #30',
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                t3.c.t3_id < 39,
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+    def test_outerjoin_where_x2_t1t3(self):
+        """Outer joins t1->t2,t3, where on t1 and t3."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.name == 't1 #10', t3.c.name == 't3 #30'),
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.t1_id < 19, t3.c.t3_id < 39),
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+    def test_outerjoin_where_x2_t1t2(self):
+        """Outer joins t1->t2,t3, where on t1 and t2."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.name == 't1 #10', t2.c.name == 't2 #20'),
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.t1_id < 12, t2.c.t2_id < 39),
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30), (11, 21, None)])
+
+    def test_outerjoin_where_x2_t1t2t3(self):
+        """Outer joins t1->t2,t3, where on t1, t2 and t3."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.name == 't1 #10',
+                     t2.c.name == 't2 #20',
+                     t3.c.name == 't3 #30'),
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.t1_id < 19,
+                     t2.c.t2_id < 29,
+                     t3.c.t3_id < 39),
+                from_obj=[(t1.outerjoin(t2, t1.c.t1_id==t2.c.t1_id).
+                           outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+    def test_mixed(self):
+        """Joins t1->t2, outer t2->t3."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                from_obj=[(t1.join(t2).outerjoin(t3, criteria))])
+            print expr
+            self.assertRows(expr, [(10, 20, 30), (11, 21, None)])
+        
+    def test_mixed_where(self):
+        """Joins t1->t2, outer t2->t3, plus a where on each table in turn."""
+
+        for criteria in (t2.c.t2_id==t3.c.t2_id, t3.c.t2_id==t2.c.t2_id):
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                t1.c.name == 't1 #10',
+                from_obj=[(t1.join(t2).outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                t2.c.name == 't2 #20',
+                from_obj=[(t1.join(t2).outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                t3.c.name == 't3 #30',
+                from_obj=[(t1.join(t2).outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.name == 't1 #10', t2.c.name == 't2 #20'),
+                from_obj=[(t1.join(t2).outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t2.c.name == 't2 #20', t3.c.name == 't3 #30'),
+                from_obj=[(t1.join(t2).outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
+            expr = select(
+                [t1.c.t1_id, t2.c.t2_id, t3.c.t3_id],
+                and_(t1.c.name == 't1 #10',
+                     t2.c.name == 't2 #20',
+                     t3.c.name == 't3 #30'),
+                from_obj=[(t1.join(t2).outerjoin(t3, criteria))])
+            self.assertRows(expr, [(10, 20, 30)])
+
 
 class OperatorTest(PersistTest):
     def setUpAll(self):
@@ -699,12 +1124,20 @@ class OperatorTest(PersistTest):
 
     def tearDownAll(self):
         metadata.drop_all()
-        
+
     def test_modulo(self):
         self.assertEquals(
             select([flds.c.intcol % 3], order_by=flds.c.idcol).execute().fetchall(),
             [(2,),(1,)]
         )
-        
+
+
+def exec_sorted(statement, *args, **kw):
+    """Executes a statement and returns a sorted list plain tuple rows."""
+
+    return sorted([tuple(row)
+                   for row in statement.execute(*args, **kw).fetchall()])
+
+
 if __name__ == "__main__":
     testbase.main()        

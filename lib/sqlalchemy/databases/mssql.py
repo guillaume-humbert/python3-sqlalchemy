@@ -39,7 +39,7 @@ Known issues / TODO:
 
 import datetime, random, warnings, re, sys, operator
 
-from sqlalchemy import util, sql, schema, exceptions
+from sqlalchemy import sql, schema, exceptions
 from sqlalchemy.sql import compiler, expression
 from sqlalchemy.engine import default, base
 from sqlalchemy import types as sqltypes
@@ -593,7 +593,7 @@ class MSSQLDialect(default.DefaultDialect):
             raise exceptions.NoSuchTableError(table.name)
 
         # We also run an sp_columns to check for identity columns:
-        cursor = connection.execute("sp_columns [%s]" % self.identifier_preparer.format_table(table))
+        cursor = connection.execute("sp_columns %s" % self.identifier_preparer.format_table(table))
         ic = None
         while True:
             row = cursor.fetchone()
@@ -662,8 +662,8 @@ class MSSQLDialect(default.DefaultDialect):
 
 class MSSQLDialect_pymssql(MSSQLDialect):
     supports_sane_rowcount = False
-    supports_sane_multi_rowcount = False
-
+    max_identifier_length = 30
+    
     def import_dbapi(cls):
         import pymssql as module
         # pymmsql doesn't have a Binary method.  we use string
@@ -896,7 +896,7 @@ class MSSQLCompiler(compiler.DefaultCompiler):
         return super(MSSQLCompiler, self).visit_alias(alias, **kwargs)
 
     def visit_column(self, column):
-        if column.table is not None:
+        if column.table is not None and not self.isupdate and not self.isdelete:
             # translate for schema-qualified table aliases
             t = self._schema_aliased_table(column.table)
             if t is not None:
@@ -981,16 +981,13 @@ class MSSQLIdentifierPreparer(compiler.IdentifierPreparer):
         #TODO: determin MSSQL's escapeing rules
         return value
 
-    def _fold_identifier_case(self, value):
-        #TODO: determin MSSQL's case folding rules
-        return value
-
 dialect = MSSQLDialect
 dialect.statement_compiler = MSSQLCompiler
 dialect.schemagenerator = MSSQLSchemaGenerator
 dialect.schemadropper = MSSQLSchemaDropper
 dialect.preparer = MSSQLIdentifierPreparer
 dialect.defaultrunner = MSSQLDefaultRunner
+
 
 
 
