@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -93,7 +93,7 @@
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDecimal">class MSDecimal(MSNumeric)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDouble">class MSDouble(MSNumeric)</a></li>
+        <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDouble">class MSDouble(Float,_NumericType)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSEnum">class MSEnum(MSString)</a></li>
@@ -129,7 +129,7 @@
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSSet">class MSSet(MSString)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSSmallInteger">class MSSmallInteger(SmallInteger,_NumericType)</a></li>
+        <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSSmallInteger">class MSSmallInteger(SmallInteger,MSInteger)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSString">class MSString(_StringType,String)</a></li>
@@ -814,7 +814,7 @@ underlying database API, which continue to be numeric.</dd>
     
     <div class="sectionL3">
 
-    <h3>class MSDouble(<a href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSNumeric">MSNumeric</a>)</h3>
+    <h3>class MSDouble(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Float">Float</a>,_NumericType)</h3>
     
     
     <div class="darkcell"><p>MySQL DOUBLE type.</p>
@@ -825,7 +825,7 @@ underlying database API, which continue to be numeric.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>precision=10</i>, <i>length=2</i>, <i>asdecimal=True</i>, <i>**kw</i>)</b>
+    <b>def __init__(<i>self</i>, <i>precision=None</i>, <i>length=None</i>, <i>asdecimal=True</i>, <i>**kw</i>)</b>
     <div class="docstring">
     <p>Construct a DOUBLE.</p>
 <dl class="docutils">
@@ -973,7 +973,7 @@ collation of character data.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>precision=10</i>, <i>length=None</i>, <i>asdecimal=False</i>, <i>**kw</i>)</b>
+    <b>def __init__(<i>self</i>, <i>precision=None</i>, <i>length=None</i>, <i>asdecimal=False</i>, <i>**kw</i>)</b>
     <div class="docstring">
     <p>Construct a FLOAT.</p>
 <dl class="docutils">
@@ -1575,7 +1575,7 @@ collation of character data.</dd>
     
     <div class="sectionL3">
 
-    <h3>class MSSmallInteger(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_SmallInteger">SmallInteger</a>,_NumericType)</h3>
+    <h3>class MSSmallInteger(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_SmallInteger">SmallInteger</a>,<a href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSInteger">MSInteger</a>)</h3>
     
     
     <div class="darkcell"><p>MySQL SMALLINTEGER type.</p>

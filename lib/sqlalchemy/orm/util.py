@@ -7,7 +7,7 @@
 from sqlalchemy import sql, util, exceptions
 from sqlalchemy.sql import util as sql_util
 from sqlalchemy.sql import visitors
-from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE
+from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE, build_path
 
 all_cascades = util.Set(["delete", "delete-orphan", "all", "merge",
                          "expunge", "save-update", "refresh-expire", "none"])
@@ -91,7 +91,7 @@ class TranslatingDict(dict):
         self.selectable = selectable
 
     def __translate_col(self, col):
-        ourcol = self.selectable.corresponding_column(col, keys_ok=False, raiseerr=False)
+        ourcol = self.selectable.corresponding_column(col, raiseerr=False)
         if ourcol is None:
             return col
         else:
@@ -112,10 +112,22 @@ class TranslatingDict(dict):
     def setdefault(self, col, value):
         return super(TranslatingDict, self).setdefault(self.__translate_col(col), value)
 
-class ExtensionCarrier(MapperExtension):
+class ExtensionCarrier(object):
+    """stores a collection of MapperExtension objects.
+    
+    allows an extension methods to be called on contained MapperExtensions
+    in the order they were added to this object.  Also includes a 'methods' dictionary
+    accessor which allows for a quick check if a particular method
+    is overridden on any contained MapperExtensions.
+    """
+    
     def __init__(self, _elements=None):
-        self.__elements = _elements or []
-
+        self.methods = {}
+        if _elements is not None:
+            self.__elements = [self.__inspect(e) for e in _elements]
+        else:
+            self.__elements = []
+        
     def copy(self):
         return ExtensionCarrier(list(self.__elements))
         
@@ -125,43 +137,40 @@ class ExtensionCarrier(MapperExtension):
     def insert(self, extension):
         """Insert a MapperExtension at the beginning of this ExtensionCarrier's list."""
 
-        self.__elements.insert(0, extension)
+        self.__elements.insert(0, self.__inspect(extension))
 
     def append(self, extension):
         """Append a MapperExtension at the end of this ExtensionCarrier's list."""
 
-        self.__elements.append(extension)
+        self.__elements.append(self.__inspect(extension))
 
-    def _create_do(funcname):
-        def _do(self, *args, **kwargs):
+    def __inspect(self, extension):
+        for meth in MapperExtension.__dict__.keys():
+            if meth not in self.methods and hasattr(extension, meth) and getattr(extension, meth) is not getattr(MapperExtension, meth):
+                self.methods[meth] = self.__create_do(meth)
+        return extension
+           
+    def __create_do(self, funcname):
+        def _do(*args, **kwargs):
             for elem in self.__elements:
                 ret = getattr(elem, funcname)(*args, **kwargs)
                 if ret is not EXT_CONTINUE:
                     return ret
             else:
                 return EXT_CONTINUE
-        return _do
 
-    instrument_class = _create_do('instrument_class')
-    init_instance = _create_do('init_instance')
-    init_failed = _create_do('init_failed')
-    dispose_class = _create_do('dispose_class')
-    get_session = _create_do('get_session')
-    load = _create_do('load')
-    get = _create_do('get')
-    get_by = _create_do('get_by')
-    select_by = _create_do('select_by')
-    select = _create_do('select')
-    translate_row = _create_do('translate_row')
-    create_instance = _create_do('create_instance')
-    append_result = _create_do('append_result')
-    populate_instance = _create_do('populate_instance')
-    before_insert = _create_do('before_insert')
-    before_update = _create_do('before_update')
-    after_update = _create_do('after_update')
-    after_insert = _create_do('after_insert')
-    before_delete = _create_do('before_delete')
-    after_delete = _create_do('after_delete')
+        try:
+            _do.__name__ = funcname
+        except:
+            # cant set __name__ in py 2.3 
+            pass
+        return _do
+    
+    def _pass(self, *args, **kwargs):
+        return EXT_CONTINUE
+        
+    def __getattr__(self, key):
+        return self.methods.get(key, self._pass)
 
 class BinaryVisitor(visitors.ClauseVisitor):
     def __init__(self, func):
@@ -180,7 +189,6 @@ class AliasedClauses(object):
         else:
             self.alias = mapped_table.alias()
         self.mapped_table = mapped_table
-        self.extra_cols = {}
         self.row_decorator = self._create_row_adapter()
         
     def aliased_column(self, column):
@@ -190,9 +198,6 @@ class AliasedClauses(object):
         conv = self.alias.corresponding_column(column, raiseerr=False)
         if conv:
             return conv
-
-        if column in self.extra_cols:
-            return self.extra_cols[column]
 
         aliased_column = column
         # for column-level subqueries, swap out its selectable with our
@@ -205,11 +210,6 @@ class AliasedClauses(object):
         aliased_column = sql_util.ClauseAdapter(self.alias).chain(ModifySubquery()).traverse(aliased_column, clone=True)
         aliased_column = aliased_column.label(None)
         self.row_decorator.map[column] = aliased_column
-        # TODO: this is a little hacky
-        for attr in ('name', '_label'):
-            if hasattr(column, attr):
-                self.row_decorator.map[getattr(column, attr)] = aliased_column
-        self.extra_cols[column] = aliased_column
         return aliased_column
 
     def adapt_clause(self, clause):
@@ -224,36 +224,49 @@ class AliasedClauses(object):
         of that table, in such a way that the row can be passed to logic which knows nothing about the aliased form
         of the table.
         """
-        class AliasedRowAdapter(object):
-            def __init__(self, row):
-                self.row = row
-            def __contains__(self, key):
-                return key in map or key in self.row
-            def has_key(self, key):
-                return key in self
-            def __getitem__(self, key):
-                if key in map:
-                    key = map[key]
-                return self.row[key]
-            def keys(self):
-                return map.keys()
-        map = {}        
-        for c in self.alias.c:
-            parent = self.mapped_table.corresponding_column(c)
-            map[parent] = c
-            map[parent._label] = c
-            map[parent.name] = c
-        for c in self.extra_cols:
-            map[c] = self.extra_cols[c]
-            # TODO: this is a little hacky
-            for attr in ('name', '_label'):
-                if hasattr(c, attr):
-                    map[getattr(c, attr)] = self.extra_cols[c]
-                
-        AliasedRowAdapter.map = map
-        return AliasedRowAdapter
+        return create_row_adapter(self.alias, self.mapped_table)
 
+def create_row_adapter(from_, to, equivalent_columns=None):
+    """create a row adapter between two selectables.
     
+    The returned adapter is a class that can be instantiated repeatedly for any number
+    of rows; this is an inexpensive process.  However, the creation of the row
+    adapter class itself *is* fairly expensive so caching should be used to prevent
+    repeated calls to this function.
+    """
+    
+    map = {}
+    for c in to.c:
+        corr = from_.corresponding_column(c, raiseerr=False)
+        if corr:
+            map[c] = corr
+        elif equivalent_columns:
+            if c in equivalent_columns:
+                for c2 in equivalent_columns[c]:
+                    corr = from_.corresponding_column(c2, raiseerr=False)
+                    if corr:
+                        map[c] = corr
+                        break
+
+    class AliasedRow(object):
+        def __init__(self, row):
+            self.row = row
+        def __contains__(self, key):
+            if key in map:
+                return map[key] in self.row
+            else:
+                return key in self.row
+        def has_key(self, key):
+            return key in self
+        def __getitem__(self, key):
+            if key in map:
+                key = map[key]
+            return self.row[key]
+        def keys(self):
+            return map.keys()
+    AliasedRow.map = map
+    return AliasedRow
+
 class PropertyAliasedClauses(AliasedClauses):
     """extends AliasedClauses to add support for primary/secondary joins on a relation()."""
     
@@ -262,9 +275,9 @@ class PropertyAliasedClauses(AliasedClauses):
             
         self.parentclauses = parentclauses
         if parentclauses is not None:
-            self.path = parentclauses.path + (prop.parent, prop.key)
+            self.path = build_path(prop.parent, prop.key, parentclauses.path)
         else:
-            self.path = (prop.parent, prop.key)
+            self.path = build_path(prop.parent, prop.key)
 
         self.prop = prop
         

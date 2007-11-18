@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -66,13 +66,22 @@
 	
     <ul>
         
+        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_modfunc">Module Functions</a></li>
+        
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_modfunc_build_path">build_path()</a></li>
+        
+    </ul>
+
+	        </li>
+        
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_AttributeExtension">class AttributeExtension(object)</a></li>
         
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_ExtensionOption">class ExtensionOption(MapperOption)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_LoaderStack">class LoaderStack(object)</a></li>
         
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_LoaderStrategy">class LoaderStrategy(object)</a></li>
@@ -85,9 +94,6 @@
         
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperProperty">class MapperProperty(object)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_OperationContext">class OperationContext(object)</a></li>
         
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_PropComparator">class PropComparator(ColumnOperators)</a></li>
@@ -122,6 +128,31 @@
     
     
     
+
+        
+    
+    <A name="docstrings_sqlalchemy.orm.interfaces_modfunc"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Module Functions</h3>
+    
+    
+                
+    <div class="darkcell">
+    
+    <A name="docstrings_sqlalchemy.orm.interfaces_modfunc_build_path"></a>
+    <b>def build_path(<i>mapper</i>, <i>key</i>, <i>prev=None</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+        
+
+    </div>
+
+
 
 
             
@@ -213,84 +244,6 @@ event handlers to be attached to an object property.</p>
     <b>def process_query(<i>self</i>, <i>query</i>)</b>
     <div class="docstring">
     
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
-    <A name="docstrings_sqlalchemy.orm.interfaces_LoaderStack"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class LoaderStack(object)</h3>
-    
-    
-    <div class="darkcell"><p>a stack object used during load operations to track the
-current position among a chain of mappers to eager loaders.</p>
-</div>
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">LoaderStack</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def pop(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def push_mapper(<i>self</i>, <i>mapper</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def push_property(<i>self</i>, <i>key</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def snapshot(<i>self</i>)</b>
-    <div class="docstring">
-    <p>return an 'snapshot' of this stack.</p>
-<p>this is a tuple form of the stack which can be used as a hash key.</p>
-
     </div>
     </div>
 
@@ -749,7 +702,7 @@ method.</p>
     <h3>class MapperOption(object)</h3>
     
     
-    <div class="darkcell"><p>Describe a modification to an OperationContext or Query.</p>
+    <div class="darkcell"><p>Describe a modification to a Query.</p>
 </div>
     
 
@@ -758,26 +711,6 @@ method.</p>
     
     <A name=""></a>
     <b>def process_query(<i>self</i>, <i>query</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def process_query_context(<i>self</i>, <i>context</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def process_selection_context(<i>self</i>, <i>context</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1015,53 +948,6 @@ criterion as appropriate.</p>
 
     
     
-    <A name="docstrings_sqlalchemy.orm.interfaces_OperationContext"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class OperationContext(object)</h3>
-    
-    
-    <div class="darkcell"><p>Serve as a context during a query construction or instance
-loading operation.</p>
-<p>Accept <tt class="docutils literal"><span class="pre">MapperOption</span></tt> objects which may modify its state before proceeding.</p>
-</div>
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>mapper</i>, <i>options</i>, <i>attributes=None</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">OperationContext</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def accept_option(<i>self</i>, <i>opt</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
     <A name="docstrings_sqlalchemy.orm.interfaces_PropComparator"></a>
     
     <div class="sectionL3">
@@ -1181,7 +1067,7 @@ one of its child mappers, identified by a dot-separated key.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def process_query_context(<i>self</i>, <i>context</i>)</b>
+    <b>def process_query(<i>self</i>, <i>query</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1191,27 +1077,7 @@ one of its child mappers, identified by a dot-separated key.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def process_query_property(<i>self</i>, <i>context</i>, <i>properties</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def process_selection_context(<i>self</i>, <i>context</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def process_selection_property(<i>self</i>, <i>context</i>, <i>properties</i>)</b>
+    <b>def process_query_property(<i>self</i>, <i>query</i>, <i>paths</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1266,17 +1132,7 @@ for an operation by a StrategizedProperty.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def process_query_property(<i>self</i>, <i>context</i>, <i>properties</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def process_selection_property(<i>self</i>, <i>context</i>, <i>properties</i>)</b>
+    <b>def process_query_property(<i>self</i>, <i>query</i>, <i>paths</i>)</b>
     <div class="docstring">
     
     </div>

@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -161,27 +161,36 @@
         
         <li><a style="" href="session.html#unitofwork_contextual_associating">Associating Classes and Mappers with a Contextual Session</a></li>
         
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="session.html#unitofwork_contextual_associating_autosave">Auto-Save Behavior with Contextual Session's Mapper</a></li>
+        
     </ul>
 
 	        </li>
         
-        <li><a style="" href="session.html#unitofwork_partitioning">Partitioning Strategies</a></li>
+        <li><a style="" href="session.html#unitofwork_contextual_partitioning">Partitioning Strategies</a></li>
         
 	        <li>
                 
     <ul>
         
-        <li><a style="" href="session.html#unitofwork_partitioning_vertical">Vertical Partitioning</a></li>
+        <li><a style="" href="session.html#unitofwork_contextual_partitioning_vertical">Vertical Partitioning</a></li>
         
         
-        <li><a style="" href="session.html#unitofwork_partitioning_horizontal">Horizontal Partitioning</a></li>
+        <li><a style="" href="session.html#unitofwork_contextual_partitioning_horizontal">Horizontal Partitioning</a></li>
         
     </ul>
 
 	        </li>
         
-        <li><a style="" href="session.html#unitofwork_extending">Extending Session</a></li>
+        <li><a style="" href="session.html#unitofwork_contextual_extending">Extending Session</a></li>
         
+    </ul>
+
+	        </li>
     </ul>
 
 	</div>
@@ -334,7 +343,7 @@
 </span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The <code>Session</code> also has the ability to be bound to multiple engines.   Descriptions of these scenarios are described in <a href="session.html#unitofwork_partitioning">Partitioning Strategies</a>.
+<p>The <code>Session</code> also has the ability to be bound to multiple engines.   Descriptions of these scenarios are described in <b>unitofwork_partitioning</b>.
 </p>
 
 
@@ -650,10 +659,6 @@
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">deleted</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Note that if a session is created with the <code>weak_identity_map</code> flag, an item which is marked as "dirty" will be silently removed from the session if the item falls out of scope in the user application.  This is because the unit of work does not look for "dirty" changes except for within a flush operation (or any time the session.dirty collection is accessed). 
-</p>
-<p>However, the <code>new</code> and <code>deleted</code> collections are strong-referencing sets.  Even if you're using <code>weak_identity_map</code>, if you abandon all references to new or deleted objects within a session, <em>they are still present</em> in either of those two lists, and will be saved on the next flush operation, unless they are removed from the Session explicitly or the session is cleared.
-</p>
 
 
 
@@ -786,6 +791,8 @@
 </span><span class="python_name">myobj </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">merge</span><span class="python_enclosure">(</span><span class="python_name">myobj</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+<p><code>merge()</code> includes an important option called <code>dont_load</code>.  When this boolean flag is set to <code>True</code>, the merge of a detached object will not force a <code>get()</code> of that object from the database.  Normally, <code>merge()</code> issues a <code>get()</code> for every existing object so that it can load the most recent state of the object, which is then modified according to the state of the given object.  With <code>dont_load=True</code>, the <code>get()</code> is skipped and <code>merge()</code> places an exact copy of the given object in the session.  This allows objects which were retrieved from a caching system to be copied back into a session without any SQL overhead being added.
+</p>
 
 
 
@@ -1026,6 +1033,23 @@
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">expire</span><span class="python_enclosure">(</span><span class="python_name">obj2</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+<p><code>refresh()</code> and <code>expire()</code> also support being passed a list of individual attribute names in which to be refreshed.  These names can reference any attribute, column-based or relation based:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_comment"># immediately re-load the attributes 'hello', 'world' on obj1, obj2
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">refresh</span><span class="python_enclosure">(</span><span class="python_name">obj1</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">refresh</span><span class="python_enclosure">(</span><span class="python_name">obj2</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
+</span>
+<span class="python_comment"># expire the attriibutes 'hello', 'world' objects obj1, obj2, attributes will be reloaded
+# on the next access:
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">expire</span><span class="python_enclosure">(</span><span class="python_name">obj1</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">expire</span><span class="python_enclosure">(</span><span class="python_name">obj2</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
+</span></pre>
+    </div>
 
 
 
@@ -1142,7 +1166,7 @@
         <pre>
 <span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">transactional</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">with sess</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">:
+</span><span class="python_keyword">with </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">:
     </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
@@ -1559,7 +1583,18 @@ web response   <-
 <span class="python_name">wendy </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'wendy'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Additionally, new instances are saved into the contextual session automatically upon construction; there is no longer a need to call <code>save()</code>:
+
+
+    
+    <A name="unitofwork_contextual_associating_autosave"></a>
+    
+    <div class="sectionL4">
+
+    <h3>Auto-Save Behavior with Contextual Session's Mapper</h3>
+    
+    
+
+<p>By default, when using Session.mapper, <strong>new instances are saved into the contextual session automatically upon construction;</strong> there is no longer a need to call <code>save()</code>:
 </p>
 
     
@@ -1571,7 +1606,33 @@ web response   <-
 </span><span class="python_name">True</span><span class="python_operator">
 </span></pre>
     </div>
-<p>This functionality is an updated version of what used to be accomplished by the <code>assignmapper()</code> SQLAlchemy extension.
+<p>The auto-save functionality can cause problems, namely that any <code>flush()</code> which occurs before a newly constructed object is fully populated will result in that object being INSERTed without all of its attributes completed.  As a <code>flush()</code> is more frequent when using sessions with <code>autoflush=True</code>, <strong>the auto-save behavior can be disabled</strong>, using the <code>save_on_init=False</code> flag:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_comment"># "contextual" mapper function
+</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">
+</span>
+<span class="python_comment"># use normally, specify no save on init:
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">save_on_init</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">save_on_init</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># objects now again require expicit "save"
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">newuser </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">assert </span><span class="python_name">newuser </span><span class="python_keyword">in </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">new</span><span class="python_operator">
+</span><span class="python_name">False</span><span class="python_operator">
+</span>
+<span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">newuser</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">assert </span><span class="python_name">newuser </span><span class="python_keyword">in </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">new</span><span class="python_operator">
+</span><span class="python_name">True</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The functionality of <code>Session.mapper</code> is an updated version of what used to be accomplished by the <code>assignmapper()</code> SQLAlchemy extension.
 </p>
 <p><a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_scoped_session">Generated docstrings for scoped_session()</a>
 </p>
@@ -1588,10 +1649,15 @@ web response   <-
 
 
 
+
+    </div>
+
+
+
     
-    <A name="unitofwork_partitioning"></a>
+    <A name="unitofwork_contextual_partitioning"></a>
     
-    <div class="sectionL2">
+    <div class="sectionL3">
 
     <h3>Partitioning Strategies</h3>
     
@@ -1602,9 +1668,9 @@ web response   <-
 
 
     
-    <A name="unitofwork_partitioning_vertical"></a>
+    <A name="unitofwork_contextual_partitioning_vertical"></a>
     
-    <div class="sectionL3">
+    <div class="sectionL4">
 
     <h3>Vertical Partitioning</h3>
     
@@ -1637,9 +1703,9 @@ web response   <-
 
 
     
-    <A name="unitofwork_partitioning_horizontal"></a>
+    <A name="unitofwork_contextual_partitioning_horizontal"></a>
     
-    <div class="sectionL3">
+    <div class="sectionL4">
 
     <h3>Horizontal Partitioning</h3>
     
@@ -1663,9 +1729,9 @@ web response   <-
 
 
     
-    <A name="unitofwork_extending"></a>
+    <A name="unitofwork_contextual_extending"></a>
     
-    <div class="sectionL2">
+    <div class="sectionL3">
 
     <h3>Extending Session</h3>
     

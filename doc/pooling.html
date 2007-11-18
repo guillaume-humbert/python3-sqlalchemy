@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -112,8 +112,8 @@
 
     <div class="sliding_code">
         <pre>
-<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
-</span><span class="python_keyword">import </span><span class="python_name">psycopg2 as psycopg</span><span class="python_operator">
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool </span><span class="python_keyword">as </span><span class="python_name">pool</span><span class="python_operator">
+</span><span class="python_keyword">import </span><span class="python_name">psycopg2 </span><span class="python_keyword">as </span><span class="python_name">psycopg</span><span class="python_operator">
 </span><span class="python_name">psycopg </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">manage</span><span class="python_enclosure">(</span><span class="python_name">psycopg</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># then connect normally
@@ -226,7 +226,7 @@
     <div class="sliding_code">
             <div class="codetitle">Constructing a QueuePool</div>
         <pre>
-<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool </span><span class="python_keyword">as </span><span class="python_name">pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">psycopg2</span><span class="python_operator">
 </span>
 <span class="python_keyword">def </span><span class="python_name">getconn</span><span class="python_enclosure">()</span><span class="python_operator">:
@@ -246,7 +246,7 @@
     <div class="sliding_code">
             <div class="codetitle">Constructing a SingletonThreadPool</div>
         <pre>
-<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool </span><span class="python_keyword">as </span><span class="python_name">pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">sqlite</span><span class="python_operator">
 </span>
 <span class="python_keyword">def </span><span class="python_name">getconn</span><span class="python_enclosure">()</span><span class="python_operator">:

@@ -71,10 +71,17 @@ class SchemaItem(object):
         else:
             m = self.metadata
             return m and m.bind or None
-
-
     bind = property(lambda s:s._get_bind())
     
+    def info(self):
+        try:
+            return self._info
+        except AttributeError:
+            self._info = {}
+            return self._info
+    info = property(info)
+    
+
 def _get_table_key(name, schema):
     if schema is None:
         return name
@@ -86,11 +93,8 @@ class _TableSingleton(expression._FigureVisitName):
 
     def __call__(self, name, metadata, *args, **kwargs):
         schema = kwargs.get('schema', None)
-        autoload = kwargs.pop('autoload', False)
-        autoload_with = kwargs.pop('autoload_with', False)
-        mustexist = kwargs.pop('mustexist', False)
         useexisting = kwargs.pop('useexisting', False)
-        include_columns = kwargs.pop('include_columns', None)
+        mustexist = kwargs.pop('mustexist', False)
         key = _get_table_key(name, schema)
         try:
             table = metadata.tables[key]
@@ -101,57 +105,23 @@ class _TableSingleton(expression._FigureVisitName):
         except KeyError:
             if mustexist:
                 raise exceptions.ArgumentError("Table '%s' not defined" % (key))
-            table = type.__call__(self, name, metadata, **kwargs)
-            table._set_parent(metadata)
-            # load column definitions from the database if 'autoload' is defined
-            # we do it after the table is in the singleton dictionary to support
-            # circular foreign keys
-            if autoload:
-                try:
-                    if autoload_with:
-                        autoload_with.reflecttable(table, include_columns=include_columns)
-                    else:
-                        metadata._get_bind(raiseerr=True).reflecttable(table, include_columns=include_columns)
-                except exceptions.NoSuchTableError:
+            try:
+                return type.__call__(self, name, metadata, *args, **kwargs)
+            except:
+                if key in metadata.tables:
                     del metadata.tables[key]
-                    raise
-            # initialize all the column, etc. objects.  done after
-            # reflection to allow user-overrides
-            table._init_items(*args)
-            return table
+                raise
 
 
 class Table(SchemaItem, expression.TableClause):
-    """Represent a relational database table.
-
-    This subclasses ``expression.TableClause`` to provide a table that is
-    associated with an instance of ``MetaData``, which in turn
-    may be associated with an instance of ``Engine``.  
-
-    Whereas ``TableClause`` represents a table as its used in an SQL
-    expression, ``Table`` represents a table as it exists in a
-    database schema.
-    
-    If this ``Table`` is ultimately associated with an engine,
-    the ``Table`` gains the ability to access the database directly
-    without the need for dealing with an explicit ``Connection`` object;
-    this is known as "implicit execution".
-    
-    Implicit operation allows the ``Table`` to access the database to
-    reflect its own properties (via the autoload=True flag), it allows
-    the create() and drop() methods to be called without passing
-    a connectable, and it also propigates the underlying engine to
-    constructed SQL objects so that they too can be executed via their
-    execute() method without the need for a ``Connection``.
-    """
+    """Represent a relational database table."""
 
     __metaclass__ = _TableSingleton
 
-    def __init__(self, name, metadata, **kwargs):
+    def __init__(self, name, metadata, *args, **kwargs):
         """Construct a Table.
 
-        Table objects can be constructed directly.  The init method is
-        actually called via the TableSingleton metaclass.  Arguments
+        Table objects can be constructed directly.  Arguments
         are:
 
         name
@@ -168,8 +138,8 @@ class Table(SchemaItem, expression.TableClause):
           Should contain a listing of the Column objects for this table.
 
         \**kwargs
-          Options include:
-
+          kwargs include:
+          
           schema
             The *schema name* for this table, which is
             required if the table resides in a schema other than the
@@ -185,14 +155,18 @@ class Table(SchemaItem, expression.TableClause):
             if autoload==True, this is an optional Engine or Connection
             instance to be used for the table reflection.  If ``None``,
             the underlying MetaData's bound connectable will be used.
-            
+        
           include_columns
             A list of strings indicating a subset of columns to be 
             loaded via the ``autoload`` operation; table columns who
             aren't present in this list will not be represented on the resulting
             ``Table`` object.  Defaults to ``None`` which indicates all 
             columns should be reflected.
-            
+        
+          info
+            Defaults to {}: A space to store application specific data;
+            this must be a dictionary.
+
           mustexist
             Defaults to False: indicates that this Table must already
             have been defined elsewhere in the application, else an
@@ -236,18 +210,37 @@ class Table(SchemaItem, expression.TableClause):
         else:
             self.fullname = self.name
         self.owner = kwargs.pop('owner', None)
+        if kwargs.get('info'):
+            self._info = kwargs.pop('info')
+        
+        autoload = kwargs.pop('autoload', False)
+        autoload_with = kwargs.pop('autoload_with', None)
+        include_columns = kwargs.pop('include_columns', None)
 
+        # validate remaining kwargs that they all specify DB prefixes
         if len([k for k in kwargs if not re.match(r'^(?:%s)_' % '|'.join(databases.__all__), k)]):
             raise TypeError("Invalid argument(s) for Table: %s" % repr(kwargs.keys()))
 
-        # store extra kwargs, which should only contain db-specific options
         self.kwargs = kwargs
+        
+        self._set_parent(metadata)
+        # load column definitions from the database if 'autoload' is defined
+        # we do it after the table is in the singleton dictionary to support
+        # circular foreign keys
+        if autoload:
+            if autoload_with:
+                autoload_with.reflecttable(self, include_columns=include_columns)
+            else:
+                metadata._get_bind(raiseerr=True).reflecttable(self, include_columns=include_columns)
+                
+        # initialize all the column, etc. objects.  done after
+        # reflection to allow user-overrides
+        self._init_items(*args)
 
     key = property(lambda self:_get_table_key(self.name, self.schema))
     
     def _export_columns(self, columns=None):
-        # override FromClause's collection initialization logic; TableClause and Table
-        # implement it differently
+        # override FromClause's collection initialization logic; Table implements it differently
         pass
 
     def _set_primary_key(self, pk):
@@ -264,7 +257,7 @@ class Table(SchemaItem, expression.TableClause):
             ["%s=%s" % (k, repr(getattr(self, k))) for k in ['schema']])
 
     def __str__(self):
-        return _get_table_key(self.encodedname, self.schema)
+        return _get_table_key(self.description, self.schema)
 
     def append_column(self, column):
         """Append a ``Column`` to this ``Table``."""
@@ -403,6 +396,10 @@ class Column(SchemaItem, expression._ColumnClause):
             specify indexes with explicit names or indexes that
             contain multiple columns, use the ``Index`` construct instead.
 
+          info
+            Defaults to {}: A space to store application specific data;
+            this must be a dictionary.
+
           unique
             Defaults to False: indicates that this column contains a
             unique constraint, or if `index` is True as well,
@@ -439,7 +436,7 @@ class Column(SchemaItem, expression._ColumnClause):
         super(Column, self).__init__(name, None, type_)
         self.args = args
         self.key = kwargs.pop('key', name)
-        self._primary_key = kwargs.pop('primary_key', False)
+        self.primary_key = kwargs.pop('primary_key', False)
         self.nullable = kwargs.pop('nullable', not self.primary_key)
         self._is_oid = kwargs.pop('_is_oid', False)
         self.default = kwargs.pop('default', None)
@@ -449,23 +446,22 @@ class Column(SchemaItem, expression._ColumnClause):
         self.onupdate = kwargs.pop('onupdate', None)
         self.autoincrement = kwargs.pop('autoincrement', True)
         self.constraints = util.Set()
-        self.__originating_column = self
-        self._foreign_keys = util.OrderedSet()
+        self.foreign_keys = util.OrderedSet()
+        if kwargs.get('info'):
+            self._info = kwargs.pop('info')
         if kwargs:
             raise exceptions.ArgumentError("Unknown arguments passed to Column: " + repr(kwargs.keys()))
 
-    primary_key = util.SimpleProperty('_primary_key')
-    foreign_keys = util.SimpleProperty('_foreign_keys')
     columns = property(lambda self:[self])
 
     def __str__(self):
         if self.table is not None:
             if self.table.named_with_column():
-                return (self.table.encodedname + "." + self.encodedname)
+                return (self.table.description + "." + self.description)
             else:
-                return self.encodedname
+                return self.description
         else:
-            return self.encodedname
+            return self.description
 
     def _get_bind(self):
         return self.table.bind
@@ -485,7 +481,7 @@ class Column(SchemaItem, expression._ColumnClause):
         kwarg = []
         if self.key != self.name:
             kwarg.append('key')
-        if self._primary_key:
+        if self.primary_key:
             kwarg.append('primary_key')
         if not self.nullable:
             kwarg.append('nullable')
@@ -511,6 +507,7 @@ class Column(SchemaItem, expression._ColumnClause):
             table._columns.add(self)
         else:
             self._pre_existing_column = None
+            
         if self.primary_key:
             table.primary_key.add(self)
         elif self.key in table.primary_key:
@@ -554,9 +551,7 @@ class Column(SchemaItem, expression._ColumnClause):
         fk = [ForeignKey(f._colspec) for f in self.foreign_keys]
         c = Column(name or self.name, self.type, self.default, key = name or self.key, primary_key = self.primary_key, nullable = self.nullable, _is_oid = self._is_oid, quote=self.quote, *fk)
         c.table = selectable
-        c.orig_set = self.orig_set
-        c.__originating_column = self.__originating_column
-        c._distance = self._distance + 1
+        c.proxies = [self]
         c._pre_existing_column = self._pre_existing_column
         if not c._is_oid:
             selectable.columns.add(c)
@@ -627,6 +622,12 @@ class ForeignKey(SchemaItem):
 
         return table.corresponding_column(self.column, False) is not None
     
+    def get_referent(self, table):
+        """return the column in the given table referenced by this ``ForeignKey``, or
+        None if this ``ForeignKey`` does not reference the given table.
+        """
+        return table.corresponding_column(self.column, False)
+        
     def _init_column(self):
         # ForeignKey inits its remote column as late as possible, so tables can
         # be defined without dependencies
@@ -635,7 +636,7 @@ class ForeignKey(SchemaItem):
                 # locate the parent table this foreign key is attached to.
                 # we use the "original" column which our parent column represents
                 # (its a list of columns/other ColumnElements if the parent table is a UNION)
-                for c in self.parent.orig_set:
+                for c in self.parent.base_columns:
                     if isinstance(c, Column):
                         parenttable = c.table
                         break

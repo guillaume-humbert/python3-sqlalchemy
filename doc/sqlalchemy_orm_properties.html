@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -115,8 +115,8 @@ to handle flush-time dependency sorting and processing.</p>
     <h3>class BackRef(object)</h3>
     
     
-    <div class="darkcell"><p>Stores the name of a backreference property as well as options
-to be used on the resulting PropertyLoader.</p>
+    <div class="darkcell"><p>Attached to a PropertyLoader to indicate a complementary reverse relationship.</p>
+<p>Can optionally create the complementing PropertyLoader if one does not exist already.</p>
 </div>
     
 
@@ -124,7 +124,7 @@ to be used on the resulting PropertyLoader.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>key</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>key</i>, <i>_prop=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">BackRef</span></tt>.</p>
 
@@ -137,9 +137,7 @@ to be used on the resulting PropertyLoader.</p>
     <A name=""></a>
     <b>def compile(<i>self</i>, <i>prop</i>)</b>
     <div class="docstring">
-    <p>Called by the owning PropertyLoader to set up a
-backreference on the PropertyLoader's mapper.</p>
-
+    
     </div>
     </div>
 
@@ -246,7 +244,7 @@ appears across each table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def merge(<i>self</i>, <i>session</i>, <i>source</i>, <i>dest</i>, <i>_recursive</i>)</b>
+    <b>def merge(<i>self</i>, <i>session</i>, <i>source</i>, <i>dest</i>, <i>dont_load</i>, <i>_recursive</i>)</b>
     <div class="docstring">
     
     </div>
@@ -453,7 +451,7 @@ and secondary are returned, they are joined via AND.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def merge(<i>self</i>, <i>session</i>, <i>source</i>, <i>dest</i>, <i>_recursive</i>)</b>
+    <b>def merge(<i>self</i>, <i>session</i>, <i>source</i>, <i>dest</i>, <i>dont_load</i>, <i>_recursive</i>)</b>
     <div class="docstring">
     
     </div>

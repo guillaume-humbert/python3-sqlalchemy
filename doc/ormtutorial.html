@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -1011,15 +1011,17 @@ WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm </span><span class="python_keyword">import </span><span class="python_name">eagerload</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_25', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">jack </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_25_div" class="codepop" style="display:none;">SELECT addresses_1.id AS addresses_1_id, addresses_1.email_address AS addresses_1_email_address, <br/>
-addresses_1.user_id AS addresses_1_user_id, users.id AS users_id, users.name AS users_name, <br/>
-users.fullname AS users_fullname, users.password AS users_password <br/>
-FROM (SELECT users.id AS users_id, users.oid AS users_oid <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_25', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">jack </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_25_div" class="codepop" style="display:none;">SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS anon_1_users_name, <br/>
+anon_1.users_fullname AS anon_1_users_fullname, anon_1.users_password AS anon_1_users_password, <br/>
+addresses_2.id AS addresses_2_id, addresses_2.email_address AS addresses_2_email_address, <br/>
+addresses_2.user_id AS addresses_2_user_id <br/>
+    FROM (SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, <br/>
+    users.password AS users_password, users.oid AS users_oid <br/>
     FROM users <br/>
-WHERE users.name = ? ORDER BY users.oid LIMIT 2 OFFSET 0) AS tbl_row_count, <br/>
- users LEFT OUTER JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id <br/>
-WHERE users.id = tbl_row_count.users_id ORDER BY tbl_row_count.oid, addresses_1.oid<br/>
-['jack']</div><pre><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">
+    WHERE users.name = ? ORDER BY users.oid <br/>
+     LIMIT 2 OFFSET 0) AS anon_1 LEFT OUTER JOIN addresses AS addresses_2 <br/>
+     ON anon_1.users_id = addresses_2.user_id ORDER BY anon_1.oid, addresses_2.oid<br/>
+    ['jack']</div><pre><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">
 &lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">
@@ -1507,7 +1509,7 @@ WHERE addresses.email_address IN (?, ?)<br/>
 </span><span class="python_literal"><a href="javascript:togglePopbox('popbox_52', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">jack </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">    </span></pre><div id="popbox_52_div" class="codepop" style="display:none;">BEGIN<br/>
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
-WHERE users.id = ? ORDER BY users.oid <br/>
+WHERE users.id = ?<br/>
 [5]</div><pre>
 
 <span class="python_comment"># remove one Address (lazy load fires off)
@@ -1721,12 +1723,12 @@ WHERE users.name = ? ORDER BY users.oid <br/>
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_60', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_60_div" class="codepop" style="display:none;">INSERT INTO keywords (keyword) VALUES (?)<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_60', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_60_div" class="codepop" style="display:none;">INSERT INTO posts (user_id, headline, body) VALUES (?, ?, ?)<br/>
+[2, &quot;Wendy's Blog Post&quot;, 'This is a test']<br/>
+INSERT INTO keywords (keyword) VALUES (?)<br/>
 ['wendy']<br/>
 INSERT INTO keywords (keyword) VALUES (?)<br/>
 ['firstpost']<br/>
-INSERT INTO posts (user_id, headline, body) VALUES (?, ?, ?)<br/>
-[2, &quot;Wendy's Blog Post&quot;, 'This is a test']<br/>
 INSERT INTO post_keywords (post_id, keyword_id) VALUES (?, ?)<br/>
 [[1, 1], [1, 2]]<br/>
 SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body <br/>

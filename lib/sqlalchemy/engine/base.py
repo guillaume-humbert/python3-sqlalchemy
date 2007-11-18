@@ -12,9 +12,9 @@ higher-level statement-construction, connection-management, execution
 and result contexts.
 """
 
+import StringIO, sys
 from sqlalchemy import exceptions, schema, util, types, logging
 from sqlalchemy.sql import expression, visitors
-import StringIO, sys
 
 
 class Dialect(object):
@@ -79,9 +79,14 @@ class Dialect(object):
       Indicate whether the dialect properly implements rowcount for ``UPDATE`` and ``DELETE`` statements
       when executed via executemany.
 
-    preexecute_sequences
-      Indicate if the dialect should pre-execute sequences on primary key columns during an INSERT,
-      if it's desired that the new row's primary key be available after execution.
+    preexecute_pk_sequences
+      Indicate if the dialect should pre-execute sequences on primary key
+      columns during an INSERT, if it's desired that the new row's primary key
+      be available after execution.
+
+    supports_pk_autoincrement
+      Indicates if the dialect should allow the database to passively assign
+      a primary key column value.
     """
 
     def create_connect_args(self, url):
@@ -504,6 +509,9 @@ class Connectable(object):
     def execute(self, object, *multiparams, **params):
         raise NotImplementedError()
 
+    def execute_clauseelement(self, elem, multiparams=None, params=None):
+        raise NotImplementedError()
+
 class Connection(Connectable):
     """Provides high-level functionality for a wrapped DB-API connection.
 
@@ -523,7 +531,7 @@ class Connection(Connectable):
         ``contextual_connect()`` methods of Engine.
         """
 
-        self.__engine = engine
+        self.engine = engine
         self.__connection = connection or engine.raw_connection()
         self.__transaction = None
         self.__close_with_result = close_with_result
@@ -544,14 +552,18 @@ class Connection(Connectable):
         This is used to execute "sub" statements within a single execution,
         usually an INSERT statement.
         """
-        return Connection(self.__engine, self.__connection, _branch=True)
+        return Connection(self.engine, self.__connection, _branch=True)
 
-    engine = property(lambda s:s.__engine, doc="The Engine with which this Connection is associated.")
-    dialect = property(lambda s:s.__engine.dialect, doc="Dialect used by this Connection.")
+    dialect = property(lambda s:s.engine.dialect, doc="Dialect used by this Connection.")
     connection = property(_get_connection, doc="The underlying DB-API connection managed by this Connection.")
     should_close_with_result = property(lambda s:s.__close_with_result, doc="Indicates if this Connection should be closed when a corresponding ResultProxy is closed; this is essentially an auto-release mode.")
-    properties = property(lambda s: s._get_connection().properties,
-                          doc="A collection of per-DB-API connection instance properties.")
+
+    info = property(lambda s: s._get_connection().info,
+                    doc=("A collection of per-DB-API connection instance "
+                         "properties."))
+    properties = property(lambda s: s._get_connection().info,
+                          doc=("An alias for the .info collection, will be "
+                               "removed in 0.5."))
 
     def connect(self):
         """Returns self.
@@ -647,18 +659,18 @@ class Connection(Connectable):
                 "Cannot start a two phase transaction when a transaction "
                 "is already in progress.")
         if xid is None:
-            xid = self.__engine.dialect.create_xid();
+            xid = self.engine.dialect.create_xid();
         self.__transaction = TwoPhaseTransaction(self, xid)
         return self.__transaction
 
     def recover_twophase(self):
-        return self.__engine.dialect.do_recover_twophase(self)
+        return self.engine.dialect.do_recover_twophase(self)
 
     def rollback_prepared(self, xid, recover=False):
-        self.__engine.dialect.do_rollback_twophase(self, xid, recover=recover)
+        self.engine.dialect.do_rollback_twophase(self, xid, recover=recover)
 
     def commit_prepared(self, xid, recover=False):
-        self.__engine.dialect.do_commit_twophase(self, xid, recover=recover)
+        self.engine.dialect.do_commit_twophase(self, xid, recover=recover)
 
     def in_transaction(self):
         """Return True if a transaction is in progress."""
@@ -666,32 +678,30 @@ class Connection(Connectable):
         return self.__transaction is not None
 
     def _begin_impl(self):
-        if self.__connection.is_valid:
-            if self.__engine._should_log_info:
-                self.__engine.logger.info("BEGIN")
-            try:
-                self.__engine.dialect.do_begin(self.connection)
-            except Exception, e:
-                raise exceptions.DBAPIError.instance(None, None, e)
+        if self.engine._should_log_info:
+            self.engine.logger.info("BEGIN")
+        try:
+            self.engine.dialect.do_begin(self.__connection)
+        except Exception, e:
+            raise exceptions.DBAPIError.instance(None, None, e)
 
     def _rollback_impl(self):
         if self.__connection.is_valid:
-            if self.__engine._should_log_info:
-                self.__engine.logger.info("ROLLBACK")
+            if self.engine._should_log_info:
+                self.engine.logger.info("ROLLBACK")
             try:
-                self.__engine.dialect.do_rollback(self.connection)
+                self.engine.dialect.do_rollback(self.__connection)
             except Exception, e:
                 raise exceptions.DBAPIError.instance(None, None, e)
         self.__transaction = None
 
     def _commit_impl(self):
-        if self.__connection.is_valid:
-            if self.__engine._should_log_info:
-                self.__engine.logger.info("COMMIT")
-            try:
-                self.__engine.dialect.do_commit(self.connection)
-            except Exception, e:
-                raise exceptions.DBAPIError.instance(None, None, e)
+        if self.engine._should_log_info:
+            self.engine.logger.info("COMMIT")
+        try:
+            self.engine.dialect.do_commit(self.__connection)
+        except Exception, e:
+            raise exceptions.DBAPIError.instance(None, None, e)
         self.__transaction = None
 
     def _savepoint_impl(self, name=None):
@@ -699,38 +709,38 @@ class Connection(Connectable):
             self.__savepoint_seq += 1
             name = 'sa_savepoint_%s' % self.__savepoint_seq
         if self.__connection.is_valid:
-            self.__engine.dialect.do_savepoint(self, name)
+            self.engine.dialect.do_savepoint(self, name)
             return name
 
     def _rollback_to_savepoint_impl(self, name, context):
         if self.__connection.is_valid:
-            self.__engine.dialect.do_rollback_to_savepoint(self, name)
+            self.engine.dialect.do_rollback_to_savepoint(self, name)
         self.__transaction = context
 
     def _release_savepoint_impl(self, name, context):
         if self.__connection.is_valid:
-            self.__engine.dialect.do_release_savepoint(self, name)
+            self.engine.dialect.do_release_savepoint(self, name)
         self.__transaction = context
 
     def _begin_twophase_impl(self, xid):
         if self.__connection.is_valid:
-            self.__engine.dialect.do_begin_twophase(self, xid)
+            self.engine.dialect.do_begin_twophase(self, xid)
 
     def _prepare_twophase_impl(self, xid):
         if self.__connection.is_valid:
             assert isinstance(self.__transaction, TwoPhaseTransaction)
-            self.__engine.dialect.do_prepare_twophase(self, xid)
+            self.engine.dialect.do_prepare_twophase(self, xid)
 
     def _rollback_twophase_impl(self, xid, is_prepared):
         if self.__connection.is_valid:
             assert isinstance(self.__transaction, TwoPhaseTransaction)
-            self.__engine.dialect.do_rollback_twophase(self, xid, is_prepared)
+            self.engine.dialect.do_rollback_twophase(self, xid, is_prepared)
         self.__transaction = None
 
     def _commit_twophase_impl(self, xid, is_prepared):
         if self.__connection.is_valid:
             assert isinstance(self.__transaction, TwoPhaseTransaction)
-            self.__engine.dialect.do_commit_twophase(self, xid, is_prepared)
+            self.engine.dialect.do_commit_twophase(self, xid, is_prepared)
         self.__transaction = None
 
     def _autocommit(self, context):
@@ -781,12 +791,13 @@ class Connection(Connectable):
             raise exceptions.InvalidRequestError("Unexecutable object type: " + str(type(object)))
 
     def _execute_default(self, default, multiparams=None, params=None):
-        return self.__engine.dialect.defaultrunner(self.__create_execution_context()).traverse_single(default)
+        return self.engine.dialect.defaultrunner(self.__create_execution_context()).traverse_single(default)
 
     def _execute_text(self, statement, multiparams, params):
         parameters = self.__distill_params(multiparams, params)
         context = self.__create_execution_context(statement=statement, parameters=parameters)
         self.__execute_raw(context)
+        self._autocommit(context)
         return context.result()
 
     def __distill_params(self, multiparams, params):
@@ -818,9 +829,9 @@ class Connection(Connectable):
                 return [multiparams]
 
     def _execute_function(self, func, multiparams, params):
-        return self._execute_clauseelement(func.select(), multiparams, params)
+        return self.execute_clauseelement(func.select(), multiparams, params)
 
-    def _execute_clauseelement(self, elem, multiparams=None, params=None):
+    def execute_clauseelement(self, elem, multiparams=None, params=None):
         params = self.__distill_params(multiparams, params)
         if params:
             keys = params[0].keys()
@@ -840,22 +851,22 @@ class Connection(Connectable):
         context.pre_execution()
         self.__execute_raw(context)
         context.post_execution()
+        self._autocommit(context)
         return context.result()
 
     def __create_execution_context(self, **kwargs):
-        return self.__engine.dialect.create_execution_context(connection=self, **kwargs)
+        return self.engine.dialect.create_execution_context(connection=self, **kwargs)
 
     def __execute_raw(self, context):
         if context.executemany:
             self._cursor_executemany(context.cursor, context.statement, context.parameters, context=context)
         else:
             self._cursor_execute(context.cursor, context.statement, context.parameters[0], context=context)
-        self._autocommit(context)
-
+        
     def _cursor_execute(self, cursor, statement, parameters, context=None):
-        if self.__engine._should_log_info:
-            self.__engine.logger.info(statement)
-            self.__engine.logger.info(repr(parameters))
+        if self.engine._should_log_info:
+            self.engine.logger.info(statement)
+            self.engine.logger.info(repr(parameters))
         try:
             self.dialect.do_execute(cursor, statement, parameters, context=context)
         except Exception, e:
@@ -869,9 +880,9 @@ class Connection(Connectable):
             raise exceptions.DBAPIError.instance(statement, parameters, e)
 
     def _cursor_executemany(self, cursor, statement, parameters, context=None):
-        if self.__engine._should_log_info:
-            self.__engine.logger.info(statement)
-            self.__engine.logger.info(repr(parameters))
+        if self.engine._should_log_info:
+            self.engine.logger.info(statement)
+            self.engine.logger.info(repr(parameters))
         try:
             self.dialect.do_executemany(cursor, statement, parameters, context=context)
         except Exception, e:
@@ -887,8 +898,8 @@ class Connection(Connectable):
     # poor man's multimethod/generic function thingy
     executors = {
         expression._Function : _execute_function,
-        expression.ClauseElement : _execute_clauseelement,
-        visitors.ClauseVisitor : _execute_compiled,
+        expression.ClauseElement : execute_clauseelement,
+        Compiled : _execute_compiled,
         schema.SchemaItem:_execute_default,
         str.__mro__[-2] : _execute_text
     }
@@ -896,20 +907,20 @@ class Connection(Connectable):
     def create(self, entity, **kwargs):
         """Create a Table or Index given an appropriate Schema object."""
 
-        return self.__engine.create(entity, connection=self, **kwargs)
+        return self.engine.create(entity, connection=self, **kwargs)
 
     def drop(self, entity, **kwargs):
         """Drop a Table or Index given an appropriate Schema object."""
 
-        return self.__engine.drop(entity, connection=self, **kwargs)
+        return self.engine.drop(entity, connection=self, **kwargs)
 
     def reflecttable(self, table, include_columns=None):
         """Reflect the columns in the given string table name from the database."""
 
-        return self.__engine.reflecttable(table, self, include_columns)
+        return self.engine.reflecttable(table, self, include_columns)
 
     def default_schema_name(self):
-        return self.__engine.dialect.get_default_schema_name(self)
+        return self.engine.dialect.get_default_schema_name(self)
 
     def run_callable(self, callable_):
         return callable_(self)
@@ -936,7 +947,7 @@ class Transaction(object):
         method returns.
 
         This is used to cancel a Transaction without affecting the scope of
-        an enclosign transaction.
+        an enclosing transaction.
         """
         if not self._parent._is_active:
             return
@@ -1117,9 +1128,9 @@ class Engine(Connectable):
     def scalar(self, statement, *multiparams, **params):
         return self.execute(statement, *multiparams, **params).scalar()
 
-    def _execute_clauseelement(self, elem, multiparams=None, params=None):
+    def execute_clauseelement(self, elem, multiparams=None, params=None):
         connection = self.contextual_connect(close_with_result=True)
-        return connection._execute_clauseelement(elem, multiparams, params)
+        return connection.execute_clauseelement(elem, multiparams, params)
 
     def _execute_compiled(self, compiled, multiparams, params):
         connection = self.contextual_connect(close_with_result=True)
@@ -1301,6 +1312,7 @@ class ResultProxy(object):
         self.dialect = context.dialect
         self.closed = False
         self.cursor = context.cursor
+        self.connection = context.root_connection
         self.__echo = context.engine._should_log_info
         if context.is_select():
             self._init_metadata()
@@ -1308,8 +1320,6 @@ class ResultProxy(object):
         else:
             self._rowcount = context.get_rowcount()
             self.close()
-
-    connection = property(lambda self:self.context.root_connection)
 
     def _get_rowcount(self):
         if self._rowcount is not None:
@@ -1334,6 +1344,7 @@ class ResultProxy(object):
             for i, item in enumerate(metadata):
                 # sqlite possibly prepending table name to colnames so strip
                 colname = (item[0].split('.')[-1]).decode(self.dialect.encoding)
+
                 if self.context.typemap is not None:
                     type = self.context.typemap.get(colname.lower(), typemap.get(item[1], types.NULLTYPE))
                 else:
@@ -1400,6 +1411,8 @@ class ResultProxy(object):
 
     def _has_key(self, row, key):
         try:
+            # _key_cache uses __missing__ in 2.5, so not much alternative
+            # to catching KeyError
             self._key_cache[key]
             return True
         except KeyError:

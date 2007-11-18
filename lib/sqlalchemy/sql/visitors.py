@@ -1,8 +1,7 @@
 class ClauseVisitor(object):
-    """A class that knows how to traverse and visit
-    ``ClauseElements``.
+    """Traverses and visits ``ClauseElement`` structures.
     
-    Calls visit_XXX() methods dynamically generated for each particualr
+    Calls visit_XXX() methods dynamically generated for each particular
     ``ClauseElement`` subclass encountered.  Traversal of a
     hierarchy of ``ClauseElements`` is achieved via the
     ``traverse()`` method, which is passed the lead
@@ -30,6 +29,14 @@ class ClauseVisitor(object):
         if meth:
             return meth(obj, **kwargs)
 
+    def traverse_chained(self, obj, **kwargs):
+        v = self
+        while v is not None:
+            meth = getattr(self, "visit_%s" % obj.__visit_name__, None)
+            if meth:
+                meth(obj, **kwargs)
+            v = getattr(v, '_next', None)
+        
     def iterate(self, obj, stop_on=None):
         stack = [obj]
         traversal = []
@@ -40,10 +47,19 @@ class ClauseVisitor(object):
                 traversal.insert(0, t)
                 for c in t.get_children(**self.__traverse_options__):
                     stack.append(c)
-        
+    
     def traverse(self, obj, stop_on=None, clone=False):
+        
         if clone:
-            obj = obj._clone()
+            cloned = {}
+            def do_clone(obj):
+                # the full traversal will only make a clone of a particular element
+                # once.
+                if obj not in cloned:
+                    cloned[obj] = obj._clone()
+                return cloned[obj]
+            
+            obj = do_clone(obj)
             
         stack = [obj]
         traversal = []
@@ -52,7 +68,7 @@ class ClauseVisitor(object):
             if stop_on is None or t not in stop_on:
                 traversal.insert(0, t)
                 if clone:
-                    t._copy_internals()
+                    t._copy_internals(clone=do_clone)
                 for c in t.get_children(**self.__traverse_options__):
                     stack.append(c)
         for target in traversal:
@@ -75,13 +91,10 @@ class ClauseVisitor(object):
         return self
 
 class NoColumnVisitor(ClauseVisitor):
-    """a ClauseVisitor that will not traverse the exported Column 
-    collections on Table, Alias, Select, and CompoundSelect objects
-    (i.e. their 'columns' or 'c' attribute).
+    """ClauseVisitor with 'column_collections' set to False; will not
+    traverse the front-facing Column collections on Table, Alias, Select, 
+    and CompoundSelect objects.
     
-    this is useful because most traversals don't need those columns, or
-    in the case of DefaultCompiler it traverses them explicitly; so
-    skipping their traversal here greatly cuts down on method call overhead.
     """
     
     __traverse_options__ = {'column_collections':False}

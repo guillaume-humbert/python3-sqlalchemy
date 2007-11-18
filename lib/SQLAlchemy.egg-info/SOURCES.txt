@@ -5,7 +5,6 @@ README
 README.unittests
 VERSION
 ez_setup.py
-setup.cfg
 setup.py
 doc/alphaapi.html
 doc/alphaimplementation.html
@@ -26,6 +25,7 @@ doc/scripts.js
 doc/session.html
 doc/sqlalchemy_databases_access.html
 doc/sqlalchemy_databases_firebird.html
+doc/sqlalchemy_databases_maxdb.html
 doc/sqlalchemy_databases_mssql.html
 doc/sqlalchemy_databases_mysql.html
 doc/sqlalchemy_databases_oracle.html
@@ -134,6 +134,7 @@ lib/sqlalchemy/databases/access.py
 lib/sqlalchemy/databases/firebird.py
 lib/sqlalchemy/databases/information_schema.py
 lib/sqlalchemy/databases/informix.py
+lib/sqlalchemy/databases/maxdb.py
 lib/sqlalchemy/databases/mssql.py
 lib/sqlalchemy/databases/mxODBC.py
 lib/sqlalchemy/databases/mysql.py
@@ -189,12 +190,14 @@ test/testbase.py
 test/base/__init__.py
 test/base/alltests.py
 test/base/dependency.py
+test/base/except.py
 test/base/utils.py
 test/dialect/__init__.py
 test/dialect/access.py
 test/dialect/alltests.py
 test/dialect/firebird.py
 test/dialect/informix.py
+test/dialect/maxdb.py
 test/dialect/mssql.py
 test/dialect/mysql.py
 test/dialect/oracle.py
@@ -229,6 +232,7 @@ test/orm/cycles.py
 test/orm/dynamic.py
 test/orm/eager_relations.py
 test/orm/entity.py
+test/orm/expire.py
 test/orm/generative.py
 test/orm/lazy_relations.py
 test/orm/lazytest1.py
@@ -269,6 +273,7 @@ test/perf/massload.py
 test/perf/massload2.py
 test/perf/masssave.py
 test/perf/objselectspeed.py
+test/perf/objupdatespeed.py
 test/perf/ormsession.py
 test/perf/poolload.py
 test/perf/threaded_compile.py
@@ -297,6 +302,7 @@ test/testlib/config.py
 test/testlib/coverage.py
 test/testlib/engines.py
 test/testlib/fixtures.py
+test/testlib/orm.py
 test/testlib/profiling.py
 test/testlib/schema.py
 test/testlib/tables.py

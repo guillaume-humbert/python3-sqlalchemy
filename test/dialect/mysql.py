@@ -46,7 +46,7 @@ class TypesTest(AssertMixin):
     @testing.supported('mysql')
     def test_numeric(self):
         "Exercise type specification and options for numeric types."
-        
+
         columns = [
             # column type, args, kwargs, expected ddl
             # e.g. Column(Integer(10, unsigned=True)) == 'INTEGER(10) UNSIGNED'
@@ -80,8 +80,6 @@ class TypesTest(AssertMixin):
 
             (mysql.MSDouble, [None, None], {},
              'DOUBLE'),
-            (mysql.MSDouble, [12], {},
-             'DOUBLE(12, 2)'),
             (mysql.MSDouble, [12, 4], {'unsigned':True},
              'DOUBLE(12, 4) UNSIGNED'),
             (mysql.MSDouble, [12, 4], {'zerofill':True},
@@ -89,8 +87,17 @@ class TypesTest(AssertMixin):
             (mysql.MSDouble, [12, 4], {'zerofill':True, 'unsigned':True},
              'DOUBLE(12, 4) UNSIGNED ZEROFILL'),
 
+            (mysql.MSReal, [None, None], {},
+             'REAL'),
+            (mysql.MSReal, [12, 4], {'unsigned':True},
+             'REAL(12, 4) UNSIGNED'),
+            (mysql.MSReal, [12, 4], {'zerofill':True},
+             'REAL(12, 4) ZEROFILL'),
+            (mysql.MSReal, [12, 4], {'zerofill':True, 'unsigned':True},
+             'REAL(12, 4) UNSIGNED ZEROFILL'),
+
             (mysql.MSFloat, [], {},
-             'FLOAT(10)'),
+             'FLOAT'),
             (mysql.MSFloat, [None], {},
              'FLOAT'),
             (mysql.MSFloat, [12], {},
@@ -156,7 +163,7 @@ class TypesTest(AssertMixin):
 
         numeric_table = Table(*table_args)
         gen = testbase.db.dialect.schemagenerator(testbase.db.dialect, testbase.db, None, None)
-        
+
         for col in numeric_table.c:
             index = int(col.name[1:])
             self.assert_eq(gen.get_column_specification(col),
@@ -169,7 +176,7 @@ class TypesTest(AssertMixin):
         except:
             raise
         numeric_table.drop()
-    
+
     @testing.supported('mysql')
     @testing.exclude('mysql', '<', (4, 1, 1))
     def test_charset(self):
@@ -225,7 +232,7 @@ class TypesTest(AssertMixin):
              'TINYTEXT CHARACTER SET utf8 COLLATE utf8_bin'),
 
             (mysql.MSMediumText, [], {'charset':'utf8', 'binary':True},
-             'MEDIUMTEXT CHARACTER SET utf8 BINARY'), 
+             'MEDIUMTEXT CHARACTER SET utf8 BINARY'),
 
             (mysql.MSLongText, [], {'ascii':True},
              'LONGTEXT ASCII'),
@@ -241,7 +248,7 @@ class TypesTest(AssertMixin):
 
         charset_table = Table(*table_args)
         gen = testbase.db.dialect.schemagenerator(testbase.db.dialect, testbase.db, None, None)
-        
+
         for col in charset_table.c:
             index = int(col.name[1:])
             self.assert_eq(gen.get_column_specification(col),
@@ -259,7 +266,7 @@ class TypesTest(AssertMixin):
     @testing.exclude('mysql', '<', (5, 0, 5))
     def test_bit_50(self):
         """Exercise BIT types on 5.0+ (not valid for all engine types)"""
-        
+
         meta = MetaData(testbase.db)
         bit_table = Table('mysql_bits', meta,
                           Column('b1', mysql.MSBit),
@@ -381,7 +388,7 @@ class TypesTest(AssertMixin):
     @testing.exclude('mysql', '<', (4, 1, 0))
     def test_timestamp(self):
         """Exercise funky TIMESTAMP default syntax."""
-    
+
         meta = MetaData(testbase.db)
 
         try:
@@ -450,7 +457,7 @@ class TypesTest(AssertMixin):
                 self.assert_eq(colspec(table.c.y5), 'y5 YEAR(4)')
         finally:
             meta.drop_all()
-        
+
 
     @testing.supported('mysql')
     def test_set(self):
@@ -486,7 +493,7 @@ class TypesTest(AssertMixin):
                         print "Found %s" % list(row)
                         raise
                     table.delete().execute()
-                
+
                 roundtrip([None, None, None],[None] * 3)
                 roundtrip(['', '', ''], [set([''])] * 3)
 
@@ -513,7 +520,7 @@ class TypesTest(AssertMixin):
     @testing.supported('mysql')
     def test_enum(self):
         """Exercise the ENUM type."""
-        
+
         db = testbase.db
         enum_table = Table('mysql_enum', MetaData(testbase.db),
             Column('e1', mysql.MSEnum("'a'", "'b'")),
@@ -562,7 +569,7 @@ class TypesTest(AssertMixin):
         if testbase.db.dialect.dbapi.version_info < (1, 2, 2, 'beta', 3) and \
            testbase.db.dialect.dbapi.version_info >= (1, 2, 2):
             # these mysqldb seem to always uses 'sets', even on later pythons
-            import sets 
+            import sets
             def convert(value):
                 if value is None:
                     return value
@@ -570,7 +577,7 @@ class TypesTest(AssertMixin):
                     return sets.Set([])
                 else:
                     return sets.Set([value])
-                
+
             e = []
             for row in expected:
                 e.append(tuple([convert(c) for c in row]))
@@ -645,14 +652,14 @@ class TypesTest(AssertMixin):
         t_table = Table('mysql_types', m, *columns)
         try:
             m.create_all()
-        
+
             m2 = MetaData(db)
             rt = Table('mysql_types', m2, autoload=True)
             try:
                 db.execute('CREATE OR REPLACE VIEW mysql_types_v '
                            'AS SELECT * from mysql_types')
                 rv = Table('mysql_types_v', m2, autoload=True)
-        
+
                 expected = [len(c) > 1 and c[1] or c[0] for c in specs]
 
                 # Early 5.0 releases seem to report more "general" for columns
@@ -781,7 +788,7 @@ class SQLTest(SQLCompileTest):
     @testing.supported('mysql')
     def test_limit(self):
         t = sql.table('t', sql.column('col1'), sql.column('col2'))
-        
+
         self.assert_compile(
             select([t]).limit(10).offset(20),
             "SELECT t.col1, t.col2 FROM t  LIMIT 20, 10"
@@ -815,8 +822,101 @@ class SQLTest(SQLCompileTest):
             "UPDATE t SET col1=%s WHERE t.col2 = %s LIMIT 1"
             )
 
+    @testing.supported('mysql')
+    def test_cast(self):
+        t = sql.table('t', sql.column('col'))
+        m = mysql
+
+        specs = [
+            (Integer, "CAST(t.col AS SIGNED INTEGER)"),
+            (INT, "CAST(t.col AS SIGNED INTEGER)"),
+            (m.MSInteger, "CAST(t.col AS SIGNED INTEGER)"),
+            (m.MSInteger(unsigned=True), "CAST(t.col AS UNSIGNED INTEGER)"),
+            (SmallInteger, "CAST(t.col AS SIGNED INTEGER)"),
+            (m.MSSmallInteger, "CAST(t.col AS SIGNED INTEGER)"),
+            (m.MSTinyInteger, "CAST(t.col AS SIGNED INTEGER)"),
+            # 'SIGNED INTEGER' is a bigint, so this is ok.
+            (m.MSBigInteger, "CAST(t.col AS SIGNED INTEGER)"),
+            (m.MSBigInteger(unsigned=False), "CAST(t.col AS SIGNED INTEGER)"),
+            (m.MSBigInteger(unsigned=True), "CAST(t.col AS UNSIGNED INTEGER)"),
+            (m.MSBit, "t.col"),
+
+            # this is kind of sucky.  thank you default arguments!
+            (NUMERIC, "CAST(t.col AS DECIMAL(10, 2))"),
+            (DECIMAL, "CAST(t.col AS DECIMAL(10, 2))"),
+            (Numeric, "CAST(t.col AS DECIMAL(10, 2))"),
+            (m.MSNumeric, "CAST(t.col AS DECIMAL(10, 2))"),
+            (m.MSDecimal, "CAST(t.col AS DECIMAL(10, 2))"),
+
+            (FLOAT, "t.col"),
+            (Float, "t.col"),
+            (m.MSFloat, "t.col"),
+            (m.MSDouble, "t.col"),
+            (m.MSReal, "t.col"),
+
+            (TIMESTAMP, "CAST(t.col AS DATETIME)"),
+            (DATETIME, "CAST(t.col AS DATETIME)"),
+            (DATE, "CAST(t.col AS DATE)"),
+            (TIME, "CAST(t.col AS TIME)"),
+            (DateTime, "CAST(t.col AS DATETIME)"),
+            (Date, "CAST(t.col AS DATE)"),
+            (Time, "CAST(t.col AS TIME)"),
+            (m.MSDateTime, "CAST(t.col AS DATETIME)"),
+            (m.MSDate, "CAST(t.col AS DATE)"),
+            (m.MSTime, "CAST(t.col AS TIME)"),
+            (m.MSTimeStamp, "CAST(t.col AS DATETIME)"),
+            (m.MSYear, "t.col"),
+            (m.MSYear(2), "t.col"),
+            (Interval, "t.col"),
+
+            (String, "CAST(t.col AS CHAR)"),
+            (Unicode, "CAST(t.col AS CHAR)"),
+            (VARCHAR, "CAST(t.col AS CHAR)"),
+            (NCHAR, "CAST(t.col AS CHAR)"),
+            (CHAR, "CAST(t.col AS CHAR)"),
+            (CLOB, "CAST(t.col AS CHAR)"),
+            (TEXT, "CAST(t.col AS CHAR)"),
+            (String(32), "CAST(t.col AS CHAR(32))"),
+            (Unicode(32), "CAST(t.col AS CHAR(32))"),
+            (CHAR(32), "CAST(t.col AS CHAR(32))"),
+            (m.MSString, "CAST(t.col AS CHAR)"),
+            (m.MSText, "CAST(t.col AS CHAR)"),
+            (m.MSTinyText, "CAST(t.col AS CHAR)"),
+            (m.MSMediumText, "CAST(t.col AS CHAR)"),
+            (m.MSLongText, "CAST(t.col AS CHAR)"),
+            (m.MSNChar, "CAST(t.col AS CHAR)"),
+            (m.MSNVarChar, "CAST(t.col AS CHAR)"),
+
+            (Binary, "CAST(t.col AS BINARY)"),
+            (BLOB, "CAST(t.col AS BINARY)"),
+            (m.MSBlob, "CAST(t.col AS BINARY)"),
+            (m.MSBlob(32), "CAST(t.col AS BINARY)"),
+            (m.MSTinyBlob, "CAST(t.col AS BINARY)"),
+            (m.MSMediumBlob, "CAST(t.col AS BINARY)"),
+            (m.MSLongBlob, "CAST(t.col AS BINARY)"),
+            (m.MSBinary, "CAST(t.col AS BINARY)"),
+            (m.MSBinary(32), "CAST(t.col AS BINARY)"),
+            (m.MSVarBinary, "CAST(t.col AS BINARY)"),
+            (m.MSVarBinary(32), "CAST(t.col AS BINARY)"),
+
+            # maybe this could be changed to something more DWIM, needs
+            # testing
+            (Boolean, "t.col"),
+            (BOOLEAN, "t.col"),
+            (m.MSBoolean, "t.col"),
+
+            (m.MSEnum, "t.col"),
+            (m.MSEnum("'1'", "'2'"), "t.col"),
+            (m.MSSet, "t.col"),            
+            (m.MSSet("'1'", "'2'"), "t.col"),
+            ]
+
+        for type_, expected in specs:
+            self.assert_compile(cast(t.c.col, type_), expected)
+
+
 def colspec(c):
-    return testbase.db.dialect.schemagenerator(testbase.db.dialect, 
+    return testbase.db.dialect.schemagenerator(testbase.db.dialect,
         testbase.db, None, None).get_column_specification(c)
 
 if __name__ == "__main__":

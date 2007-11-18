@@ -177,7 +177,7 @@ colspecs = {
 
 ischema_names = {
     'VARCHAR2' : OracleString,
-    'DATE' : OracleDate,
+    'DATE' : OracleDateTime,
     'DATETIME' : OracleDateTime,
     'NUMBER' : OracleNumeric,
     'BLOB' : OracleBinary,
@@ -204,8 +204,10 @@ class OracleExecutionContext(default.DefaultExecutionContext):
         if self.dialect.auto_setinputsizes:
             self.set_input_sizes()
         if self.compiled_parameters is not None and len(self.compiled_parameters) == 1:
-            for key in self.compiled_parameters[0]:
-                (bindparam, name, value) = self.compiled_parameters[0].get_parameter(key)
+            for key in self.compiled.binds:
+                bindparam = self.compiled.binds[key]
+                name = self.compiled.bind_names[bindparam]
+                value = self.compiled_parameters[0][name]
                 if bindparam.isoutparam:
                     dbtype = bindparam.type.dialect_impl(self.dialect).get_dbapi_type(self.dialect.dbapi)
                     if not hasattr(self, 'out_parameters'):
@@ -216,9 +218,10 @@ class OracleExecutionContext(default.DefaultExecutionContext):
     def get_result_proxy(self):
         if hasattr(self, 'out_parameters'):
             if self.compiled_parameters is not None and len(self.compiled_parameters) == 1:
-                 for k in self.out_parameters:
-                     type = self.compiled_parameters[0].get_type(k)
-                     self.out_parameters[k] = type.dialect_impl(self.dialect).result_processor(self.dialect)(self.out_parameters[k].getvalue())
+                 for bind, name in self.compiled.bind_names.iteritems():
+                     if name in self.out_parameters:
+                         type = bind.type
+                         self.out_parameters[name] = type.dialect_impl(self.dialect).result_processor(self.dialect)(self.out_parameters[name].getvalue())
             else:
                  for k in self.out_parameters:
                      self.out_parameters[k] = self.out_parameters[k].getvalue()
@@ -237,7 +240,8 @@ class OracleDialect(default.DefaultDialect):
     max_identifier_length = 30
     supports_sane_rowcount = True
     supports_sane_multi_rowcount = False
-    preexecute_sequences = True
+    preexecute_pk_sequences = True
+    supports_pk_autoincrement = False
 
     def __init__(self, use_ansi=True, auto_setinputsizes=True, auto_convert_lobs=True, threaded=True, allow_twophase=True, **kwargs):
         default.DefaultDialect.__init__(self, default_paramstyle='named', **kwargs)
@@ -438,10 +442,23 @@ class OracleDialect(default.DefaultDialect):
         else:
             return name.encode(self.encoding)
     
+    def get_default_schema_name(self,connection):
+        try:
+            return self._default_schema_name
+        except AttributeError:
+            name = self._default_schema_name = \
+                connection.execute('SELECT USER FROM DUAL').scalar()
+            return name
+
     def table_names(self, connection, schema):
         # note that table_names() isnt loading DBLINKed or synonym'ed tables
-        s = "select table_name from all_tables where tablespace_name NOT IN ('SYSTEM', 'SYSAUX')"
-        return [self._normalize_name(row[0]) for row in connection.execute(s)]
+        if schema is None:
+            s = "select table_name from all_tables where tablespace_name NOT IN ('SYSTEM', 'SYSAUX')"
+            cursor = connection.execute(s)
+        else:
+            s = "select table_name from all_tables where tablespace_name NOT IN ('SYSTEM','SYSAUX') AND OWNER = :owner"
+            cursor = connection.execute(s,{'owner':self._denormalize_name(schema)})
+        return [self._normalize_name(row[0]) for row in cursor]
 
     def reflecttable(self, connection, table, include_columns):
         preparer = self.identifier_preparer
@@ -642,8 +659,7 @@ class OracleCompiler(compiler.DefaultCompiler):
             # to use ROW_NUMBER(), an ORDER BY is required.
             orderby = self.process(select._order_by_clause)
             if not orderby:
-                orderby = select.oid_column
-                self.traverse(orderby)
+                orderby = list(select.oid_column.proxies)[0]
                 orderby = self.process(orderby)
                 
             oldselect = select

@@ -29,7 +29,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -145,6 +145,9 @@
         
         
         <li><a style="" href="#overview_migration_type">All "type" Keyword Arguments Changed to "type_"</a></li>
+        
+        
+        <li><a style="" href="#overview_migration_mapper">Mapper Extensions must return EXT_CONTINUE to continue execution to the next mapper</a></li>
         
     </ul>
 
@@ -605,27 +608,36 @@
         
         <li><a style="" href="#unitofwork_contextual_associating">Associating Classes and Mappers with a Contextual Session</a></li>
         
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="#unitofwork_contextual_associating_autosave">Auto-Save Behavior with Contextual Session's Mapper</a></li>
+        
     </ul>
 
 	        </li>
         
-        <li><a style="" href="#unitofwork_partitioning">Partitioning Strategies</a></li>
+        <li><a style="" href="#unitofwork_contextual_partitioning">Partitioning Strategies</a></li>
         
 	        <li>
                 
     <ul>
         
-        <li><a style="" href="#unitofwork_partitioning_vertical">Vertical Partitioning</a></li>
+        <li><a style="" href="#unitofwork_contextual_partitioning_vertical">Vertical Partitioning</a></li>
         
         
-        <li><a style="" href="#unitofwork_partitioning_horizontal">Horizontal Partitioning</a></li>
+        <li><a style="" href="#unitofwork_contextual_partitioning_horizontal">Horizontal Partitioning</a></li>
         
     </ul>
 
 	        </li>
         
-        <li><a style="" href="#unitofwork_extending">Extending Session</a></li>
+        <li><a style="" href="#unitofwork_contextual_extending">Extending Session</a></li>
         
+    </ul>
+
+	        </li>
     </ul>
 
 	        </li>
@@ -1014,64 +1026,67 @@
                 
     <ul>
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_ArgumentError">class ArgumentError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_ArgumentError">class ArgumentError(SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_AssertionError">class AssertionError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_AssertionError">class AssertionError(SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_CircularDependencyError">class CircularDependencyError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_CircularDependencyError">class CircularDependencyError(SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_CompileError">class CompileError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_CompileError">class CompileError(SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_ConcurrentModificationError">class ConcurrentModificationError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_ConcurrentModificationError">class ConcurrentModificationError(SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_DBAPIError">class DBAPIError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_DBAPIError">class DBAPIError(SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_DataError">class DataError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_DataError">class DataError(DatabaseError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_DatabaseError">class DatabaseError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_DatabaseError">class DatabaseError(DBAPIError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_DisconnectionError">class DisconnectionError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_DisconnectionError">class DisconnectionError(SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_FlushError">class FlushError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_FlushError">class FlushError(SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_IntegrityError">class IntegrityError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_IntegrityError">class IntegrityError(DatabaseError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_InterfaceError">class InterfaceError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_InterfaceError">class InterfaceError(DBAPIError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_InvalidRequestError">class InvalidRequestError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_InternalError">class InternalError(DatabaseError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_NoSuchColumnError">class NoSuchColumnError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_InvalidRequestError">class InvalidRequestError(SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_NoSuchTableError">class NoSuchTableError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_NoSuchColumnError">class NoSuchColumnError(KeyError,SQLAlchemyError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_NotSupportedError">class NotSupportedError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_NoSuchTableError">class NoSuchTableError(InvalidRequestError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_OperationalError">class OperationalError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_NotSupportedError">class NotSupportedError(DatabaseError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_ProgrammingError">class ProgrammingError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_OperationalError">class OperationalError(DatabaseError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_SQLAlchemyError">class SQLAlchemyError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_ProgrammingError">class ProgrammingError(DatabaseError)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_TimeoutError">class TimeoutError()</a></li>
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_SQLAlchemyError">class SQLAlchemyError(Exception)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_TimeoutError">class TimeoutError(SQLAlchemyError)</a></li>
         
     </ul>
 
@@ -1146,7 +1161,7 @@
         <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DDLBase">class DDLBase(SchemaIterator)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DefaultCompiler">class DefaultCompiler(Compiled,ClauseVisitor)</a></li>
+        <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DefaultCompiler">class DefaultCompiler(Compiled)</a></li>
         
         
         <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_IdentifierPreparer">class IdentifierPreparer(object)</a></li>
@@ -1395,6 +1410,9 @@
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__TextClause">class _TextClause(ClauseElement)</a></li>
         
         
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__TextFromClause">class _TextFromClause(FromClause)</a></li>
+        
+        
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__TypeClause">class _TypeClause(ClauseElement)</a></li>
         
         
@@ -1545,6 +1563,9 @@
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_NCHAR">class NCHAR(Unicode)</a></li>
         
         
+        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_NUMERIC">class NUMERIC(Numeric)</a></li>
+        
+        
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Numeric">class Numeric(TypeEngine)</a></li>
         
         
@@ -1557,7 +1578,7 @@
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_SmallInteger">class SmallInteger(Integer)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">class String(TypeEngine,Concatenable)</a></li>
+        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">class String(Concatenable,TypeEngine)</a></li>
         
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TEXT">class TEXT(String)</a></li>
@@ -1740,13 +1761,22 @@
                 
     <ul>
         
+        <li><a style="" href="#docstrings_sqlalchemy.orm.interfaces_modfunc">Module Functions</a></li>
+        
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.interfaces_modfunc_build_path">build_path()</a></li>
+        
+    </ul>
+
+	        </li>
+        
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_AttributeExtension">class AttributeExtension(object)</a></li>
         
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_ExtensionOption">class ExtensionOption(MapperOption)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_LoaderStack">class LoaderStack(object)</a></li>
         
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_LoaderStrategy">class LoaderStrategy(object)</a></li>
@@ -1759,9 +1789,6 @@
         
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperProperty">class MapperProperty(object)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_OperationContext">class OperationContext(object)</a></li>
         
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_PropComparator">class PropComparator(ColumnOperators)</a></li>
@@ -1926,7 +1953,7 @@
                 
     <ul>
         
-        <li><a style="" href="sqlalchemy_ext_sqlsoup.html#docstrings_sqlalchemy.ext.sqlsoup_PKNotFoundError">class PKNotFoundError()</a></li>
+        <li><a style="" href="sqlalchemy_ext_sqlsoup.html#docstrings_sqlalchemy.ext.sqlsoup_PKNotFoundError">class PKNotFoundError(SQLAlchemyError)</a></li>
         
         
         <li><a style="" href="sqlalchemy_ext_sqlsoup.html#docstrings_sqlalchemy.ext.sqlsoup_SqlSoup">class SqlSoup()</a></li>
@@ -2031,7 +2058,7 @@
 
 	        </li>
         
-        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGArray">class PGArray(TypeEngine,Concatenable)</a></li>
+        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGArray">class PGArray(Concatenable,TypeEngine)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGBigInteger">class PGBigInteger(PGInteger)</a></li>
@@ -2136,7 +2163,7 @@
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDecimal">class MSDecimal(MSNumeric)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDouble">class MSDouble(MSNumeric)</a></li>
+        <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDouble">class MSDouble(Float,_NumericType)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSEnum">class MSEnum(MSString)</a></li>
@@ -2172,7 +2199,7 @@
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSSet">class MSSet(MSString)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSSmallInteger">class MSSmallInteger(SmallInteger,_NumericType)</a></li>
+        <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSSmallInteger">class MSSmallInteger(SmallInteger,MSInteger)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSString">class MSString(_StringType,String)</a></li>
@@ -2641,6 +2668,54 @@
         
         
         <li><a style="" href="sqlalchemy_databases_access.html#docstrings_sqlalchemy.databases.access_AccessSchemaGenerator">class AccessSchemaGenerator(SchemaGenerator)</a></li>
+        
+    </ul>
+
+	        </li>
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb">module sqlalchemy.databases.maxdb</a></li>
+        
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxBlob">class MaxBlob(Binary)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxBoolean">class MaxBoolean(Boolean)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxChar">class MaxChar(_StringType)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxDate">class MaxDate(Date)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxFloat">class MaxFloat(Float)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxInteger">class MaxInteger(Integer)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxNumeric">class MaxNumeric(Numeric)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxSmallInteger">class MaxSmallInteger(MaxInteger)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxString">class MaxString(_StringType)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxText">class MaxText(_StringType)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxTime">class MaxTime(Time)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxTimestamp">class MaxTimestamp(DateTime)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_maxdb.html#docstrings_sqlalchemy.databases.maxdb_MaxUnicode">class MaxUnicode(_StringType)</a></li>
         
     </ul>
 
@@ -3120,6 +3195,25 @@
 <span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">now</span><span class="python_enclosure">(</span><span class="python_name">type_</span><span class="python_operator">=</span><span class="python_name">DateTime</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+
+
+
+            <a href="#overview">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="overview_migration_mapper"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Mapper Extensions must return EXT_CONTINUE to continue execution to the next mapper</h3>
+    
+    
+
+<p>If you extend the mapper, the methods in your mapper extension must return EXT_CONTINUE to continue executing additional mappers.
+</p>
 
 
 
@@ -4056,15 +4150,17 @@ WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm </span><span class="python_keyword">import </span><span class="python_name">eagerload</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_25', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">jack </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_25_div" class="codepop" style="display:none;">SELECT addresses_1.id AS addresses_1_id, addresses_1.email_address AS addresses_1_email_address, <br/>
-addresses_1.user_id AS addresses_1_user_id, users.id AS users_id, users.name AS users_name, <br/>
-users.fullname AS users_fullname, users.password AS users_password <br/>
-FROM (SELECT users.id AS users_id, users.oid AS users_oid <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_25', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">jack </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_25_div" class="codepop" style="display:none;">SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS anon_1_users_name, <br/>
+anon_1.users_fullname AS anon_1_users_fullname, anon_1.users_password AS anon_1_users_password, <br/>
+addresses_2.id AS addresses_2_id, addresses_2.email_address AS addresses_2_email_address, <br/>
+addresses_2.user_id AS addresses_2_user_id <br/>
+    FROM (SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, <br/>
+    users.password AS users_password, users.oid AS users_oid <br/>
     FROM users <br/>
-WHERE users.name = ? ORDER BY users.oid LIMIT 2 OFFSET 0) AS tbl_row_count, <br/>
- users LEFT OUTER JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id <br/>
-WHERE users.id = tbl_row_count.users_id ORDER BY tbl_row_count.oid, addresses_1.oid<br/>
-['jack']</div><pre><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">
+    WHERE users.name = ? ORDER BY users.oid <br/>
+     LIMIT 2 OFFSET 0) AS anon_1 LEFT OUTER JOIN addresses AS addresses_2 <br/>
+     ON anon_1.users_id = addresses_2.user_id ORDER BY anon_1.oid, addresses_2.oid<br/>
+    ['jack']</div><pre><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">
 &lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">
@@ -4552,7 +4648,7 @@ WHERE addresses.email_address IN (?, ?)<br/>
 </span><span class="python_literal"><a href="javascript:togglePopbox('popbox_52', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">jack </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">    </span></pre><div id="popbox_52_div" class="codepop" style="display:none;">BEGIN<br/>
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
-WHERE users.id = ? ORDER BY users.oid <br/>
+WHERE users.id = ?<br/>
 [5]</div><pre>
 
 <span class="python_comment"># remove one Address (lazy load fires off)
@@ -4766,12 +4862,12 @@ WHERE users.name = ? ORDER BY users.oid <br/>
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_60', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_60_div" class="codepop" style="display:none;">INSERT INTO keywords (keyword) VALUES (?)<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_60', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">BlogPost</span><span class="python_operator">.</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">keyword</span><span class="python_operator">=</span><span class="python_literal">'firstpost'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_60_div" class="codepop" style="display:none;">INSERT INTO posts (user_id, headline, body) VALUES (?, ?, ?)<br/>
+[2, &quot;Wendy's Blog Post&quot;, 'This is a test']<br/>
+INSERT INTO keywords (keyword) VALUES (?)<br/>
 ['wendy']<br/>
 INSERT INTO keywords (keyword) VALUES (?)<br/>
 ['firstpost']<br/>
-INSERT INTO posts (user_id, headline, body) VALUES (?, ?, ?)<br/>
-[2, &quot;Wendy's Blog Post&quot;, 'This is a test']<br/>
 INSERT INTO post_keywords (post_id, keyword_id) VALUES (?, ?)<br/>
 [[1, 1], [1, 2]]<br/>
 SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body <br/>
@@ -5075,7 +5171,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
     <div class="sliding_code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">ins</span><span class="python_operator">.</span><span class="python_name">compile</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">params </span><span class="python_operator">
-</span><span class="python_name">ClauseParameters</span><span class="python_operator">:</span><span class="python_enclosure">{</span><span class="python_literal">'fullname'</span><span class="python_operator">: </span><span class="python_literal">'Jack Jones'</span><span class="python_operator">, </span><span class="python_literal">'name'</span><span class="python_operator">: </span><span class="python_literal">'jack'</span><span class="python_enclosure">}</span><span class="python_operator">
+</span><span class="python_enclosure">{</span><span class="python_literal">'fullname'</span><span class="python_operator">: </span><span class="python_literal">'Jack Jones'</span><span class="python_operator">, </span><span class="python_literal">'name'</span><span class="python_operator">: </span><span class="python_literal">'jack'</span><span class="python_enclosure">}</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -5492,7 +5588,7 @@ WHERE users.id = addresses.user_id<br/>
     <div class="sliding_code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">compile</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">params</span><span class="python_operator">
-</span><span class="python_name">ClauseParameters</span><span class="python_operator">:</span><span class="python_enclosure">{</span><span class="python_literal">'users_id'</span><span class="python_operator">: </span><span class="python_number">7</span><span class="python_enclosure">}</span><span class="python_operator">
+</span><span class="python_enclosure">{</span><span class="python_literal">'users_id'</span><span class="python_operator">: </span><span class="python_number">7</span><span class="python_enclosure">}</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Most Python operators, as it turns out, produce a SQL expression here, like equals, not equals, etc.:
@@ -6164,7 +6260,7 @@ FROM addresses<br/>
 </span><span class="python_name">WHERE users</span><span class="python_operator">.</span><span class="python_name">id BETWEEN c1</span><span class="python_operator">.</span><span class="python_name">z AND c2</span><span class="python_operator">.</span><span class="python_name">z</span><span class="python_operator">
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">compile</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">params</span><span class="python_operator">
-</span><span class="python_name">ClauseParameters</span><span class="python_operator">:</span><span class="python_enclosure">{</span><span class="python_literal">'y'</span><span class="python_operator">: </span><span class="python_number">45</span><span class="python_operator">, </span><span class="python_literal">'x'</span><span class="python_operator">: </span><span class="python_number">17</span><span class="python_operator">, </span><span class="python_literal">'y_1'</span><span class="python_operator">: </span><span class="python_number">12</span><span class="python_operator">, </span><span class="python_literal">'x_1'</span><span class="python_operator">: </span><span class="python_number">5</span><span class="python_enclosure">}</span><span class="python_operator">
+</span><span class="python_enclosure">{</span><span class="python_literal">'y'</span><span class="python_operator">: </span><span class="python_number">45</span><span class="python_operator">, </span><span class="python_literal">'x'</span><span class="python_operator">: </span><span class="python_number">17</span><span class="python_operator">, </span><span class="python_literal">'y_1'</span><span class="python_operator">: </span><span class="python_number">12</span><span class="python_operator">, </span><span class="python_literal">'x_1'</span><span class="python_operator">: </span><span class="python_number">5</span><span class="python_enclosure">}</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -6251,7 +6347,7 @@ WHERE addresses.email_address LIKE ?<br/>
 <span class="python_operator">...       </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)]</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">as_scalar</span><span class="python_enclosure">()</span>
 <span class="python_operator">...    </span><span class="python_enclosure">]))</span><span class="python_operator">.</span><span class="python_name">fetchall</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_83_div" class="codepop" style="display:none;">SELECT users.name, (SELECT count(addresses.id) <br/>
 FROM addresses <br/>
-WHERE users.id = addresses.user_id) <br/>
+WHERE users.id = addresses.user_id) AS anon_1 <br/>
 FROM users<br/>
 []</div><pre><span class="python_enclosure">[(</span><span class="python_literal">u'jack'</span><span class="python_operator">, </span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_enclosure">(</span><span class="python_literal">u'wendy'</span><span class="python_operator">, </span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_enclosure">(</span><span class="python_literal">u'fred'</span><span class="python_operator">, </span><span class="python_number">0</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_enclosure">(</span><span class="python_literal">u'mary'</span><span class="python_operator">, </span><span class="python_number">0</span><span class="python_enclosure">)]</span><span class="python_operator">
 </span></pre>
@@ -6340,10 +6436,10 @@ FROM users<br/>
     <div class="sliding_code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)])</span><span class="python_operator">.\
-...     </span><span class="python_name">group_by</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">having</span><span class="python_enclosure">(</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">&gt;</span><span class="python_number">1</span><span class="python_enclosure">))</span><span class="python_operator">
+...     </span><span class="python_name">group_by</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">having</span><span class="python_enclosure">(</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">fetchall</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div class="codepop">SELECT addresses.user_id, count(addresses.id) <br/>
 FROM addresses GROUP BY addresses.user_id <br/>
-HAVING count(addresses.id &gt; ?)<br/>
+HAVING count(addresses.id) &gt; ?<br/>
 [1]</div><pre>
 
 <span class="python_enclosure">[(</span><span class="python_number">1</span><span class="python_operator">, </span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_operator">, </span><span class="python_number">2</span><span class="python_enclosure">)]</span><span class="python_operator">
@@ -7280,6 +7376,8 @@ FROM employees LEFT OUTER JOIN engineers ON employees.employee_id = engineers.em
 </span><span class="python_name">engineer_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">employee_mapper</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'engineer'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+<p>Note that the mappers for the derived classes Manager and Engineer omit the specification of their associated table, as it is inherited from the employee_mapper. Omitting the table specification for derived mappers in single-table inheritance is required.
+</p>
 
 
             <a href="#advdatamapping">back to section top</a>
@@ -9145,7 +9243,7 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 </span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The <code>Session</code> also has the ability to be bound to multiple engines.   Descriptions of these scenarios are described in <a href="#unitofwork_partitioning">Partitioning Strategies</a>.
+<p>The <code>Session</code> also has the ability to be bound to multiple engines.   Descriptions of these scenarios are described in <b>unitofwork_partitioning</b>.
 </p>
 
 
@@ -9461,10 +9559,6 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">deleted</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Note that if a session is created with the <code>weak_identity_map</code> flag, an item which is marked as "dirty" will be silently removed from the session if the item falls out of scope in the user application.  This is because the unit of work does not look for "dirty" changes except for within a flush operation (or any time the session.dirty collection is accessed). 
-</p>
-<p>However, the <code>new</code> and <code>deleted</code> collections are strong-referencing sets.  Even if you're using <code>weak_identity_map</code>, if you abandon all references to new or deleted objects within a session, <em>they are still present</em> in either of those two lists, and will be saved on the next flush operation, unless they are removed from the Session explicitly or the session is cleared.
-</p>
 
 
 
@@ -9597,6 +9691,8 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 </span><span class="python_name">myobj </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">merge</span><span class="python_enclosure">(</span><span class="python_name">myobj</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+<p><code>merge()</code> includes an important option called <code>dont_load</code>.  When this boolean flag is set to <code>True</code>, the merge of a detached object will not force a <code>get()</code> of that object from the database.  Normally, <code>merge()</code> issues a <code>get()</code> for every existing object so that it can load the most recent state of the object, which is then modified according to the state of the given object.  With <code>dont_load=True</code>, the <code>get()</code> is skipped and <code>merge()</code> places an exact copy of the given object in the session.  This allows objects which were retrieved from a caching system to be copied back into a session without any SQL overhead being added.
+</p>
 
 
 
@@ -9837,6 +9933,23 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">expire</span><span class="python_enclosure">(</span><span class="python_name">obj2</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+<p><code>refresh()</code> and <code>expire()</code> also support being passed a list of individual attribute names in which to be refreshed.  These names can reference any attribute, column-based or relation based:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_comment"># immediately re-load the attributes 'hello', 'world' on obj1, obj2
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">refresh</span><span class="python_enclosure">(</span><span class="python_name">obj1</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">refresh</span><span class="python_enclosure">(</span><span class="python_name">obj2</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
+</span>
+<span class="python_comment"># expire the attriibutes 'hello', 'world' objects obj1, obj2, attributes will be reloaded
+# on the next access:
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">expire</span><span class="python_enclosure">(</span><span class="python_name">obj1</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">expire</span><span class="python_enclosure">(</span><span class="python_name">obj2</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
+</span></pre>
+    </div>
 
 
 
@@ -9953,7 +10066,7 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
         <pre>
 <span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">transactional</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">with sess</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">:
+</span><span class="python_keyword">with </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">:
     </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
@@ -10370,7 +10483,18 @@ web response   <-
 <span class="python_name">wendy </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'wendy'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Additionally, new instances are saved into the contextual session automatically upon construction; there is no longer a need to call <code>save()</code>:
+
+
+    
+    <A name="unitofwork_contextual_associating_autosave"></a>
+    
+    <div class="sectionL4">
+
+    <h3>Auto-Save Behavior with Contextual Session's Mapper</h3>
+    
+    
+
+<p>By default, when using Session.mapper, <strong>new instances are saved into the contextual session automatically upon construction;</strong> there is no longer a need to call <code>save()</code>:
 </p>
 
     
@@ -10382,7 +10506,33 @@ web response   <-
 </span><span class="python_name">True</span><span class="python_operator">
 </span></pre>
     </div>
-<p>This functionality is an updated version of what used to be accomplished by the <code>assignmapper()</code> SQLAlchemy extension.
+<p>The auto-save functionality can cause problems, namely that any <code>flush()</code> which occurs before a newly constructed object is fully populated will result in that object being INSERTed without all of its attributes completed.  As a <code>flush()</code> is more frequent when using sessions with <code>autoflush=True</code>, <strong>the auto-save behavior can be disabled</strong>, using the <code>save_on_init=False</code> flag:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_comment"># "contextual" mapper function
+</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">
+</span>
+<span class="python_comment"># use normally, specify no save on init:
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">save_on_init</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">save_on_init</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># objects now again require expicit "save"
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">newuser </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">assert </span><span class="python_name">newuser </span><span class="python_keyword">in </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">new</span><span class="python_operator">
+</span><span class="python_name">False</span><span class="python_operator">
+</span>
+<span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">newuser</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">assert </span><span class="python_name">newuser </span><span class="python_keyword">in </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">new</span><span class="python_operator">
+</span><span class="python_name">True</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The functionality of <code>Session.mapper</code> is an updated version of what used to be accomplished by the <code>assignmapper()</code> SQLAlchemy extension.
 </p>
 <p><a href="#docstrings_sqlalchemy.orm_modfunc_scoped_session">Generated docstrings for scoped_session()</a>
 </p>
@@ -10399,10 +10549,15 @@ web response   <-
 
 
 
+
+    </div>
+
+
+
     
-    <A name="unitofwork_partitioning"></a>
+    <A name="unitofwork_contextual_partitioning"></a>
     
-    <div class="sectionL2">
+    <div class="sectionL3">
 
     <h3>Partitioning Strategies</h3>
     
@@ -10413,9 +10568,9 @@ web response   <-
 
 
     
-    <A name="unitofwork_partitioning_vertical"></a>
+    <A name="unitofwork_contextual_partitioning_vertical"></a>
     
-    <div class="sectionL3">
+    <div class="sectionL4">
 
     <h3>Vertical Partitioning</h3>
     
@@ -10448,9 +10603,9 @@ web response   <-
 
 
     
-    <A name="unitofwork_partitioning_horizontal"></a>
+    <A name="unitofwork_contextual_partitioning_horizontal"></a>
     
-    <div class="sectionL3">
+    <div class="sectionL4">
 
     <h3>Horizontal Partitioning</h3>
     
@@ -10474,9 +10629,9 @@ web response   <-
 
 
     
-    <A name="unitofwork_extending"></a>
+    <A name="unitofwork_contextual_extending"></a>
     
-    <div class="sectionL2">
+    <div class="sectionL3">
 
     <h3>Extending Session</h3>
     
@@ -12049,7 +12204,7 @@ CREATE TABLE user_prefs(<br/>
 
  </li>
 </ul>
-<p>For a statement which executes with <code>inline=False</code> and is not an executemany execution, the returned <code>ResultProxy</code> will contain a collection accessible via <code>result.postfetch_cols()</code> which contains a list of all <code>Column</code> objects which had an inline-executed default.  Similarly, all parameters which were bound to the statement, including all Python and SQL expressions which were pre-executed, are present in the <code>last_inserted_params()</code> or <code>last_updated_params()</code> collections on <code>ResultProxy</code>.  The <code>last_inserted_ids()</code> collection contains a list of primary key values for the row inserted.  <br></br>
+<p>For a statement execution which is not an executemany, the returned <code>ResultProxy</code> will contain a collection accessible via <code>result.postfetch_cols()</code> which contains a list of all <code>Column</code> objects which had an inline-executed default.  Similarly, all parameters which were bound to the statement, including all Python and SQL expressions which were pre-executed, are present in the <code>last_inserted_params()</code> or <code>last_updated_params()</code> collections on <code>ResultProxy</code>.  The <code>last_inserted_ids()</code> collection contains a list of primary key values for the row inserted.  <br></br>
 </p>
 
 
@@ -12076,7 +12231,7 @@ CREATE TABLE user_prefs(<br/>
     <div class="sliding_code">
         <pre>
 <span class="python_name">t </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'test'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'mycolumn'</span><span class="python_operator">, </span><span class="python_name">DateTime</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_literal">"sysdate"</span><span class="python_enclosure">))</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'mycolumn'</span><span class="python_operator">, </span><span class="python_name">DateTime</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_name">text</span><span class="python_enclosure">(</span><span class="python_literal">"sysdate"</span><span class="python_enclosure">)))</span>
 <span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
@@ -12565,7 +12720,7 @@ CREATE TABLE test (
 
     <div class="sliding_code">
         <pre>
-<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types as types</span><span class="python_operator">
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types </span><span class="python_keyword">as </span><span class="python_name">types</span><span class="python_operator">
 </span>
 <span class="python_keyword">class </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">TypeDecorator</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_literal">"""basic type that decorates String, prefixes values with "PREFIX:" on 
@@ -12586,7 +12741,7 @@ CREATE TABLE test (
 
     <div class="sliding_code">
         <pre>
-<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types as types</span><span class="python_operator">
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types </span><span class="python_keyword">as </span><span class="python_name">types</span><span class="python_operator">
 </span>
 <span class="python_keyword">class </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">precision </span><span class="python_operator">= </span><span class="python_number">8</span><span class="python_enclosure">)</span><span class="python_operator">:
@@ -12686,8 +12841,8 @@ CREATE TABLE test (
 
     <div class="sliding_code">
         <pre>
-<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
-</span><span class="python_keyword">import </span><span class="python_name">psycopg2 as psycopg</span><span class="python_operator">
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool </span><span class="python_keyword">as </span><span class="python_name">pool</span><span class="python_operator">
+</span><span class="python_keyword">import </span><span class="python_name">psycopg2 </span><span class="python_keyword">as </span><span class="python_name">psycopg</span><span class="python_operator">
 </span><span class="python_name">psycopg </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">manage</span><span class="python_enclosure">(</span><span class="python_name">psycopg</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># then connect normally
@@ -12800,7 +12955,7 @@ CREATE TABLE test (
     <div class="sliding_code">
             <div class="codetitle">Constructing a QueuePool</div>
         <pre>
-<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool </span><span class="python_keyword">as </span><span class="python_name">pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">psycopg2</span><span class="python_operator">
 </span>
 <span class="python_keyword">def </span><span class="python_name">getconn</span><span class="python_enclosure">()</span><span class="python_operator">:
@@ -12820,7 +12975,7 @@ CREATE TABLE test (
     <div class="sliding_code">
             <div class="codetitle">Constructing a SingletonThreadPool</div>
         <pre>
-<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool </span><span class="python_keyword">as </span><span class="python_name">pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">sqlite</span><span class="python_operator">
 </span>
 <span class="python_keyword">def </span><span class="python_name">getconn</span><span class="python_enclosure">()</span><span class="python_operator">:
@@ -13773,6 +13928,10 @@ documentation</a> for more
     
     
     <A name="docstrings_sqlalchemy.databases.access"></a>
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.maxdb"></a>
 
     
     

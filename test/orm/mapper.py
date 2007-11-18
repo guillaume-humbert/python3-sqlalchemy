@@ -20,10 +20,10 @@ class MapperSuperTest(AssertMixin):
         clear_mappers()
     def setUp(self):
         pass
-    
+
 class MapperTest(MapperSuperTest):
 
-    def testpropconflict(self):
+    def test_propconflict(self):
         """test that a backref created against an existing mapper with a property name
         conflict raises a decent error message"""
         mapper(Address, addresses)
@@ -38,17 +38,25 @@ class MapperTest(MapperSuperTest):
         except exceptions.ArgumentError:
             pass
 
-    def testbadcascade(self):
+    def test_prop_accessor(self):
+        mapper(User, users)
+        try:
+            class_mapper(User).properties
+            assert False
+        except NotImplementedError, uoe:
+            assert str(uoe) == "Public collection of MapperProperty objects is provided by the get_property() and iterate_properties accessors."
+
+    def test_badcascade(self):
         mapper(Address, addresses)
         try:
             mapper(User, users, properties={'addresses':relation(Address, cascade="fake, all, delete-orphan")})
             assert False
         except exceptions.ArgumentError, e:
             assert str(e) == "Invalid cascade option 'fake'"
-        
-    def testcolumnprefix(self):
-        mapper(User, users, column_prefix='_', properties={ 
-            'user_name':synonym('_user_name') 
+
+    def test_columnprefix(self):
+        mapper(User, users, column_prefix='_', properties={
+            'user_name':synonym('_user_name')
         })
 
         s = create_session()
@@ -56,71 +64,16 @@ class MapperTest(MapperSuperTest):
         assert u._user_name=='jack'
     	assert u._user_id ==7
         assert not hasattr(u, 'user_name')
-        u2 = s.query(User).filter_by(user_name='jack').one() 
+        u2 = s.query(User).filter_by(user_name='jack').one()
         assert u is u2
-        
-    def testrefresh(self):
-        mapper(User, users, properties={'addresses':relation(mapper(Address, addresses), backref='user')})
-        s = create_session()
-        u = s.get(User, 7)
-        u.user_name = 'foo'
-        a = Address()
-        assert object_session(a) is None
-        u.addresses.append(a)
 
-        self.assert_(a in u.addresses)
 
-        s.refresh(u)
-        
-        # its refreshed, so not dirty
-        self.assert_(u not in s.dirty)
-        
-        # username is back to the DB
-        self.assert_(u.user_name == 'jack')
-        
-        self.assert_(a not in u.addresses)
-        
-        u.user_name = 'foo'
-        u.addresses.append(a)
-        # now its dirty
-        self.assert_(u in s.dirty)
-        self.assert_(u.user_name == 'foo')
-        self.assert_(a in u.addresses)
-        s.expire(u)
-
-        # get the attribute, it refreshes
-        self.assert_(u.user_name == 'jack')
-        self.assert_(a not in u.addresses)
-
-    def testcompileonsession(self):
+    def test_compileonsession(self):
         m = mapper(User, users)
         session = create_session()
-        session.connection(m)        
+        session.connection(m)
 
-    def testexpirecascade(self):
-        mapper(User, users, properties={'addresses':relation(mapper(Address, addresses), cascade="all, refresh-expire")})
-        s = create_session()
-        u = s.get(User, 8)
-        u.addresses[0].email_address = 'someotheraddress'
-        s.expire(u)
-        assert u.addresses[0].email_address == 'ed@wood.com'
-        
-    def testrefreshwitheager(self):
-        """test that a refresh/expire operation loads rows properly and sends correct "isnew" state to eager loaders"""
-        mapper(User, users, properties={'addresses':relation(mapper(Address, addresses), lazy=False)})
-        s = create_session()
-        u = s.get(User, 8)
-        assert len(u.addresses) == 3
-        s.refresh(u)
-        assert len(u.addresses) == 3
-
-        s = create_session()
-        u = s.get(User, 8)
-        assert len(u.addresses) == 3
-        s.expire(u)
-        assert len(u.addresses) == 3
-    
-    def testincompletecolumns(self):
+    def test_incompletecolumns(self):
         """test loading from a select which does not contain all columns"""
         mapper(Address, addresses)
         s = create_session()
@@ -128,8 +81,8 @@ class MapperTest(MapperSuperTest):
         assert a.user_id == 7
         assert a.address_id == 1
         assert a.email_address is None
-        
-    def testbadconstructor(self):
+
+    def test_badconstructor(self):
         """test that if the construction of a mapped class fails, the instnace does not get placed in the session"""
         class Foo(object):
             def __init__(self, one, two):
@@ -147,8 +100,8 @@ class MapperTest(MapperSuperTest):
         except TypeError, e:
             pass
 
-    def testconstructorexceptions(self):
-        """test that exceptions raised in the mapped class are not masked by sa decorations""" 
+    def test_constructorexceptions(self):
+        """test that exceptions raised in the mapped class are not masked by sa decorations"""
         ex = AssertionError('oops')
         sess = create_session()
 
@@ -177,78 +130,14 @@ class MapperTest(MapperSuperTest):
             assert False
         except Exception, e:
             assert e is ex
-            
-    def testrefresh_lazy(self):
-        """test that when a lazy loader is set as a trigger on an object's attribute (at the attribute level, not the class level), a refresh() operation doesnt fire the lazy loader or create any problems"""
-        s = create_session()
-        mapper(User, users, properties={'addresses':relation(mapper(Address, addresses))})
-        q2 = s.query(User).options(lazyload('addresses'))
-        u = q2.selectfirst(users.c.user_id==8)
-        def go():
-            s.refresh(u)
-        self.assert_sql_count(testbase.db, go, 1)
 
-    def testexpire(self):
-        """test the expire function"""
-        s = create_session()
-        mapper(User, users, properties={'addresses':relation(mapper(Address, addresses), lazy=False)})
-        u = s.get(User, 7)
-        assert(len(u.addresses) == 1)
-        u.user_name = 'foo'
-        del u.addresses[0]
-        s.expire(u)
-        # test plain expire
-        self.assert_(u.user_name =='jack')
-        self.assert_(len(u.addresses) == 1)
-        
-        # we're changing the database here, so if this test fails in the middle,
-        # it'll screw up the other tests which are hardcoded to 7/'jack'
-        u.user_name = 'foo'
-        s.flush()
-        # change the value in the DB
-        users.update(users.c.user_id==7, values=dict(user_name='jack')).execute()
-        s.expire(u)
-        # object isnt refreshed yet, using dict to bypass trigger
-        self.assert_(u.__dict__.get('user_name') != 'jack')
-        # do a select
-        s.query(User).select()
-        # test that it refreshed
-        self.assert_(u.__dict__['user_name'] == 'jack')
-        
-        # object should be back to normal now, 
-        # this should *not* produce a SELECT statement (not tested here though....)
-        self.assert_(u.user_name =='jack')
-        
-    def testrefresh2(self):
-        """test a hang condition that was occuring on expire/refresh"""
-        
-        s = create_session()
-        m1 = mapper(Address, addresses)
-
-        m2 = mapper(User, users, properties = dict(addresses=relation(Address,private=True,lazy=False)) )
-        u=User()
-        u.user_name='Justin'
-        a = Address()
-        a.address_id=17  # to work around the hardcoded IDs in this test suite....
-        u.addresses.append(a)
-        s.flush()
-        s.clear()
-        u = s.query(User).selectfirst()
-        print u.user_name
-
-        #ok so far
-        s.expire(u)        #hangs when
-        print u.user_name #this line runs
-
-        s.refresh(u) #hangs
-        
-    def testprops(self):
+    def test_props(self):
         m = mapper(User, users, properties = {
             'addresses' : relation(mapper(Address, addresses))
         }).compile()
         self.assert_(User.addresses.property is m.get_property('addresses'))
-    
-    def testcompileonprop(self):
+
+    def test_compileonprop(self):
         mapper(User, users, properties = {
             'addresses' : relation(mapper(Address, addresses))
         })
@@ -266,8 +155,43 @@ class MapperTest(MapperSuperTest):
         mapper(User, users)
         mapper(Foo, addresses, inherits=User)
         assert getattr(Foo().__class__, 'user_name').impl is not None
+
+    def test_addproperty(self):
+        m = mapper(User, users)
+        mapper(Address, addresses)
+        m.add_property('user_name', deferred(users.c.user_name))
+        m.add_property('name', synonym('user_name'))
+        m.add_property('addresses', relation(Address))
+
+        sess = create_session(transactional=True)
+        assert sess.query(User).get(7)
+
+        u = sess.query(User).filter_by(name='jack').one()
+
+        def go():
+            self.assert_result([u], User, user_address_result[0])
+            assert u.user_name == 'jack'
+
+        self.assert_sql_count(testbase.db, go, 2)
+
+        u3 = User()
+        u3.user_name = 'some user'
+        sess.save(u3)
+        sess.flush()
+        sess.rollback()
+    
+    def test_illegal_non_primary(self):
+        mapper(User, users)
+        mapper(Address, addresses)
+        try:
+            mapper(User, users, non_primary=True, properties={
+                'addresses':relation(Address)
+            }).compile()
+            assert False
+        except exceptions.ArgumentError, e:
+            assert "Attempting to assign a new relation 'addresses' to a non-primary mapper on class 'User'" in str(e)
         
-    def testpropfilters(self):
+    def test_propfilters(self):
         t = Table('person', MetaData(),
                   Column('id', Integer, primary_key=True),
                   Column('type', String),
@@ -302,7 +226,7 @@ class MapperTest(MapperSuperTest):
 
         p_m.compile()
         #compile_mappers()
-        
+
         def assert_props(cls, want):
             have = set([n for n in dir(cls) if not n.startswith('_')])
             want = set(want)
@@ -318,7 +242,7 @@ class MapperTest(MapperSuperTest):
         assert_props(Hoho, ['id', 'name', 'type'])
         assert_props(Lala, ['p_employee_number', 'p_id', 'p_name', 'p_type'])
 
-    def testrecursiveselectby(self):
+    def test_recursiveselectby(self):
         """test that no endless loop occurs when traversing for select_by"""
         m = mapper(User, users, properties={
             'orders':relation(mapper(Order, orders), backref='user'),
@@ -327,15 +251,15 @@ class MapperTest(MapperSuperTest):
         q = create_session().query(m)
         q.select_by(email_address='foo')
 
-    def testmappingtojoin(self):
+    def test_mappingtojoin(self):
         """test mapping to a join"""
         usersaddresses = sql.join(users, addresses, users.c.user_id == addresses.c.user_id)
         m = mapper(User, usersaddresses, primary_key=[users.c.user_id])
         q = create_session().query(m)
         l = q.select()
         self.assert_result(l, User, *user_result[0:2])
-    
-    def testmappingtojoinnopk(self):
+
+    def test_mappingtojoinnopk(self):
         metadata = MetaData()
         account_ids_table = Table('account_ids', metadata,
                 Column('account_id', Integer, primary_key=True),
@@ -358,8 +282,8 @@ class MapperTest(MapperSuperTest):
             assert testbase.db.execute(account_stuff_table.count()).scalar() == 0
         finally:
             metadata.drop_all(testbase.db)
-        
-    def testmappingtoouterjoin(self):
+
+    def test_mappingtoouterjoin(self):
         """test mapping to an outer join, with a composite primary key that allows nulls"""
         result = [
         {'user_id' : 7, 'address_id' : 1},
@@ -368,15 +292,15 @@ class MapperTest(MapperSuperTest):
         {'user_id' : 8, 'address_id' : 4},
         {'user_id' : 9, 'address_id':None}
         ]
-        
+
         j = join(users, addresses, isouter=True)
         m = mapper(User, j, allow_null_pks=True, primary_key=[users.c.user_id, addresses.c.address_id])
         q = create_session().query(m)
         l = q.select()
         self.assert_result(l, User, *result)
 
-        
-    def testcustomjoin(self):
+
+    def test_customjoin(self):
         """test that the from_obj parameter to query.select() can be used
         to totally replace the FROM parameters of the generated query."""
 
@@ -389,22 +313,22 @@ class MapperTest(MapperSuperTest):
         q = create_session().query(m)
         l = q.select((orderitems.c.item_name=='item 4'), from_obj=[users.join(orders).join(orderitems)])
         self.assert_result(l, User, user_result[0])
-            
-    def testorderby(self):
+
+    def test_orderby(self):
         """test ordering at the mapper and query level"""
         # TODO: make a unit test out of these various combinations
 #        m = mapper(User, users, order_by=desc(users.c.user_name))
         mapper(User, users, order_by=None)
 #        mapper(User, users)
-        
+
 #        l = create_session().query(User).select(order_by=[desc(users.c.user_name), asc(users.c.user_id)])
         l = create_session().query(User).select()
 #        l = create_session().query(User).select(order_by=[])
 #        l = create_session().query(User).select(order_by=None)
-        
-        
-    @testing.unsupported('firebird') 
-    def testfunction(self):
+
+
+    @testing.unsupported('firebird')
+    def test_function(self):
         """test mapping to a SELECT statement that has functions in it."""
         s = select([users, (users.c.user_id * 2).label('concat'), func.count(addresses.c.address_id).label('count')],
         users.c.user_id==addresses.c.user_id, group_by=[c for c in users.c]).alias('myselect')
@@ -416,10 +340,10 @@ class MapperTest(MapperSuperTest):
         assert l[0].concat == l[0].user_id * 2 == 14
         assert l[1].concat == l[1].user_id * 2 == 16
 
-    @testing.unsupported('firebird') 
-    def testcount(self):
+    @testing.unsupported('firebird')
+    def test_count(self):
         """test the count function on Query.
-        
+
         (why doesnt this work on firebird?)"""
         mapper(User, users)
         q = create_session().query(User)
@@ -427,14 +351,14 @@ class MapperTest(MapperSuperTest):
         self.assert_(q.count(users.c.user_id.in_([8,9]))==2)
         self.assert_(q.count_by(user_name='fred')==1)
 
-    def testmanytomany_count(self):
+    def test_manytomany_count(self):
         mapper(Item, orderitems, properties = dict(
                 keywords = relation(mapper(Keyword, keywords), itemkeywords, lazy = True),
             ))
         q = create_session().query(Item)
         assert q.join('keywords').distinct().count(Keyword.c.name=="red") == 2
 
-    def testoverride(self):
+    def test_override(self):
         # assert that overriding a column raises an error
         try:
             m = mapper(User, users, properties = {
@@ -443,13 +367,13 @@ class MapperTest(MapperSuperTest):
             self.assert_(False, "should have raised ArgumentError")
         except exceptions.ArgumentError, e:
             self.assert_(True)
-        
+
         clear_mappers()
         # assert that allow_column_override cancels the error
         m = mapper(User, users, properties = {
                 'user_name' : relation(mapper(Address, addresses))
             }, allow_column_override=True)
-            
+
         clear_mappers()
         # assert that the column being named else where also cancels the error
         m = mapper(User, users, properties = {
@@ -457,7 +381,7 @@ class MapperTest(MapperSuperTest):
                 'foo' : users.c.user_name,
             })
 
-    def testsynonym(self):
+    def test_synonym(self):
         sess = create_session()
         mapper(User, users, properties = dict(
             addresses = relation(mapper(Address, addresses), lazy = True),
@@ -465,40 +389,41 @@ class MapperTest(MapperSuperTest):
             adlist = synonym('addresses', proxy=True),
             adname = synonym('addresses')
         ))
-        
+
         assert hasattr(User, 'adlist')
         assert not hasattr(User, 'adname')
-        
+
         u = sess.query(User).get_by(uname='jack')
         self.assert_result(u.adlist, Address, *(user_address_result[0]['addresses'][1]))
 
         assert hasattr(u, 'adlist')
         assert not hasattr(u, 'adname')
-        
+
         addr = sess.query(Address).get_by(address_id=user_address_result[0]['addresses'][1][0]['address_id'])
         u = sess.query(User).get_by(adname=addr)
         u2 = sess.query(User).get_by(adlist=addr)
         assert u is u2
-        
+
         assert u not in sess.dirty
         u.uname = "some user name"
         assert u.uname == "some user name"
         assert u.user_name == "some user name"
         assert u in sess.dirty
 
-    def testsynonymoptions(self):
+    @testing.fails_on('maxdb')
+    def test_synonymoptions(self):
         sess = create_session()
         mapper(User, users, properties = dict(
             addresses = relation(mapper(Address, addresses), lazy = True),
             adlist = synonym('addresses', proxy=True)
         ))
-        
+
         def go():
             u = sess.query(User).options(eagerload('adlist')).get_by(user_name='jack')
             self.assert_result(u.adlist, Address, *(user_address_result[0]['addresses'][1]))
         self.assert_sql_count(testbase.db, go, 1)
-        
-    def testextensionoptions(self):
+
+    def test_extensionoptions(self):
         sess  = create_session()
         class ext1(MapperExtension):
             def populate_instance(self, mapper, selectcontext, row, instance, **flags):
@@ -524,8 +449,8 @@ class MapperTest(MapperSuperTest):
         assert l.TEST_2 == "also hello world"
         assert not hasattr(l.addresses[0], 'TEST')
         assert not hasattr(l.addresses[0], 'TEST2')
-        
-    def testeageroptions(self):
+
+    def test_eageroptions(self):
         """tests that a lazy relation can be upgraded to an eager relation via the options method"""
         sess = create_session()
         mapper(User, users, properties = dict(
@@ -537,7 +462,8 @@ class MapperTest(MapperSuperTest):
             self.assert_result(l, User, *user_address_result)
         self.assert_sql_count(testbase.db, go, 0)
 
-    def testeageroptionswithlimit(self):
+    @testing.fails_on('maxdb')
+    def test_eageroptionswithlimit(self):
         sess = create_session()
         mapper(User, users, properties = dict(
             addresses = relation(mapper(Address, addresses), lazy = True)
@@ -550,15 +476,16 @@ class MapperTest(MapperSuperTest):
         self.assert_sql_count(testbase.db, go, 0)
 
         sess.clear()
-        
+
         # test that eager loading doesnt modify parent mapper
         def go():
             u = sess.query(User).get_by(user_id=8)
             assert u.user_id == 8
             assert len(u.addresses) == 3
         assert "tbl_row_count" not in self.capture_sql(testbase.db, go)
-        
-    def testlazyoptionswithlimit(self):
+
+    @testing.fails_on('maxdb')
+    def test_lazyoptionswithlimit(self):
         sess = create_session()
         mapper(User, users, properties = dict(
             addresses = relation(mapper(Address, addresses), lazy = False)
@@ -570,7 +497,7 @@ class MapperTest(MapperSuperTest):
             assert len(u.addresses) == 3
         self.assert_sql_count(testbase.db, go, 1)
 
-    def testeagerdegrade(self):
+    def test_eagerdegrade(self):
         """tests that an eager relation automatically degrades to a lazy relation if eager columns are not available"""
         sess = create_session()
         usermapper = mapper(User, users, properties = dict(
@@ -584,7 +511,7 @@ class MapperTest(MapperSuperTest):
         self.assert_sql_count(testbase.db, go, 1)
 
         sess.clear()
-        
+
         # then select just from users.  run it into instances.
         # then assert the data, which will launch 3 more lazy loads
         # (previous users in session fell out of scope and were removed from session's identity map)
@@ -593,14 +520,14 @@ class MapperTest(MapperSuperTest):
             l = usermapper.instances(r, sess)
             self.assert_result(l, User, *user_address_result)
         self.assert_sql_count(testbase.db, go, 4)
-        
+
         clear_mappers()
 
         sess.clear()
-        
+
         # test with a deeper set of eager loads.  when we first load the three
         # users, they will have no addresses or orders.  the number of lazy loads when
-        # traversing the whole thing will be three for the addresses and three for the 
+        # traversing the whole thing will be three for the addresses and three for the
         # orders.
         # (previous users in session fell out of scope and were removed from session's identity map)
         usermapper = mapper(User, users,
@@ -622,7 +549,7 @@ class MapperTest(MapperSuperTest):
         self.assert_sql_count(testbase.db, go, 1)
 
         sess.clear()
-        
+
         # then select just from users.  run it into instances.
         # then assert the data, which will launch 6 more lazy loads
         def go():
@@ -630,9 +557,9 @@ class MapperTest(MapperSuperTest):
             l = usermapper.instances(r, sess)
             self.assert_result(l, User, *user_all_result)
         self.assert_sql_count(testbase.db, go, 7)
-        
-        
-    def testlazyoptions(self):
+
+
+    def test_lazyoptions(self):
         """tests that an eager relation can be upgraded to a lazy relation via the options method"""
         sess = create_session()
         mapper(User, users, properties = dict(
@@ -643,21 +570,21 @@ class MapperTest(MapperSuperTest):
             self.assert_result(l, User, *user_address_result)
         self.assert_sql_count(testbase.db, go, 3)
 
-    def testlatecompile(self):
+    def test_latecompile(self):
         """tests mappers compiling late in the game"""
-        
+
         mapper(User, users, properties = {'orders': relation(Order)})
         mapper(Item, orderitems, properties={'keywords':relation(Keyword, secondary=itemkeywords)})
         mapper(Keyword, keywords)
         mapper(Order, orders, properties={'items':relation(Item)})
-        
+
         sess = create_session()
         u = sess.query(User).select()
         def go():
             print u[0].orders[1].items[0].keywords[1]
         self.assert_sql_count(testbase.db, go, 3)
 
-    def testdeepoptions(self):
+    def test_deepoptions(self):
         mapper(User, users,
             properties = {
                 'orders': relation(mapper(Order, orders, properties = {
@@ -666,17 +593,17 @@ class MapperTest(MapperSuperTest):
                     }))
                 }))
             })
-            
+
         sess = create_session()
-        
+
         # eagerload nothing.
         u = sess.query(User).select()
         def go():
             print u[0].orders[1].items[0].keywords[1]
         self.assert_sql_count(testbase.db, go, 3)
         sess.clear()
-        
-        
+
+
         print "-------MARK----------"
         # eagerload orders.items.keywords; eagerload_all() implies eager load of orders, orders.items
         q2 = sess.query(User).options(eagerload_all('orders.items.keywords'))
@@ -698,24 +625,24 @@ class MapperTest(MapperSuperTest):
         print "-------MARK4----------"
 
         sess.clear()
-        
+
         # eagerload "keywords" on items.  it will lazy load "orders", then lazy load
         # the "items" on the order, but on "items" it will eager load the "keywords"
         print "-------MARK5----------"
         q3 = sess.query(User).options(eagerload('orders.items.keywords'))
         u = q3.select()
         self.assert_sql_count(testbase.db, go, 2)
-            
-    
+
+
 class DeferredTest(MapperSuperTest):
 
-    def testbasic(self):
+    def test_basic(self):
         """tests a basic "deferred" load"""
-        
+
         m = mapper(Order, orders, properties={
             'description':deferred(orders.c.description)
         })
-        
+
         o = Order()
         self.assert_(o.description is None)
 
@@ -731,12 +658,12 @@ class DeferredTest(MapperSuperTest):
             ("SELECT orders.description AS orders_description FROM orders WHERE orders.order_id = :param_1", {'param_1':3})
         ])
 
-    def testunsaved(self):
+    def test_unsaved(self):
         """test that deferred loading doesnt kick in when just PK cols are set"""
         m = mapper(Order, orders, properties={
             'description':deferred(orders.c.description)
         })
-        
+
         sess = create_session()
         o = Order()
         sess.save(o)
@@ -745,7 +672,7 @@ class DeferredTest(MapperSuperTest):
             o.description = "some description"
         self.assert_sql_count(testbase.db, go, 0)
 
-    def testunsavedgroup(self):
+    def test_unsavedgroup(self):
         """test that deferred loading doesnt kick in when just PK cols are set"""
         m = mapper(Order, orders, properties={
             'description':deferred(orders.c.description, group='primary'),
@@ -759,20 +686,20 @@ class DeferredTest(MapperSuperTest):
         def go():
             o.description = "some description"
         self.assert_sql_count(testbase.db, go, 0)
-        
-    def testsave(self):
+
+    def test_save(self):
         m = mapper(Order, orders, properties={
             'description':deferred(orders.c.description)
         })
-        
+
         sess = create_session()
         q = sess.query(m)
         l = q.select()
         o2 = l[2]
         o2.isopen = 1
         sess.flush()
-        
-    def testgroup(self):
+
+    def test_group(self):
         """tests deferred load with a group"""
         m = mapper(Order, orders, properties = {
             'userident':deferred(orders.c.user_id, group='primary'),
@@ -793,7 +720,7 @@ class DeferredTest(MapperSuperTest):
             ("SELECT orders.order_id AS orders_order_id FROM orders ORDER BY %s" % orderby, {}),
             ("SELECT orders.user_id AS orders_user_id, orders.description AS orders_description, orders.isopen AS orders_isopen FROM orders WHERE orders.order_id = :param_1", {'param_1':3})
         ])
-        
+
         o2 = q.select()[2]
 #        assert o2.opened == 1
         assert o2.description == 'order 3'
@@ -803,10 +730,30 @@ class DeferredTest(MapperSuperTest):
             sess.flush()
         self.assert_sql_count(testbase.db, go, 0)
     
-    def testcommitsstate(self):
+    def test_preserve_changes(self):
+        """test that the deferred load operation doesn't revert modifications on attributes"""
+        
+        mapper(Order, orders, properties = {
+            'userident':deferred(orders.c.user_id, group='primary'),
+            'description':deferred(orders.c.description, group='primary'),
+            'opened':deferred(orders.c.isopen, group='primary')
+        })
+        sess = create_session()
+        o = sess.query(Order).get(3)
+        assert 'userident' not in o.__dict__
+        o.description = 'somenewdescription'
+        assert o.description == 'somenewdescription'
+        def go():
+            assert o.opened == 1
+        self.assert_sql_count(testbase.db, go, 1)
+        assert o.description == 'somenewdescription'
+        assert o in sess.dirty
+        
+        
+    def test_commitsstate(self):
         """test that when deferred elements are loaded via a group, they get the proper CommittedState
         and dont result in changes being committed"""
-        
+
         m = mapper(Order, orders, properties = {
             'userident':deferred(orders.c.user_id, group='primary'),
             'description':deferred(orders.c.description, group='primary'),
@@ -824,8 +771,8 @@ class DeferredTest(MapperSuperTest):
             # therefore the flush() shouldnt actually issue any SQL
             sess.flush()
         self.assert_sql_count(testbase.db, go, 0)
-            
-    def testoptions(self):
+
+    def test_options(self):
         """tests using options on a mapper to create deferred and undeferred columns"""
         m = mapper(Order, orders)
         sess = create_session()
@@ -834,7 +781,7 @@ class DeferredTest(MapperSuperTest):
         def go():
             l = q2.select()
             print l[2].user_id
-            
+
         orderby = str(orders.default_order_by()[0].compile(testbase.db))
         self.assert_sql(testbase.db, go, [
             ("SELECT orders.order_id AS orders_order_id, orders.description AS orders_description, orders.isopen AS orders_isopen FROM orders ORDER BY %s" % orderby, {}),
@@ -849,7 +796,7 @@ class DeferredTest(MapperSuperTest):
             ("SELECT orders.order_id AS orders_order_id, orders.user_id AS orders_user_id, orders.description AS orders_description, orders.isopen AS orders_isopen FROM orders ORDER BY %s" % orderby, {}),
         ])
 
-    def testundefergroup(self):
+    def test_undefergroup(self):
         """tests undefer_group()"""
         m = mapper(Order, orders, properties = {
             'userident':deferred(orders.c.user_id, group='primary'),
@@ -869,9 +816,26 @@ class DeferredTest(MapperSuperTest):
         self.assert_sql(testbase.db, go, [
             ("SELECT orders.user_id AS orders_user_id, orders.description AS orders_description, orders.isopen AS orders_isopen, orders.order_id AS orders_order_id FROM orders ORDER BY %s" % orderby, {}),
         ])
-
         
-    def testdeepoptions(self):
+    def test_locates_col(self):
+        """test that manually adding a col to the result undefers the column"""
+        mapper(Order, orders, properties={
+            'description':deferred(orders.c.description)
+        })
+
+        sess = create_session()
+        o1 = sess.query(Order).first()
+        def go():
+            assert o1.description == 'order 1'
+        self.assert_sql_count(testbase.db, go, 1)
+        
+        sess = create_session()
+        o1 = sess.query(Order).add_column(orders.c.description).first()[0]
+        def go():
+            assert o1.description == 'order 1'
+        self.assert_sql_count(testbase.db, go, 0)
+        
+    def test_deepoptions(self):
         m = mapper(User, users, properties={
             'orders':relation(mapper(Order, orders, properties={
                 'items':relation(mapper(Item, orderitems, properties={
@@ -903,8 +867,8 @@ class CompositeTypesTest(ORMTest):
             Column('id', Integer, primary_key=True),
             Column('version_id', Integer, primary_key=True),
             Column('name', String(30)))
-            
-        edges = Table('edges', metadata, 
+
+        edges = Table('edges', metadata,
             Column('id', Integer, primary_key=True),
             Column('graph_id', Integer, nullable=False),
             Column('graph_version_id', Integer, nullable=False),
@@ -921,7 +885,7 @@ class CompositeTypesTest(ORMTest):
                 self.x = x
                 self.y = y
             def __composite_values__(self):
-                return [self.x, self.y]            
+                return [self.x, self.y]
             def __eq__(self, other):
                 return other.x == self.x and other.y == self.y
             def __ne__(self, other):
@@ -933,7 +897,7 @@ class CompositeTypesTest(ORMTest):
             def __init__(self, start, end):
                 self.start = start
                 self.end = end
-            
+
         mapper(Graph, graphs, properties={
             'edges':relation(Edge)
         })
@@ -941,7 +905,7 @@ class CompositeTypesTest(ORMTest):
             'start':composite(Point, edges.c.x1, edges.c.y1),
             'end':composite(Point, edges.c.x2, edges.c.y2)
         })
-        
+
         sess = create_session()
         g = Graph()
         g.id = 1
@@ -950,13 +914,13 @@ class CompositeTypesTest(ORMTest):
         g.edges.append(Edge(Point(14, 5), Point(2, 7)))
         sess.save(g)
         sess.flush()
-        
+
         sess.clear()
         g2 = sess.query(Graph).get([g.id, g.version_id])
         for e1, e2 in zip(g.edges, g2.edges):
             assert e1.start == e2.start
             assert e1.end == e2.end
-        
+
         g2.edges[1].end = Point(18, 4)
         sess.flush()
         sess.clear()
@@ -970,7 +934,7 @@ class CompositeTypesTest(ORMTest):
         assert sess.query(Edge).get(g2.edges[1].id).end == Point(19, 5)
 
         g.edges[1].end = Point(19, 5)
-        
+
         sess.clear()
         def go():
             g2 = sess.query(Graph).options(eagerload('edges')).get([g.id, g.version_id])
@@ -978,19 +942,19 @@ class CompositeTypesTest(ORMTest):
                 assert e1.start == e2.start
                 assert e1.end == e2.end
         self.assert_sql_count(testbase.db, go, 1)
-        
+
         # test comparison of CompositeProperties to their object instances
         g = sess.query(Graph).get([1, 1])
         assert sess.query(Edge).filter(Edge.start==Point(3, 4)).one() is g.edges[0]
-        
+
         assert sess.query(Edge).filter(Edge.start!=Point(3, 4)).first() is g.edges[1]
 
         assert sess.query(Edge).filter(Edge.start==None).all() == []
-        
-        
+
+
     def test_pk(self):
         """test using a composite type as a primary key"""
-        
+
         class Version(object):
             def __init__(self, id, version):
                 self.id = id
@@ -1002,32 +966,32 @@ class CompositeTypesTest(ORMTest):
                 return other.id == self.id and other.version == self.version
             def __ne__(self, other):
                 return not self.__eq__(other)
-                
+
         class Graph(object):
             def __init__(self, version):
                 self.version = version
-            
+
         mapper(Graph, graphs, properties={
             'version':composite(Version, graphs.c.id, graphs.c.version_id)
         })
-        
+
         sess = create_session()
         g = Graph(Version(1, 1))
         sess.save(g)
         sess.flush()
-        
+
         sess.clear()
         g2 = sess.query(Graph).get([1, 1])
         assert g.version == g2.version
         sess.clear()
-        
+
         g2 = sess.query(Graph).get(Version(1, 1))
         assert g.version == g2.version
-        
-        
-        
+
+
+
 class NoLoadTest(MapperSuperTest):
-    def testbasic(self):
+    def test_basic(self):
         """tests a basic one-to-many lazy load"""
         m = mapper(User, users, properties = dict(
             addresses = relation(mapper(Address, addresses), lazy=None)
@@ -1039,11 +1003,11 @@ class NoLoadTest(MapperSuperTest):
             x[0].addresses
             l[0] = x
         self.assert_sql_count(testbase.db, go, 1)
-            
+
         self.assert_result(l[0], User,
             {'user_id' : 7, 'addresses' : (Address, [])},
             )
-    def testoptions(self):
+    def test_options(self):
         m = mapper(User, users, properties = dict(
             addresses = relation(mapper(Address, addresses), lazy=None)
         ))
@@ -1054,13 +1018,23 @@ class NoLoadTest(MapperSuperTest):
             x[0].addresses
             l[0] = x
         self.assert_sql_count(testbase.db, go, 2)
-            
+
         self.assert_result(l[0], User,
             {'user_id' : 7, 'addresses' : (Address, [{'address_id' : 1}])},
             )
 
 class MapperExtensionTest(MapperSuperTest):
-    def testcreateinstance(self):
+    def setUpAll(self):
+        tables.create()
+    def tearDownAll(self):
+        tables.drop()
+    def tearDown(self):
+        clear_mappers()
+        tables.delete()
+    def setUp(self):
+        tables.data()
+
+    def test_create_instance(self):
         class Ext(MapperExtension):
             def create_instance(self, *args, **kwargs):
                 return User()
@@ -1068,11 +1042,249 @@ class MapperExtensionTest(MapperSuperTest):
         m = mapper(User, users, extension=Ext(), properties = dict(
             addresses = relation(Address, lazy=True),
         ))
-        
+
         q = create_session().query(m)
         l = q.select();
         self.assert_result(l, User, *user_address_result)
-    
 
-if __name__ == "__main__":    
+    def test_methods(self):
+        """test that common user-defined methods get called."""
+
+        methods = set()
+        class Ext(MapperExtension):
+            def load(self, query, *args, **kwargs):
+                methods.add('load')
+                return EXT_CONTINUE
+
+            def get(self, query, *args, **kwargs):
+                methods.add('get')
+                return EXT_CONTINUE
+
+            def translate_row(self, mapper, context, row):
+                methods.add('translate_row')
+                return EXT_CONTINUE
+
+            def create_instance(self, mapper, selectcontext, row, class_):
+                methods.add('create_instance')
+                return EXT_CONTINUE
+
+            def append_result(self, mapper, selectcontext, row, instance, result, **flags):
+                methods.add('append_result')
+                return EXT_CONTINUE
+
+            def populate_instance(self, mapper, selectcontext, row, instance, **flags):
+                methods.add('populate_instance')
+                return EXT_CONTINUE
+
+            def before_insert(self, mapper, connection, instance):
+                methods.add('before_insert')
+                return EXT_CONTINUE
+
+            def after_insert(self, mapper, connection, instance):
+                methods.add('after_insert')
+                return EXT_CONTINUE
+
+            def before_update(self, mapper, connection, instance):
+                methods.add('before_update')
+                return EXT_CONTINUE
+
+            def after_update(self, mapper, connection, instance):
+                methods.add('after_update')
+                return EXT_CONTINUE
+
+            def before_delete(self, mapper, connection, instance):
+                methods.add('before_delete')
+                return EXT_CONTINUE
+
+            def after_delete(self, mapper, connection, instance):
+                methods.add('after_delete')
+                return EXT_CONTINUE
+
+        mapper(User, users, extension=Ext())
+        sess = create_session()
+        u = User()
+        sess.save(u)
+        sess.flush()
+        u = sess.query(User).load(u.user_id)
+        sess.clear()
+        u = sess.query(User).get(u.user_id)
+        u.user_name = 'foobar'
+        sess.flush()
+        sess.delete(u)
+        sess.flush()
+        assert methods == set(['load', 'append_result', 'before_delete', 'create_instance', 'translate_row', 'get',
+                'after_delete', 'after_insert', 'before_update', 'before_insert', 'after_update', 'populate_instance'])
+
+
+class RequirementsTest(AssertMixin):
+    """Tests the contract for user classes."""
+
+    def setUpAll(self):
+        global metadata, t1, t2, t3, t4, t5, t6
+
+        metadata = MetaData(testbase.db)
+        t1 = Table('ht1', metadata,
+                   Column('id', Integer, primary_key=True),
+                   Column('value', String(10)))
+        t2 = Table('ht2', metadata,
+                   Column('id', Integer, primary_key=True),
+                   Column('ht1_id', Integer, ForeignKey('ht1.id')),
+                   Column('value', String(10)))
+        t3 = Table('ht3', metadata,
+                   Column('id', Integer, primary_key=True),
+                   Column('value', String(10)))
+        t4 = Table('ht4', metadata,
+                   Column('ht1_id', Integer, ForeignKey('ht1.id'),
+                          primary_key=True),
+                   Column('ht3_id', Integer, ForeignKey('ht3.id'),
+                          primary_key=True))
+        t5 = Table('ht5', metadata,
+                   Column('ht1_id', Integer, ForeignKey('ht1.id'),
+                          primary_key=True),
+                   Column('ht1_id', Integer, ForeignKey('ht1.id'),
+                          primary_key=True))
+        t6 = Table('ht6', metadata,
+                   Column('ht1a_id', Integer, ForeignKey('ht1.id'),
+                          primary_key=True),
+                   Column('ht1b_id', Integer, ForeignKey('ht1.id'),
+                          primary_key=True),
+                   Column('value', String(10)))
+        metadata.create_all()
+
+    def setUp(self):
+        clear_mappers()
+
+    def tearDownAll(self):
+        metadata.drop_all()
+
+    def test_baseclass(self):
+        class OldStyle:
+            pass
+
+        self.assertRaises(exceptions.ArgumentError, mapper, OldStyle, t1)
+
+        class NoWeakrefSupport(str):
+            pass
+
+        # TODO: is weakref support detectable without an instance?
+        #self.assertRaises(exceptions.ArgumentError, mapper, NoWeakrefSupport, t2)
+
+    def test_comparison_overrides(self):
+        """Simple tests to ensure users can supply comparison __methods__.
+
+        The suite-level test --options are better suited to detect
+        problems- they add selected __methods__ across the board on all
+        ORM tests.  This test simply shoves a variety of operations
+        through the ORM to catch basic regressions early in a standard
+        test run.
+        """
+
+        # adding these methods directly to each class to avoid decoration
+        # by the testlib decorators.
+        class H1(object):
+            def __init__(self, value='abc'):
+                self.value = value
+            def __nonzero__(self):
+                return False
+            def __hash__(self):
+                return hash(self.value)
+            def __eq__(self, other):
+                if isinstance(other, type(self)):
+                    return self.value == other.value
+                return False
+        class H2(object):
+            def __init__(self, value='abc'):
+                self.value = value
+            def __nonzero__(self):
+                return False
+            def __hash__(self):
+                return hash(self.value)
+            def __eq__(self, other):
+                if isinstance(other, type(self)):
+                    return self.value == other.value
+                return False
+        class H3(object):
+            def __init__(self, value='abc'):
+                self.value = value
+            def __nonzero__(self):
+                return False
+            def __hash__(self):
+                return hash(self.value)
+            def __eq__(self, other):
+                if isinstance(other, type(self)):
+                    return self.value == other.value
+                return False
+        class H6(object):
+            def __init__(self, value='abc'):
+                self.value = value
+            def __nonzero__(self):
+                return False
+            def __hash__(self):
+                return hash(self.value)
+            def __eq__(self, other):
+                if isinstance(other, type(self)):
+                    return self.value == other.value
+                return False
+
+        mapper(H1, t1, properties={
+            'h2s': relation(H2, backref='h1'),
+            'h3s': relation(H3, secondary=t4, backref='h1s'),
+            'h1s': relation(H1, secondary=t5, backref='parent_h1'),
+            't6a': relation(H6, backref='h1a',
+                            primaryjoin=t1.c.id==t6.c.ht1a_id),
+            't6b': relation(H6, backref='h1b',
+                            primaryjoin=t1.c.id==t6.c.ht1b_id),
+            })
+        mapper(H2, t2)
+        mapper(H3, t3)
+        mapper(H6, t6)
+
+        s = create_session()
+        for i in range(3):
+            h1 = H1()
+            s.save(h1)
+
+        h1.h2s.append(H2())
+        h1.h3s.extend([H3(), H3()])
+        h1.h1s.append(H1())
+
+        s.flush()
+
+        h6 = H6()
+        h6.h1a = h1
+        h6.h1b = h1
+
+        h6 = H6()
+        h6.h1a = h1
+        h6.h1b = H1()
+
+        h6.h1b.h2s.append(H2())
+
+        s.flush()
+
+        h1.h2s.extend([H2(), H2()])
+        s.flush()
+
+        h1s = s.query(H1).options(eagerload('h2s')).all()
+        self.assertEqual(len(h1s), 5)
+
+        self.assert_unordered_result(h1s, H1,
+                                     {'h2s': []},
+                                     {'h2s': []},
+                                     {'h2s': (H2, [{'value': 'abc'},
+                                                   {'value': 'abc'},
+                                                   {'value': 'abc'}])},
+                                     {'h2s': []},
+                                     {'h2s': (H2, [{'value': 'abc'}])})
+
+        h1s = s.query(H1).options(eagerload('h3s')).all()
+
+        self.assertEqual(len(h1s), 5)
+        h1s = s.query(H1).options(eagerload_all('t6a.h1b'),
+                                  eagerload('h2s'),
+                                  eagerload_all('h3s.h1s')).all()
+        self.assertEqual(len(h1s), 5)
+
+
+if __name__ == "__main__":
     testbase.main()

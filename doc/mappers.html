@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -988,6 +988,8 @@ FROM employees LEFT OUTER JOIN engineers ON employees.employee_id = engineers.em
 </span><span class="python_name">engineer_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">employee_mapper</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'engineer'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+<p>Note that the mappers for the derived classes Manager and Engineer omit the specification of their associated table, as it is inherited from the employee_mapper. Omitting the table specification for derived mappers in single-table inheritance is required.
+</p>
 
 
             <a href="#top">back to section top</a>

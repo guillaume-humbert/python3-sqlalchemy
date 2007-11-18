@@ -7,7 +7,7 @@
 import inspect
 from sqlalchemy.types import \
     BLOB, BOOLEAN, CHAR, CLOB, DATE, DATETIME, DECIMAL, FLOAT, INT, \
-    NCHAR, SMALLINT, TEXT, TIME, TIMESTAMP, VARCHAR, \
+    NCHAR, NUMERIC, SMALLINT, TEXT, TIME, TIMESTAMP, VARCHAR, \
     Binary, Boolean, Date, DateTime, Float, Integer, Interval, Numeric, \
     PickleType, SmallInteger, String, Time, Unicode
 
@@ -31,4 +31,4 @@ from sqlalchemy.engine import create_engine, engine_from_config
 __all__ = [ name for name, obj in locals().items()
             if not (name.startswith('_') or inspect.ismodule(obj)) ]
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'

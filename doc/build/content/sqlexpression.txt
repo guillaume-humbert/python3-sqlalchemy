@@ -95,7 +95,7 @@ Above, while the `values` keyword limited the VALUES clause to just two columns,
 
     {python}
     >>> ins.compile().params #doctest: +NORMALIZE_WHITESPACE
-    ClauseParameters:{'fullname': 'Jack Jones', 'name': 'jack'}    
+    {'fullname': 'Jack Jones', 'name': 'jack'}    
 
 ## Executing {@name=executing}
 
@@ -334,7 +334,7 @@ The `7` literal is embedded in `ClauseElement`; we can use the same trick we did
 
     {python}
     >>> (users.c.id==7).compile().params
-    ClauseParameters:{'users_id': 7}
+    {'users_id': 7}
     
 Most Python operators, as it turns out, produce a SQL expression here, like equals, not equals, etc.:
 
@@ -740,7 +740,7 @@ If we wanted to use our `calculate` statement twice with different bind paramete
     WHERE users.id BETWEEN c1.z AND c2.z
 
     >>> s.compile().params
-    ClauseParameters:{'y': 45, 'x': 17, 'y_1': 12, 'x_1': 5}
+    {'y': 45, 'x': 17, 'y_1': 12, 'x_1': 5}
     
 ### Unions and Other Set Operations {@name=unions}
 
@@ -787,7 +787,7 @@ To embed a SELECT in a column expression, use `as_scalar()`:
     ...    ])).fetchall()
     SELECT users.name, (SELECT count(addresses.id) 
     FROM addresses 
-    WHERE users.id = addresses.user_id) 
+    WHERE users.id = addresses.user_id) AS anon_1 
     FROM users
     []
     {stop}[(u'jack', 2), (u'wendy', 2), (u'fred', 0), (u'mary', 0)]
@@ -835,11 +835,11 @@ The `select()` function can take keyword arguments `order_by`, `group_by` (as we
 
     {python}
     >>> s = select([addresses.c.user_id, func.count(addresses.c.id)]).\
-    ...     group_by(addresses.c.user_id).having(func.count(addresses.c.id>1))
+    ...     group_by(addresses.c.user_id).having(func.count(addresses.c.id)>1)
     {opensql}>>> print conn.execute(s).fetchall()
     SELECT addresses.user_id, count(addresses.id) 
     FROM addresses GROUP BY addresses.user_id 
-    HAVING count(addresses.id > ?)
+    HAVING count(addresses.id) > ?
     [1]
     {stop}[(1, 2), (2, 2)]
     

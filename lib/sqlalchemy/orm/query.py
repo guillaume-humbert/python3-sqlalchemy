@@ -9,10 +9,9 @@ from sqlalchemy.sql import util as sql_util
 from sqlalchemy.sql import expression, visitors
 from sqlalchemy.orm import mapper, object_mapper
 from sqlalchemy.orm import util as mapperutil
-from sqlalchemy.orm.interfaces import OperationContext, LoaderStack
 import operator
 
-__all__ = ['Query', 'QueryContext', 'SelectionContext']
+__all__ = ['Query', 'QueryContext']
 
 class Query(object):
     """Encapsulates the object-fetching operations provided by Mappers."""
@@ -38,6 +37,7 @@ class Query(object):
         self._statement = None
         self._params = {}
         self._criterion = None
+        self._having = None
         self._column_aggregate = None
         self._joinpoint = self.mapper
         self._aliases = None
@@ -46,6 +46,12 @@ class Query(object):
         self._populate_existing = False
         self._version_check = False
         self._autoflush = True
+        self._eager_loaders = util.Set([x for x in self.mapper._eager_loaders])
+        self._attributes = {}
+        self._current_path = ()
+        self._primary_adapter=None
+        self._only_load_props = None
+        self._refresh_instance = None
         
     def _clone(self):
         q = Query.__new__(Query)
@@ -62,6 +68,11 @@ class Query(object):
     primary_key_columns = property(lambda s:s.select_mapper.primary_key)
     session = property(_get_session)
 
+    def _with_current_path(self, path):
+        q = self._clone()
+        q._current_path = path
+        return q
+        
     def get(self, ident, **kwargs):
         """Return an instance of the object based on the given
         identifier, or None if not found.
@@ -94,12 +105,11 @@ class Query(object):
         key column values in the order of the table def's primary key
         columns.
         """
-
         ret = self._extension.load(self, ident, **kwargs)
         if ret is not mapper.EXT_CONTINUE:
             return ret
         key = self.mapper.identity_key_from_primary_key(ident)
-        instance = self._get(key, ident, reload=True, **kwargs)
+        instance = self.populate_existing()._get(key, ident, **kwargs)
         if instance is None and raiseerr:
             raise exceptions.InvalidRequestError("No instance found for identity %s" % repr(ident))
         return instance
@@ -232,6 +242,10 @@ class Query(object):
         
         q = self._clone()
 
+        # duck type to get a ClauseElement
+        if hasattr(column, 'clause_element'):
+            column = column.clause_element()
+        
         # alias non-labeled column elements. 
         if isinstance(column, sql.ColumnElement) and not hasattr(column, '_label'):
             column = column.label(None)
@@ -245,6 +259,9 @@ class Query(object):
         """
         
         q = self._clone()
+        # most MapperOptions write to the '_attributes' dictionary,
+        # so copy that as well
+        q._attributes = q._attributes.copy()
         opts = [o for o in util.flatten_iterator(args)]
         q._with_options = q._with_options + opts
         for opt in opts:
@@ -451,7 +468,27 @@ class Query(object):
         else:
             q._group_by = q._group_by + util.to_list(criterion)
         return q
-
+    
+    def having(self, criterion):
+        """apply a HAVING criterion to the quer and return the newly resulting ``Query``."""
+        
+        if isinstance(criterion, basestring):
+            criterion = sql.text(criterion)
+            
+        if criterion is not None and not isinstance(criterion, sql.ClauseElement):
+            raise exceptions.ArgumentError("having() argument must be of type sqlalchemy.sql.ClauseElement or string")
+        
+        
+        if self._aliases is not None:
+            criterion = self._aliases.adapt_clause(criterion)
+            
+        q = self._clone()
+        if q._having is not None:
+            q._having = q._having & criterion
+        else:
+            q._having = criterion
+        return q
+        
     def join(self, prop, id=None, aliased=False, from_joinpoint=False):
         """create a join of this ``Query`` object's criterion
         to a relationship and return the newly resulting ``Query``.
@@ -619,7 +656,7 @@ class Query(object):
         return self._execute_and_instances(context)
     
     def _execute_and_instances(self, querycontext):
-        result = self.session.execute(querycontext.statement, params=self._params, mapper=self.mapper)
+        result = self.session.execute(querycontext.statement, params=self._params, mapper=self.mapper, instance=self._refresh_instance)
         try:
             return iter(self.instances(result, querycontext=querycontext))
         finally:
@@ -634,14 +671,11 @@ class Query(object):
         and add_column().
         """
 
-        self.__log_debug("instances()")
-
         session = self.session
 
-        kwargs.setdefault('populate_existing', self._populate_existing)
-        kwargs.setdefault('version_check', self._version_check)
-        
-        context = SelectionContext(self.select_mapper, session, self._extension, with_options=self._with_options, **kwargs)
+        context = kwargs.pop('querycontext', None)
+        if context is None:
+            context = QueryContext(self)
 
         process = []
         mappers_or_columns = tuple(self._entities) + mappers_or_columns
@@ -672,70 +706,78 @@ class Query(object):
                             res.append(row_adapter(row)[m])
                         process.append((proc, res))
                     y(m)
+                else:
+                    raise exceptions.InvalidRequestError("Invalid column expression '%r'" % m)
+                    
             result = []
         else:
             result = util.UniqueAppender([])
-                    
+        
+        primary_mapper_args = dict(extension=context.extension, only_load_props=context.only_load_props, refresh_instance=context.refresh_instance)
+        
         for row in cursor.fetchall():
-            self.select_mapper._instance(context, row, result)
+            if self._primary_adapter:
+                self.select_mapper._instance(context, self._primary_adapter(row), result, **primary_mapper_args)
+            else:
+                self.select_mapper._instance(context, row, result, **primary_mapper_args)
             for proc in process:
                 proc[0](context, row)
 
         for instance in context.identity_map.values():
-            context.attributes.get(('populating_mapper', instance), object_mapper(instance))._post_instance(context, instance)
-        
+            context.attributes.get(('populating_mapper', id(instance)), object_mapper(instance))._post_instance(context, instance)
+
+        if context.refresh_instance and context.only_load_props and context.refresh_instance._instance_key in context.identity_map:
+            # if refreshing partial instance, do special state commit
+            # affecting only the refreshed attributes
+            context.refresh_instance._state.commit(context.only_load_props)
+            del context.identity_map[context.refresh_instance._instance_key]
+            
         # store new stuff in the identity map
         for instance in context.identity_map.values():
             session._register_persistent(instance)
-
+        
         if mappers_or_columns:
             return list(util.OrderedSet(zip(*([result] + [o[1] for o in process]))))
         else:
             return result.data
 
 
-    def _get(self, key, ident=None, reload=False, lockmode=None):
+    def _get(self, key=None, ident=None, refresh_instance=None, lockmode=None, only_load_props=None):
         lockmode = lockmode or self._lockmode
-        if not reload and not self.mapper.always_refresh and lockmode is None:
+        if not self._populate_existing and not refresh_instance and not self.mapper.always_refresh and lockmode is None:
             try:
                 return self.session.identity_map[key]
             except KeyError:
                 pass
-
+            
         if ident is None:
-            ident = key[1]
+            if key is not None:
+                ident = key[1]
         else:
             ident = util.to_list(ident)
-        params = {}
+
+        q = self
         
-        (_get_clause, _get_params) = self.select_mapper._get_clause
-        for i, primary_key in enumerate(self.primary_key_columns):
-            try:
-                params[_get_params[primary_key].key] = ident[i]
-            except IndexError:
-                raise exceptions.InvalidRequestError("Could not find enough values to formulate primary key for query.get(); primary key columns are %s" % ', '.join(["'%s'" % str(c) for c in self.primary_key_columns]))
+        if ident is not None:
+            params = {}
+            (_get_clause, _get_params) = self.select_mapper._get_clause
+            q = q.filter(_get_clause)
+            for i, primary_key in enumerate(self.primary_key_columns):
+                try:
+                    params[_get_params[primary_key].key] = ident[i]
+                except IndexError:
+                    raise exceptions.InvalidRequestError("Could not find enough values to formulate primary key for query.get(); primary key columns are %s" % ', '.join(["'%s'" % str(c) for c in self.primary_key_columns]))
+            q = q.params(params)
+            
         try:
-            q = self
             if lockmode is not None:
                 q = q.with_lockmode(lockmode)
-            q = q.filter(_get_clause)
-            q = q.params(params)._select_context_options(populate_existing=reload, version_check=(lockmode is not None))
+            q = q._select_context_options(populate_existing=refresh_instance is not None, version_check=(lockmode is not None), only_load_props=only_load_props, refresh_instance=refresh_instance)
+            q = q.order_by(None)
             # call using all() to avoid LIMIT compilation complexity
             return q.all()[0]
         except IndexError:
             return None
-
-    def _should_nest(self, querycontext):
-        """Return True if the given statement options indicate that we
-        should *nest* the generated query as a subquery inside of a
-        larger eager-loading query.  This is used with keywords like
-        distinct, limit and offset and the mapper defines eager loads.
-        """
-
-        return (
-            len(querycontext.eager_loaders) > 0
-            and self._nestable(**querycontext.select_args())
-        )
 
     def _nestable(self, **kwargs):
         """Return true if the given statement options imply it should be nested."""
@@ -767,19 +809,13 @@ class Query(object):
         whereclause = self._criterion
 
         context = QueryContext(self)
-        from_obj = context.from_obj
+        from_obj = self._from_obj
 
-        alltables = []
-        for l in [sql_util.TableFinder(x) for x in from_obj]:
-            alltables += l
-
-        if self.table not in alltables:
-            from_obj.append(self.table)
-        if self._nestable(**context.select_args()):
-            s = sql.select([self.table], whereclause, from_obj=from_obj, **context.select_args()).alias('getcount').count()
+        if self._nestable(**self._select_args()):
+            s = sql.select([self.table], whereclause, from_obj=from_obj, **self._select_args()).alias('getcount').count()
         else:
             primary_key = self.primary_key_columns
-            s = sql.select([sql.func.count(list(primary_key)[0])], whereclause, from_obj=from_obj, **context.select_args())
+            s = sql.select([sql.func.count(list(primary_key)[0])], whereclause, from_obj=from_obj, **self._select_args())
         if self._autoflush and not self._populate_existing:
             self.session._autoflush()
         return self.session.scalar(s, params=self._params, mapper=self.mapper)
@@ -803,7 +839,7 @@ class Query(object):
             # adapt the given WHERECLAUSE to adjust instances of this query's mapped 
             # table to be that of our select_table,
             # which may be the "polymorphic" selectable used by our mapper.
-            sql_util.ClauseAdapter(self.table).traverse(whereclause, stop_on=util.Set([self.table]))
+            whereclause = sql_util.ClauseAdapter(self.table).traverse(whereclause, stop_on=util.Set([self.table]))
 
             # if extra entities, adapt the criterion to those as well
             for m in self._entities:
@@ -812,12 +848,10 @@ class Query(object):
                 if isinstance(m, mapper.Mapper):
                     table = m.select_table
                     sql_util.ClauseAdapter(m.select_table).traverse(whereclause, stop_on=util.Set([m.select_table]))
+
+        from_obj = self._from_obj
         
-        # get/create query context.  get the ultimate compile arguments
-        # from there
-        order_by = context.order_by
-        from_obj = context.from_obj
-        lockmode = context.lockmode
+        order_by = self._order_by
         if order_by is False:
             order_by = self.mapper.order_by
         if order_by is False:
@@ -825,81 +859,108 @@ class Query(object):
                 order_by = self.table.default_order_by()
 
         try:
-            for_update = {'read':'read','update':True,'update_nowait':'nowait',None:False}[lockmode]
+            for_update = {'read':'read','update':True,'update_nowait':'nowait',None:False}[self._lockmode]
         except KeyError:
-            raise exceptions.ArgumentError("Unknown lockmode '%s'" % lockmode)
+            raise exceptions.ArgumentError("Unknown lockmode '%s'" % self._lockmode)
 
         # if single-table inheritance mapper, add "typecol IN (polymorphic)" criterion so
         # that we only load the appropriate types
         if self.select_mapper.single and self.select_mapper.polymorphic_on is not None and self.select_mapper.polymorphic_identity is not None:
-            whereclause = sql.and_(whereclause, self.select_mapper.polymorphic_on.in_(*[m.polymorphic_identity for m in self.select_mapper.polymorphic_iterator()]))
+            whereclause = sql.and_(whereclause, self.select_mapper.polymorphic_on.in_([m.polymorphic_identity for m in self.select_mapper.polymorphic_iterator()]))
 
-        alltables = []
-        for l in [sql_util.TableFinder(x) for x in from_obj]:
-            alltables += l
-
-        if self.table not in alltables:
-            from_obj.append(self.table)
-
-        if self._should_nest(context):
-            # if theres an order by, add those columns to the column list
-            # of the "rowcount" query we're going to make
-            if order_by:
-                order_by = [expression._literal_as_text(o) for o in util.to_list(order_by) or []]
-                cf = sql_util.ColumnFinder()
-                for o in order_by:
-                    cf.traverse(o)
-            else:
-                cf = []
-
-            s2 = sql.select(self.primary_key_columns + list(cf), whereclause, use_labels=True, from_obj=from_obj, correlate=False, **context.select_args())
-            if order_by:
-                s2 = s2.order_by(*util.to_list(order_by))
-            s3 = s2.alias('tbl_row_count')
-            crit = s3.primary_key==self.primary_key_columns
-            statement = sql.select([], crit, use_labels=True, for_update=for_update)
-            # now for the order by, convert the columns to their corresponding columns
-            # in the "rowcount" query, and tack that new order by onto the "rowcount" query
-            if order_by:
-                statement.append_order_by(*sql_util.ClauseAdapter(s3).copy_and_process(order_by))
-        else:
-            statement = sql.select([], whereclause, from_obj=from_obj, use_labels=True, for_update=for_update, **context.select_args())
-            if order_by:
-                statement.append_order_by(*util.to_list(order_by))
-                
-            # for a DISTINCT query, you need the columns explicitly specified in order
-            # to use it in "order_by".  ensure they are in the column criterion (particularly oid).
-            # TODO: this should be done at the SQL level not the mapper level
-            # TODO: need test coverage for this 
-            if context.distinct and order_by:
-                [statement.append_column(c) for c in util.to_list(order_by)]
-
-        context.statement = statement
+        context.from_clauses = from_obj
         
         # give all the attached properties a chance to modify the query
         # TODO: doing this off the select_mapper.  if its the polymorphic mapper, then
         # it has no relations() on it.  should we compile those too into the query ?  (i.e. eagerloads)
         for value in self.select_mapper.iterate_properties:
-            value.setup(context)
-        
+            if self._only_load_props and value.key not in self._only_load_props:
+                continue
+            context.exec_with_path(self.select_mapper, value.key, value.setup, context, only_load_props=self._only_load_props)
+
         # additional entities/columns, add those to selection criterion
         for tup in self._entities:
             (m, alias, alias_id) = tup
             clauses = self._get_entity_clauses(tup)
             if isinstance(m, mapper.Mapper):
                 for value in m.iterate_properties:
-                    value.setup(context, parentclauses=clauses)
+                    context.exec_with_path(self.select_mapper, value.key, value.setup, context, parentclauses=clauses)
             elif isinstance(m, sql.ColumnElement):
                 if clauses is not None:
                     m = clauses.adapt_clause(m)
-                statement.append_column(m)
+                context.secondary_columns.append(m)
+            
+        if self._eager_loaders and self._nestable(**self._select_args()):
+            # eager loaders are present, and the SELECT has limiting criterion
+            # produce a "wrapped" selectable.
+            
+            # ensure all 'order by' elements are ClauseElement instances
+            # (since they will potentially be aliased)
+            # locate all embedded Column clauses so they can be added to the
+            # "inner" select statement where they'll be available to the enclosing
+            # statement's "order by"
+
+            cf = sql_util.ColumnFinder()
+
+            if order_by:
+                order_by = [expression._literal_as_text(o) for o in util.to_list(order_by) or []]
+                for o in order_by:
+                    cf.traverse(o)
+            
+            s2 = sql.select(context.primary_columns + list(cf), whereclause, from_obj=context.from_clauses, use_labels=True, correlate=False, **self._select_args())
+
+            if order_by:
+                s2.append_order_by(*util.to_list(order_by))
+            
+            s3 = s2.alias()
+                
+            self._primary_adapter = mapperutil.create_row_adapter(s3, self.table)
+
+            statement = sql.select([s3] + context.secondary_columns, for_update=for_update, use_labels=True)
+
+            if context.eager_joins:
+                statement.append_from(sql_util.ClauseAdapter(s3).traverse(context.eager_joins), _copy_collection=False)
+
+            if order_by:
+                statement.append_order_by(*sql_util.ClauseAdapter(s3).copy_and_process(util.to_list(order_by)))
+
+            statement.append_order_by(*context.eager_order_by)
+        else:
+            statement = sql.select(context.primary_columns + context.secondary_columns, whereclause, from_obj=from_obj, use_labels=True, for_update=for_update, **self._select_args())
+            if context.eager_joins:
+                statement.append_from(context.eager_joins, _copy_collection=False)
+
+            if order_by:
+                statement.append_order_by(*util.to_list(order_by))
+
+            if context.eager_order_by:
+                statement.append_order_by(*context.eager_order_by)
+                
+            # for a DISTINCT query, you need the columns explicitly specified in order
+            # to use it in "order_by".  ensure they are in the column criterion (particularly oid).
+            if self._distinct and order_by:
+                order_by = [expression._literal_as_text(o) for o in util.to_list(order_by) or []]
+                cf = sql_util.ColumnFinder()
+                for o in order_by:
+                    cf.traverse(o)
+
+                [statement.append_column(c) for c in cf]
+
+        context.statement = statement
                 
         return context
+
+    def _select_args(self):
+        """Return a dictionary of attributes that can be applied to a ``sql.Select`` statement.
+        """
+        return {'limit':self._limit, 'offset':self._offset, 'distinct':self._distinct, 'group_by':self._group_by or None, 'having':self._having or None}
+
 
     def _get_entity_clauses(self, m):
         """for tuples added via add_entity() or add_column(), attempt to locate
         an AliasedClauses object which should be used to formulate the query as well
         as to process result rows."""
+        
         (m, alias, alias_id) = m
         if alias is not None:
             return alias
@@ -1054,11 +1115,15 @@ class Query(object):
         q._select_context_options(**kwargs)
         return list(q)
 
-    def _select_context_options(self, populate_existing=None, version_check=None): #pragma: no cover
-        if populate_existing is not None:
+    def _select_context_options(self, populate_existing=None, version_check=None, only_load_props=None, refresh_instance=None): #pragma: no cover
+        if populate_existing:
             self._populate_existing = populate_existing
-        if version_check is not None:
+        if version_check:
             self._version_check = version_check
+        if refresh_instance is not None:
+            self._refresh_instance = refresh_instance
+        if only_load_props:
+            self._only_load_props = util.Set(only_load_props)
         return self
         
     def join_to(self, key): #pragma: no cover
@@ -1151,95 +1216,31 @@ for deprecated_method in ['list', 'scalar', 'count_by',
 
 Query.logger = logging.class_logger(Query)
 
-class QueryContext(OperationContext):
-    """Created within the ``Query.compile()`` method to store and
-    share state among all the Mappers and MapperProperty objects used
-    in a query construction.
-    """
-
+class QueryContext(object):
     def __init__(self, query):
         self.query = query
-        self.order_by = query._order_by
-        self.group_by = query._group_by
-        self.from_obj = query._from_obj
-        self.lockmode = query._lockmode
-        self.distinct = query._distinct
-        self.limit = query._limit
-        self.offset = query._offset
-        self.eager_loaders = util.Set([x for x in query.mapper._eager_loaders])
+        self.mapper = query.mapper
+        self.session = query.session
+        self.extension = query._extension
         self.statement = None
-        super(QueryContext, self).__init__(query.mapper, query._with_options)
-
-    def select_args(self):
-        """Return a dictionary of attributes from this
-        ``QueryContext`` that can be applied to a ``sql.Select``
-        statement.
-        """
-        return {'limit':self.limit, 'offset':self.offset, 'distinct':self.distinct, 'group_by':self.group_by or None}
-
-    def accept_option(self, opt):
-        """Accept a ``MapperOption`` which will process (modify) the
-        state of this ``QueryContext``.
-        """
-
-        opt.process_query_context(self)
-
-
-class SelectionContext(OperationContext):
-    """Created within the ``query.instances()`` method to store and share
-    state among all the Mappers and MapperProperty objects used in a
-    load operation.
-
-    SelectionContext contains these attributes:
-
-    mapper
-      The Mapper which originated the instances() call.
-
-    session
-      The Session that is relevant to the instances call.
-
-    identity_map
-      A dictionary which stores newly created instances that have not
-      yet been added as persistent to the Session.
-
-    attributes
-      A dictionary to store arbitrary data; mappers, strategies, and
-      options all store various state information here in order
-      to communicate with each other and to themselves.
-      
-
-    populate_existing
-      Indicates if its OK to overwrite the attributes of instances
-      that were already in the Session.
-
-    version_check
-      Indicates if mappers that have version_id columns should verify
-      that instances existing already within the Session should have
-      this attribute compared to the freshly loaded value.
-      
-    querycontext
-      the QueryContext, if any, used to generate the executed statement.
-      If present, the attribute dictionary from this Context will be used
-      as the basis for this SelectionContext's attribute dictionary.  This
-      allows query-compile-time operations to send messages to the 
-      result-processing-time operations.
-    """
-
-    def __init__(self, mapper, session, extension, **kwargs):
-        self.populate_existing = kwargs.pop('populate_existing', False)
-        self.version_check = kwargs.pop('version_check', False)
-        querycontext = kwargs.pop('querycontext', None)
-        if querycontext:
-            kwargs['attributes'] = querycontext.attributes
-        self.session = session
-        self.extension = extension
+        self.populate_existing = query._populate_existing
+        self.version_check = query._version_check
+        self.only_load_props = query._only_load_props
+        self.refresh_instance = query._refresh_instance
         self.identity_map = {}
-        self.stack = LoaderStack()
-        super(SelectionContext, self).__init__(mapper, kwargs.pop('with_options', []), **kwargs)
-            
-    def accept_option(self, opt):
-        """Accept a MapperOption which will process (modify) the state
-        of this SelectionContext.
-        """
+        self.path = ()
+        self.primary_columns = []
+        self.secondary_columns = []
+        self.eager_order_by = []
+        self.eager_joins = None
+        self.options = query._with_options
+        self.attributes = query._attributes.copy()
+    
+    def exec_with_path(self, mapper, propkey, func, *args, **kwargs):
+        oldpath = self.path
+        self.path += (mapper.base_mapper, propkey)
+        try:
+            return func(*args, **kwargs)
+        finally:
+            self.path = oldpath
 
-        opt.process_selection_context(self)

@@ -21,6 +21,9 @@ def is_():
 def isnot():
     raise NotImplementedError()
 
+def op(a, opstring, b):
+    return a.op(opstring)(b)
+
 def like_op(a, b):
     return a.like(b)
 
@@ -50,6 +53,9 @@ def startswith_op(a, b):
 
 def endswith_op(a, b):
     return a.endswith(b)
+
+def contains_op(a, b):
+    return a.contains(b)
 
 def comma_op(a, b):
     raise NotImplementedError()

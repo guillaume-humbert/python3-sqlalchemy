@@ -153,7 +153,7 @@ colspecs = {
     sqltypes.CHAR: SLChar,
 }
 
-pragma_names = {
+ischema_names = {
     'INTEGER' : SLInteger,
     'INT' : SLInteger,
     'SMALLINT' : SLSmallInteger,
@@ -161,7 +161,9 @@ pragma_names = {
     'CHAR' : SLChar,
     'TEXT' : SLText,
     'NUMERIC' : SLNumeric,
+    'DECIMAL' : SLNumeric,
     'FLOAT' : SLNumeric,
+    'REAL': SLNumeric,
     'TIMESTAMP' : SLDateTime,
     'DATETIME' : SLDateTime,
     'DATE' : SLDate,
@@ -271,10 +273,10 @@ class SQLiteDialect(default.DefaultDialect):
                 args = ''
 
             try:
-                coltype = pragma_names[coltype]
+                coltype = ischema_names[coltype]
             except KeyError:
                 warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (coltype, name)))
-                coltype = sqltypes.NULLTYPE
+                coltype = sqltypes.NullType
                 
             if args is not None:
                 args = re.findall(r'(\d+)', args)
@@ -361,6 +363,21 @@ class SQLiteCompiler(compiler.DefaultCompiler):
     def for_update_clause(self, select):
         # sqlite has no "FOR UPDATE" AFAICT
         return ''
+
+    def visit_insert(self, insert_stmt):
+        self.isinsert = True
+        colparams = self._get_colparams(insert_stmt)
+        preparer = self.preparer
+
+        if not colparams:
+            return "INSERT INTO %s DEFAULT VALUES" % (
+                (preparer.format_table(insert_stmt.table),))
+        else:
+            return ("INSERT INTO %s (%s) VALUES (%s)" %
+                    (preparer.format_table(insert_stmt.table),
+                     ', '.join([preparer.format_column(c[0])
+                                for c in colparams]),
+                     ', '.join([c[1] for c in colparams])))
 
 
 class SQLiteSchemaGenerator(compiler.SchemaGenerator):

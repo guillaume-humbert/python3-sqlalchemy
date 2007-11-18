@@ -142,7 +142,8 @@ class FBDialect(default.DefaultDialect):
     supports_sane_rowcount = False
     supports_sane_multi_rowcount = False
     max_identifier_length = 31
-    preexecute_sequences = True
+    preexecute_pk_sequences = True
+    supports_pk_autoincrement = False
 
     def __init__(self, type_conv=200, concurrency_level=1, **kwargs):
         default.DefaultDialect.__init__(self, **kwargs)
@@ -353,11 +354,11 @@ class FBCompiler(compiler.DefaultCompiler):
         else:
             return self.process(alias.original, **kwargs)
 
-    def visit_function(self, func):
+    def apply_function_parens(self, func):
         if func.clauses:
-            return super(FBCompiler, self).visit_function(func)
+            return super(FBCompiler, self).apply_function_parens(func)
         else:
-            return func.name
+            return False
 
     def default_from(self):
         return " FROM rdb$database"

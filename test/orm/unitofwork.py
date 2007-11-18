@@ -46,7 +46,8 @@ class VersioningTest(ORMTest):
     def define_tables(self, metadata):
         global version_table
         version_table = Table('version_test', metadata,
-        Column('id', Integer, Sequence('version_test_seq'), primary_key=True ),
+        Column('id', Integer, Sequence('version_test_seq', optional=True),
+               primary_key=True ),
         Column('version_id', Integer, nullable=False),
         Column('value', String(40), nullable=False)
         )
@@ -56,7 +57,7 @@ class VersioningTest(ORMTest):
         s = Session(scope=None)
         class Foo(object):pass
         mapper(Foo, version_table, version_id_col=version_table.c.version_id)
-        f1 =Foo(value='f1', _sa_session=s)
+        f1 = Foo(value='f1', _sa_session=s)
         f2 = Foo(value='f2', _sa_session=s)
         s.commit()
         
@@ -523,7 +524,7 @@ class ClauseAttributesTest(ORMTest):
             Column('id', Integer, Sequence('users_id_seq', optional=True), primary_key=True),
             Column('name', String(30)),
             Column('counter', Integer, default=1))
-    
+
     def test_update(self):
         class User(object):
             pass
@@ -571,9 +572,8 @@ class ClauseAttributesTest(ORMTest):
         sess.save(u)
         sess.flush()
         assert u.counter == 5
-        
 
-        
+
 class PassiveDeletesTest(ORMTest):
     def define_tables(self, metadata):
         global mytable,myothertable
@@ -683,7 +683,7 @@ class ExtraPassiveDeletesTest(ORMTest):
         try:
             sess.commit()
             assert False
-        except (exceptions.IntegrityError, exceptions.OperationalError):
+        except exceptions.DBAPIError:
             assert True
 
         
@@ -1025,7 +1025,8 @@ class SaveTest(ORMTest):
         # check it again, identity should be different but ids the same
         nu = Session.get(m, u.user_id)
         self.assert_(u is not nu and u.user_id == nu.user_id and nu.user_name == 'savetester')
-
+        Session.close()
+        
         # change first users name and save
         Session.update(u)
         u.user_name = 'modifiedname'
@@ -1080,14 +1081,40 @@ class SaveTest(ORMTest):
         self.assert_(l.user_id == au.user_id and l.address_id == au.address_id)
     
     def test_deferred(self):
-        """test that a deferred load within a commit() doesnt screw up the connection"""
+        """test deferred column operations"""
+        
         mapper(User, users, properties={
             'user_name':deferred(users.c.user_name)
         })
+        
+        # dont set deferred attribute, commit session
         u = User()
         u.user_id=42
         Session.commit()
-  
+
+        #  assert that changes get picked up
+        u.user_name = 'some name'
+        Session.commit()
+        assert list(Session.execute(users.select(), mapper=User)) == [(42, 'some name')]
+        Session.clear()
+        
+        # assert that a set operation doesn't trigger a load operation
+        u = Session.query(User).filter(User.user_name=='some name').one()
+        def go():
+            u.user_name = 'some other name'
+        self.assert_sql_count(testbase.db, go, 0)
+        Session.flush()
+        assert list(Session.execute(users.select(), mapper=User)) == [(42, 'some other name')]
+        
+        Session.clear()
+        
+        # test assigning None to an unloaded deferred also works
+        u = Session.query(User).filter(User.user_name=='some other name').one()
+        u.user_name = None
+        Session.flush()
+        assert list(Session.execute(users.select(), mapper=User)) == [(42, None)]
+        
+        
     # why no support on oracle ?  because oracle doesn't save
     # "blank" strings; it saves a single space character. 
     @testing.unsupported('oracle') 
@@ -1703,6 +1730,138 @@ class SaveTest3(ORMTest):
         Session.commit()
         assert t2.count().scalar() == 0
 
+class RowSwitchTest(ORMTest):
+    def define_tables(self, metadata):
+        global t1, t2, t3, t1t3
+        
+        global T1, T2, T3
+        
+        Session.remove()
+        
+        # parent
+        t1 = Table('t1', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', String(30), nullable=False))
 
+        # onetomany
+        t2 = Table('t2', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', String(30), nullable=False),
+            Column('t1id', Integer, ForeignKey('t1.id'),nullable=False),
+            )
+
+        # associated
+        t3 = Table('t3', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', String(30), nullable=False),
+            )
+
+        #manytomany
+        t1t3 = Table('t1t3', metadata,
+            Column('t1id', Integer, ForeignKey('t1.id'),nullable=False),
+            Column('t3id', Integer, ForeignKey('t3.id'),nullable=False),
+        )
+        
+        class T1(fixtures.Base):
+            pass
+
+        class T2(fixtures.Base):
+            pass
+
+        class T3(fixtures.Base):
+            pass
+    
+    def tearDown(self):
+        Session.remove()
+        super(RowSwitchTest, self).tearDown()
+        
+    def test_onetomany(self):
+        mapper(T1, t1, properties={
+            't2s':relation(T2, cascade="all, delete-orphan")
+        })
+        mapper(T2, t2)
+        
+        sess = Session(autoflush=False)
+        
+        o1 = T1(data='some t1', id=1)
+        o1.t2s.append(T2(data='some t2', id=1))
+        o1.t2s.append(T2(data='some other t2', id=2))
+        
+        sess.save(o1)
+        sess.flush()
+        
+        assert list(sess.execute(t1.select(), mapper=T1)) == [(1, 'some t1')]
+        assert list(sess.execute(t2.select(), mapper=T1)) == [(1, 'some t2', 1), (2, 'some other t2', 1)]
+        
+        o2 = T1(data='some other t1', id=o1.id, t2s=[
+            T2(data='third t2', id=3),
+            T2(data='fourth t2', id=4),
+            ])
+        sess.delete(o1)
+        sess.save(o2)
+        sess.flush()
+
+        assert list(sess.execute(t1.select(), mapper=T1)) == [(1, 'some other t1')]
+        assert list(sess.execute(t2.select(), mapper=T1)) == [(3, 'third t2', 1), (4, 'fourth t2', 1)]
+
+    def test_manytomany(self):
+        mapper(T1, t1, properties={
+            't3s':relation(T3, secondary=t1t3, cascade="all, delete-orphan")
+        })
+        mapper(T3, t3)
+
+        sess = Session(autoflush=False)
+
+        o1 = T1(data='some t1', id=1)
+        o1.t3s.append(T3(data='some t3', id=1))
+        o1.t3s.append(T3(data='some other t3', id=2))
+
+        sess.save(o1)
+        sess.flush()
+
+        assert list(sess.execute(t1.select(), mapper=T1)) == [(1, 'some t1')]
+        assert rowset(sess.execute(t1t3.select(), mapper=T1)) == set([(1,1), (1, 2)])
+        assert list(sess.execute(t3.select(), mapper=T1)) == [(1, 'some t3'), (2, 'some other t3')]
+
+        o2 = T1(data='some other t1', id=1, t3s=[
+            T3(data='third t3', id=3),
+            T3(data='fourth t3', id=4),
+            ])
+        sess.delete(o1)
+        sess.save(o2)
+        sess.flush()
+
+        assert list(sess.execute(t1.select(), mapper=T1)) == [(1, 'some other t1')]
+        assert list(sess.execute(t3.select(), mapper=T1)) == [(3, 'third t3'), (4, 'fourth t3')]
+
+    def test_manytoone(self):
+        
+        mapper(T2, t2, properties={
+            't1':relation(T1)
+        })
+        mapper(T1, t1)
+
+        sess = Session(autoflush=False)
+
+        o1 = T2(data='some t2', id=1)
+        o1.t1 = T1(data='some t1', id=1)
+
+        sess.save(o1)
+        sess.flush()
+
+        assert list(sess.execute(t1.select(), mapper=T1)) == [(1, 'some t1')]
+        assert list(sess.execute(t2.select(), mapper=T1)) == [(1, 'some t2', 1)]
+
+        o2 = T2(data='some other t2', id=1, t1=T1(data='some other t1', id=2))
+        sess.delete(o1)
+        sess.delete(o1.t1)
+        sess.save(o2)
+        sess.flush()
+
+        assert list(sess.execute(t1.select(), mapper=T1)) == [(2, 'some other t1')]
+        assert list(sess.execute(t2.select(), mapper=T1)) == [(1, 'some other t2', 2)]
+        
+        
+        
 if __name__ == "__main__":
     testbase.main()        

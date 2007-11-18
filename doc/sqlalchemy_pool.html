@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -152,7 +152,7 @@ SQLAlchemy connection pool.</p>
     <A name="docstrings_sqlalchemy.pool_modfunc_manage"></a>
     <b>def manage(<i>module</i>, <i>**params</i>)</b>
     <div class="docstring">
-    <p>Returns a proxy for module that automatically pools connections.</p>
+    <p>Return a proxy for a DB-API module that automatically pools connections.</p>
 <p>Given a DB-API 2.0 module and pool management parameters, returns
 a proxy for the module that will automatically pool connections,
 creating new connection pools for each distinct set of connection
@@ -189,11 +189,10 @@ to <tt class="docutils literal"><span class="pre">QueuePool</span></tt>.</dd>
     <h3>class AssertionPool(<a href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">Pool</a>)</h3>
     
     
-    <div class="darkcell"><p>A Pool implementation that allows at most one checked out
-connection at a time.</p>
-<p>This will raise an exception if more than one connection is
-checked out at a time.  Useful for debugging code that is using
-more connections than desired.</p>
+    <div class="darkcell"><p>A Pool that allows at most one checked out connection at any given time.</p>
+<p>This will raise an exception if more than one connection is checked out
+at a time.  Useful for debugging code that is using more connections
+than desired.</p>
 </div>
     
 
@@ -278,9 +277,9 @@ more connections than desired.</p>
     <h3>class NullPool(<a href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">Pool</a>)</h3>
     
     
-    <div class="darkcell"><p>A Pool implementation which does not pool connections.</p>
-<p>Instead it literally opens and closes the underlying DB-API
-connection per each connection open/close.</p>
+    <div class="darkcell"><p>A Pool which does not pool connections.</p>
+<p>Instead it literally opens and closes the underlying DB-API connection
+per each connection open/close.</p>
 </div>
     
 
@@ -438,10 +437,11 @@ the pool.</dd>
     <A name=""></a>
     <b>def dispose(<i>self</i>)</b>
     <div class="docstring">
-    <p>dispose of this pool.</p>
-<p>this method leaves the possibility of checked-out connections remaining opened,
-so it is advised to not reuse the pool once dispose() is called, and to instead
-use a new pool constructed by the recreate() method.</p>
+    <p>Dispose of this pool.</p>
+<p>This method leaves the possibility of checked-out connections
+remaining open, It is advised to not reuse the pool once dispose()
+is called, and to instead use a new pool constructed by the
+recreate() method.</p>
 
     </div>
     </div>
@@ -492,7 +492,7 @@ use a new pool constructed by the recreate() method.</p>
     <A name=""></a>
     <b>def recreate(<i>self</i>)</b>
     <div class="docstring">
-    <p>return a new instance of this Pool's class with identical creation arguments.</p>
+    <p>Return a new instance with identical creation arguments.</p>
 
     </div>
     </div>
@@ -547,7 +547,7 @@ use a new pool constructed by the recreate() method.</p>
     <h3>class QueuePool(<a href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">Pool</a>)</h3>
     
     
-    <div class="darkcell"><p>Use <tt class="docutils literal"><span class="pre">Queue.Queue</span></tt> to maintain a fixed-size list of connections.</p>
+    <div class="darkcell"><p>A Pool that imposes a limit on the number of open connections.</p>
 <p>Arguments include all those used by the base Pool class, as well
 as:</p>
 <dl class="docutils">
@@ -697,12 +697,12 @@ connection. Defaults to 30.</dd>
     <h3>class SingletonThreadPool(<a href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">Pool</a>)</h3>
     
     
-    <div class="darkcell"><p>Maintains a single connection per thread.</p>
-<p>Maintains one connection per each thread, never moving a
-connection to a thread other than the one which it was created in.</p>
-<p>This is used for SQLite, which both does not handle multithreading
-by default, and also requires a singleton connection if a :memory:
-database is being used.</p>
+    <div class="darkcell"><p>A Pool that maintains one connection per thread.</p>
+<p>Maintains one connection per each thread, never moving a connection to a
+thread other than the one which it was created in.</p>
+<p>This is used for SQLite, which both does not handle multithreading by
+default, and also requires a singleton connection if a :memory: database
+is being used.</p>
 <p>Options are the same as those of Pool, as well as:</p>
 <dl class="docutils">
 <dt>pool_size: 5</dt>
@@ -817,8 +817,7 @@ by the recreate() method.</p>
     <h3>class StaticPool(<a href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">Pool</a>)</h3>
     
     
-    <div class="darkcell"><p>A Pool implementation which stores exactly one connection that is
-returned for all requests.</p>
+    <div class="darkcell"><p>A Pool of exactly one connection, used for all requests.</p>
 </div>
     
 

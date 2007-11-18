@@ -3,6 +3,7 @@ import pickleable
 import datetime, os
 from sqlalchemy import *
 from sqlalchemy import types
+from sqlalchemy.sql import operators
 import sqlalchemy.engine.url as url
 from sqlalchemy.databases import mssql, oracle, mysql, postgres, firebird
 from testlib import *
@@ -41,13 +42,14 @@ class MyUnicodeType(types.TypeDecorator):
     impl = Unicode
 
     def bind_processor(self, dialect):
-        impl_processor = super(MyUnicodeType, self).bind_processor(dialect)
+        impl_processor = super(MyUnicodeType, self).bind_processor(dialect) or (lambda value:value)
+        
         def process(value):
             return "UNI_BIND_IN"+ impl_processor(value)
         return process
 
     def result_processor(self, dialect):
-        impl_processor = super(MyUnicodeType, self).result_processor(dialect)
+        impl_processor = super(MyUnicodeType, self).result_processor(dialect) or (lambda value:value)
         def process(value):
             return impl_processor(value) + "UNI_BIND_OUT"
         return process
@@ -219,12 +221,16 @@ class ColumnsTest(AssertMixin):
                             'smallint_column': 'smallint_column SMALLINT',
                             'varchar_column': 'varchar_column VARCHAR(20)',
                             'numeric_column': 'numeric_column NUMERIC(12, 3)',
-                            'float_column': 'float_column NUMERIC(25, 2)'
+                            'float_column': 'float_column FLOAT(25)',
                           }
 
         db = testbase.db
-        if not db.name=='sqlite' and not db.name=='oracle':
-            expectedResults['float_column'] = 'float_column FLOAT(25)'
+        if testing.against('sqlite', 'oracle'):
+            expectedResults['float_column'] = 'float_column NUMERIC(25, 2)'
+
+        if testing.against('maxdb'):
+            expectedResults['numeric_column'] = (
+                expectedResults['numeric_column'].replace('NUMERIC', 'FIXED'))
 
         print db.engine.__module__
         testTable = Table('testColumns', MetaData(db),
@@ -236,7 +242,10 @@ class ColumnsTest(AssertMixin):
         )
 
         for aCol in testTable.c:
-            self.assertEquals(expectedResults[aCol.name], db.dialect.schemagenerator(db.dialect, db, None, None).get_column_specification(aCol))
+            self.assertEquals(
+                expectedResults[aCol.name],
+                db.dialect.schemagenerator(db.dialect, db, None, None).\
+                  get_column_specification(aCol))
 
 class UnicodeTest(AssertMixin):
     """tests the Unicode type.  also tests the TypeDecorator with instances in the types package."""
@@ -264,9 +273,10 @@ class UnicodeTest(AssertMixin):
                                        unicode_text=unicodedata,
                                        plain_varchar=rawdata)
         x = unicode_table.select().execute().fetchone()
-        print repr(x['unicode_varchar'])
-        print repr(x['unicode_text'])
-        print repr(x['plain_varchar'])
+        print 0, repr(unicodedata)
+        print 1, repr(x['unicode_varchar'])
+        print 2, repr(x['unicode_text'])
+        print 3, repr(x['plain_varchar'])
         self.assert_(isinstance(x['unicode_varchar'], unicode) and x['unicode_varchar'] == unicodedata)
         self.assert_(isinstance(x['unicode_text'], unicode) and x['unicode_text'] == unicodedata)
         if isinstance(x['plain_varchar'], unicode):
@@ -293,9 +303,10 @@ class UnicodeTest(AssertMixin):
                                            unicode_text=unicodedata,
                                            plain_varchar=rawdata)
             x = unicode_table.select().execute().fetchone()
-            print repr(x['unicode_varchar'])
-            print repr(x['unicode_text'])
-            print repr(x['plain_varchar'])
+            print 0, repr(unicodedata)
+            print 1, repr(x['unicode_varchar'])
+            print 2, repr(x['unicode_text'])
+            print 3, repr(x['plain_varchar'])
             self.assert_(isinstance(x['unicode_varchar'], unicode) and x['unicode_varchar'] == unicodedata)
             self.assert_(isinstance(x['unicode_text'], unicode) and x['unicode_text'] == unicodedata)
             self.assert_(isinstance(x['plain_varchar'], unicode) and x['plain_varchar'] == unicodedata)
@@ -357,13 +368,82 @@ class BinaryTest(AssertMixin):
         # put a number less than the typical MySQL default BLOB size
         return file(f).read(len)
 
+class ExpressionTest(AssertMixin):
+    def setUpAll(self):
+        global test_table, meta
 
+        class MyCustomType(types.TypeEngine):
+            def get_col_spec(self):
+                return "INT"
+            def bind_processor(self, dialect):
+                def process(value):
+                    return value * 10
+                return process
+            def result_processor(self, dialect):
+                def process(value):
+                    return value / 10
+                return process
+            def adapt_operator(self, op):
+                return {operators.add:operators.sub, operators.sub:operators.add}.get(op, op)
+                
+        meta = MetaData(testbase.db)
+        test_table = Table('test', meta, 
+            Column('id', Integer, primary_key=True),
+            Column('data', String(30)),
+            Column('timestamp', Date),
+            Column('value', MyCustomType))
+        
+        meta.create_all()
+        
+        test_table.insert().execute({'id':1, 'data':'somedata', 'timestamp':datetime.date(2007, 10, 15), 'value':25})
+        
+    def tearDownAll(self):
+        meta.drop_all()
+    
+    def test_control(self):
+        assert testbase.db.execute("select value from test").scalar() == 250
+        
+        assert test_table.select().execute().fetchall() == [(1, 'somedata', datetime.date(2007, 10, 15), 25)]
+        
+    def test_bind_adapt(self):
+        expr = test_table.c.timestamp == bindparam("thedate")
+        assert expr.right.type.__class__ == test_table.c.timestamp.type.__class__
+        
+        assert testbase.db.execute(test_table.select().where(expr), {"thedate":datetime.date(2007, 10, 15)}).fetchall() == [(1, 'somedata', datetime.date(2007, 10, 15), 25)]
+
+        expr = test_table.c.value == bindparam("somevalue")
+        assert expr.right.type.__class__ == test_table.c.value.type.__class__
+        assert testbase.db.execute(test_table.select().where(expr), {"somevalue":25}).fetchall() == [(1, 'somedata', datetime.date(2007, 10, 15), 25)]
+        
+
+    def test_operator_adapt(self):
+        """test type-based overloading of operators"""
+        
+        # test string concatenation
+        expr = test_table.c.data + "somedata"
+        assert testbase.db.execute(select([expr])).scalar() == "somedatasomedata"
+
+        expr = test_table.c.id + 15
+        assert testbase.db.execute(select([expr])).scalar() == 16
+
+        # test custom operator conversion
+        expr = test_table.c.value + 40
+        assert expr.type.__class__ is test_table.c.value.type.__class__
+        
+        # + operator converted to -
+        # value is calculated as: (250 - (40 * 10)) / 10 == -15
+        assert testbase.db.execute(select([expr.label('foo')])).scalar() == -15
+
+        # this one relies upon anonymous labeling to assemble result
+        # processing rules on the column.
+        assert testbase.db.execute(select([expr])).scalar() == -15
+        
 class DateTest(AssertMixin):
     def setUpAll(self):
         global users_with_date, insert_data
 
         db = testbase.db
-        if db.engine.name == 'oracle':
+        if testing.against('oracle'):
             import sqlalchemy.databases.oracle as oracle
             insert_data =  [
                     [7, 'jack',
@@ -393,8 +473,11 @@ class DateTest(AssertMixin):
             time_micro = 999
 
             # Missing or poor microsecond support:
-            if db.engine.name in ('mssql', 'mysql', 'firebird'):
+            if testing.against('mssql', 'mysql', 'firebird'):
                 datetime_micro, time_micro = 0, 0
+            # No microseconds for TIME
+            elif testing.against('maxdb'):
+                time_micro = 0
 
             insert_data =  [
                 [7, 'jack',

@@ -166,8 +166,45 @@ class SelectableTest(AssertMixin):
         print str(criterion)
         print str(j.onclause)
         self.assert_(criterion.compare(j.onclause))
-        
+    
+    def testtablejoinedtoselectoftable(self):
+        metadata = MetaData()
+        a = Table('a', metadata,
+            Column('id', Integer, primary_key=True))
+        b = Table('b', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('aid', Integer, ForeignKey('a.id')),
+            )
 
+        j1 = a.outerjoin(b)
+        j2 = select([a.c.id.label('aid')]).alias('bar')
+
+        j3 = a.join(j2, j2.c.aid==a.c.id)
+
+        j4 = select([j3]).alias('foo')
+        print j4
+        print j4.corresponding_column(j2.c.aid)
+        print j4.c.aid
+        assert j4.corresponding_column(j2.c.aid) is j4.c.aid
+        assert j4.corresponding_column(a.c.id) is j4.c.id
+
+    def test_oid(self):
+        # the oid column of a selectable currently proxies all
+        # oid columns found within.  
+        s = table.select()
+        s2 = table2.select()
+        s3 = select([s, s2])
+        assert s3.corresponding_column(table.oid_column) is s3.oid_column
+        assert s3.corresponding_column(table2.oid_column) is s3.oid_column
+        assert s3.corresponding_column(s.oid_column) is s3.oid_column
+        assert s3.corresponding_column(s2.oid_column) is s3.oid_column
+        
+        u = s.union(s2)
+        assert u.corresponding_column(table.oid_column) is u.oid_column
+        assert u.corresponding_column(table2.oid_column) is u.oid_column
+        assert u.corresponding_column(s.oid_column) is u.oid_column
+        assert u.corresponding_column(s2.oid_column) is u.oid_column
+        
 class PrimaryKeyTest(AssertMixin):
     def test_join_pk_collapse_implicit(self):
         """test that redundant columns in a join get 'collapsed' into a minimal primary key, 
@@ -229,6 +266,39 @@ class PrimaryKeyTest(AssertMixin):
         j = a.join(b, and_(a.c.id==b.c.id, b.c.x==5))
         assert str(j) == "a JOIN b ON a.id = b.id AND b.x = :b_x", str(j)
         assert list(j.primary_key) == [a.c.id, b.c.x]
+
+class DerivedTest(AssertMixin):
+    def test_table(self):
+        meta = MetaData()
+        t1 = Table('t1', meta, Column('c1', Integer, primary_key=True), Column('c2', String(30)))
+        t2 = Table('t2', meta, Column('c1', Integer, primary_key=True), Column('c2', String(30)))
+        
+        assert t1.is_derived_from(t1)
+        assert not t2.is_derived_from(t1)
+        
+    def test_alias(self):    
+        meta = MetaData()
+        t1 = Table('t1', meta, Column('c1', Integer, primary_key=True), Column('c2', String(30)))
+        t2 = Table('t2', meta, Column('c1', Integer, primary_key=True), Column('c2', String(30)))
+        
+        assert t1.alias().is_derived_from(t1)
+        assert not t2.alias().is_derived_from(t1)
+        assert not t1.is_derived_from(t1.alias())
+        assert not t1.is_derived_from(t2.alias())
+    
+    def test_select(self):
+        meta = MetaData()
+        t1 = Table('t1', meta, Column('c1', Integer, primary_key=True), Column('c2', String(30)))
+        t2 = Table('t2', meta, Column('c1', Integer, primary_key=True), Column('c2', String(30)))
+
+        assert t1.select().is_derived_from(t1)
+        assert not t2.select().is_derived_from(t1)
+
+        assert select([t1, t2]).is_derived_from(t1)
+
+        assert t1.select().alias('foo').is_derived_from(t1)
+        assert select([t1, t2]).alias('foo').is_derived_from(t1)
+        assert not t2.select().alias('foo').is_derived_from(t1)
 
 if __name__ == "__main__":
     testbase.main()

@@ -61,7 +61,7 @@ class ColumnProperty(StrategizedProperty):
     def get_history(self, obj, passive=False):
         return sessionlib.attribute_manager.get_history(obj, self.key, passive=passive)
 
-    def merge(self, session, source, dest, _recursive):
+    def merge(self, session, source, dest, dont_load, _recursive):
         setattr(dest, self.key, getattr(source, self.key, None))
 
     def get_col_value(self, column, value):
@@ -152,7 +152,7 @@ class PropertyLoader(StrategizedProperty):
         self.comparator = PropertyLoader.Comparator(self)
         self.join_depth = join_depth
         self.strategy_class = strategy_class
-        
+
         if cascade is not None:
             self.cascade = mapperutil.CascadeOptions(cascade)
         else:
@@ -280,7 +280,7 @@ class PropertyLoader(StrategizedProperty):
     def __str__(self):
         return str(self.parent.class_.__name__) + "." + self.key + " (" + str(self.mapper.class_.__name__)  + ")"
 
-    def merge(self, session, source, dest, _recursive):
+    def merge(self, session, source, dest, dont_load, _recursive):
         if not "merge" in self.cascade or self.mapper in _recursive:
             return
         childlist = sessionlib.attribute_manager.get_history(source, self.key, passive=True)
@@ -290,14 +290,13 @@ class PropertyLoader(StrategizedProperty):
             # sets a blank collection according to the correct list class
             dest_list = sessionlib.attribute_manager.init_collection(dest, self.key)
             for current in list(childlist):
-                obj = session.merge(current, entity_name=self.mapper.entity_name, _recursive=_recursive)
+                obj = session.merge(current, entity_name=self.mapper.entity_name, dont_load=dont_load, _recursive=_recursive)
                 if obj is not None:
-                    #dest_list.append_without_event(obj)
                     dest_list.append_with_event(obj)
         else:
             current = list(childlist)[0]
             if current is not None:
-                obj = session.merge(current, entity_name=self.mapper.entity_name, _recursive=_recursive)
+                obj = session.merge(current, entity_name=self.mapper.entity_name, dont_load=dont_load, _recursive=_recursive)
                 if obj is not None:
                     setattr(dest, self.key, obj)
 
@@ -600,7 +599,7 @@ class PropertyLoader(StrategizedProperty):
 
             if self.backref is not None:
                 self.backref.compile(self)
-        elif not sessionlib.attribute_manager.is_class_managed(self.parent.class_, self.key):
+        elif not mapper.class_mapper(self.parent.class_).get_property(self.key, raiseerr=False):
             raise exceptions.ArgumentError("Attempting to assign a new relation '%s' to a non-primary mapper on class '%s'.  New relations can only be added to the primary mapper, i.e. the very first mapper created for class '%s' " % (self.key, self.parent.class_.__name__, self.parent.class_.__name__))
 
         super(PropertyLoader, self).do_init()
@@ -661,80 +660,47 @@ class PropertyLoader(StrategizedProperty):
 PropertyLoader.logger = logging.class_logger(PropertyLoader)
 
 class BackRef(object):
-    """Stores the name of a backreference property as well as options
-    to be used on the resulting PropertyLoader.
-    """
+    """Attached to a PropertyLoader to indicate a complementary reverse relationship.
+    
+    Can optionally create the complementing PropertyLoader if one does not exist already."""
 
-    def __init__(self, key, **kwargs):
+    def __init__(self, key, _prop=None, **kwargs):
         self.key = key
         self.kwargs = kwargs
+        self.prop = _prop
 
     def compile(self, prop):
-        """Called by the owning PropertyLoader to set up a
-        backreference on the PropertyLoader's mapper.
-        """
-
-        # try to set a LazyLoader on our mapper referencing the parent mapper
+        if self.prop:
+            return
+        
+        self.prop = prop
+        
         mapper = prop.mapper.primary_mapper()
-        if not mapper.get_property(self.key, raiseerr=False) is not None:
+        if mapper.get_property(self.key, raiseerr=False) is None:
             pj = self.kwargs.pop('primaryjoin', None)
             sj = self.kwargs.pop('secondaryjoin', None)
-            # the backref property is set on the primary mapper
+
             parent = prop.parent.primary_mapper()
             self.kwargs.setdefault('viewonly', prop.viewonly)
             self.kwargs.setdefault('post_update', prop.post_update)
+                
             relation = PropertyLoader(parent, prop.secondary, pj, sj,
-                                      backref=prop.key, is_backref=True,
+                                      backref=BackRef(prop.key, _prop=prop), 
+                                      is_backref=True,
                                       **self.kwargs)
+                                      
             mapper._compile_property(self.key, relation);
-        elif not isinstance(mapper.get_property(self.key), PropertyLoader):
-            raise exceptions.ArgumentError(
-                "Can't create backref '%s' on mapper '%s'; an incompatible "
-                "property of that name already exists" % (self.key, str(mapper)))
+
+            prop.reverse_property = mapper.get_property(self.key)
+            mapper.get_property(self.key).reverse_property = prop
+
         else:
-            # else set one of us as the "backreference"
-            parent = prop.parent.primary_mapper()
-            if parent.class_ is not mapper.get_property(self.key)._get_target_class():
-                raise exceptions.ArgumentError(
-                    "Backrefs do not match:  backref '%s' expects to connect to %s, "
-                    "but found a backref already connected to %s" %
-                    (self.key, str(parent.class_), str(mapper.get_property(self.key).mapper.class_)))
-            if not mapper.get_property(self.key).is_backref:
-                prop.is_backref=True
-                if not prop.viewonly:
-                    prop._dependency_processor.is_backref=True
-                    # reverse_property used by dependencies.ManyToManyDP to check
-                    # association table operations
-                    prop.reverse_property = mapper.get_property(self.key)
-                    mapper.get_property(self.key).reverse_property = prop
+            raise exceptions.ArgumentError("Error creating backref '%s' on relation '%s': property of that name exists on mapper '%s'" % (self.key, prop, mapper))
 
     def get_extension(self):
         """Return an attribute extension to use with this backreference."""
 
         return attributes.GenericBackrefExtension(self.key)
 
-def deferred_load(instance, props):
-    """set multiple instance attributes to 'deferred' or 'lazy' load, for the given set of MapperProperty objects.
-
-    this will remove the current value of the attribute and set a per-instance
-    callable to fire off when the instance is next accessed.
-    
-    for column-based properties, aggreagtes them into a single list against a single deferred loader
-    so that a single column access loads all columns
-
-    """
-
-    if not props:
-        return
-    column_props = [p for p in props if isinstance(p, ColumnProperty)]
-    callable_ = column_props[0]._get_strategy(strategies.DeferredColumnLoader).setup_loader(instance, props=column_props)
-    for p in column_props:
-        sessionlib.attribute_manager.init_instance_attribute(instance, p.key, callable_=callable_, clear=True)
-        
-    for p in [p for p in props if isinstance(p, PropertyLoader)]:
-        callable_ = p._get_strategy(strategies.LazyLoader).setup_loader(instance)
-        sessionlib.attribute_manager.init_instance_attribute(instance, p.key, callable_=callable_, clear=True)
-
 mapper.ColumnProperty = ColumnProperty
-mapper.deferred_load = deferred_load
         
