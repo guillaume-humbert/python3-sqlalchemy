@@ -178,6 +178,7 @@ lib/sqlalchemy/orm/util.py
 lib/sqlalchemy/sql/__init__.py
 lib/sqlalchemy/sql/compiler.py
 lib/sqlalchemy/sql/expression.py
+lib/sqlalchemy/sql/functions.py
 lib/sqlalchemy/sql/operators.py
 lib/sqlalchemy/sql/util.py
 lib/sqlalchemy/sql/visitors.py
@@ -240,7 +241,9 @@ test/orm/manytomany.py
 test/orm/mapper.py
 test/orm/memusage.py
 test/orm/merge.py
+test/orm/naturalpks.py
 test/orm/onetoone.py
+test/orm/pickled.py
 test/orm/query.py
 test/orm/relationships.py
 test/orm/selectable.py
@@ -288,6 +291,7 @@ test/sql/alltests.py
 test/sql/case_statement.py
 test/sql/constraints.py
 test/sql/defaults.py
+test/sql/functions.py
 test/sql/generative.py
 test/sql/labels.py
 test/sql/query.py

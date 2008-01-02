@@ -4,8 +4,6 @@
 p_name=python-sqlalchemy
 m_name=SQLAlchemy
 
-DEB_UPSTREAM_VERSION=$(shell dpkg-parsechangelog | sed -rne 's,^Version: ([^-]+).*,\1,p')
-UPSTREAM_VERSION=$(subst ~,,$(DEB_UPSTREAM_VERSION))
 PYVERS=$(shell pyversions -vr)
 
 include /usr/share/quilt/quilt.make
@@ -15,9 +13,8 @@ clean: unpatch
 	dh_testdir
 	dh_testroot
 	-rm -rf $(CURDIR)/lib/${m_name}.egg-info $(CURDIR)/build/
-	rm -f build-*
 	find . -name '*\.py[co]' -delete
-	dh_clean
+	dh_clean build-*
 
 build: patch
 
@@ -26,9 +23,6 @@ install-python%:
 	python$* setup.py install \
 		--single-version-externally-managed \
 		--root $(CURDIR)/debian/${p_name}
-	# share Egg dir - remove Python version from dir name
-	mv debian/${p_name}/usr/lib/python$*/site-packages/${m_name}-${UPSTREAM_VERSION}-py$*.egg-info \
-	   debian/${p_name}/usr/lib/python$*/site-packages/${m_name}-${UPSTREAM_VERSION}.egg-info
 
 binary-indep: build install
 	dh_testdir -i
@@ -38,7 +32,7 @@ binary-indep: build install
 	dh_installexamples -i
 	rm -rf debian/${p_name}-doc/usr/share/doc/${p_name}-doc/doc/build \
 	       debian/${p_name}-doc/usr/share/doc/${p_name}-doc/examples/README
-	dh_pycentral -i
+	dh_pysupport -i
 	dh_compress -i -X.py
 	dh_fixperms -i
 	dh_installdeb -i

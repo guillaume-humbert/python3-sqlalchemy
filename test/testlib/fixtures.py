@@ -30,34 +30,46 @@ class Base(object):
             return True
         _recursion_stack.add(self)
         try:
-            # use __dict__ to avoid instrumented properties
-            for attr in self.__dict__.keys():
+            # pick the entity thats not SA persisted as the source
+            if other is None:
+                a = self
+                b = other
+            elif hasattr(self, '_instance_key'):
+                a = other
+                b = self
+            else:
+                a = self
+                b = other
+            
+            for attr in a.__dict__.keys():
                 if attr[0] == '_':
                     continue
-                value = getattr(self, attr)
+                value = getattr(a, attr)
+                #print "looking at attr:", attr, "start value:", value
                 if hasattr(value, '__iter__') and not isinstance(value, basestring):
                     try:
                         # catch AttributeError so that lazy loaders trigger
-                        otherattr = getattr(other, attr)
+                        battr = getattr(b, attr)
                     except AttributeError:
-                        #print "Other class does not have attribute named '%s'" % attr
+                        #print "b class does not have attribute named '%s'" % attr
                         return False
+                    #print "other:", battr
                     if not hasattr(value, '__len__'):
                         value = list(iter(value))
-                        otherattr = list(iter(otherattr))
-                    if len(value) != len(otherattr):
-                        #print "Length of collection '%s' does not match that of other" % attr
+                        battr = list(iter(battr))
+                    if len(value) != len(battr):
+                        #print "Length of collection '%s' does not match that of b" % attr
                         return False
-                    for (us, them) in zip(value, otherattr):
+                    for (us, them) in zip(value, battr):
                         if us != them:
-                            #print "1. Attribute named '%s' does not match other" % attr
+                            #print "1. Attribute named '%s' does not match b" % attr
                             return False
                     else:
                         continue
                 else:
                     if value is not None:
-                        if value != getattr(other, attr, None):
-                            #print "2. Attribute named '%s' does not match that of other" % attr
+                        if value != getattr(b, attr, None):
+                            #print "2. Attribute named '%s' does not match that of b" % attr
                             return False
             else:
                 return True
@@ -138,7 +150,7 @@ def install_fixture_data():
         dict(id = 2, user_id = 9, description = 'order 2', isopen=0, address_id=4),
         dict(id = 3, user_id = 7, description = 'order 3', isopen=1, address_id=1),
         dict(id = 4, user_id = 9, description = 'order 4', isopen=1, address_id=4),
-        dict(id = 5, user_id = 7, description = 'order 5', isopen=0, address_id=1)
+        dict(id = 5, user_id = 7, description = 'order 5', isopen=0, address_id=None)
     )
     items.insert().execute(
         dict(id=1, description='item 1'),

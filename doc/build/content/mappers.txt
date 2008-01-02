@@ -140,9 +140,9 @@ Correlated subqueries may be used as well:
             )
     })
     
-#### Overriding Attribute Behavior {@name=overriding}
+#### Overriding Attribute Behavior with Synonyms {@name=overriding}
 
-A common request is the ability to create custom class properties that override the behavior of setting/getting an attribute.  You accomplish this using normal Python `property` constructs:
+A common request is the ability to create custom class properties that override the behavior of setting/getting an attribute.  As of 0.4.2, the `synonym()` construct provides an easy way to do this in conjunction with a normal Python `property` constructs.  Below, we re-map the `email` column of our mapped table to a custom attribute setter/getter, mapping the actual column to the property named `_email`:
 
     {python}
     class MyAddress(object):
@@ -153,37 +153,20 @@ A common request is the ability to create custom class properties that override 
        email = property(_get_email, _set_email)
     
     mapper(MyAddress, addresses_table, properties = {
-      # map the '_email' attribute to the "email" column
-      # on the table
-      '_email': addresses_table.c.email
+        'email':synonym('_email', map_column=True)
     })
 
-To have your custom `email` property be recognized by keyword-based `Query` functions such as `filter_by()`, place a `synonym` on your mapper:
+The `email` attribute is now usable in the same way as any other mapped attribute, including filter expressions, get/set operations, etc.:
 
     {python}
-    mapper(MyAddress, addresses_table, properties = {
-      '_email': addresses_table.c.email
-      
-      'email':synonym('_email')
-    })
+    address = sess.query(MyAddress).filter(MyAddress.email == 'some address').one()
+
+    address.email = 'some other address'
+    sess.flush()
     
-    # use the synonym in a query
-    result = session.query(MyAddress).filter_by(email='john@smith.com')
+    q = sess.query(MyAddress).filter_by(email='some other address')
 
-Synonym strategies such as the above can be easily automated, such as this example which specifies all columns and synonyms explicitly:
-
-    {python}
-    mapper(MyAddress, addresses_table, properties = dict(
-        [('_'+col.key, col) for col in addresses_table.c] +
-        [(col.key, synonym('_'+col.key)) for col in addresses_table.c]
-    ))
-
-The `column_prefix` option can also help with the above scenario by setting up the columns automatically with a prefix:
-
-    {python}
-    mapper(MyAddress, addresses_table, column_prefix='_', properties = dict(
-        [(col.key, synonym('_'+col.key)) for col in addresses_table.c]
-    ))
+If the mapped class does not provide a property, the `synonym()` construct will create a default getter/setter object automatically.
 
 #### Composite Column Types {@name=composite}
 
@@ -1168,11 +1151,11 @@ A `dict` can be used as a collection, but a keying strategy is needed to map ent
 
     mapper(Item, items_table, properties={
         # key by column
-        notes = relation(Note, collection_class=column_mapped_collection(notes_table.c.keyword))
+        'notes': relation(Note, collection_class=column_mapped_collection(notes_table.c.keyword)),
         # or named attribute 
-        notes2 = relation(Note, collection_class=attribute_mapped_collection('keyword'))
+        'notes2': relation(Note, collection_class=attribute_mapped_collection('keyword')),
         # or any callable
-        notes3 = relation(Note, collection_class=mapped_collection(lambda entity: entity.a + entity.b))
+        'notes3': relation(Note, collection_class=mapped_collection(lambda entity: entity.a + entity.b))
     })
 
     # ...
@@ -1402,4 +1385,30 @@ Use `passive_deletes=True` to disable child object loading on a DELETE operation
 
 When `passive_deletes` is applied, the `children` relation will not be loaded into memory when an instance of `MyClass` is marked for deletion.  The `cascade="all, delete-orphan"` *will* take effect for instances of `MyOtherClass` which are currently present in the session; however for instances of `MyOtherClass` which are not loaded, SQLAlchemy assumes that "ON DELETE CASCADE" rules will ensure that those rows are deleted by the database and that no foreign key violation will occur.
         
+#### Mutable Primary Keys / Update Cascades {@name=mutablepks}
+
+As of SQLAlchemy 0.4.2, the primary key attributes of an instance can be changed freely, and will be persisted upon flush.  When the primary key of an entity changes, related items which reference the primary key must also be updated as well.  For databases which enforce referential integrity, it's required to use the database's ON UPDATE CASCADE functionality in order to propagate primary key changes.  For those which don't, the `passive_cascades` flag can be set to `False` which instructs SQLAlchemy to issue UPDATE statements individually.  The `passive_cascades` flag can also be `False` in conjunction with ON UPDATE CASCADE functionality, although in that case it issues UPDATE statements unnecessarily.
+
+A typical mutable primary key setup might look like:
+
+    {python}
+    users = Table('users', metadata,
+        Column('username', String(50), primary_key=True),
+        Column('fullname', String(100)))
+        
+    addresses = Table('addresses', metadata,
+        Column('email', String(50), primary_key=True),
+        Column('username', String(50), ForeignKey('users.username', onupdate="cascade")))
+    
+    class User(object):
+        pass
+    class Address(object):
+        pass
+
+    mapper(User, users, properties={
+        'addresses':relation(Address, passive_updates=False)
+    })
+    mapper(Address, addresses)
+    
+passive_updates is set to `True` by default.  Foreign key references to non-primary key columns are supported as well.
 

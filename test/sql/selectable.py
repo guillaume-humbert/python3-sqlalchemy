@@ -24,6 +24,7 @@ table2 = Table('table2', metadata,
 
 class SelectableTest(AssertMixin):
     def testdistance(self):
+        # same column three times
         s = select([table.c.col1.label('c2'), table.c.col1, table.c.col1.label('c1')])
 
         # didnt do this yet...col.label().make_proxy() has same "distance" as col.make_proxy() so far
@@ -47,7 +48,13 @@ class SelectableTest(AssertMixin):
         j2 = jjj.alias('foo')
         assert j2.corresponding_column(table.c.col1) is j2.c.table1_col1
         
-
+    def testselectontable(self):
+        sel = select([table, table2], use_labels=True)
+        assert sel.corresponding_column(table.c.col1) is sel.c.table1_col1
+        assert sel.corresponding_column(table.c.col1, require_embedded=True) is sel.c.table1_col1
+        assert table.corresponding_column(sel.c.table1_col1) is table.c.col1
+        assert table.corresponding_column(sel.c.table1_col1, require_embedded=True) is None
+        
     def testjoinagainstjoin(self):
         j  = outerjoin(table, table2, table.c.col1==table2.c.col2)
         jj = select([ table.c.col1.label('bar_col1')],from_obj=[j]).alias('foo')
@@ -264,7 +271,7 @@ class PrimaryKeyTest(AssertMixin):
         b = Table('b', meta, Column('id', Integer, ForeignKey('a.id'), primary_key=True), Column('x', Integer, primary_key=True))
 
         j = a.join(b, and_(a.c.id==b.c.id, b.c.x==5))
-        assert str(j) == "a JOIN b ON a.id = b.id AND b.x = :b_x", str(j)
+        assert str(j) == "a JOIN b ON a.id = b.id AND b.x = :b_x_1", str(j)
         assert list(j.primary_key) == [a.c.id, b.c.x]
 
 class DerivedTest(AssertMixin):

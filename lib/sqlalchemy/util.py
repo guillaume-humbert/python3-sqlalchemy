@@ -1,10 +1,10 @@
 # util.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import itertools, sys, warnings, sets
+import itertools, sys, warnings, sets, weakref
 import __builtin__
 
 from sqlalchemy import exceptions, logging
@@ -113,7 +113,7 @@ def flatten_iterator(x):
             yield elem
 
 class ArgSingleton(type):
-    instances = {}
+    instances = weakref.WeakValueDictionary()
 
     def dispose(cls):
         for key in list(ArgSingleton.instances):
@@ -192,6 +192,30 @@ def duck_type_collection(specimen, default=None):
         return dict
     else:
         return default
+
+def dictlike_iteritems(dictlike):
+    """Return a (key, value) iterator for almost any dict-like object."""
+
+    if hasattr(dictlike, 'iteritems'):
+        return dictlike.iteritems()
+    elif hasattr(dictlike, 'items'):
+        return iter(dictlike.items())
+
+    getter = getattr(dictlike, '__getitem__', getattr(dictlike, 'get', None))
+    if getter is None:
+        raise TypeError(
+            "Object '%r' is not dict-like" % dictlike)
+
+    if hasattr(dictlike, 'iterkeys'):
+        def iterator():
+            for key in dictlike.iterkeys():
+                yield key, getter(key)
+        return iterator()
+    elif hasattr(dictlike, 'keys'):
+        return iter([(key, getter(key)) for key in dictlike.keys()])
+    else:
+        raise TypeError(
+            "Object '%r' is not dict-like" % dictlike)
 
 def assert_arg_type(arg, argtype, name):
     if isinstance(arg, argtype):
@@ -464,26 +488,30 @@ class OrderedSet(Set):
     __or__ = union
 
     def intersection(self, other):
-      return self.__class__([a for a in self if a in other])
+        other = Set(other)
+        return self.__class__([a for a in self if a in other])
 
     __and__ = intersection
 
     def symmetric_difference(self, other):
-      result = self.__class__([a for a in self if a not in other])
-      result.update([a for a in other if a not in self])
-      return result
+        other = Set(other)
+        result = self.__class__([a for a in self if a not in other])
+        result.update([a for a in other if a not in self])
+        return result
 
     __xor__ = symmetric_difference
 
     def difference(self, other):
-      return self.__class__([a for a in self if a not in other])
+        other = Set(other)
+        return self.__class__([a for a in self if a not in other])
 
     __sub__ = difference
 
     def intersection_update(self, other):
-      Set.intersection_update(self, other)
-      self._list = [ a for a in self._list if a in other]
-      return self
+        other = Set(other)
+        Set.intersection_update(self, other)
+        self._list = [ a for a in self._list if a in other]
+        return self
 
     __iand__ = intersection_update
 
@@ -496,9 +524,9 @@ class OrderedSet(Set):
     __ixor__ = symmetric_difference_update
 
     def difference_update(self, other):
-      Set.difference_update(self, other)
-      self._list = [ a for a in self._list if a in self]
-      return self
+        Set.difference_update(self, other)
+        self._list = [ a for a in self._list if a in self]
+        return self
 
     __isub__ = difference_update
 
@@ -512,6 +540,7 @@ class IdentitySet(object):
 
     def __init__(self, iterable=None):
         self._members = _IterableUpdatableDict()
+        self._tempset = Set
         if iterable:
             for o in iterable:
                 self.add(o)
@@ -601,7 +630,7 @@ class IdentitySet(object):
         result = type(self)()
         # testlib.pragma exempt:__hash__
         result._members.update(
-            Set(self._members.iteritems()).union(_iter_id(iterable)))
+            self._tempset(self._members.iteritems()).union(_iter_id(iterable)))
         return result
 
     def __or__(self, other):
@@ -623,7 +652,7 @@ class IdentitySet(object):
         result = type(self)()
         # testlib.pragma exempt:__hash__
         result._members.update(
-            Set(self._members.iteritems()).difference(_iter_id(iterable)))
+            self._tempset(self._members.iteritems()).difference(_iter_id(iterable)))
         return result
 
     def __sub__(self, other):
@@ -645,7 +674,7 @@ class IdentitySet(object):
         result = type(self)()
         # testlib.pragma exempt:__hash__
         result._members.update(
-            Set(self._members.iteritems()).intersection(_iter_id(iterable)))
+            self._tempset(self._members.iteritems()).intersection(_iter_id(iterable)))
         return result
 
     def __and__(self, other):
@@ -667,7 +696,7 @@ class IdentitySet(object):
         result = type(self)()
         # testlib.pragma exempt:__hash__
         result._members.update(
-            Set(self._members.iteritems()).symmetric_difference(_iter_id(iterable)))
+            self._tempset(self._members.iteritems()).symmetric_difference(_iter_id(iterable)))
         return result
 
     def __xor__(self, other):
@@ -725,6 +754,7 @@ class OrderedIdentitySet(IdentitySet):
     def __init__(self, iterable=None):
         IdentitySet.__init__(self)
         self._members = OrderedDict()
+        self._tempset = OrderedSet
         if iterable:
             for o in iterable:
                 self.add(o)

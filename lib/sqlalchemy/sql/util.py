@@ -3,103 +3,51 @@ from sqlalchemy.sql import expression, visitors
 
 """Utility functions that build upon SQL and Schema constructs."""
 
-class TableCollection(object):
-    def __init__(self, tables=None):
-        self.tables = tables or []
-
-    def __len__(self):
-        return len(self.tables)
-
-    def __getitem__(self, i):
-        return self.tables[i]
-
-    def __iter__(self):
-        return iter(self.tables)
-
-    def __contains__(self, obj):
-        return obj in self.tables
-
-    def __add__(self, obj):
-        return self.tables + list(obj)
-
-    def add(self, table):
-        self.tables.append(table)
-        if hasattr(self, '_sorted'):
-            del self._sorted
-
-    def sort(self, reverse=False):
-        try:
-            sorted = self._sorted
-        except AttributeError, e:
-            self._sorted = self._do_sort()
-            sorted = self._sorted
-        if reverse:
-            x = sorted[:]
-            x.reverse()
-            return x
-        else:
-            return sorted
-
-    def _do_sort(self):
-        tuples = []
-        class TVisitor(schema.SchemaVisitor):
-            def visit_foreign_key(_self, fkey):
-                if fkey.use_alter:
-                    return
-                parent_table = fkey.column.table
-                if parent_table in self:
-                    child_table = fkey.parent.table
-                    tuples.append( ( parent_table, child_table ) )
-        vis = TVisitor()
-        for table in self.tables:
-            vis.traverse(table)
-        sorter = topological.QueueDependencySorter( tuples, self.tables )
-        head =  sorter.sort()
-        sequence = []
-        def to_sequence( node, seq=sequence):
-            seq.append( node.item )
-            for child in node.children:
-                to_sequence( child )
-        if head is not None:
-            to_sequence( head )
+def sort_tables(tables, reverse=False):
+    tuples = []
+    class TVisitor(schema.SchemaVisitor):
+        def visit_foreign_key(_self, fkey):
+            if fkey.use_alter:
+                return
+            parent_table = fkey.column.table
+            if parent_table in tables:
+                child_table = fkey.parent.table
+                tuples.append( ( parent_table, child_table ) )
+    vis = TVisitor()
+    for table in tables:
+        vis.traverse(table)
+    sequence = topological.sort(tuples, tables)
+    if reverse:
+        return util.reversed(sequence)
+    else:
         return sequence
 
+def find_tables(clause, check_columns=False, include_aliases=False):
+    tables = []
+    kwargs = {}
+    if include_aliases:
+        def visit_alias(alias):
+            tables.append(alias)
+        kwargs['visit_alias']  = visit_alias
+    
+    if check_columns:
+        def visit_column(column):
+            tables.append(column.table)
+        kwargs['visit_column'] = visit_column
+    
+    def visit_table(table):
+        tables.append(table)
+    kwargs['visit_table'] = visit_table
+    
+    visitors.traverse(clause, traverse_options= {'column_collections':False}, **kwargs)
+    return tables
 
-class TableFinder(TableCollection, visitors.NoColumnVisitor):
-    """locate all Tables within a clause."""
-
-    def __init__(self, clause, check_columns=False, include_aliases=False):
-        TableCollection.__init__(self)
-        self.check_columns = check_columns
-        self.include_aliases = include_aliases
-        for clause in util.to_list(clause):
-            self.traverse(clause)
-
-    def visit_alias(self, alias):
-        if self.include_aliases:
-            self.tables.append(alias)
-            
-    def visit_table(self, table):
-        self.tables.append(table)
-
-    def visit_column(self, column):
-        if self.check_columns:
-            self.tables.append(column.table)
-
-class ColumnFinder(visitors.ClauseVisitor):
-    def __init__(self):
-        self.columns = util.Set()
-
-    def visit_column(self, c):
-        self.columns.add(c)
-
-    def __iter__(self):
-        return iter(self.columns)
-
-def find_columns(selectable):
-    cf = ColumnFinder()
-    cf.traverse(selectable)
-    return iter(cf)
+def find_columns(clause):
+    cols = util.Set()
+    def visit_column(col):
+        cols.add(col)
+    visitors.traverse(clause, visit_column=visit_column)
+    return cols
     
 class ColumnsInClause(visitors.ClauseVisitor):
     """Given a selectable, visit clauses and determine if any columns
@@ -123,6 +71,9 @@ class AbstractClauseProcessor(object):
     
     __traverse_options__ = {'column_collections':False}
     
+    def __init__(self, stop_on=None):
+        self.stop_on = stop_on
+    
     def convert_element(self, elem):
         """Define the *conversion* method for this ``AbstractClauseProcessor``."""
 
@@ -144,13 +95,14 @@ class AbstractClauseProcessor(object):
         setattr(tail, attr, visitor)
         return self
 
-    def copy_and_process(self, list_, stop_on=None):
+    def copy_and_process(self, list_):
         """Copy the given list to a new list, with each element traversed individually."""
         
         list_ = list(list_)
-        stop_on = util.Set()
+        stop_on = util.Set(self.stop_on or [])
+        cloned = {}
         for i in range(0, len(list_)):
-            list_[i] = self.traverse(list_[i], stop_on=stop_on)
+            list_[i] = self._traverse(list_[i], stop_on, cloned, _clone_toplevel=True)
         return list_
 
     def _convert_element(self, elem, stop_on, cloned):
@@ -168,13 +120,11 @@ class AbstractClauseProcessor(object):
             cloned[elem] = elem._clone()
         return cloned[elem]
         
-    def traverse(self, elem, clone=True, stop_on=None):
+    def traverse(self, elem, clone=True):
         if not clone:
             raise exceptions.ArgumentError("AbstractClauseProcessor 'clone' argument must be True")
         
-        if stop_on is None:
-            stop_on = util.Set()
-        return self._traverse(elem, stop_on, {}, _clone_toplevel=True)
+        return self._traverse(elem, util.Set(self.stop_on or []), {}, _clone_toplevel=True)
         
     def _traverse(self, elem, stop_on, cloned, _clone_toplevel=False):
         if elem in stop_on:
@@ -230,6 +180,7 @@ class ClauseAdapter(AbstractClauseProcessor):
     """
 
     def __init__(self, selectable, include=None, exclude=None, equivalents=None):
+        AbstractClauseProcessor.__init__(self, [selectable])
         self.selectable = selectable
         self.include = include
         self.exclude = exclude
@@ -247,10 +198,10 @@ class ClauseAdapter(AbstractClauseProcessor):
         if self.exclude is not None:
             if col in self.exclude:
                 return None
-        newcol = self.selectable.corresponding_column(col, raiseerr=False, require_embedded=True)
+        newcol = self.selectable.corresponding_column(col, require_embedded=True)
         if newcol is None and self.equivalents is not None and col in self.equivalents:
             for equiv in self.equivalents[col]:
-                newcol = self.selectable.corresponding_column(equiv, raiseerr=False, require_embedded=True)
+                newcol = self.selectable.corresponding_column(equiv, require_embedded=True)
                 if newcol:
                     return newcol
         return newcol

@@ -3,13 +3,12 @@ from sqlalchemy import *
 from sqlalchemy import exceptions, util
 from sqlalchemy.orm import *
 from testlib import *
-
+from testlib import fixtures
 
 class O2MTest(ORMTest):
     """deals with inheritance and one-to-many relationships"""
     def define_tables(self, metadata):
         global foo, bar, blub
-        # the 'data' columns are to appease SQLite which cant handle a blank INSERT
         foo = Table('foo', metadata,
             Column('id', Integer, Sequence('foo_seq', optional=True),
                    primary_key=True),
@@ -56,15 +55,85 @@ class O2MTest(ORMTest):
         b1.parent_foo = f
         b2.parent_foo = f
         sess.flush()
-        compare = repr(b1) + repr(b2) + repr(b1.parent_foo) + repr(b2.parent_foo)
+        compare = ','.join([repr(b1), repr(b2), repr(b1.parent_foo), repr(b2.parent_foo)])
         sess.clear()
         l = sess.query(Blub).select()
-        result = repr(l[0]) + repr(l[1]) + repr(l[0].parent_foo) + repr(l[1].parent_foo)
+        result = ','.join([repr(l[0]), repr(l[1]), repr(l[0].parent_foo), repr(l[1].parent_foo)])
+        print compare
         print result
         self.assert_(compare == result)
         self.assert_(l[0].parent_foo.data == 'foo #1' and l[1].parent_foo.data == 'foo #1')
 
+class CascadeTest(ORMTest):
+    """that cascades on polymorphic relations continue
+    cascading along the path of the instance's mapper, not
+    the base mapper."""
+    
+    def define_tables(self, metadata):
+        global t1, t2, t3, t4
+        t1= Table('t1', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', String(30))
+            )
+            
+        t2 = Table('t2', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('t1id', Integer, ForeignKey('t1.id')),
+            Column('type', String(30)),
+            Column('data', String(30))
+        )
+        t3 = Table('t3', metadata, 
+            Column('id', Integer, ForeignKey('t2.id'), primary_key=True),
+            Column('moredata', String(30)))
+            
+        t4 = Table('t4', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('t3id', Integer, ForeignKey('t3.id')),
+            Column('data', String(30)))
+            
+    def test_cascade(self):
+        class T1(fixtures.Base):
+            pass
+        class T2(fixtures.Base):
+            pass
+        class T3(T2):
+            pass
+        class T4(fixtures.Base):
+            pass
+        
+        mapper(T1, t1, properties={
+            't2s':relation(T2, cascade="all")
+        })
+        mapper(T2, t2, polymorphic_on=t2.c.type, polymorphic_identity='t2') 
+        mapper(T3, t3, inherits=T2, polymorphic_identity='t3', properties={
+            't4s':relation(T4, cascade="all")
+        })
+        mapper(T4, t4)
+        
+        sess = create_session()
+        t1_1 = T1(data='t1')
 
+        t3_1 = T3(data ='t3', moredata='t3')
+        t2_1 = T2(data='t2')
+
+        t1_1.t2s.append(t2_1)
+        t1_1.t2s.append(t3_1)
+        
+        t4_1 = T4(data='t4')
+        t3_1.t4s.append(t4_1)
+
+        sess.save(t1_1)
+
+        
+        assert t4_1 in sess.new
+        sess.flush()
+        
+        sess.delete(t1_1)
+        assert t4_1 in sess.deleted
+        sess.flush()
+        
+    
+    
 class GetTest(ORMTest):
     def define_tables(self, metadata):
         global foo, bar, blub
@@ -121,7 +190,7 @@ class GetTest(ORMTest):
                     assert sess.query(Bar).get(b.id) == b
                     assert sess.query(Bar).get(bl.id) == bl
                     assert sess.query(Blub).get(bl.id) == bl
-
+                    
                 self.assert_sql_count(testbase.db, go, 0)
             else:
                 # this is testing the 'wrong' behavior of using get()
@@ -145,6 +214,7 @@ class GetTest(ORMTest):
                     assert sess.query(Blub).get(bl.id) == bl
 
                 self.assert_sql_count(testbase.db, go, 3)
+            
         test_get.__name__ = name
         return test_get
 
@@ -278,7 +348,7 @@ class FlushTest(ORMTest):
         )
         admin_mapper = mapper(Admin, admins, inherits=user_mapper)
         sess = create_session()
-        adminrole = Role('admin')
+        adminrole = Role()
         sess.save(adminrole)
         sess.flush()
 
@@ -331,6 +401,109 @@ class FlushTest(ORMTest):
         sess.flush()
         assert user_roles.count().scalar() == 1
 
+class VersioningTest(ORMTest):
+    def define_tables(self, metadata):
+        global base, subtable, stuff
+        base = Table('base', metadata, 
+            Column('id', Integer, Sequence('version_test_seq', optional=True), primary_key=True ),
+            Column('version_id', Integer, nullable=False),
+            Column('value', String(40)),
+            Column('discriminator', Integer, nullable=False)
+        )
+        subtable = Table('subtable', metadata, 
+            Column('id', None, ForeignKey('base.id'), primary_key=True),
+            Column('subdata', String(50))
+            )
+        stuff = Table('stuff', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('parent', Integer, ForeignKey('base.id'))
+            )
+            
+    @engines.close_open_connections
+    def test_save_update(self):
+        class Base(fixtures.Base):
+            pass
+        class Sub(Base):
+            pass
+        class Stuff(Base):
+            pass
+        mapper(Stuff, stuff)
+        mapper(Base, base, polymorphic_on=base.c.discriminator, version_id_col=base.c.version_id, polymorphic_identity=1, properties={
+            'stuff':relation(Stuff)
+        })
+        mapper(Sub, subtable, inherits=Base, polymorphic_identity=2)
+        
+        sess = create_session()
+        
+        b1 = Base(value='b1')
+        s1 = Sub(value='sub1', subdata='some subdata')
+        sess.save(b1)
+        sess.save(s1)
+        
+        sess.flush()
+        
+        sess2 = create_session()
+        s2 = sess2.query(Base).get(s1.id)
+        s2.subdata = 'sess2 subdata'
+        
+        s1.subdata = 'sess1 subdata'
+        
+        sess.flush()
+        
+        try:
+            sess2.query(Base).with_lockmode('read').get(s1.id)
+            assert False
+        except exceptions.ConcurrentModificationError, e:
+            assert True
+
+        try:
+            sess2.flush()
+            assert False
+        except exceptions.ConcurrentModificationError, e:
+            assert True
+        
+        sess2.refresh(s2)
+        assert s2.subdata == 'sess1 subdata'
+        s2.subdata = 'sess2 subdata'
+        sess2.flush()
+    
+    def test_delete(self):
+        class Base(fixtures.Base):
+            pass
+        class Sub(Base):
+            pass
+            
+        mapper(Base, base, polymorphic_on=base.c.discriminator, version_id_col=base.c.version_id, polymorphic_identity=1)
+        mapper(Sub, subtable, inherits=Base, polymorphic_identity=2)
+        
+        sess = create_session()
+        
+        b1 = Base(value='b1')
+        s1 = Sub(value='sub1', subdata='some subdata')
+        s2 = Sub(value='sub2', subdata='some other subdata')
+        sess.save(b1)
+        sess.save(s1)
+        sess.save(s2)
+        
+        sess.flush()
+
+        sess2 = create_session()
+        s3 = sess2.query(Base).get(s1.id)
+        sess2.delete(s3)
+        sess2.flush()
+        
+        s2.subdata = 'some new subdata'
+        sess.flush()
+        
+        try:
+            s1.subdata = 'some new subdata'
+            sess.flush()
+            assert False
+        except exceptions.ConcurrentModificationError, e:
+            assert True
+        
+
+    
 class DistinctPKTest(ORMTest):
     """test the construction of mapper.primary_key when an inheriting relationship
     joins on a column other than primary key column."""
@@ -385,7 +558,7 @@ class DistinctPKTest(ORMTest):
             self._do_test(True)
             assert False
         except RuntimeWarning, e:
-            assert str(e) == "On mapper Mapper|Employee|employees, primary key column 'employees.id' is being combined with distinct primary key column 'persons.id' in attribute 'id'.  Use explicit properties to give each column its own mapped attribute name."
+            assert str(e) == "On mapper Mapper|Employee|employees, primary key column 'employees.id' is being combined with distinct primary key column 'persons.id' in attribute 'id'.  Use explicit properties to give each column its own mapped attribute name.", str(e)
 
     def test_explicit_pk(self):
         person_mapper = mapper(Person, person_table)

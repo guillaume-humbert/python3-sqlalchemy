@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -53,7 +53,7 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_engine_strategies.html">module sqlalchemy.engine.strategies</a>
+            Previous: <a href="sqlalchemy_sql_expression.html">module sqlalchemy.sql.expression</a>
 
                |   
             Next: <a href="sqlalchemy_orm.html">module sqlalchemy.orm</a>
@@ -65,6 +65,9 @@
 	
 	
     <ul>
+        
+        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_AbstractType">class AbstractType(object)</a></li>
+        
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_BLOB">class BLOB(Binary)</a></li>
         
@@ -175,7 +178,164 @@
     <h3>module sqlalchemy.types</h3>
     
     
+    <div class="darkcell"><p>defines genericized SQL types, each represented by a subclass of
+<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_AbstractType">AbstractType</a>.  Dialects define further subclasses of these
+types.</p>
+<p>For more information see the SQLAlchemy documentation on types.</p>
+</div>
     
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.types_AbstractType"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class AbstractType(object)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">AbstractType</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def adapt_operator(<i>self</i>, <i>op</i>)</b>
+    <div class="docstring">
+    <p>given an operator from the sqlalchemy.sql.operators package,
+translate it to a new operator based on the semantics of this type.</p>
+<p>By default, returns the operator unchanged.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    <p>Defines a bind parameter processing function.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def compare_values(<i>self</i>, <i>x</i>, <i>y</i>)</b>
+    <div class="docstring">
+    <p>compare two values for equality.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    <p>Legacy convert_bind_param() compatability method.</p>
+<p>This adapter method is provided for user-defined types that implement
+the older convert_* interface and need to call their super method.
+These calls are adapted behind the scenes to use the newer
+callable-based interface via bind_processor().</p>
+<p>Compatibility is configured on a case-by-case basis at class
+definition time by a legacy adapter metaclass.  This method is only
+available and functional if the concrete subclass implements the
+legacy interface.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    <p>Legacy convert_result_value() compatibility method.</p>
+<p>This adapter method is provided for user-defined types that implement
+the older convert_* interface and need to call their super method.
+These calls are adapted behind the scenes to use the newer
+callable-based interface via result_processor().</p>
+<p>Compatibility is configured on a case-by-case basis at class
+definition time by a legacy adapter metaclass.  This method is only
+available and functional if the concrete subclass implements the
+legacy interface.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def copy_value(<i>self</i>, <i>value</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_dbapi_type(<i>self</i>, <i>dbapi</i>)</b>
+    <div class="docstring">
+    <p>Return the corresponding type object from the underlying DB-API, if any.</p>
+<p>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def is_mutable(<i>self</i>)</b>
+    <div class="docstring">
+    <p>return True if the target Python type is 'mutable'.</p>
+<p>This allows systems like the ORM to know if an object
+can be considered 'not changed' by identity alone.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    <p>Defines a result-column processing function.</p>
+
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
 
 
             
@@ -955,7 +1115,7 @@ it fallback to engine's DateTime implementation class</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>length=None</i>, <i>convert_unicode=False</i>)</b>
+    <b>def __init__(<i>self</i>, <i>length=None</i>, <i>convert_unicode=False</i>, <i>assert_unicode=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">String</span></tt>.</p>
 
@@ -1150,7 +1310,7 @@ it fallback to engine's DateTime implementation class</p>
     
     <div class="sectionL3">
 
-    <h3>class TypeDecorator(AbstractType)</h3>
+    <h3>class TypeDecorator(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_AbstractType">AbstractType</a>)</h3>
     
     
     
@@ -1263,6 +1423,26 @@ can be overridden to provide different behavior.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def process_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def process_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
@@ -1297,7 +1477,7 @@ can be overridden to provide different behavior.</p>
     
     <div class="sectionL3">
 
-    <h3>class TypeEngine(AbstractType)</h3>
+    <h3>class TypeEngine(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_AbstractType">AbstractType</a>)</h3>
     
     
     
@@ -1441,7 +1621,7 @@ when adapting this type to a dialect-specific type.</p>
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_engine_strategies.html">module sqlalchemy.engine.strategies</a>
+            Previous: <a href="sqlalchemy_sql_expression.html">module sqlalchemy.sql.expression</a>
 
                |   
             Next: <a href="sqlalchemy_orm.html">module sqlalchemy.orm</a>

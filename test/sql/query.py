@@ -170,10 +170,25 @@ class QueryTest(PersistTest):
         users.insert().execute(user_id = 8, user_name = 'fred')
 
         u = bindparam('userid')
-        s = users.select(or_(users.c.user_name==u, users.c.user_name==u))
+        s = users.select(and_(users.c.user_name==u, users.c.user_name==u))
         r = s.execute(userid='fred').fetchall()
         assert len(r) == 1
 
+        u = bindparam('userid', unique=True)
+        s = users.select(and_(users.c.user_name==u, users.c.user_name==u))
+        r = s.execute({u:'fred'}).fetchall()
+        assert len(r) == 1
+
+    def test_bindparams_in_params(self):
+        """test that a _BindParamClause itself can be a key in the params dict"""
+        
+        users.insert().execute(user_id = 7, user_name = 'jack')
+        users.insert().execute(user_id = 8, user_name = 'fred')
+
+        u = bindparam('userid')
+        r = users.select(users.c.user_name==u).execute({u:'fred'}).fetchall()
+        assert len(r) == 1
+        
     def test_bindparam_shortname(self):
         """test the 'shortname' field on BindParamClause."""
         users.insert().execute(user_id = 7, user_name = 'jack')
@@ -249,19 +264,11 @@ class QueryTest(PersistTest):
         r = users.select(offset=5, order_by=[users.c.user_id]).execute().fetchall()
         self.assert_(r==[(6, 'ralph'), (7, 'fido')])
 
-    @testing.supported('mssql')
-    @testing.fails_on('maxdb')
-    def test_select_limit_nooffset(self):
-        try:
-            r = users.select(limit=3, offset=2, order_by=[users.c.user_id]).execute().fetchall()
-            assert False # InvalidRequestError should have been raised
-        except exceptions.InvalidRequestError:
-            pass
-
-    @testing.unsupported('mysql')
+    @testing.exclude('mysql', '<', (5, 0, 37))
     def test_scalar_select(self):
         """test that scalar subqueries with labels get their type propigated to the result set."""
-        # mysql and/or mysqldb has a bug here, type isnt propigated for scalar subquery.
+        # mysql and/or mysqldb has a bug here, type isn't propagated for scalar
+        # subquery.
         datetable = Table('datetable', metadata,
             Column('id', Integer, primary_key=True),
             Column('today', DateTime))
@@ -355,6 +362,18 @@ class QueryTest(PersistTest):
         self.assert_(r[0:1] == (1,))
         self.assert_(r[1:] == (2, 'foo@bar.com'))
         self.assert_(r[:-1] == (1, 2))
+        
+        # test a little sqlite weirdness - with the UNION, cols come back as "query_users.user_id" in cursor.description
+        r = text("select query_users.user_id, query_users.user_name from query_users "
+            "UNION select query_users.user_id, query_users.user_name from query_users", bind=testbase.db).execute().fetchone()
+        self.assert_(r['user_id']) == 1
+        self.assert_(r['user_name']) == "john"
+
+        # test using literal tablename.colname
+        r = text('select query_users.user_id AS "query_users.user_id", query_users.user_name AS "query_users.user_name" from query_users', bind=testbase.db).execute().fetchone()
+        self.assert_(r['query_users.user_id']) == 1
+        self.assert_(r['query_users.user_name']) == "john"
+        
 
     def test_ambiguous_column(self):
         users.insert().execute(user_id=1, user_name='john')
@@ -405,95 +424,6 @@ class QueryTest(PersistTest):
         except exceptions.ArgumentError, e:
             assert str(e).startswith('Not an executable clause: ')
 
-    def test_functions(self):
-        x = testbase.db.func.current_date().execute().scalar()
-        y = testbase.db.func.current_date().select().execute().scalar()
-        z = testbase.db.func.current_date().scalar()
-        assert (x == y == z) is True
-
-        x = testbase.db.func.current_date(type_=Date)
-        assert isinstance(x.type, Date)
-        assert isinstance(x.execute().scalar(), datetime.date)
-
-    def test_conn_functions(self):
-        conn = testbase.db.connect()
-        try:
-            x = conn.execute(func.current_date()).scalar()
-            y = conn.execute(func.current_date().select()).scalar()
-            z = conn.scalar(func.current_date())
-        finally:
-            conn.close()
-        assert (x == y == z) is True
-
-    def test_update_functions(self):
-        """
-        Tests sending functions and SQL expressions to the VALUES and SET
-        clauses of INSERT/UPDATE instances, and that column-level defaults
-        get overridden.
-        """
-
-        meta = MetaData(testbase.db)
-        t = Table('t1', meta,
-            Column('id', Integer, Sequence('t1idseq', optional=True), primary_key=True),
-            Column('value', Integer)
-        )
-        t2 = Table('t2', meta,
-            Column('id', Integer, Sequence('t2idseq', optional=True), primary_key=True),
-            Column('value', Integer, default=7),
-            Column('stuff', String(20), onupdate="thisisstuff")
-        )
-        meta.create_all()
-        try:
-            t.insert(values=dict(value=func.length("one"))).execute()
-            assert t.select().execute().fetchone()['value'] == 3
-            t.update(values=dict(value=func.length("asfda"))).execute()
-            assert t.select().execute().fetchone()['value'] == 5
-
-            r = t.insert(values=dict(value=func.length("sfsaafsda"))).execute()
-            id = r.last_inserted_ids()[0]
-            assert t.select(t.c.id==id).execute().fetchone()['value'] == 9
-            t.update(values={t.c.value:func.length("asdf")}).execute()
-            assert t.select().execute().fetchone()['value'] == 4
-            print "--------------------------"
-            t2.insert().execute()
-            t2.insert(values=dict(value=func.length("one"))).execute()
-            t2.insert(values=dict(value=func.length("asfda") + -19)).execute(stuff="hi")
-
-            res = exec_sorted(select([t2.c.value, t2.c.stuff]))
-            self.assertEquals(res, [(-14, 'hi'), (3, None), (7, None)])
-
-            t2.update(values=dict(value=func.length("asdsafasd"))).execute(stuff="some stuff")
-            assert select([t2.c.value, t2.c.stuff]).execute().fetchall() == [(9,"some stuff"), (9,"some stuff"), (9,"some stuff")]
-
-            t2.delete().execute()
-
-            t2.insert(values=dict(value=func.length("one") + 8)).execute()
-            assert t2.select().execute().fetchone()['value'] == 11
-
-            t2.update(values=dict(value=func.length("asfda"))).execute()
-            assert select([t2.c.value, t2.c.stuff]).execute().fetchone() == (5, "thisisstuff")
-
-            t2.update(values={t2.c.value:func.length("asfdaasdf"), t2.c.stuff:"foo"}).execute()
-            print "HI", select([t2.c.value, t2.c.stuff]).execute().fetchone()
-            assert select([t2.c.value, t2.c.stuff]).execute().fetchone() == (9, "foo")
-
-        finally:
-            meta.drop_all()
-
-    @testing.supported('postgres')
-    def test_functions_with_cols(self):
-        # TODO: shouldnt this work on oracle too ?
-        x = testbase.db.func.current_date().execute().scalar()
-        y = testbase.db.func.current_date().select().execute().scalar()
-        z = testbase.db.func.current_date().scalar()
-        w = select(['*'], from_obj=[testbase.db.func.current_date()]).scalar()
-
-        # construct a column-based FROM object out of a function, like in [ticket:172]
-        s = select([sql.column('date', type_=DateTime)], from_obj=[testbase.db.func.current_date()])
-        q = s.execute().fetchone()[s.c.date]
-        r = s.alias('datequery').select().scalar()
-
-        assert x == y == z == w == q == r
 
 
     def test_column_order_with_simple_query(self):
@@ -543,60 +473,6 @@ class QueryTest(PersistTest):
             r.close()
         finally:
             shadowed.drop(checkfirst=True)
-
-    @testing.supported('mssql')
-    def test_fetchid_trigger(self):
-        meta = MetaData(testbase.db)
-        t1 = Table('t1', meta,
-                Column('id', Integer, Sequence('fred', 100, 1), primary_key=True),
-                Column('descr', String(200)))
-        t2 = Table('t2', meta,
-                Column('id', Integer, Sequence('fred', 200, 1), primary_key=True),
-                Column('descr', String(200)))
-        meta.create_all()
-        con = testbase.db.connect()
-        con.execute("""create trigger paj on t1 for insert as
-            insert into t2 (descr) select descr from inserted""")
-
-        try:
-            tr = con.begin()
-            r = con.execute(t2.insert(), descr='hello')
-            self.assert_(r.last_inserted_ids() == [200])
-            r = con.execute(t1.insert(), descr='hello')
-            self.assert_(r.last_inserted_ids() == [100])
-
-        finally:
-            tr.commit()
-            con.execute("""drop trigger paj""")
-            meta.drop_all()
-
-    @testing.supported('mssql')
-    def test_insertid_schema(self):
-        meta = MetaData(testbase.db)
-        con = testbase.db.connect()
-        con.execute('create schema paj')
-        tbl = Table('test', meta, Column('id', Integer, primary_key=True), schema='paj')
-        tbl.create()
-        try:
-            tbl.insert().execute({'id':1})
-        finally:
-            tbl.drop()
-            con.execute('drop schema paj')
-
-    @testing.supported('mssql')
-    def test_insertid_reserved(self):
-        meta = MetaData(testbase.db)
-        table = Table(
-            'select', meta,
-            Column('col', Integer, primary_key=True)
-        )
-        table.create()
-
-        meta2 = MetaData(testbase.db)
-        try:
-            table.insert().execute(col=7)
-        finally:
-            table.drop()
 
     @testing.fails_on('maxdb')
     def test_in_filtering(self):
@@ -757,7 +633,7 @@ class CompoundTest(PersistTest):
         found2 = self._fetchall_sorted(e.alias('foo').select().execute())
         self.assertEquals(found2, wanted)
 
-    @testing.unsupported('mysql', 'sybase')
+    @testing.unsupported('firebird', 'mysql', 'sybase')
     def test_intersect(self):
         i = intersect(
             select([t2.c.col3, t2.c.col4]),
@@ -772,7 +648,7 @@ class CompoundTest(PersistTest):
         found2 = self._fetchall_sorted(i.alias('bar').select().execute())
         self.assertEquals(found2, wanted)
 
-    @testing.unsupported('mysql', 'oracle', 'sybase')
+    @testing.unsupported('firebird', 'mysql', 'oracle', 'sybase')
     def test_except_style1(self):
         e = except_(union(
             select([t1.c.col3, t1.c.col4]),
@@ -786,7 +662,7 @@ class CompoundTest(PersistTest):
         found = self._fetchall_sorted(e.alias('bar').select().execute())
         self.assertEquals(found, wanted)
 
-    @testing.unsupported('mysql', 'oracle', 'sybase')
+    @testing.unsupported('firebird', 'mysql', 'oracle', 'sybase')
     def test_except_style2(self):
         e = except_(union(
             select([t1.c.col3, t1.c.col4]),
@@ -803,7 +679,7 @@ class CompoundTest(PersistTest):
         found2 = self._fetchall_sorted(e.alias('bar').select().execute())
         self.assertEquals(found2, wanted)
 
-    @testing.unsupported('sqlite', 'mysql', 'oracle', 'sybase')
+    @testing.unsupported('firebird', 'mysql', 'oracle', 'sqlite', 'sybase')
     def test_except_style3(self):
         # aaa, bbb, ccc - (aaa, bbb, ccc - (ccc)) = ccc
         e = except_(
@@ -817,7 +693,7 @@ class CompoundTest(PersistTest):
         self.assertEquals(e.alias('foo').select().execute().fetchall(),
                           [('ccc',)])
 
-    @testing.unsupported('mysql')
+    @testing.unsupported('firebird', 'mysql')
     def test_composite(self):
         u = intersect(
             select([t2.c.col3, t2.c.col4]),
@@ -832,7 +708,7 @@ class CompoundTest(PersistTest):
 
         self.assertEquals(found, wanted)
 
-    @testing.unsupported('mysql')
+    @testing.unsupported('firebird', 'mysql')
     def test_composite_alias(self):
         ua = intersect(
             select([t2.c.col3, t2.c.col4]),

@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -107,9 +107,6 @@
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_StrategizedProperty">class StrategizedProperty(MapperProperty)</a></li>
         
-        
-        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_SynonymProperty">class SynonymProperty(MapperProperty)</a></li>
-        
     </ul>
 
 	</div>
@@ -127,6 +124,13 @@
     <h3>module sqlalchemy.orm.interfaces</h3>
     
     
+    <div class="darkcell"><p>Semi-private implementation objects which form the basis
+of ORM-mapped attributes, query options and mapper extension.</p>
+<p>Defines the <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperExtension">MapperExtension</a> class,
+which can be end-user subclassed to add event-based functionality
+to mappers.  The remainder of this module is generally private to the
+ORM.</p>
+</div>
     
 
         
@@ -716,6 +720,20 @@ method.</p>
     </div>
     </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def process_query_conditionally(<i>self</i>, <i>query</i>)</b>
+    <div class="docstring">
+    <p>same as process_query(), except that this option may not apply
+to the given query.</p>
+<p>Used when secondary loaders resend existing options to a new
+Query.</p>
+
+    </div>
+    </div>
+
 
     
 
@@ -747,22 +765,11 @@ attribute access, loading behavior, and dependency calculations.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def cascade_callable(<i>self</i>, <i>type</i>, <i>object</i>, <i>callable_</i>, <i>recursive=None</i>, <i>halt_on=None</i>)</b>
-    <div class="docstring">
-    <p>run the given callable across all objects which are child objects of
-the given object, as attached to the attribute corresponding to this MapperProperty.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>object</i>, <i>recursive=None</i>, <i>halt_on=None</i>)</b>
     <div class="docstring">
-    <p>return an iterator of objects which are child objects of the given object,
-as attached to the attribute corresponding to this MapperProperty.</p>
+    <p>iterate through instances related to the given instance along
+a particular 'cascade' path, starting with this MapperProperty.</p>
+<p>see PropertyLoader for the related instance implementation.</p>
 
     </div>
     </div>
@@ -789,7 +796,7 @@ under the attribute name &quot;comparator&quot;.</p>
     <A name=""></a>
     <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
     <div class="docstring">
-    <p>return a 3-tuple consiting of a two row processing functions and an instance post-processing function.</p>
+    <p>return a 3-tuple consiting of two row processing functions and an instance post-processing function.</p>
 <p>Input arguments are the query.SelectionContext and the <em>first</em>
 applicable row of a result set obtained within query.Query.instances(), called
 only the first time a particular mapper's populate_instance() method is invoked for the
@@ -1056,7 +1063,7 @@ one of its child mappers, identified by a dot-separated key.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>key</i>)</b>
+    <b>def __init__(<i>self</i>, <i>key</i>, <i>mapper=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">PropertyOption</span></tt>.</p>
 
@@ -1068,6 +1075,16 @@ one of its child mappers, identified by a dot-separated key.</p>
     
     <A name=""></a>
     <b>def process_query(<i>self</i>, <i>query</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def process_query_conditionally(<i>self</i>, <i>query</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1181,79 +1198,6 @@ strategies can be selected at Query time through the usage of
     
     <A name=""></a>
     <b>def do_init(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def setup(<i>self</i>, <i>querycontext</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
-    <A name="docstrings_sqlalchemy.orm.interfaces_SynonymProperty"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class SynonymProperty(<a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperProperty">MapperProperty</a>)</h3>
-    
-    
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>name</i>, <i>proxy=False</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">SynonymProperty</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def do_init(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def merge(<i>self</i>, <i>session</i>, <i>source</i>, <i>dest</i>, <i>_recursive</i>)</b>
     <div class="docstring">
     
     </div>

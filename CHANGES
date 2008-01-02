@@ -1,6 +1,299 @@
 =======
 CHANGES
 =======
+0.4.2
+-----
+- sql
+    - generic functions ! we introduce a database of known SQL functions, such
+      as current_timestamp, coalesce, and create explicit function objects
+      representing them. These objects have constrained argument lists, are
+      type aware, and can compile in a dialect-specific fashion. So saying
+      func.char_length("foo", "bar") raises an error (too many args),
+      func.coalesce(datetime.date(2007, 10, 5), datetime.date(2005, 10, 15))
+      knows that its return type is a Date. We only have a few functions
+      represented so far but will continue to add to the system [ticket:615]
+
+    - auto-reconnect support improved; a Connection can now automatically
+      reconnect after its underlying connection is invalidated, without
+      needing to connect() again from the engine.  This allows an ORM session
+      bound to a single Connection to not need a reconnect.
+      Open transactions on the Connection must be rolled back after an invalidation 
+      of the underlying connection else an error is raised.  Also fixed
+      bug where disconnect detect was not being called for cursor(), rollback(),
+      or commit().
+      
+    - added new flag to String and create_engine(),
+      assert_unicode=(True|False|'warn'|None). Defaults to `False` or `None` on
+      create_engine() and String, `'warn'` on the Unicode type. When `True`,
+      results in all unicode conversion operations raising an exception when a
+      non-unicode bytestring is passed as a bind parameter. 'warn' results
+      in a warning. It is strongly advised that all unicode-aware applications 
+      make proper use of Python unicode objects (i.e. u'hello' and not 'hello')
+      so that data round trips accurately.
+
+    - generation of "unique" bind parameters has been simplified to use the same
+      "unique identifier" mechanisms as everything else.  This doesn't affect
+      user code, except any code that might have been hardcoded against the generated
+      names.  Generated bind params now have the form "<paramname>_<num>",
+      whereas before only the second bind of the same name would have this form.
+    
+    - select().as_scalar() will raise an exception if the select does not have
+      exactly one expression in its columns clause.
+      
+    - bindparam() objects themselves can be used as keys for execute(), i.e.
+      statement.execute({bind1:'foo', bind2:'bar'})
+    
+    - added new methods to TypeDecorator, process_bind_param() and
+      process_result_value(), which automatically take advantage of the processing
+      of the underlying type.  Ideal for using with Unicode or Pickletype.
+      TypeDecorator should now be the primary way to augment the behavior of any
+      existing type including other TypeDecorator subclasses such as PickleType.
+
+    - selectables (and others) will issue a warning when two columns in
+      their exported columns collection conflict based on name.
+      
+    - tables with schemas can still be used in sqlite, firebird,
+      schema name just gets dropped [ticket:890]
+
+    - changed the various "literal" generation functions to use an anonymous
+      bind parameter.  not much changes here except their labels now look 
+      like ":param_1", ":param_2" instead of ":literal"
+      
+    - column labels in the form "tablename.columname", i.e. with a dot, are now
+      supported.
+      
+    - from_obj keyword argument to select() can be a scalar or a list.
+    
+- orm
+   - a major behavioral change to collection-based backrefs: they no 
+     longer trigger lazy loads !  "reverse" adds and removes 
+     are queued up and are merged with the collection when it is 
+     actually read from and loaded; but do not trigger a load beforehand.
+     For users who have noticed this behavior, this should be much more
+     convenient than using dynamic relations in some cases; for those who 
+     have not, you might notice your apps using a lot fewer queries than
+     before in some situations. [ticket:871]
+
+   - mutable primary key support is added. primary key columns can be
+     changed freely, and the identity of the instance will change upon
+     flush. In addition, update cascades of foreign key referents (primary
+     key or not) along relations are supported, either in tandem with the
+     database's ON UPDATE CASCADE (required for DB's like Postgres) or
+     issued directly by the ORM in the form of UPDATE statements, by setting
+     the flag "passive_cascades=False".
+
+   - inheriting mappers now inherit the MapperExtensions of their parent
+     mapper directly, so that all methods for a particular MapperExtension
+     are called for subclasses as well.  As always, any MapperExtension 
+     can return either EXT_CONTINUE to continue extension processing
+     or EXT_STOP to stop processing.  The order of mapper resolution is:
+     <extensions declared on the classes mapper> <extensions declared on the
+     classes' parent mapper> <globally declared extensions>.
+     
+     Note that if you instantiate the same extension class separately 
+     and then apply it individually for two mappers in the same inheritance 
+     chain, the extension will be applied twice to the inheriting class,
+     and each method will be called twice.
+     
+     To apply a mapper extension explicitly to each inheriting class but
+     have each method called only once per operation, use the same 
+     instance of the extension for both mappers.
+     [ticket:490]
+
+   - MapperExtension.before_update() and after_update() are now called
+     symmetrically; previously, an instance that had no modified column
+     attributes (but had a relation() modification) could be called with 
+     before_update() but not after_update() [ticket:907]
+     
+   - columns which are missing from a Query's select statement
+     now get automatically deferred during load.
+
+   - mapped classes which extend "object" and do not provide an 
+     __init__() method will now raise TypeError if non-empty *args 
+     or **kwargs are present at instance construction time (and are 
+     not consumed by any extensions such as the scoped_session mapper), 
+     consistent with the behavior of normal Python classes [ticket:908]
+     
+   - fixed Query bug when filter_by() compares a relation against None
+     [ticket:899]
+     
+   - improved support for pickling of mapped entities.  Per-instance
+     lazy/deferred/expired callables are now serializable so that
+     they serialize and deserialize with _state. 
+       
+   - new synonym() behavior: an attribute will be placed on the mapped
+     class, if one does not exist already, in all cases. if a property
+     already exists on the class, the synonym will decorate the property
+     with the appropriate comparison operators so that it can be used in in
+     column expressions just like any other mapped attribute (i.e. usable in
+     filter(), etc.) the "proxy=True" flag is deprecated and no longer means
+     anything. Additionally, the flag "map_column=True" will automatically
+     generate a ColumnProperty corresponding to the name of the synonym,
+     i.e.: 'somename':synonym('_somename', map_column=True) will map the
+     column named 'somename' to the attribute '_somename'. See the example
+     in the mapper docs. [ticket:801]
+
+   - Query.select_from() now replaces all existing FROM criterion with
+     the given argument; the previous behavior of constructing a list
+     of FROM clauses was generally not useful as is required 
+     filter() calls to create join criterion, and new tables introduced
+     within filter() already add themselves to the FROM clause.  The
+     new behavior allows not just joins from the main table, but select 
+     statements as well.  Filter criterion, order bys, eager load
+     clauses will be "aliased" against the given statement.
+  
+   - this month's refactoring of attribute instrumentation changes
+     the "copy-on-load" behavior we've had since midway through 0.3
+     with "copy-on-modify" in most cases.  This takes a sizable chunk
+     of latency out of load operations and overall does less work
+     as only attributes which are actually modified get their 
+     "committed state" copied.  Only "mutable scalar" attributes
+     (i.e. a pickled object or other mutable item), the reason for 
+     the copy-on-load change in the first place, retain the old 
+     behavior.
+   
+   - a slight behavioral change to attributes is, del'ing an attribute
+     does *not* cause the lazyloader of that attribute to fire off again;
+     the "del" makes the effective value of the attribute "None".  To
+     re-trigger the "loader" for an attribute, use 
+     session.expire(instance, [attrname]).
+     
+   - query.filter(SomeClass.somechild == None), when comparing
+     a many-to-one property to None, properly generates "id IS NULL"
+     including that the NULL is on the right side.
+
+   - query.order_by() takes into account aliased joins, i.e.
+     query.join('orders', aliased=True).order_by(Order.id)
+     
+   - eagerload(), lazyload(), eagerload_all() take an optional 
+     second class-or-mapper argument, which will select the mapper
+     to apply the option towards.  This can select among other
+     mappers which were added using add_entity().  
+
+   - eagerloading will work with mappers added via add_entity().
+          
+   - added "cascade delete" behavior to "dynamic" relations just like
+     that of regular relations.  if passive_deletes flag (also just added)
+     is not set, a delete of the parent item will trigger a full load of 
+     the child items so that they can be deleted or updated accordingly.
+
+   - also with dynamic, implemented correct count() behavior as well
+     as other helper methods.
+     
+   - fix to cascades on polymorphic relations, such that cascades
+     from an object to a polymorphic collection continue cascading 
+     along the set of attributes specific to each element in the collection.
+     
+   - query.get() and query.load() do not take existing filter or other
+     criterion into account; these methods *always* look up the given id
+     in the database or return the current instance from the identity map, 
+     disregarding any existing filter, join, group_by or other criterion
+     which has been configured. [ticket:893]
+          
+   - added support for version_id_col in conjunction with inheriting mappers.
+     version_id_col is typically set on the base mapper in an inheritance
+     relationship where it takes effect for all inheriting mappers. 
+     [ticket:883]
+   
+   - relaxed rules on column_property() expressions having labels; any
+     ColumnElement is accepted now, as the compiler auto-labels non-labeled
+     ColumnElements now.  a selectable, like a select() statement, still
+     requires conversion to ColumnElement via as_scalar() or label().
+
+   - fixed backref bug where you could not del instance.attr if attr
+     was None
+     
+   - several ORM attributes have been removed or made private:
+     mapper.get_attr_by_column(), mapper.set_attr_by_column(), 
+     mapper.pks_by_table, mapper.cascade_callable(), 
+     MapperProperty.cascade_callable(), mapper.canload(),
+     mapper.save_obj(), mapper.delete_obj(), mapper._mapper_registry, 
+     attributes.AttributeManager
+
+   - Assigning an incompatible collection type to a relation attribute now
+     raises TypeError instead of sqlalchemy's ArgumentError.
+
+   - Bulk assignment of a MappedCollection now raises an error if a key in the
+     incoming dictionary does not match the key that the collection's keyfunc
+     would use for that value. [ticket:886]
+
+   - Custom collections can now specify a @converter method to translate
+     objects used in "bulk" assignment into a stream of values, as in::
+
+        obj.col = [newval1, newval2]
+        # or
+        obj.dictcol = {'foo': newval1, 'bar': newval2}
+
+     The MappedCollection uses this hook to ensure that incoming key/value
+     pairs are sane from the collection's perspective.
+
+   - fixed endless loop issue when using lazy="dynamic" on both 
+     sides of a bi-directional relationship [ticket:872]
+
+   - more fixes to the LIMIT/OFFSET aliasing applied with Query + eagerloads,
+     in this case when mapped against a select statement [ticket:904]
+     
+   - fix to self-referential eager loading such that if the same mapped
+     instance appears in two or more distinct sets of columns in the same
+     result set, its eagerly loaded collection will be populated regardless
+     of whether or not all of the rows contain a set of "eager" columns for
+     that collection.  this would also show up as a KeyError when fetching
+     results with join_depth turned on.
+     
+   - fixed bug where Query would not apply a subquery to the SQL when LIMIT
+     was used in conjunction with an inheriting mapper where the eager 
+     loader was only in the parent mapper.
+     
+   - clarified the error message which occurs when you try to update()
+     an instance with the same identity key as an instance already present
+     in the session.
+
+   - some clarifications and fixes to merge(instance, dont_load=True).  
+     fixed bug where lazy loaders were getting disabled on returned instances.
+     Also, we currently do not support merging an instance which has uncommitted
+     changes on it, in the case that dont_load=True is used....this will
+     now raise an error.  This is due to complexities in merging the 
+     "committed state" of the given instance to correctly correspond to the
+     newly copied instance, as well as other modified state.  
+     Since the use case for dont_load=True is caching, the given instances 
+     shouldn't have any uncommitted changes on them anyway.
+     We also copy the instances over without using any events now, so that
+     the 'dirty' list on the new session remains unaffected.
+
+   - fixed bug which could arise when using session.begin_nested() in conjunction
+     with more than one level deep of enclosing session.begin() statements
+
+   - fixed session.refresh() with instance that has custom entity_name 
+     [ticket:914]
+     
+- dialects
+
+   - sqlite SLDate type will not erroneously render "microseconds" portion 
+     of a datetime or time object.
+   
+   - oracle
+      - added disconnect detection support for Oracle
+      - some cleanup to binary/raw types so that cx_oracle.LOB is detected
+        on an ad-hoc basis [ticket:902]
+   
+   - MSSQL
+      - PyODBC no longer has a global "set nocount on".
+      - Fix non-identity integer PKs on autload [ticket:824]
+      - Better support for convert_unicode [ticket:839]
+      - Less strict date conversion for pyodbc/adodbapi [ticket:842]
+      - Schema-qualified tables / autoload [ticket:901]
+
+   - Firebird backend
+
+     - does properly reflect domains (partially fixing [ticket:410]) and
+       PassiveDefaults
+
+     - reverted to use default poolclass (was set to SingletonThreadPool in
+       0.4.0 [3562] for test purposes)
+
+     - map func.length() to 'char_length' (easily overridable with the UDF
+       'strlen' on old versions of Firebird)
+
 
 0.4.1
 -----

@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -53,10 +53,10 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_engine_threadlocal.html">module sqlalchemy.engine.threadlocal</a>
+            Previous: <a href="sqlalchemy_engine_url.html">module sqlalchemy.engine.url</a>
 
                |   
-            Next: <a href="sqlalchemy_schema.html">module sqlalchemy.schema</a>
+            Next: <a href="sqlalchemy_interfaces.html">module sqlalchemy.interfaces</a>
     </div>
 
         <h2>module sqlalchemy.exceptions</h2>
@@ -145,6 +145,10 @@
     <h3>module sqlalchemy.exceptions</h3>
     
     
+    <div class="darkcell"><p>Exceptions used with SQLAlchemy.</p>
+<p>The base exception class is SQLAlchemyError.  Exceptions which are raised as a result
+of DBAPI exceptions are all subclasses of <a href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_DBAPIError">DBAPIError</a>.</p>
+</div>
     
 
 
@@ -302,7 +306,7 @@ Its type and properties are DB-API implementation specific.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>statement</i>, <i>params</i>, <i>orig</i>)</b>
+    <b>def __init__(<i>self</i>, <i>statement</i>, <i>params</i>, <i>orig</i>, <i>connection_invalidated=False</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">DBAPIError</span></tt>.</p>
 
@@ -313,7 +317,7 @@ Its type and properties are DB-API implementation specific.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def instance(<i>cls</i>, <i>statement</i>, <i>params</i>, <i>orig</i>)</b>
+    <b>def instance(<i>cls</i>, <i>statement</i>, <i>params</i>, <i>orig</i>, <i>connection_invalidated=False</i>)</b>
     <div class="docstring">
     
     </div>
@@ -388,6 +392,8 @@ Its type and properties are DB-API implementation specific.</p>
     
     
     <div class="darkcell"><p>Raised within <tt class="docutils literal"><span class="pre">Pool</span></tt> when a disconnect is detected on a raw DB-API connection.</p>
+<p>This error is consumed internally by a connection pool.  It can be raised by
+a <tt class="docutils literal"><span class="pre">PoolListener</span></tt> so that the host pool forces a disconnect.</p>
 </div>
     
 
@@ -704,10 +710,10 @@ database, but the table doesn't exist.</p>
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_engine_threadlocal.html">module sqlalchemy.engine.threadlocal</a>
+            Previous: <a href="sqlalchemy_engine_url.html">module sqlalchemy.engine.url</a>
 
                |   
-            Next: <a href="sqlalchemy_schema.html">module sqlalchemy.schema</a>
+            Next: <a href="sqlalchemy_interfaces.html">module sqlalchemy.interfaces</a>
     </div>
 
     </div>

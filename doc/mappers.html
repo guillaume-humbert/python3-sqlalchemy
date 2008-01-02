@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -75,7 +75,7 @@
         <li><a style="" href="mappers.html#advdatamapping_mapper_expressions">SQL Expressions as Mapped Attributes</a></li>
         
         
-        <li><a style="" href="mappers.html#advdatamapping_mapper_overriding">Overriding Attribute Behavior</a></li>
+        <li><a style="" href="mappers.html#advdatamapping_mapper_overriding">Overriding Attribute Behavior with Synonyms</a></li>
         
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_composite">Composite Column Types</a></li>
@@ -236,6 +236,9 @@
     </ul>
 
 	        </li>
+        
+        <li><a style="" href="mappers.html#advdatamapping_relation_mutablepks">Mutable Primary Keys / Update Cascades</a></li>
+        
     </ul>
 
 	        </li>
@@ -508,11 +511,11 @@
     
     <div class="sectionL3">
 
-    <h3>Overriding Attribute Behavior</h3>
+    <h3>Overriding Attribute Behavior with Synonyms</h3>
     
     
 
-<p>A common request is the ability to create custom class properties that override the behavior of setting/getting an attribute.  You accomplish this using normal Python <code>property</code> constructs:
+<p>A common request is the ability to create custom class properties that override the behavior of setting/getting an attribute.  As of 0.4.2, the <code>synonym()</code> construct provides an easy way to do this in conjunction with a normal Python <code>property</code> constructs.  Below, we re-map the <code>email</code> column of our mapped table to a custom attribute setter/getter, mapping the actual column to the property named <code>_email</code>:
 </p>
 
     
@@ -527,54 +530,27 @@
    </span><span class="python_name">email </span><span class="python_operator">= </span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_name">_get_email</span><span class="python_operator">, </span><span class="python_name">_set_email</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyAddress</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
-  <span class="python_comment"># map the '_email' attribute to the "email" column</span>
-  <span class="python_comment"># on the table</span>
-  <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span>
+    <span class="python_literal">'email'</span><span class="python_operator">:</span><span class="python_name">synonym</span><span class="python_enclosure">(</span><span class="python_literal">'_email'</span><span class="python_operator">, </span><span class="python_name">map_column</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">})</span><span class="python_operator">
 </span></pre>
     </div>
-<p>To have your custom <code>email</code> property be recognized by keyword-based <code>Query</code> functions such as <code>filter_by()</code>, place a <code>synonym</code> on your mapper:
+<p>The <code>email</code> attribute is now usable in the same way as any other mapped attribute, including filter expressions, get/set operations, etc.:
 </p>
 
     
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyAddress</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
-  <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span>
-
-  <span class="python_literal">'email'</span><span class="python_operator">:</span><span class="python_name">synonym</span><span class="python_enclosure">(</span><span class="python_literal">'_email'</span><span class="python_enclosure">)</span>
-<span class="python_enclosure">})</span><span class="python_operator">
+<span class="python_name">address </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyAddress</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">MyAddress</span><span class="python_operator">.</span><span class="python_name">email </span><span class="python_operator">== </span><span class="python_literal">'some address'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
-<span class="python_comment"># use the synonym in a query
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyAddress</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'john@smith.com'</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">email </span><span class="python_operator">= </span><span class="python_literal">'some other address'</span><span class="python_operator">
+</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_name">q </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyAddress</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'some other address'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Synonym strategies such as the above can be easily automated, such as this example which specifies all columns and synonyms explicitly:
+<p>If the mapped class does not provide a property, the <code>synonym()</code> construct will create a default getter/setter object automatically.
 </p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyAddress</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_name">dict</span><span class="python_enclosure">(</span>
-    <span class="python_enclosure">[(</span><span class="python_literal">'_'</span><span class="python_operator">+</span><span class="python_name">col</span><span class="python_operator">.</span><span class="python_name">key</span><span class="python_operator">, </span><span class="python_name">col</span><span class="python_enclosure">) </span><span class="python_keyword">for </span><span class="python_name">col </span><span class="python_keyword">in </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_enclosure">] </span><span class="python_operator">+</span>
-    <span class="python_enclosure">[(</span><span class="python_name">col</span><span class="python_operator">.</span><span class="python_name">key</span><span class="python_operator">, </span><span class="python_name">synonym</span><span class="python_enclosure">(</span><span class="python_literal">'_'</span><span class="python_operator">+</span><span class="python_name">col</span><span class="python_operator">.</span><span class="python_name">key</span><span class="python_enclosure">)) </span><span class="python_keyword">for </span><span class="python_name">col </span><span class="python_keyword">in </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_enclosure">]</span>
-<span class="python_enclosure">))</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>The <code>column_prefix</code> option can also help with the above scenario by setting up the columns automatically with a prefix:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyAddress</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">column_prefix</span><span class="python_operator">=</span><span class="python_literal">'_'</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_name">dict</span><span class="python_enclosure">(</span>
-    <span class="python_enclosure">[(</span><span class="python_name">col</span><span class="python_operator">.</span><span class="python_name">key</span><span class="python_operator">, </span><span class="python_name">synonym</span><span class="python_enclosure">(</span><span class="python_literal">'_'</span><span class="python_operator">+</span><span class="python_name">col</span><span class="python_operator">.</span><span class="python_name">key</span><span class="python_enclosure">)) </span><span class="python_keyword">for </span><span class="python_name">col </span><span class="python_keyword">in </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_enclosure">]</span>
-<span class="python_enclosure">))</span><span class="python_operator">
-</span></pre>
-    </div>
 
 
 
@@ -2251,11 +2227,11 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 </span>
 <span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_operator">, </span><span class="python_name">items_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
     <span class="python_comment"># key by column</span>
-    <span class="python_name">notes </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">column_mapped_collection</span><span class="python_enclosure">(</span><span class="python_name">notes_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">keyword</span><span class="python_enclosure">))</span>
+    <span class="python_literal">'notes'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">column_mapped_collection</span><span class="python_enclosure">(</span><span class="python_name">notes_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">keyword</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
     <span class="python_comment"># or named attribute </span>
-    <span class="python_name">notes2 </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">attribute_mapped_collection</span><span class="python_enclosure">(</span><span class="python_literal">'keyword'</span><span class="python_enclosure">))</span>
+    <span class="python_literal">'notes2'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">attribute_mapped_collection</span><span class="python_enclosure">(</span><span class="python_literal">'keyword'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
     <span class="python_comment"># or any callable</span>
-    <span class="python_name">notes3 </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">mapped_collection</span><span class="python_enclosure">(</span><span class="python_keyword">lambda </span><span class="python_name">entity</span><span class="python_operator">: </span><span class="python_name">entity</span><span class="python_operator">.</span><span class="python_name">a </span><span class="python_operator">+ </span><span class="python_name">entity</span><span class="python_operator">.</span><span class="python_name">b</span><span class="python_enclosure">))</span>
+    <span class="python_literal">'notes3'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">mapped_collection</span><span class="python_enclosure">(</span><span class="python_keyword">lambda </span><span class="python_name">entity</span><span class="python_operator">: </span><span class="python_name">entity</span><span class="python_operator">.</span><span class="python_name">a </span><span class="python_operator">+ </span><span class="python_name">entity</span><span class="python_operator">.</span><span class="python_name">b</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">})</span><span class="python_operator">
 </span>
 <span class="python_comment"># ...
@@ -2666,13 +2642,60 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 
 
 
-
             <a href="#top">back to section top</a>
     </div>
 
 
 
 
+    </div>
+
+
+
+    
+    <A name="advdatamapping_relation_mutablepks"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Mutable Primary Keys / Update Cascades</h3>
+    
+    
+
+<p>As of SQLAlchemy 0.4.2, the primary key attributes of an instance can be changed freely, and will be persisted upon flush.  When the primary key of an entity changes, related items which reference the primary key must also be updated as well.  For databases which enforce referential integrity, it's required to use the database's ON UPDATE CASCADE functionality in order to propagate primary key changes.  For those which don't, the <code>passive_cascades</code> flag can be set to <code>False</code> which instructs SQLAlchemy to issue UPDATE statements individually.  The <code>passive_cascades</code> flag can also be <code>False</code> in conjunction with ON UPDATE CASCADE functionality, although in that case it issues UPDATE statements unnecessarily.
+</p>
+<p>A typical mutable primary key setup might look like:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'username'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'fullname'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">100</span><span class="python_enclosure">)))</span><span class="python_operator">
+</span>
+<span class="python_name">addresses </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'email'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'username'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'users.username'</span><span class="python_operator">, </span><span class="python_name">onupdate</span><span class="python_operator">=</span><span class="python_literal">"cascade"</span><span class="python_enclosure">)))</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'addresses'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">passive_updates</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>passive_updates is set to <code>True</code> by default.  Foreign key references to non-primary key columns are supported as well.
+</p>
+
+
+
+
+            <a href="#top">back to section top</a>
     </div>
 
 

@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -53,7 +53,7 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_exceptions.html">module sqlalchemy.exceptions</a>
+            Previous: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>
 
                |   
             Next: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>
@@ -134,14 +134,20 @@
     
     
     <div class="darkcell"><p>The schema module provides the building blocks for database metadata.</p>
-<p>This means all the entities within a SQL database that we might want
-to look at, modify, or create and delete are described by these
-objects, in a database-agnostic way.</p>
-<p>A structure of SchemaItems also provides a <em>visitor</em> interface which is
-the primary method by which other methods operate upon the schema.
-The SQL package extends this structure with its own clause-specific
-objects as well as the visitor interface, so that the schema package
-<em>plugs in</em> to the SQL package.</p>
+<p>Each element within this module describes a database entity
+which can be created and dropped, or is otherwise part of such an entity.
+Examples include tables, columns, sequences, and indexes.</p>
+<p>All entities are subclasses of <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>, and as
+defined in this module they are intended to be agnostic of any
+vendor-specific constructs.</p>
+<p>A collection of entities are grouped into a unit called <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_MetaData">MetaData</a>.
+MetaData serves as a logical grouping of schema elements, and can also
+be associated with an actual database connection such that operations
+involving the contained elements can contact the database as needed.</p>
+<p>Two of the elements here also build upon their &quot;syntactic&quot; counterparts,
+which are defined in <a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression">module sqlalchemy.sql.expression</a>, specifically <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Table">Table</a>
+and <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Column">Column</a>.  Since these objects are part of the
+SQL expression language, they are usable as components in SQL expressions.</p>
 </div>
     
 
@@ -326,7 +332,7 @@ required.</dd>
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>columns = property()</b>
+         <b>bind = property()</b>
          <div class="docstring">
          
          </div> 
@@ -1091,7 +1097,7 @@ arguments and should return a true value for any table to reflect.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def append_column(<i>self</i>, <i>col</i>)</b>
+    <b>def add(<i>self</i>, <i>col</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1112,6 +1118,16 @@ arguments and should return a true value for any table to reflect.</p>
     
     <A name=""></a>
     <b>def remove(<i>self</i>, <i>col</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def replace(<i>self</i>, <i>col</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1156,7 +1172,8 @@ arguments and should return a true value for any table to reflect.</p>
          <A name=""></a>
          <b>bind = property()</b>
          <div class="docstring">
-         
+         <p>Return the connectable associated with this SchemaItem.</p>
+
          </div> 
          </div>
 
@@ -1495,7 +1512,6 @@ one database and you need to address them simultanesouly.</p>
     <b>def __init__(<i>self</i>)</b>
     <div class="docstring">
     <p>Construct a ThreadLocalMetaData.</p>
-<p>Takes no arguments.</p>
 
     </div>
     </div>
@@ -1632,7 +1648,7 @@ Otherwise connects directly to the given <tt class="docutils literal"><span clas
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_exceptions.html">module sqlalchemy.exceptions</a>
+            Previous: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>
 
                |   
             Next: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>

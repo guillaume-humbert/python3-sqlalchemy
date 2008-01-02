@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -56,7 +56,7 @@
             Previous: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>
 
                |   
-            Next: <a href="sqlalchemy_interfaces.html">module sqlalchemy.interfaces</a>
+            Next: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
     </div>
 
         <h2>module sqlalchemy.sql.expression</h2>
@@ -307,6 +307,9 @@
         
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__UpdateBase">class _UpdateBase(ClauseElement)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_chain">class chain(object)</a></li>
         
     </ul>
 
@@ -1214,7 +1217,7 @@ function as well as the <tt class="docutils literal"><span class="pre">alias()</
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_children(<i>self</i>, <i>**kwargs</i>)</b>
+    <b>def get_children(<i>self</i>, <i>column_collections=True</i>, <i>aliased_selectables=True</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1225,16 +1228,6 @@ function as well as the <tt class="docutils literal"><span class="pre">alias()</
     
     <A name=""></a>
     <b>def is_derived_from(<i>self</i>, <i>fromclause</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def named_with_column(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1474,8 +1467,7 @@ operators.</p>
          <A name=""></a>
          <b>key = property()</b>
          <div class="docstring">
-         <p>_calc_</p>
-
+         
          </div> 
          </div>
 
@@ -1997,6 +1989,28 @@ for this dictionary.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def replace(<i>self</i>, <i>column</i>)</b>
+    <div class="docstring">
+    <p>add the given column to this collection, removing unaliased versions of this column
+as well as existing columns with the same key.</p>
+<blockquote>
+<p>e.g.:</p>
+<pre class="literal-block">
+t = Table('sometable', Column('col1', Integer))
+t.replace_unalised(Column('col1', Integer, key='columnone'))
+</pre>
+<p>will remove the original 'col1' from the collection, and add
+the new column under the name 'columnname'.</p>
+</blockquote>
+<p>Used by schema.Column to override columns during table reflection.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def __contains__(<i>self</i>, <i>other</i>)</b>
     <div class="docstring">
     
@@ -2008,6 +2022,16 @@ for this dictionary.</p>
     
     <A name=""></a>
     <b>def __eq__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __setitem__(<i>self</i>, <i>key</i>, <i>value</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2049,17 +2073,6 @@ objects using Python expressions.  See the <tt class="docutils literal"><span cl
 docstring for more details.</p>
 </div>
     
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">ColumnElement</span></tt>.</p>
-
-    </div>
-    </div>
 
                     
          <div class="darkcell">
@@ -2726,6 +2739,15 @@ generated function.</dd>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>bind = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -2952,7 +2974,7 @@ generated function.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def corresponding_column(<i>self</i>, <i>column</i>, <i>raiseerr=True</i>, <i>require_embedded=False</i>)</b>
+    <b>def corresponding_column(<i>self</i>, <i>column</i>, <i>require_embedded=False</i>)</b>
     <div class="docstring">
     <p>Given a <tt class="docutils literal"><span class="pre">ColumnElement</span></tt>, return the exported <tt class="docutils literal"><span class="pre">ColumnElement</span></tt>
 object from this <tt class="docutils literal"><span class="pre">Selectable</span></tt> which corresponds to that
@@ -2960,9 +2982,6 @@ original <tt class="docutils literal"><span class="pre">Column</span></tt> via a
 <dl class="docutils">
 <dt>column</dt>
 <dd>the target <tt class="docutils literal"><span class="pre">ColumnElement</span></tt> to be matched</dd>
-<dt>raiseerr</dt>
-<dd>if True, raise an error if the given <tt class="docutils literal"><span class="pre">ColumnElement</span></tt> could
-not be matched. if False, non-matches will return None.</dd>
 <dt>require_embedded</dt>
 <dd>only return corresponding columns for the given
 <tt class="docutils literal"><span class="pre">ColumnElement</span></tt>, if the given <tt class="docutils literal"><span class="pre">ColumnElement</span></tt> is
@@ -3035,18 +3054,6 @@ of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</
     <b>def join(<i>self</i>, <i>right</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>return a join of this <tt class="docutils literal"><span class="pre">FromClause</span></tt> against another <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def named_with_column(<i>self</i>)</b>
-    <div class="docstring">
-    <p>True if the name of this FromClause may be prepended to a
-column in a generated SQL statement.</p>
 
     </div>
     </div>
@@ -3200,16 +3207,6 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">_Function</span></tt>.</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def append(<i>self</i>, <i>clause</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -3489,7 +3486,9 @@ off all <tt class="docutils literal"><span class="pre">FromClause</span></tt> su
          <A name=""></a>
          <b>folded_equivalents = property()</b>
          <div class="docstring">
-         <p>Returns the column list of this Join with all equivalently-named, equated columns folded into one column, where 'equated' means they are equated to each other in the ON clause of this join.</p>
+         <p>Returns the column list of this Join with all equivalently-named,
+equated columns folded into one column, where 'equated' means they are
+equated to each other in the ON clause of this join.</p>
 
          </div> 
          </div>
@@ -4044,6 +4043,15 @@ form of this method instead to prevent this issue.</p>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>bind = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -4143,7 +4151,8 @@ to the existing clause via AND, if any.</p>
          <A name=""></a>
          <b>inner_columns = property()</b>
          <div class="docstring">
-         <p>a collection of all ColumnElement expressions which would be rendered into the columns clause of the resulting SELECT statement.</p>
+         <p>a collection of all ColumnElement expressions which would
+be rendered into the columns clause of the resulting SELECT statement.</p>
 
          </div> 
          </div>
@@ -4238,6 +4247,15 @@ this method is called automatically as needed when constructing expressions.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>type = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -4598,16 +4616,6 @@ functionality.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def named_with_column(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def outerjoin(<i>self</i>, <i>right</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
@@ -4669,15 +4677,6 @@ functionality.</p>
 
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>columns = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -4919,6 +4918,15 @@ functionality.</p>
     
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>bind = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -4927,6 +4935,36 @@ functionality.</p>
     
     </div>
     </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.sql.expression_chain"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class chain(object)</h3>
+    
+    
+    <div class="darkcell"><p>chain(<a href="#id1" name="id2"><span class="problematic" id="id2">*</span></a>iterables) --&gt; chain object</p>
+<div class="system-message" id="id1">
+<p class="system-message-title">System Message: <a name="id1">WARNING/2</a> (<tt class="docutils">&lt;string&gt;</tt>, line 1); <em><a href="#id2">backlink</a></em></p>
+Inline emphasis start-string without end-string.</div>
+<p>Return a chain object whose .next() method returns elements from the
+first iterable until it is exhausted, then elements from the next
+iterable, until all of the iterables are exhausted.</p>
+</div>
+    
 
 
     
@@ -4953,7 +4991,7 @@ functionality.</p>
             Previous: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>
 
                |   
-            Next: <a href="sqlalchemy_interfaces.html">module sqlalchemy.interfaces</a>
+            Next: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
     </div>
 
     </div>

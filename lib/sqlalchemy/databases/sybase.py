@@ -639,8 +639,7 @@ class SybaseSQLDialect_mxodbc(SybaseSQLDialect):
     def __init__(self, **params):
         super(SybaseSQLDialect_mxodbc, self).__init__(**params)
 
-    def dbapi_type_map(self):
-        return {'getdate' : SybaseDate_mxodbc()}
+        self.dbapi_type_map = {'getdate' : SybaseDate_mxodbc()}
         
     def import_dbapi(cls):
         #import mx.ODBC.Windows as module
@@ -686,9 +685,7 @@ class SybaseSQLDialect_mxodbc(SybaseSQLDialect):
 class SybaseSQLDialect_pyodbc(SybaseSQLDialect):
     def __init__(self, **params):
         super(SybaseSQLDialect_pyodbc, self).__init__(**params)
-
-    def dbapi_type_map(self):
-        return {'getdate' : SybaseDate_pyodbc()}
+        self.dbapi_type_map = {'getdate' : SybaseDate_pyodbc()}
 
     def import_dbapi(cls):
         import mypyodbc as module
@@ -781,11 +778,11 @@ class SybaseSQLCompiler(compiler.DefaultCompiler):
         else:
             return super(SybaseSQLCompiler, self).visit_binary(binary)
 
-    def label_select_column(self, select, column):
+    def label_select_column(self, select, column, asfrom):
         if isinstance(column, expression._Function):
-            return column.label(column.name + "_" + hex(random.randint(0, 65535))[2:])
+            return column.label(None)
         else:
-            return super(SybaseSQLCompiler, self).label_select_column(select, column)
+            return super(SybaseSQLCompiler, self).label_select_column(select, column, asfrom)
 
     function_rewrites =  {'current_date': 'getdate',
                          }
@@ -798,13 +795,7 @@ class SybaseSQLCompiler(compiler.DefaultCompiler):
             cast = expression._Cast(func, SybaseDate_mxodbc)
             # infinite recursion
             # res = self.visit_cast(cast)
-            if self.stack and self.stack[-1].get('select'):
-                # not sure if we want to set the typemap here...
-                self.typemap.setdefault("CAST", cast.type)
-#            res = "CAST(%s AS %s)" % (self.process(cast.clause), self.process(cast.typeclause))
             res = "CAST(%s AS %s)" % (res, self.process(cast.typeclause))
-#        elif func.name.lower() == 'count':
-#            res = 'count(*)'
         return res
 
     def for_update_clause(self, select):

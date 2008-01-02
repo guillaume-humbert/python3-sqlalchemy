@@ -1,27 +1,33 @@
 # schema.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 """The schema module provides the building blocks for database metadata.
 
-This means all the entities within a SQL database that we might want
-to look at, modify, or create and delete are described by these
-objects, in a database-agnostic way.
+Each element within this module describes a database entity 
+which can be created and dropped, or is otherwise part of such an entity.
+Examples include tables, columns, sequences, and indexes.
 
-A structure of SchemaItems also provides a *visitor* interface which is
-the primary method by which other methods operate upon the schema.
-The SQL package extends this structure with its own clause-specific
-objects as well as the visitor interface, so that the schema package
-*plugs in* to the SQL package.
+All entities are subclasses of [sqlalchemy.schema#SchemaItem], and as 
+defined in this module they are intended to be agnostic of any 
+vendor-specific constructs.
+
+A collection of entities are grouped into a unit called [sqlalchemy.schema#MetaData].
+MetaData serves as a logical grouping of schema elements, and can also
+be associated with an actual database connection such that operations 
+involving the contained elements can contact the database as needed.
+
+Two of the elements here also build upon their "syntactic" counterparts,
+which are defined in [sqlalchemy.sql.expression#], specifically [sqlalchemy.schema#Table]
+and [sqlalchemy.schema#Column].  Since these objects are part of the
+SQL expression language, they are usable as components in SQL expressions.
 """
 
 import re, inspect
 from sqlalchemy import types, exceptions, util, databases
 from sqlalchemy.sql import expression, visitors
-import sqlalchemy
-
 
 URL = None
 
@@ -43,9 +49,6 @@ class SchemaItem(object):
             if item is not None:
                 item._set_parent(self)
 
-    def _get_parent(self):
-        raise NotImplementedError()
-
     def _set_parent(self, parent):
         """Associate with this SchemaItem's parent object."""
 
@@ -58,20 +61,12 @@ class SchemaItem(object):
     def __repr__(self):
         return "%s()" % self.__class__.__name__
 
-    def _get_bind(self, raiseerr=False):
-        """Return the engine or None if no engine."""
+    def bind(self):
+        """Return the connectable associated with this SchemaItem."""
 
-        if raiseerr:
-            m = self.metadata
-            e = m and m.bind or None
-            if e is None:
-                raise exceptions.InvalidRequestError("This SchemaItem is not connected to any Engine or Connection.")
-            else:
-                return e
-        else:
-            m = self.metadata
-            return m and m.bind or None
-    bind = property(lambda s:s._get_bind())
+        m = self.metadata
+        return m and m.bind or None
+    bind = property(bind)
     
     def info(self):
         try:
@@ -231,13 +226,15 @@ class Table(SchemaItem, expression.TableClause):
             if autoload_with:
                 autoload_with.reflecttable(self, include_columns=include_columns)
             else:
-                metadata._get_bind(raiseerr=True).reflecttable(self, include_columns=include_columns)
+                _bind_or_error(metadata).reflecttable(self, include_columns=include_columns)
                 
         # initialize all the column, etc. objects.  done after
         # reflection to allow user-overrides
         self._init_items(*args)
-
-    key = property(lambda self:_get_table_key(self.name, self.schema))
+    
+    def key(self):
+        return _get_table_key(self.name, self.schema)
+    key = property(key)
     
     def _export_columns(self, columns=None):
         # override FromClause's collection initialization logic; Table implements it differently
@@ -248,7 +245,10 @@ class Table(SchemaItem, expression.TableClause):
             self.constraints.remove(self._primary_key)
         self._primary_key = pk
         self.constraints.add(pk)
-    primary_key = property(lambda s:s._primary_key, _set_primary_key)
+
+    def primary_key(self):
+        return self._primary_key
+    primary_key = property(primary_key, _set_primary_key)
 
     def __repr__(self):
         return "Table(%s)" % ', '.join(
@@ -269,9 +269,6 @@ class Table(SchemaItem, expression.TableClause):
 
         constraint._set_parent(self)
 
-    def _get_parent(self):
-        return self.metadata
-
     def _set_parent(self, metadata):
         metadata.tables[_get_table_key(self.name, self.schema)] = self
         self.metadata = metadata
@@ -289,7 +286,7 @@ class Table(SchemaItem, expression.TableClause):
         """Return True if this table exists."""
 
         if bind is None:
-            bind = self._get_bind(raiseerr=True)
+            bind = _bind_or_error(self)
 
         def do(conn):
             return conn.dialect.has_table(conn, self.name, schema=self.schema)
@@ -451,21 +448,20 @@ class Column(SchemaItem, expression._ColumnClause):
             self._info = kwargs.pop('info')
         if kwargs:
             raise exceptions.ArgumentError("Unknown arguments passed to Column: " + repr(kwargs.keys()))
-
-    columns = property(lambda self:[self])
-
+    
     def __str__(self):
         if self.table is not None:
-            if self.table.named_with_column():
+            if self.table.named_with_column:
                 return (self.table.description + "." + self.description)
             else:
                 return self.description
         else:
             return self.description
 
-    def _get_bind(self):
+    def bind(self):
         return self.table.bind
-
+    bind = property(bind)
+    
     def references(self, column):
         """return true if this column references the given column via foreign key"""
         for fk in self.foreign_keys:
@@ -493,10 +489,8 @@ class Column(SchemaItem, expression._ColumnClause):
             [repr(self.name)] + [repr(self.type)] +
             [repr(x) for x in self.foreign_keys if x is not None] +
             [repr(x) for x in self.constraints] +
+            [(self.table and "table=<%s>" % self.table.description or "")] +
             ["%s=%s" % (k, repr(getattr(self, k))) for k in kwarg])
-
-    def _get_parent(self):
-        return self.table
 
     def _set_parent(self, table):
         self.metadata = table.metadata
@@ -504,12 +498,13 @@ class Column(SchemaItem, expression._ColumnClause):
             raise exceptions.ArgumentError("this Column already has a table!")
         if not self._is_oid:
             self._pre_existing_column = table._columns.get(self.key)
-            table._columns.add(self)
+
+            table._columns.replace(self)
         else:
             self._pre_existing_column = None
             
         if self.primary_key:
-            table.primary_key.add(self)
+            table.primary_key.replace(self)
         elif self.key in table.primary_key:
             raise exceptions.ArgumentError("Trying to redefine primary-key column '%s' as a non-primary-key column on table '%s'" % (self.key, table.fullname))
             # if we think this should not raise an error, we'd instead do this:
@@ -620,15 +615,15 @@ class ForeignKey(SchemaItem):
     def references(self, table):
         """Return True if the given table is referenced by this ``ForeignKey``."""
 
-        return table.corresponding_column(self.column, False) is not None
+        return table.corresponding_column(self.column) is not None
     
     def get_referent(self, table):
         """return the column in the given table referenced by this ``ForeignKey``, or
         None if this ``ForeignKey`` does not reference the given table.
         """
-        return table.corresponding_column(self.column, False)
+        return table.corresponding_column(self.column)
         
-    def _init_column(self):
+    def column(self):
         # ForeignKey inits its remote column as late as possible, so tables can
         # be defined without dependencies
         if self._column is None:
@@ -672,10 +667,7 @@ class ForeignKey(SchemaItem):
             self.parent.type = self._column.type
         return self._column
 
-    column = property(lambda s: s._init_column())
-
-    def _get_parent(self):
-        return self.parent
+    column = property(column)
 
     def _set_parent(self, column):
         self.parent = column
@@ -702,9 +694,6 @@ class DefaultGenerator(SchemaItem):
         self.for_update = for_update
         self.metadata = util.assert_arg_type(metadata, (MetaData, type(None)), 'metadata')
 
-    def _get_parent(self):
-        return getattr(self, 'column', None)
-
     def _set_parent(self, column):
         self.column = column
         self.metadata = self.column.table.metadata
@@ -715,7 +704,7 @@ class DefaultGenerator(SchemaItem):
 
     def execute(self, bind=None, **kwargs):
         if bind is None:
-            bind = self._get_bind(raiseerr=True)
+            bind = _bind_or_error(self)
         return bind._execute_default(self, **kwargs)
 
     def __repr__(self):
@@ -796,14 +785,14 @@ class Sequence(DefaultGenerator):
         """Creates this sequence in the database."""
         
         if bind is None:
-            bind = self._get_bind(raiseerr=True)
+            bind = _bind_or_error(self)
         bind.create(self, checkfirst=checkfirst)
 
     def drop(self, bind=None, checkfirst=True):
         """Drops this sequence from the database."""
 
         if bind is None:
-            bind = self._get_bind(raiseerr=True)
+            bind = _bind_or_error(self)
         bind.drop(self, checkfirst=checkfirst)
 
 
@@ -836,20 +825,17 @@ class Constraint(SchemaItem):
     def copy(self):
         raise NotImplementedError()
 
-    def _get_parent(self):
-        return getattr(self, 'table', None)
-
 class CheckConstraint(Constraint):
     def __init__(self, sqltext, name=None):
         super(CheckConstraint, self).__init__(name)
         self.sqltext = sqltext
 
-    def _visit_name(self):
+    def __visit_name__(self):
         if isinstance(self.parent, Table):
             return "check_constraint"
         else:
             return "column_check_constraint"
-    __visit_name__ = property(_visit_name)
+    __visit_name__ = property(__visit_name__)
 
     def _set_parent(self, parent):
         self.parent = parent
@@ -899,18 +885,19 @@ class PrimaryKeyConstraint(Constraint):
         self.table = table
         table.primary_key = self
         for c in self.__colnames:
-            self.append_column(table.c[c])
-
+            self.add(table.c[c])
+    
     def add(self, col):
-        self.append_column(col)
+        self.columns.add(col)
+        col.primary_key=True
+    append_column = add
+    
+    def replace(self, col):
+        self.columns.replace(col)
 
     def remove(self, col):
         col.primary_key=False
         del self.columns[col.key]
-
-    def append_column(self, col):
-        self.columns.add(col)
-        col.primary_key=True
 
     def copy(self):
         return PrimaryKeyConstraint(name=self.name, *[c.key for c in self])
@@ -973,9 +960,6 @@ class Index(SchemaItem):
         for column in args:
             self.append_column(column)
 
-    def _get_parent(self):
-        return self.table
-
     def _set_parent(self, table):
         self.table = table
         self.metadata = table.metadata
@@ -999,17 +983,15 @@ class Index(SchemaItem):
         self.columns.append(column)
 
     def create(self, bind=None):
-        if bind is not None:
-            bind.create(self)
-        else:
-            self._get_bind(raiseerr=True).create(self)
+        if bind is None:
+            bind = _bind_or_error(self)
+        bind.create(self)
         return self
 
     def drop(self, bind=None):
-        if bind is not None:
-            bind.drop(self)
-        else:
-            self._get_bind(raiseerr=True).drop(self)
+        if bind is None:
+            bind = _bind_or_error(self)
+        bind.drop(self)
 
     def __str__(self):
         return repr(self)
@@ -1110,6 +1092,17 @@ class MetaData(SchemaItem):
             self._bind = bind
     connect = util.deprecated(connect)
 
+    def bind(self):
+        """An Engine or Connection to which this MetaData is bound.
+
+        This property may be assigned an ``Engine`` or
+        ``Connection``, or assigned a string or URL to
+        automatically create a basic ``Engine`` for this bind
+        with ``create_engine()``.
+        """
+        
+        return self._bind
+        
     def _bind_to(self, bind):
         """Bind this MetaData to an Engine, Connection, string or URL."""
 
@@ -1118,17 +1111,11 @@ class MetaData(SchemaItem):
             from sqlalchemy.engine.url import URL
 
         if isinstance(bind, (basestring, URL)):
-            self._bind = sqlalchemy.create_engine(bind)
+            from sqlalchemy import create_engine
+            self._bind = create_engine(bind)
         else:
             self._bind = bind
-
-    bind = property(lambda self: self._bind, _bind_to, doc=
-                    """An Engine or Connection to which this MetaData is bound.
-
-                    This property may be assigned an ``Engine`` or
-                    ``Connection``, or assigned a string or URL to
-                    automatically create a basic ``Engine`` for this bind
-                    with ``create_engine()``.""")
+    bind = property(bind, _bind_to)
     
     def clear(self):
         self.tables.clear()
@@ -1138,16 +1125,12 @@ class MetaData(SchemaItem):
         del self.tables[table.key]
         
     def table_iterator(self, reverse=True, tables=None):
-        from sqlalchemy.sql import util as sql_util
+        from sqlalchemy.sql.util import sort_tables
         if tables is None:
             tables = self.tables.values()
         else:
             tables = util.Set(tables).intersection(self.tables.values())
-        sorter = sql_util.TableCollection(list(tables))
-        return iter(sorter.sort(reverse=reverse))
-
-    def _get_parent(self):
-        return None
+        return iter(sort_tables(tables, reverse=reverse))
 
     def reflect(self, bind=None, schema=None, only=None):
         """Load all available table definitions from the database.
@@ -1182,7 +1165,7 @@ class MetaData(SchemaItem):
 
         reflect_opts = {'autoload': True}
         if bind is None:
-            bind = self._get_bind(raiseerr=True)
+            bind = _bind_or_error(self)
             conn = None
         else:
             reflect_opts['autoload_with'] = bind
@@ -1228,7 +1211,7 @@ class MetaData(SchemaItem):
         """
 
         if bind is None:
-            bind = self._get_bind(raiseerr=True)
+            bind = _bind_or_error(self)
         bind.create(self, checkfirst=checkfirst, tables=tables)
 
     def drop_all(self, bind=None, tables=None, checkfirst=True):
@@ -1247,17 +1230,9 @@ class MetaData(SchemaItem):
         """
 
         if bind is None:
-            bind = self._get_bind(raiseerr=True)
+            bind = _bind_or_error(self)
         bind.drop(self, checkfirst=checkfirst, tables=tables)
-
-    def _get_bind(self, raiseerr=False):
-        if not self.is_bound():
-            if raiseerr:
-                raise exceptions.InvalidRequestError("This SchemaItem is not connected to any Engine or Connection.")
-            else:
-                return None
-        return self._bind
-
+    
 class ThreadLocalMetaData(MetaData):
     """A MetaData variant that presents a different ``bind`` in every thread.
 
@@ -1277,14 +1252,10 @@ class ThreadLocalMetaData(MetaData):
     __visit_name__ = 'metadata'
 
     def __init__(self):
-        """Construct a ThreadLocalMetaData.
-
-        Takes no arguments.
-        """
-        
+        """Construct a ThreadLocalMetaData."""
+    
         self.context = util.ThreadLocal()
         self.__engines = {}
-        
         super(ThreadLocalMetaData, self).__init__()
 
     # @deprecated
@@ -1313,18 +1284,14 @@ class ThreadLocalMetaData(MetaData):
         self._bind_to(bind)
     connect = util.deprecated(connect)
 
-    def _get_bind(self, raiseerr=False):
-        """The bound ``Engine`` or ``Connectable`` for this thread."""
+    def bind(self):
+        """The bound Engine or Connection for this thread.
+
+        This property may be assigned an Engine or Connection,
+        or assigned a string or URL to automatically create a
+        basic Engine for this bind with ``create_engine()``."""
         
-        if hasattr(self.context, '_engine'):
-            return self.context._engine
-        else:
-            if raiseerr:
-                raise exceptions.InvalidRequestError(
-                    "This ThreadLocalMetaData is not bound to any Engine or "
-                    "Connection.")
-            else: 
-                return None
+        return getattr(self.context, '_engine', None)
 
     def _bind_to(self, bind):
         """Bind to a Connectable in the caller's thread."""
@@ -1347,12 +1314,7 @@ class ThreadLocalMetaData(MetaData):
                 self.__engines[bind] = bind
             self.context._engine = bind
 
-    bind = property(_get_bind, _bind_to, doc=
-                    """The bound Engine or Connection for this thread.
-
-                    This property may be assigned an Engine or Connection,
-                    or assigned a string or URL to automatically create a
-                    basic Engine for this bind with ``create_engine()``.""")
+    bind = property(bind, _bind_to)
 
     def is_bound(self):
         """True if there is a bind for this thread."""
@@ -1366,8 +1328,13 @@ class ThreadLocalMetaData(MetaData):
             if hasattr(e, 'dispose'):
                 e.dispose()
 
-
 class SchemaVisitor(visitors.ClauseVisitor):
     """Define the visiting for ``SchemaItem`` objects."""
 
     __traverse_options__ = {'schema_visitor':True}
+
+def _bind_or_error(schemaitem):
+    bind = schemaitem.bind
+    if not bind:
+        raise exceptions.InvalidRequestError("This SchemaItem is not connected to any Engine or Connection.")
+    return bind

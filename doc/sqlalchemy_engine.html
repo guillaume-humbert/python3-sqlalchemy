@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -498,7 +498,7 @@ statement.</dd>
     <b>def construct_params(<i>self</i>, <i>params</i>)</b>
     <div class="docstring">
     <p>Return the bind params for this compiled object.</p>
-<p>params is a dict of string/object pairs whos
+<p><cite>params</cite> is a dict of string/object pairs whos
 values will override bind values compiled in
 to the statement.</p>
 
@@ -718,6 +718,16 @@ will be generated.</dd>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>closed = property()</b>
+         <div class="docstring">
+         <p>return True if this connection is closed.</p>
+
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -874,15 +884,32 @@ connection pool.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def invalidate(<i>self</i>)</b>
+    <b>def invalidate(<i>self</i>, <i>exception=None</i>)</b>
     <div class="docstring">
-    <p>Invalidate and close the Connection.</p>
+    <p>Invalidate the underlying DBAPI connection associated with this Connection.</p>
 <p>The underlying DB-API connection is literally closed (if
 possible), and is discarded.  Its source connection pool will
 typically lazilly create a new connection to replace it.</p>
+<p>Upon the next usage, this Connection will attempt to reconnect
+to the pool with a new connection.</p>
+<p>Transactions in progress remain in an &quot;opened&quot; state (even though
+the actual transaction is gone); these must be explicitly
+rolled back before a reconnect on this Connection can proceed.  This
+is to prevent applications from accidentally continuing their transactional
+operations in a non-transactional state.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>invalidated = property()</b>
+         <div class="docstring">
+         <p>return True if this connection was invalidated.</p>
+
+         </div> 
+         </div>
 
                     
          <div class="darkcell">
@@ -951,7 +978,8 @@ typically lazilly create a new connection to replace it.</p>
          <A name=""></a>
          <b>should_close_with_result = property()</b>
          <div class="docstring">
-         <p>Indicates if this Connection should be closed when a corresponding ResultProxy is closed; this is essentially an auto-release mode.</p>
+         <p>Indicates if this Connection should be closed when a corresponding
+ResultProxy is closed; this is essentially an auto-release mode.</p>
 
          </div> 
          </div>
@@ -1164,6 +1192,15 @@ be available after execution.</dd>
 <dt>supports_pk_autoincrement</dt>
 <dd>Indicates if the dialect should allow the database to passively assign
 a primary key column value.</dd>
+<dt>dbapi_type_map</dt>
+<dd><p class="first">A mapping of DB-API type objects present in this Dialect's
+DB-API implmentation mapped to TypeEngine implementations used
+by the dialect.</p>
+<p class="last">This is used to apply types to result sets based on the DB-API
+types present in cursor.description; it only takes effect for
+result sets against textual statements where no explicit
+typemap was present.</p>
+</dd>
 </dl>
 </div>
     
@@ -1203,25 +1240,6 @@ to the dbapi's connect function.</p>
 <p>This id will be passed to do_begin_twophase(),
 do_rollback_twophase(), do_commit_twophase().  Its format is
 unspecified.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def dbapi_type_map(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Returns a DB-API to sqlalchemy.types mapping.</p>
-<p>A mapping of DB-API type objects present in this Dialect's
-DB-API implmentation mapped to TypeEngine implementations used
-by the dialect.</p>
-<p>This is used to apply types to result sets based on the DB-API
-types present in cursor.description; it only takes effect for
-result sets against textual statements where no explicit
-typemap was present.  Constructed SQL statements always have
-type information explicitly embedded.</p>
 
     </div>
     </div>
@@ -1754,7 +1772,6 @@ well as the Connection used in the transaction.</p>
     
     
     <div class="darkcell"><p>A messenger object for a Dialect that corresponds to a single execution.</p>
-<blockquote>
 <p>ExecutionContext should have these datamembers:</p>
 <dl class="docutils">
 <dt>connection</dt>
@@ -1766,13 +1783,8 @@ root_connection.</dd>
 <dd>Connection object which is the source of this ExecutionContext.  This
 Connection may have close_with_result=True set, in which case it can
 only be used once.</dd>
-</dl>
-</blockquote>
-<dl class="docutils">
 <dt>dialect</dt>
-<dd><blockquote class="first">
-dialect which created this ExecutionContext.</blockquote>
-<dl class="docutils">
+<dd>dialect which created this ExecutionContext.</dd>
 <dt>cursor</dt>
 <dd>DB-API cursor procured from the connection,</dd>
 <dt>compiled</dt>
@@ -1792,12 +1804,17 @@ positional, list or list of lists/tuples for positional).</dd>
 <dd>True if the statement is an INSERT.</dd>
 <dt>isupdate</dt>
 <dd>True if the statement is an UPDATE.</dd>
+<dt>should_autocommit</dt>
+<dd>True if the statement is a &quot;committable&quot; statement</dd>
+<dt>returns_rows</dt>
+<dd>True if the statement should return result rows</dd>
+<dt>postfetch_cols</dt>
+<dd>a list of Column objects for which a server-side default
+or inline SQL expression value was fired off.  applies to inserts and updates.</dd>
 </dl>
-<p class="last">The Dialect should provide an ExecutionContext via the
+<p>The Dialect should provide an ExecutionContext via the
 create_execution_context() method.  The <cite>pre_exec</cite> and <cite>post_exec</cite>
 methods will be called for compiled statements.</p>
-</dd>
-</dl>
 </div>
     
 
@@ -1895,18 +1912,6 @@ datamembers should be available after this method completes.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def postfetch_cols(<i>self</i>)</b>
-    <div class="docstring">
-    <p>return a list of Column objects for which a 'passive' server-side default
-value was fired off.  applies to inserts and updates.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def pre_execution(<i>self</i>)</b>
     <div class="docstring">
     <p>Called before an execution of a compiled statement.</p>
@@ -1933,9 +1938,20 @@ initialized after this statement is complete.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def should_autocommit(<i>self</i>)</b>
+    <b>def should_autocommit_compiled(<i>self</i>, <i>compiled</i>)</b>
     <div class="docstring">
-    <p>Return True if this context's statement should be 'committed' automatically in a non-transactional context</p>
+    <p>return True if the given Compiled object refers to a &quot;committable&quot; statement.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def should_autocommit_text(<i>self</i>, <i>statement</i>)</b>
+    <div class="docstring">
+    <p>Parse the given textual statement and return True if it refers to a &quot;committable&quot; statement</p>
 
     </div>
     </div>
@@ -2500,7 +2516,7 @@ results that correspond to constructed SQL expressions).</p>
     <A name=""></a>
     <b>def close(<i>self</i>)</b>
     <div class="docstring">
-    <p>close this transaction.</p>
+    <p>Close this transaction.</p>
 <p>If this transaction is the base transaction in a begin/commit
 nesting, the transaction will rollback().  Otherwise, the
 method returns.</p>

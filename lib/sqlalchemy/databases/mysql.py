@@ -1,5 +1,5 @@
 # mysql.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -725,7 +725,7 @@ class MSText(_StringType, sqltypes.TEXT):
 
         _StringType.__init__(self, **kwargs)
         sqltypes.TEXT.__init__(self, length,
-                               kwargs.get('convert_unicode', False))
+                               kwargs.get('convert_unicode', False), kwargs.get('assert_unicode', None))
 
     def get_col_spec(self):
         if self.length:
@@ -889,7 +889,7 @@ class MSString(_StringType, sqltypes.String):
 
         _StringType.__init__(self, **kwargs)
         sqltypes.String.__init__(self, length,
-                                 kwargs.get('convert_unicode', False))
+                                 kwargs.get('convert_unicode', False), kwargs.get('assert_unicode', None))
 
     def get_col_spec(self):
         if self.length:
@@ -1378,9 +1378,6 @@ def descriptor():
 
 
 class MySQLExecutionContext(default.DefaultExecutionContext):
-    _my_is_select = re.compile(r'\s*(?:SELECT|SHOW|DESCRIBE|XA +RECOVER)',
-                               re.I | re.UNICODE)
-
     def post_exec(self):
         if self.compiled.isinsert and not self.executemany:
             if (not len(self._last_inserted_ids) or
@@ -1388,11 +1385,11 @@ class MySQLExecutionContext(default.DefaultExecutionContext):
                 self._last_inserted_ids = ([self.cursor.lastrowid] +
                                            self._last_inserted_ids[1:])
 
-    def is_select(self):
-        return SELECT_RE.match(self.statement)
+    def returns_rows_text(self, statement):
+        return SELECT_RE.match(statement)
 
-    def should_autocommit(self):
-        return AUTOCOMMIT_RE.match(self.statement)
+    def should_autocommit_text(self, statement):
+        return AUTOCOMMIT_RE.match(statement)
 
 
 class MySQLDialect(default.DefaultDialect):
@@ -1530,8 +1527,12 @@ class MySQLDialect(default.DefaultDialect):
         connection.ping()
 
     def is_disconnect(self, e):
-        return isinstance(e, self.dbapi.OperationalError) and \
-               e.args[0] in (2006, 2013, 2014, 2045, 2055)
+        if isinstance(e, self.dbapi.OperationalError):
+            return e.args[0] in (2006, 2013, 2014, 2045, 2055)
+        elif isinstance(e, self.dbapi.InterfaceError):  # if underlying connection is closed, this is the error you get
+            return "(0, '')" in str(e)
+        else:
+            return False
 
     def get_default_schema_name(self, connection):
         try:
@@ -1873,9 +1874,6 @@ class MySQLCompiler(compiler.DefaultCompiler):
         if type_ is None:
             return self.process(cast.clause)
 
-        if self.stack and self.stack[-1].get('select'):
-            # not sure if we want to set the typemap here...
-            self.typemap.setdefault("CAST", cast.type)
         return 'CAST(%s AS %s)' % (self.process(cast.clause), type_)
 
 
@@ -1886,6 +1884,19 @@ class MySQLCompiler(compiler.DefaultCompiler):
             return "DISTINCT "
         else:
             return ""
+
+    def visit_join(self, join, asfrom=False, **kwargs):
+        # 'JOIN ... ON ...' for inner joins isn't available until 4.0.
+        # Apparently < 3.23.17 requires theta joins for inner joins
+        # (but not outer).  Not generating these currently, but
+        # support can be added, preferably after dialects are
+        # refactored to be version-sensitive.
+        return ''.join(
+            (self.process(join.left, asfrom=True),
+             (join.isouter and " LEFT OUTER JOIN " or " INNER JOIN "),
+             self.process(join.right, asfrom=True),
+             " ON ",
+             self.process(join.onclause)))
 
     def for_update_clause(self, select):
         if select.for_update == 'read':

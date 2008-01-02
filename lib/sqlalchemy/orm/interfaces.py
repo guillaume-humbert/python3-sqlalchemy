@@ -1,17 +1,27 @@
 # interfaces.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
+"""Semi-private implementation objects which form the basis
+of ORM-mapped attributes, query options and mapper extension.
 
-from sqlalchemy import util, logging
+Defines the [sqlalchemy.orm.interfaces#MapperExtension] class,
+which can be end-user subclassed to add event-based functionality
+to mappers.  The remainder of this module is generally private to the
+ORM.
+
+"""
+from sqlalchemy import util, logging, exceptions
 from sqlalchemy.sql import expression
+from itertools import chain
+class_mapper = None
 
 __all__ = ['EXT_CONTINUE', 'EXT_STOP', 'EXT_PASS', 'MapperExtension',
            'MapperProperty', 'PropComparator', 'StrategizedProperty', 
            'build_path', 'MapperOption', 
-           'ExtensionOption', 'SynonymProperty', 'PropertyOption', 
+           'ExtensionOption', 'PropertyOption', 
            'AttributeExtension', 'StrategizedOption', 'LoaderStrategy' ]
 
 EXT_CONTINUE = EXT_PASS = object()
@@ -280,7 +290,7 @@ class MapperProperty(object):
         pass
 
     def create_row_processor(self, selectcontext, mapper, row):
-        """return a 3-tuple consiting of a two row processing functions and an instance post-processing function.
+        """return a 3-tuple consiting of two row processing functions and an instance post-processing function.
         
         Input arguments are the query.SelectionContext and the *first*
         applicable row of a result set obtained within query.Query.instances(), called
@@ -319,18 +329,15 @@ class MapperProperty(object):
         """
         
         raise NotImplementedError()
-        
-    def cascade_iterator(self, type, object, recursive=None, halt_on=None):
-        """return an iterator of objects which are child objects of the given object,
-        as attached to the attribute corresponding to this MapperProperty."""
-        
-        return []
 
-    def cascade_callable(self, type, object, callable_, recursive=None, halt_on=None):
-        """run the given callable across all objects which are child objects of 
-        the given object, as attached to the attribute corresponding to this MapperProperty."""
+    def cascade_iterator(self, type, object, recursive=None, halt_on=None):
+        """iterate through instances related to the given instance along
+        a particular 'cascade' path, starting with this MapperProperty.
         
-        return []
+        see PropertyLoader for the related instance implementation.
+        """
+        
+        return iter([])
 
     def get_criterion(self, query, key, value):
         """Return a ``WHERE`` clause suitable for this
@@ -385,7 +392,7 @@ class MapperProperty(object):
         level (as opposed to the individual instance level).
         """
 
-        return self.parent._is_primary_mapper()
+        return not self.parent.non_primary
 
     def merge(self, session, source, dest):
         """Merge the attribute represented by this ``MapperProperty``
@@ -499,13 +506,41 @@ def build_path(mapper, key, prev=None):
         return prev + (mapper.base_mapper, key)
     else:
         return (mapper.base_mapper, key)
-        
+
+def serialize_path(path):
+    if path is None:
+        return None
+
+    return [
+        (mapper.class_, mapper.entity_name, key)
+        for mapper, key in [(path[i], path[i+1]) for i in range(0, len(path)-1, 2)]
+    ]
+    
+def deserialize_path(path):
+    if path is None:
+        return None
+
+    global class_mapper
+    if class_mapper is None:
+        from sqlalchemy.orm import class_mapper
+
+    return tuple(
+        chain(*[(class_mapper(cls, entity), key) for cls, entity, key in path])
+    )
 
 class MapperOption(object):
     """Describe a modification to a Query."""
 
     def process_query(self, query):
         pass
+    
+    def process_query_conditionally(self, query):
+        """same as process_query(), except that this option may not apply
+        to the given query.  
+        
+        Used when secondary loaders resend existing options to a new 
+        Query."""
+        self.process_query(query)
 
 class ExtensionOption(MapperOption):
     """a MapperOption that applies a MapperExtension to a query operation."""
@@ -517,63 +552,53 @@ class ExtensionOption(MapperOption):
         query._extension = query._extension.copy()
         query._extension.insert(self.ext)
 
-class SynonymProperty(MapperProperty):
-    def __init__(self, name, proxy=False):
-        self.name = name
-        self.proxy = proxy
-
-    def setup(self, querycontext, **kwargs):
-        pass
-
-    def create_row_processor(self, selectcontext, mapper, row):
-        return (None, None, None)
-
-    def do_init(self):
-        if not self.proxy:
-            return
-        class SynonymProp(object):
-            def __set__(s, obj, value):
-                setattr(obj, self.name, value)
-            def __delete__(s, obj):
-                delattr(obj, self.name)
-            def __get__(s, obj, owner):
-                if obj is None:
-                    return s
-                return getattr(obj, self.name)
-        setattr(self.parent.class_, self.key, SynonymProp())
-
-    def merge(self, session, source, dest, _recursive):
-        pass
 
 class PropertyOption(MapperOption):
     """A MapperOption that is applied to a property off the mapper or
     one of its child mappers, identified by a dot-separated key.
     """
 
-    def __init__(self, key):
+    def __init__(self, key, mapper=None):
         self.key = key
-
+        self.mapper = mapper
+        
     def process_query(self, query):
+        self._process(query, True)
+        
+    def process_query_conditionally(self, query):
+        self._process(query, False)
+        
+    def _process(self, query, raiseerr):
         if self._should_log_debug:
             self.logger.debug("applying option to Query, property key '%s'" % self.key)
-        paths = self._get_paths(query)
+        paths = self._get_paths(query, raiseerr)
         if paths:
             self.process_query_property(query, paths)
 
     def process_query_property(self, query, paths):
         pass
 
-    def _get_paths(self, query):
+    def _get_paths(self, query, raiseerr):
         path = None
         l = []
         current_path = list(query._current_path)
         
-        mapper = query.mapper
+        if self.mapper:
+            global class_mapper
+            if class_mapper is None:
+                from sqlalchemy.orm import class_mapper
+            mapper = self.mapper
+            if isinstance(self.mapper, type):
+                mapper = class_mapper(mapper)
+            if mapper is not query.mapper and mapper not in [q[0] for q in query._entities]:
+                raise exceptions.ArgumentError("Can't find entity %s in Query.  Current list: %r" % (str(mapper), [str(m) for m in [query.mapper] + query._entities]))
+        else:
+            mapper = query.mapper
         for token in self.key.split('.'):
             if current_path and token == current_path[1]:
                 current_path = current_path[2:]
                 continue
-            prop = mapper.get_property(token, resolve_synonyms=True, raiseerr=False)
+            prop = mapper.get_property(token, resolve_synonyms=True, raiseerr=raiseerr)
             if prop is None:
                 return []
             path = build_path(mapper, prop.key, path)

@@ -1,10 +1,17 @@
 # types.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-__all__ = [ 'TypeEngine', 'TypeDecorator',
+"""defines genericized SQL types, each represented by a subclass of 
+[sqlalchemy.types#AbstractType].  Dialects define further subclasses of these 
+types.
+
+For more information see the SQLAlchemy documentation on types.
+
+"""
+__all__ = [ 'TypeEngine', 'TypeDecorator', 'AbstractType',
             'INT', 'CHAR', 'VARCHAR', 'NCHAR', 'TEXT', 'FLOAT',
             'NUMERIC', 'DECIMAL', 'TIMESTAMP', 'DATETIME', 'CLOB', 'BLOB',
             'BOOLEAN', 'SMALLINT', 'DATE', 'TIME',
@@ -15,9 +22,11 @@ __all__ = [ 'TypeEngine', 'TypeDecorator',
 
 import inspect
 import datetime as dt
+import warnings
 
 from sqlalchemy import exceptions
 from sqlalchemy.util import pickle, Decimal as _python_Decimal
+NoneType = type(None)
 
 class _UserTypeAdapter(type):
     """adapts 0.3 style user-defined types with convert_bind_param/convert_result_value
@@ -195,7 +204,10 @@ class TypeDecorator(AbstractType):
         except KeyError:
             pass
 
-        typedesc = self.load_dialect_impl(dialect)
+        if isinstance(self.impl, TypeDecorator):
+            typedesc = self.impl.dialect_impl(dialect)
+        else:
+            typedesc = self.load_dialect_impl(dialect)
         tt = self.copy()
         if not isinstance(tt, self.__class__):
             raise exceptions.AssertionError("Type object %s does not properly implement the copy() method, it must return an object of type %s" % (self, self.__class__))
@@ -209,7 +221,7 @@ class TypeDecorator(AbstractType):
         by default calls dialect.type_descriptor(self.impl), but
         can be overridden to provide different behavior.
         """
-
+        
         return dialect.type_descriptor(self.impl)
 
     def __getattr__(self, key):
@@ -220,11 +232,39 @@ class TypeDecorator(AbstractType):
     def get_col_spec(self):
         return self.impl.get_col_spec()
 
+    def process_bind_param(self, value, dialect):
+        raise NotImplementedError()
+    
+    def process_result_value(self, value, dialect):
+        raise NotImplementedError()
+        
     def bind_processor(self, dialect):
-        return self.impl.bind_processor(dialect)
+        if self.__class__.process_bind_param.func_code is not TypeDecorator.process_bind_param.func_code:
+            impl_processor = self.impl.bind_processor(dialect)
+            if impl_processor:
+                def process(value):
+                    return impl_processor(self.process_bind_param(value, dialect))
+                return process
+            else:
+                def process(value):
+                    return self.process_bind_param(value, dialect)
+                return process
+        else:
+            return self.impl.bind_processor(dialect)
 
     def result_processor(self, dialect):
-        return self.impl.result_processor(dialect)
+        if self.__class__.process_result_value.func_code is not TypeDecorator.process_result_value.func_code:
+            impl_processor = self.impl.result_processor(dialect)
+            if impl_processor:
+                def process(value):
+                    return self.process_result_value(impl_processor(value), dialect)
+                return process
+            else:
+                def process(value):
+                    return self.process_result_value(value, dialect)
+                return process
+        else:
+            return self.impl.result_processor(dialect)
 
     def copy(self):
         instance = self.__class__.__new__(self.__class__)
@@ -300,18 +340,29 @@ class Concatenable(object):
             return op
 
 class String(Concatenable, TypeEngine):
-    def __init__(self, length=None, convert_unicode=False):
+    def __init__(self, length=None, convert_unicode=False, assert_unicode=None):
         self.length = length
         self.convert_unicode = convert_unicode
+        self.assert_unicode = assert_unicode
 
     def adapt(self, impltype):
-        return impltype(length=self.length, convert_unicode=self.convert_unicode)
+        return impltype(length=self.length, convert_unicode=self.convert_unicode, assert_unicode=self.assert_unicode)
 
     def bind_processor(self, dialect):
         if self.convert_unicode or dialect.convert_unicode:
+            if self.assert_unicode is None:
+                assert_unicode = dialect.assert_unicode
+            else:
+                assert_unicode = self.assert_unicode
             def process(value):
                 if isinstance(value, unicode):
                     return value.encode(dialect.encoding)
+                elif assert_unicode and not isinstance(value, (unicode, NoneType)):
+                    if assert_unicode == 'warn':
+                        warnings.warn(RuntimeWarning("Unicode type received non-unicode bind param value %r" % value))
+                        return value
+                    else:
+                        raise exceptions.InvalidRequestError("Unicode type received non-unicode bind param value %r" % value)
                 else:
                     return value
             return process
@@ -345,6 +396,7 @@ class String(Concatenable, TypeEngine):
 class Unicode(String):
     def __init__(self, length=None, **kwargs):
         kwargs['convert_unicode'] = True
+        kwargs['assert_unicode'] = 'warn'
         super(Unicode, self).__init__(length=length, **kwargs)
 
 class Integer(TypeEngine):

@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -153,25 +153,25 @@
 
 	        </li>
         
-        <li><a style="" href="sqlalchemy_engine_url.html">module sqlalchemy.engine.url</a></li>
+        <li><a style="" href="sqlalchemy_engine_strategies.html">module sqlalchemy.engine.strategies</a></li>
         
 	        <li>
                 
     <ul>
         
-        <li><a style="" href="sqlalchemy_engine_url.html#docstrings_sqlalchemy.engine.url_modfunc">Module Functions</a></li>
+        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_DefaultEngineStrategy">class DefaultEngineStrategy(EngineStrategy)</a></li>
         
-	        <li>
-                
-    <ul>
         
-        <li><a style="" href="sqlalchemy_engine_url.html#docstrings_sqlalchemy.engine.url_modfunc_make_url">make_url()</a></li>
+        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_EngineStrategy">class EngineStrategy(object)</a></li>
         
-    </ul>
-
-	        </li>
         
-        <li><a style="" href="sqlalchemy_engine_url.html#docstrings_sqlalchemy.engine.url_URL">class URL(object)</a></li>
+        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_MockEngineStrategy">class MockEngineStrategy(EngineStrategy)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_PlainEngineStrategy">class PlainEngineStrategy(DefaultEngineStrategy)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_ThreadLocalEngineStrategy">class ThreadLocalEngineStrategy(DefaultEngineStrategy)</a></li>
         
     </ul>
 
@@ -193,6 +193,30 @@
         
         
         <li><a style="" href="sqlalchemy_engine_threadlocal.html#docstrings_sqlalchemy.engine.threadlocal_TLTransaction">class TLTransaction(Transaction)</a></li>
+        
+    </ul>
+
+	        </li>
+        
+        <li><a style="" href="sqlalchemy_engine_url.html">module sqlalchemy.engine.url</a></li>
+        
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="sqlalchemy_engine_url.html#docstrings_sqlalchemy.engine.url_modfunc">Module Functions</a></li>
+        
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="sqlalchemy_engine_url.html#docstrings_sqlalchemy.engine.url_modfunc_make_url">make_url()</a></li>
+        
+    </ul>
+
+	        </li>
+        
+        <li><a style="" href="sqlalchemy_engine_url.html#docstrings_sqlalchemy.engine.url_URL">class URL(object)</a></li>
         
     </ul>
 
@@ -265,6 +289,60 @@
         
         
         <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_TimeoutError">class TimeoutError(SQLAlchemyError)</a></li>
+        
+    </ul>
+
+	        </li>
+        
+        <li><a style="" href="sqlalchemy_interfaces.html">module sqlalchemy.interfaces</a></li>
+        
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="sqlalchemy_interfaces.html#docstrings_sqlalchemy.interfaces_PoolListener">class PoolListener(object)</a></li>
+        
+    </ul>
+
+	        </li>
+        
+        <li><a style="" href="sqlalchemy_pool.html">module sqlalchemy.pool</a></li>
+        
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc">Module Functions</a></li>
+        
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_clear_managers">clear_managers()</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_manage">manage()</a></li>
+        
+    </ul>
+
+	        </li>
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_AssertionPool">class AssertionPool(Pool)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_NullPool">class NullPool(Pool)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">class Pool(object)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_QueuePool">class QueuePool(Pool)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_SingletonThreadPool">class SingletonThreadPool(Pool)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_StaticPool">class StaticPool(Pool)</a></li>
         
     </ul>
 
@@ -602,83 +680,8 @@
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__UpdateBase">class _UpdateBase(ClauseElement)</a></li>
         
-    </ul>
-
-	        </li>
         
-        <li><a style="" href="sqlalchemy_interfaces.html">module sqlalchemy.interfaces</a></li>
-        
-	        <li>
-                
-    <ul>
-        
-        <li><a style="" href="sqlalchemy_interfaces.html#docstrings_sqlalchemy.interfaces_PoolListener">class PoolListener(object)</a></li>
-        
-    </ul>
-
-	        </li>
-        
-        <li><a style="" href="sqlalchemy_pool.html">module sqlalchemy.pool</a></li>
-        
-	        <li>
-                
-    <ul>
-        
-        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc">Module Functions</a></li>
-        
-	        <li>
-                
-    <ul>
-        
-        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_clear_managers">clear_managers()</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_manage">manage()</a></li>
-        
-    </ul>
-
-	        </li>
-        
-        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_AssertionPool">class AssertionPool(Pool)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_NullPool">class NullPool(Pool)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_Pool">class Pool(object)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_QueuePool">class QueuePool(Pool)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_SingletonThreadPool">class SingletonThreadPool(Pool)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_StaticPool">class StaticPool(Pool)</a></li>
-        
-    </ul>
-
-	        </li>
-        
-        <li><a style="" href="sqlalchemy_engine_strategies.html">module sqlalchemy.engine.strategies</a></li>
-        
-	        <li>
-                
-    <ul>
-        
-        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_DefaultEngineStrategy">class DefaultEngineStrategy(EngineStrategy)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_EngineStrategy">class EngineStrategy(object)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_MockEngineStrategy">class MockEngineStrategy(EngineStrategy)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_PlainEngineStrategy">class PlainEngineStrategy(DefaultEngineStrategy)</a></li>
-        
-        
-        <li><a style="" href="sqlalchemy_engine_strategies.html#docstrings_sqlalchemy.engine.strategies_ThreadLocalEngineStrategy">class ThreadLocalEngineStrategy(DefaultEngineStrategy)</a></li>
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_chain">class chain(object)</a></li>
         
     </ul>
 
@@ -689,6 +692,9 @@
 	        <li>
                 
     <ul>
+        
+        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_AbstractType">class AbstractType(object)</a></li>
+        
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_BLOB">class BLOB(Binary)</a></li>
         
@@ -980,9 +986,6 @@
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_StrategizedProperty">class StrategizedProperty(MapperProperty)</a></li>
         
-        
-        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_SynonymProperty">class SynonymProperty(MapperProperty)</a></li>
-        
     </ul>
 
 	        </li>
@@ -1030,6 +1033,9 @@
         
         
         <li><a style="" href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_PropertyLoader">class PropertyLoader(StrategizedProperty)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_SynonymProperty">class SynonymProperty(MapperProperty)</a></li>
         
     </ul>
 
@@ -1507,6 +1513,9 @@
 	        </li>
         
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_AdoMSNVarchar">class AdoMSNVarchar(MSNVarchar)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_Decimal">class Decimal(object)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSBigInteger">class MSBigInteger(MSInteger)</a></li>
