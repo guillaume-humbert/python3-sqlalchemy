@@ -1,3 +1,9 @@
+sqlalchemy (0.4.2b-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Tue,  8 Jan 2008 21:25:41 +0100
+
 sqlalchemy (0.4.2a-2) unstable; urgency=low
 
   * Bump XS-Python-Version to >= 2.4 (closes: #459448)
