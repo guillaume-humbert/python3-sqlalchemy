@@ -77,10 +77,16 @@ class ProxiedAttribute(InstrumentedAttribute):
         
     def __init__(self, key, user_prop, comparator=None):
         self.user_prop = user_prop
-        self.comparator = comparator
+        self._comparator = comparator
         self.key = key
         self.impl = ProxiedAttribute.ProxyImpl(key)
-
+    
+    def comparator(self):
+        if callable(self._comparator):
+            self._comparator = self._comparator()
+        return self._comparator
+    comparator = property(comparator)
+    
     def __get__(self, instance, owner):
         if instance is None:
             self.user_prop.__get__(instance, owner)                
@@ -245,8 +251,7 @@ class AttributeImpl(object):
     def set_committed_value(self, state, value):
         """set an attribute value on the given instance and 'commit' it."""
 
-        if state.committed_state is not None:
-            state.commit_attr(self, value)
+        state.commit_attr(self, value)
         # remove per-instance callable, if any
         state.callables.pop(self.key, None)
         state.dict[self.key] = value
@@ -389,7 +394,7 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
         if self.trackparent:
             if value is not None:
                 self.sethasparent(value._state, True)
-            if previous is not None:
+            if previous is not value and previous is not None:
                 self.sethasparent(previous._state, False)
 
         instance = state.obj()
@@ -538,7 +543,8 @@ class CollectionAttributeImpl(AttributeImpl):
         if old is value:
             return
 
-        state.committed_state[self.key] = self.copy(old)
+        if self.key not in state.committed_state:
+            state.committed_state[self.key] = self.copy(old)
 
         old_collection = self.get_collection(state, old)
 
@@ -681,7 +687,7 @@ class InstanceState(object):
             return
         
         instance_dict = instance_dict()
-        if instance_dict is None:
+        if instance_dict is None or instance_dict._mutex is None:
             return
 
         # the mutexing here is based on the assumption that gc.collect()
@@ -689,17 +695,11 @@ class InstanceState(object):
         # which is normally operating upon the instance dict.
         instance_dict._mutex.acquire()
         try:
-            # if instance_dict de-refed us, or it called our
-            # _resurrect, return.  again setting local copy
-            # to avoid the rug being pulled in between
-            id2 = self.instance_dict
-            if id2 is None or id2() is None or self.obj() is not None:
-                return
-            
             try:
                 self.__resurrect(instance_dict)
             except:
-                # catch GC exceptions
+                # catch app cleanup exceptions.  no other way around this
+                # without warnings being produced
                 pass
         finally:
             instance_dict._mutex.release()
