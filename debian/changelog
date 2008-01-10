@@ -1,3 +1,9 @@
+sqlalchemy (0.4.2p3-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Thu, 10 Jan 2008 11:25:35 +0100
+
 sqlalchemy (0.4.2b-1) unstable; urgency=low
 
   * New upstream release

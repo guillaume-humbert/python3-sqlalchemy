@@ -1,5 +1,5 @@
 import testbase
-import sets
+import sets, warnings
 from sqlalchemy import *
 from sqlalchemy import sql, exceptions
 from sqlalchemy.databases import mysql
@@ -585,7 +585,6 @@ class TypesTest(AssertMixin):
 
         # MySQL 3.23 can't handle an ENUM of ''....
 
-        db = testbase.db
         enum_table = Table('mysql_enum', MetaData(testbase.db),
             Column('e1', mysql.MSEnum("'a'")),
             Column('e2', mysql.MSEnum("''")),
@@ -608,12 +607,36 @@ class TypesTest(AssertMixin):
         finally:
             enum_table.drop()
 
+    def test_default_reflection(self):
+        """Test reflection of column defaults."""
+
+        def_table = Table('mysql_def', MetaData(testbase.db),
+            Column('c1', String(10), PassiveDefault('')),
+            Column('c2', String(10), PassiveDefault('0')),
+            Column('c3', String(10), PassiveDefault('abc')))
+
+        try:
+            def_table.create()
+            reflected = Table('mysql_def', MetaData(testbase.db),
+                              autoload=True)
+            for t in def_table, reflected:
+                assert t.c.c1.default.arg == ''
+                assert t.c.c2.default.arg == '0'
+                assert t.c.c3.default.arg == 'abc'
+        finally:
+            def_table.drop()
+
     @testing.exclude('mysql', '<', (5, 0, 0))
     def test_type_reflection(self):
         # (ask_for, roundtripped_as_if_different)
         specs = [( String(), mysql.MSText(), ),
                  ( String(1), mysql.MSString(1), ),
                  ( String(3), mysql.MSString(3), ),
+                 ( Text(), mysql.MSText(), ),
+                 ( Unicode(), mysql.MSText(), ),
+                 ( Unicode(1), mysql.MSString(1), ),
+                 ( Unicode(3), mysql.MSString(3), ),
+                 ( UnicodeText(), mysql.MSText(), ),
                  ( mysql.MSChar(1), ),
                  ( mysql.MSChar(3), ),
                  ( NCHAR(2), mysql.MSChar(2), ),
@@ -642,7 +665,13 @@ class TypesTest(AssertMixin):
         m = MetaData(db)
         t_table = Table('mysql_types', m, *columns)
         try:
-            m.create_all()
+            try:
+                warnings.filterwarnings('ignore',
+                                        'Using String type with no length.*')
+                m.create_all()
+            finally:
+                warnings.filterwarnings("always",
+                                        'Using String type with no length.*')
 
             m2 = MetaData(db)
             rt = Table('mysql_types', m2, autoload=True)
@@ -858,6 +887,7 @@ class SQLTest(SQLCompileTest):
 
             (String, "CAST(t.col AS CHAR)"),
             (Unicode, "CAST(t.col AS CHAR)"),
+            (UnicodeText, "CAST(t.col AS CHAR)"),
             (VARCHAR, "CAST(t.col AS CHAR)"),
             (NCHAR, "CAST(t.col AS CHAR)"),
             (CHAR, "CAST(t.col AS CHAR)"),

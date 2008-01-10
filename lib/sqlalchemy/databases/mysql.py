@@ -1956,7 +1956,7 @@ class MySQLSchemaGenerator(compiler.SchemaGenerator):
         """Builds column DDL."""
 
         colspec = [self.preparer.format_column(column),
-                   column.type.dialect_impl(self.dialect).get_col_spec()]
+                   column.type.dialect_impl(self.dialect, _for_ddl=True).get_col_spec()]
 
         default = self.get_column_default_string(column)
         if default is not None:
@@ -2332,7 +2332,7 @@ class MySQLSchemaReflector(object):
             r'(?: +COLLATE +(P<collate>\w+))?'
             r'(?: +(?P<notnull>NOT NULL))?'
             r'(?: +DEFAULT +(?P<default>'
-              r'(?:NULL|\x27(?:\x27\x27|[^\x27])+\x27|\w+)'
+              r'(?:NULL|\x27(?:\x27\x27|[^\x27])*\x27|\w+)'
               r'(?:ON UPDATE \w+)?'
             r'))?'
             r'(?: +(?P<autoincr>AUTO_INCREMENT))?'
