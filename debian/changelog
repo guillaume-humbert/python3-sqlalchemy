@@ -1,3 +1,10 @@
+sqlalchemy (0.4.3-1) unstable; urgency=low
+
+  * New upstream release
+  * Strip the "-1" from quilt's and setuptools' required build versions
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sat, 16 Feb 2008 01:57:35 +0100
+
 sqlalchemy (0.4.2p3-1) unstable; urgency=low
 
   * New upstream release

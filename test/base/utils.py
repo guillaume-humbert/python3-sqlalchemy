@@ -1,10 +1,10 @@
-import testbase
+import testenv; testenv.configure_for_tests()
 import unittest
 from sqlalchemy import util, sql, exceptions
 from testlib import *
+from testlib import sorted
 
-
-class OrderedDictTest(PersistTest):
+class OrderedDictTest(TestBase):
     def test_odict(self):
         o = util.OrderedDict()
         o['a'] = 1
@@ -35,19 +35,19 @@ class OrderedDictTest(PersistTest):
         self.assert_(o.keys() == ['a', 'b', 'c', 'd', 'e', 'f'])
         self.assert_(o.values() == [1, 2, 3, 4, 5, 6])
 
-class OrderedSetTest(PersistTest): 
+class OrderedSetTest(TestBase):
     def test_mutators_against_iter(self):
         # testing a set modified against an iterator
         o = util.OrderedSet([3,2, 4, 5])
-        
-        self.assertEquals(o.difference(iter([3,4])), util.OrderedSet([2,5]))
 
-        self.assertEquals(o.intersection(iter([3,4, 6])), util.OrderedSet([3, 4]))
+        self.assertEquals(o.difference(iter([3,4])),
+                          util.OrderedSet([2,5]))
+        self.assertEquals(o.intersection(iter([3,4, 6])),
+                          util.OrderedSet([3, 4]))
+        self.assertEquals(o.union(iter([3,4, 6])),
+                          util.OrderedSet([2, 3, 4, 5, 6]))
 
-        self.assertEquals(o.union(iter([3,4, 6])), util.OrderedSet([2, 3, 4, 5, 6]))
-
-        
-class ColumnCollectionTest(PersistTest):
+class ColumnCollectionTest(TestBase):
     def test_in(self):
         cc = sql.ColumnCollection()
         cc.add(sql.column('col1'))
@@ -119,7 +119,6 @@ class EqOverride(object):
             return self.value != other.value
         else:
             return True
-
 class HashEqOverride(object):
     def __init__(self, value=None):
         self.value = value
@@ -139,8 +138,8 @@ class HashEqOverride(object):
 
 class IdentitySetTest(unittest.TestCase):
     def assert_eq(self, identityset, expected_iterable):
-        found = sorted(list(identityset))
-        expected = sorted(expected_iterable)
+        expected = sorted([id(o) for o in expected_iterable])
+        found = sorted([id(o) for o in identityset])
         self.assertEquals(found, expected)
 
     def test_init(self):
@@ -227,12 +226,29 @@ class IdentitySetTest(unittest.TestCase):
             self.assert_(False)
         except TypeError:
             self.assert_(True)
-        s = set([o1,o2])
-        s |= ids
-        self.assert_(isinstance(s, IdentitySet))
+
+        try:
+            s = set([o1,o2])
+            s |= ids
+            self.assert_(False)
+        except TypeError:
+            self.assert_(True)
 
         self.assertRaises(TypeError, cmp, ids)
         self.assertRaises(TypeError, hash, ids)
+
+    def test_difference(self):
+        os1 = util.IdentitySet([1,2,3])
+        os2 = util.IdentitySet([3,4,5])
+        s1 = set([1,2,3])
+        s2 = set([3,4,5])
+
+        self.assertEquals(os1 - os2, util.IdentitySet([1, 2]))
+        self.assertEquals(os2 - os1, util.IdentitySet([4, 5]))
+        self.assertRaises(TypeError, lambda: os1 - s2)
+        self.assertRaises(TypeError, lambda: os1 - [3, 4, 5])
+        self.assertRaises(TypeError, lambda: s1 - os2)
+        self.assertRaises(TypeError, lambda: s1 - [3, 4, 5])
 
 
 class DictlikeIteritemsTest(unittest.TestCase):
@@ -306,5 +322,72 @@ class DictlikeIteritemsTest(unittest.TestCase):
         self._notok(duck6())
 
 
+class ArgInspectionTest(TestBase):
+    def test_get_cls_kwargs(self):
+        class A(object):
+            def __init__(self, a):
+                pass
+        class A1(A):
+            def __init__(self, a1):
+                pass
+        class A11(A1):
+            def __init__(self, a11, **kw):
+                pass
+        class B(object):
+            def __init__(self, b, **kw):
+                pass
+        class B1(B):
+            def __init__(self, b1, **kw):
+                pass
+        class AB(A, B):
+            def __init__(self, ab):
+                pass
+        class BA(B, A):
+            def __init__(self, ba, **kwargs):
+                pass
+        class BA1(BA):
+            pass
+        class CAB(A, B):
+            pass
+        class CBA(B, A):
+            pass
+        class CAB1(A, B1):
+            pass
+        class CB1A(B1, A):
+            pass
+        class D(object):
+            pass
+
+        def test(cls, *expected):
+            self.assertEquals(set(util.get_cls_kwargs(cls)), set(expected))
+
+        test(A, 'a')
+        test(A1, 'a1')
+        test(A11, 'a11', 'a1')
+        test(B, 'b')
+        test(B1, 'b1', 'b')
+        test(AB, 'ab')
+        test(BA, 'ba', 'b', 'a')
+        test(BA1, 'ba', 'b', 'a')
+        test(CAB, 'a')
+        test(CBA, 'b')
+        test(CAB1, 'a')
+        test(CB1A, 'b1', 'b')
+        test(D)
+
+    def test_get_func_kwargs(self):
+        def f1(): pass
+        def f2(foo): pass
+        def f3(*foo): pass
+        def f4(**foo): pass
+
+        def test(fn, *expected):
+            self.assertEquals(set(util.get_func_kwargs(fn)), set(expected))
+
+        test(f1)
+        test(f2, 'foo')
+        test(f3)
+        test(f4)
+
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()

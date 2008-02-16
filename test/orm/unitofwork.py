@@ -2,7 +2,7 @@
 
 """Tests unitofwork operations."""
 
-import testbase
+import testenv; testenv.configure_for_tests()
 import pickleable
 from sqlalchemy import *
 from sqlalchemy import exceptions, sql
@@ -15,6 +15,7 @@ from testlib import engines, tables, fixtures
 # TODO: convert suite to not use Session.mapper, use fixtures.Base
 # with explicit session.save()
 Session = scoped_session(sessionmaker(autoflush=True, transactional=True))
+orm_mapper = mapper
 mapper = Session.mapper
 
 class UnitOfWorkTest(object):
@@ -42,7 +43,7 @@ class HistoryTest(ORMTest):
         s.commit()
 
         s.close()
-        u = s.query(m).select()[0]
+        u = s.query(m).all()[0]
         print u.addresses[0].user
 
 class VersioningTest(ORMTest):
@@ -82,7 +83,7 @@ class VersioningTest(ORMTest):
             success = True
 
         # Only dialects with a sane rowcount can detect the ConcurrentModificationError
-        if testbase.db.dialect.supports_sane_rowcount:
+        if testing.db.dialect.supports_sane_rowcount:
             assert success
 
         s.close()
@@ -100,7 +101,7 @@ class VersioningTest(ORMTest):
         except exceptions.ConcurrentModificationError, e:
             #print e
             success = True
-        if testbase.db.dialect.supports_sane_multi_rowcount:
+        if testing.db.dialect.supports_sane_multi_rowcount:
             assert success
 
     @engines.close_open_connections
@@ -184,7 +185,7 @@ class UnicodeTest(ORMTest):
         t1.t2s.append(Test2())
         Session.commit()
         Session.close()
-        t1 = Session.query(Test).get_by(id=t1.id)
+        t1 = Session.query(Test).filter_by(id=t1.id).one()
         assert len(t1.t2s) == 2
 
 class UnicodeSchemaTest(ORMTest):
@@ -269,13 +270,13 @@ class MutableTypesTest(ORMTest):
         f1.data = pickleable.Bar(4,5)
         Session.commit()
         Session.close()
-        f2 = Session.query(Foo).get_by(id=f1.id)
+        f2 = Session.query(Foo).filter_by(id=f1.id).one()
         assert f2.data == f1.data
         f2.data.y = 19
         assert f2 in Session.dirty
         Session.commit()
         Session.close()
-        f3 = Session.query(Foo).get_by(id=f1.id)
+        f3 = Session.query(Foo).filter_by(id=f1.id).one()
         print f2.data, f3.data
         assert f3.data != f1.data
         assert f3.data == pickleable.Bar(4, 19)
@@ -290,9 +291,9 @@ class MutableTypesTest(ORMTest):
         Session.commit()
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
         f1.val = unicode('someothervalue')
-        self.assert_sql(testbase.db, lambda: Session.commit(), [
+        self.assert_sql(testing.db, lambda: Session.commit(), [
             (
                 "UPDATE mutabletest SET val=:val WHERE mutabletest.id = :mutabletest_id",
                 {'mutabletest_id': f1.id, 'val': u'someothervalue'}
@@ -300,7 +301,7 @@ class MutableTypesTest(ORMTest):
         ])
         f1.val = unicode('hi')
         f1.data.x = 9
-        self.assert_sql(testbase.db, lambda: Session.commit(), [
+        self.assert_sql(testing.db, lambda: Session.commit(), [
             (
                 "UPDATE mutabletest SET data=:data, val=:val WHERE mutabletest.id = :mutabletest_id",
                 {'mutabletest_id': f1.id, 'val': u'hi', 'data':f1.data}
@@ -317,29 +318,29 @@ class MutableTypesTest(ORMTest):
 
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
 
         Session.close()
 
-        f2 = Session.query(Foo).get_by(id=f1.id)
+        f2 = Session.query(Foo).filter_by(id=f1.id).one()
 
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
 
         f2.data.y = 19
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 1)
+        self.assert_sql_count(testing.db, go, 1)
 
         Session.close()
-        f3 = Session.query(Foo).get_by(id=f1.id)
+        f3 = Session.query(Foo).filter_by(id=f1.id).one()
         print f2.data, f3.data
         assert (f3.data.x, f3.data.y) == (4,19)
 
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
 
     def test_unicode(self):
         """test that two equivalent unicode values dont get flagged as changed.
@@ -356,7 +357,7 @@ class MutableTypesTest(ORMTest):
         f1.val = u'hi'
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
 
 class MutableTypesTest2(ORMTest):
     def define_tables(self, metadata):
@@ -380,7 +381,7 @@ class MutableTypesTest2(ORMTest):
         Session.commit()
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
 
         f1.data = [{'personne': {'nom': u'Smith', 'pers_id': 1, 'prenom': u'john', 'civilite': u'Mr', \
                     'int_3': False, 'int_2': False, 'int_1': u'23', 'VenSoir': True, 'str_1': u'Test', \
@@ -388,12 +389,12 @@ class MutableTypesTest2(ORMTest):
 
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
 
         f1.data[0]['personne']['VenSoir']= False
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 1)
+        self.assert_sql_count(testing.db, go, 1)
 
         Session.clear()
         f = Session.query(Foo).get(f1.id)
@@ -525,7 +526,7 @@ class ClauseAttributesTest(ORMTest):
         sess.flush()
         def go():
             assert u.counter == 2
-        self.assert_sql_count(testbase.db, go, 1)
+        self.assert_sql_count(testing.db, go, 1)
 
     def test_multi_update(self):
         class User(object):
@@ -542,7 +543,7 @@ class ClauseAttributesTest(ORMTest):
         def go():
             assert u.name == 'test2'
             assert u.counter == 2
-        self.assert_sql_count(testbase.db, go, 1)
+        self.assert_sql_count(testing.db, go, 1)
 
         sess.clear()
         u = sess.query(User).get(u.id)
@@ -680,55 +681,66 @@ class DefaultTest(ORMTest):
     defaults back from the engine."""
 
     def define_tables(self, metadata):
-        db = testbase.db
-        use_string_defaults = db.engine.__module__.endswith('postgres') or db.engine.__module__.endswith('oracle') or db.engine.__module__.endswith('sqlite')
+        db = testing.db
+        use_string_defaults = testing.against('postgres', 'oracle', 'sqlite') 
+        global hohoval, althohoval
 
         if use_string_defaults:
             hohotype = String(30)
-            self.hohoval = "im hoho"
-            self.althohoval = "im different hoho"
+            hohoval = "im hoho"
+            althohoval = "im different hoho"
         else:
             hohotype = Integer
-            self.hohoval = 9
-            self.althohoval = 15
+            hohoval = 9
+            althohoval = 15
 
-        global default_table
+        global default_table, secondary_table
         default_table = Table('default_test', metadata,
-        Column('id', Integer, Sequence("dt_seq", optional=True), primary_key=True),
-        Column('hoho', hohotype, PassiveDefault(str(self.hohoval))),
-        Column('counter', Integer, default=func.length("1234567")),
-        Column('foober', String(30), default="im foober", onupdate="im the update")
+            Column('id', Integer, Sequence("dt_seq", optional=True), primary_key=True),
+            Column('hoho', hohotype, PassiveDefault(str(hohoval))),
+            Column('counter', Integer, default=func.length("1234567")),
+            Column('foober', String(30), default="im foober", onupdate="im the update"),
         )
-
+        
+        secondary_table = Table('secondary_table', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('data', String(50))
+            )
+        
+        if testing.against('postgres', 'oracle'):
+            default_table.append_column(Column('secondary_id', Integer, Sequence('sec_id_seq'), unique=True))
+            secondary_table.append_column(Column('fk_val', Integer, ForeignKey('default_test.secondary_id')))
+        else:
+            secondary_table.append_column(Column('hoho', hohotype, ForeignKey('default_test.hoho')))
 
     def test_insert(self):
         class Hoho(object):pass
         mapper(Hoho, default_table)
 
-        h1 = Hoho(hoho=self.althohoval)
+        h1 = Hoho(hoho=althohoval)
         h2 = Hoho(counter=12)
-        h3 = Hoho(hoho=self.althohoval, counter=12)
+        h3 = Hoho(hoho=althohoval, counter=12)
         h4 = Hoho()
         h5 = Hoho(foober='im the new foober')
         Session.commit()
 
-        self.assert_(h1.hoho==self.althohoval)
-        self.assert_(h3.hoho==self.althohoval)
+        self.assert_(h1.hoho==althohoval)
+        self.assert_(h3.hoho==althohoval)
 
         def go():
             # test deferred load of attribues, one select per instance
-            self.assert_(h2.hoho==h4.hoho==h5.hoho==self.hohoval)
-        self.assert_sql_count(testbase.db, go, 3)
+            self.assert_(h2.hoho==h4.hoho==h5.hoho==hohoval)
+        self.assert_sql_count(testing.db, go, 3)
 
         def go():
             self.assert_(h1.counter ==  h4.counter==h5.counter==7)
-        self.assert_sql_count(testbase.db, go, 1)
+        self.assert_sql_count(testing.db, go, 1)
 
         def go():
             self.assert_(h3.counter == h2.counter == 12)
             self.assert_(h2.foober == h3.foober == h4.foober == 'im foober')
             self.assert_(h5.foober=='im the new foober')
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
 
         Session.close()
 
@@ -736,13 +748,23 @@ class DefaultTest(ORMTest):
 
         (h1, h2, h3, h4, h5) = l
 
-        self.assert_(h1.hoho==self.althohoval)
-        self.assert_(h3.hoho==self.althohoval)
-        self.assert_(h2.hoho==h4.hoho==h5.hoho==self.hohoval)
+        self.assert_(h1.hoho==althohoval)
+        self.assert_(h3.hoho==althohoval)
+        self.assert_(h2.hoho==h4.hoho==h5.hoho==hohoval)
         self.assert_(h3.counter == h2.counter == 12)
         self.assert_(h1.counter ==  h4.counter==h5.counter==7)
         self.assert_(h2.foober == h3.foober == h4.foober == 'im foober')
         self.assert_(h5.foober=='im the new foober')
+
+    def test_eager_defaults(self):
+        class Hoho(object):pass
+        mapper(Hoho, default_table, eager_defaults=True)
+        h1 = Hoho()
+        Session.commit()
+
+        def go():
+            self.assert_(h1.hoho==hohoval)
+        self.assert_sql_count(testing.db, go, 0)
 
     def test_insert_nopostfetch(self):
         # populates the PassiveDefaults explicitly so there is no "post-update"
@@ -756,7 +778,7 @@ class DefaultTest(ORMTest):
             self.assert_(h1.hoho=="15")
             self.assert_(h1.counter=="15")
             self.assert_(h1.foober=="im foober")
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
 
     def test_update(self):
         class Hoho(object):pass
@@ -767,7 +789,38 @@ class DefaultTest(ORMTest):
         h1.counter = 19
         Session.commit()
         self.assertEquals(h1.foober, 'im the update')
+    
+    def test_used_in_relation(self):
+        """test that a server-side generated default can be used as the target of a foreign key"""
+        
+        class Hoho(fixtures.Base):
+            pass
+        class Secondary(fixtures.Base):
+            pass
+        mapper(Hoho, default_table, properties={
+            'secondaries':relation(Secondary)
+        }, save_on_init=False)
+        
+        mapper(Secondary, secondary_table, save_on_init=False)
+        h1 = Hoho()
+        s1 = Secondary(data='s1')
+        h1.secondaries.append(s1)
+        Session.save(h1)
+        Session.commit()
+        Session.clear()
+        
+        self.assertEquals(Session.query(Hoho).get(h1.id), Hoho(hoho=hohoval, secondaries=[Secondary(data='s1')]))
+        
+        h1 = Session.query(Hoho).get(h1.id)
+        h1.secondaries.append(Secondary(data='s2'))
+        Session.commit()
+        Session.clear()
 
+        self.assertEquals(Session.query(Hoho).get(h1.id), 
+            Hoho(hoho=hohoval, secondaries=[Secondary(data='s1'), Secondary(data='s2')])
+        )
+        
+            
 class OneToManyTest(ORMTest):
     metadata = tables.metadata
 
@@ -838,7 +891,7 @@ class OneToManyTest(ORMTest):
         u2.user_name = 'user2modified'
         u1.addresses.append(a3)
         del u1.addresses[0]
-        self.assert_sql(testbase.db, lambda: Session.commit(),
+        self.assert_sql(testing.db, lambda: Session.commit(),
                 [
                     (
                         "UPDATE users SET user_name=:user_name WHERE users.user_id = :users_user_id",
@@ -1063,7 +1116,7 @@ class SaveTest(ORMTest):
         u.addresses.append(Address())
         Session.commit()
         Session.close()
-        ulist = Session.query(m1).select()
+        ulist = Session.query(m1).all()
         u1 = ulist[0]
         u1.user_name = 'newname'
         Session.commit()
@@ -1085,7 +1138,7 @@ class SaveTest(ORMTest):
         au = AddressUser()
         Session.commit()
         Session.close()
-        l = Session.query(AddressUser).selectone()
+        l = Session.query(AddressUser).one()
         self.assert_(l.user_id == au.user_id and l.address_id == au.address_id)
 
     def test_deferred(self):
@@ -1110,7 +1163,7 @@ class SaveTest(ORMTest):
         u = Session.query(User).filter(User.user_name=='some name').one()
         def go():
             u.user_name = 'some other name'
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
         Session.flush()
         assert list(Session.execute(users.select(), mapper=User)) == [(42, 'some other name')]
 
@@ -1136,7 +1189,7 @@ class SaveTest(ORMTest):
         u.user_name = ""
         def go():
             Session.commit()
-        self.assert_sql_count(testbase.db, go, 0)
+        self.assert_sql_count(testing.db, go, 0)
 
     def test_multitable(self):
         """tests a save of an object where each instance spans two tables. also tests
@@ -1258,7 +1311,7 @@ class ManyToOneTest(ORMTest):
         objects[2].email_address = 'imnew@foo.bar'
         objects[3].user = User()
         objects[3].user.user_name = 'imnewlyadded'
-        self.assert_sql(testbase.db, lambda: Session.commit(), [
+        self.assert_sql(testing.db, lambda: Session.commit(), [
                 (
                     "INSERT INTO users (user_name) VALUES (:user_name)",
                     {'user_name': 'imnewlyadded'}
@@ -1425,7 +1478,7 @@ class ManyToManyTest(ORMTest):
             item.item_name = elem['item_name']
             item.keywords = []
             if elem['keywords'][1]:
-                klist = Session.query(keywordmapper).select(keywords.c.name.in_([e['name'] for e in elem['keywords'][1]]))
+                klist = Session.query(keywordmapper).filter(keywords.c.name.in_([e['name'] for e in elem['keywords'][1]]))
             else:
                 klist = []
             khash = {}
@@ -1441,14 +1494,14 @@ class ManyToManyTest(ORMTest):
 
         Session.commit()
 
-        l = Session.query(m).select(items.c.item_name.in_([e['item_name'] for e in data[1:]]), order_by=[items.c.item_name])
+        l = Session.query(m).filter(items.c.item_name.in_([e['item_name'] for e in data[1:]])).order_by(items.c.item_name).all()
         self.assert_result(l, *data)
 
         objects[4].item_name = 'item4updated'
         k = Keyword()
         k.name = 'yellow'
         objects[5].keywords.append(k)
-        self.assert_sql(testbase.db, lambda:Session.commit(), [
+        self.assert_sql(testing.db, lambda:Session.commit(), [
             {
                 "UPDATE items SET item_name=:item_name WHERE items.item_id = :items_item_id":
                 {'item_name': 'item4updated', 'items_item_id': objects[4].item_id}
@@ -1477,7 +1530,7 @@ class ManyToManyTest(ORMTest):
         objects[2].keywords.append(k)
         dkid = objects[5].keywords[1].keyword_id
         del objects[5].keywords[1]
-        self.assert_sql(testbase.db, lambda:Session.commit(), [
+        self.assert_sql(testing.db, lambda:Session.commit(), [
                 (
                     "DELETE FROM itemkeywords WHERE itemkeywords.item_id = :item_id AND itemkeywords.keyword_id = :keyword_id",
                     [{'item_id': objects[5].item_id, 'keyword_id': dkid}]
@@ -1656,7 +1709,7 @@ class SaveTest2(ORMTest):
             a.user = User()
             a.user.user_name = elem['user_name']
             objects.append(a)
-        self.assert_sql(testbase.db, lambda: Session.commit(), [
+        self.assert_sql(testing.db, lambda: Session.commit(), [
                 (
                     "INSERT INTO users (user_name) VALUES (:user_name)",
                     {'user_name': 'thesub'}
@@ -1915,7 +1968,63 @@ class RowSwitchTest(ORMTest):
         assert list(sess.execute(t1.select(), mapper=T1)) == [(2, 'some other t1')]
         assert list(sess.execute(t2.select(), mapper=T1)) == [(1, 'some other t2', 2)]
 
+class TransactionTest(ORMTest):
+    __unsupported_on__ = ('mysql', 'mssql')
 
+    # sqlite doesn't have deferrable constraints, but it allows them to
+    # be specified.  it'll raise immediately post-INSERT, instead of at
+    # COMMIT. either way, this test should pass.
 
+    def define_tables(self, metadata):
+        global t1, T1, t2, T2
+
+        Session.remove()
+
+        t1 = Table('t1', metadata,
+            Column('id', Integer, primary_key=True))
+
+        t2 = Table('t2', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('t1_id', Integer,
+                   ForeignKey('t1.id', deferrable=True, initially='deferred')
+                   ))
+
+        # deferred_constraint = \
+        #   DDL("ALTER TABLE t2 ADD CONSTRAINT t2_t1_id_fk FOREIGN KEY (t1_id) "
+        #       "REFERENCES t1 (id) DEFERRABLE INITIALLY DEFERRED")
+        # deferred_constraint.execute_at('after-create', t2)
+        # t1.create()
+        # t2.create()
+        # t2.append_constraint(ForeignKeyConstraint(['t1_id'], ['t1.id']))
+
+        class T1(fixtures.Base):
+            pass
+
+        class T2(fixtures.Base):
+            pass
+
+        orm_mapper(T1, t1)
+        orm_mapper(T2, t2)
+
+    def test_close_transaction_on_commit_fail(self):
+        Session = sessionmaker(autoflush=False, transactional=False)
+        sess = Session()
+
+        # with a deferred constraint, this fails at COMMIT time instead
+        # of at INSERT time.
+        sess.save(T2(t1_id=123))
+
+        try:
+            sess.flush()
+            assert False
+        except:
+            # Flush needs to rollback also when commit fails
+            assert sess.transaction is None
+
+        # todo: on 8.3 at least, the failed commit seems to close the cursor?
+        # needs investigation.  leaving in the DDL above now to help verify
+        # that the new deferrable support on FK isn't involved in this issue.
+        if testing.against('postgres'):
+            t1.bind.engine.dispose()
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()

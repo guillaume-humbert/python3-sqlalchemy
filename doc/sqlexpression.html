@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -42,7 +42,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
 
@@ -61,91 +61,91 @@
     <ul>
         
         <li><a style="" href="sqlexpression.html#sql_version">Version Check</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_connecting">Connecting</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_tables">Define and Create Tables</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_insert">Insert Expressions</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_executing">Executing</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_execmany">Executing Multiple Statements</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_connectionless">Connectionless / Implicit Execution</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_selecting">Selecting</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_operators">Operators</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_conjunctions">Conjunctions</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_text">Using Text</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_aliases">Using Aliases</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_joins">Using Joins</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_transform">Intro to Generative Selects and Transformations</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_everythingelse">Everything Else</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="sqlexpression.html#sql_everythingelse_bindparams">Bind Parameter Objects</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_everythingelse_functions">Functions</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_everythingelse_unions">Unions and Other Set Operations</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_everythingelse_scalar">Scalar Selects</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_everythingelse_correlated">Correlated Subqueries</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_everythingelse_ordering">Ordering, Grouping, Limiting, Offset...ing...</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="sqlexpression.html#sql_update">Updates</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="sqlexpression.html#sql_update_correlated">Correlated Updates</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="sqlexpression.html#sql_delete">Deletes</a></li>
-        
+
         
         <li><a style="" href="sqlexpression.html#sql_reference">Further Reference</a></li>
-        
+
     </ul>
 
 	</div>
@@ -196,7 +196,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -226,7 +226,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -266,7 +266,7 @@
     </div>
 <p>All about how to define <code>Table</code> objects, as well as how to create them from an existing database automatically, is described in <a href="metadata.html">Database Meta Data</a>.
 </p>
-<p>Next, to tell the <code>MetaData</code> we'd actually like to create our selection of tables for real inside the SQLite database, we use <code>create_all()</code>, passing it the <code>engine</code> instance which points to our database.  This will check for the presence of each table first before creating, so its safe to call multiple times:
+<p>Next, to tell the <code>MetaData</code> we'd actually like to create our selection of tables for real inside the SQLite database, we use <code>create_all()</code>, passing it the <code>engine</code> instance which points to our database.  This will check for the presence of each table first before creating, so it's safe to call multiple times:
 </p>
 
     
@@ -298,7 +298,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -359,7 +359,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -399,7 +399,7 @@ COMMIT</div><pre>
 
 <span class="python_operator"></span></pre>
     </div>
-<p>So the INSERT statement was now issued to the database.  Although we got positional "qmark" bind parameters instead of "named" bind params in the output.  How come ?  Because when executed, the <code>Connection</code> used the SQLite <strong>dialect</strong> to help generate the statement; when we use the <code>str()</code> function, the statement isn't aware of this dialect, and falls back onto a default which uses named params. We can view this manually as follows:
+<p>So the INSERT statement was now issued to the database.  Although we got positional "qmark" bind parameters instead of "named" bind parameters in the output.  How come ?  Because when executed, the <code>Connection</code> used the SQLite <strong>dialect</strong> to help generate the statement; when we use the <code>str()</code> function, the statement isn't aware of this dialect, and falls back onto a default which uses named parameters. We can view this manually as follows:
 </p>
 
     
@@ -412,7 +412,7 @@ COMMIT</div><pre>
 </span><span class="python_literal">'INSERT INTO users (name, fullname) VALUES (?, ?)'</span><span class="python_operator">
 </span></pre>
     </div>
-<p>What about the <code>result</code> variable we got when we called <code>execute()</code> ?  As the SQLAlchemy <code>Connection</code> object references a DBAPI connection, the result, known as a <code>ResultProxy</code> object, is analgous to the DBAPI cursor object.  In the case of an INSERT, we can get important information from it, such as the primary key values which were generated from our statement:
+<p>What about the <code>result</code> variable we got when we called <code>execute()</code> ?  As the SQLAlchemy <code>Connection</code> object references a DBAPI connection, the result, known as a <code>ResultProxy</code> object, is analogous to the DBAPI cursor object.  In the case of an INSERT, we can get important information from it, such as the primary key values which were generated from our statement:
 </p>
 
     
@@ -428,7 +428,7 @@ COMMIT</div><pre>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -482,12 +482,12 @@ COMMIT</div><pre>
     </div>
 <p>Above, we again relied upon SQLite's automatic generation of primary key identifiers for each <code>addresses</code> row.
 </p>
-<p>When executing multiple sets of parameters, each dictionary must have the <strong>same</strong> set of keys; i.e. you cant have fewer keys in some dictionaries than others.  This is because the <code>Insert</code> statement is compiled against the <strong>first</strong> dictionary in the list, and its assumed that all subsequent argument dictionaries are compatible with that statement.
+<p>When executing multiple sets of parameters, each dictionary must have the <strong>same</strong> set of keys; i.e. you cant have fewer keys in some dictionaries than others.  This is because the <code>Insert</code> statement is compiled against the <strong>first</strong> dictionary in the list, and it's assumed that all subsequent argument dictionaries are compatible with that statement.
 </p>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -539,7 +539,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -681,7 +681,7 @@ FROM users, addresses<br/>
 </span><span class="python_enclosure">(</span><span class="python_number">4</span><span class="python_operator">, </span><span class="python_literal">u'mary'</span><span class="python_operator">, </span><span class="python_literal">u'Mary Contrary'</span><span class="python_operator">, </span><span class="python_number">4</span><span class="python_operator">, </span><span class="python_number">2</span><span class="python_operator">, </span><span class="python_literal">u'wendy@aol.com'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>It placed <strong>both</strong> tables into the FROM clause.  But also, it made a real mess.  Those who are familiar with SQL joins know that this is a <strong>cartesian product</strong>; each row from the <code>users</code> table is produced against each row from the <code>addresses</code> table.  So to put some sanity into this statement, we need a WHERE clause.  Which brings us to the second argument of <code>select()</code>:
+<p>It placed <strong>both</strong> tables into the FROM clause.  But also, it made a real mess.  Those who are familiar with SQL joins know that this is a <strong>Cartesian product</strong>; each row from the <code>users</code> table is produced against each row from the <code>addresses</code> table.  So to put some sanity into this statement, we need a WHERE clause.  Which brings us to the second argument of <code>select()</code>:
 </p>
 
     
@@ -721,12 +721,12 @@ WHERE users.id = addresses.user_id<br/>
 </span><span class="python_literal">'users.id = addresses.user_id'</span><span class="python_operator">
 </span></pre>
     </div>
-<p>As you can see, the <code>==</code> operator is producing an object that is very much like the <code>Insert</code> and <code>select()</code> objects we've made so far, thanks to Python's <code>__eq__()</code> builtin; you call <code>str()</code> on it and it produces SQL.  By now, one can that everything we are working with is ultimately the same type of object.  SQLAlchemy terms the base class of all of these expessions as <code>sqlalchemy.sql.ClauseElement</code>.
+<p>As you can see, the <code>==</code> operator is producing an object that is very much like the <code>Insert</code> and <code>select()</code> objects we've made so far, thanks to Python's <code>__eq__()</code> builtin; you call <code>str()</code> on it and it produces SQL.  By now, one can that everything we are working with is ultimately the same type of object.  SQLAlchemy terms the base class of all of these expressions as <code>sqlalchemy.sql.ClauseElement</code>.
 </p>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -842,7 +842,7 @@ WHERE users.id = addresses.user_id<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -887,7 +887,7 @@ WHERE users.id = addresses.user_id<br/>
 </span><span class="python_name">AND users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">&lt;= :</span><span class="python_name">users_id_1</span><span class="python_operator">
 </span></pre>
     </div>
-<p>So with all of this vocabulary, let's select all users who have an email address at AOL or MSN, whose name starts with a letter between "m" and "z", and we'll also generate a column containing their full name combined with their email address.  We will add two new constructs to this statement, <code>between()</code> and <code>label()</code>.  <code>between()</code> produces a BETWEEN clause, and <code>label()</code> is used in a column expression to produce labels using the <code>AS</code> keyword; its recommended when selecting from expressions that otherwise would not have a name:
+<p>So with all of this vocabulary, let's select all users who have an email address at AOL or MSN, whose name starts with a letter between "m" and "z", and we'll also generate a column containing their full name combined with their email address.  We will add two new constructs to this statement, <code>between()</code> and <code>label()</code>.  <code>between()</code> produces a BETWEEN clause, and <code>label()</code> is used in a column expression to produce labels using the <code>AS</code> keyword; it's recommended when selecting from expressions that otherwise would not have a name:
 </p>
 
     
@@ -918,7 +918,7 @@ WHERE users.id = addresses.user_id<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -978,7 +978,7 @@ WHERE users.id = addresses.user_id AND users.name BETWEEN 'm' AND 'z' AND (addre
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1013,7 +1013,7 @@ WHERE users.id = a1.user_id AND users.id = a2.user_id AND a1.email_address = ? A
 ['jack@msn.com', 'jack@yahoo.com']</div><pre><span class="python_enclosure">[(</span><span class="python_number">1</span><span class="python_operator">, </span><span class="python_literal">u'jack'</span><span class="python_operator">, </span><span class="python_literal">u'Jack Jones'</span><span class="python_enclosure">)]</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Easy enough.  One thing that we're going for with the SQL Expression Language is the melding of programmatic behavior with SQL generation.  Coming up with names like <code>a1</code> and <code>a2</code> is messy; we really didn't need to use those names anywhere, its just the database that needed them.  Plus, we might write some code that uses alias objects that came from several different places, and its difficult to ensure that they all have unique names.  So instead, we just let SQLAlchemy make the names for us, using "anonymous" aliases:
+<p>Easy enough.  One thing that we're going for with the SQL Expression Language is the melding of programmatic behavior with SQL generation.  Coming up with names like <code>a1</code> and <code>a2</code> is messy; we really didn't need to use those names anywhere, it's just the database that needed them.  Plus, we might write some code that uses alias objects that came from several different places, and it's difficult to ensure that they all have unique names.  So instead, we just let SQLAlchemy make the names for us, using "anonymous" aliases:
 </p>
 
     
@@ -1056,7 +1056,7 @@ WHERE users.id = anon_1.id<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1141,7 +1141,7 @@ FROM users JOIN addresses ON addresses.email_address LIKE users.name || ?<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1155,7 +1155,7 @@ FROM users JOIN addresses ON addresses.email_address LIKE users.name || ?<br/>
     
     
 
-<p>We've now gained the ability to construct very sophisticated statements.  We can use all kinds of operators, table constructs, text, joins, and aliases.  The point of all of this, as mentioned earlier, is not that it's an "easier" or "better" way to write SQL than just writing a SQL statement yourself; the point is that its better for writing <em>programmatically generated</em> SQL which can be morphed and adapted as needed in automated scenarios.
+<p>We've now gained the ability to construct very sophisticated statements.  We can use all kinds of operators, table constructs, text, joins, and aliases.  The point of all of this, as mentioned earlier, is not that it's an "easier" or "better" way to write SQL than just writing a SQL statement yourself; the point is that it's better for writing <em>programmatically generated</em> SQL which can be morphed and adapted as needed in automated scenarios.
 </p>
 <p>To support this, the <code>select()</code> construct we've been working with supports piecemeal construction, in addition to the "all at once" method we've been doing.  Suppose you're writing a search function, which receives criterion and then must construct a select from it.  To accomplish this, upon each criterion encountered, you apply "generative" criterion to an existing <code>select()</code> construct with new elements, one at a time.  We start with a basic <code>select()</code> constructed with the shortcut method available on the <code>users</code> table:
 </p>
@@ -1266,12 +1266,12 @@ WHERE addresses_1.user_id = users.id AND addresses_1.email_address LIKE ?)) ORDE
 </span><span class="python_name">Name</span><span class="python_operator">: </span><span class="python_name">jack </span><span class="python_operator">; </span><span class="python_name">Email Address jack</span><span class="python_operator">@</span><span class="python_name">msn</span><span class="python_operator">.</span><span class="python_name">com</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The above example, by it's end, got significantly more intense than the typical end-user constructed SQL will usually be.  However when writing higher-level tools such as ORMs, they become more significant.  SQLAlchemy's ORM relies very heavily on techniques like this.
+<p>The above example, by its end, got significantly more intense than the typical end-user constructed SQL will usually be.  However when writing higher-level tools such as ORMs, they become more significant.  SQLAlchemy's ORM relies very heavily on techniques like this.
 </p>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1313,7 +1313,7 @@ WHERE users.name = ?<br/>
 ['wendy']</div><pre><span class="python_enclosure">[(</span><span class="python_number">2</span><span class="python_operator">, </span><span class="python_literal">u'wendy'</span><span class="python_operator">, </span><span class="python_literal">u'Wendy Williams'</span><span class="python_enclosure">)]</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Another important aspect of bind paramters is that they may be assigned a type.  The type of the bind paramter will determine it's behavior within expressions and also how the data bound to it is processed before being sent off to the database:
+<p>Another important aspect of bind parameters is that they may be assigned a type.  The type of the bind parameter will determine its behavior within expressions and also how the data bound to it is processed before being sent off to the database:
 </p>
 
     
@@ -1328,7 +1328,7 @@ WHERE users.name LIKE ? || '%'<br/>
 </span></pre>
     </div>
 <pre><code>
-</code></pre><p>Bind parameters of the same name can also be used multiple times, where only a single named value is needed in the execute paramters:
+</code></pre><p>Bind parameters of the same name can also be used multiple times, where only a single named value is needed in the execute parameters:
 </p>
 
     
@@ -1348,7 +1348,7 @@ WHERE users.name LIKE ? || '%' OR addresses.email_address LIKE ? || '@%'<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1388,7 +1388,7 @@ WHERE users.name LIKE ? || '%' OR addresses.email_address LIKE ? || '@%'<br/>
 </span><span class="python_name">CURRENT_TIMESTAMP</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Functions are most typically used in the columns clause of a select statement, and can also be labeled as well as given a type.  Labeling a function is recommended so that the result can be targeted in a result row based on a string name, and assigning it a type is required when you need result-set processing to occur, such as for unicode conversion and date conversions.  Below, we use the result function <code>scalar()</code> to just read the first column of the first row and then close the result; the label, even though present, is not important in this case:
+<p>Functions are most typically used in the columns clause of a select statement, and can also be labeled as well as given a type.  Labeling a function is recommended so that the result can be targeted in a result row based on a string name, and assigning it a type is required when you need result-set processing to occur, such as for Unicode conversion and date conversions.  Below, we use the result function <code>scalar()</code> to just read the first column of the first row and then close the result; the label, even though present, is not important in this case:
 </p>
 
     
@@ -1423,7 +1423,7 @@ FROM addresses<br/>
 </span><span class="python_name">WHERE users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">&gt; </span><span class="python_name">z</span><span class="python_operator">
 </span></pre>
     </div>
-<p>If we wanted to use our <code>calculate</code> statement twice with different bind parameters, the <code>unique_params()</code> function will create copies for us, and mark the bind params as "unique" so that conflicting names are isolated.  Note we also make two separate aliases of our selectable:
+<p>If we wanted to use our <code>calculate</code> statement twice with different bind parameters, the <code>unique_params()</code> function will create copies for us, and mark the bind parameters as "unique" so that conflicting names are isolated.  Note we also make two separate aliases of our selectable:
 </p>
 
     
@@ -1448,7 +1448,7 @@ FROM addresses<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1462,14 +1462,16 @@ FROM addresses<br/>
     
     
 
-<p>Unions come in two flavors, UNION and UNION ALL, which are available via module level functions or methods off a Selectable:
+<p>Unions come in two flavors, UNION and UNION ALL, which are available via module level functions:
 </p>
 
     
 
     <div class="code">
         <pre>
-<span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'foo@bar.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">union</span><span class="python_enclosure">(</span>
+<span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">sql </span><span class="python_keyword">import </span><span class="python_name">union</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">union</span><span class="python_enclosure">(</span>
+<span class="python_operator">...     </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'foo@bar.com'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 <span class="python_operator">...    </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'%@yahoo.com'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
 <span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
@@ -1488,7 +1490,9 @@ WHERE addresses.email_address LIKE ? ORDER BY addresses.email_address<br/>
 
     <div class="code">
         <pre>
-<span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'%@%.com'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">except_</span><span class="python_enclosure">(</span>
+<span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">sql </span><span class="python_keyword">import </span><span class="python_name">except_</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">except_</span><span class="python_enclosure">(</span>
+<span class="python_operator">...    </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'%@%.com'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
 <span class="python_operator">...    </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'%@msn.com'</span><span class="python_enclosure">))</span>
 <span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
@@ -1503,7 +1507,7 @@ WHERE addresses.email_address LIKE ?<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1554,7 +1558,7 @@ FROM users<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1568,7 +1572,7 @@ FROM users<br/>
     
     
 
-<p>Notice in the examples on "scalar selects", the FROM clause of each embedded select did not contain the <code>users</code> table in it's FROM clause.  This is because SQLAlchemy automatically attempts to correlate embeded FROM objects to that of an enclosing query.  To disable this, or to specify explicit FROM clauses to be correlated, use <code>correlate()</code>:
+<p>Notice in the examples on "scalar selects", the FROM clause of each embedded select did not contain the <code>users</code> table in its FROM clause.  This is because SQLAlchemy automatically attempts to correlate embedded FROM objects to that of an enclosing query.  To disable this, or to specify explicit FROM clauses to be correlated, use <code>correlate()</code>:
 </p>
 
     
@@ -1596,7 +1600,7 @@ FROM users<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1646,7 +1650,7 @@ LIMIT 1 OFFSET 1<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1719,7 +1723,7 @@ COMMIT</div><pre><span class="python_operator">&lt;</span><span class="python_na
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1757,7 +1761,7 @@ COMMIT</div><pre><span class="python_operator">&lt;</span><span class="python_na
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1783,7 +1787,7 @@ COMMIT</div><pre><span class="python_operator">&lt;</span><span class="python_na
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

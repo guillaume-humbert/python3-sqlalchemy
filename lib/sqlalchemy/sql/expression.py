@@ -25,15 +25,12 @@ classes usually have few or no public methods and are less guaranteed
 to stay the same in future releases.
 """
 
-import re
-import datetime
-import warnings
-from itertools import chain
+import itertools, re
 from sqlalchemy import util, exceptions
 from sqlalchemy.sql import operators, visitors
 from sqlalchemy import types as sqltypes
 
-functions, schema = None, None
+functions, schema, sql_util = None, None, None
 DefaultDialect, ClauseAdapter = None, None
 
 __all__ = [
@@ -159,6 +156,11 @@ def select(columns=None, whereclause=None, from_obj=[], **kwargs):
 
     \**kwargs
       Additional parameters include:
+
+      autocommit
+        indicates this SELECT statement modifies the database, and
+        should be subject to autocommit behavior if no transaction
+        has been started.
 
       prefixes
         a list of strings or ``ClauseElement`` objects to include
@@ -642,21 +644,25 @@ def column(text, type_=None):
     return _ColumnClause(text, type_=type_)
 
 def literal_column(text, type_=None):
-    """Return a textual column clause, as would be in the columns clause of a ``SELECT`` statement.
+    """Return a textual column expression, as would be in the columns
+    clause of a ``SELECT`` statement.
 
-    The object returned is an instance of [sqlalchemy.sql.expression#_ColumnClause],
-    which represents the "syntactical" portion of the schema-level
-    [sqlalchemy.schema#Column] object.
+    The object returned supports further expressions in the same way as any
+    other column object, including comparison, math and string operations.
+    The type\_ parameter is important to determine proper expression behavior
+    (such as, '+' means string concatenation or numerical addition based on
+    the type).
 
     text
-      the name of the column.  Quoting rules will not be applied to
-      the column.  For textual column constructs that should be quoted
-      like any other column construct, use the
+      the text of the expression; can be any SQL expression.  Quoting rules
+      will not be applied.  To specify a column-name expression which should
+      be subject to quoting rules, use the
       [sqlalchemy.sql.expression#column()] function.
 
-    type
-      an optional [sqlalchemy.types#TypeEngine] object which will
-      provide result-set translation for this column.
+    type\_
+      an optional [sqlalchemy.types#TypeEngine] object which will provide
+      result-set translation and additional expression semantics for this
+      column.  If left as None the type will be NullType.
     """
 
     return _ColumnClause(text, type_=type_, is_literal=True)
@@ -677,7 +683,7 @@ def bindparam(key, value=None, shortname=None, type_=None, unique=False):
       a default value for this bind parameter.  a bindparam with a
       value is called a ``value-based bindparam``.
 
-    type
+    type\_
       a sqlalchemy.types.TypeEngine object indicating the type of this
       bind param, will invoke type-specific bind parameter processing
 
@@ -724,6 +730,11 @@ def text(text, bind=None, *args, **kwargs):
     bind
       an optional connection or engine to be used for this text query.
 
+    autocommit=True
+      indicates this SELECT statement modifies the database, and
+      should be subject to autocommit behavior if no transaction
+      has been started.
+
     bindparams
       a list of ``bindparam()`` instances which can be used to define
       the types and/or initial values for the bind parameters within
@@ -737,6 +748,7 @@ def text(text, bind=None, *args, **kwargs):
       which will be used to perform post-processing on columns within
       the result set (for textual statements that produce result
       sets).
+
     """
 
     return _TextClause(text, bind=bind, *args, **kwargs)
@@ -988,7 +1000,13 @@ class ClauseElement(object):
 
         e = self.bind
         if e is None:
-            raise exceptions.InvalidRequestError("This Compiled object is not bound to any Engine or Connection.")
+            label = getattr(self, 'description', self.__class__.__name__)
+            msg = ('This %s is not bound to an Engine or Connection.  '
+                   'Execution can not proceed without a database to execute '
+                   'against.  Either execute with an explicit connection or '
+                   'bind the MetaData of the underlying tables to enable '
+                   'implicit execution.') % label
+            raise exceptions.UnboundExecutionError(msg)
         return e.execute_clauseelement(self, multiparams, params)
 
     def scalar(self, *multiparams, **params):
@@ -1091,6 +1109,9 @@ class Operators(object):
 class ColumnOperators(Operators):
     """Defines comparison and math operations."""
 
+    timetuple = None
+    """Hack, allows datetime objects to be compared on the LHS."""
+
     def __lt__(self, other):
         return self.operate(operators.lt, other)
 
@@ -1114,6 +1135,9 @@ class ColumnOperators(Operators):
 
     def like(self, other):
         return self.operate(operators.like_op, other)
+
+    def ilike(self, other):
+        return self.operate(operators.ilike_op, other)
 
     def in_(self, *other):
         return self.operate(operators.in_op, other)
@@ -1172,7 +1196,7 @@ class ColumnOperators(Operators):
 class _CompareMixin(ColumnOperators):
     """Defines comparison and math operations for ``ClauseElement`` instances."""
 
-    def __compare(self, op, obj, negate=None):
+    def __compare(self, op, obj, negate=None, reverse=False):
         if obj is None or isinstance(obj, _Null):
             if op == operators.eq:
                 return _BinaryExpression(self.expression_element(), null(), operators.is_, negate=operators.isnot)
@@ -1182,14 +1206,21 @@ class _CompareMixin(ColumnOperators):
                 raise exceptions.ArgumentError("Only '='/'!=' operators can be used with NULL")
         else:
             obj = self._check_literal(obj)
-        return _BinaryExpression(self.expression_element(), obj, op, type_=sqltypes.Boolean, negate=negate)
 
-    def __operate(self, op, obj):
+        if reverse:
+            return _BinaryExpression(obj, self.expression_element(), op, type_=sqltypes.Boolean, negate=negate)
+        else:
+            return _BinaryExpression(self.expression_element(), obj, op, type_=sqltypes.Boolean, negate=negate)
+
+    def __operate(self, op, obj, reverse=False):
         obj = self._check_literal(obj)
 
         type_ = self._compare_type(obj)
 
-        return _BinaryExpression(self.expression_element(), obj, type_.adapt_operator(op), type_=type_)
+        if reverse:
+            return _BinaryExpression(obj, self.expression_element(), type_.adapt_operator(op), type_=type_)
+        else:
+            return _BinaryExpression(self.expression_element(), obj, type_.adapt_operator(op), type_=type_)
 
     # a mapping of operators with the method they use, along with their negated
     # operator for comparison operators
@@ -1207,6 +1238,7 @@ class _CompareMixin(ColumnOperators):
         operators.ge : (__compare, operators.lt),
         operators.eq : (__compare, operators.ne),
         operators.like_op : (__compare, operators.notlike_op),
+        operators.ilike_op : (__compare, operators.notilike_op),
     }
 
     def operate(self, op, *other):
@@ -1214,7 +1246,8 @@ class _CompareMixin(ColumnOperators):
         return o[0](self, op, other[0], *o[1:])
 
     def reverse_operate(self, op, other):
-        return self._bind_param(other).operate(op, self)
+        o = _CompareMixin.operators[op]
+        return o[0](self, op, other, reverse=True, *o[1:])
 
     def in_(self, *other):
         return self._in_impl(operators.in_op, operators.notin_op, *other)
@@ -1249,29 +1282,18 @@ class _CompareMixin(ColumnOperators):
     def startswith(self, other):
         """Produce the clause ``LIKE '<other>%'``"""
 
-        perc = isinstance(other, basestring) and '%' or literal('%', type_=sqltypes.String)
-        return self.__compare(operators.like_op, other + perc)
+        # use __radd__ to force string concat behavior
+        return self.__compare(operators.like_op, literal_column("'%'", type_=sqltypes.String).__radd__(self._check_literal(other)))
 
     def endswith(self, other):
         """Produce the clause ``LIKE '%<other>'``"""
 
-        if isinstance(other, basestring):
-            po = '%' + other
-        else:
-            po = literal('%', type_=sqltypes.String) + other
-            po.type = sqltypes.to_instance(sqltypes.String)     #force!
-        return self.__compare(operators.like_op, po)
+        return self.__compare(operators.like_op, literal_column("'%'", type_=sqltypes.String) + self._check_literal(other))
 
     def contains(self, other):
         """Produce the clause ``LIKE '%<other>%'``"""
 
-        if isinstance(other, basestring):
-            po = '%' + other + '%'
-        else:
-            perc = literal('%', type_=sqltypes.String)
-            po = perc + other + perc
-            po.type = sqltypes.to_instance(sqltypes.String)     #force!
-        return self.__compare(operators.like_op, po)
+        return self.__compare(operators.like_op, literal_column("'%'", type_=sqltypes.String) + self._check_literal(other) + literal_column("'%'", type_=sqltypes.String))
 
     def label(self, name):
         """Produce a column label, i.e. ``<columnname> AS <name>``.
@@ -1400,17 +1422,37 @@ class ColumnElement(ClauseElement, _CompareMixin):
         ``ColumnElement`` as it appears in the select list of a
         descending selectable.
 
-        The default implementation returns a ``_ColumnClause`` if a
-        name is given, else just returns self.
         """
 
         if name is not None:
-            co = _ColumnClause(name, selectable)
+            co = _ColumnClause(name, selectable, type_=getattr(self, 'type', None))
             co.proxies = [self]
             selectable.columns[name]= co
             return co
         else:
-            return self
+            name = str(self)
+            co = _ColumnClause(self.anon_label.name, selectable, type_=getattr(self, 'type', None))
+            co.proxies = [self]
+            selectable.columns[name] = co
+            return co
+
+    def anon_label(self):
+        """provides a constant 'anonymous label' for this ColumnElement.
+
+        This is a label() expression which will be named at compile time.
+        The same label() is returned each time anon_label is called so
+        that expressions can reference anon_label multiple times, producing
+        the same label name at compile time.
+
+        the compiler uses this function automatically at compile time
+        for expressions that are known to be 'unnamed' like binary
+        expressions and function calls.
+        """
+
+        if not hasattr(self, '_ColumnElement__anon_label'):
+            self.__anon_label = self.label(None)
+        return self.__anon_label
+    anon_label = property(anon_label)
 
 class ColumnCollection(util.OrderedProperties):
     """An ordered dictionary that stores a list of ColumnElement
@@ -1464,7 +1506,9 @@ class ColumnCollection(util.OrderedProperties):
             existing = self[key]
             if not existing.shares_lineage(value):
                 table = getattr(existing, 'table', None) and existing.table.description
-                warnings.warn(RuntimeWarning("Column %r on table %r being replaced by another column with the same key.  Consider use_labels for select() statements."  % (key, table)))
+                util.warn(("Column %r on table %r being replaced by another "
+                           "column with the same key.  Consider use_labels "
+                           "for select() statements.")  % (key, table))
         util.OrderedProperties.__setitem__(self, key, value)
 
     def remove(self, column):
@@ -1795,10 +1839,11 @@ class _TextClause(ClauseElement):
 
     _bind_params_regex = re.compile(r'(?<![:\w\x5c]):(\w+)(?!:)', re.UNICODE)
 
-    def __init__(self, text = "", bind=None, bindparams=None, typemap=None):
+    def __init__(self, text = "", bind=None, bindparams=None, typemap=None, autocommit=False):
         self._bind = bind
         self.bindparams = {}
         self.typemap = typemap
+        self._autocommit = autocommit
         if typemap is not None:
             for key in typemap.keys():
                 typemap[key] = sqltypes.to_instance(typemap[key])
@@ -2006,10 +2051,8 @@ class _Cast(ColumnElement):
 
     def __init__(self, clause, totype, **kwargs):
         ColumnElement.__init__(self)
-        if not hasattr(clause, 'label'):
-            clause = literal(clause)
         self.type = sqltypes.to_instance(totype)
-        self.clause = clause
+        self.clause = _literal_as_binds(clause, None)
         self.typeclause = _TypeClause(self.type)
 
     def _copy_internals(self, clone=_clone):
@@ -2021,15 +2064,6 @@ class _Cast(ColumnElement):
 
     def _get_from_objects(self, **modifiers):
         return self.clause._get_from_objects(**modifiers)
-
-    def _make_proxy(self, selectable, name=None):
-        if name is not None:
-            co = _ColumnClause(name, selectable, type_=self.type)
-            co.proxies = [self]
-            selectable.columns[name]= co
-            return co
-        else:
-            return self
 
 
 class _UnaryExpression(ColumnElement):
@@ -2143,6 +2177,9 @@ class _Exists(_UnaryExpression):
         return e
 
     def where(self, clause):
+        """return a new exists() construct with the given expression added to its WHERE clause, joined
+        to the existing clause via AND, if any."""
+
         e = self._clone()
         e.element = self.element.where(clause).self_group()
         return e
@@ -2174,47 +2211,21 @@ class Join(FromClause):
         self._foreign_keys = util.Set()
 
         columns = list(self._flatten_exportable_columns())
-        self.__init_primary_key(columns)
+
+        global sql_util
+        if not sql_util:
+            from sqlalchemy.sql import util as sql_util
+        self._primary_key = sql_util.reduce_columns([c for c in columns if c.primary_key], self.onclause)
+
         for co in columns:
             cp = self._proxy_column(co)
-
-    def __init_primary_key(self, columns):
-        global schema
-        if schema is None:
-            from sqlalchemy import schema
-        pkcol = util.Set([c for c in columns if c.primary_key])
-
-        equivs = {}
-        def add_equiv(a, b):
-            for x, y in ((a, b), (b, a)):
-                if x in equivs:
-                    equivs[x].add(y)
-                else:
-                    equivs[x] = util.Set([y])
-
-        def visit_binary(binary):
-            if binary.operator == operators.eq and isinstance(binary.left, schema.Column) and isinstance(binary.right, schema.Column):
-                add_equiv(binary.left, binary.right)
-        visitors.traverse(self.onclause, visit_binary=visit_binary)
-
-        for col in pkcol:
-            for fk in col.foreign_keys:
-                if fk.column in pkcol:
-                    add_equiv(col, fk.column)
-
-        omit = util.Set()
-        for col in pkcol:
-            p = col
-            for c in equivs.get(col, util.Set()):
-                if p.references(c) or (c.primary_key and not p.primary_key):
-                    omit.add(p)
-                    p = c
-
-        self._primary_key = ColumnSet(pkcol.difference(omit))
 
     def description(self):
         return "Join object on %s(%d) and %s(%d)" % (self.left.description, id(self.left), self.right.description, id(self.right))
     description = property(description)
+
+    def is_derived_from(self, fromclause):
+        return fromclause is self or self.left.is_derived_from(fromclause) or self.right.is_derived_from(fromclause)
 
     def self_group(self, against=None):
         return _FromGrouping(self)
@@ -2272,6 +2283,12 @@ class Join(FromClause):
         """Returns the column list of this Join with all equivalently-named,
         equated columns folded into one column, where 'equated' means they are
         equated to each other in the ON clause of this join.
+
+        this method is used by select(fold_equivalents=True).
+
+        The primary usage for this is when generating UNIONs so that
+        each selectable can have distinctly-named columns without the need
+        for use_labels=True.
         """
 
         if self.__folded_equivalents is not None:
@@ -2345,7 +2362,7 @@ class Join(FromClause):
         return self.select(use_labels=True, correlate=False).alias(name)
 
     def _hide_froms(self):
-        return chain(*[x.left._get_from_objects() + x.right._get_from_objects() for x in self._cloned_set])
+        return itertools.chain(*[x.left._get_from_objects() + x.right._get_from_objects() for x in self._cloned_set])
     _hide_froms = property(_hide_froms)
 
     def _get_from_objects(self, **modifiers):
@@ -2716,9 +2733,10 @@ class TableClause(FromClause):
 class _SelectBaseMixin(object):
     """Base class for ``Select`` and ``CompoundSelects``."""
 
-    def __init__(self, use_labels=False, for_update=False, limit=None, offset=None, order_by=None, group_by=None, bind=None):
+    def __init__(self, use_labels=False, for_update=False, limit=None, offset=None, order_by=None, group_by=None, bind=None, autocommit=False):
         self.use_labels = use_labels
         self.for_update = for_update
+        self._autocommit = autocommit
         self._limit = limit
         self._offset = offset
         self._bind = bind
@@ -2739,7 +2757,7 @@ class _SelectBaseMixin(object):
         return _ScalarSelect(self)
 
     def apply_labels(self):
-        """set the 'labels' flag on this selectable.
+        """return a new selectable with the 'use_labels' flag set to True.
 
         This will result in column expressions being generated using labels against their table
         name, such as "SELECT somecolumn AS tablename_somecolumn".  This allows selectables which
@@ -2764,6 +2782,13 @@ class _SelectBaseMixin(object):
         """part of the ClauseElement contract; returns ``True`` in all cases for this class."""
 
         return True
+
+    def autocommit(self):
+        """return a new selectable with the 'autocommit' flag set to True."""
+
+        s = self._generate()
+        s._autocommit = True
+        return s
 
     def _generate(self):
         s = self._clone()
@@ -2883,8 +2908,16 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
         self.keyword = keyword
         self.selects = []
 
+        numcols = None
+
         # some DBs do not like ORDER BY in the inner queries of a UNION, etc.
         for n, s in enumerate(selects):
+            if not numcols:
+                numcols = len(s.c)
+            elif len(s.c) != numcols:
+                raise exceptions.ArgumentError("All selectables passed to CompoundSelect must have identical numbers of columns; select #%d has %d columns, select #%d has %d" %
+                    (1, len(self.selects[0].c), n+1, len(s.c))
+                )
             if s._order_by_clause:
                 s = s.order_by(None)
             # unions group from left to right, so don't group first select
@@ -2901,7 +2934,6 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
             if s.oid_column:
                 self.oid_column = self._proxy_column(s.oid_column)
 
-
     def self_group(self, against=None):
         return _FromGrouping(self)
 
@@ -2911,17 +2943,23 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
                 yield c
 
     def _proxy_column(self, column):
-        existing = self._col_map.get(column.name, None)
-        if existing is not None:
-            existing.proxies.append(column)
-            return existing
-        else:
+        selectable = column.table
+        col_ordering = self._col_map.get(selectable, None)
+        if col_ordering is None:
+            self._col_map[selectable] = col_ordering = []
+
+        if selectable is self.selects[0]:
             if self.use_labels:
                 col = column._make_proxy(self, name=column._label)
             else:
                 col = column._make_proxy(self)
-            self._col_map[col.name] = col
+            col_ordering.append(col)
             return col
+        else:
+            col_ordering.append(column)
+            existing = self._col_map[self.selects[0]][len(col_ordering) - 1]
+            existing.proxies.append(column)
+            return existing
 
     def _copy_internals(self, clone=_clone):
         self._clone_from_clause()
@@ -3457,7 +3495,10 @@ class Insert(_UpdateBase):
 class Update(_UpdateBase):
     def __init__(self, table, whereclause, values=None, inline=False, **kwargs):
         self.table = table
-        self._whereclause = whereclause
+        if whereclause:
+            self._whereclause = _literal_as_text(whereclause)
+        else:
+            self._whereclause = None
         self.inline = inline
         self.parameters = self._process_colparams(values)
 
@@ -3473,6 +3514,17 @@ class Update(_UpdateBase):
         self._whereclause = clone(self._whereclause)
         self.parameters = self.parameters.copy()
 
+    def where(self, whereclause):
+        """return a new update() construct with the given expression added to its WHERE clause, joined
+        to the existing clause via AND, if any."""
+        
+        s = self._clone()
+        if s._whereclause is not None:
+            s._whereclause = and_(s._whereclause, _literal_as_text(whereclause))
+        else:
+            s._whereclause = _literal_as_text(whereclause)
+        return s
+
     def values(self, v):
         if len(v) == 0:
             return self
@@ -3487,7 +3539,10 @@ class Update(_UpdateBase):
 class Delete(_UpdateBase):
     def __init__(self, table, whereclause):
         self.table = table
-        self._whereclause = whereclause
+        if whereclause:
+            self._whereclause = _literal_as_text(whereclause)
+        else:
+            self._whereclause = None
 
     def get_children(self, **kwargs):
         if self._whereclause is not None:
@@ -3495,6 +3550,17 @@ class Delete(_UpdateBase):
         else:
             return ()
 
+    def where(self, whereclause):
+        """return a new delete() construct with the given expression added to its WHERE clause, joined
+        to the existing clause via AND, if any."""
+        
+        s = self._clone()
+        if s._whereclause is not None:
+            s._whereclause = and_(s._whereclause, _literal_as_text(whereclause))
+        else:
+            s._whereclause = _literal_as_text(whereclause)
+        return s
+        
     def _copy_internals(self, clone=_clone):
         self._whereclause = clone(self._whereclause)
 

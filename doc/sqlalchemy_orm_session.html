@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -47,7 +47,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
             Up: <a href="docstrings.html">API Documentation</a>
@@ -67,10 +67,10 @@
     <ul>
         
         <li><a style="" href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_Session">class Session(object)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_SessionExtension">class SessionExtension(object)</a></li>
-        
+
     </ul>
 
 	</div>
@@ -446,14 +446,20 @@ resources of the underlying <tt class="docutils literal"><span class="pre">Conne
 when an attribute is next accessed, a query will be issued
 to the database which will refresh all attributes with their
 current value.</p>
-<p>Lazy-loaded relational attributes will remain lazily loaded, so that
-triggering one will incur the instance-wide refresh operation, followed
-immediately by the lazy load of that attribute.</p>
-<p>Eagerly-loaded relational attributes will eagerly load within the
-single refresh operation.</p>
 <p>The <tt class="docutils literal"><span class="pre">attribute_names</span></tt> argument is an iterable collection
 of attribute names indicating a subset of attributes to be
 expired.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def expire_all(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Expires all persistent instances within this Session.</p>
 
     </div>
     </div>
@@ -659,6 +665,21 @@ association is mapped with <tt class="docutils literal"><span class="pre">cascad
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def prepare(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Prepare the current transaction in progress for two phase commit.</p>
+<p>If no transaction is in progress, this method raises
+an InvalidRequestError.</p>
+<p>Only root transactions of two phase sessions can be prepared. If the current transaction is
+not such, an InvalidRequestError is raised.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def prune(<i>self</i>)</b>
     <div class="docstring">
     <p>Remove unreferenced instances cached in the identity map.</p>
@@ -812,7 +833,7 @@ result of True.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -914,7 +935,7 @@ method.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

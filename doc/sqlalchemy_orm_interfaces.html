@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -47,7 +47,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
             Up: <a href="docstrings.html">API Documentation</a>
@@ -67,46 +67,46 @@
     <ul>
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_modfunc">Module Functions</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_modfunc_build_path">build_path()</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_AttributeExtension">class AttributeExtension(object)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_ExtensionOption">class ExtensionOption(MapperOption)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_LoaderStrategy">class LoaderStrategy(object)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperExtension">class MapperExtension(object)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperOption">class MapperOption(object)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperProperty">class MapperProperty(object)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_PropComparator">class PropComparator(ColumnOperators)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_PropertyOption">class PropertyOption(MapperOption)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_StrategizedOption">class StrategizedOption(PropertyOption)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_StrategizedProperty">class StrategizedProperty(MapperProperty)</a></li>
-        
+
     </ul>
 
 	</div>
@@ -209,7 +209,7 @@ event handlers to be attached to an object property.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -254,7 +254,7 @@ event handlers to be attached to an object property.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -311,10 +311,10 @@ attributes in response to eagerly-loaded relations.</li>
     <A name=""></a>
     <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
     <div class="docstring">
-    <p>return row processing functions which fulfill the contract specified
+    <p>Return row processing functions which fulfill the contract specified
 by MapperProperty.create_row_processor.</p>
-<p>StrategizedProperty delegates its create_row_processor method
-directly to this method.</p>
+<p>StrategizedProperty delegates its create_row_processor method directly
+to this method.</p>
 
     </div>
     </div>
@@ -352,7 +352,7 @@ directly to this method.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -370,18 +370,16 @@ directly to this method.</p>
     
     
     <div class="darkcell"><p>Base implementation for customizing Mapper behavior.</p>
-<p>For each method in MapperExtension, returning a result of
-EXT_CONTINUE will allow processing to continue to the next
-MapperExtension in line or use the default functionality if there
-are no other extensions.</p>
-<p>Returning EXT_STOP will halt processing of further extensions
-handling that method.  Some methods such as <tt class="docutils literal"><span class="pre">load</span></tt> have other
-return requirements, see the individual documentation for details.
-Other than these exception cases, any return value other than
-EXT_CONTINUE or EXT_STOP will be interpreted as equivalent to
-EXT_STOP.</p>
-<p>EXT_PASS is a synonym for EXT_CONTINUE and is provided for
-backward compatibility.</p>
+<p>For each method in MapperExtension, returning a result of EXT_CONTINUE
+will allow processing to continue to the next MapperExtension in line or
+use the default functionality if there are no other extensions.</p>
+<p>Returning EXT_STOP will halt processing of further extensions handling
+that method.  Some methods such as <tt class="docutils literal"><span class="pre">load</span></tt> have other return
+requirements, see the individual documentation for details.  Other than
+these exception cases, any return value other than EXT_CONTINUE or
+EXT_STOP will be interpreted as equivalent to EXT_STOP.</p>
+<p>EXT_PASS is a synonym for EXT_CONTINUE and is provided for backward
+compatibility.</p>
 </div>
     
 
@@ -520,9 +518,8 @@ until the next flush call.</p>
     <div class="docstring">
     <p>Receive a row when a new object instance is about to be
 created from that row.</p>
-<p>The method can choose to create the instance itself, or it can
-return None to indicate normal object creation should take
-place.</p>
+<p>The method can choose to create the instance itself, or it can return
+EXT_CONTINUE to indicate normal object creation should take place.</p>
 <dl class="docutils">
 <dt>mapper</dt>
 <dd>The mapper doing the operation</dd>
@@ -532,6 +529,8 @@ place.</p>
 <dd>The result row from the database</dd>
 <dt>class_</dt>
 <dd>The class we are mapping.</dd>
+<dt>return value</dt>
+<dd>A new object instance, or EXT_CONTINUE</dd>
 </dl>
 
     </div>
@@ -689,7 +688,7 @@ method.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -737,7 +736,7 @@ Query.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -767,9 +766,9 @@ attribute access, loading behavior, and dependency calculations.</p>
     <A name=""></a>
     <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>object</i>, <i>recursive=None</i>, <i>halt_on=None</i>)</b>
     <div class="docstring">
-    <p>iterate through instances related to the given instance along
+    <p>Iterate through instances related to the given instance along
 a particular 'cascade' path, starting with this MapperProperty.</p>
-<p>see PropertyLoader for the related instance implementation.</p>
+<p>See PropertyLoader for the related instance implementation.</p>
 
     </div>
     </div>
@@ -796,38 +795,43 @@ under the attribute name &quot;comparator&quot;.</p>
     <A name=""></a>
     <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
     <div class="docstring">
-    <p>return a 3-tuple consiting of two row processing functions and an instance post-processing function.</p>
+    <p>Return a 3-tuple consiting of two row processing functions and an instance post-processing function.</p>
 <p>Input arguments are the query.SelectionContext and the <em>first</em>
-applicable row of a result set obtained within query.Query.instances(), called
-only the first time a particular mapper's populate_instance() method is invoked for the
-overall result.</p>
-<p>The settings contained within the SelectionContext as well as the columns present
-in the row (which will be the same columns present in all rows) are used to determine
-the presence and behavior of the returned callables.  The callables will then be used to process
-all rows and to post-process all instances, respectively.</p>
-<p>callables are of the following form:</p>
+applicable row of a result set obtained within
+query.Query.instances(), called only the first time a particular
+mapper's populate_instance() method is invoked for the overall result.</p>
+<p>The settings contained within the SelectionContext as well as the
+columns present in the row (which will be the same columns present in
+all rows) are used to determine the presence and behavior of the
+returned callables.  The callables will then be used to process all
+rows and to post-process all instances, respectively.</p>
+<p>Callables are of the following form:</p>
 <pre class="literal-block">
 def new_execute(instance, row, **flags):
-    # process incoming instance and given row.  the instance is &quot;new&quot; and
-    # was just created upon receipt of this row.
-    # flags is a dictionary containing at least the following attributes:
-    #   isnew - indicates if the instance was newly created as a result of reading this row
+    # process incoming instance and given row.  the instance is
+    # &quot;new&quot; and was just created upon receipt of this row.
+    # flags is a dictionary containing at least the following
+    # attributes:
+    #   isnew - indicates if the instance was newly created as a
+    #           result of reading this row
     #   instancekey - identity key of the instance
     # optional attribute:
-    #   ispostselect - indicates if this row resulted from a 'post' select of additional tables/columns
+    #   ispostselect - indicates if this row resulted from a
+    #                  'post' select of additional tables/columns
 
 def existing_execute(instance, row, **flags):
-    # process incoming instance and given row.  the instance is &quot;existing&quot; and
-    # was created based on a previous row.
+    # process incoming instance and given row.  the instance is
+    # &quot;existing&quot; and was created based on a previous row.
 
 def post_execute(instance, **flags):
-    # process instance after all result rows have been processed.  this
-    # function should be used to issue additional selections in order to
-    # eagerly load additional properties.
+    # process instance after all result rows have been processed.
+    # this function should be used to issue additional selections
+    # in order to eagerly load additional properties.
 
 return (new_execute, existing_execute, post_execute)
 </pre>
-<p>either of the three tuples can be <tt class="docutils literal"><span class="pre">None</span></tt> in which case no function is called.</p>
+<p>Either of the three tuples can be <tt class="docutils literal"><span class="pre">None</span></tt> in which case no function
+is called.</p>
 
     </div>
     </div>
@@ -856,9 +860,9 @@ return (new_execute, existing_execute, post_execute)
 where the key is a column or object property name, and value
 is a value to be matched.  This is only picked up by
 <tt class="docutils literal"><span class="pre">PropertyLoaders</span></tt>.</p>
-<p>This is called by a <tt class="docutils literal"><span class="pre">Query</span></tt>'s <tt class="docutils literal"><span class="pre">join_by</span></tt> method to
-formulate a set of key/value pairs into a <tt class="docutils literal"><span class="pre">WHERE</span></tt> criterion
-that spans multiple tables if needed.</p>
+<p>This is called by a <tt class="docutils literal"><span class="pre">Query</span></tt>'s <tt class="docutils literal"><span class="pre">join_by</span></tt> method to formulate a set
+of key/value pairs into a <tt class="docutils literal"><span class="pre">WHERE</span></tt> criterion that spans multiple
+tables if needed.</p>
 
     </div>
     </div>
@@ -945,7 +949,7 @@ criterion as appropriate.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -983,13 +987,14 @@ criterion as appropriate.</p>
     <A name=""></a>
     <b>def any(<i>self</i>, <i>criterion=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>return true if this collection contains any member that meets the given criterion.</p>
+    <p>Return true if this collection contains any member that meets the given criterion.</p>
 <dl class="docutils">
 <dt>criterion</dt>
-<dd>an optional ClauseElement formulated against the member class' table or attributes.</dd>
+<dd>an optional ClauseElement formulated against the member class' table
+or attributes.</dd>
 <dt>**kwargs</dt>
-<dd>key/value pairs corresponding to member class attribute names which will be compared
-via equality to the corresponding values.</dd>
+<dd>key/value pairs corresponding to member class attribute names which
+will be compared via equality to the corresponding values.</dd>
 </dl>
 
     </div>
@@ -1001,7 +1006,7 @@ via equality to the corresponding values.</dd>
     <A name=""></a>
     <b>def contains(<i>self</i>, <i>other</i>)</b>
     <div class="docstring">
-    <p>return true if this collection contains other</p>
+    <p>Return true if this collection contains other</p>
 
     </div>
     </div>
@@ -1022,13 +1027,14 @@ via equality to the corresponding values.</dd>
     <A name=""></a>
     <b>def has(<i>self</i>, <i>criterion=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>return true if this element references a member which meets the given criterion.</p>
+    <p>Return true if this element references a member which meets the given criterion.</p>
 <dl class="docutils">
 <dt>criterion</dt>
-<dd>an optional ClauseElement formulated against the member class' table or attributes.</dd>
+<dd>an optional ClauseElement formulated against the member class' table
+or attributes.</dd>
 <dt>**kwargs</dt>
-<dd>key/value pairs corresponding to member class attribute names which will be compared
-via equality to the corresponding values.</dd>
+<dd>key/value pairs corresponding to member class attribute names which
+will be compared via equality to the corresponding values.</dd>
 </dl>
 
     </div>
@@ -1037,7 +1043,7 @@ via equality to the corresponding values.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1103,7 +1109,7 @@ one of its child mappers, identified by a dot-separated key.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1158,7 +1164,7 @@ for an operation by a StrategizedProperty.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1216,7 +1222,7 @@ strategies can be selected at Query time through the usage of
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

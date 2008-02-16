@@ -14,12 +14,12 @@ option to the Index constructor::
 PostgreSQL 8.2+ supports returning a result set from inserts and updates.
 To use this pass the column/expression list to the postgres_returning
 parameter when creating the queries::
-    
-  raises = tbl.update(empl.c.sales > 100, values=dict(salary=empl.c.salary * 1.1), 
+
+  raises = tbl.update(empl.c.sales > 100, values=dict(salary=empl.c.salary * 1.1),
     postgres_returning=[empl.c.id, empl.c.salary]).execute().fetchall()
 """
 
-import re, random, warnings, string
+import random, re, string
 
 from sqlalchemy import sql, schema, exceptions, util
 from sqlalchemy.engine import base, default
@@ -31,6 +31,10 @@ from sqlalchemy import types as sqltypes
 class PGInet(sqltypes.TypeEngine):
     def get_col_spec(self):
         return "INET"
+
+class PGMacAddr(sqltypes.TypeEngine):
+    def get_col_spec(self):
+        return "MACADDR"
 
 class PGNumeric(sqltypes.Numeric):
     def get_col_spec(self):
@@ -52,7 +56,7 @@ class PGNumeric(sqltypes.Numeric):
                 else:
                     return value
             return process
-        
+
 class PGFloat(sqltypes.Float):
     def get_col_spec(self):
         if not self.precision:
@@ -114,13 +118,13 @@ class PGArray(sqltypes.Concatenable, sqltypes.TypeEngine):
         if isinstance(item_type, type):
             item_type = item_type()
         self.item_type = item_type
-        
+
     def dialect_impl(self, dialect, **kwargs):
         impl = self.__class__.__new__(self.__class__)
         impl.__dict__.update(self.__dict__)
         impl.item_type = self.item_type.dialect_impl(dialect)
         return impl
-        
+
     def bind_processor(self, dialect):
         item_proc = self.item_type.bind_processor(dialect)
         def process(value):
@@ -136,7 +140,7 @@ class PGArray(sqltypes.Concatenable, sqltypes.TypeEngine):
                         return item
             return [convert_item(item) for item in value]
         return process
-        
+
     def result_processor(self, dialect):
         item_proc = self.item_type.result_processor(dialect)
         def process(value):
@@ -181,6 +185,7 @@ ischema_names = {
     'float' : PGFloat,
     'real' : PGFloat,
     'inet': PGInet,
+    'macaddr': PGMacAddr,
     'double precision' : PGFloat,
     'timestamp' : PGDateTime,
     'timestamp with time zone' : PGDateTime,
@@ -237,15 +242,15 @@ class PGExecutionContext(default.DefaultExecutionContext):
         m = SELECT_RE.match(statement)
         return m and (not m.group(1) or (RETURNING_RE.search(statement)
            and RETURNING_QUOTED_RE.match(statement)))
-    
+
     def returns_rows_compiled(self, compiled):
         return isinstance(compiled.statement, expression.Selectable) or \
             (
                 (compiled.isupdate or compiled.isinsert) and "postgres_returning" in compiled.statement.kwargs
             )
-        
+
     def create_cursor(self):
-        # executing a default or Sequence standalone creates an execution context without a statement.  
+        # executing a default or Sequence standalone creates an execution context without a statement.
         # so slightly hacky "if no statement assume we're server side" logic
         # TODO: dont use regexp if Compiled is used ?
         self.__is_server_side = \
@@ -267,7 +272,7 @@ class PGExecutionContext(default.DefaultExecutionContext):
             return base.BufferedRowResultProxy(self)
         else:
             return base.ResultProxy(self)
-    
+
     def post_exec(self):
         if self.compiled.isinsert and self.last_inserted_ids is None:
             if not self.dialect.use_oids:
@@ -280,7 +285,7 @@ class PGExecutionContext(default.DefaultExecutionContext):
                     row = self.connection.execute(s).fetchone()
                 self._last_inserted_ids = [v for v in row]
         super(PGExecutionContext, self).post_exec()
-        
+
 class PGDialect(default.DefaultDialect):
     supports_alter = True
     supports_unicode_statements = False
@@ -295,12 +300,12 @@ class PGDialect(default.DefaultDialect):
         self.use_oids = use_oids
         self.server_side_cursors = server_side_cursors
         self.paramstyle = 'pyformat'
-        
+
     def dbapi(cls):
         import psycopg2 as psycopg
         return psycopg
     dbapi = classmethod(dbapi)
-    
+
     def create_connect_args(self, url):
         opts = url.translate_connect_args(username='user')
         if 'port' in opts:
@@ -385,10 +390,10 @@ class PGDialect(default.DefaultDialect):
             return "losed the connection unexpectedly" in str(e)
         else:
             return False
-        
+
     def table_names(self, connection, schema):
         s = """
-        SELECT relname 
+        SELECT relname
         FROM pg_class c
         WHERE relkind = 'r'
           AND '%(schema)s' = (select nspname from pg_namespace n where n.oid = c.relnamespace)
@@ -412,7 +417,7 @@ class PGDialect(default.DefaultDialect):
         else:
             schema_where_clause = "pg_catalog.pg_table_is_visible(c.oid)"
             schemaname = None
-            
+
         SQL_COLS = """
             SELECT a.attname,
               pg_catalog.format_type(a.atttypid, a.atttypmod),
@@ -442,11 +447,11 @@ class PGDialect(default.DefaultDialect):
             raise exceptions.NoSuchTableError(table.name)
 
         domains = self._load_domains(connection)
-        
+
         for name, format_type, default, notnull, attnum, table_oid in rows:
             if include_columns and name not in include_columns:
                 continue
-            
+
             ## strip (30) from character varying(30)
             attype = re.search('([^\([]+)', format_type).group(1)
             nullable = not notnull
@@ -506,7 +511,8 @@ class PGDialect(default.DefaultDialect):
                 if is_array:
                     coltype = PGArray(coltype)
             else:
-                warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (attype, name)))
+                util.warn("Did not recognize type '%s' of column '%s'" %
+                          (attype, name))
                 coltype = sqltypes.NULLTYPE
 
             colargs= []
@@ -558,7 +564,7 @@ class PGDialect(default.DefaultDialect):
             if referred_schema:
                 referred_schema = preparer._unquote_identifier(referred_schema)
             elif table.schema is not None and table.schema == self.get_default_schema_name(connection):
-                # no schema (i.e. its the default schema), and the table we're 
+                # no schema (i.e. its the default schema), and the table we're
                 # reflecting has the default schema explicit, then use that.
                 # i.e. try to use the user's conventions
                 referred_schema = table.schema
@@ -577,7 +583,7 @@ class PGDialect(default.DefaultDialect):
                     refspec.append(".".join([referred_table, column]))
 
             table.append_constraint(schema.ForeignKeyConstraint(constrained_columns, refspec, conname))
-                
+
     def _load_domains(self, connection):
         ## Load data types for domains:
         SQL_DOMAINS = """
@@ -601,7 +607,7 @@ class PGDialect(default.DefaultDialect):
             ## strip (30) from character varying(30)
             attype = re.search('([^\(]+)', domain['attype']).group(1)
             if domain['visible']:
-                # 'visible' just means whether or not the domain is in a 
+                # 'visible' just means whether or not the domain is in a
                 # schema that's on the search path -- or not overriden by
                 # a schema with higher presedence. If it's not visible,
                 # it will be prefixed with the schema-name when it's used.
@@ -612,14 +618,16 @@ class PGDialect(default.DefaultDialect):
             domains[name] = {'attype':attype, 'nullable': domain['nullable'], 'default': domain['default']}
 
         return domains
-        
-        
-        
+
+
+
 class PGCompiler(compiler.DefaultCompiler):
     operators = compiler.DefaultCompiler.operators.copy()
     operators.update(
         {
-            sql_operators.mod : '%%'
+            sql_operators.mod : '%%',
+            sql_operators.ilike_op: 'ILIKE',
+            sql_operators.notilike_op: 'NOT ILIKE'
         }
     )
 
@@ -628,7 +636,7 @@ class PGCompiler(compiler.DefaultCompiler):
             return None
         else:
             return "nextval('%s')" % self.preparer.format_sequence(seq)
-        
+
     def limit_clause(self, select):
         text = ""
         if select._limit is not None:
@@ -694,7 +702,7 @@ class PGSchemaGenerator(compiler.SchemaGenerator):
             else:
                 colspec += " SERIAL"
         else:
-            colspec += " " + column.type.dialect_impl(self.dialect, _for_ddl=True).get_col_spec()
+            colspec += " " + column.type.dialect_impl(self.dialect, _for_ddl=column).get_col_spec()
             default = self.get_column_default_string(column)
             if default is not None:
                 colspec += " DEFAULT " + default
@@ -707,7 +715,7 @@ class PGSchemaGenerator(compiler.SchemaGenerator):
         if not sequence.optional and (not self.checkfirst or not self.dialect.has_sequence(self.connection, sequence.name)):
             self.append("CREATE SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
-    
+
     def visit_index(self, index):
         preparer = self.preparer
         self.append("CREATE ")
@@ -752,7 +760,7 @@ class PGDefaultRunner(base.DefaultRunner):
 
     def visit_sequence(self, seq):
         if not seq.optional:
-            return self.execute_string(("select nextval('%s')" % self.dialect.identifier_preparer.format_sequence(seq)).encode(self.dialect.encoding))
+            return self.execute_string(("select nextval('%s')" % self.dialect.identifier_preparer.format_sequence(seq)))
         else:
             return None
 

@@ -5,10 +5,10 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import random
 from sqlalchemy import sql, schema, types, exceptions, pool
 from sqlalchemy.sql import compiler, expression
 from sqlalchemy.engine import default, base
+
 
 class AcNumeric(types.Numeric):
     def result_processor(self, dialect):
@@ -375,10 +375,17 @@ class AccessCompiler(compiler.DefaultCompiler):
         """FOR UPDATE is not supported by Access; silently ignore"""
         return ''
 
+    # Strip schema
+    def visit_table(self, table, asfrom=False, **kwargs):
+        if asfrom:
+            return self.preparer.quote(table, table.name)
+        else:
+            return ""
+
 
 class AccessSchemaGenerator(compiler.SchemaGenerator):
     def get_column_specification(self, column, **kwargs):
-        colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect, _for_ddl=True).get_col_spec()
+        colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect, _for_ddl=column).get_col_spec()
 
         # install a sequence if we have an implicit IDENTITY column
         if (not getattr(column.table, 'has_sequence', False)) and column.primary_key and \

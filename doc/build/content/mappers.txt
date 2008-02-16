@@ -4,7 +4,7 @@
 Mapper Configuration {@name=advdatamapping}
 ======================
 
-This section references most major configurational patterns involving the [mapper()](rel:docstrings_sqlalchemy.orm_modfunc_mapper) and [relation()](rel:docstrings_sqlalchemy.orm_modfunc_relation) functions.  It assumes you've worked through the [datamapping](rel:datamapping) and know how to construct and use rudimental mappers and relations.
+This section references most major configurational patterns involving the [mapper()](rel:docstrings_sqlalchemy.orm_modfunc_mapper) and [relation()](rel:docstrings_sqlalchemy.orm_modfunc_relation) functions.  It assumes you've worked through the [datamapping](rel:datamapping) and know how to construct and use rudimentary mappers and relations.
 
 ### Mapper Configuration
 
@@ -56,7 +56,7 @@ To place multiple columns which are known to be "synonymous" based on foreign ke
 
 #### Deferred Column Loading {@name=deferred}
 
-This feature allows particular columns of a table to not be loaded by default, instead being loaded later on when first referenced.  It is essentailly "column-level lazy loading".   This feature is useful when one wants to avoid loading a large text or binary field into memory when its not needed.  Individual columns can be lazy loaded by themselves or placed into groups that lazy-load together.
+This feature allows particular columns of a table to not be loaded by default, instead being loaded later on when first referenced.  It is essentially "column-level lazy loading".   This feature is useful when one wants to avoid loading a large text or binary field into memory when it's not needed.  Individual columns can be lazy loaded by themselves or placed into groups that lazy-load together.
 
     {python}
     book_excerpts = Table('books', db, 
@@ -439,7 +439,7 @@ This form of inheritance maps each class to a distinct table, as below:
         Column('engineer_info', String(50)),
     )
 
-Notice in this case there is no `type` column.  If polymorphic loading is not required, theres no advantage to using `inherits` here; you just define a separate mapper for each class.
+Notice in this case there is no `type` column.  If polymorphic loading is not required, there's no advantage to using `inherits` here; you just define a separate mapper for each class.
 
     {python}
     mapper(Employee, employees_table)
@@ -486,7 +486,7 @@ Upon select, the polymorphic union produces a query like this:
 
 ##### Using Relations with Inheritance {@name=relations}
 
-Both joined-table and single table inheritance scenarios produce mappings which are usable in relation() functions; that is, it's possible to map a parent object to a child object which is polymorphic.  Similiarly, inheriting mappers can have `relation()`s of their own at any level, which are inherited to each child class.  The only requirement for relations is that there is a table relationship between parent and child.  An example is the following modification to the joined table inheritance example, which sets a bi-directional relationship between `Employee` and `Company`:
+Both joined-table and single table inheritance scenarios produce mappings which are usable in relation() functions; that is, it's possible to map a parent object to a child object which is polymorphic.  Similarly, inheriting mappers can have `relation()`s of their own at any level, which are inherited to each child class.  The only requirement for relations is that there is a table relationship between parent and child.  An example is the following modification to the joined table inheritance example, which sets a bi-directional relationship between `Employee` and `Company`:
 
     {python}
     employees_table = Table('employees', metadata, 
@@ -758,7 +758,7 @@ Backref behavior is available here as well, where `backref="parents"` will place
 
 ##### One To One {@name=onetoone}
 
-One To One is essentially a bi-directional relationship with a scalar attribute on both sides.  To acheive this, the `uselist=False` flag indicates the placement of a scalar attribute instead of a collection on the "many" side of the relationship.  To convert one-to-many into one-to-one:
+One To One is essentially a bi-directional relationship with a scalar attribute on both sides.  To achieve this, the `uselist=False` flag indicates the placement of a scalar attribute instead of a collection on the "many" side of the relationship.  To convert one-to-many into one-to-one:
 
     {python}
     mapper(Parent, parent_table, properties={
@@ -813,8 +813,8 @@ The association object pattern is a variant on many-to-many:  it specifically is
         Column('id', Integer, primary_key=True))
     
     association_table = Table('association', metadata,
-        Column('left_id', Integer, ForeignKey('left.id')),
-        Column('right_id', Integer, ForeignKey('right.id')),
+        Column('left_id', Integer, ForeignKey('left.id'), primary_key=True),
+        Column('right_id', Integer, ForeignKey('right.id'), primary_key=True),
         Column('data', String(50))
         )
     
@@ -992,8 +992,8 @@ In this example we create a relation `boston_addresses` which will only load the
     mapper(Address, addresses_table)
     mapper(User, users_table, properties={
         'boston_addresses' : relation(Address, primaryjoin=
-                    and_(users_table.c.user_id==Address.c.user_id, 
-                    Addresses.c.city=='Boston'))
+                    and_(users_table.c.user_id==addresses_table.c.user_id, 
+                    addresses_table.c.city=='Boston'))
     })
         
 Many to many relationships can be customized by one or both of `primaryjoin` and `secondaryjoin`, shown below with just the default many-to-many relationship explicitly set:
@@ -1010,6 +1010,19 @@ Many to many relationships can be customized by one or both of `primaryjoin` and
             secondaryjoin=userkeywords_table.c.keyword_id==keywords_table.c.keyword_id
             )
     })
+
+##### Specifying Foreign Keys {@name=fks}
+
+When using `primaryjoin` and `secondaryjoin`, SQLAlchemy also needs to be aware of which columns in the relation reference the other.  In most cases, a `Table` construct will have `ForeignKey` constructs which take care of this; however, in the case of reflected tables on a database that does not report FKs (like MySQL ISAM) or when using join conditions on columns that don't have foreign keys, the `relation()` needs to be told specifically which columns are "foreign" using the `foreign_keys` collection:
+
+    {python}
+    mapper(Address, addresses_table)
+    mapper(User, users_table, properties={
+        'addresses' : relation(Address, primaryjoin=
+                    users_table.c.user_id==addresses_table.c.user_id)
+    }, foreign_keys=[addresses_table.c.user_id])
+
+##### Building Query-Enabled Properties {@name=properties}
 
 Very ambitious custom join conditions may fail to be directly persistable, and in some cases may not even load correctly.  To remove the persistence part of the equation, use the flag `viewonly=True` on the `relation()`, which establishes it as a read-only attribute (data written to the collection will be ignored on flush()).  However, in extreme cases, consider using a regular Python property in conjunction with `Query` as follows:
 

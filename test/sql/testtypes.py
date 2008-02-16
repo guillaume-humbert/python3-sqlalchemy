@@ -1,8 +1,7 @@
-import testbase
-import pickleable
-import datetime, os
+import testenv; testenv.configure_for_tests()
+import datetime, os, pickleable, re
 from sqlalchemy import *
-from sqlalchemy import types, exceptions
+from sqlalchemy import exceptions, types, util
 from sqlalchemy.sql import operators
 import sqlalchemy.engine.url as url
 from sqlalchemy.databases import mssql, oracle, mysql, postgres, firebird
@@ -10,7 +9,7 @@ from testlib import *
 
 
 
-class AdaptTest(PersistTest):
+class AdaptTest(TestBase):
     def testadapt(self):
         e1 = url.URL('postgres').get_dialect()()
         e2 = url.URL('mysql').get_dialect()()
@@ -107,13 +106,13 @@ class AdaptTest(PersistTest):
 
 
 
-class UserDefinedTest(PersistTest):
+class UserDefinedTest(TestBase):
     """tests user-defined types."""
 
     def testbasic(self):
         print users.c.goofy4.type
-        print users.c.goofy4.type.dialect_impl(testbase.db.dialect)
-        print users.c.goofy4.type.dialect_impl(testbase.db.dialect).get_col_spec()
+        print users.c.goofy4.type.dialect_impl(testing.db.dialect)
+        print users.c.goofy4.type.dialect_impl(testing.db.dialect).get_col_spec()
 
     def testprocessing(self):
 
@@ -241,7 +240,7 @@ class UserDefinedTest(PersistTest):
             def copy(self):
                 return LegacyUnicodeType(self.impl.length)
 
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         users = Table('type_users', metadata,
             Column('user_id', Integer, primary_key = True),
             # totall custom type
@@ -267,7 +266,7 @@ class UserDefinedTest(PersistTest):
     def tearDownAll(self):
         metadata.drop_all()
 
-class ColumnsTest(AssertMixin):
+class ColumnsTest(TestBase, AssertsExecutionResults):
 
     def testcolumns(self):
         expectedResults = { 'int_column': 'int_column INTEGER',
@@ -277,7 +276,7 @@ class ColumnsTest(AssertMixin):
                             'float_column': 'float_column FLOAT(25)',
                           }
 
-        db = testbase.db
+        db = testing.db
         if testing.against('sqlite', 'oracle'):
             expectedResults['float_column'] = 'float_column NUMERIC(25, 2)'
 
@@ -300,11 +299,11 @@ class ColumnsTest(AssertMixin):
                 db.dialect.schemagenerator(db.dialect, db, None, None).\
                   get_column_specification(aCol))
 
-class UnicodeTest(AssertMixin):
+class UnicodeTest(TestBase, AssertsExecutionResults):
     """tests the Unicode type.  also tests the TypeDecorator with instances in the types package."""
     def setUpAll(self):
         global unicode_table
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         unicode_table = Table('unicode_table', metadata,
             Column('id', Integer, Sequence('uni_id_seq', optional=True), primary_key=True),
             Column('unicode_varchar', Unicode(250)),
@@ -336,29 +335,16 @@ class UnicodeTest(AssertMixin):
             # SQLLite and MSSQL return non-unicode data as unicode
             self.assert_(testing.against('sqlite', 'mssql'))
             self.assert_(x['plain_varchar'] == unicodedata)
-            print "it's %s!" % testbase.db.name
+            print "it's %s!" % testing.db.name
         else:
             self.assert_(not isinstance(x['plain_varchar'], unicode) and x['plain_varchar'] == rawdata)
 
     def testassert(self):
-        import warnings
-
-        warnings.filterwarnings("always", r".*non-unicode bind")
-
-        ## test that data still goes in if warning is emitted....
-        unicode_table.insert().execute(unicode_varchar='not unicode')
-        assert (select([unicode_table.c.unicode_varchar]).execute().fetchall()
-                == [('not unicode', )])
-
-        warnings.filterwarnings("error", r".*non-unicode bind")
         try:
-            try:
-                unicode_table.insert().execute(unicode_varchar='not unicode')
-                assert False
-            except RuntimeWarning, e:
-                assert str(e) == "Unicode type received non-unicode bind param value 'not unicode'", str(e)
-        finally:
-            warnings.filterwarnings("always", r".*non-unicode bind")
+            unicode_table.insert().execute(unicode_varchar='not unicode')
+            assert False
+        except exceptions.SAWarning, e:
+            assert str(e) == "Unicode type received non-unicode bind param value 'not unicode'", str(e)
 
         unicode_engine = engines.utf8_engine(options={'convert_unicode':True,
                                                       'assert_unicode':True})
@@ -368,6 +354,14 @@ class UnicodeTest(AssertMixin):
                 assert False
             except exceptions.InvalidRequestError, e:
                 assert str(e) == "Unicode type received non-unicode bind param value 'im not unicode'"
+
+            @testing.emits_warning('.*non-unicode bind')
+            def warns():
+                # test that data still goes in if warning is emitted....
+                unicode_table.insert().execute(unicode_varchar='not unicode')
+                assert (select([unicode_table.c.unicode_varchar]).execute().fetchall() == [('not unicode', )])
+            warns()
+
         finally:
             unicode_engine.dispose()
 
@@ -378,11 +372,11 @@ class UnicodeTest(AssertMixin):
 
     def testengineparam(self):
         """tests engine-wide unicode conversion"""
-        prev_unicode = testbase.db.engine.dialect.convert_unicode
-        prev_assert = testbase.db.engine.dialect.assert_unicode
+        prev_unicode = testing.db.engine.dialect.convert_unicode
+        prev_assert = testing.db.engine.dialect.assert_unicode
         try:
-            testbase.db.engine.dialect.convert_unicode = True
-            testbase.db.engine.dialect.assert_unicode = False
+            testing.db.engine.dialect.convert_unicode = True
+            testing.db.engine.dialect.assert_unicode = False
             rawdata = 'Alors vous imaginez ma surprise, au lever du jour, quand une dr\xc3\xb4le de petit voix m\xe2\x80\x99a r\xc3\xa9veill\xc3\xa9. Elle disait: \xc2\xab S\xe2\x80\x99il vous pla\xc3\xaet\xe2\x80\xa6 dessine-moi un mouton! \xc2\xbb\n'
             unicodedata = rawdata.decode('utf-8')
             unicode_table.insert().execute(unicode_varchar=unicodedata,
@@ -397,16 +391,16 @@ class UnicodeTest(AssertMixin):
             self.assert_(isinstance(x['unicode_text'], unicode) and x['unicode_text'] == unicodedata)
             self.assert_(isinstance(x['plain_varchar'], unicode) and x['plain_varchar'] == unicodedata)
         finally:
-            testbase.db.engine.dialect.convert_unicode = prev_unicode
-            testbase.db.engine.dialect.convert_unicode = prev_assert
+            testing.db.engine.dialect.convert_unicode = prev_unicode
+            testing.db.engine.dialect.convert_unicode = prev_assert
 
     @testing.unsupported('oracle')
     def testlength(self):
         """checks the database correctly understands the length of a unicode string"""
         teststr = u'aaa\x1234'
-        self.assert_(testbase.db.func.length(teststr).scalar() == len(teststr))
+        self.assert_(testing.db.func.length(teststr).scalar() == len(teststr))
 
-class BinaryTest(AssertMixin):
+class BinaryTest(TestBase, AssertsExecutionResults):
     def setUpAll(self):
         global binary_table, MyPickleType
 
@@ -423,7 +417,7 @@ class BinaryTest(AssertMixin):
                     value.stuff = 'this is the right stuff'
                 return value
 
-        binary_table = Table('binary_table', MetaData(testbase.db),
+        binary_table = Table('binary_table', MetaData(testing.db),
         Column('primary_id', Integer, Sequence('binary_id_seq', optional=True), primary_key=True),
         Column('data', Binary),
         Column('data_slice', Binary(100)),
@@ -455,7 +449,7 @@ class BinaryTest(AssertMixin):
 
         for stmt in (
             binary_table.select(order_by=binary_table.c.primary_id),
-            text("select * from binary_table order by binary_table.primary_id", typemap={'pickled':PickleType, 'mypickle':MyPickleType}, bind=testbase.db)
+            text("select * from binary_table order by binary_table.primary_id", typemap={'pickled':PickleType, 'mypickle':MyPickleType}, bind=testing.db)
         ):
             l = stmt.execute().fetchall()
             print type(stream1), type(l[0]['data']), type(l[0]['data_slice'])
@@ -469,11 +463,11 @@ class BinaryTest(AssertMixin):
             self.assertEquals(l[0]['mypickle'].stuff, 'this is the right stuff')
 
     def load_stream(self, name, len=12579):
-        f = os.path.join(os.path.dirname(testbase.__file__), name)
+        f = os.path.join(os.path.dirname(testenv.__file__), name)
         # put a number less than the typical MySQL default BLOB size
         return file(f).read(len)
 
-class ExpressionTest(AssertMixin):
+class ExpressionTest(TestBase, AssertsExecutionResults):
     def setUpAll(self):
         global test_table, meta
 
@@ -491,34 +485,34 @@ class ExpressionTest(AssertMixin):
             def adapt_operator(self, op):
                 return {operators.add:operators.sub, operators.sub:operators.add}.get(op, op)
 
-        meta = MetaData(testbase.db)
+        meta = MetaData(testing.db)
         test_table = Table('test', meta,
             Column('id', Integer, primary_key=True),
             Column('data', String(30)),
-            Column('timestamp', Date),
-            Column('value', MyCustomType))
+            Column('atimestamp', Date),
+            Column('avalue', MyCustomType))
 
         meta.create_all()
 
-        test_table.insert().execute({'id':1, 'data':'somedata', 'timestamp':datetime.date(2007, 10, 15), 'value':25})
+        test_table.insert().execute({'id':1, 'data':'somedata', 'atimestamp':datetime.date(2007, 10, 15), 'avalue':25})
 
     def tearDownAll(self):
         meta.drop_all()
 
     def test_control(self):
-        assert testbase.db.execute("select value from test").scalar() == 250
+        assert testing.db.execute("select avalue from test").scalar() == 250
 
         assert test_table.select().execute().fetchall() == [(1, 'somedata', datetime.date(2007, 10, 15), 25)]
 
     def test_bind_adapt(self):
-        expr = test_table.c.timestamp == bindparam("thedate")
-        assert expr.right.type.__class__ == test_table.c.timestamp.type.__class__
+        expr = test_table.c.atimestamp == bindparam("thedate")
+        assert expr.right.type.__class__ == test_table.c.atimestamp.type.__class__
 
-        assert testbase.db.execute(test_table.select().where(expr), {"thedate":datetime.date(2007, 10, 15)}).fetchall() == [(1, 'somedata', datetime.date(2007, 10, 15), 25)]
+        assert testing.db.execute(test_table.select().where(expr), {"thedate":datetime.date(2007, 10, 15)}).fetchall() == [(1, 'somedata', datetime.date(2007, 10, 15), 25)]
 
-        expr = test_table.c.value == bindparam("somevalue")
-        assert expr.right.type.__class__ == test_table.c.value.type.__class__
-        assert testbase.db.execute(test_table.select().where(expr), {"somevalue":25}).fetchall() == [(1, 'somedata', datetime.date(2007, 10, 15), 25)]
+        expr = test_table.c.avalue == bindparam("somevalue")
+        assert expr.right.type.__class__ == test_table.c.avalue.type.__class__
+        assert testing.db.execute(test_table.select().where(expr), {"somevalue":25}).fetchall() == [(1, 'somedata', datetime.date(2007, 10, 15), 25)]
 
 
     def test_operator_adapt(self):
@@ -526,28 +520,28 @@ class ExpressionTest(AssertMixin):
 
         # test string concatenation
         expr = test_table.c.data + "somedata"
-        assert testbase.db.execute(select([expr])).scalar() == "somedatasomedata"
+        assert testing.db.execute(select([expr])).scalar() == "somedatasomedata"
 
         expr = test_table.c.id + 15
-        assert testbase.db.execute(select([expr])).scalar() == 16
+        assert testing.db.execute(select([expr])).scalar() == 16
 
         # test custom operator conversion
-        expr = test_table.c.value + 40
-        assert expr.type.__class__ is test_table.c.value.type.__class__
+        expr = test_table.c.avalue + 40
+        assert expr.type.__class__ is test_table.c.avalue.type.__class__
 
         # + operator converted to -
         # value is calculated as: (250 - (40 * 10)) / 10 == -15
-        assert testbase.db.execute(select([expr.label('foo')])).scalar() == -15
+        assert testing.db.execute(select([expr.label('foo')])).scalar() == -15
 
         # this one relies upon anonymous labeling to assemble result
         # processing rules on the column.
-        assert testbase.db.execute(select([expr])).scalar() == -15
+        assert testing.db.execute(select([expr])).scalar() == -15
 
-class DateTest(AssertMixin):
+class DateTest(TestBase, AssertsExecutionResults):
     def setUpAll(self):
         global users_with_date, insert_data
 
-        db = testbase.db
+        db = testing.db
         if testing.against('oracle'):
             import sqlalchemy.databases.oracle as oracle
             insert_data =  [
@@ -609,7 +603,7 @@ class DateTest(AssertMixin):
                        Column('user_time', Time)]
 
         users_with_date = Table('query_users_with_date',
-                                MetaData(testbase.db), *collist)
+                                MetaData(testing.db), *collist)
         users_with_date.create()
         insert_dicts = [dict(zip(fnames, d)) for d in insert_data]
 
@@ -627,21 +621,21 @@ class DateTest(AssertMixin):
                      'DateTest mismatch: got:%s expected:%s' % (l, insert_data))
 
     def testtextdate(self):
-        x = testbase.db.text(
+        x = testing.db.text(
             "select user_datetime from query_users_with_date",
             typemap={'user_datetime':DateTime}).execute().fetchall()
 
         print repr(x)
         self.assert_(isinstance(x[0][0], datetime.datetime))
 
-        x = testbase.db.text(
+        x = testing.db.text(
             "select * from query_users_with_date where user_datetime=:somedate",
             bindparams=[bindparam('somedate', type_=types.DateTime)]).execute(
             somedate=datetime.datetime(2005, 11, 10, 11, 52, 35)).fetchall()
         print repr(x)
 
     def testdate2(self):
-        meta = MetaData(testbase.db)
+        meta = MetaData(testing.db)
         t = Table('testdate', meta,
                   Column('id', Integer,
                          Sequence('datetest_id_seq', optional=True),
@@ -668,26 +662,22 @@ class DateTest(AssertMixin):
         finally:
             t.drop(checkfirst=True)
 
-class StringTest(AssertMixin):
+class StringTest(TestBase, AssertsExecutionResults):
     def test_nolen_string_deprecated(self):
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         foo =Table('foo', metadata,
             Column('one', String))
 
-        import warnings
-        from sqlalchemy.logging import SADeprecationWarning
-
-        warnings.filterwarnings("error", r"Using String type with no length.*")
-
         # no warning
-        select([func.count("*")], bind=testbase.db).execute()
+        select([func.count("*")], bind=testing.db).execute()
 
         try:
             # warning during CREATE
             foo.create()
             assert False
-        except SADeprecationWarning, e:
+        except exceptions.SADeprecationWarning, e:
             assert "Using String type with no length" in str(e)
+            assert re.search(r'\bone\b', str(e))
 
         bar = Table('bar', metadata, Column('one', String(40)))
 
@@ -699,13 +689,19 @@ class StringTest(AssertMixin):
             select([func.count("*")], from_obj=bar).execute()
         finally:
             bar.drop()
-            warnings.filterwarnings("always", r"Using String type with no length.*")
 
+def _missing_decimal():
+    """Python implementation supports decimals"""
+    try:
+        import decimal
+        return False
+    except ImportError:
+        return True
 
-class NumericTest(AssertMixin):
+class NumericTest(TestBase, AssertsExecutionResults):
     def setUpAll(self):
         global numeric_table, metadata
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         numeric_table = Table('numeric_table', metadata,
             Column('id', Integer, Sequence('numeric_id_seq', optional=True), primary_key=True),
             Column('numericcol', Numeric(asdecimal=False)),
@@ -721,10 +717,15 @@ class NumericTest(AssertMixin):
     def tearDown(self):
         numeric_table.delete().execute()
 
+    @testing.fails_if(_missing_decimal)
     def test_decimal(self):
         from decimal import Decimal
-        numeric_table.insert().execute(numericcol=3.5, floatcol=5.6, ncasdec=12.4, fcasdec=15.75)
-        numeric_table.insert().execute(numericcol=Decimal("3.5"), floatcol=Decimal("5.6"), ncasdec=Decimal("12.4"), fcasdec=Decimal("15.75"))
+        numeric_table.insert().execute(
+            numericcol=3.5, floatcol=5.6, ncasdec=12.4, fcasdec=15.75)
+        numeric_table.insert().execute(
+            numericcol=Decimal("3.5"), floatcol=Decimal("5.6"),
+            ncasdec=Decimal("12.4"), fcasdec=Decimal("15.75"))
+
         l = numeric_table.select().execute().fetchall()
         print l
         rounded = [
@@ -736,11 +737,23 @@ class NumericTest(AssertMixin):
             (2, 3.5, 5.6, Decimal("12.4"), Decimal("15.75")),
         ]
 
+    @testing.emits_warning('True Decimal types not available')
+    def test_decimal_fallback(self):
+        from sqlalchemy.util import Decimal  # could be Decimal or float
 
-class IntervalTest(AssertMixin):
+        numeric_table.insert().execute(ncasdec=12.4, fcasdec=15.75)
+        numeric_table.insert().execute(ncasdec=Decimal("12.4"),
+                                       fcasdec=Decimal("15.75"))
+
+        for row in numeric_table.select().execute().fetchall():
+            assert isinstance(row['ncasdec'], util.decimal_type)
+            assert isinstance(row['fcasdec'], util.decimal_type)
+
+
+class IntervalTest(TestBase, AssertsExecutionResults):
     def setUpAll(self):
         global interval_table, metadata
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         interval_table = Table("intervaltable", metadata,
             Column("id", Integer, Sequence('interval_id_seq', optional=True), primary_key=True),
             Column("interval", Interval),
@@ -762,10 +775,10 @@ class IntervalTest(AssertMixin):
         interval_table.insert().execute(id=1, inverval=None)
         assert interval_table.select().execute().fetchone()['interval'] is None
 
-class BooleanTest(AssertMixin):
+class BooleanTest(TestBase, AssertsExecutionResults):
     def setUpAll(self):
         global bool_table
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         bool_table = Table('booltest', metadata,
             Column('id', Integer, primary_key=True),
             Column('value', Boolean))
@@ -788,4 +801,4 @@ class BooleanTest(AssertMixin):
         assert(res2==[(2, False)])
 
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()

@@ -1,4 +1,4 @@
-import testbase
+import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from testlib import *
@@ -166,7 +166,7 @@ class PolymorphicCircularTest(ORMTest):
 
         # clear and query forwards
         sess.clear()
-        node = sess.query(Table1).selectfirst(Table1.c.id==t.id)
+        node = sess.query(Table1).filter(Table1.c.id==t.id).first()
         assertlist = []
         while (node):
             assertlist.append(node)
@@ -178,7 +178,7 @@ class PolymorphicCircularTest(ORMTest):
 
         # clear and query backwards
         sess.clear()
-        node = sess.query(Table1).selectfirst(Table1.c.id==obj.id)
+        node = sess.query(Table1).filter(Table1.c.id==obj.id).first()
         assertlist = []
         while (node):
             assertlist.insert(0, node)
@@ -195,4 +195,4 @@ class PolymorphicCircularTest(ORMTest):
         assert original == forwards == backwards
 
 if __name__ == '__main__':
-    testbase.main()
+    testenv.main()

@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -42,7 +42,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
 
@@ -61,49 +61,49 @@
     <ul>
         
         <li><a style="" href="types.html#types_standard">Built-in Types</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="types.html#types_standard_string">String</a></li>
-        
+
         
         <li><a style="" href="types.html#types_standard_unicode">Unicode</a></li>
-        
+
         
         <li><a style="" href="types.html#types_standard_numeric">Numeric</a></li>
-        
+
         
         <li><a style="" href="types.html#types_standard_float">Float</a></li>
-        
+
         
         <li><a style="" href="types.html#types_standard_datetime/date/time">Datetime/Date/Time</a></li>
-        
+
         
         <li><a style="" href="types.html#types_standard_interval">Interval</a></li>
-        
+
         
         <li><a style="" href="types.html#types_standard_binary">Binary</a></li>
-        
+
         
         <li><a style="" href="types.html#types_standard_boolean">Boolean</a></li>
-        
+
         
         <li><a style="" href="types.html#types_standard_pickletype">PickleType</a></li>
-        
+
         
         <li><a style="" href="types.html#types_standard_sqlspecific">SQL-Specific Types</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="types.html#types_dialect">Dialect Specific Types</a></li>
-        
+
         
         <li><a style="" href="types.html#types_custom">Creating your Own Types</a></li>
-        
+
     </ul>
 
 	</div>
@@ -178,7 +178,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -192,12 +192,12 @@
     
     
 
-<p>The <code>Unicode</code> type is shorthand for <code>String</code> with <code>convert_unicode=True</code> and <code>assert_unicode='warn'</code>.  When writing a unicode-aware appication, it is strongly recommended that this type is used, and that only unicode strings are used in the application.  By "unicode string" we mean a string with a u, i.e. <code>u'hello'</code>.  Otherwise, particularly when using the ORM, data will be converted to unicode when it returns from the database, but local data which was generated locally will not be in unicode format, which can create confusion.
+<p>The <code>Unicode</code> type is shorthand for <code>String</code> with <code>convert_unicode=True</code> and <code>assert_unicode='warn'</code>.  When writing a Unicode-aware application, it is strongly recommended that this type is used, and that only Unicode strings are used in the application.  By "Unicode string" we mean a string with a u, i.e. <code>u'hello'</code>.  Otherwise, particularly when using the ORM, data will be converted to Unicode when it returns from the database, but local data which was generated locally will not be in Unicode format, which can create confusion.
 </p>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -216,7 +216,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -235,7 +235,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -254,7 +254,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -273,7 +273,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -292,7 +292,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -311,7 +311,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -330,7 +330,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -368,7 +368,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -420,7 +420,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -459,7 +459,7 @@
         </span><span class="python_keyword">return </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">impl</span><span class="python_operator">.</span><span class="python_name">length</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Note that the "old" way to process bind params and result values, the <code>convert_bind_param()</code> and <code>convert_result_value()</code> methods, are still available.  The downside of these is that when using a type which already processes data such as the <code>Unicode</code> type, you need to call the superclass version of these methods directly.  Using <code>process_bind_param()</code> and <code>process_result_value()</code>, user-defined code can return and receive the desired Python data directly.
+<p>Note that the "old" way to process bind parameters and result values, the <code>convert_bind_param()</code> and <code>convert_result_value()</code> methods, are still available.  The downside of these is that when using a type which already processes data such as the <code>Unicode</code> type, you need to call the superclass version of these methods directly.  Using <code>process_bind_param()</code> and <code>process_result_value()</code>, user-defined code can return and receive the desired Python data directly.
 </p>
 <p>As of version 0.4.2, <code>TypeDecorator</code> should generally be used for any user-defined type which redefines the behavior of another type, including other <code>TypeDecorator</code> subclasses such as <code>PickleType</code>, and the new <code>process_...()</code> methods described above should be used.  <br></br>
 </p>
@@ -486,7 +486,7 @@
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Once you make your type, its immediately useable:
+<p>Once you make your type, it's immediately useable:
 </p>
 
     
@@ -503,7 +503,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

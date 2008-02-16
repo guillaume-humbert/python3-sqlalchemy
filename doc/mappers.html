@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -42,7 +42,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
 
@@ -61,184 +61,190 @@
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_mapper">Mapper Configuration</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_columns">Customizing Column Properties</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_deferred">Deferred Column Loading</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_expressions">SQL Expressions as Mapped Attributes</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_overriding">Overriding Attribute Behavior with Synonyms</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_composite">Composite Column Types</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_orderby">Controlling Ordering</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_inheritance">Mapping Class Inheritance Hierarchies</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_inheritance_joined">Joined Table Inheritance</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_inheritance_joined_optimizing">Optimizing Joined Table Loads</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_inheritance_single">Single Table Inheritance</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_inheritance_concrete">Concrete Table Inheritance</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_inheritance_relations">Using Relations with Inheritance</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_joins">Mapping a Class against Multiple Tables</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_selects">Mapping a Class against Arbitrary Selects</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_multiple">Multiple Mappers for One Class</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_extending">Extending Mapper</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="mappers.html#advdatamapping_relation">Relation Configuration</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_patterns">Basic Relational Patterns</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_patterns_onetomany">One To Many</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_patterns_manytoone">Many To One</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_patterns_onetoone">One To One</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_patterns_manytomany">Many To Many</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_patterns_association">Association Object</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_selfreferential">Adjacency List Relationships</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_selfreferential_query">Self-Referential Query Strategies</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_selfreferential_eagerloading">Configuring Eager Loading</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_customjoin">Specifying Alternate Join Conditions to relation()</a></li>
-        
+
 	        <li>
                 
     <ul>
         
-        <li><a style="" href="mappers.html#advdatamapping_relation_customjoin_multiplejoin">Multiple Relations against the Same Parent/Child</a></li>
+        <li><a style="" href="mappers.html#advdatamapping_relation_customjoin_fks">Specifying Foreign Keys</a></li>
+
         
+        <li><a style="" href="mappers.html#advdatamapping_relation_customjoin_properties">Building Query-Enabled Properties</a></li>
+
+        
+        <li><a style="" href="mappers.html#advdatamapping_relation_customjoin_multiplejoin">Multiple Relations against the Same Parent/Child</a></li>
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_collections">Alternate Collection Implementations</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_collections_custom">Custom Collection Implementations</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_collections_decorators">Annotating Custom Collections via Decorators</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_collections_dictcollections">Dictionary-Based Collections</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_collections_adv_collections">Instrumentation and Custom Types</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_strategies">Configuring Loader Strategies: Lazy Loading, Eager Loading</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_strategies_combining">Combining Eager Loads with Statement/Result Set Queries</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_largecollections">Working with Large Collections</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_largecollections_dynamic">Dynamic Relation Loaders</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_largecollections_noload">Setting Noload</a></li>
-        
+
         
         <li><a style="" href="mappers.html#advdatamapping_relation_largecollections_passivedelete">Using Passive Deletes</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="mappers.html#advdatamapping_relation_mutablepks">Mutable Primary Keys / Update Cascades</a></li>
-        
+
     </ul>
 
 	        </li>
@@ -264,7 +270,7 @@
     
     
 
-<p>This section references most major configurational patterns involving the <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a> and <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_relation">relation()</a> functions.  It assumes you've worked through the <a href="ormtutorial.html">Object Relational Tutorial</a> and know how to construct and use rudimental mappers and relations.
+<p>This section references most major configurational patterns involving the <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a> and <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_relation">relation()</a> functions.  It assumes you've worked through the <a href="ormtutorial.html">Object Relational Tutorial</a> and know how to construct and use rudimentary mappers and relations.
 </p>
 
 
@@ -355,7 +361,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -369,7 +375,7 @@
     
     
 
-<p>This feature allows particular columns of a table to not be loaded by default, instead being loaded later on when first referenced.  It is essentailly "column-level lazy loading".   This feature is useful when one wants to avoid loading a large text or binary field into memory when its not needed.  Individual columns can be lazy loaded by themselves or placed into groups that lazy-load together.
+<p>This feature allows particular columns of a table to not be loaded by default, instead being loaded later on when first referenced.  It is essentially "column-level lazy loading".   This feature is useful when one wants to avoid loading a large text or binary field into memory when it's not needed.  Individual columns can be lazy loaded by themselves or placed into groups that lazy-load together.
 </p>
 
     
@@ -453,7 +459,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -501,7 +507,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -554,7 +560,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -660,7 +666,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -735,7 +741,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -925,7 +931,7 @@ FROM employees LEFT OUTER JOIN engineers ON employees.employee_id = engineers.em
     </div>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -968,7 +974,7 @@ FROM employees LEFT OUTER JOIN engineers ON employees.employee_id = engineers.em
 </p>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1006,7 +1012,7 @@ FROM employees LEFT OUTER JOIN engineers ON employees.employee_id = engineers.em
 <span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Notice in this case there is no <code>type</code> column.  If polymorphic loading is not required, theres no advantage to using <code>inherits</code> here; you just define a separate mapper for each class.
+<p>Notice in this case there is no <code>type</code> column.  If polymorphic loading is not required, there's no advantage to using <code>inherits</code> here; you just define a separate mapper for each class.
 </p>
 
     
@@ -1068,7 +1074,7 @@ UNION ALL <br/>
     </div>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1081,7 +1087,7 @@ UNION ALL <br/>
     <h3>Using Relations with Inheritance</h3>
     
     
-<p>Both joined-table and single table inheritance scenarios produce mappings which are usable in relation() functions; that is, it's possible to map a parent object to a child object which is polymorphic.  Similiarly, inheriting mappers can have <code>relation()</code>s of their own at any level, which are inherited to each child class.  The only requirement for relations is that there is a table relationship between parent and child.  An example is the following modification to the joined table inheritance example, which sets a bi-directional relationship between <code>Employee</code> and <code>Company</code>:
+<p>Both joined-table and single table inheritance scenarios produce mappings which are usable in relation() functions; that is, it's possible to map a parent object to a child object which is polymorphic.  Similarly, inheriting mappers can have <code>relation()</code>s of their own at any level, which are inherited to each child class.  The only requirement for relations is that there is a table relationship between parent and child.  An example is the following modification to the joined table inheritance example, which sets a bi-directional relationship between <code>Employee</code> and <code>Company</code>:
 </p>
 
     
@@ -1174,7 +1180,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1243,7 +1249,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1281,7 +1287,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1363,7 +1369,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1404,7 +1410,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1494,7 +1500,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
 </p>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1539,7 +1545,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
 </p>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1552,7 +1558,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
     <h3>One To One</h3>
     
     
-<p>One To One is essentially a bi-directional relationship with a scalar attribute on both sides.  To acheive this, the <code>uselist=False</code> flag indicates the placement of a scalar attribute instead of a collection on the "many" side of the relationship.  To convert one-to-many into one-to-one:
+<p>One To One is essentially a bi-directional relationship with a scalar attribute on both sides.  To achieve this, the <code>uselist=False</code> flag indicates the placement of a scalar attribute instead of a collection on the "many" side of the relationship.  To convert one-to-many into one-to-one:
 </p>
 
     
@@ -1578,7 +1584,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
     </div>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1630,7 +1636,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
     </div>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1657,8 +1663,8 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
 <span class="python_name">association_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'association'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'left_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'left.id'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'right_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'right.id'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'left_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'left.id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'right_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'right.id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'data'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span>
     <span class="python_enclosure">)</span><span class="python_operator">
 </span>
@@ -1718,7 +1724,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1891,7 +1897,7 @@ WHERE treenodes.data = ? AND treenodes_1.data = ? AND treenodes_2.data = ? ORDER
     </div>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1922,7 +1928,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1958,8 +1964,8 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 <span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
     <span class="python_literal">'boston_addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
-                <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
-                <span class="python_name">Addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">==</span><span class="python_literal">'Boston'</span><span class="python_enclosure">))</span>
+                <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
+                <span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">==</span><span class="python_literal">'Boston'</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">})</span><span class="python_operator">
 </span></pre>
     </div>
@@ -1983,6 +1989,44 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 <span class="python_enclosure">})</span><span class="python_operator">
 </span></pre>
     </div>
+
+    
+    <A name="advdatamapping_relation_customjoin_fks"></a>
+    
+    <div class="sectionL4">
+
+    <h3>Specifying Foreign Keys</h3>
+    
+    
+<p>When using <code>primaryjoin</code> and <code>secondaryjoin</code>, SQLAlchemy also needs to be aware of which columns in the relation reference the other.  In most cases, a <code>Table</code> construct will have <code>ForeignKey</code> constructs which take care of this; however, in the case of reflected tables on a database that does not report FKs (like MySQL ISAM) or when using join conditions on columns that don't have foreign keys, the <code>relation()</code> needs to be told specifically which columns are "foreign" using the <code>foreign_keys</code> collection:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
+                <span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">foreign_keys</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">])</span><span class="python_operator">
+</span></pre>
+    </div>
+
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="advdatamapping_relation_customjoin_properties"></a>
+    
+    <div class="sectionL4">
+
+    <h3>Building Query-Enabled Properties</h3>
+    
+    
 <p>Very ambitious custom join conditions may fail to be directly persistable, and in some cases may not even load correctly.  To remove the persistence part of the equation, use the flag <code>viewonly=True</code> on the <code>relation()</code>, which establishes it as a read-only attribute (data written to the collection will be ignored on flush()).  However, in extreme cases, consider using a regular Python property in conjunction with <code>Query</code> as follows:
 </p>
 
@@ -1996,6 +2040,12 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
     </span><span class="python_name">addresses </span><span class="python_operator">= </span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_name">_get_addresses</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
 
     
     <A name="advdatamapping_relation_customjoin_multiplejoin"></a>
@@ -2025,7 +2075,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2141,7 +2191,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 </p>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2203,7 +2253,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 </p>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2264,7 +2314,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 </p>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2299,7 +2349,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2492,7 +2542,7 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2571,7 +2621,7 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 </p>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2600,7 +2650,7 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 </p>
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2642,7 +2692,7 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2695,7 +2745,7 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

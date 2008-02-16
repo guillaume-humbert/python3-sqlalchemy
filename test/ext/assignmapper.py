@@ -1,23 +1,16 @@
-import testbase
-import warnings
+import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
 from sqlalchemy import exceptions
 from sqlalchemy.orm import create_session, clear_mappers, relation, class_mapper
-import sqlalchemy.ext.assignmapper
+from sqlalchemy.ext.assignmapper import assign_mapper
 from sqlalchemy.ext.sessioncontext import SessionContext
 from testlib import *
 
-def assign_mapper(*args, **kw):
-    try:
-        warnings.filterwarnings('ignore', 'assign_mapper is deprecated')
-        sqlalchemy.ext.assignmapper.assign_mapper(*args, **kw)
-    finally:
-        warnings.filterwarnings('always', 'assign_mapper is deprecated')
 
-class AssignMapperTest(PersistTest):
+class AssignMapperTest(TestBase):
     def setUpAll(self):
         global metadata, table, table2
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         table = Table('sometable', metadata,
             Column('id', Integer, primary_key=True),
             Column('data', String(30)))
@@ -27,41 +20,35 @@ class AssignMapperTest(PersistTest):
             )
         metadata.create_all()
 
+    @testing.uses_deprecated('SessionContext', 'assign_mapper')
     def setUp(self):
         global SomeObject, SomeOtherObject, ctx
         class SomeObject(object):pass
         class SomeOtherObject(object):pass
 
-        deps = ('SessionContext is deprecated',
-                'SessionContextExt is deprecated')
-        try:
-            for dep in deps:
-                warnings.filterwarnings('ignore', dep)
+        ctx = SessionContext(create_session)
+        assign_mapper(ctx, SomeObject, table, properties={
+            'options':relation(SomeOtherObject)
+            })
+        assign_mapper(ctx, SomeOtherObject, table2)
 
-            ctx = SessionContext(create_session)
-            assign_mapper(ctx, SomeObject, table, properties={
-                'options':relation(SomeOtherObject)
-                })
-            assign_mapper(ctx, SomeOtherObject, table2)
-
-            s = SomeObject()
-            s.id = 1
-            s.data = 'hello'
-            sso = SomeOtherObject()
-            s.options.append(sso)
-            ctx.current.flush()
-            ctx.current.clear()
-        finally:
-            for dep in deps:
-                warnings.filterwarnings('always', dep)
+        s = SomeObject()
+        s.id = 1
+        s.data = 'hello'
+        sso = SomeOtherObject()
+        s.options.append(sso)
+        ctx.current.flush()
+        ctx.current.clear()
 
     def tearDownAll(self):
         metadata.drop_all()
+
     def tearDown(self):
         for table in metadata.table_iterator(reverse=True):
             table.delete().execute()
         clear_mappers()
 
+    @testing.uses_deprecated('assign_mapper')
     def test_override_attributes(self):
 
         sso = SomeOtherObject.query().first()
@@ -81,6 +68,7 @@ class AssignMapperTest(PersistTest):
         except exceptions.ArgumentError:
             pass
 
+    @testing.uses_deprecated('assign_mapper')
     def test_dont_clobber_methods(self):
         class MyClass(object):
             def expunge(self):
@@ -92,4 +80,4 @@ class AssignMapperTest(PersistTest):
 
 
 if __name__ == '__main__':
-    testbase.main()
+    testenv.main()

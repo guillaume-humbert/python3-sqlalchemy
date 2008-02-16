@@ -1,4 +1,4 @@
-import testbase
+import testenv; testenv.configure_for_tests()
 import datetime
 from sqlalchemy import *
 from sqlalchemy import exceptions, schema, util
@@ -6,12 +6,12 @@ from sqlalchemy.orm import mapper, create_session
 from testlib import *
 
 
-class DefaultTest(PersistTest):
+class DefaultTest(TestBase):
 
     def setUpAll(self):
         global t, f, f2, ts, currenttime, metadata, default_generator
 
-        db = testbase.db
+        db = testing.db
         metadata = MetaData(db)
         default_generator = {'x':50}
 
@@ -104,30 +104,53 @@ class DefaultTest(PersistTest):
         default_generator['x'] = 50
         t.delete().execute()
 
-    def testargsignature(self):
+    def test_bad_argsignature(self):
         ex_msg = \
           "ColumnDefault Python function takes zero or one positional arguments"
 
         def fn1(x, y): pass
         def fn2(x, y, z=3): pass
-        for fn in fn1, fn2:
+        class fn3(object):
+            def __init__(self, x, y):
+                pass
+        class FN4(object):
+            def __call__(self, x, y):
+                pass
+        fn4 = FN4()
+
+        for fn in fn1, fn2, fn3, fn4:
             try:
                 c = ColumnDefault(fn)
-                assert False
+                assert False, str(fn)
             except exceptions.ArgumentError, e:
                 assert str(e) == ex_msg
 
-        def fn3(): pass
-        def fn4(): pass
-        def fn5(x=1): pass
-        def fn6(x=1, y=2, z=3): pass
-        fn7 = list
+    def test_argsignature(self):
+        def fn1(): pass
+        def fn2(): pass
+        def fn3(x=1): pass
+        def fn4(x=1, y=2, z=3): pass
+        fn5 = list
+        class fn6(object):
+            def __init__(self, x):
+                pass
+        class fn6(object):
+            def __init__(self, x, y=3):
+                pass
+        class FN7(object):
+            def __call__(self, x):
+                pass
+        fn7 = FN7()
+        class FN8(object):
+            def __call__(self, x, y=3):
+                pass
+        fn8 = FN8()
 
-        for fn in fn3, fn4, fn5, fn6, fn7:
+        for fn in fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8:
             c = ColumnDefault(fn)
 
     def teststandalone(self):
-        c = testbase.db.engine.contextual_connect()
+        c = testing.db.engine.contextual_connect()
         x = c.execute(t.c.col1.default)
         y = t.c.col2.default.execute()
         z = c.execute(t.c.col3.default)
@@ -148,7 +171,7 @@ class DefaultTest(PersistTest):
         t.insert().execute()
         t.insert().execute()
 
-        ctexec = select([currenttime.label('now')], bind=testbase.db).scalar()
+        ctexec = select([currenttime.label('now')], bind=testing.db).scalar()
         l = t.select().execute()
         today = datetime.date.today()
         self.assertEquals(l.fetchall(), [
@@ -161,7 +184,7 @@ class DefaultTest(PersistTest):
     def testinsertmany(self):
         # MySQL-Python 1.2.2 breaks functions in execute_many :(
         if (testing.against('mysql') and
-            testbase.db.dialect.dbapi.version_info[:3] == (1, 2, 2)):
+            testing.db.dialect.dbapi.version_info[:3] == (1, 2, 2)):
             return
 
         r = t.insert().execute({}, {}, {})
@@ -179,7 +202,7 @@ class DefaultTest(PersistTest):
     def testupdatemany(self):
         # MySQL-Python 1.2.2 breaks functions in execute_many :(
         if (testing.against('mysql') and
-            testbase.db.dialect.dbapi.version_info[:3] == (1, 2, 2)):
+            testing.db.dialect.dbapi.version_info[:3] == (1, 2, 2)):
             return
 
         t.insert().execute({}, {}, {})
@@ -226,8 +249,8 @@ class DefaultTest(PersistTest):
         key values in memory before insert; otherwise we cant locate the just inserted row."""
 
         try:
-            meta = MetaData(testbase.db)
-            testbase.db.execute("""
+            meta = MetaData(testing.db)
+            testing.db.execute("""
              CREATE TABLE speedy_users
              (
                  speedy_user_id   SERIAL     PRIMARY KEY,
@@ -242,13 +265,13 @@ class DefaultTest(PersistTest):
             l = t.select().execute().fetchall()
             self.assert_(l == [(1, 'user', 'lala')])
         finally:
-            testbase.db.execute("drop table speedy_users", None)
+            testing.db.execute("drop table speedy_users", None)
 
-class PKDefaultTest(PersistTest):
+class PKDefaultTest(TestBase):
     def setUpAll(self):
         global metadata, t1, t2
 
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
 
         t2 = Table('t2', metadata,
             Column('nextid', Integer))
@@ -273,11 +296,11 @@ class PKDefaultTest(PersistTest):
         assert r.last_inserted_ids() == [2]
 
 
-class AutoIncrementTest(PersistTest):
+class AutoIncrementTest(TestBase):
     def setUp(self):
         global aitable, aimeta
 
-        aimeta = MetaData(testbase.db)
+        aimeta = MetaData(testing.db)
         aitable = Table("aitest", aimeta,
             Column('id', Integer, Sequence('ai_id_seq', optional=True),
                    primary_key=True),
@@ -292,7 +315,7 @@ class AutoIncrementTest(PersistTest):
     @testing.fails_on('sqlite')
     def testnonautoincrement(self):
         # sqlite INT primary keys can be non-unique! (only for ints)
-        meta = MetaData(testbase.db)
+        meta = MetaData(testing.db)
         nonai_table = Table("nonaitest", meta,
             Column('id', Integer, autoincrement=False, primary_key=True),
             Column('data', String(20)))
@@ -344,10 +367,10 @@ class AutoIncrementTest(PersistTest):
             [(1, 1, None), (2, None, 'row 2'), (3, 3, 'row 3'), (4, 4, None)])
 
     def test_autoincrement_autocommit(self):
-        self._test_autoincrement(testbase.db)
+        self._test_autoincrement(testing.db)
 
     def test_autoincrement_transaction(self):
-        con = testbase.db.connect()
+        con = testing.db.connect()
         tx = con.begin()
         try:
             try:
@@ -364,10 +387,10 @@ class AutoIncrementTest(PersistTest):
             con.close()
 
     def test_autoincrement_fk(self):
-        if not testbase.db.dialect.supports_pk_autoincrement:
+        if not testing.db.dialect.supports_pk_autoincrement:
             return True
 
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
 
         # No optional sequence here.
         nodes = Table('nodes', metadata,
@@ -383,13 +406,13 @@ class AutoIncrementTest(PersistTest):
             metadata.drop_all()
 
 
-class SequenceTest(PersistTest):
+class SequenceTest(TestBase):
     __unsupported_on__ = ('sqlite', 'mysql', 'mssql', 'firebird',
                           'sybase', 'access')
 
     def setUpAll(self):
         global cartitems, sometable, metadata
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         cartitems = Table("cartitems", metadata,
             Column("cart_id", Integer, Sequence('cart_id_seq'), primary_key=True),
             Column("description", String(40)),
@@ -397,7 +420,7 @@ class SequenceTest(PersistTest):
         )
         sometable = Table( 'Manager', metadata,
                Column('obj_id', Integer, Sequence('obj_id_seq'), ),
-               Column('name', String, ),
+               Column('name', String(128)),
                Column('id', Integer, Sequence('Manager_id_seq', optional=True),
                       primary_key=True),
            )
@@ -407,8 +430,12 @@ class SequenceTest(PersistTest):
     def testseqnonpk(self):
         """test sequences fire off as defaults on non-pk columns"""
 
-        sometable.insert().execute(name="somename")
-        sometable.insert().execute(name="someother")
+        result = sometable.insert().execute(name="somename")
+        assert 'id' in result.postfetch_cols()
+
+        result = sometable.insert().execute(name="someother")
+        assert 'id' in result.postfetch_cols()
+
         sometable.insert().execute(
             {'name':'name3'},
             {'name':'name4'}
@@ -439,7 +466,7 @@ class SequenceTest(PersistTest):
     # maxdb db-api seems to double-execute NEXTVAL internally somewhere,
     # throwing off the numbers for these tests...
     def test_implicit_sequence_exec(self):
-        s = Sequence("my_sequence", metadata=MetaData(testbase.db))
+        s = Sequence("my_sequence", metadata=MetaData(testing.db))
         s.create()
         try:
             x = s.execute()
@@ -450,19 +477,19 @@ class SequenceTest(PersistTest):
     @testing.fails_on('maxdb')
     def teststandalone_explicit(self):
         s = Sequence("my_sequence")
-        s.create(bind=testbase.db)
+        s.create(bind=testing.db)
         try:
-            x = s.execute(testbase.db)
+            x = s.execute(testing.db)
             self.assert_(x == 1)
         finally:
-            s.drop(testbase.db)
+            s.drop(testing.db)
 
     def test_checkfirst(self):
         s = Sequence("my_sequence")
-        s.create(testbase.db, checkfirst=False)
-        s.create(testbase.db, checkfirst=True)
-        s.drop(testbase.db, checkfirst=False)
-        s.drop(testbase.db, checkfirst=True)
+        s.create(testing.db, checkfirst=False)
+        s.create(testing.db, checkfirst=True)
+        s.drop(testing.db, checkfirst=False)
+        s.drop(testing.db, checkfirst=True)
 
     @testing.fails_on('maxdb')
     def teststandalone2(self):
@@ -474,4 +501,4 @@ class SequenceTest(PersistTest):
 
 
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()

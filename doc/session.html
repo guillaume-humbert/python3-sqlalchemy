@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -42,7 +42,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
 
@@ -61,133 +61,136 @@
     <ul>
         
         <li><a style="" href="session.html#unitofwork_what">What does the Session do ?</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_getting">Getting a Session</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="session.html#unitofwork_getting_sessionmaker">Using a sessionmaker() Configuration</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_getting_binding">Binding Session to an Engine or Connection</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="session.html#unitofwork_getting_binding_connection">Binding Session to a Connection</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="session.html#unitofwork_getting_createsession">Using create_session()</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="session.html#unitofwork_using">Using the Session</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="session.html#unitofwork_using_states">Quickie Intro to Object States</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_faq">Frequently Asked Questions</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_attributes">Session Attributes</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_querying">Querying</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_saving">Saving New Instances</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_updating/merging">Updating/Merging Existing Instances</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_deleting">Deleting</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_flushing">Flushing</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_autoflush">Autoflush</a></li>
+
         
+        <li><a style="" href="session.html#unitofwork_using_committing">Committing</a></li>
+
         
         <li><a style="" href="session.html#unitofwork_using_expunge">Expunge / Clear</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_closing">Closing</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_using_refreshing">Refreshing / Expiring</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="session.html#unitofwork_cascades">Cascades</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_managing">Managing Transactions</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_flushsql">Embedding SQL Insert/Update Expressions into a Flush</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_sql">Using SQL Expressions with Sessions</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_contextual">Contextual/Thread-local Sessions</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="session.html#unitofwork_contextual_creating">Creating a Thread-local Context</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_contextual_lifespan">Lifespan of a Contextual Session</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_contextual_associating">Associating Classes and Mappers with a Contextual Session</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="session.html#unitofwork_contextual_associating_autosave">Auto-Save Behavior with Contextual Session's Mapper</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="session.html#unitofwork_contextual_partitioning">Partitioning Strategies</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="session.html#unitofwork_contextual_partitioning_vertical">Vertical Partitioning</a></li>
-        
+
         
         <li><a style="" href="session.html#unitofwork_contextual_partitioning_horizontal">Horizontal Partitioning</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="session.html#unitofwork_contextual_extending">Extending Session</a></li>
-        
+
     </ul>
 
 	        </li>
@@ -233,7 +236,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -290,7 +293,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -306,7 +309,7 @@
 
 <p>In our previous example regarding <code>sessionmaker()</code>, nowhere did we specify how our session would connect to our database.  When the session is configured in this manner, it will look for a database engine to connect with via the <code>Table</code> objects that it works with - the chapter called <a href="metadata.html#metadata_tables_binding">Binding MetaData to an Engine or Connection</a> describes how to associate <code>Table</code> objects directly with a source of database connections.
 </p>
-<p>However, it is often more straightforward to explicitly tell the session what database engine (or engines) you'd like it to communicate with.  This is particularly handy with multiple-database scenarios where the session can be used as the central point of configuration.  To acheive this, the constructor keyword <code>bind</code> is used for a basic single-database configuration:
+<p>However, it is often more straightforward to explicitly tell the session what database engine (or engines) you'd like it to communicate with.  This is particularly handy with multiple-database scenarios where the session can be used as the central point of configuration.  To achieve this, the constructor keyword <code>bind</code> is used for a basic single-database configuration:
 </p>
 
     
@@ -382,7 +385,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -428,7 +431,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -506,7 +509,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -569,7 +572,7 @@
 
  <li><p>Is the session threadsafe ?
 </p>
-<p>Nope.  It has no thread synchronization of any kind built in, and particularly when you do a flush operation, it definitely is not open to concurrent threads accessing it, because it holds onto a single database connection at that point.  If you use a session which is non-transactional for read operations only, it's still not thread-"safe", but you also wont get any catastrophic failures either, since it opens and closes connections on an as-needed basis; its just that different threads might load the same objects independently of each other, but only one will wind up in the identity map (however, the other one might still live in a collection somewhere).
+<p>Nope.  It has no thread synchronization of any kind built in, and particularly when you do a flush operation, it definitely is not open to concurrent threads accessing it, because it holds onto a single database connection at that point.  If you use a session which is non-transactional for read operations only, it's still not thread-"safe", but you also wont get any catastrophic failures either, since it opens and closes connections on an as-needed basis; it's just that different threads might load the same objects independently of each other, but only one will wind up in the identity map (however, the other one might still live in a collection somewhere).
 </p>
 <p>But the bigger point here is, you should not <em>want</em> to use the session with multiple concurrent threads.  That would be like having everyone at a restaurant all eat from the same plate.  The session is a local "workspace" that you use for a specific set of tasks; you don't want to, or need to, share that session with other threads who are doing some other task.  If, on the other hand, there are other threads  participating in the same task you are, such as in a desktop graphical application, then you would be sharing the session with those threads, but you also will have implemented a proper locking scheme (or your graphical framework does) so that those threads do not collide.
      <br></br>
@@ -580,7 +583,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -662,7 +665,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -705,7 +708,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -739,7 +742,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -796,7 +799,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -856,7 +859,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -896,12 +899,14 @@
 </p>
 <p>Theres also a way to have <code>flush()</code> called automatically before each query; this is called "autoflush" and is described below.
 </p>
-<p>Note that flush <strong>does not change</strong> the state of any collections or entity relationships in memory; for example, if you set a foreign key attribute <code>b_id</code> on object <code>A</code> with the the identifier <code>B.id</code>, the change will be flushed to the database, but <code>A</code> will not have <code>B</code> added to its collection.  If you want to manipulate foreign key attributes directly, <code>refresh()</code> or <code>expire()</code> the objects whose state needs to be refreshed subsequent to flushing.
+<p>Note that when using a <code>Session</code> that has been placed into a transaction, the <code>commit()</code> method will also <code>flush()</code> the <code>Session</code> unconditionally before committing the transaction.  <br></br>
+</p>
+<p>Note that flush <strong>does not change</strong> the state of any collections or entity relationships in memory; for example, if you set a foreign key attribute <code>b_id</code> on object <code>A</code> with the identifier <code>B.id</code>, the change will be flushed to the database, but <code>A</code> will not have <code>B</code> added to its collection.  If you want to manipulate foreign key attributes directly, <code>refresh()</code> or <code>expire()</code> the objects whose state needs to be refreshed subsequent to flushing.
 </p>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -940,7 +945,30 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="unitofwork_using_committing"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Committing</h3>
+    
+    
+
+<p>The <code>commit()</code> method on <code>Session</code> is used specifically when the <code>Session</code> is in a transactional state.  The two ways that a session may be placed in a transactional state are to create it using the <code>transactional=True</code> option, or to call the <code>begin()</code> method.  <br></br>
+</p>
+<p><code>commit()</code> serves <strong>two</strong> purposes; it issues a <code>flush()</code> unconditionally to persist any remaining pending changes, and it issues a commit to all currently managed database connections.  In the typical case this is just a single connection.  After the commit, connection resources which were allocated by the <code>Session</code> are released.  This holds true even for a <code>Session</code> which specifies <code>transactional=True</code>; when such a session is committed, the next transaction is not "begun" until the next database operation occurs.
+</p>
+<p>See the section below on "Managing Transactions" for further detail.
+</p>
+
+
+
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -964,7 +992,7 @@
 <span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">expunge</span><span class="python_enclosure">(</span><span class="python_name">obj1</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Use <code>expunge</code> when youd like to remove an object altogether from memory, such as before calling <code>del</code> on it, which will prevent any "ghost" operations occuring when the session is flushed.
+<p>Use <code>expunge</code> when you'd like to remove an object altogether from memory, such as before calling <code>del</code> on it, which will prevent any "ghost" operations occurring when the session is flushed.
 </p>
 <p>This <code>clear()</code> method is equivalent to <code>expunge()</code>-ing everything from the Session:
 </p>
@@ -981,7 +1009,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1002,7 +1030,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1044,7 +1072,7 @@
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">refresh</span><span class="python_enclosure">(</span><span class="python_name">obj1</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">refresh</span><span class="python_enclosure">(</span><span class="python_name">obj2</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
 </span>
-<span class="python_comment"># expire the attriibutes 'hello', 'world' objects obj1, obj2, attributes will be reloaded
+<span class="python_comment"># expire the attributes 'hello', 'world' objects obj1, obj2, attributes will be reloaded
 # on the next access:
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">expire</span><span class="python_enclosure">(</span><span class="python_name">obj1</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">expire</span><span class="python_enclosure">(</span><span class="python_name">obj2</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'hello'</span><span class="python_operator">, </span><span class="python_literal">'world'</span><span class="python_enclosure">])</span><span class="python_operator">
@@ -1053,7 +1081,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1100,7 +1128,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1114,7 +1142,7 @@
     
     
 
-<p>The Session can manage transactions automatically, including across multiple engines.  When the Session is in a transaction, as it receives requests to execute SQL statements, it adds each indivdual Connection/Engine encountered to its transactional state.  At commit time, all unflushed data is flushed, and each individual transaction is committed.  If the underlying databases support two-phase semantics, this may be used by the Session as well if two-phase transactions are enabled.
+<p>The Session can manage transactions automatically, including across multiple engines.  When the Session is in a transaction, as it receives requests to execute SQL statements, it adds each individual Connection/Engine encountered to its transactional state.  At commit time, all unflushed data is flushed, and each individual transaction is committed.  If the underlying databases support two-phase semantics, this may be used by the Session as well if two-phase transactions are enabled.
 </p>
 <p>The easiest way to use a Session with transactions is just to declare it as transactional.  The session will remain in a transaction at all times:
 </p>
@@ -1126,37 +1154,51 @@
 <span class="python_comment"># transactional session
 </span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">transactional</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">item1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
-</span><span class="python_name">item2</span><span class="python_operator">.</span><span class="python_name">bar </span><span class="python_operator">= </span><span class="python_literal">'foo'</span><span class="python_operator">
-</span>
-<span class="python_comment"># commit- will immediately go into a new transaction afterwards
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>Alternatively, a transaction can be begun explicitly using <code>begin()</code>:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_comment"># non transactional session
-</span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">transactional</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">try</span><span class="python_operator">:
     </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
     </span><span class="python_name">item2</span><span class="python_operator">.</span><span class="python_name">bar </span><span class="python_operator">= </span><span class="python_literal">'foo'</span><span class="python_operator">
+</span>
+    <span class="python_comment"># commit- will immediately go into a new transaction afterwards
+    </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
-    </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
-    </span><span class="python_keyword">raise</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+    </span><span class="python_comment"># rollback - will immediately go into a new transaction afterwards.
+</span><span class="python_operator">    </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
+<p>Things to note above:
+</p>
+<ul>
+ <li><p>When using a transactional session, either a <code>rollback()</code> or a <code>close()</code> call <strong>is required</strong> when an error is raised by <code>flush()</code> or <code>commit()</code>.  The <code>flush()</code> error condition will issue a ROLLBACK to the database automatically, but the state of the <code>Session</code> itself remains in an "undefined" state until the user decides whether to rollback or close.
+</p>
+
+ </li>
+
+ <li><p>The <code>commit()</code> call unconditionally issues a <code>flush()</code>.  Particularly when using <code>transactional=True</code> in conjunction with <code>autoflush=True</code>, explicit <code>flush()</code> calls are usually not needed.
+     <br></br>
+   Alternatively, a transaction can be begun explicitly using <code>begin()</code>:
+</p>
+<p>{python}
+   # non transactional session
+   Session = sessionmaker(transactional=False)
+   sess = Session()
+   sess.begin()
+   try:
+       item1 = sess.query(Item).get(1)
+       item2 = sess.query(Item).get(2)
+       item1.foo = 'bar'
+       item2.bar = 'foo'
+       sess.commit()
+   except:
+       sess.rollback()
+       raise
+</p>
+
+ </li>
+</ul>
+<p>Like the <code>transactional</code> example, the same rules apply; an explicit <code>rollback()</code> or <code>close()</code> is required when an error occurs, and the <code>commit()</code> call issues a <code>flush()</code> as well.
+</p>
 <p>Session also supports Python 2.5's with statement so that the example above can be written as:
 </p>
 
@@ -1173,7 +1215,7 @@
     </span><span class="python_name">item2</span><span class="python_operator">.</span><span class="python_name">bar </span><span class="python_operator">= </span><span class="python_literal">'foo'</span><span class="python_operator">
 </span></pre>
     </div>
-<p>For MySQL and Postgres (and soon Oracle), "nested" transactions can be accomplished which use SAVEPOINT behavior, via the <code>begin_nested()</code> method:
+<p>Subtransactions can be created by calling the <code>begin()</code> method repeatedly. For each transaction you <code>begin()</code> you must always call either <code>commit()</code> or <code>rollback()</code>. Note that this includes the implicit transaction created by the transactional session. When a subtransaction is created the current transaction of the session is set to that transaction. Commiting the subtransaction will return you to the next outer transaction. Rolling it back will also return you to the next outer transaction, but in addition it will roll back database state to the innermost transaction that supports rolling back to. Usually this means the root transaction, unless you use the nested transaction functionality via the <code>begin_nested()</code> method. MySQL and Postgres (and soon Oracle) support using "nested" transactions by creating SAVEPOINTs, :
 </p>
 
     
@@ -1194,7 +1236,7 @@
 <span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">() </span><span class="python_comment"># commits u1 and u2</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Finally, for MySQL, Postgres, and soon Oracle as well, the session can be instructed to use two-phase commit semantics using the flag <code>twophase=True</code>, which coordinates transactions across multiple databases:
+<p>Finally, for MySQL, Postgres, and soon Oracle as well, the session can be instructed to use two-phase commit semantics. This will coordinate the commiting of transactions across databases so that the transaction is either committed or rolled back in all databases. You can also <code>prepare()</code> the session for interacting with transactions not managed by SQLAlchemy. To use two phase transactions set the flag <code>twophase=True</code> on the session:
 </p>
 
     
@@ -1218,10 +1260,12 @@
 </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
+<p>Be aware that when a crash occurs in one of the databases while the the transactions are prepared you have to manually commit or rollback the prepared transactions in your database as appropriate.
+</p>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1260,7 +1304,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1274,11 +1318,11 @@
     
     
 
-<p>SQL constructs and string statements can be executed via the <code>Session</code>.  You'd want to do this normally when your <code>Session</code> is transactional and youd like your free-standing SQL statements to participate in the same transaction.
+<p>SQL constructs and string statements can be executed via the <code>Session</code>.  You'd want to do this normally when your <code>Session</code> is transactional and you'd like your free-standing SQL statements to participate in the same transaction.
 </p>
 <p>The two ways to do this are to use the connection/execution services of the Session, or to have your Session participate in a regular SQL transaction.
 </p>
-<p>First, a Session thats associated with an Engine or Connection can execute statements immediately (whether or not its transactional):
+<p>First, a Session thats associated with an Engine or Connection can execute statements immediately (whether or not it's transactional):
 </p>
 
     
@@ -1364,7 +1408,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1445,7 +1489,7 @@
 </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
-<p>To "dispose" of the <code>Session</code>, theres two general approaches.  One is to close out the current session, but to leave it assigned to the current context.  This allows the same object to be re-used on another operation.  This may be called from a current, instantiated <code>Session</code>:
+<p>To "dispose" of the <code>Session</code>, there's two general approaches.  One is to close out the current session, but to leave it assigned to the current context.  This allows the same object to be re-used on another operation.  This may be called from a current, instantiated <code>Session</code>:
 </p>
 
     
@@ -1484,7 +1528,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1515,7 +1559,7 @@ web request    ->
                                          # load some objects, save some changes
                                          objects = sess.query(MyClass).all()
 
-                                         # some other code calls Session, its the 
+                                         # some other code calls Session, it's the 
                                          # same contextual session as "sess"
                                          sess2 = Session()
                                          sess2.save(foo)
@@ -1527,14 +1571,14 @@ web request    ->
 web response   <-
 </pre>
     </div>
-<p>Above, we illustrate a <em>typical</em> organization of duties, where the "Web Framework" layer has some integration built-in to manage the span of ORM sessions.  Upon the initial handling of an incoming web request, the framework passes control to a controller.  The controller then calls <code>Session()</code> when it wishes to work with the ORM; this method establishes the contextual Session which will remain until it's removed.  Disparate parts of the controller code may all call <code>Session()</code> and will get the same session object.  Then, when the controller has completed and the reponse is to be sent to the web server, the framework <strong>closes out</strong> the current contextual session, above using the <code>remove()</code> method which removes the session from the context altogether.
+<p>Above, we illustrate a <em>typical</em> organization of duties, where the "Web Framework" layer has some integration built-in to manage the span of ORM sessions.  Upon the initial handling of an incoming web request, the framework passes control to a controller.  The controller then calls <code>Session()</code> when it wishes to work with the ORM; this method establishes the contextual Session which will remain until it's removed.  Disparate parts of the controller code may all call <code>Session()</code> and will get the same session object.  Then, when the controller has completed and the response is to be sent to the web server, the framework <strong>closes out</strong> the current contextual session, above using the <code>remove()</code> method which removes the session from the context altogether.
 </p>
 <p>As an alternative, the "finalization" step can also call <code>Session.close()</code>, which will leave the same session object in place.  Which one is better ?  For a web framework which runs from a fixed pool of threads, it doesn't matter much.  For a framework which runs a <strong>variable</strong> number of threads, or which <strong>creates and disposes</strong> of a thread for each request, <code>remove()</code> is better, since it leaves no resources associated with the thread which might not exist.
 </p>
 <ul>
  <li><p>Why close out the session at all ?  Why not just leave it going so the next request doesn't have to do as many queries ?
 </p>
-<p>There are some cases where you may actually want to do this.  However, this is a special case where you are dealing with data which <strong>does not change</strong> very often, or you don't care about the "freshness" of the data.  In reality, a single thread of a web server may, on a slow day, sit around for many minutes or even hours without being accessed.  When it's next accessed, if data from the previous request still exists in the session, that data may be very stale indeed.  So its generally better to have an empty session at the start of a web request.
+<p>There are some cases where you may actually want to do this.  However, this is a special case where you are dealing with data which <strong>does not change</strong> very often, or you don't care about the "freshness" of the data.  In reality, a single thread of a web server may, on a slow day, sit around for many minutes or even hours without being accessed.  When it's next accessed, if data from the previous request still exists in the session, that data may be very stale indeed.  So it's generally better to have an empty session at the start of a web request.
 </p>
 
  </li>
@@ -1542,7 +1586,7 @@ web response   <-
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1622,7 +1666,7 @@ web response   <-
 <span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">save_on_init</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">save_on_init</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_comment"># objects now again require expicit "save"
+<span class="python_comment"># objects now again require explicit "save"
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">newuser </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">assert </span><span class="python_name">newuser </span><span class="python_keyword">in </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">new</span><span class="python_operator">
 </span><span class="python_name">False</span><span class="python_operator">
@@ -1639,7 +1683,7 @@ web response   <-
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1697,7 +1741,7 @@ web response   <-
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1718,7 +1762,7 @@ web response   <-
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1769,7 +1813,7 @@ web response   <-
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

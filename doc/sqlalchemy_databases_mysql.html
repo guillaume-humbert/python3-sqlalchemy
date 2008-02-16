@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -47,7 +47,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
             Up: <a href="docstrings.html">API Documentation</a>
@@ -67,97 +67,97 @@
     <ul>
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSBigInteger">class MSBigInteger(MSInteger)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSBinary">class MSBinary(_BinaryType)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSBit">class MSBit(TypeEngine)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSBlob">class MSBlob(_BinaryType)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSBoolean">class MSBoolean(Boolean)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSChar">class MSChar(_StringType,CHAR)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDate">class MSDate(Date)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDateTime">class MSDateTime(DateTime)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDecimal">class MSDecimal(MSNumeric)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSDouble">class MSDouble(Float,_NumericType)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSEnum">class MSEnum(MSString)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSFloat">class MSFloat(Float,_NumericType)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSInteger">class MSInteger(Integer,_NumericType)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSLongBlob">class MSLongBlob(MSBlob)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSLongText">class MSLongText(MSText)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSMediumBlob">class MSMediumBlob(MSBlob)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSMediumText">class MSMediumText(MSText)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSNChar">class MSNChar(_StringType,CHAR)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSNVarChar">class MSNVarChar(_StringType,String)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSNumeric">class MSNumeric(Numeric,_NumericType)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSSet">class MSSet(MSString)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSSmallInteger">class MSSmallInteger(SmallInteger,MSInteger)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSString">class MSString(_StringType,String)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSText">class MSText(_StringType,Text)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSTime">class MSTime(Time)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSTimeStamp">class MSTimeStamp(TIMESTAMP)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSTinyBlob">class MSTinyBlob(MSBlob)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSTinyInteger">class MSTinyInteger(MSInteger)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSTinyText">class MSTinyText(MSText)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSVarBinary">class MSVarBinary(_BinaryType)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSYear">class MSYear(TypeEngine)</a></li>
-        
+
     </ul>
 
 	</div>
@@ -280,6 +280,15 @@ For the best performance, set the quoting style server-wide in <tt class="docuti
 by supplying <tt class="docutils literal"><span class="pre">--sql-mode</span></tt> to <tt class="docutils literal"><span class="pre">mysqld</span></tt>.  You can also use a <tt class="docutils literal"><span class="pre">Pool</span></tt> hook
 to issue a <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span> <span class="pre">sql_mode='...'</span></tt> on connect to configure each
 connection.</p>
+<p>If you do not specify 'use_ansiquotes', the regular MySQL quoting style is
+used by default.  Table reflection operations will query the server</p>
+<p>If you do issue a 'SET sql_mode' through SQLAlchemy, the dialect must be
+updated if the quoting style is changed.  Again, this change will affect all
+connections:</p>
+<pre class="literal-block">
+connection.execute('SET sql_mode=&quot;ansi&quot;')
+connection.dialect.use_ansiquotes = True
+</pre>
 <p>For normal SQLAlchemy usage, loading this module is unnescesary.  It will be
 loaded on-demand when a MySQL connection is needed.  The generic column types
 like <tt class="docutils literal"><span class="pre">String</span></tt> and <tt class="docutils literal"><span class="pre">Integer</span></tt> will automatically be adapted to the optimal
@@ -382,7 +391,7 @@ underlying database API, which continue to be numeric.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -444,7 +453,7 @@ will generate a BLOB.  This usage is deprecated.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -503,7 +512,7 @@ type.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -564,7 +573,7 @@ subsitituting the smallest TEXT type sufficient to store
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -618,7 +627,7 @@ subsitituting the smallest TEXT type sufficient to store
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -674,7 +683,7 @@ with the national character set.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -708,7 +717,7 @@ with the national character set.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -742,7 +751,7 @@ with the national character set.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -800,7 +809,7 @@ underlying database API, which continue to be numeric.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -858,7 +867,7 @@ underlying database API, which continue to be numeric.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -948,7 +957,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1016,7 +1025,7 @@ underlying database API, which continue to be numeric.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1071,7 +1080,7 @@ underlying database API, which continue to be numeric.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1105,7 +1114,7 @@ underlying database API, which continue to be numeric.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1172,7 +1181,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1206,7 +1215,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1273,7 +1282,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1330,7 +1339,7 @@ with the national character set.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1388,7 +1397,7 @@ with the national character set.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1466,7 +1475,7 @@ underlying database API, which continue to be numeric.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1561,7 +1570,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1616,7 +1625,7 @@ underlying database API, which continue to be numeric.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1685,7 +1694,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1756,7 +1765,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1800,7 +1809,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1846,7 +1855,7 @@ PassiveDefault(sql.text('CURRENT TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1880,7 +1889,7 @@ PassiveDefault(sql.text('CURRENT TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1938,7 +1947,7 @@ underlying database API, which continue to be numeric.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2005,7 +2014,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2054,7 +2063,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -2099,7 +2108,7 @@ collation of character data.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

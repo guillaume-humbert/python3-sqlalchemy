@@ -2,14 +2,15 @@
 
 # monkeypatches unittest.TestLoader.suiteClass at import time
 
-import testbase
-import itertools, unittest, re, sys, os, operator
+import itertools, os, operator, re, sys, unittest, warnings
 from cStringIO import StringIO
 import testlib.config as config
-sql, MetaData, clear_mappers, Session, util = None, None, None, None, None
+from testlib.compat import *
 
+sql, sqltypes, schema, MetaData, clear_mappers, Session, util = None, None, None, None, None, None, None
+sa_exceptions = None
 
-__all__ = ('PersistTest', 'AssertMixin', 'ORMTest', 'SQLCompileTest')
+__all__ = ('TestBase', 'AssertsExecutionResults', 'ComparesTables', 'ORMTest', 'AssertsCompiledSQL')
 
 _ops = { '<': operator.lt,
          '>': operator.gt,
@@ -20,6 +21,60 @@ _ops = { '<': operator.lt,
          'in': operator.contains,
          'between': lambda val, pair: val >= pair[0] and val <= pair[1],
          }
+
+# sugar ('testing.db'); set here by config() at runtime
+db = None
+
+def fails_if(callable_):
+    """Mark a test as expected to fail if callable_ returns True.
+
+    If the callable returns false, the test is run and reported as normal.
+    However if the callable returns true, the test is expected to fail and the
+    unit test logic is inverted: if the test fails, a success is reported.  If
+    the test succeeds, a failure is reported.
+    """
+
+    docstring = getattr(callable_, '__doc__', None) or callable_.__name__
+    description = docstring.split('\n')[0]
+
+    def decorate(fn):
+        fn_name = fn.__name__
+        def maybe(*args, **kw):
+            if not callable_():
+                return fn(*args, **kw)
+            else:
+                try:
+                    fn(*args, **kw)
+                except Exception, ex:
+                    print ("'%s' failed as expected (condition: %s): %s " % (
+                        fn_name, description, str(ex)))
+                    return True
+                else:
+                    raise AssertionError(
+                        "Unexpected success for '%s' (condition: %s)" %
+                        (fn_name, description))
+        return _function_named(maybe, fn_name)
+    return decorate
+
+
+def future(fn):
+    """Mark a test as expected to unconditionally fail.
+
+    Takes no arguments, omit parens when using as a decorator.
+    """
+
+    fn_name = fn.__name__
+    def decorated(*args, **kw):
+        try:
+            fn(*args, **kw)
+        except Exception, ex:
+            print ("Future test '%s' failed as expected: %s " % (
+                fn_name, str(ex)))
+            return True
+        else:
+            raise AssertionError(
+                "Unexpected success for future test '%s'" % fn_name)
+    return _function_named(decorated, fn_name)
 
 def fails_on(*dbs):
     """Mark a test as expected to fail on one or more database implementations.
@@ -47,11 +102,7 @@ def fails_on(*dbs):
                     raise AssertionError(
                         "Unexpected success for '%s' on DB implementation '%s'" %
                         (fn_name, config.db.name))
-        try:
-            maybe.__name__ = fn_name
-        except:
-            pass
-        return maybe
+        return _function_named(maybe, fn_name)
     return decorate
 
 def fails_on_everything_except(*dbs):
@@ -78,11 +129,7 @@ def fails_on_everything_except(*dbs):
                     raise AssertionError(
                         "Unexpected success for '%s' on DB implementation '%s'" %
                         (fn_name, config.db.name))
-        try:
-            maybe.__name__ = fn_name
-        except:
-            pass
-        return maybe
+        return _function_named(maybe, fn_name)
     return decorate
 
 def unsupported(*dbs):
@@ -101,17 +148,14 @@ def unsupported(*dbs):
                 return True
             else:
                 return fn(*args, **kw)
-        try:
-            maybe.__name__ = fn_name
-        except:
-            pass
-        return maybe
+        return _function_named(maybe, fn_name)
     return decorate
 
 def exclude(db, op, spec):
     """Mark a test as unsupported by specific database server versions.
 
     Stackable, both with other excludes and other decorators. Examples::
+
       # Not supported by mydb versions less than 1, 0
       @exclude('mydb', '<', (1,0))
       # Other operators work too
@@ -128,11 +172,7 @@ def exclude(db, op, spec):
                 return True
             else:
                 return fn(*args, **kw)
-        try:
-            maybe.__name__ = fn_name
-        except:
-            pass
-        return maybe
+        return _function_named(maybe, fn_name)
     return decorate
 
 def _is_excluded(db, op, spec):
@@ -168,6 +208,95 @@ def _server_version(bind=None):
     if bind is None:
         bind = config.db
     return bind.dialect.server_version_info(bind.contextual_connect())
+
+def emits_warning(*messages):
+    """Mark a test as emitting a warning.
+
+    With no arguments, squelches all SAWarning failures.  Or pass one or more
+    strings; these will be matched to the root of the warning description by
+    warnings.filterwarnings().
+    """
+
+    # TODO: it would be nice to assert that a named warning was
+    # emitted. should work with some monkeypatching of warnings,
+    # and may work on non-CPython if they keep to the spirit of
+    # warnings.showwarning's docstring.
+    # - update: jython looks ok, it uses cpython's module
+    def decorate(fn):
+        def safe(*args, **kw):
+            global sa_exceptions
+            if sa_exceptions is None:
+                import sqlalchemy.exceptions as sa_exceptions
+
+            if not messages:
+                filters = [dict(action='ignore',
+                                category=sa_exceptions.SAWarning)]
+            else:
+                filters = [dict(action='ignore',
+                                message=message,
+                                category=sa_exceptions.SAWarning)
+                           for message in messages ]
+            for f in filters:
+                warnings.filterwarnings(**f)
+            try:
+                return fn(*args, **kw)
+            finally:
+                resetwarnings()
+        return _function_named(safe, fn.__name__)
+    return decorate
+
+def uses_deprecated(*messages):
+    """Mark a test as immune from fatal deprecation warnings.
+
+    With no arguments, squelches all SADeprecationWarning failures.
+    Or pass one or more strings; these will be matched to the root
+    of the warning description by warnings.filterwarnings().
+
+    As a special case, you may pass a function name prefixed with //
+    and it will be re-written as needed to match the standard warning
+    verbiage emitted by the sqlalchemy.util.deprecated decorator.
+    """
+
+    def decorate(fn):
+        def safe(*args, **kw):
+            global sa_exceptions
+            if sa_exceptions is None:
+                import sqlalchemy.exceptions as sa_exceptions
+
+            if not messages:
+                filters = [dict(action='ignore',
+                                category=sa_exceptions.SADeprecationWarning)]
+            else:
+                filters = [dict(action='ignore',
+                                message=message,
+                                category=sa_exceptions.SADeprecationWarning)
+                           for message in
+                           [ (m.startswith('//') and
+                              ('Call to deprecated function ' + m[2:]) or m)
+                             for m in messages] ]
+
+            for f in filters:
+                warnings.filterwarnings(**f)
+            try:
+                return fn(*args, **kw)
+            finally:
+                resetwarnings()
+        return _function_named(safe, fn.__name__)
+    return decorate
+
+def resetwarnings():
+    """Reset warning behavior to testing defaults."""
+
+    global sa_exceptions
+    if sa_exceptions is None:
+        import sqlalchemy.exceptions as sa_exceptions
+
+    warnings.resetwarnings()
+    warnings.filterwarnings('error', category=sa_exceptions.SADeprecationWarning)
+    warnings.filterwarnings('error', category=sa_exceptions.SAWarning)
+
+    if sys.version_info < (2, 4):
+        warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 def against(*queries):
@@ -207,6 +336,7 @@ def rowset(results):
     """
 
     return set([tuple(row) for row in results])
+
 
 class TestData(object):
     """Tracks SQL expressions as they are executed via an instrumented ExecutionContext."""
@@ -304,13 +434,17 @@ class ExecutionContextWrapper(object):
             query = re.sub(r':([\w_]+)', repl, query)
         return query
 
-class PersistTest(unittest.TestCase):
+class TestBase(unittest.TestCase):
     # A sequence of dialect names to exclude from the test class.
     __unsupported_on__ = ()
 
     # If present, test class is only runnable for the *single* specified
     # dialect.  If you need multiple, use __unsupported_on__ and invert.
     __only_on__ = None
+
+    # A sequence of no-arg callables. If any are True, the entire testcase is
+    # skipped.
+    __skip_if__ = None
 
     def __init__(self, *args, **params):
         unittest.TestCase.__init__(self, *args, **params)
@@ -325,7 +459,12 @@ class PersistTest(unittest.TestCase):
         """overridden to not return docstrings"""
         return None
 
-class SQLCompileTest(PersistTest):
+    if not hasattr(unittest.TestCase, 'assertTrue'):
+        assertTrue = unittest.TestCase.failUnless
+    if not hasattr(unittest.TestCase, 'assertFalse'):
+        assertFalse = unittest.TestCase.failIf
+
+class AssertsCompiledSQL(object):
     def assert_compile(self, clause, result, params=None, checkparams=None, dialect=None):
         if dialect is None:
             dialect = getattr(self, '__dialect__', None)
@@ -341,15 +480,46 @@ class SQLCompileTest(PersistTest):
 
         cc = re.sub(r'\n', '', str(c))
 
-        self.assert_(cc == result, "\n'" + cc + "'\n does not match \n'" + result + "'")
+        self.assertEquals(cc, result)
 
         if checkparams is not None:
-            self.assert_(c.construct_params(params) == checkparams, "params dont match" + repr(c.params))
+            self.assertEquals(c.construct_params(params), checkparams)
 
-class AssertMixin(PersistTest):
-    """given a list-based structure of keys/properties which represent information within an object structure, and
-    a list of actual objects, asserts that the list of objects corresponds to the structure."""
+class ComparesTables(object):
+    def assert_tables_equal(self, table, reflected_table):
+        global sqltypes, schema
+        if sqltypes is None:
+            import sqlalchemy.types as sqltypes
+        if schema is None:
+            import sqlalchemy.schema as schema
+        base_mro = sqltypes.TypeEngine.__mro__
+        assert len(table.c) == len(reflected_table.c)
+        for c, reflected_c in zip(table.c, reflected_table.c):
+            self.assertEquals(c.name, reflected_c.name)
+            assert reflected_c is reflected_table.c[c.name]
+            self.assertEquals(c.primary_key, reflected_c.primary_key)
+            self.assertEquals(c.nullable, reflected_c.nullable)
+            assert len(
+                set(type(reflected_c.type).__mro__).difference(base_mro).intersection(
+                set(type(c.type).__mro__).difference(base_mro)
+                )
+            ) > 0, "Type '%s' doesn't correspond to type '%s'" % (reflected_c.type, c.type)
+            
+            if isinstance(c.type, sqltypes.String):
+                self.assertEquals(c.type.length, reflected_c.type.length)
 
+            self.assertEquals(set([f.column.name for f in c.foreign_keys]), set([f.column.name for f in reflected_c.foreign_keys]))
+            if c.default:
+                assert isinstance(reflected_c.default, schema.PassiveDefault)
+            elif not c.primary_key or not against('postgres'):
+                assert reflected_c.default is None
+        
+        assert len(table.primary_key) == len(reflected_table.primary_key)
+        for c in table.primary_key:
+            assert reflected_table.primary_key.columns[c.name]
+
+    
+class AssertsExecutionResults(object):
     def assert_result(self, result, class_, *objects):
         result = list(result)
         print repr(result)
@@ -459,7 +629,7 @@ class AssertMixin(PersistTest):
             testdata.buffer = None
 
 _otest_metadata = None
-class ORMTest(AssertMixin):
+class ORMTest(TestBase, AssertsExecutionResults):
     keep_mappers = False
     keep_data = False
     metadata = None
@@ -520,7 +690,7 @@ class TTestSuite(unittest.TestSuite):
     """A TestSuite with once per TestCase setUpAll() and tearDownAll()"""
 
     def __init__(self, tests=()):
-        if len(tests) >0 and isinstance(tests[0], PersistTest):
+        if len(tests) > 0 and isinstance(tests[0], TestBase):
             self._initTest = tests[0]
         else:
             self._initTest = None
@@ -550,6 +720,12 @@ class TTestSuite(unittest.TestSuite):
                 print "'%s' unsupported on DB implementation '%s'" % (
                     init.__class__.__name__, config.db.name)
                 return True
+            if (getattr(init, '__skip_if__', False)):
+                for c in getattr(init, '__skip_if__'):
+                    if c():
+                        print "'%s' skipped by %s" % (
+                            init.__class__.__name__, c.__name__)
+                        return True
             for rule in getattr(init, '__excluded_on__', ()):
                 if _is_excluded(*rule):
                     print "'%s' unsupported on DB %s version %s" % (
@@ -557,6 +733,7 @@ class TTestSuite(unittest.TestSuite):
                         _server_version())
                     return True
             try:
+                resetwarnings()
                 init.setUpAll()
             except:
                 # skip tests if global setup fails
@@ -565,9 +742,11 @@ class TTestSuite(unittest.TestSuite):
                     result.addError(test, ex)
                 return False
         try:
+            resetwarnings()
             return self.do_run(result)
         finally:
             try:
+                resetwarnings()
                 if init is not None:
                     init.tearDownAll()
             except:

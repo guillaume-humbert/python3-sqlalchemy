@@ -1,4 +1,4 @@
-import testbase
+import testenv; testenv.configure_for_tests()
 
 from sqlalchemy import *
 from sqlalchemy import exceptions
@@ -7,7 +7,7 @@ from sqlalchemy.ext.sessioncontext import SessionContext
 from testlib import *
 import testlib.tables as tables
 
-class O2MCascadeTest(AssertMixin):
+class O2MCascadeTest(TestBase, AssertsExecutionResults):
     def tearDown(self):
         tables.delete()
 
@@ -132,7 +132,7 @@ class O2MCascadeTest(AssertMixin):
         """test that unloaded collections are still included in a delete-cascade by default."""
 
         sess = create_session()
-        u = sess.query(tables.User).get_by(user_name='ed')
+        u = sess.query(tables.User).filter_by(user_name='ed').one()
         # assert 'addresses' collection not loaded
         assert 'addresses' not in u.__dict__
         sess.delete(u)
@@ -175,7 +175,7 @@ class O2MCascadeTest(AssertMixin):
         self.assert_(tables.orderitems.count(tables.orders.c.user_id.in_(ids)  &(tables.orderitems.c.order_id==tables.orders.c.order_id)).scalar() == 0)
 
 
-class M2OCascadeTest(AssertMixin):
+class M2OCascadeTest(TestBase, AssertsExecutionResults):
     def tearDown(self):
         ctx.current.clear()
         for t in metadata.table_iterator(reverse=True):
@@ -185,10 +185,11 @@ class M2OCascadeTest(AssertMixin):
         clear_mappers()
         metadata.drop_all()
 
+    @testing.uses_deprecated('SessionContext')
     def setUpAll(self):
         global ctx, data, metadata, User, Pref, Extra
         ctx = SessionContext(create_session)
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         extra = Table("extra", metadata,
             Column("extra_id", Integer, Sequence("extra_id_seq", optional=True), primary_key=True),
             Column("prefs_id", Integer, ForeignKey("prefs.prefs_id"))
@@ -238,7 +239,7 @@ class M2OCascadeTest(AssertMixin):
 
     @testing.fails_on('maxdb')
     def testorphan(self):
-        jack = ctx.current.query(User).get_by(user_name='jack')
+        jack = ctx.current.query(User).filter_by(user_name='jack').one()
         p = jack.pref
         e = jack.pref.extra[0]
         jack.pref = None
@@ -248,7 +249,7 @@ class M2OCascadeTest(AssertMixin):
 
     @testing.fails_on('maxdb')
     def testorphan2(self):
-        jack = ctx.current.query(User).get_by(user_name='jack')
+        jack = ctx.current.query(User).filter_by(user_name='jack').one()
         p = jack.pref
         e = jack.pref.extra[0]
         ctx.current.clear()
@@ -265,19 +266,19 @@ class M2OCascadeTest(AssertMixin):
 
     def testorphan3(self):
         """test that double assignment doesn't accidentally reset the 'parent' flag."""
-        
-        jack = ctx.current.query(User).get_by(user_name='jack')
+
+        jack = ctx.current.query(User).filter_by(user_name='jack').one()
         newpref = Pref("newpref")
         jack.pref = newpref
         jack.pref = newpref
         ctx.current.flush()
-        
 
 
-class M2MCascadeTest(AssertMixin):
+
+class M2MCascadeTest(TestBase, AssertsExecutionResults):
     def setUpAll(self):
         global metadata, a, b, atob
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         a = Table('a', metadata,
             Column('id', Integer, primary_key=True),
             Column('data', String(30))
@@ -469,12 +470,12 @@ class UnsavedOrphansTest2(ORMTest):
         assert item.id is None
         assert attr.id is None
 
-class DoubleParentOrphanTest(AssertMixin):
+class DoubleParentOrphanTest(TestBase, AssertsExecutionResults):
     """test orphan detection for an entity with two parent relations"""
 
     def setUpAll(self):
         global metadata, address_table, businesses, homes
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         address_table = Table('addresses', metadata,
             Column('address_id', Integer, primary_key=True),
             Column('street', String(30)),
@@ -536,11 +537,11 @@ class DoubleParentOrphanTest(AssertMixin):
         except exceptions.FlushError, e:
             assert True
 
-class CollectionAssignmentOrphanTest(AssertMixin):
+class CollectionAssignmentOrphanTest(TestBase, AssertsExecutionResults):
     def setUpAll(self):
         global metadata, table_a, table_b
 
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         table_a = Table('a', metadata,
                         Column('id', Integer, primary_key=True),
                         Column('foo', String(30)))
@@ -592,4 +593,4 @@ class CollectionAssignmentOrphanTest(AssertMixin):
         assert table_b.count().scalar() == 3
 
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()
