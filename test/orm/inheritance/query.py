@@ -7,6 +7,7 @@ import testenv; testenv.configure_for_tests()
 import sets
 from sqlalchemy import *
 from sqlalchemy.orm import *
+from sqlalchemy import exceptions
 from testlib import *
 from testlib import fixtures
 
@@ -194,13 +195,100 @@ def make_test(select_type):
                 self.assertEquals(sess.query(Engineer).join('paperwork', aliased=aliased).filter(Paperwork.description.like('%#2%')).all(), [e1])
 
                 self.assertEquals(sess.query(Person).join('paperwork', aliased=aliased).filter(Person.c.name.like('%dog%')).filter(Paperwork.description.like('%#2%')).all(), [m1])
+
+        def test_join_from_with_polymorphic(self):
+            sess = create_session()
+
+            for aliased in (True, False):
+                sess.clear()
+                self.assertEquals(sess.query(Person).with_polymorphic(Manager).join('paperwork', aliased=aliased).filter(Paperwork.description.like('%review%')).all(), [b1, m1])
+
+                sess.clear()
+                self.assertEquals(sess.query(Person).with_polymorphic([Manager, Engineer]).join('paperwork', aliased=aliased).filter(Paperwork.description.like('%#2%')).all(), [e1, m1])
+
+                sess.clear()
+                self.assertEquals(sess.query(Person).with_polymorphic([Manager, Engineer]).join('paperwork', aliased=aliased).filter(Person.c.name.like('%dog%')).filter(Paperwork.description.like('%#2%')).all(), [m1])
     
         def test_join_to_polymorphic(self):
             sess = create_session()
             self.assertEquals(sess.query(Company).join('employees').filter(Person.name=='vlad').one(), c2)
 
             self.assertEquals(sess.query(Company).join('employees', aliased=True).filter(Person.name=='vlad').one(), c2)
-    
+        
+        def test_polymorphic_any(self):
+            sess = create_session()
+
+            self.assertEquals(
+                sess.query(Company).filter(Company.employees.of_type(Engineer).any(Engineer.primary_language=='cobol')).one(),
+                c2
+                )
+
+            self.assertEquals(
+                sess.query(Company).filter(Company.employees.of_type(Boss).any(Boss.golf_swing=='fore')).one(),
+                c1
+                )
+            self.assertEquals(
+                sess.query(Company).filter(Company.employees.of_type(Boss).any(Manager.manager_name=='pointy')).one(),
+                c1
+                )
+
+            if select_type == '':
+                self.assertEquals(
+                    sess.query(Company).filter(Company.employees.any(and_(Engineer.primary_language=='cobol', people.c.person_id==engineers.c.person_id))).one(),
+                    c2
+                    )
+        
+        def test_expire(self):
+            """test that individual column refresh doesn't get tripped up by the select_table mapper"""
+            
+            sess = create_session()
+            m1 = sess.query(Manager).filter(Manager.name=='dogbert').one()
+            sess.expire(m1)
+            assert m1.status == 'regular manager'
+
+            m2 = sess.query(Manager).filter(Manager.name=='pointy haired boss').one()
+            sess.expire(m2, ['manager_name', 'golf_swing'])
+            assert m2.golf_swing=='fore'
+            
+        def test_with_polymorphic(self):
+            
+            sess = create_session()
+            
+            # compare to entities without related collections to prevent additional lazy SQL from firing on 
+            # loaded entities
+            emps_without_relations = [
+                Engineer(name="dilbert", engineer_name="dilbert", primary_language="java", status="regular engineer"),
+                Engineer(name="wally", engineer_name="wally", primary_language="c++", status="regular engineer"),
+                Boss(name="pointy haired boss", golf_swing="fore", manager_name="pointy", status="da boss"),
+                Manager(name="dogbert", manager_name="dogbert", status="regular manager"),
+                Engineer(name="vlad", engineer_name="vlad", primary_language="cobol", status="elbonian engineer")
+            ]
+            
+            def go():
+                self.assertEquals(sess.query(Person).with_polymorphic(Engineer).filter(Engineer.primary_language=='java').all(), emps_without_relations[0:1])
+            self.assert_sql_count(testing.db, go, 1)
+            
+            sess.clear()
+            def go():
+                self.assertEquals(sess.query(Person).with_polymorphic('*').all(), emps_without_relations)
+            self.assert_sql_count(testing.db, go, 1)
+
+            sess.clear()
+            def go():
+                self.assertEquals(sess.query(Person).with_polymorphic(Engineer).all(), emps_without_relations)
+            self.assert_sql_count(testing.db, go, 3)
+
+            sess.clear()
+            def go():
+                self.assertEquals(sess.query(Person).with_polymorphic(Engineer, people.outerjoin(engineers)).all(), emps_without_relations)
+            self.assert_sql_count(testing.db, go, 3)
+            
+            sess.clear()
+            def go():
+                # limit the polymorphic join down to just "Person", overriding select_table
+                self.assertEquals(sess.query(Person).with_polymorphic(Person).all(), emps_without_relations)
+            self.assert_sql_count(testing.db, go, 6)
+
         def test_join_to_subclass(self):
             sess = create_session()
 
@@ -218,6 +306,16 @@ def make_test(select_type):
                 self.assertEquals(sess.query(Person).join(Engineer.machines).filter(Machine.name.ilike("%ibm%")).all(), [e1, e3])
                 self.assertEquals(sess.query(Company).join(['employees', Engineer.machines]).all(), [c1, c2])
                 self.assertEquals(sess.query(Company).join(['employees', Engineer.machines]).filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
+            
+            # non-polymorphic
+            self.assertEquals(sess.query(Engineer).join(Engineer.machines).all(), [e1, e2, e3])
+            self.assertEquals(sess.query(Engineer).join(Engineer.machines).filter(Machine.name.ilike("%ibm%")).all(), [e1, e3])
+
+            # here's the new way
+            self.assertEquals(sess.query(Company).join(Company.employees.of_type(Engineer)).filter(Engineer.primary_language=='java').all(), [c1])
+            self.assertEquals(sess.query(Company).join([Company.employees.of_type(Engineer), 'machines']).filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
+
+
         
         def test_join_through_polymorphic(self):
 
@@ -277,6 +375,58 @@ for select_type in ('', 'Unions', 'AliasedJoins', 'Joins'):
     exec("%s = testclass" % testclass.__name__)
     
 del testclass
+
+class SelfReferentialTest(ORMTest):
+    keep_mappers = True
+    
+    def define_tables(self, metadata):
+        global people, engineers
+        people = Table('people', metadata,
+           Column('person_id', Integer, Sequence('person_id_seq', optional=True), primary_key=True),
+           Column('name', String(50)),
+           Column('type', String(30)))
+
+        engineers = Table('engineers', metadata,
+           Column('person_id', Integer, ForeignKey('people.person_id'), primary_key=True),
+           Column('primary_language', String(50)),
+           Column('reports_to_id', Integer, ForeignKey('people.person_id'))
+          )
+
+        mapper(Person, people, polymorphic_on=people.c.type, polymorphic_identity='person')
+        mapper(Engineer, engineers, inherits=Person, 
+          inherit_condition=engineers.c.person_id==people.c.person_id,
+          polymorphic_identity='engineer', properties={
+          'reports_to':relation(Person, primaryjoin=people.c.person_id==engineers.c.reports_to_id)
+        })
+    
+    def test_has(self):
+        
+        p1 = Person(name='dogbert')
+        e1 = Engineer(name='dilbert', primary_language='java', reports_to=p1)
+        sess = create_session()
+        sess.save(p1)
+        sess.save(e1)
+        sess.flush()
+        sess.clear()
+        
+        self.assertEquals(sess.query(Engineer).filter(Engineer.reports_to.has(Person.name=='dogbert')).first(), Engineer(name='dilbert'))
+        
+    def test_join(self):
+        p1 = Person(name='dogbert')
+        e1 = Engineer(name='dilbert', primary_language='java', reports_to=p1)
+        sess = create_session()
+        sess.save(p1)
+        sess.save(e1)
+        sess.flush()
+        sess.clear()
+        
+        self.assertEquals(sess.query(Engineer).join('reports_to', aliased=True).filter(Person.name=='dogbert').first(), Engineer(name='dilbert'))
+        
+    def test_noalias_raises(self):
+        sess = create_session()
+        def go():
+            sess.query(Engineer).join('reports_to')
+        self.assertRaises(exceptions.InvalidRequestError, go)
 
 if __name__ == "__main__":
     testenv.main()

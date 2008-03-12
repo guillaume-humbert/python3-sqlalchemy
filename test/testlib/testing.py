@@ -458,7 +458,14 @@ class TestBase(unittest.TestCase):
     def shortDescription(self):
         """overridden to not return docstrings"""
         return None
-
+    
+    def assertRaisesMessage(self, except_cls, msg, callable_, ):
+        try:
+            callable_()
+            assert False, "Callable did not raise expected exception"
+        except except_cls, e:
+            assert re.search(msg, str(e)), "Exception message did not match: '%s'" % str(e)
+        
     if not hasattr(unittest.TestCase, 'assertTrue'):
         assertTrue = unittest.TestCase.failUnless
     if not hasattr(unittest.TestCase, 'assertFalse'):
@@ -511,8 +518,12 @@ class ComparesTables(object):
             self.assertEquals(set([f.column.name for f in c.foreign_keys]), set([f.column.name for f in reflected_c.foreign_keys]))
             if c.default:
                 assert isinstance(reflected_c.default, schema.PassiveDefault)
+            elif against(('mysql', '<', (5, 0))):
+                # ignore reflection of bogus db-generated PassiveDefault()
+                pass
             elif not c.primary_key or not against('postgres'):
-                assert reflected_c.default is None
+                print repr(c)
+                assert reflected_c.default is None, reflected_c.default
         
         assert len(table.primary_key) == len(reflected_table.primary_key)
         for c in table.primary_key:
@@ -524,7 +535,7 @@ class AssertsExecutionResults(object):
         result = list(result)
         print repr(result)
         self.assert_list(result, class_, objects)
-
+        
     def assert_list(self, result, class_, list):
         self.assert_(len(result) == len(list),
                      "result list is not the same size as test list, " +
@@ -648,11 +659,15 @@ class ORMTest(TestBase, AssertsExecutionResults):
                 _otest_metadata.bind = config.db
         self.define_tables(_otest_metadata)
         _otest_metadata.create_all()
+        self.setup_mappers()
         self.insert_data()
 
     def define_tables(self, _otest_metadata):
         raise NotImplementedError()
-
+    
+    def setup_mappers(self):
+        pass
+        
     def insert_data(self):
         pass
 

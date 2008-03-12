@@ -23,7 +23,7 @@ import StringIO, weakref
 from sqlalchemy import util, logging, topological, exceptions
 from sqlalchemy.orm import attributes, interfaces
 from sqlalchemy.orm import util as mapperutil
-from sqlalchemy.orm.mapper import object_mapper, _state_mapper
+from sqlalchemy.orm.mapper import object_mapper, _state_mapper, has_identity
 
 # Load lazily
 object_session = None
@@ -33,35 +33,41 @@ class UOWEventHandler(interfaces.AttributeExtension):
     session cascade operations.
     """
 
-    def __init__(self, key, class_, cascade=None):
+    def __init__(self, key, class_, cascade):
         self.key = key
         self.class_ = class_
         self.cascade = cascade
+    
+    def _target_mapper(self, obj):
+        prop = object_mapper(obj).get_property(self.key)
+        return prop.mapper
 
     def append(self, obj, item, initiator):
         # process "save_update" cascade rules for when an instance is appended to the list of another instance
         sess = object_session(obj)
-        if sess is not None:
-            if self.cascade is not None and self.cascade.save_update and item not in sess:
-                mapper = object_mapper(obj)
-                prop = mapper.get_property(self.key)
-                ename = prop.mapper.entity_name
-                sess.save_or_update(item, entity_name=ename)
+        if sess:
+            if self.cascade.save_update and item not in sess:
+                sess.save_or_update(item, entity_name=self._target_mapper(obj).entity_name)
 
     def remove(self, obj, item, initiator):
-        # currently no cascade rules for removing an item from a list
-        # (i.e. it stays in the Session)
-        pass
+        sess = object_session(obj)
+        if sess:
+            # expunge pending orphans
+            if self.cascade.delete_orphan and item in sess.new:
+                if self._target_mapper(obj)._is_orphan(item):
+                    sess.expunge(item)
 
     def set(self, obj, newvalue, oldvalue, initiator):
         # process "save_update" cascade rules for when an instance is attached to another instance
+        if oldvalue is newvalue:
+            return
         sess = object_session(obj)
-        if sess is not None:
-            if newvalue is not None and self.cascade is not None and self.cascade.save_update and newvalue not in sess:
-                mapper = object_mapper(obj)
-                prop = mapper.get_property(self.key)
-                ename = prop.mapper.entity_name
-                sess.save_or_update(newvalue, entity_name=ename)
+        if sess:
+            if newvalue is not None and self.cascade.save_update and newvalue not in sess:
+                sess.save_or_update(newvalue, entity_name=self._target_mapper(obj).entity_name)
+            if self.cascade.delete_orphan and oldvalue in sess.new:
+                sess.expunge(oldvalue)
+
 
 def register_attribute(class_, key, *args, **kwargs):
     """overrides attributes.register_attribute() to add UOW event handlers
@@ -127,9 +133,13 @@ class UnitOfWork(object):
             
         if hasattr(state, 'insert_order'):
             delattr(state, 'insert_order')
-            
-        self.identity_map[state.dict['_instance_key']] = state.obj()
-        state.commit_all()
+        
+        o = state.obj()
+        # prevent against last minute dereferences of the object
+        # TODO: identify a code path where state.obj() is None
+        if o is not None:
+            self.identity_map[state.dict['_instance_key']] = o
+            state.commit_all()
         
         # remove from new last, might be the last strong ref
         self.new.pop(state, None)
@@ -199,7 +209,15 @@ class UnitOfWork(object):
             if state in processed:
                 continue
 
-            flush_context.register_object(state, isdelete=_state_mapper(state)._is_orphan(state.obj()))
+            obj = state.obj()
+            is_orphan = _state_mapper(state)._is_orphan(obj)
+            if is_orphan and not has_identity(obj):
+                raise exceptions.FlushError("instance %s is an unsaved, pending instance and is an orphan (is not attached to %s)" %
+                    (
+                        obj,
+                        ", nor ".join(["any parent '%s' instance via that classes' '%s' attribute" % (klass.__name__, key) for (key,klass) in _state_mapper(state).delete_orphans])
+                    ))
+            flush_context.register_object(state, isdelete=is_orphan)
             processed.add(state)
 
         # put all remaining deletes into the flush context.
@@ -828,7 +846,7 @@ class UOWTaskElement(object):
         return self.__preprocessed.get(processor, False)
 
     def __repr__(self):
-        return "UOWTaskElement/%d: %s/%d %s" % (id(self), self.obj.__class__.__name__, id(self.obj), (self.listonly and 'listonly' or (self.isdelete and 'delete' or 'save')) )
+        return "UOWTaskElement/%d: %s/%d %s" % (id(self), self.state.class_.__name__, id(self.state.obj()), (self.listonly and 'listonly' or (self.isdelete and 'delete' or 'save')) )
 
 class UOWDependencyProcessor(object):
     """In between the saving and deleting of objects, process

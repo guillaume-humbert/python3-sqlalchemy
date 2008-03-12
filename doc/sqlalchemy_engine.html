@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -271,23 +271,12 @@ for explicitly passing a single Connection.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.engine_modfunc_engine_descriptors"></a>
-    <b>def engine_descriptors()</b>
+    <b>def engine_descriptors(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Provide a listing of all the database implementations supported.</p>
-<p>This data is provided as a list of dictionaries, where each
-dictionary contains the following key/value pairs:</p>
-<dl class="docutils">
-<dt>name</dt>
-<dd>the name of the engine, suitable for use in the create_engine function</dd>
-<dt>description</dt>
-<dd>a plain description of the engine.</dd>
-<dt>arguments</dt>
-<dd>a dictionary describing the name and description of each
-parameter used to connect to this engine's underlying DB-API.</dd>
-</dl>
-<p>This function is meant for usage in automated configuration tools
-that wish to query the user for database and connection
-information.</p>
+    <p>Deprecated.
+Provide a listing of all the database implementations supported.</p>
+<blockquote>
+deprecated - this method will be removed in 0.5.</blockquote>
 
     </div>
     </div>

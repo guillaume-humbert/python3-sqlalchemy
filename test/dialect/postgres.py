@@ -1,6 +1,7 @@
 import testenv; testenv.configure_for_tests()
 import datetime
 from sqlalchemy import *
+from sqlalchemy.orm import *
 from sqlalchemy import exceptions
 from sqlalchemy.databases import postgres
 from sqlalchemy.engine.strategies import MockEngineStrategy
@@ -704,6 +705,57 @@ class ArrayTest(TestBase, AssertsExecutionResults):
         self.assertEquals(results[0]['strarr'], [u'm\xe4\xe4', u'm\xf6\xf6'])
         self.assertEquals(results[1]['strarr'], [[u'm\xe4\xe4'], [u'm\xf6\xf6']])
         arrtable.delete().execute()
+
+    def test_array_mutability(self):
+        class Foo(object): pass
+        footable = Table('foo', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('intarr', postgres.PGArray(Integer), nullable=True)
+        )
+        mapper(Foo, footable)
+        metadata.create_all()
+        sess = create_session()
+        
+        foo = Foo()
+        foo.id = 1
+        foo.intarr = [1,2,3]
+        sess.save(foo)
+        sess.flush()
+        sess.clear()
+        foo = sess.query(Foo).get(1)
+        self.assertEquals(foo.intarr, [1,2,3])
+        
+        foo.intarr.append(4)
+        sess.flush()
+        sess.clear()
+        foo = sess.query(Foo).get(1)
+        self.assertEquals(foo.intarr, [1,2,3,4])
+        
+        foo.intarr = []
+        sess.flush()
+        sess.clear()
+        self.assertEquals(foo.intarr, [])
+        
+        foo.intarr = None
+        sess.flush()
+        sess.clear()
+        self.assertEquals(foo.intarr, None)
+
+        # Errors in r4217:
+        foo = Foo()
+        foo.id = 2
+        sess.save(foo)
+        sess.flush()
+
+class TimeStampTest(TestBase, AssertsExecutionResults): 
+    __only_on__ = 'postgres' 
+    def test_timestamp(self): 
+        engine = testing.db
+        connection = engine.connect() 
+        s = select([func.TIMESTAMP("12/25/07").label("ts")]) 
+        result = connection.execute(s).fetchone() 
+        self.assertEqual(result[0], datetime.datetime(2007, 12, 25, 0, 0)) 
+
 
 if __name__ == "__main__":
     testenv.main()

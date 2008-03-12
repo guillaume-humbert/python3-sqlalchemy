@@ -1,3 +1,10 @@
+sqlalchemy (0.4.4-1) unstable; urgency=low
+
+  * New upstream release
+  * doc-base: section changed to Programming/Python
+
+ -- Piotr Ożarowski <piotr@debian.org>  Wed, 12 Mar 2008 18:46:41 +0100
+
 sqlalchemy (0.4.3-1) unstable; urgency=low
 
   * New upstream release

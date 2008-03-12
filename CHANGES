@@ -2,6 +2,137 @@
 CHANGES
 =======
 
+0.4.4
+------
+- sql
+    - Can again create aliases of selects against textual FROM
+      clauses, [ticket:975]
+
+    - The value of a bindparam() can be a callable, in which case
+      it's evaluated at statement execution time to get the value.
+
+    - added exception wrapping/reconnect support to result set 
+      fetching.  Reconnect works for those databases that 
+      raise a catchable data error during results 
+      (i.e. doesn't work on MySQL) [ticket:978]
+
+    - implemented two-phase API for "threadlocal" engine, 
+      via engine.begin_twophase(), engine.prepare()
+      [ticket:936]
+
+    - fixed bug which was preventing UNIONS from being cloneable,
+      [ticket:986]
+
+    - added "bind" keyword argument to insert(), update(),
+      delete() and DDL(). The .bind property is now assignable
+      on those statements as well as on select().
+
+    - Insert statements can now be compiled with extra "prefix"
+      words between INSERT and INTO, for vendor extensions like
+      MySQL's INSERT IGNORE INTO table.
+
+- orm
+    - any(), has(), contains(), ~contains(), attribute level ==
+      and != now work properly with self-referential relations -
+      the clause inside the EXISTS is aliased on the "remote"
+      side to distinguish it from the parent table.  This
+      applies to single table self-referential as well as 
+      inheritance-based self-referential.
+    
+    - repaired behavior of == and != operators at the relation()
+      level when compared against NULL for one-to-one 
+      relations [ticket:985]
+      
+    - fixed bug whereby session.expire() attributes were not
+      loading on an polymorphically-mapped instance mapped 
+      by a select_table mapper.
+      
+    - added query.with_polymorphic() - specifies a list
+      of classes which descend from the base class, which will
+      be added to the FROM clause of the query.  Allows subclasses
+      to be used within filter() criterion as well as eagerly loads
+      the attributes of those subclasses.
+    
+    - Your cries have been heard: removing a pending item from an
+      attribute or collection with delete-orphan expunges the item
+      from the session; no FlushError is raised.  Note that if you
+      session.save()'ed the pending item explicitly, the
+      attribute/collection removal still knocks it out.
+
+    - session.refresh() and session.expire() raise an error when 
+      called on instances which are not persistent within the session
+      
+    - Fixed potential generative bug when the same Query was used
+      to generate multiple Query objects using join().
+
+    - fixed bug which was introduced in 0.4.3, whereby loading an
+      already-persistent instance mapped with joined table inheritance
+      would trigger a useless "secondary" load from its joined 
+      table, when using the default "select" polymorphic_fetch.  
+      This was due to attributes being marked as expired
+      during its first load and not getting unmarked from the 
+      previous "secondary" load.  Attributes are now unexpired
+      based on presence in __dict__ after any load or commit
+      operation succeeds.
+      
+    - deprecated Query methods apply_sum(), apply_max(), apply_min(),
+      apply_avg().  Better methodologies are coming....
+    
+    - relation() can accept a callable for its first argument,
+      which returns the class to be related.  This is in place
+      to assist declarative packages to define relations without
+      classes yet being in place.
+        
+    - Added a new "higher level" operator called "of_type()": used
+      in join() as well as with any() and has(), qualifies the
+      subclass which will be used in filter criterion, e.g.:
+
+        query.filter(Company.employees.of_type(Engineer).
+          any(Engineer.name=='foo'))
+
+        or
+
+        query.join(Company.employees.of_type(Engineer)).
+          filter(Engineer.name=='foo')
+
+    - Preventive code against a potential lost-reference bug in
+      flush().
+
+    - Expressions used in filter(), filter_by() and others, when
+      they make usage of a clause generated from a relation using
+      the identity of a child object (e.g.,
+      filter(Parent.child==<somechild>)), evaluate the actual
+      primary key value of <somechild> at execution time so that
+      the autoflush step of the Query can complete, thereby
+      populating the PK value of <somechild> in the case that
+      <somechild> was pending.
+
+    - setting the relation()-level order by to a column in the
+      many-to-many "secondary" table will now work with eager 
+      loading, previously the "order by" wasn't aliased against
+      the secondary table's alias.
+
+    - Synonyms riding on top of existing descriptors are now
+      full proxies to those descriptors.
+
+- dialects
+    - Invalid SQLite connection URLs now raise an error.
+
+    - postgres TIMESTAMP renders correctly [ticket:981]
+
+    - postgres PGArray is a "mutable" type by default;
+      when used with the ORM, mutable-style equality/
+      copy-on-write techniques are used to test for changes.
+      
+- extensions
+    - a new super-small "declarative" extension has been added,
+      which allows Table and mapper() configuration to take place
+      inline underneath a class declaration.  This extension differs
+      from ActiveMapper and Elixir in that it does not redefine
+      any SQLAlchemy semantics at all; literal Column, Table
+      and relation() constructs are used to define the class 
+      behavior and table definition.
+      
 0.4.3
 ------
 - sql
@@ -28,7 +159,7 @@ CHANGES
       others. [ticket:727]
 
     - Added "now()" as a generic function; on SQLite, Oracle
-      and MSSQL compiles as "CURRENT_TIMESTAMP"; "now()" on 
+      and MSSQL compiles as "CURRENT_TIMESTAMP"; "now()" on
       all others. [ticket:943]
 
     - The startswith(), endswith(), and contains() operators now
@@ -42,7 +173,7 @@ CHANGES
     - fixed bug in result proxy where anonymously generated
       column labels would not be accessible using their straight
       string name
-      
+
     - Deferrable constraints can now be defined.
 
     - Added "autocommit=True" keyword argument to select() and
@@ -109,7 +240,11 @@ CHANGES
 
     - The proper error message is raised when trying to access
       expired instance attributes with no session present
-
+    
+    - dynamic_loader() / lazy="dynamic" now accepts and uses
+      the order_by parameter in the same way in which it works
+      with relation().
+      
     - Added expire_all() method to Session.  Calls expire() for
       all persistent instances.  This is handy in conjunction
       with...
@@ -247,14 +382,14 @@ CHANGES
       allows columns to map properly to result sets even if
       long-name truncation kicks in [ticket:941]
 
-    - MSSQL now includes EXEC in the _is_select regexp, which should
-      allow row-returning stored procedures to be used.
+    - MSSQL now includes EXEC in the _is_select regexp, which
+      should allow row-returning stored procedures to be used.
 
-    - MSSQL now includes an experimental implementation of LIMIT/OFFSET
-      using the ANSI SQL row_number() function, so it requires
-      MSSQL-2005 or higher. To enable the feature, add "has_window_funcs"
-      to the keyword arguments for connect, or add "?has_window_funcs=1"
-      to your dburi query arguments.
+    - MSSQL now includes an experimental implementation of
+      LIMIT/OFFSET using the ANSI SQL row_number() function, so it
+      requires MSSQL-2005 or higher. To enable the feature, add
+      "has_window_funcs" to the keyword arguments for connect, or
+      add "?has_window_funcs=1" to your dburi query arguments.
 
 - ext
     - Changed ext.activemapper to use a non-transactional session

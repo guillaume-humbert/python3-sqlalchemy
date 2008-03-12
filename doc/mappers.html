@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -95,6 +95,9 @@
 	        <li>
                 
     <ul>
+        
+        <li><a style="" href="mappers.html#advdatamapping_mapper_inheritance_joined_querying">Polymorphic Querying Strategies</a></li>
+
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_inheritance_joined_optimizing">Optimizing Joined Table Loads</a></li>
 
@@ -846,6 +849,140 @@
 </p>
 
     
+    <A name="advdatamapping_mapper_inheritance_joined_querying"></a>
+    
+    <div class="sectionL4">
+
+    <h3>Polymorphic Querying Strategies</h3>
+    
+    
+<p>The <code>Query</code> object includes some helper functionality when dealing with joined-table inheritance mappings.  These are the <code>with_polymorphic()</code> and <code>of_type()</code> methods, both of which are introduced in version 0.4.4.
+</p>
+<p>The <code>with_polymorphic()</code> method affects the specific subclass tables which the Query selects from.  Normally, a query such as this:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'ed'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Selects only from the <code>employees</code> table.  The criterion we use in <code>filter()</code> and other methods will generate WHERE criterion against this table.  What if we wanted to load <code>Employee</code> objects but also wanted to use criterion against <code>Engineer</code> ?  We could just query against the <code>Engineer</code> class instead.  But, if we were using criterion which filters among more than one subclass (subclasses which do not inherit directly from one to the other), we'd like to select from an outer join of all those tables.  The <code>with_polymorphic()</code> method can tell <code>Query</code> which joined-table subclasses we want to select for:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">with_polymorphic</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">.</span><span class="python_name">engineer_info</span><span class="python_operator">==</span><span class="python_literal">'some info'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Even without criterion, the <code>with_polymorphic()</code> method has the added advantage that instances are loaded from all of their tables in one result set.  Such as, to optimize the loading of all <code>Employee</code> objects, <code>with_polymorphic()</code> accepts <code>'*'</code> as a wildcard indicating that all subclass tables should be joined:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">with_polymorphic</span><span class="python_enclosure">(</span><span class="python_literal">'*'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
+    </div>
+<p><code>with_polymorphic()</code> is an effective query-level alternative to the existing <code>select_table</code> option available on <code>mapper()</code>.
+</p>
+<p>Next is a way to join along <code>relation</code> paths while narrowing the criterion to specific subclasses.  Suppose the <code>employees</code> table represents a collection of employees which are associated with a <code>Company</code> object.  We'll add a <code>company_id</code> column to the <code>employees</code> table and a new table <code>companies</code>:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">companies </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'companies'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
+   <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'company_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+   <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span>
+   <span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">employees </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'employees'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
+  <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'employee_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+  <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+  <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'type'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">30</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+  <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'company_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'companies.company_id'</span><span class="python_enclosure">))</span>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">Company</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Company</span><span class="python_operator">, </span><span class="python_name">companies</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'employees'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>If we wanted to join from <code>Company</code> to not just <code>Employee</code> but specifically <code>Engineers</code>, using the <code>join()</code> method or <code>any()</code> or <code>has()</code> operators will by default create a join from <code>companies</code> to <code>employees</code>, without including <code>engineers</code> or <code>managers</code> in the mix.  If we wish to have criterion which is specifically against the <code>Engineer</code> class, we can tell those methods to join or subquery against the full set of tables representing the subclass using the <code>of_type()</code> opertator:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Company</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">Company</span><span class="python_operator">.</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">of_type</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">.</span><span class="python_name">engineer_info</span><span class="python_operator">==</span><span class="python_literal">'someinfo'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>A longhand notation, introduced in 0.4.3, is also available, which involves spelling out the full target selectable within a 2-tuple:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Company</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">((</span><span class="python_literal">'employees'</span><span class="python_operator">, </span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">engineers</span><span class="python_enclosure">)))</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">.</span><span class="python_name">engineer_info</span><span class="python_operator">==</span><span class="python_literal">'someinfo'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The second notation allows more flexibility, such as joining to any group of subclass tables:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Company</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">((</span><span class="python_literal">'employees'</span><span class="python_operator">, </span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">engineers</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">managers</span><span class="python_enclosure">)))</span><span class="python_operator">.\
+    </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">or_</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">.</span><span class="python_name">engineer_info</span><span class="python_operator">==</span><span class="python_literal">'someinfo'</span><span class="python_operator">, </span><span class="python_name">Manager</span><span class="python_operator">.</span><span class="python_name">manager_data</span><span class="python_operator">==</span><span class="python_literal">'somedata'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The <code>any()</code> and <code>has()</code> operators also can be used with <code>of_type()</code> when the embedded criterion is in terms of a subclass:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Company</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Company</span><span class="python_operator">.</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">of_type</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">any</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">.</span><span class="python_name">engineer_info</span><span class="python_operator">==</span><span class="python_literal">'someinfo'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Note that the <code>any()</code> and <code>has()</code> are both shorthand for a correlated EXISTS query.  To build one by hand looks like:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Company</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
+    <span class="python_name">exists</span><span class="python_enclosure">([</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator">, </span>
+        <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">.</span><span class="python_name">engineer_info</span><span class="python_operator">==</span><span class="python_literal">'someinfo'</span><span class="python_operator">, </span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">company_id</span><span class="python_operator">==</span><span class="python_name">companies</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">company_id</span><span class="python_enclosure">)</span><span class="python_operator">, </span>
+        <span class="python_name">from_obj</span><span class="python_operator">=</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">engineers</span><span class="python_enclosure">)</span>
+    <span class="python_enclosure">)</span>
+<span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The EXISTS subquery above selects from the join of <code>employees</code> to <code>engineers</code>, and also specifies criterion which correlates the EXISTS subselect back to the parent <code>companies</code> table.
+</p>
+
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+    
     <A name="advdatamapping_mapper_inheritance_joined_optimizing"></a>
     
     <div class="sectionL4">
@@ -900,7 +1037,33 @@ WHERE ? = managers.employee_id<br/>
     </div>
 <p>The above configuration queries in the same manner as earlier, except the load of each "secondary" table occurs only when attributes referencing those columns are first referenced on the loaded instance.  This style of loading is very efficient for cases where large selects of items occur, but a detailed "drill down" of extra inherited properties is less common.
 </p>
-<p>More commonly, an all-at-once load may be achieved by constructing a query which combines all three tables together, and adding it to the mapper configuration as its <code>select_table</code>, which is an arbitrary selectable which the mapper will use for load operations (it has no impact on save operations).  Any selectable can be used for this, such as a UNION of tables.  For joined table inheritance, the easiest method is to use OUTER JOIN:
+<p>More commonly, an all-at-once load may be achieved by constructing a query which combines all three tables together.  The easiest way to do this as of version 0.4.4 is to use the <code>with_polymorphic()</code> query method which will automatically join in the classes desired:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">with_polymorphic</span><span class="python_enclosure">([</span><span class="python_name">Engineer</span><span class="python_operator">, </span><span class="python_name">Manager</span><span class="python_enclosure">])</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Which produces a query like the following:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre><div class="codepop">SELECT employees.employee_id AS employees_employee_id, engineers.employee_id AS engineers_employee_id, managers.employee_id AS managers_employee_id, employees.name AS employees_name, employees.type AS employees_type, engineers.engineer_info AS engineers_engineer_info, managers.manager_data AS managers_manager_data <br/>
+FROM employees LEFT OUTER JOIN engineers ON employees.employee_id = engineers.employee_id LEFT OUTER JOIN managers ON employees.employee_id = managers.employee_id ORDER BY employees.oid<br/>
+[]</div><pre>
+
+<span class="python_operator"></span></pre>
+    </div>
+<p><code>with_polymorphic()</code> accepts a single class or mapper, a list of classes/mappers, or the string <code>'*'</code> to indicate all subclasses.  It also accepts a second argument <code>selectable</code> which replaces the automatic join creation and instead selects directly from the selectable given.  This can allow polymorphic loads from a variety of inheritance schemes including concrete tables, if the appropriate unions are constructed.
+</p>
+<p>Similar behavior as provided by <code>with_polymorphic()</code> can be configured at the mapper level so that any user-defined query is used by default in order to load instances.  The <code>select_table</code> argument references an arbitrary selectable which the mapper will use for load operations (it has no impact on save operations).  Any selectable can be used for this, such as a UNION of tables.  For joined table inheritance, the easiest method is to use OUTER JOIN:
 </p>
 
     
@@ -915,20 +1078,10 @@ WHERE ? = managers.employee_id<br/>
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Manager</span><span class="python_operator">, </span><span class="python_name">managers</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">Employee</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'manager'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Which produces a query like the following:
+<p>The above mapping will produce a query similar to that of <code>with_polymorphic('*')</code> for every query of <code>Employee</code> objects.
 </p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
-</span></pre><div class="codepop">SELECT employees.employee_id AS employees_employee_id, engineers.employee_id AS engineers_employee_id, managers.employee_id AS managers_employee_id, employees.name AS employees_name, employees.type AS employees_type, engineers.engineer_info AS engineers_engineer_info, managers.manager_data AS managers_manager_data <br/>
-FROM employees LEFT OUTER JOIN engineers ON employees.employee_id = engineers.employee_id LEFT OUTER JOIN managers ON employees.employee_id = managers.employee_id ORDER BY employees.oid<br/>
-[]</div><pre>
-
-<span class="python_operator"></span></pre>
-    </div>
+<p>When <code>select_table</code> is used, <code>with_polymorphic()</code> still overrides its usage at the query level.  For example, if <code>select_table</code> were configured to load from a join of multiple tables, using <code>with_polymorphic(Employee)</code> will limit the list of tables selected from to just the base table (as always, tables which don't get loaded in the first pass will be loaded on an as-needed basis).
+</p>
 
 
             <a href="#top" class="totoc">back to section top</a>

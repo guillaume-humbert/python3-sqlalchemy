@@ -13,16 +13,15 @@ class QueryTest(FixtureTest):
     keep_mappers = True
     keep_data = True
 
-    def setUpAll(self):
-        super(QueryTest, self).setUpAll()
-        self.setup_mappers()
-
     def setup_mappers(self):
         mapper(User, users, properties={
             'addresses':relation(Address, backref='user'),
             'orders':relation(Order, backref='user'), # o2m, m2o
         })
-        mapper(Address, addresses)
+        mapper(Address, addresses, properties={
+            'dingaling':relation(Dingaling, uselist=False, backref="address")  #o2o
+        })
+        mapper(Dingaling, dingalings)
         mapper(Order, orders, properties={
             'items':relation(Item, secondary=order_items, order_by=items.c.id),  #m2m
             'address':relation(Address),  # m2o
@@ -355,6 +354,9 @@ class FilterTest(QueryTest):
 
         assert [Address(id=2), Address(id=3), Address(id=4)] == sess.query(Address).filter(Address.user.has(User.name.like('%ed%'), id=8)).all()
 
+        dingaling = sess.query(Dingaling).get(2)
+        assert [User(id=9)] == sess.query(User).filter(User.addresses.any(Address.dingaling==dingaling)).all()
+        
     def test_contains_m2m(self):
         sess = create_session()
         item = sess.query(Item).get(3)
@@ -376,6 +378,10 @@ class FilterTest(QueryTest):
 
         assert [Order(id=5)] == sess.query(Order).filter(Order.address == None).all()
 
+        # o2o
+        dingaling = sess.query(Dingaling).get(2)
+        assert [Address(id=5)] == sess.query(Address).filter(Address.dingaling==dingaling).all()
+
     def test_filter_by(self):
         sess = create_session()
         user = sess.query(User).get(8)
@@ -386,13 +392,29 @@ class FilterTest(QueryTest):
 
         # one to many generates WHERE NOT EXISTS
         assert [User(name='chuck')] == sess.query(User).filter_by(addresses = None).all()
-
+    
+    def test_none_comparison(self):
+        sess = create_session()
+        
+        # o2o
+        self.assertEquals([Address(id=1), Address(id=3), Address(id=4)], sess.query(Address).filter(Address.dingaling==None).all())
+        self.assertEquals([Address(id=2), Address(id=5)], sess.query(Address).filter(Address.dingaling != None).all())
+        
+        # m2o
+        self.assertEquals([Order(id=5)], sess.query(Order).filter(Order.address==None).all())
+        self.assertEquals([Order(id=1), Order(id=2), Order(id=3), Order(id=4)], sess.query(Order).filter(Order.address!=None).all())
+        
+        # o2m
+        self.assertEquals([User(id=10)], sess.query(User).filter(User.addresses==None).all())
+        self.assertEquals([User(id=7),User(id=8),User(id=9)], sess.query(User).filter(User.addresses!=None).all())
+        
 class AggregateTest(QueryTest):
     def test_sum(self):
         sess = create_session()
         orders = sess.query(Order).filter(Order.id.in_([2, 3, 4]))
         assert orders.sum(Order.user_id * Order.address_id) == 79
 
+    @testing.uses_deprecated('Call to deprecated function apply_sum')
     def test_apply(self):
         sess = create_session()
         assert sess.query(Order).apply_sum(Order.user_id * Order.address_id).filter(Order.id.in_([2, 3, 4])).one() == 79
@@ -554,6 +576,20 @@ class JoinTest(QueryTest):
         result = create_session().query(User).outerjoin(['orders', 'items']).filter_by(id=3).outerjoin(['orders','address']).filter_by(id=1).all()
         assert [User(id=7, name='jack')] == result
 
+    def test_generative_join(self):
+        # test that alised_ids is copied
+        sess = create_session()
+        q = sess.query(User).add_entity(Address)
+        q1 = q.join('addresses', aliased=True)
+        q2 = q.join('addresses', aliased=True)
+        q3 = q2.join('addresses', aliased=True)
+        q4 = q2.join('addresses', aliased=True, id='someid')
+        q5 = q2.join('addresses', aliased=True, id='someid')
+        q6 = q5.join('addresses', aliased=True, id='someid')
+        assert q1._alias_ids[class_mapper(Address)] != q2._alias_ids[class_mapper(Address)]
+        assert q2._alias_ids[class_mapper(Address)] != q3._alias_ids[class_mapper(Address)]
+        assert q4._alias_ids['someid'] != q5._alias_ids['someid']
+        
     def test_reset_joinpoint(self):
         for aliased in (True, False):
             # load a user who has an order that contains item id 3 and address id 1 (order 3, owned by jack)
@@ -1016,7 +1052,7 @@ class SelectFromTest(QueryTest):
                 (User(name='ed',id=8), Address(user_id=8,email_address='ed@lala.com',id=4))
             ]
         )
-
+    
     def test_more_joins(self):
         mapper(User, users, properties={
             'orders':relation(Order, backref='user'), # o2m, m2o
@@ -1121,15 +1157,20 @@ class CustomJoinTest(QueryTest):
 
         assert [User(id=7)] == q.join(['open_orders', 'items'], aliased=True).filter(Item.id==4).join(['closed_orders', 'items'], aliased=True).filter(Item.id==3).all()
 
-class SelfReferentialJoinTest(ORMTest):
+class SelfReferentialTest(ORMTest):
+    keep_mappers = True
+    keep_data = True
+    
     def define_tables(self, metadata):
         global nodes
         nodes = Table('nodes', metadata,
             Column('id', Integer, primary_key=True),
             Column('parent_id', Integer, ForeignKey('nodes.id')),
             Column('data', String(30)))
-
-    def test_join(self):
+    
+    def insert_data(self):
+        global Node
+        
         class Node(Base):
             def append(self, node):
                 self.children.append(node)
@@ -1149,11 +1190,11 @@ class SelfReferentialJoinTest(ORMTest):
         n1.children[1].append(Node(data='n123'))
         sess.save(n1)
         sess.flush()
-        sess.clear()
+        sess.close()
+        
+    def test_join(self):
+        sess = create_session()
 
-        # TODO: the aliasing of the join in query._join_to has to limit the aliasing
-        # among local_side / remote_side (add local_side as an attribute on PropertyLoader)
-        # also implement this idea in EagerLoader
         node = sess.query(Node).join('children', aliased=True).filter_by(data='n122').first()
         assert node.data=='n12'
 
@@ -1164,6 +1205,95 @@ class SelfReferentialJoinTest(ORMTest):
             join('parent', aliased=True, from_joinpoint=True).filter_by(data='n1').first()
         assert node.data == 'n122'
 
+    def test_any(self):
+        sess = create_session()
+        
+        self.assertEquals(sess.query(Node).filter(Node.children.any(Node.data=='n1')).all(), [])
+        self.assertEquals(sess.query(Node).filter(Node.children.any(Node.data=='n12')).all(), [Node(data='n1')])
+        self.assertEquals(sess.query(Node).filter(~Node.children.any()).all(), [Node(data='n11'), Node(data='n13'),Node(data='n121'),Node(data='n122'),Node(data='n123'),])
+
+    def test_has(self):
+        sess = create_session()
+        
+        self.assertEquals(sess.query(Node).filter(Node.parent.has(Node.data=='n12')).all(), [Node(data='n121'),Node(data='n122'),Node(data='n123')])
+        self.assertEquals(sess.query(Node).filter(Node.parent.has(Node.data=='n122')).all(), [])
+        self.assertEquals(sess.query(Node).filter(~Node.parent.has()).all(), [Node(data='n1')])
+    
+    def test_contains(self):
+        sess = create_session()
+        
+        n122 = sess.query(Node).filter(Node.data=='n122').one()
+        self.assertEquals(sess.query(Node).filter(Node.children.contains(n122)).all(), [Node(data='n12')])
+
+        n13 = sess.query(Node).filter(Node.data=='n13').one()
+        self.assertEquals(sess.query(Node).filter(Node.children.contains(n13)).all(), [Node(data='n1')])
+    
+    def test_eq_ne(self):
+        sess = create_session()
+        
+        n12 = sess.query(Node).filter(Node.data=='n12').one()
+        self.assertEquals(sess.query(Node).filter(Node.parent==n12).all(), [Node(data='n121'),Node(data='n122'),Node(data='n123')])
+        
+        self.assertEquals(sess.query(Node).filter(Node.parent != n12).all(), [Node(data='n1'), Node(data='n11'), Node(data='n12'), Node(data='n13')])
+
+class SelfReferentialM2MTest(ORMTest):
+    keep_mappers = True
+    keep_data = True
+    
+    def define_tables(self, metadata):
+        global nodes, node_to_nodes
+        nodes = Table('nodes', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', String(30)))
+            
+        node_to_nodes =Table('node_to_nodes', metadata,
+            Column('left_node_id', Integer, ForeignKey('nodes.id'),primary_key=True),
+            Column('right_node_id', Integer, ForeignKey('nodes.id'),primary_key=True),
+            )
+    
+    def insert_data(self):
+        global Node
+        
+        class Node(Base):
+            pass
+
+        mapper(Node, nodes, properties={
+            'children':relation(Node, lazy=True, secondary=node_to_nodes,
+                primaryjoin=nodes.c.id==node_to_nodes.c.left_node_id,
+                secondaryjoin=nodes.c.id==node_to_nodes.c.right_node_id,
+            )
+        })
+        sess = create_session()
+        n1 = Node(data='n1')
+        n2 = Node(data='n2')
+        n3 = Node(data='n3')
+        n4 = Node(data='n4')
+        n5 = Node(data='n5')
+        n6 = Node(data='n6')
+        n7 = Node(data='n7')
+        
+        n1.children = [n2, n3, n4]
+        n2.children = [n3, n6, n7]
+        n3.children = [n5, n4]
+
+        sess.save(n1)
+        sess.save(n2)
+        sess.save(n3)
+        sess.save(n4)
+        sess.flush()
+        sess.close()
+
+    def test_any(self):
+        sess = create_session()
+        self.assertEquals(sess.query(Node).filter(Node.children.any(Node.data=='n3')).all(), [Node(data='n1'), Node(data='n2')])
+
+    def test_contains(self):
+        sess = create_session()
+        n4 = sess.query(Node).filter_by(data='n4').one()
+
+        self.assertEquals(sess.query(Node).filter(Node.children.contains(n4)).order_by(Node.data).all(), [Node(data='n1'), Node(data='n3')])
+        self.assertEquals(sess.query(Node).filter(not_(Node.children.contains(n4))).order_by(Node.data).all(), [Node(data='n2'), Node(data='n4'), Node(data='n5'), Node(data='n6'), Node(data='n7')])
+        
 class ExternalColumnsTest(QueryTest):
     keep_mappers = False
 

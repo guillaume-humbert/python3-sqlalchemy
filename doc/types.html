@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -70,6 +70,9 @@
 
         
         <li><a style="" href="types.html#types_standard_unicode">Unicode</a></li>
+
+        
+        <li><a style="" href="types.html#types_standard_text">Text / UnicodeText</a></li>
 
         
         <li><a style="" href="types.html#types_standard_numeric">Numeric</a></li>
@@ -203,6 +206,25 @@
 
 
     
+    <A name="types_standard_text"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Text / UnicodeText</h3>
+    
+    
+
+<p>These are the "unbounded" versions of <code>String</code> and <code>Unicode</code>.  They have no "length" parameter, and generate a column type of TEXT or CLOB.
+</p>
+
+
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+    
     <A name="types_standard_numeric"></a>
     
     <div class="sectionL3">
@@ -211,7 +233,7 @@
     
     
 
-<p>TODO
+<p>Numeric types return <code>decimal.Decimal</code> objects by default.  The flag <code>asdecimal=False</code> may be specified which enables the type to pass data straight through.   Numeric also takes "precision" and "scale" arguments which are used when CREATE TABLE is issued.
 </p>
 
 
@@ -230,7 +252,7 @@
     
     
 
-<p>TODO
+<p>Float types return Python floats.  Float also takes a "precision" argument which is used when CREATE TABLE is issued.
 </p>
 
 
@@ -249,7 +271,7 @@
     
     
 
-<p>TODO
+<p>Date and time types return objects from the Python <code>datetime</code> module.  Most DBAPIs have built in support for the datetime module, with the noted exception of SQLite.  In the case of SQLite, date and time types are stored as strings which are then converted back to datetime objects when rows are returned.
 </p>
 
 
@@ -268,7 +290,7 @@
     
     
 
-<p>TODO
+<p>The Interval type deals with <code>datetime.timedelta</code> objects.  In Postgres, the native INTERVAL type is used; for others, the value is stored as a date which is relative to the "epoch" (Jan. 1, 1970).
 </p>
 
 
@@ -287,7 +309,7 @@
     
     
 
-<p>TODO
+<p>The Binary type generates BLOB or BYTEA when tables are created, and also converts incoming values using the <code>Binary</code> callable provided by each DBAPI.  <br></br>
 </p>
 
 
@@ -306,7 +328,7 @@
     
     
 
-<p>TODO
+<p>Boolean typically uses BOOLEAN or SMALLINT on the CREATE TABLE side, and returns Python <code>True</code> or <code>False</code>.
 </p>
 
 
@@ -325,7 +347,7 @@
     
     
 
-<p>TODO
+<p>PickleType builds upon the Binary type to apply Python's <code>pickle.dumps()</code> to incoming objects, and <code>pickle.loads()</code> on the way out, allowing any pickleable Python object to be stored as a serialized binary field.
 </p>
 
 
@@ -365,6 +387,8 @@
 </span><span class="python_keyword">class </span><span class="python_name">BOOLEAN</span><span class="python_enclosure">(</span><span class="python_name">Boolean</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+<p>The idea behind the SQL-specific types is that a CREATE TABLE statement would generate the exact type specified.  <br></br>
+</p>
 
 
 

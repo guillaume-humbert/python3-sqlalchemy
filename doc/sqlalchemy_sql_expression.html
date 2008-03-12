@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -643,6 +643,9 @@ during the compile phase of the <tt class="docutils literal"><span class="pre">I
 bind parameters also are None during the compile phase, then the
 column specifications will be generated from the full list of
 table columns.</dd>
+<dt>prefixes</dt>
+<dd>A list of modifier keywords to be inserted between INSERT and INTO,
+see <tt class="docutils literal"><span class="pre">Insert.prefix_with</span></tt>.</dd>
 <dt>inline</dt>
 <dd>if True, SQL defaults will be compiled 'inline' into the statement
 and not pre-executed.</dd>
@@ -2829,7 +2832,7 @@ generated function.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>table</i>, <i>whereclause</i>)</b>
+    <b>def __init__(<i>self</i>, <i>table</i>, <i>whereclause</i>, <i>bind=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Delete</span></tt>.</p>
 
@@ -3436,7 +3439,7 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>table</i>, <i>values=None</i>, <i>inline=False</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>table</i>, <i>values=None</i>, <i>inline=False</i>, <i>bind=None</i>, <i>prefixes=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Insert</span></tt>.</p>
 
@@ -3450,6 +3453,19 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
     <b>def get_children(<i>self</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def prefix_with(<i>self</i>, <i>clause</i>)</b>
+    <div class="docstring">
+    <p>Add a word or expression between INSERT and INTO. Generative.</p>
+<p>If multiple prefixes are supplied, they will be separated with
+spaces.</p>
+
     </div>
     </div>
 
@@ -4941,7 +4957,7 @@ functionality.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>table</i>, <i>whereclause</i>, <i>values=None</i>, <i>inline=False</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>table</i>, <i>whereclause</i>, <i>values=None</i>, <i>inline=False</i>, <i>bind=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Update</span></tt>.</p>
 

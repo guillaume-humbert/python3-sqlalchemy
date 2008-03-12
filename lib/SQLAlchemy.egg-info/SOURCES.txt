@@ -39,6 +39,7 @@ doc/sqlalchemy_engine_threadlocal.html
 doc/sqlalchemy_engine_url.html
 doc/sqlalchemy_exceptions.html
 doc/sqlalchemy_ext_associationproxy.html
+doc/sqlalchemy_ext_declarative.html
 doc/sqlalchemy_ext_orderinglist.html
 doc/sqlalchemy_ext_sqlsoup.html
 doc/sqlalchemy_interfaces.html
@@ -154,6 +155,7 @@ lib/sqlalchemy/ext/__init__.py
 lib/sqlalchemy/ext/activemapper.py
 lib/sqlalchemy/ext/assignmapper.py
 lib/sqlalchemy/ext/associationproxy.py
+lib/sqlalchemy/ext/declarative.py
 lib/sqlalchemy/ext/orderinglist.py
 lib/sqlalchemy/ext/selectresults.py
 lib/sqlalchemy/ext/sessioncontext.py
@@ -224,6 +226,7 @@ test/ext/activemapper.py
 test/ext/alltests.py
 test/ext/assignmapper.py
 test/ext/associationproxy.py
+test/ext/declarative.py
 test/ext/orderinglist.py
 test/orm/__init__.py
 test/orm/alltests.py

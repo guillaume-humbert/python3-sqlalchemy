@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -59,6 +59,9 @@
 	
 	
     <ul>
+        
+        <li><a style="" href="plugins.html#plugins_declarative">declarative</a></li>
+
         
         <li><a style="" href="plugins.html#plugins_associationproxy">associationproxy</a></li>
 
@@ -128,6 +131,236 @@
 
 <p>SQLAlchemy has a variety of extensions available which provide extra functionality to SA, either via explicit usage or by augmenting the core behavior.  Several of these extensions are designed to work together.
 </p>
+
+
+    
+    <A name="plugins_declarative"></a>
+    
+    <div class="sectionL2">
+
+    <h3>declarative</h3>
+    
+    
+
+<p><strong>Author:</strong> Mike Bayer<br></br>
+   <strong>Version:</strong> 0.4.4 or greater
+</p>
+<p><code>declarative</code> intends to be a fully featured replacement for the very old <code>activemapper</code> extension.  Its goal is to redefine the organization of class, <code>Table</code>, and <code>mapper()</code> constructs such that they can all be defined "at once" underneath a class declaration.   Unlike <code>activemapper</code>, it does not redefine normal SQLAlchemy configurational semantics - regular <code>Column</code>, <code>relation()</code> and other schema or ORM constructs are used in almost all cases.
+</p>
+<p><code>declarative</code> is a so-called "micro declarative layer"; it does not generate table or column names and requires almost as fully verbose a configuration as that of straight tables and mappers.  As an alternative, the <a href='http://elixir.ematia.de/'>Elixir</a> project is a full community-supported declarative layer for SQLAlchemy, and is recommended for its active-record-like semantics, its convention-based configuration, and plugin capabilities.
+</p>
+<p>SQLAlchemy object-relational configuration involves the usage of Table, mapper(), and class objects to define the three areas of configuration.
+   declarative moves these three types of configuration underneath the individual mapped class. Regular SQLAlchemy schema and ORM constructs are used
+   in most cases:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">declarative </span><span class="python_keyword">import </span><span class="python_name">declarative_base</span><span class="python_operator">, </span><span class="python_name">declared_synonym</span><span class="python_operator">
+</span>
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">SomeClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'some_table'</span><span class="python_operator">
+    </span><span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">name </span><span class="python_operator">=  </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Above, the <code>declarative_base</code> callable produces a new base class from which all mapped classes inherit from. When the class definition is
+   completed, a new <code>Table</code> and <code>mapper()</code> have been generated, accessible via the <code>__table__</code> and <code>__mapper__</code> attributes on the
+   <code>SomeClass</code> class.
+</p>
+<p>Attributes may be added to the class after its construction, and they will be added to the underlying <code>Table</code> and <code>mapper()</code> definitions as
+   appropriate:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">SomeClass</span><span class="python_operator">.</span><span class="python_name">data </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'data'</span><span class="python_operator">, </span><span class="python_name">Unicode</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">SomeClass</span><span class="python_operator">.</span><span class="python_name">related </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">RelatedInfo</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Classes which are mapped explicitly using <code>mapper()</code> can interact freely with declarative classes. The <code>declarative_base</code> base class contains a
+   <code>MetaData</code> object as well as a dictionary of all classes created against the base. So to access the above metadata and create tables we can say:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">Base</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The <code>declarative_base</code> can also receive a pre-created <code>MetaData</code> object:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">mymetadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">(</span><span class="python_name">metadata</span><span class="python_operator">=</span><span class="python_name">mymetadata</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Relations to other classes are done in the usual way, with the added feature that the class specified to <code>relation()</code> may be a string name. The
+   "class registry" associated with <code>Base</code> is used at mapper compilation time to resolve the name into the actual class object, which is expected to
+   have been defined once the mapper configuration is used:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'users'</span><span class="python_operator">
+</span>
+    <span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">name </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">
+    </span><span class="python_name">addresses </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_literal">"Address"</span><span class="python_operator">, </span><span class="python_name">backref</span><span class="python_operator">=</span><span class="python_literal">"user"</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'addresses'</span><span class="python_operator">
+</span>
+    <span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">email </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'email'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">
+    </span><span class="python_name">user_id </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'users.id'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Column constructs, since they are just that, are immediately usable, as below where we define a primary join condition on the <code>Address</code> class
+   using them:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'addresses'</span><span class="python_operator">
+</span>
+    <span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">email </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'email'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">
+    </span><span class="python_name">user_id </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'users.id'</span><span class="python_enclosure">))</span><span class="python_operator">
+    </span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Synonyms are one area where <code>declarative</code> needs to slightly change the usual SQLAlchemy configurational syntax. To define a getter/setter which
+   proxies to an underlying attribute, use <code>declared_synonym</code>:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'sometable'</span><span class="python_operator">
+</span>
+    <span class="python_name">_attr </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'attr'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+    <span class="python_keyword">def </span><span class="python_name">_get_attr</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">return </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_some_attr</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">_set_attr</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">attr</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_some_attr </span><span class="python_operator">= </span><span class="python_name">attr</span><span class="python_operator">
+    </span><span class="python_name">attr </span><span class="python_operator">= </span><span class="python_name">declared_synonym</span><span class="python_enclosure">(</span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_name">_get_attr</span><span class="python_operator">, </span><span class="python_name">_set_attr</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_literal">'_attr'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The above synonym is then usable as an instance attribute as well as a class-level expression construct:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">x </span><span class="python_operator">= </span><span class="python_name">MyClass</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">x</span><span class="python_operator">.</span><span class="python_name">attr </span><span class="python_operator">= </span><span class="python_literal">"some value"</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">.</span><span class="python_name">attr </span><span class="python_operator">== </span><span class="python_literal">'some other value'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>As an alternative to <code>__tablename__</code>, a direct <code>Table</code> construct may be used:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__table__ </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'my_table'</span><span class="python_operator">, </span><span class="python_name">Base</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">,</span>
+        <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+        <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span>
+    <span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>This is the preferred approach when using reflected tables, as below:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__table__ </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'my_table'</span><span class="python_operator">, </span><span class="python_name">Base</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">, </span><span class="python_name">autoload</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Mapper arguments are specified using the <code>__mapper_args__</code> class variable. Note that the column objects declared on the class are immediately
+   usable, as in this joined-table inheritance example:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">Person</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'people'</span><span class="python_operator">
+    </span><span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">discriminator </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'type'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">
+    </span><span class="python_name">__mapper_args__ </span><span class="python_operator">= </span><span class="python_enclosure">{</span><span class="python_literal">'polymorphic_on'</span><span class="python_operator">:</span><span class="python_name">discriminator</span><span class="python_enclosure">}</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Engineer</span><span class="python_enclosure">(</span><span class="python_name">Person</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'engineers'</span><span class="python_operator">
+    </span><span class="python_name">__mapper_args__ </span><span class="python_operator">= </span><span class="python_enclosure">{</span><span class="python_literal">'polymorphic_identity'</span><span class="python_operator">:</span><span class="python_literal">'engineer'</span><span class="python_enclosure">}</span><span class="python_operator">
+    </span><span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'people.id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">primary_language </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'primary_language'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>For single-table inheritance, the <code>__tablename__</code> and <code>__table__</code> class variables are optional on a class when the class inherits from another
+   mapped class.
+</p>
+<p>As a convenience feature, the <code>declarative_base()</code> sets a default constructor on classes which takes keyword arguments, and assigns them to the
+   named attributes:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">e </span><span class="python_operator">= </span><span class="python_name">Engineer</span><span class="python_enclosure">(</span><span class="python_name">primary_language</span><span class="python_operator">=</span><span class="python_literal">'python'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Note that <code>declarative</code> has no integration built in with sessions, and is only intended as an optional syntax for the regular usage of mappers
+   and Table objects. A typical application setup using <code>scoped_session</code> might look like:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">scoped_session</span><span class="python_enclosure">(</span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">transactional</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">autoflush</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">))</span><span class="python_operator">
+</span><span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Mapped instances then make usage of <code>Session</code> in the usual way.
+</p>
+
+
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
 
 
     
@@ -663,7 +896,7 @@ documentation</a> for more
     
     
 
-<p>A lot of our extensions are deprecated.  But this is a good thing.  Why ?  Because all of them have been refined and focused, and rolled into the core of SQLAlchemy (or in the case of <code>ActiveMapper</code>, it's become <strong>Elixir</strong>).  So they aren't removed, they've just graduated into fully integrated features.  Below we describe a set of extensions which are present in 0.4 but are deprecated.
+<p>A lot of our extensions are deprecated.  But this is a good thing.  Why ?  Because all of them have been refined and focused, and rolled into the core of SQLAlchemy.  So they aren't removed, they've just graduated into fully integrated features.  Below we describe a set of extensions which are present in 0.4 but are deprecated.
 </p>
 
 
@@ -815,7 +1048,7 @@ documentation</a> for more
 
 <p><strong>Author:</strong> Jonathan LaCour
 </p>
-<p>Please note that ActiveMapper has been deprecated in favor of <a href='http://elixir.ematia.de/'>Elixir</a>, a more comprehensive solution to declarative mapping, of which Jonathan is a co-author.
+<p>Please note that ActiveMapper has been deprecated in favor of either <a href='http://elixir.ematia.de/'>Elixir</a>, a comprehensive solution to declarative mapping, or <a href="plugins.html#plugins_declarative">declarative</a>, a built in convenience tool which reorganizes <code>Table</code> and <code>mapper()</code> configuration.
 </p>
 <p>ActiveMapper is a so-called "declarative layer" which allows the construction of a class, a <code>Table</code>, and a <code>Mapper</code> all in one step:
 </p>

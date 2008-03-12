@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -1035,6 +1035,28 @@ or attributes.</dd>
 <dt>**kwargs</dt>
 <dd>key/value pairs corresponding to member class attribute names which
 will be compared via equality to the corresponding values.</dd>
+</dl>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def of_type(<i>self</i>, <i>class_</i>)</b>
+    <div class="docstring">
+    <p>Redefine this object in terms of a polymorphic subclass.</p>
+<p>Returns a new PropComparator from which further criterion can be evaluated.</p>
+<p>e.g.:</p>
+<pre class="literal-block">
+query.join(Company.employees.of_type(Engineer)).\
+   filter(Engineer.name=='foo')
+</pre>
+<dl class="docutils">
+<dt>class_</dt>
+<dd>a class or mapper indicating that criterion will be against
+this specific subclass.</dd>
 </dl>
 
     </div>
