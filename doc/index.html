@@ -29,7 +29,7 @@ Documentation
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -1173,6 +1173,9 @@ Documentation
         <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_SADeprecationWarning">class SADeprecationWarning(DeprecationWarning)</a></li>
 
         
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_SAPendingDeprecationWarning">class SAPendingDeprecationWarning(PendingDeprecationWarning)</a></li>
+
+        
         <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_SAWarning">class SAWarning(RuntimeWarning)</a></li>
 
         
@@ -1524,7 +1527,7 @@ Documentation
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__IdentifiedClause">class _IdentifiedClause(ClauseElement)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Insert">class Insert(_UpdateBase)</a></li>
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Insert">class Insert(_ValuesBase)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Join">class Join(FromClause)</a></li>
@@ -1575,10 +1578,13 @@ Documentation
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__UnaryExpression">class _UnaryExpression(ColumnElement)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Update">class Update(_UpdateBase)</a></li>
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Update">class Update(_ValuesBase)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__UpdateBase">class _UpdateBase(ClauseElement)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__ValuesBase">class _ValuesBase(_UpdateBase)</a></li>
 
     </ul>
 
@@ -1714,6 +1720,9 @@ Documentation
 
         
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_column_property">column_property()</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_comparable_property">comparable_property()</a></li>
 
         
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_compile_mappers">compile_mappers()</a></li>
@@ -1929,6 +1938,9 @@ Documentation
         <li><a style="" href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_ColumnProperty">class ColumnProperty(StrategizedProperty)</a></li>
 
         
+        <li><a style="" href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_ComparableProperty">class ComparableProperty(MapperProperty)</a></li>
+
+        
         <li><a style="" href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_CompositeProperty">class CompositeProperty(ColumnProperty)</a></li>
 
         
@@ -1995,14 +2007,20 @@ Documentation
                 
     <ul>
         
+        <li><a style="" href="sqlalchemy_ext_declarative.html#docstrings_sqlalchemy.ext.declarative_modfunc_comparable_using">comparable_using()</a></li>
+
+        
         <li><a style="" href="sqlalchemy_ext_declarative.html#docstrings_sqlalchemy.ext.declarative_modfunc_declarative_base">declarative_base()</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_ext_declarative.html#docstrings_sqlalchemy.ext.declarative_modfunc_declared_synonym">declared_synonym()</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_ext_declarative.html#docstrings_sqlalchemy.ext.declarative_modfunc_synonym_for">synonym_for()</a></li>
 
     </ul>
 
 	        </li>
-        
-        <li><a style="" href="sqlalchemy_ext_declarative.html#docstrings_sqlalchemy.ext.declarative_declared_synonym">class declared_synonym(object)</a></li>
-
     </ul>
 
 	        </li>
@@ -2397,7 +2415,7 @@ Documentation
         <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleNumeric">class OracleNumeric(Numeric)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleRaw">class OracleRaw(Binary)</a></li>
+        <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleRaw">class OracleRaw(OracleBinary)</a></li>
 
         
         <li><a style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleSchemaDropper">class OracleSchemaDropper(SchemaDropper)</a></li>
@@ -2469,9 +2487,6 @@ Documentation
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDateTime_pyodbc">class MSDateTime_pyodbc(MSDateTime)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDate_pymssql">class MSDate_pymssql(MSDate)</a></li>
-
-        
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDate_pyodbc">class MSDate_pyodbc(MSDate)</a></li>
 
         
@@ -2524,6 +2539,9 @@ Documentation
 
         
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSSQLSchemaGenerator">class MSSQLSchemaGenerator(SchemaGenerator)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSSmallDate">class MSSmallDate(Date)</a></li>
 
         
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSSmallInteger">class MSSmallInteger(MSInteger)</a></li>

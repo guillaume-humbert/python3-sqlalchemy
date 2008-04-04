@@ -568,7 +568,31 @@ class MiscTest(TestBase, AssertsExecutionResults):
             self.assert_((subject.c.id==referer.c.ref).compare(subject.join(referer).onclause))
         finally:
             meta1.drop_all()
-
+    
+    def test_schema_roundtrips(self):
+        meta = MetaData(testing.db)
+        users = Table('users', meta, 
+            Column('id', Integer, primary_key=True),
+            Column('name', String(50)), schema='alt_schema')
+        users.create()
+        try:
+            users.insert().execute(id=1, name='name1')
+            users.insert().execute(id=2, name='name2')
+            users.insert().execute(id=3, name='name3')
+            users.insert().execute(id=4, name='name4')
+            
+            self.assertEquals(users.select().where(users.c.name=='name2').execute().fetchall(), [(2, 'name2')])
+            self.assertEquals(users.select(use_labels=True).where(users.c.name=='name2').execute().fetchall(), [(2, 'name2')])
+            
+            users.delete().where(users.c.id==3).execute()
+            self.assertEquals(users.select().where(users.c.name=='name3').execute().fetchall(), [])
+            
+            users.update().where(users.c.name=='name4').execute(name='newname')
+            self.assertEquals(users.select(use_labels=True).where(users.c.id==4).execute().fetchall(), [(4, 'newname')])
+            
+        finally:
+            users.drop()
+            
     def test_preexecute_passivedefault(self):
         """test that when we get a primary key column back
         from reflecting a table which has a default value on it, we pre-execute
@@ -756,6 +780,37 @@ class TimeStampTest(TestBase, AssertsExecutionResults):
         result = connection.execute(s).fetchone() 
         self.assertEqual(result[0], datetime.datetime(2007, 12, 25, 0, 0)) 
 
-
+class ServerSideCursorsTest(TestBase, AssertsExecutionResults):
+    __only_on__ = 'postgres'
+    
+    def setUpAll(self):
+        global ss_engine
+        ss_engine = engines.testing_engine(options={'server_side_cursors':True})
+        
+    def tearDownAll(self):
+        ss_engine.dispose()
+    
+    def test_roundtrip(self):
+        test_table = Table('test_table', MetaData(ss_engine),
+            Column('id', Integer, primary_key=True),
+            Column('data', String(50))
+        )
+        test_table.create(checkfirst=True)
+        try:
+            test_table.insert().execute(data='data1')
+            
+            nextid = ss_engine.execute(Sequence('test_table_id_seq'))
+            test_table.insert().execute(id=nextid, data='data2')
+            
+            self.assertEquals(test_table.select().execute().fetchall(), [(1, 'data1'), (2, 'data2')])
+            
+            test_table.update().where(test_table.c.id==2).values(data=test_table.c.data + ' updated').execute()
+            self.assertEquals(test_table.select().execute().fetchall(), [(1, 'data1'), (2, 'data2 updated')])
+            test_table.delete().execute()
+            self.assertEquals(test_table.count().scalar(), 0)
+        finally:
+            test_table.drop(checkfirst=True)
+            
+    
 if __name__ == "__main__":
     testenv.main()

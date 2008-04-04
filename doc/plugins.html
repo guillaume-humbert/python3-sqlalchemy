@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -158,7 +158,7 @@
 
     <div class="sliding_code">
         <pre>
-<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">declarative </span><span class="python_keyword">import </span><span class="python_name">declarative_base</span><span class="python_operator">, </span><span class="python_name">declared_synonym</span><span class="python_operator">
+<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">declarative </span><span class="python_keyword">import </span><span class="python_name">declarative_base</span><span class="python_operator">
 </span>
 <span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -248,8 +248,8 @@
     </span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Synonyms are one area where <code>declarative</code> needs to slightly change the usual SQLAlchemy configurational syntax. To define a getter/setter which
-   proxies to an underlying attribute, use <code>declared_synonym</code>:
+<p>Synonyms are one area where <code>declarative</code> needs to slightly change the usual SQLAlchemy configurational syntax. To define a
+   getter/setter which proxies to an underlying attribute, use <code>synonym</code> with the <code>instruments</code> argument:
 </p>
 
     
@@ -265,7 +265,7 @@
         </span><span class="python_keyword">return </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_some_attr</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">_set_attr</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">attr</span><span class="python_enclosure">)</span><span class="python_operator">
         </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_some_attr </span><span class="python_operator">= </span><span class="python_name">attr</span><span class="python_operator">
-    </span><span class="python_name">attr </span><span class="python_operator">= </span><span class="python_name">declared_synonym</span><span class="python_enclosure">(</span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_name">_get_attr</span><span class="python_operator">, </span><span class="python_name">_set_attr</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_literal">'_attr'</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">attr </span><span class="python_operator">= </span><span class="python_name">synonym</span><span class="python_enclosure">(</span><span class="python_literal">'_attr'</span><span class="python_operator">, </span><span class="python_name">instruments</span><span class="python_operator">=</span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_name">_get_attr</span><span class="python_operator">, </span><span class="python_name">_set_attr</span><span class="python_enclosure">))</span><span class="python_operator">
 </span></pre>
     </div>
 <p>The above synonym is then usable as an instance attribute as well as a class-level expression construct:
@@ -278,6 +278,42 @@
 <span class="python_name">x </span><span class="python_operator">= </span><span class="python_name">MyClass</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">x</span><span class="python_operator">.</span><span class="python_name">attr </span><span class="python_operator">= </span><span class="python_literal">"some value"</span><span class="python_operator">
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">.</span><span class="python_name">attr </span><span class="python_operator">== </span><span class="python_literal">'some other value'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The <code>synonyn_for</code> decorator can accomplish the same task:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'sometable'</span><span class="python_operator">
+</span>
+    <span class="python_name">_attr </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'attr'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+    <span class="python_operator">@</span><span class="python_name">synonyn_for</span><span class="python_enclosure">(</span><span class="python_literal">'_attr'</span><span class="python_enclosure">)</span><span class="python_operator">
+    @</span><span class="python_name">property</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">attr</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">return </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_some_attr</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Similarly, <code>comparable_using</code> is a front end for the <code>comparable_property</code> ORM function:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'sometable'</span><span class="python_operator">
+</span>
+    <span class="python_name">name </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+    <span class="python_operator">@</span><span class="python_name">comparable_using</span><span class="python_enclosure">(</span><span class="python_name">MyUpperCaseComparator</span><span class="python_enclosure">)</span><span class="python_operator">
+    @</span><span class="python_name">property</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">uc_name</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">return </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">.</span><span class="python_name">upper</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
 <p>As an alternative to <code>__tablename__</code>, a direct <code>Table</code> construct may be used:

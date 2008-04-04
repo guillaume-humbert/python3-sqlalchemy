@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -252,7 +252,7 @@
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__IdentifiedClause">class _IdentifiedClause(ClauseElement)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Insert">class Insert(_UpdateBase)</a></li>
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Insert">class Insert(_ValuesBase)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Join">class Join(FromClause)</a></li>
@@ -303,10 +303,13 @@
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__UnaryExpression">class _UnaryExpression(ColumnElement)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Update">class Update(_UpdateBase)</a></li>
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Update">class Update(_ValuesBase)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__UpdateBase">class _UpdateBase(ClauseElement)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__ValuesBase">class _ValuesBase(_UpdateBase)</a></li>
 
     </ul>
 
@@ -456,12 +459,36 @@ mostly useful with value-based bind params.</dd>
     <p>Produce a <tt class="docutils literal"><span class="pre">CASE</span></tt> statement.</p>
 <dl class="docutils">
 <dt>whens</dt>
-<dd>A sequence of pairs to be translated into &quot;when / then&quot; clauses.</dd>
+<dd>A sequence of pairs, or alternatively a dict,
+to be translated into &quot;WHEN / THEN&quot; clauses.</dd>
 <dt>value</dt>
-<dd>Optional for simple case statements.</dd>
+<dd>Optional for simple case statements, produces
+a column expression as in &quot;CASE &lt;expr&gt; WHEN ...&quot;</dd>
 <dt>else_</dt>
-<dd>Optional as well, for case defaults.</dd>
+<dd>Optional as well, for case defaults produces
+the &quot;ELSE&quot; portion of the &quot;CASE&quot; statement.</dd>
 </dl>
+<p>The expressions used for THEN and ELSE,
+when specified as strings, will be interpreted
+as bound values. To specify textual SQL expressions
+for these, use the text(&lt;string&gt;) construct.</p>
+<p>The expressions used for the WHEN criterion
+may only be literal strings when &quot;value&quot; is
+present, i.e. CASE table.somecol WHEN &quot;x&quot; THEN &quot;y&quot;.
+Otherwise, literal strings are not accepted
+in this position, and either the text(&lt;string&gt;)
+or literal(&lt;string&gt;) constructs must be used to
+interpret raw string values.</p>
+<p>Usage examples:</p>
+<pre class="literal-block">
+case([(orderline.c.qty &gt; 100, item.c.specialprice),
+      (orderline.c.qty &gt; 10, item.c.bulkprice)
+    ], else_=item.c.regularprice)
+case(value=emp.c.type, whens={
+        'engineer': emp.c.salary * 1.1,
+        'manager':  emp.c.salary * 3,
+    })
+</pre>
 
     </div>
     </div>
@@ -1283,7 +1310,7 @@ function as well as the <tt class="docutils literal"><span class="pre">alias()</
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>left</i>, <i>right</i>, <i>operator</i>, <i>type_=None</i>, <i>negate=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>left</i>, <i>right</i>, <i>operator</i>, <i>type_=None</i>, <i>negate=None</i>, <i>modifiers=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">_BinaryExpression</span></tt>.</p>
 
@@ -2256,7 +2283,7 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def contains(<i>self</i>, <i>other</i>)</b>
+    <b>def contains(<i>self</i>, <i>other</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2286,7 +2313,7 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def endswith(<i>self</i>, <i>other</i>)</b>
+    <b>def endswith(<i>self</i>, <i>other</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2296,7 +2323,7 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def ilike(<i>self</i>, <i>other</i>)</b>
+    <b>def ilike(<i>self</i>, <i>other</i>, <i>escape=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2316,7 +2343,7 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def like(<i>self</i>, <i>other</i>)</b>
+    <b>def like(<i>self</i>, <i>other</i>, <i>escape=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2326,7 +2353,7 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def startswith(<i>self</i>, <i>other</i>)</b>
+    <b>def startswith(<i>self</i>, <i>other</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2615,7 +2642,7 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def contains(<i>self</i>, <i>other</i>)</b>
+    <b>def contains(<i>self</i>, <i>other</i>, <i>escape=None</i>)</b>
     <div class="docstring">
     <p>Produce the clause <tt class="docutils literal"><span class="pre">LIKE</span> <span class="pre">'%&lt;other&gt;%'</span></tt></p>
 
@@ -2648,7 +2675,7 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def endswith(<i>self</i>, <i>other</i>)</b>
+    <b>def endswith(<i>self</i>, <i>other</i>, <i>escape=None</i>)</b>
     <div class="docstring">
     <p>Produce the clause <tt class="docutils literal"><span class="pre">LIKE</span> <span class="pre">'%&lt;other&gt;'</span></tt></p>
 
@@ -2717,7 +2744,7 @@ generated function.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def operate(<i>self</i>, <i>op</i>, <i>*other</i>)</b>
+    <b>def operate(<i>self</i>, <i>op</i>, <i>*other</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2727,7 +2754,7 @@ generated function.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def reverse_operate(<i>self</i>, <i>op</i>, <i>other</i>)</b>
+    <b>def reverse_operate(<i>self</i>, <i>op</i>, <i>other</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2737,7 +2764,7 @@ generated function.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def startswith(<i>self</i>, <i>other</i>)</b>
+    <b>def startswith(<i>self</i>, <i>other</i>, <i>escape=None</i>)</b>
     <div class="docstring">
     <p>Produce the clause <tt class="docutils literal"><span class="pre">LIKE</span> <span class="pre">'&lt;other&gt;%'</span></tt></p>
 
@@ -3022,6 +3049,16 @@ to the existing clause via AND, if any.</p>
          
          </div> 
          </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def correspond_on_equivalents(<i>self</i>, <i>column</i>, <i>equivalents</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
 
                     
     <div class="darkcell">
@@ -3430,7 +3467,7 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
     
     <div class="sectionL3">
 
-    <h3>class Insert(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__UpdateBase">_UpdateBase</a>)</h3>
+    <h3>class Insert(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__ValuesBase">_ValuesBase</a>)</h3>
     
     
     
@@ -3466,16 +3503,6 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
 <p>If multiple prefixes are supplied, they will be separated with
 spaces.</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def values(<i>self</i>, <i>v</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -4948,7 +4975,7 @@ functionality.</p>
     
     <div class="sectionL3">
 
-    <h3>class Update(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__UpdateBase">_UpdateBase</a>)</h3>
+    <h3>class Update(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__ValuesBase">_ValuesBase</a>)</h3>
     
     
     
@@ -4969,16 +4996,6 @@ functionality.</p>
     
     <A name=""></a>
     <b>def get_children(<i>self</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def values(<i>self</i>, <i>v</i>)</b>
     <div class="docstring">
     
     </div>
@@ -5036,6 +5053,45 @@ to the existing clause via AND, if any.</p>
     <b>def supports_execution(<i>self</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.sql.expression__ValuesBase"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class _ValuesBase(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__UpdateBase">_UpdateBase</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def values(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    <p>specify the VALUES clause for an INSERT statement, or the SET clause for an UPDATE.</p>
+<dl class="docutils">
+<dt>**kwargs</dt>
+<dd>key=&lt;somevalue&gt; arguments</dd>
+<dt>*args</dt>
+<dd>deprecated.  A single dictionary can be sent as the first positional argument.</dd>
+</dl>
+
     </div>
     </div>
 

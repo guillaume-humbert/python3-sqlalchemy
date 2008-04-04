@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -251,7 +251,12 @@ query and return the newly resulting <tt class="docutils literal"><span class="p
     <A name=""></a>
     <b>def autoflush(<i>self</i>, <i>setting</i>)</b>
     <div class="docstring">
-    
+    <p>Return a Query with a specific 'autoflush' setting.</p>
+<p>Note that a Session with autoflush=False will
+not autoflush, even if this flag is set to True at the
+Query level.  Therefore this flag is usually used only
+to disable autoflush for a specific Query.</p>
+
     </div>
     </div>
 
@@ -404,17 +409,6 @@ in the order of the table def's primary key columns.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def group_by(<i>self</i>, <i>criterion</i>)</b>
-    <div class="docstring">
-    <p>apply one or more GROUP BY criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def having(<i>self</i>, <i>criterion</i>)</b>
     <div class="docstring">
     <p>apply a HAVING criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
@@ -511,8 +505,8 @@ session.query(Company).join([('employees', people.join(engineers)), Engineer.com
     <A name=""></a>
     <b>def limit(<i>self</i>, <i>limit</i>)</b>
     <div class="docstring">
-    <p>Apply a <tt class="docutils literal"><span class="pre">LIMIT</span></tt> to the query and return the newly resulting
-<tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+    <p>Apply a <tt class="docutils literal"><span class="pre">LIMIT</span></tt> to the query and return the newly resulting</p>
+<p><tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
     </div>
     </div>
@@ -605,17 +599,6 @@ MapperOptions.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def order_by(<i>self</i>, <i>criterion</i>)</b>
-    <div class="docstring">
-    <p>apply one or more ORDER BY criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def outerjoin(<i>self</i>, <i>prop</i>, <i>id=None</i>, <i>aliased=False</i>, <i>from_joinpoint=False</i>)</b>
     <div class="docstring">
     <p>Create a left outer join against this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
@@ -668,19 +651,11 @@ convenient, however some parameter dictionaries contain unicode keys in which ca
 secondary entities, eagerly-loaded collection items.</p>
 <p>All changes present on entities which are already present in the
 session will be reset and the entities will all be marked &quot;clean&quot;.</p>
-<p>This is essentially the en-masse version of load().</p>
+<p>An alternative to populate_existing() is to expire the Session
+fully using session.expire_all().</p>
 
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>primary_key_columns = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -862,12 +837,52 @@ from with the given table.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def starargs_as_list(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def starargs_as_list(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>statement = property()</b>
+         <div class="docstring">
+         <p>return the full SELECT statement represented by this Query.</p>
+
+         </div> 
+         </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def sum(<i>self</i>, <i>col</i>)</b>
     <div class="docstring">
     <p>Execute the SQL <tt class="docutils literal"><span class="pre">sum()</span></tt> function against the given column.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>whereclause = property()</b>
+         <div class="docstring">
+         <p>return the WHERE criterion for this Query.</p>
+
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -915,11 +930,6 @@ tables are included in the FROM clause, and will allow filter()
 criterion to be used against those tables.  The resulting
 instances will also have those columns already loaded so that
 no &quot;post fetch&quot; of those columns will be required.</p>
-<p>If this Query's mapper has a <tt class="docutils literal"><span class="pre">select_table</span></tt> argument,
-with_polymorphic() overrides it; the FROM clause will be against
-the local table of the base mapper outer joined with the local
-tables of each specified descendant mapper (unless <tt class="docutils literal"><span class="pre">selectable</span></tt>
-is specified).</p>
 <p><tt class="docutils literal"><span class="pre">cls_or_mappers</span></tt> is a single class or mapper, or list of class/mappers,
 which inherit from this Query's mapper.  Alternatively, it
 may also be the string <tt class="docutils literal"><span class="pre">'*'</span></tt>, in which case all descending

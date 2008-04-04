@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -82,6 +82,9 @@
 
         
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_column_property">column_property()</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_comparable_property">comparable_property()</a></li>
 
         
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_compile_mappers">compile_mappers()</a></li>
@@ -262,6 +265,47 @@ attribute is first accessed on an instance.  See also
 <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_deferred">deferred()</a>.</dd>
 </dl>
 </blockquote>
+
+    </div>
+    </div>
+
+                
+    <div class="darkcell">
+    
+    <A name="docstrings_sqlalchemy.orm_modfunc_comparable_property"></a>
+    <b>def comparable_property(<i>comparator_factory</i>, <i>descriptor=None</i>)</b>
+    <div class="docstring">
+    <p>Provide query semantics for an unmanaged attribute.</p>
+<p>Allows a regular Python &#64;property (descriptor) to be used in Queries and
+SQL constructs like a managed attribute.  comparable_property wraps a
+descriptor with a proxy that directs operator overrides such as ==
+(__eq__) to the supplied comparator but proxies everything else through
+to the original descriptor:</p>
+<pre class="literal-block">
+class MyClass(object):
+    &#64;property
+    def myprop(self):
+        return 'foo'
+
+class MyComparator(sqlalchemy.orm.interfaces.PropComparator):
+    def __eq__(self, other):
+        ....
+
+mapper(MyClass, mytable, properties=dict(
+         'myprop': comparable_property(MyComparator)))
+</pre>
+<p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to  <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a>.</p>
+<dl class="docutils">
+<dt>comparator_factory</dt>
+<dd>A PropComparator subclass or factory that defines operator behavior
+for this property.</dd>
+<dt>descriptor</dt>
+<dd><p class="first">Optional when used in a <tt class="docutils literal"><span class="pre">properties={}</span></tt> declaration.  The Python
+descriptor or property to layer comparison behavior on top of.</p>
+<p class="last">The like-named descriptor will be automatically retreived from the
+mapped class if left blank in a <tt class="docutils literal"><span class="pre">properties</span></tt> declaration.</p>
+</dd>
+</dl>
 
     </div>
     </div>
@@ -555,9 +599,13 @@ mappers may be created for a particular class.</dd>
 <dt>polymorphic_on</dt>
 <dd>Used with mappers in an inheritance relationship, a <tt class="docutils literal"><span class="pre">Column</span></tt>
 which will identify the class/mapper combination to be used
-with a particular row.  requires the polymorphic_identity
+with a particular row.  Requires the <tt class="docutils literal"><span class="pre">polymorphic_identity</span></tt>
 value to be set for all mappers in the inheritance
-hierarchy.</dd>
+hierarchy.  The column specified by <tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> is
+usually a column that resides directly within the base
+mapper's mapped table; alternatively, it may be a column
+that is only present within the &lt;selectable&gt; portion
+of the <tt class="docutils literal"><span class="pre">with_polymorphic</span></tt> argument.</dd>
 <dt>_polymorphic_map</dt>
 <dd>Used internally to propagate the full map of polymorphic
 identifiers to surrogate mappers.</dd>
@@ -568,7 +616,7 @@ this mapper.</dd>
 <dt>polymorphic_fetch</dt>
 <dd>specifies how subclasses mapped through joined-table
 inheritance will be fetched.  options are 'union',
-'select', and 'deferred'.  if the select_table argument
+'select', and 'deferred'.  if the 'with_polymorphic' argument
 is present, defaults to 'union', otherwise defaults to
 'select'.</dd>
 <dt>properties</dt>
@@ -596,11 +644,25 @@ than its superclass, <tt class="docutils literal"><span class="pre">A</span></tt
 to be used against this mapper's selectable unit.  This is
 normally simply the primary key of the <cite>local_table</cite>, but
 can be overridden here.</dd>
+<dt>with_polymorphic</dt>
+<dd>A tuple in the form <tt class="docutils literal"><span class="pre">(&lt;classes&gt;,</span> <span class="pre">&lt;selectable&gt;)</span></tt> indicating the
+default style of &quot;polymorphic&quot; loading, that is, which tables
+are queried at once. &lt;classes&gt; is any single or list of mappers
+and/or classes indicating the inherited classes that should be
+loaded at once. The special value <tt class="docutils literal"><span class="pre">'*'</span></tt> may be used to indicate
+all descending classes should be loaded immediately. The second
+tuple argument &lt;selectable&gt; indicates a selectable that will be
+used to query for multiple classes. Normally, it is left as
+None, in which case this mapper will form an outer join from
+the base mapper's table to that of all desired sub-mappers.
+When specified, it provides the selectable to be used for
+polymorphic loading. When with_polymorphic includes mappers
+which load from a &quot;concrete&quot; inheriting table, the &lt;selectable&gt;
+argument is required, since it usually requires more complex
+UNION queries.</dd>
 <dt>select_table</dt>
-<dd>A <a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Table">Table</a> or any <b>Selectable</b>
-which will be used to select instances of this mapper's class.
-usually used to provide polymorphic loading among several
-classes in an inheritance hierarchy.</dd>
+<dd>Deprecated.  Synonymous with
+<tt class="docutils literal"><span class="pre">with_polymorphic=('*',</span> <span class="pre">&lt;selectable&gt;)</span></tt>.</dd>
 <dt>version_id_col</dt>
 <dd>A <tt class="docutils literal"><span class="pre">Column</span></tt> which must have an integer type that will be
 used to keep a running <em>version id</em> of mapped entities in
@@ -938,7 +1000,7 @@ which should be used by the returned class.  All other keyword arguments sent to
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_synonym"></a>
-    <b>def synonym(<i>name</i>, <i>map_column=False</i>, <i>proxy=False</i>)</b>
+    <b>def synonym(<i>name</i>, <i>map_column=False</i>, <i>descriptor=None</i>, <i>proxy=False</i>)</b>
     <div class="docstring">
     <p>Set up <cite>name</cite> as a synonym to another mapped property.</p>
 <p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to  <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a>.</p>
@@ -1359,7 +1421,10 @@ method.</p>
     <h3>class PropComparator(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ColumnOperators">ColumnOperators</a>)</h3>
     
     
-    <div class="darkcell"><p>defines comparison operations for MapperProperty objects</p>
+    <div class="darkcell"><p>defines comparison operations for MapperProperty objects.</p>
+<p>PropComparator instances should also define an accessor 'property'
+which returns the MapperProperty associated with this
+PropComparator.</p>
 </div>
     
 
@@ -1616,7 +1681,12 @@ query and return the newly resulting <tt class="docutils literal"><span class="p
     <A name=""></a>
     <b>def autoflush(<i>self</i>, <i>setting</i>)</b>
     <div class="docstring">
-    
+    <p>Return a Query with a specific 'autoflush' setting.</p>
+<p>Note that a Session with autoflush=False will
+not autoflush, even if this flag is set to True at the
+Query level.  Therefore this flag is usually used only
+to disable autoflush for a specific Query.</p>
+
     </div>
     </div>
 
@@ -1769,17 +1839,6 @@ in the order of the table def's primary key columns.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def group_by(<i>self</i>, <i>criterion</i>)</b>
-    <div class="docstring">
-    <p>apply one or more GROUP BY criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def having(<i>self</i>, <i>criterion</i>)</b>
     <div class="docstring">
     <p>apply a HAVING criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
@@ -1876,8 +1935,8 @@ session.query(Company).join([('employees', people.join(engineers)), Engineer.com
     <A name=""></a>
     <b>def limit(<i>self</i>, <i>limit</i>)</b>
     <div class="docstring">
-    <p>Apply a <tt class="docutils literal"><span class="pre">LIMIT</span></tt> to the query and return the newly resulting
-<tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+    <p>Apply a <tt class="docutils literal"><span class="pre">LIMIT</span></tt> to the query and return the newly resulting</p>
+<p><tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
     </div>
     </div>
@@ -1970,17 +2029,6 @@ MapperOptions.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def order_by(<i>self</i>, <i>criterion</i>)</b>
-    <div class="docstring">
-    <p>apply one or more ORDER BY criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def outerjoin(<i>self</i>, <i>prop</i>, <i>id=None</i>, <i>aliased=False</i>, <i>from_joinpoint=False</i>)</b>
     <div class="docstring">
     <p>Create a left outer join against this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
@@ -2033,19 +2081,11 @@ convenient, however some parameter dictionaries contain unicode keys in which ca
 secondary entities, eagerly-loaded collection items.</p>
 <p>All changes present on entities which are already present in the
 session will be reset and the entities will all be marked &quot;clean&quot;.</p>
-<p>This is essentially the en-masse version of load().</p>
+<p>An alternative to populate_existing() is to expire the Session
+fully using session.expire_all().</p>
 
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>primary_key_columns = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -2227,12 +2267,52 @@ from with the given table.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def starargs_as_list(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def starargs_as_list(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>statement = property()</b>
+         <div class="docstring">
+         <p>return the full SELECT statement represented by this Query.</p>
+
+         </div> 
+         </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def sum(<i>self</i>, <i>col</i>)</b>
     <div class="docstring">
     <p>Execute the SQL <tt class="docutils literal"><span class="pre">sum()</span></tt> function against the given column.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>whereclause = property()</b>
+         <div class="docstring">
+         <p>return the WHERE criterion for this Query.</p>
+
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -2280,11 +2360,6 @@ tables are included in the FROM clause, and will allow filter()
 criterion to be used against those tables.  The resulting
 instances will also have those columns already loaded so that
 no &quot;post fetch&quot; of those columns will be required.</p>
-<p>If this Query's mapper has a <tt class="docutils literal"><span class="pre">select_table</span></tt> argument,
-with_polymorphic() overrides it; the FROM clause will be against
-the local table of the base mapper outer joined with the local
-tables of each specified descendant mapper (unless <tt class="docutils literal"><span class="pre">selectable</span></tt>
-is specified).</p>
 <p><tt class="docutils literal"><span class="pre">cls_or_mappers</span></tt> is a single class or mapper, or list of class/mappers,
 which inherit from this Query's mapper.  Alternatively, it
 may also be the string <tt class="docutils literal"><span class="pre">'*'</span></tt>, in which case all descending

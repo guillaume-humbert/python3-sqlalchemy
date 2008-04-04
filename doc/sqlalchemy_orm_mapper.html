@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -180,7 +180,7 @@ columns.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>class_</i>, <i>local_table</i>, <i>properties=None</i>, <i>primary_key=None</i>, <i>non_primary=False</i>, <i>inherits=None</i>, <i>inherit_condition=None</i>, <i>inherit_foreign_keys=None</i>, <i>extension=None</i>, <i>order_by=False</i>, <i>allow_column_override=False</i>, <i>entity_name=None</i>, <i>always_refresh=False</i>, <i>version_id_col=None</i>, <i>polymorphic_on=None</i>, <i>_polymorphic_map=None</i>, <i>polymorphic_identity=None</i>, <i>polymorphic_fetch=None</i>, <i>concrete=False</i>, <i>select_table=None</i>, <i>allow_null_pks=False</i>, <i>batch=True</i>, <i>column_prefix=None</i>, <i>include_properties=None</i>, <i>exclude_properties=None</i>, <i>eager_defaults=False</i>)</b>
+    <b>def __init__(<i>self</i>, <i>class_</i>, <i>local_table</i>, <i>properties=None</i>, <i>primary_key=None</i>, <i>non_primary=False</i>, <i>inherits=None</i>, <i>inherit_condition=None</i>, <i>inherit_foreign_keys=None</i>, <i>extension=None</i>, <i>order_by=False</i>, <i>allow_column_override=False</i>, <i>entity_name=None</i>, <i>always_refresh=False</i>, <i>version_id_col=None</i>, <i>polymorphic_on=None</i>, <i>_polymorphic_map=None</i>, <i>polymorphic_identity=None</i>, <i>polymorphic_fetch=None</i>, <i>concrete=False</i>, <i>select_table=None</i>, <i>with_polymorphic=None</i>, <i>allow_null_pks=False</i>, <i>batch=True</i>, <i>column_prefix=None</i>, <i>include_properties=None</i>, <i>exclude_properties=None</i>, <i>eager_defaults=False</i>)</b>
     <div class="docstring">
     <p>Construct a new mapper.</p>
 <p>Mappers are normally constructed via the <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a>
@@ -220,20 +220,17 @@ the given MapperProperty is compiled immediately.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>state</i>, <i>recursive=None</i>, <i>halt_on=None</i>)</b>
+    <b>def cascade_iterator(<i>self</i>, <i>type_</i>, <i>state</i>, <i>halt_on=None</i>)</b>
     <div class="docstring">
     <p>Iterate each element and its mapper in an object graph,
 for all relations that meet the given cascade rule.</p>
 <dl class="docutils">
-<dt>type</dt>
+<dt>type_</dt>
 <dd>The name of the cascade rule (i.e. save-update, delete,
 etc.)</dd>
 <dt>state</dt>
 <dd>The lead InstanceState.  child items will be processed per
 the relations defined for this object's mapper.</dd>
-<dt>recursive</dt>
-<dd>Used by the function for internal context during recursive
-calls, leave as None.</dd>
 </dl>
 <p>the return value are object instances; this provides a strong
 reference so that they don't fall out of scope immediately.</p>
@@ -258,7 +255,10 @@ reference so that they don't fall out of scope immediately.</p>
     <A name=""></a>
     <b>def compile(<i>self</i>)</b>
     <div class="docstring">
-    <p>Compile this mapper into its final internal format.</p>
+    <p>Compile this mapper and all other non-compiled mappers.</p>
+<p>This method checks the local compiled status as well as for
+any new mappers that have been defined, and is safe to call
+repeatedly.</p>
 
     </div>
     </div>
@@ -287,10 +287,9 @@ reference so that they don't fall out of scope immediately.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_property(<i>self</i>, <i>key</i>, <i>resolve_synonyms=False</i>, <i>raiseerr=True</i>)</b>
+    <b>def do_with_cache(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>return a MapperProperty associated with the given key.</p>
-
+    
     </div>
     </div>
 
@@ -298,11 +297,19 @@ reference so that they don't fall out of scope immediately.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_select_mapper(<i>self</i>)</b>
+    <b>def do_with_cache(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Return the mapper used for issuing selects.</p>
-<p>This mapper is the same mapper as <cite>self</cite> unless the
-select_table argument was specified for this mapper.</p>
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_property(<i>self</i>, <i>key</i>, <i>resolve_synonyms=False</i>, <i>raiseerr=True</i>)</b>
+    <div class="docstring">
+    <p>return a MapperProperty associated with the given key.</p>
 
     </div>
     </div>
@@ -471,20 +478,6 @@ instance.</p>
          
          </div> 
          </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def translate_row(<i>self</i>, <i>tomapper</i>, <i>row</i>)</b>
-    <div class="docstring">
-    <p>Translate the column keys of a row into a new or proxied
-row that can be understood by another mapper.</p>
-<p>This can be used in conjunction with populate_instance to
-populate an instance using an alternate mapper.</p>
-
-    </div>
-    </div>
 
 
     

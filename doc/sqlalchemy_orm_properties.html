@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -70,6 +70,9 @@
 
         
         <li><a style="" href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_ColumnProperty">class ColumnProperty(StrategizedProperty)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_ComparableProperty">class ComparableProperty(MapperProperty)</a></li>
 
         
         <li><a style="" href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_CompositeProperty">class CompositeProperty(ColumnProperty)</a></li>
@@ -205,16 +208,6 @@ appears across each table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_strategy(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def do_init(<i>self</i>)</b>
     <div class="docstring">
     
@@ -266,6 +259,72 @@ appears across each table.</p>
     
     <A name=""></a>
     <b>def setattr(<i>self</i>, <i>state</i>, <i>value</i>, <i>column</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.orm.properties_ComparableProperty"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class ComparableProperty(<a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperProperty">MapperProperty</a>)</h3>
+    
+    
+    <div class="darkcell"><p>Instruments a Python property for use in query expressions.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>comparator_factory</i>, <i>descriptor=None</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">ComparableProperty</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def do_init(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Set up a proxy to the unmanaged descriptor.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def setup(<i>self</i>, <i>querycontext</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -406,7 +465,7 @@ of items that correspond to a related database table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>state</i>, <i>recursive</i>, <i>halt_on=None</i>)</b>
+    <b>def cascade_iterator(<i>self</i>, <i>type_</i>, <i>state</i>, <i>visited_instances</i>, <i>halt_on=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -417,16 +476,6 @@ of items that correspond to a related database table.</p>
     
     <A name=""></a>
     <b>def compare(<i>self</i>, <i>op</i>, <i>value</i>, <i>value_is_parent=False</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def create_strategy(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -462,6 +511,15 @@ of items that correspond to a related database table.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>local_remote_pairs = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -538,7 +596,7 @@ of items that correspond to a related database table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>name</i>, <i>map_column=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>name</i>, <i>map_column=None</i>, <i>descriptor=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">SynonymProperty</span></tt>.</p>
 

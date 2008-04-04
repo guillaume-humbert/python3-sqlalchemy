@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -108,9 +108,6 @@
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDateTime_pyodbc">class MSDateTime_pyodbc(MSDateTime)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDate_pymssql">class MSDate_pymssql(MSDate)</a></li>
-
-        
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDate_pyodbc">class MSDate_pyodbc(MSDate)</a></li>
 
         
@@ -163,6 +160,9 @@
 
         
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSSQLSchemaGenerator">class MSSQLSchemaGenerator(SchemaGenerator)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSSmallDate">class MSSmallDate(Date)</a></li>
 
         
         <li><a style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSSmallInteger">class MSSmallInteger(MSInteger)</a></li>
@@ -1009,6 +1009,16 @@ are up to 3 digits left of the decimal place.</p>
     </div>
     </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
 
     
 
@@ -1129,38 +1139,6 @@ are up to 3 digits left of the decimal place.</p>
 
     
     
-    <A name="docstrings_sqlalchemy.databases.mssql_MSDate_pymssql"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class MSDate_pymssql(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSDate">MSDate</a>)</h3>
-    
-    
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
     <A name="docstrings_sqlalchemy.databases.mssql_MSDate_pyodbc"></a>
     
     <div class="sectionL3">
@@ -1175,16 +1153,6 @@ are up to 3 digits left of the decimal place.</p>
     
     <A name=""></a>
     <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1521,7 +1489,7 @@ are up to 3 digits left of the decimal place.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_column(<i>self</i>, <i>column</i>, <i>**kwargs</i>)</b>
+    <b>def visit_column(<i>self</i>, <i>column</i>, <i>result_map=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2177,6 +2145,59 @@ into IDENTITY columns.</p>
     
     <A name=""></a>
     <b>def get_column_specification(<i>self</i>, <i>column</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSSmallDate"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSSmallDate(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Date">Date</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>*a</i>, <i>**kw</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSSmallDate</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>

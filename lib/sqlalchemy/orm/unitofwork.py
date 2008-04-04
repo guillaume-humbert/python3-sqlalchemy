@@ -349,16 +349,6 @@ class UOWTransaction(object):
         taskelement = task._objects[state]
         taskelement.isdelete = "rowswitch"
         
-    def unregister_object(self, obj):
-        """remove an object from its parent UOWTask.
-        
-        called by mapper._save_obj() when an 'identity switch' is detected, so that
-        no further operations occur upon the instance."""
-        mapper = object_mapper(obj)
-        task = self.get_task_by_mapper(mapper)
-        if obj._state in task._objects:
-            task.delete(obj._state)
-
     def is_deleted(self, state):
         """return true if the given state is marked as deleted within this UOWTransaction."""
         
@@ -591,11 +581,6 @@ class UOWTask(object):
         # instead of __eq__
         self.mapper._save_obj([state], self.uowtransaction, postupdate=True, post_update_cols=util.Set(post_update_cols))
 
-    def delete(self, obj):
-        """remove the given object from this UOWTask, if present."""
-
-        self._objects.pop(obj._state, None)
-
     def __contains__(self, state):
         """return True if the given object is contained within this UOWTask or inheriting tasks."""
         
@@ -777,11 +762,11 @@ class UOWTask(object):
             make_task_tree(head, t, {})
 
         ret = [t]
+
+        # add tasks that were in the cycle, but didnt get assembled
+        # into the cyclical tree, to the start of the list
         for t2 in cycles:
             if t2 not in used_tasks and t2 is not self:
-                # add tasks that were in the cycle, but didnt get assembled
-                # into the cyclical tree, to the start of the list
-                # TODO: no test coverage for this !!
                 localtask = UOWTask(self.uowtransaction, t2.mapper)
                 for state in t2.elements:
                     localtask.append(state, t2.listonly, isdelete=t2._objects[state].isdelete)

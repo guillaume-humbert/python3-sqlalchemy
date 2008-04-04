@@ -4,7 +4,7 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import inspect, itertools, sets, sys, warnings, weakref
+import inspect, itertools, new, sets, sys, warnings, weakref
 import __builtin__
 types = __import__('types')
 
@@ -163,6 +163,23 @@ except ImportError:
             return 'defaultdict(%s, %s)' % (self.default_factory,
                                             dict.__repr__(self))
 
+try:
+    from collections import deque
+except ImportError:
+    class deque(list):
+        def appendleft(self, x):
+            self.insert(0, x)
+        
+        def extendleft(self, iterable):
+            self[0:0] = list(iterable)
+
+        def popleft(self):
+            return self.pop(0)
+            
+        def rotate(self, n):
+            for i in xrange(n):
+                self.appendleft(self.pop())
+                
 def to_list(x, default=None):
     if x is None:
         return default
@@ -171,6 +188,18 @@ def to_list(x, default=None):
     else:
         return x
 
+def array_as_starargs_decorator(func):
+    """Interpret a single positional array argument as
+    *args for the decorated method.
+    
+    """
+    def starargs_as_list(self, *args, **kwargs):
+        if len(args) == 1:
+            return func(self, *to_list(args[0], []), **kwargs)
+        else:
+            return func(self, *args, **kwargs)
+    return starargs_as_list
+    
 def to_set(x):
     if x is None:
         return Set()
@@ -251,6 +280,14 @@ def get_cls_kwargs(cls):
 def get_func_kwargs(func):
     """Return the full set of legal kwargs for the given `func`."""
     return inspect.getargspec(func)[0]
+
+def unbound_method_to_callable(func_or_cls):
+    """Adjust the incoming callable such that a 'self' argument is not required."""
+    
+    if isinstance(func_or_cls, types.MethodType) and not func_or_cls.im_self:
+        return func_or_cls.im_func
+    else:
+        return func_or_cls
 
 # from paste.deploy.converters
 def asbool(obj):
@@ -981,6 +1018,17 @@ class ScopedRegistry(object):
     def _get_key(self):
         return self.scopefunc()
 
+class _symbol(object):
+    def __init__(self, name):
+        """Construct a new named symbol."""
+        assert isinstance(name, str)
+        self.name = name
+    def __reduce__(self):
+        return symbol, (self.name,)
+    def __repr__(self):
+        return "<symbol '%s>" % self.name
+_symbol.__name__ = 'symbol'
+
 class symbol(object):
     """A constant symbol.
 
@@ -991,31 +1039,66 @@ class symbol(object):
 
     A slight refinement of the MAGICCOOKIE=object() pattern.  The primary
     advantage of symbol() is its repr().  They are also singletons.
-    """
 
+    Repeated calls of symbol('name') will all return the same instance.
+
+    """
     symbols = {}
     _lock = threading.Lock()
 
     def __new__(cls, name):
+        cls._lock.acquire()
         try:
-            symbol._lock.acquire()
             sym = cls.symbols.get(name)
             if sym is None:
-                cls.symbols[name] = sym = object.__new__(cls, name)
+                cls.symbols[name] = sym = _symbol(name)
             return sym
         finally:
             symbol._lock.release()
 
-    def __init__(self, name):
-        """Construct a new named symbol.
 
-        Repeated calls of symbol('name') will all return the same instance.
-        """
+def function_named(fn, name):
+    """Return a function with a given __name__.
 
-        assert isinstance(name, str)
-        self.name = name
-    def __repr__(self):
-        return "<symbol '%s>" % self.name
+    Will assign to __name__ and return the original function if possible on
+    the Python implementation, otherwise a new function will be constructed.
+
+    """
+    try:
+        fn.__name__ = name
+    except TypeError:
+        fn = new.function(fn.func_code, fn.func_globals, name,
+                          fn.func_defaults, fn.func_closure)
+    return fn
+
+def conditional_cache_decorator(func):
+    """apply conditional caching to the return value of a function."""
+
+    return cache_decorator(func, conditional=True)
+
+def cache_decorator(func, conditional=False):
+    """apply caching to the return value of a function."""
+
+    name = '_cached_' + func.__name__
+    
+    def do_with_cache(self, *args, **kwargs):
+        if conditional:
+            cache = kwargs.pop('cache', False)
+            if not cache:
+                return func(self, *args, **kwargs)
+        try:
+            return getattr(self, name)
+        except AttributeError:
+            value = func(self, *args, **kwargs)
+            setattr(self, name, value)
+            return value
+    return do_with_cache
+    
+def reset_cached(instance, name):
+    try:
+        delattr(instance, '_cached_' + name)
+    except AttributeError:
+        pass
 
 def warn(msg):
     if isinstance(msg, basestring):
@@ -1026,7 +1109,7 @@ def warn(msg):
 def warn_deprecated(msg):
     warnings.warn(msg, exceptions.SADeprecationWarning, stacklevel=3)
 
-def deprecated(func, message=None, add_deprecation_to_docstring=True):
+def deprecated(message=None, add_deprecation_to_docstring=True):
     """Decorates a function and issues a deprecation warning on use.
 
     message
@@ -1039,27 +1122,64 @@ def deprecated(func, message=None, add_deprecation_to_docstring=True):
       provided, or sensible default if message is omitted.
     """
 
-    if message is not None:
-        warning = message % dict(func=func.__name__)
+    if add_deprecation_to_docstring:
+        header = message is not None and message or 'Deprecated.'
     else:
-        warning = "Call to deprecated function %s" % func.__name__
+        header = None
+
+    if message is None:
+        message = "Call to deprecated function %(func)s"
+
+    def decorate(fn):
+        return _decorate_with_warning(
+            fn, exceptions.SADeprecationWarning,
+            message % dict(func=fn.__name__), header)
+    return decorate
+
+def pending_deprecation(version, message=None,
+                        add_deprecation_to_docstring=True):
+    """Decorates a function and issues a pending deprecation warning on use.
+
+    version
+      An approximate future version at which point the pending deprecation
+      will become deprecated.  Not used in messaging.
+
+    message
+      If provided, issue message in the warning.  A sensible default
+      is used if not provided.
+
+    add_deprecation_to_docstring
+      Default True.  If False, the wrapped function's __doc__ is left
+      as-is.  If True, the 'message' is prepended to the docs if
+      provided, or sensible default if message is omitted.
+    """
+
+    if add_deprecation_to_docstring:
+        header = message is not None and message or 'Deprecated.'
+    else:
+        header = None
+
+    if message is None:
+        message = "Call to deprecated function %(func)s"
+
+    def decorate(fn):
+        return _decorate_with_warning(
+            fn, exceptions.SAPendingDeprecationWarning,
+            message % dict(func=fn.__name__), header)
+    return decorate
+
+def _decorate_with_warning(func, wtype, message, docstring_header=None):
+    """Wrap a function with a warnings.warn and augmented docstring."""
 
     def func_with_warning(*args, **kwargs):
-        warnings.warn(exceptions.SADeprecationWarning(warning),
-                      stacklevel=2)
+        warnings.warn(wtype(message), stacklevel=2)
         return func(*args, **kwargs)
 
     doc = func.__doc__ is not None and func.__doc__ or ''
-
-    if add_deprecation_to_docstring:
-        header = message is not None and warning or 'Deprecated.'
-        doc = '\n'.join((header.rstrip(), doc))
+    if docstring_header is not None:
+        doc = '\n'.join((docstring_header.rstrip(), doc))
 
     func_with_warning.__doc__ = doc
     func_with_warning.__dict__.update(func.__dict__)
-    try:
-        func_with_warning.__name__ = func.__name__
-    except TypeError:
-        pass
 
-    return func_with_warning
+    return function_named(func_with_warning, func.__name__)
