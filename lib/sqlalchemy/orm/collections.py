@@ -95,7 +95,11 @@ The owning object and InstrumentedCollectionAttribute are also reachable
 through the adapter, allowing for some very sophisticated behavior.
 """
 
-import copy, inspect, sys, weakref
+import copy
+import inspect
+import sets
+import sys
+import weakref
 
 from sqlalchemy import exceptions, schema, util as sautil
 from sqlalchemy.util import attrgetter, Set
@@ -750,7 +754,7 @@ def _instrument_class(cls):
     methods = roles.pop('methods', {})
 
     for name in dir(cls):
-        method = getattr(cls, name)
+        method = getattr(cls, name, None)
         if not callable(method):
             continue
 
@@ -1136,6 +1140,22 @@ def _dict_decorators():
     l.pop('Unspecified')
     return l
 
+
+try:
+    _set_binop_bases = (set, frozenset, sets.BaseSet)
+except NameError:
+    _set_binop_bases = (sets.BaseSet,)
+
+def _set_binops_check_strict(self, obj):
+    """Allow only set, frozenset and self.__class__-derived objects in binops."""
+    return isinstance(obj, _set_binop_bases + (self.__class__,))
+
+def _set_binops_check_loose(self, obj):
+    """Allow anything set-like to participate in set binops."""
+    return (isinstance(obj, _set_binop_bases + (self.__class__,)) or
+            sautil.duck_type_collection(obj) == sautil.Set)
+
+
 def _set_decorators():
     """Hand-turned instrumentation wrappers that can decorate any set-like
     sequence class."""
@@ -1148,7 +1168,8 @@ def _set_decorators():
 
     def add(fn):
         def add(self, value, _sa_initiator=None):
-            __set(self, value, _sa_initiator)
+            if value not in self:
+                __set(self, value, _sa_initiator)
             # testlib.pragma exempt:__hash__
             fn(self, value)
         _tidy(add)
@@ -1201,18 +1222,16 @@ def _set_decorators():
     def update(fn):
         def update(self, value):
             for item in value:
-                if item not in self:
-                    self.add(item)
+                self.add(item)
         _tidy(update)
         return update
 
     def __ior__(fn):
         def __ior__(self, value):
-            if sautil.duck_type_collection(value) is not Set:
+            if not _set_binops_check_strict(self, value):
                 return NotImplemented
             for item in value:
-                if item not in self:
-                    self.add(item)
+                self.add(item)
             return self
         _tidy(__ior__)
         return __ior__
@@ -1226,7 +1245,7 @@ def _set_decorators():
 
     def __isub__(fn):
         def __isub__(self, value):
-            if sautil.duck_type_collection(value) is not Set:
+            if not _set_binops_check_strict(self, value):
                 return NotImplemented
             for item in value:
                 self.discard(item)
@@ -1248,7 +1267,7 @@ def _set_decorators():
 
     def __iand__(fn):
         def __iand__(self, other):
-            if sautil.duck_type_collection(other) is not Set:
+            if not _set_binops_check_strict(self, other):
                 return NotImplemented
             want, have = self.intersection(other), Set(self)
             remove, add = have - want, want - have
@@ -1275,7 +1294,7 @@ def _set_decorators():
 
     def __ixor__(fn):
         def __ixor__(self, other):
-            if sautil.duck_type_collection(other) is not Set:
+            if not _set_binops_check_strict(self, other):
                 return NotImplemented
             want, have = self.symmetric_difference(other), Set(self)
             remove, add = have - want, want - have
@@ -1376,6 +1395,7 @@ class MappedCollection(dict):
 
         key = self.keyfunc(value)
         # Let self[key] raise if key is not in this collection
+        # testlib.pragma exempt:__ne__
         if self[key] != value:
             raise exceptions.InvalidRequestError(
                 "Can not remove '%s': collection holds '%s' for key '%s'. "

@@ -6,6 +6,7 @@ from sqlalchemy import exceptions, sql
 from sqlalchemy.orm import *
 from sqlalchemy.ext.sessioncontext import SessionContext, SessionContextExt
 from testlib import *
+from testlib import fixtures
 from testlib.tables import *
 import testlib.tables as tables
 
@@ -31,28 +32,15 @@ class MapperTest(MapperSuperTest):
             properties={
             'addresses':relation(Address, backref='email_address')
         })
-        try:
-            class_mapper(Address)
-            class_mapper(User)
-            assert False
-        except exceptions.ArgumentError:
-            pass
+        self.assertRaises(exceptions.ArgumentError, compile_mappers)
 
     def test_prop_accessor(self):
         mapper(User, users)
-        try:
-            class_mapper(User).properties
-            assert False
-        except NotImplementedError, uoe:
-            assert str(uoe) == "Public collection of MapperProperty objects is provided by the get_property() and iterate_properties accessors."
+        self.assertRaises(NotImplementedError, getattr, class_mapper(User), 'properties')
 
     def test_badcascade(self):
         mapper(Address, addresses)
-        try:
-            mapper(User, users, properties={'addresses':relation(Address, cascade="fake, all, delete-orphan")})
-            assert False
-        except exceptions.ArgumentError, e:
-            assert str(e) == "Invalid cascade option 'fake'"
+        self.assertRaises(exceptions.ArgumentError, relation, Address, cascade="fake, all, delete-orphan")
 
     def test_columnprefix(self):
         mapper(User, users, column_prefix='_', properties={
@@ -68,30 +56,26 @@ class MapperTest(MapperSuperTest):
 
     def test_no_pks(self):
         s = select([users.c.user_name]).alias('foo')
-        try:
-            mapper(User, s)
-            assert False
-        except exceptions.ArgumentError, e:
-            assert "could not assemble any primary key columns for mapped table 'foo'" in str(e)
+        self.assertRaises(exceptions.ArgumentError, mapper, User, s)
     
     def test_recompile_on_othermapper(self):
-        """test the global '__new_mappers' flag such that a compile 
+        """test the global '_new_mappers' flag such that a compile 
         trigger on an already-compiled mapper still triggers a check against all mappers."""
 
         from sqlalchemy.orm import mapperlib
         
         mapper(User, users)
         compile_mappers()
-        assert mapperlib._Mapper__new_mappers is False
+        assert mapperlib._new_mappers is False
         
         m = mapper(Address, addresses, properties={'user':relation(User, backref="addresses")})
         
         assert m._Mapper__props_init is False
-        assert mapperlib._Mapper__new_mappers is True
+        assert mapperlib._new_mappers is True
         u = User()
         assert User.addresses
-        assert mapperlib._Mapper__new_mappers is False
-        
+        assert mapperlib._new_mappers is False
+    
     def test_compileonsession(self):
         m = mapper(User, users)
         session = create_session()
@@ -115,16 +99,9 @@ class MapperTest(MapperSuperTest):
                 pass
         mapper(Foo, users)
         sess = create_session()
-        try:
-            Foo('one', _sa_session=sess)
-            assert False
-        except:
-            assert len(list(sess)) == 0
-        try:
-            Foo('one')
-            assert False
-        except TypeError, e:
-            pass
+        self.assertRaises(TypeError, Foo, 'one', _sa_session=sess)
+        assert len(list(sess)) == 0
+        self.assertRaises(TypeError, Foo, 'one')
 
     @testing.uses_deprecated('SessionContext', 'SessionContextExt')
     def test_constructorexceptions(self):
@@ -1431,8 +1408,10 @@ class MapperExtensionTest(TestBase):
         sess.flush()
         sess.delete(u)
         sess.flush()
-        self.assertEquals(methods, ['before_insert', 'after_insert', 'load', 'translate_row', 'populate_instance', 'get',
-            'translate_row', 'create_instance', 'populate_instance', 'before_update', 'after_update', 'before_delete', 'after_delete'])
+        self.assertEquals(methods, 
+            ['before_insert', 'after_insert', 'load', 'translate_row', 'populate_instance', 'append_result', 'get', 'translate_row', 
+            'create_instance', 'populate_instance', 'append_result', 'before_update', 'after_update', 'before_delete', 'after_delete']        
+        )
 
     def test_inheritance(self):
         # test using inheritance
@@ -1453,8 +1432,9 @@ class MapperExtensionTest(TestBase):
         sess.flush()
         sess.delete(am)
         sess.flush()
-        self.assertEquals(methods, ['before_insert', 'after_insert', 'load', 'translate_row', 'populate_instance', 'get',
-            'translate_row', 'create_instance', 'populate_instance', 'before_update', 'after_update', 'before_delete', 'after_delete'])
+        self.assertEquals(methods, 
+        ['before_insert', 'after_insert', 'load', 'translate_row', 'populate_instance', 'append_result', 'get', 
+        'translate_row', 'create_instance', 'populate_instance', 'append_result', 'before_update', 'after_update', 'before_delete', 'after_delete'])
 
     def test_after_with_no_changes(self):
         # test that after_update is called even if no cols were updated
@@ -1498,16 +1478,17 @@ class MapperExtensionTest(TestBase):
         sess.flush()
         sess.delete(am)
         sess.flush()
-        self.assertEquals(methods, ['before_insert', 'after_insert', 'load', 'translate_row', 'populate_instance', 'get',
-            'translate_row', 'create_instance', 'populate_instance', 'before_update', 'after_update', 'before_delete', 'after_delete'])
+        self.assertEquals(methods, 
+            ['before_insert', 'after_insert', 'load', 'translate_row', 'populate_instance', 'append_result', 'get', 'translate_row', 
+            'create_instance', 'populate_instance', 'append_result', 'before_update', 'after_update', 'before_delete', 'after_delete']
+            )
 
-class RequirementsTest(TestBase, AssertsExecutionResults):
+class RequirementsTest(ORMTest):
     """Tests the contract for user classes."""
 
-    def setUpAll(self):
-        global metadata, t1, t2, t3, t4, t5, t6
+    def define_tables(self, metadata):
+        global t1, t2, t3, t4, t5, t6
 
-        metadata = MetaData(testing.db)
         t1 = Table('ht1', metadata,
                    Column('id', Integer, primary_key=True),
                    Column('value', String(10)))
@@ -1533,13 +1514,6 @@ class RequirementsTest(TestBase, AssertsExecutionResults):
                    Column('ht1b_id', Integer, ForeignKey('ht1.id'),
                           primary_key=True),
                    Column('value', String(10)))
-        metadata.create_all()
-
-    def setUp(self):
-        clear_mappers()
-
-    def tearDownAll(self):
-        metadata.drop_all()
 
     def test_baseclass(self):
         class OldStyle:
@@ -1610,6 +1584,7 @@ class RequirementsTest(TestBase, AssertsExecutionResults):
                     return self.value == other.value
                 return False
 
+                
         mapper(H1, t1, properties={
             'h2s': relation(H2, backref='h1'),
             'h3s': relation(H3, secondary=t4, backref='h1s'),
@@ -1671,6 +1646,37 @@ class RequirementsTest(TestBase, AssertsExecutionResults):
                                   eagerload_all('h3s.h1s')).all()
         self.assertEqual(len(h1s), 5)
 
+class NoEqFoo(object):
+    def __init__(self, data):
+        self.data = data
+    def __eq__(self, other):
+        raise NotImplementedError()
+    def __ne__(self, other):
+        raise NotImplementedError()
+
+class ScalarRequirementsTest(ORMTest):
+    def define_tables(self, metadata):
+        import pickle
+        global t1
+        t1 = Table('t1', metadata, Column('id', Integer, primary_key=True),
+            Column('data', PickleType(pickler=pickle))  # dont use cPickle due to import weirdness
+        )
+        
+    def test_correct_comparison(self):
+                
+        class H1(fixtures.Base):
+            pass
+            
+        mapper(H1, t1)
+        
+        h1 = H1(data=NoEqFoo('12345'))
+        s = create_session()
+        s.save(h1)
+        s.flush()
+        s.clear()
+        h1 = s.get(H1, h1.id)
+        assert h1.data.data == '12345'
+        
 
 if __name__ == "__main__":
     testenv.main()

@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
+<div class="versionheader">Version: 0.4.6   Last Updated: 05/14/08 14:36:43</div>
 
 
 
@@ -91,6 +91,9 @@
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_modfunc_cast">cast()</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_modfunc_collate">collate()</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_modfunc_column">column()</a></li>
@@ -292,9 +295,6 @@
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__TextClause">class _TextClause(ClauseElement)</a></li>
-
-        
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__TextFromClause">class _TextFromClause(FromClause)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__TypeClause">class _TypeClause(ClauseElement)</a></li>
@@ -509,6 +509,17 @@ cast(table.c.unit_price * table.c.qty, Numeric(10,4))
 <pre class="literal-block">
 cast(table.c.timestamp, DATE)
 </pre>
+
+    </div>
+    </div>
+
+                
+    <div class="darkcell">
+    
+    <A name="docstrings_sqlalchemy.sql.expression_modfunc_collate"></a>
+    <b>def collate(<i>expression</i>, <i>collation</i>)</b>
+    <div class="docstring">
+    <p>Return the clause <tt class="docutils literal"><span class="pre">expression</span> <span class="pre">COLLATE</span> <span class="pre">collation</span></tt>.</p>
 
     </div>
     </div>
@@ -747,7 +758,7 @@ against the <tt class="docutils literal"><span class="pre">INSERT</span></tt> st
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.sql.expression_modfunc_join"></a>
-    <b>def join(<i>left</i>, <i>right</i>, <i>onclause=None</i>, <i>**kwargs</i>)</b>
+    <b>def join(<i>left</i>, <i>right</i>, <i>onclause=None</i>, <i>isouter=False</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">JOIN</span></tt> clause element (regular inner join).</p>
 <p>The returned object is an instance of <a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Join">Join</a>.</p>
@@ -888,7 +899,7 @@ result.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.sql.expression_modfunc_outerjoin"></a>
-    <b>def outerjoin(<i>left</i>, <i>right</i>, <i>onclause=None</i>, <i>**kwargs</i>)</b>
+    <b>def outerjoin(<i>left</i>, <i>right</i>, <i>onclause=None</i>)</b>
     <div class="docstring">
     <p>Return an <tt class="docutils literal"><span class="pre">OUTER</span> <span class="pre">JOIN</span></tt> clause element.</p>
 <p>The returned object is an instance of <a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Join">Join</a>.</p>
@@ -2273,6 +2284,16 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def collate(<i>self</i>, <i>collation</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def concat(<i>self</i>, <i>other</i>)</b>
     <div class="docstring">
     
@@ -2642,6 +2663,17 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def collate(<i>self</i>, <i>collation</i>)</b>
+    <div class="docstring">
+    <p>Produce a COLLATE clause, i.e. <tt class="docutils literal"><span class="pre">&lt;column&gt;</span> <span class="pre">COLLATE</span> <span class="pre">utf8_bin</span></tt></p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def contains(<i>self</i>, <i>other</i>, <i>escape=None</i>)</b>
     <div class="docstring">
     <p>Produce the clause <tt class="docutils literal"><span class="pre">LIKE</span> <span class="pre">'%&lt;other&gt;%'</span></tt></p>
@@ -2935,7 +2967,7 @@ to the existing clause via AND, if any.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def select(<i>self</i>, <i>whereclauses=None</i>, <i>**params</i>)</b>
+    <b>def select(<i>self</i>, <i>whereclause=None</i>, <i>**params</i>)</b>
     <div class="docstring">
     
     </div>
@@ -3009,17 +3041,6 @@ to the existing clause via AND, if any.</p>
     <div class="darkcell"><p>Represent an element that can be used within the <tt class="docutils literal"><span class="pre">FROM</span></tt> clause of a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement.</p>
 </div>
     
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</p>
-
-    </div>
-    </div>
 
                     
     <div class="darkcell">
@@ -3141,7 +3162,7 @@ of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def join(<i>self</i>, <i>right</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def join(<i>self</i>, <i>right</i>, <i>onclause=None</i>, <i>isouter=False</i>)</b>
     <div class="docstring">
     <p>return a join of this <tt class="docutils literal"><span class="pre">FromClause</span></tt> against another <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</p>
 
@@ -3149,10 +3170,19 @@ of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>oid_column = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def outerjoin(<i>self</i>, <i>right</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def outerjoin(<i>self</i>, <i>right</i>, <i>onclause=None</i>)</b>
     <div class="docstring">
     <p>return an outer join of this <tt class="docutils literal"><span class="pre">FromClause</span></tt> against another <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</p>
 
@@ -3183,7 +3213,7 @@ of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def select(<i>self</i>, <i>whereclauses=None</i>, <i>**params</i>)</b>
+    <b>def select(<i>self</i>, <i>whereclause=None</i>, <i>**params</i>)</b>
     <div class="docstring">
     <p>return a SELECT of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</p>
 
@@ -3571,22 +3601,6 @@ off all <tt class="docutils literal"><span class="pre">FromClause</span></tt> su
          <b>description = property()</b>
          <div class="docstring">
          
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>folded_equivalents = property()</b>
-         <div class="docstring">
-         <p>Returns the column list of this Join with all equivalently-named,
-equated columns folded into one column, where 'equated' means they are
-equated to each other in the ON clause of this join.</p>
-<p>this method is used by select(fold_equivalents=True).</p>
-<p>The primary usage for this is when generating UNIONs so that
-each selectable can have distinctly-named columns without the need
-for use_labels=True.</p>
-
          </div> 
          </div>
 
@@ -4061,13 +4075,9 @@ argument descriptions.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def append_column(<i>self</i>, <i>column</i>, <i>_copy_collection=True</i>)</b>
+    <b>def append_column(<i>self</i>, <i>column</i>)</b>
     <div class="docstring">
     <p>append the given column expression to the columns clause of this select() construct.</p>
-<p>Note that this mutates the Select construct such that derived attributes,
-such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
-be invalid if they have already been initialized.  Consider the generative
-form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4076,13 +4086,9 @@ form of this method instead to prevent this issue.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def append_correlation(<i>self</i>, <i>fromclause</i>, <i>_copy_collection=True</i>)</b>
+    <b>def append_correlation(<i>self</i>, <i>fromclause</i>)</b>
     <div class="docstring">
     <p>append the given correlation expression to this select() construct.</p>
-<p>Note that this mutates the Select construct such that derived attributes,
-such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
-be invalid if they have already been initialized.  Consider the generative
-form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4091,13 +4097,9 @@ form of this method instead to prevent this issue.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def append_from(<i>self</i>, <i>fromclause</i>, <i>_copy_collection=True</i>)</b>
+    <b>def append_from(<i>self</i>, <i>fromclause</i>)</b>
     <div class="docstring">
     <p>append the given FromClause expression to this select() construct's FROM clause.</p>
-<p>Note that this mutates the Select construct such that derived attributes,
-such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
-be invalid if they have already been initialized.  Consider the generative
-form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4110,10 +4112,6 @@ form of this method instead to prevent this issue.</p>
     <div class="docstring">
     <p>append the given expression to this select() construct's HAVING criterion.</p>
 <p>The expression will be joined to existing HAVING criterion via AND.</p>
-<p>Note that this mutates the Select construct such that derived attributes,
-such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
-be invalid if they have already been initialized.  Consider the generative
-form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4122,13 +4120,9 @@ form of this method instead to prevent this issue.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def append_prefix(<i>self</i>, <i>clause</i>, <i>_copy_collection=True</i>)</b>
+    <b>def append_prefix(<i>self</i>, <i>clause</i>)</b>
     <div class="docstring">
     <p>append the given columns clause prefix expression to this select() construct.</p>
-<p>Note that this mutates the Select construct such that derived attributes,
-such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
-be invalid if they have already been initialized.  Consider the generative
-form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4141,10 +4135,6 @@ form of this method instead to prevent this issue.</p>
     <div class="docstring">
     <p>append the given expression to this select() construct's WHERE criterion.</p>
 <p>The expression will be joined to existing WHERE criterion via AND.</p>
-<p>Note that this mutates the Select construct such that derived attributes,
-such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
-be invalid if they have already been initialized.  Consider the generative
-form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4173,16 +4163,16 @@ form of this method instead to prevent this issue.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def correlate(<i>self</i>, <i>fromclause</i>)</b>
+    <b>def correlate(<i>self</i>, <i>*fromclauses</i>)</b>
     <div class="docstring">
-    <p>return a new select() construct which will correlate the given FROM clause to that
+    <p>return a new select() construct which will correlate the given FROM clauses to that
 of an enclosing select(), if a match is found.</p>
 <p>By &quot;match&quot;, the given fromclause must be present in this select's list of FROM objects
 and also present in an enclosing select's list of FROM objects.</p>
 <p>Calling this method turns off the select's default behavior of &quot;auto-correlation&quot;.  Normally,
 select() auto-correlates all of its FROM clauses to those of an embedded select when
 compiled.</p>
-<p>If the fromclause is None, the select() will not correlate to anything.</p>
+<p>If the fromclause is None, correlation is disabled for the returned select().</p>
 
     </div>
     </div>
@@ -4258,7 +4248,7 @@ to the existing clause via AND, if any.</p>
          <A name=""></a>
          <b>inner_columns = property()</b>
          <div class="docstring">
-         <p>a collection of all ColumnElement expressions which would
+         <p>an iteratorof all ColumnElement expressions which would
 be rendered into the columns clause of the resulting SELECT statement.</p>
 
          </div> 
@@ -4308,15 +4298,6 @@ is specifically for those FromClause elements that would actually be rendered.</
 
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>oid_column = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -4441,10 +4422,6 @@ to the existing clause via AND, if any.</p>
     <div class="docstring">
     <p>Append the given GROUP BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing GROUP BY criterion.</p>
-<p>Note that this mutates the Select construct such that derived attributes,
-such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
-be invalid if they have already been initialized.  Consider the generative
-form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4457,10 +4434,6 @@ form of this method instead to prevent this issue.</p>
     <div class="docstring">
     <p>Append the given ORDER BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing ORDER BY criterion.</p>
-<p>Note that this mutates the Select construct such that derived attributes,
-such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
-be invalid if they have already been initialized.  Consider the generative
-form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4569,19 +4542,6 @@ with a label.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def select(<i>self</i>, <i>whereclauses=None</i>, <i>**params</i>)</b>
-    <div class="docstring">
-    <p>return a SELECT of this selectable.</p>
-<p>This has the effect of embeddeding this select into a subquery that is selected
-from.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def supports_execution(<i>self</i>)</b>
     <div class="docstring">
     <p>part of the ClauseElement contract; returns <tt class="docutils literal"><span class="pre">True</span></tt> in all cases for this class.</p>
@@ -4655,16 +4615,6 @@ functionality.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def alias(<i>self</i>, <i>name=None</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def append_column(<i>self</i>, <i>c</i>)</b>
     <div class="docstring">
     
@@ -4715,36 +4665,6 @@ functionality.</p>
     
     <A name=""></a>
     <b>def insert(<i>self</i>, <i>values=None</i>, <i>inline=False</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def join(<i>self</i>, <i>right</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def outerjoin(<i>self</i>, <i>right</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def select(<i>self</i>, <i>whereclause=None</i>, <i>**params</i>)</b>
     <div class="docstring">
     
     </div>
@@ -4824,39 +4744,6 @@ functionality.</p>
          
          </div> 
          </div>
-
-
-    
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
-    <A name="docstrings_sqlalchemy.sql.expression__TextFromClause"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class _TextFromClause(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_FromClause">FromClause</a>)</h3>
-    
-    
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>text</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">_TextFromClause</span></tt>.</p>
-
-    </div>
-    </div>
 
 
     

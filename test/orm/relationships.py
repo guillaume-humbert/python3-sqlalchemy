@@ -863,6 +863,7 @@ class ViewOnlyTest2(ORMTest):
         assert set([x.t2id for x in c1.t2_view]) == set([c2b.t2id])
 
 class ViewOnlyTest3(ORMTest):
+    """test relating on a join that has no equated columns"""
     def define_tables(self, metadata):
         global foos, bars
         foos = Table('foos', metadata, Column('id', Integer, primary_key=True))
@@ -893,6 +894,333 @@ class ViewOnlyTest3(ORMTest):
         self.assertEquals(sess.query(Foo).filter_by(id=4).one(), Foo(id=4, bars=[Bar(fid=2), Bar(fid=3)]))
         self.assertEquals(sess.query(Foo).filter_by(id=9).one(), Foo(id=9, bars=[Bar(fid=2), Bar(fid=3), Bar(fid=6), Bar(fid=7)]))
 
+class ViewOnlyTest4(ORMTest):
+    """test relating on a join that contains the same 'remote' column twice"""
+    def define_tables(self, metadata):
+        global foos, bars
+        foos = Table('foos', metadata, Column('id', Integer, primary_key=True), 
+            Column('bid1', Integer,ForeignKey('bars.id')),
+            Column('bid2', Integer,ForeignKey('bars.id')))
+            
+        bars = Table('bars', metadata, Column('id', Integer, primary_key=True), Column('data', String(50)))
+        
+    def test_relation_on_or(self):
+        class Foo(fixtures.Base):
+            pass
+        class Bar(fixtures.Base):
+            pass
+
+        mapper(Foo, foos, properties={
+            'bars':relation(Bar, primaryjoin=or_(bars.c.id==foos.c.bid1, bars.c.id==foos.c.bid2), uselist=True, viewonly=True)
+        })
+
+        mapper(Bar, bars)
+        sess = create_session()
+        b1 = Bar(id=1, data='b1')
+        b2 = Bar(id=2, data='b2')
+        b3 = Bar(id=3, data='b3')
+        f1 = Foo(bid1=1, bid2=2)
+        f2 = Foo(bid1=3, bid2=None)
+        sess.save(b1)
+        sess.save(b2)
+        sess.save(b3)
+        sess.flush()
+        sess.save(f1)
+        sess.save(f2)
+        sess.flush()
+            
+        sess.clear()
+        self.assertEquals(sess.query(Foo).filter_by(id=f1.id).one(), Foo(bars=[Bar(data='b1'), Bar(data='b2')]))
+        self.assertEquals(sess.query(Foo).filter_by(id=f2.id).one(), Foo(bars=[Bar(data='b3')]))
+
+class ViewOnlyTest5(ORMTest):
+    """test relating on a join that contains the same 'local' column twice"""
+    def define_tables(self, metadata):
+        global foos, bars
+        foos = Table('foos', metadata, Column('id', Integer, primary_key=True), 
+            Column('data', String(50))
+            )
+
+        bars = Table('bars', metadata, Column('id', Integer, primary_key=True), 
+                Column('fid1', Integer, ForeignKey('foos.id')),
+                Column('fid2', Integer, ForeignKey('foos.id')),
+                Column('data', String(50))
+            )
+
+    def test_relation_on_or(self):
+        class Foo(fixtures.Base):
+            pass
+        class Bar(fixtures.Base):
+            pass
+
+        mapper(Foo, foos, properties={
+            'bars':relation(Bar, primaryjoin=or_(bars.c.fid1==foos.c.id, bars.c.fid2==foos.c.id), viewonly=True)
+        })
+
+        mapper(Bar, bars)
+        sess = create_session()
+        f1 = Foo(id=1, data='f1')
+        f2 = Foo(id=2, data='f2')
+        b1 = Bar(fid1=1, data='b1')
+        b2 = Bar(fid2=1, data='b2')
+        b3 = Bar(fid1=2, data='b3')
+        b4 = Bar(fid1=1, fid2=2, data='b4')
+        sess.save(f1)
+        sess.save(f2)
+        sess.flush()
+        sess.save(b1)
+        sess.save(b2)
+        sess.save(b3)
+        sess.save(b4)
+        sess.flush()
+
+        sess.clear()
+        self.assertEquals(sess.query(Foo).filter_by(id=f1.id).one(), Foo(bars=[Bar(data='b1'), Bar(data='b2'), Bar(data='b4')]))
+        self.assertEquals(sess.query(Foo).filter_by(id=f2.id).one(), Foo(bars=[Bar(data='b3'), Bar(data='b4')]))
+
+class ViewOnlyTest6(ORMTest):
+    """test a long primaryjoin condition"""
+    def define_tables(self, metadata):
+        global t1, t2, t3, t2tot3
+        t1 = Table('t1', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('data', String(50))
+            )
+        t2 = Table('t2', metadata,     
+            Column('id', Integer, primary_key=True),
+            Column('data', String(50)),
+            Column('t1id', Integer, ForeignKey('t1.id')),
+        )
+        t3 = Table('t3', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('data', String(50))
+            )
+        t2tot3 = Table('t2tot3', metadata, 
+            Column('t2id', Integer, ForeignKey('t2.id')),
+            Column('t3id', Integer, ForeignKey('t3.id')),
+        )
+    
+    def test_basic(self):
+        class T1(fixtures.Base):
+            pass
+        class T2(fixtures.Base):
+            pass
+        class T3(fixtures.Base):
+            pass
+    
+        mapper(T1, t1, properties={
+            't3s':relation(T3, primaryjoin=and_(
+                t1.c.id==t2.c.t1id,
+                t2.c.id==t2tot3.c.t2id,
+                t3.c.id==t2tot3.c.t3id
+            ),
+            viewonly=True, 
+            foreign_keys=t3.c.id, remote_side=t2.c.t1id)
+        })
+        mapper(T2, t2, properties={
+            't1':relation(T1),
+            't3s':relation(T3, secondary=t2tot3)
+        })
+        mapper(T3, t3)
+        
+        sess = create_session()
+        sess.save(T2(data='t2', t1=T1(data='t1'), t3s=[T3(data='t3')]))
+        sess.flush()
+        sess.clear()
+        
+        a = sess.query(T1).first()
+        self.assertEquals(a.t3s, [T3(data='t3')])
+        
+    def test_remote_side_escalation(self):
+        class T1(fixtures.Base):
+            pass
+        class T2(fixtures.Base):
+            pass
+        class T3(fixtures.Base):
+            pass
+
+        mapper(T1, t1, properties={
+            't3s':relation(T3, primaryjoin=and_(
+                t1.c.id==t2.c.t1id,
+                t2.c.id==t2tot3.c.t2id,
+                t3.c.id==t2tot3.c.t3id
+            ),viewonly=True, foreign_keys=t3.c.id) 
+        })
+        mapper(T2, t2, properties={
+            't1':relation(T1),
+            't3s':relation(T3, secondary=t2tot3)
+        })
+        mapper(T3, t3)
+        self.assertRaisesMessage(exceptions.ArgumentError, "Specify remote_side argument", compile_mappers)
+
+class ExplicitLocalRemoteTest(ORMTest):
+    def define_tables(self, metadata):
+        global t1, t2
+        t1 = Table('t1', metadata, 
+            Column('id', String(50), primary_key=True),
+            Column('data', String(50))
+            )
+        t2 = Table('t2', metadata,     
+            Column('id', Integer, primary_key=True),
+            Column('data', String(50)),
+            Column('t1id', String(50)),
+        )
+
+    def test_onetomany_funcfk(self):
+        class T1(fixtures.Base):
+            pass
+        class T2(fixtures.Base):
+            pass
+        
+        # use a function within join condition.  but specifying
+        # local_remote_pairs overrides all parsing of the join condition.
+        mapper(T1, t1, properties={
+            't2s':relation(T2, primaryjoin=t1.c.id==func.lower(t2.c.t1id), 
+                _local_remote_pairs=[(t1.c.id, t2.c.t1id)],
+                foreign_keys=[t2.c.t1id]
+            )
+        })
+        mapper(T2, t2)
+        
+        sess = create_session()
+        a1 = T1(id='number1', data='a1')
+        a2 = T1(id='number2', data='a2')
+        b1 = T2(data='b1', t1id='NuMbEr1')
+        b2 = T2(data='b2', t1id='Number1')
+        b3 = T2(data='b3', t1id='Number2')
+        sess.save(a1)
+        sess.save(a2)
+        sess.save(b1)
+        sess.save(b2)
+        sess.save(b3)
+        sess.flush()
+        sess.clear()
+        
+        self.assertEquals(sess.query(T1).first(), T1(id='number1', data='a1', t2s=[T2(data='b1', t1id='NuMbEr1'), T2(data='b2', t1id='Number1')]))
+    
+    def test_manytoone_funcfk(self):
+        class T1(fixtures.Base):
+            pass
+        class T2(fixtures.Base):
+            pass
+        mapper(T1, t1)
+        mapper(T2, t2, properties={
+            't1':relation(T1, primaryjoin=t1.c.id==func.lower(t2.c.t1id),
+                _local_remote_pairs=[(t2.c.t1id, t1.c.id)],
+                foreign_keys=[t2.c.t1id],
+                uselist=True
+            )
+        })
+        sess = create_session()
+        a1 = T1(id='number1', data='a1')
+        a2 = T1(id='number2', data='a2')
+        b1 = T2(data='b1', t1id='NuMbEr1')
+        b2 = T2(data='b2', t1id='Number1')
+        b3 = T2(data='b3', t1id='Number2')
+        sess.save(a1)
+        sess.save(a2)
+        sess.save(b1)
+        sess.save(b2)
+        sess.save(b3)
+        sess.flush()
+        sess.clear()
+        self.assertEquals(sess.query(T2).filter(T2.data.in_(['b1', 'b2'])).all(), 
+            [
+                T2(data='b1', t1=[T1(id='number1', data='a1')]),
+                T2(data='b2', t1=[T1(id='number1', data='a1')])
+            ]
+        )
+    
+    def test_onetomany_func_referent(self):
+        class T1(fixtures.Base):
+            pass
+        class T2(fixtures.Base):
+            pass
+        
+        mapper(T1, t1, properties={
+            't2s':relation(T2, primaryjoin=func.lower(t1.c.id)==t2.c.t1id, 
+                _local_remote_pairs=[(t1.c.id, t2.c.t1id)],
+                foreign_keys=[t2.c.t1id]
+            )
+        })
+        mapper(T2, t2)
+        
+        sess = create_session()
+        a1 = T1(id='NuMbeR1', data='a1')
+        a2 = T1(id='NuMbeR2', data='a2')
+        b1 = T2(data='b1', t1id='number1')
+        b2 = T2(data='b2', t1id='number1')
+        b3 = T2(data='b2', t1id='number2')
+        sess.save(a1)
+        sess.save(a2)
+        sess.save(b1)
+        sess.save(b2)
+        sess.save(b3)
+        sess.flush()
+        sess.clear()
+        
+        self.assertEquals(sess.query(T1).first(), T1(id='NuMbeR1', data='a1', t2s=[T2(data='b1', t1id='number1'), T2(data='b2', t1id='number1')]))
+
+    def test_manytoone_func_referent(self):
+        class T1(fixtures.Base):
+            pass
+        class T2(fixtures.Base):
+            pass
+
+        mapper(T1, t1)
+        mapper(T2, t2, properties={
+            't1':relation(T1, primaryjoin=func.lower(t1.c.id)==t2.c.t1id,
+                _local_remote_pairs=[(t2.c.t1id, t1.c.id)],
+                foreign_keys=[t2.c.t1id], uselist=True
+            )
+        })
+
+        sess = create_session()
+        a1 = T1(id='NuMbeR1', data='a1')
+        a2 = T1(id='NuMbeR2', data='a2')
+        b1 = T2(data='b1', t1id='number1')
+        b2 = T2(data='b2', t1id='number1')
+        b3 = T2(data='b3', t1id='number2')
+        sess.save(a1)
+        sess.save(a2)
+        sess.save(b1)
+        sess.save(b2)
+        sess.save(b3)
+        sess.flush()
+        sess.clear()
+
+        self.assertEquals(sess.query(T2).filter(T2.data.in_(['b1', 'b2'])).all(), 
+            [
+                T2(data='b1', t1=[T1(id='NuMbeR1', data='a1')]),
+                T2(data='b2', t1=[T1(id='NuMbeR1', data='a1')])
+            ]
+        )
+        
+    def test_escalation(self):
+        class T1(fixtures.Base):
+            pass
+        class T2(fixtures.Base):
+            pass
+        
+        mapper(T1, t1, properties={
+            't2s':relation(T2, primaryjoin=t1.c.id==func.lower(t2.c.t1id), 
+                _local_remote_pairs=[(t1.c.id, t2.c.t1id)],
+                foreign_keys=[t2.c.t1id],
+                remote_side=[t2.c.t1id]
+            )
+        })
+        mapper(T2, t2)
+        self.assertRaises(exceptions.ArgumentError, compile_mappers)
+        
+        clear_mappers()
+        mapper(T1, t1, properties={
+            't2s':relation(T2, primaryjoin=t1.c.id==func.lower(t2.c.t1id), 
+                _local_remote_pairs=[(t1.c.id, t2.c.t1id)],
+            )
+        })
+        mapper(T2, t2)
+        self.assertRaises(exceptions.ArgumentError, compile_mappers)
+        
 class InvalidRelationEscalationTest(ORMTest):
     def define_tables(self, metadata):
         global foos, bars, Foo, Bar
@@ -933,7 +1261,7 @@ class InvalidRelationEscalationTest(ORMTest):
         })
 
         mapper(Bar, bars)
-        self.assertRaisesMessage(exceptions.ArgumentError, "Could not locate any equated column pairs for primaryjoin condition", compile_mappers)
+        self.assertRaisesMessage(exceptions.ArgumentError, "Could not locate any equated, locally mapped column pairs for primaryjoin condition", compile_mappers)
 
     def test_no_equated_self_ref(self):
         mapper(Foo, foos, properties={
@@ -949,7 +1277,7 @@ class InvalidRelationEscalationTest(ORMTest):
         })
 
         mapper(Bar, bars)
-        self.assertRaisesMessage(exceptions.ArgumentError, "Could not locate any equated column pairs for primaryjoin condition", compile_mappers)
+        self.assertRaisesMessage(exceptions.ArgumentError, "Could not locate any equated, locally mapped column pairs for primaryjoin condition", compile_mappers)
 
     def test_no_equated_viewonly(self):
         mapper(Foo, foos, properties={
@@ -1045,7 +1373,7 @@ class InvalidRelationEscalationTestM2M(ORMTest):
         })
 
         mapper(Bar, bars)
-        self.assertRaisesMessage(exceptions.ArgumentError, "Could not locate any equated column pairs for secondaryjoin condition", compile_mappers)
+        self.assertRaisesMessage(exceptions.ArgumentError, "Could not locate any equated, locally mapped column pairs for secondaryjoin condition", compile_mappers)
 
 
 if __name__ == "__main__":

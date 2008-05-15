@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
+<div class="versionheader">Version: 0.4.6   Last Updated: 05/14/08 14:36:43</div>
 
 
 
@@ -112,8 +112,7 @@ used in most cases:</p>
 <pre class="literal-block">
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine('sqlite://')
-Base = declarative_base(engine)
+Base = declarative_base()
 
 class SomeClass(Base):
     __tablename__ = 'some_table'
@@ -126,15 +125,13 @@ completed, a new <tt class="docutils literal"><span class="pre">Table</span></tt
 via the <tt class="docutils literal"><span class="pre">__table__</span></tt> and <tt class="docutils literal"><span class="pre">__mapper__</span></tt> attributes on the <tt class="docutils literal"><span class="pre">SomeClass</span></tt>
 class.</p>
 <p>You may omit the names from the Column definitions.  Declarative will fill
-them in for you.</p>
-<blockquote>
-<dl class="docutils">
-<dt>class SomeClass(Base):</dt>
-<dd>__tablename__ = 'some_table'
-id = Column(Integer, primary_key=True)
-name = Column(String(50))</dd>
-</dl>
-</blockquote>
+them in for you:</p>
+<pre class="literal-block">
+class SomeClass(Base):
+    __tablename__ = 'some_table'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50))
+</pre>
 <p>Attributes may be added to the class after its construction, and they will
 be added to the underlying <tt class="docutils literal"><span class="pre">Table</span></tt> and <tt class="docutils literal"><span class="pre">mapper()</span></tt> definitions as
 appropriate:</p>
@@ -143,14 +140,29 @@ SomeClass.data = Column('data', Unicode)
 SomeClass.related = relation(RelatedInfo)
 </pre>
 <p>Classes which are mapped explicitly using <tt class="docutils literal"><span class="pre">mapper()</span></tt> can interact freely
-with declarative classes.  The <tt class="docutils literal"><span class="pre">declarative_base</span></tt> base class contains a
-<tt class="docutils literal"><span class="pre">MetaData</span></tt> object as well as a dictionary of all classes created against
-the base.  So to access the above metadata and create tables we can say:</p>
+with declarative classes.</p>
+<p>The <tt class="docutils literal"><span class="pre">declarative_base</span></tt> base class contains a
+<tt class="docutils literal"><span class="pre">MetaData</span></tt> object where newly defined <tt class="docutils literal"><span class="pre">Table</span></tt> objects are collected.
+This is accessed via the <tt class="docutils literal"><span class="pre">metadata</span></tt> class level accessor, so to
+create tables we can say:</p>
 <pre class="literal-block">
-Base.metadata.create_all()
+engine = create_engine('sqlite://')
+Base.metadata.create_all(engine)
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">Engine</span></tt> created above may also be directly associated with the
+declarative base class using the <tt class="docutils literal"><span class="pre">engine</span></tt> keyword argument, where it will
+be associated with the underlying <tt class="docutils literal"><span class="pre">MetaData</span></tt> object and allow SQL
+operations involving that metadata and its tables to make use of that
+engine automatically:</p>
+<pre class="literal-block">
+Base = declarative_base(engine=create_engine('sqlite://'))
+</pre>
+<p>Or, as <tt class="docutils literal"><span class="pre">MetaData</span></tt> allows, at any time using the <tt class="docutils literal"><span class="pre">bind</span></tt> attribute:</p>
+<pre class="literal-block">
+Base.metadata.bind = create_engine('sqlite://')
 </pre>
 <p>The <tt class="docutils literal"><span class="pre">declarative_base</span></tt> can also receive a pre-created <tt class="docutils literal"><span class="pre">MetaData</span></tt>
-object:</p>
+object, which allows a declarative setup to be associated with an already existing traditional collection of <tt class="docutils literal"><span class="pre">Table</span></tt> objects:</p>
 <pre class="literal-block">
 mymetadata = MetaData()
 Base = declarative_base(metadata=mymetadata)
@@ -187,6 +199,15 @@ class Address(Base)
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relation(User, primaryjoin=user_id==User.id)
 </pre>
+<p>When an explicit join condition or other configuration which depends
+on multiple classes cannot be defined immediately due to some classes
+not yet being available, these can be defined after all classes have
+been created.  Attributes which are added to the class after
+its creation are associated with the Table/mapping in the same
+way as if they had been defined inline:</p>
+<pre class="literal-block">
+User.addresses = relation(Address, primaryjoin=Address.user_id==User.id)
+</pre>
 <p>Synonyms are one area where <tt class="docutils literal"><span class="pre">declarative</span></tt> needs to slightly change the
 usual SQLAlchemy configurational syntax.  To define a getter/setter which
 proxies to an underlying attribute, use <tt class="docutils literal"><span class="pre">synonym</span></tt> with the <tt class="docutils literal"><span class="pre">descriptor</span></tt>
@@ -211,12 +232,13 @@ x.attr = &quot;some value&quot;
 session.query(MyClass).filter(MyClass.attr == 'some other value').all()
 </pre>
 <p>As an alternative to <tt class="docutils literal"><span class="pre">__tablename__</span></tt>, a direct <tt class="docutils literal"><span class="pre">Table</span></tt> construct may be
-used:</p>
+used.  The <tt class="docutils literal"><span class="pre">Column</span></tt> objects, which in this case require their names,
+will be added to the mapping just like a regular mapping to a table:</p>
 <pre class="literal-block">
 class MyClass(Base):
     __table__ = Table('my_table', Base.metadata,
-        Column(Integer, primary_key=True),
-        Column(String(50))
+        Column('id', Integer, primary_key=True),
+        Column('name', String(50))
     )
 </pre>
 <p>This is the preferred approach when using reflected tables, as below:</p>

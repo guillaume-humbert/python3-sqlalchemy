@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
+<div class="versionheader">Version: 0.4.6   Last Updated: 05/14/08 14:36:43</div>
 
 
 
@@ -71,6 +71,9 @@
 	        <li>
                 
     <ul>
+        
+        <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_as_interface">as_interface()</a></li>
+
         
         <li><a style="" href="sqlalchemy_pool.html#docstrings_sqlalchemy.pool_modfunc_clear_managers">clear_managers()</a></li>
 
@@ -134,6 +137,43 @@ SQLAlchemy connection pool.</p>
     <h3>Module Functions</h3>
     
     
+                
+    <div class="darkcell">
+    
+    <A name="docstrings_sqlalchemy.pool_modfunc_as_interface"></a>
+    <b>def as_interface(<i>obj</i>, <i>cls=None</i>, <i>methods=None</i>, <i>required=None</i>)</b>
+    <div class="docstring">
+    <p>Ensure basic interface compliance for an instance or dict of callables.</p>
+<p>Checks that <tt class="docutils literal"><span class="pre">obj</span></tt> implements public methods of <tt class="docutils literal"><span class="pre">cls</span></tt> or has members
+listed in <tt class="docutils literal"><span class="pre">methods</span></tt>.  If <tt class="docutils literal"><span class="pre">required</span></tt> is not supplied, implementing at
+least one interface method is sufficient.  Methods present on <tt class="docutils literal"><span class="pre">obj</span></tt> that
+are not in the interface are ignored.</p>
+<p>If <tt class="docutils literal"><span class="pre">obj</span></tt> is a dict and <tt class="docutils literal"><span class="pre">dict</span></tt> does not meet the interface
+requirements, the keys of the dictionary are inspected. Keys present in
+<tt class="docutils literal"><span class="pre">obj</span></tt> that are not in the interface will raise TypeErrors.</p>
+<p>Raises TypeError if <tt class="docutils literal"><span class="pre">obj</span></tt> does not meet the interface criteria.</p>
+<p>In all passing cases, an object with callable members is returned.  In the
+simple case, <tt class="docutils literal"><span class="pre">obj</span></tt> is returned as-is; if dict processing kicks in then
+an anonymous class is returned.</p>
+<dl class="docutils">
+<dt>obj</dt>
+<dd>A type, instance, or dictionary of callables.</dd>
+<dt>cls</dt>
+<dd>Optional, a type.  All public methods of cls are considered the
+interface.  An <tt class="docutils literal"><span class="pre">obj</span></tt> instance of cls will always pass, ignoring
+<tt class="docutils literal"><span class="pre">required</span></tt>..</dd>
+<dt>methods</dt>
+<dd>Optional, a sequence of method names to consider as the interface.</dd>
+<dt>required</dt>
+<dd>Optional, a sequence of mandatory implementations. If omitted, an
+<tt class="docutils literal"><span class="pre">obj</span></tt> that provides at least one interface method is considered
+sufficient.  As a convenience, required may be a type, in which case
+all public methods of the type are required.</dd>
+</dl>
+
+    </div>
+    </div>
+
                 
     <div class="darkcell">
     
@@ -382,9 +422,13 @@ recycling, which means upon checkout, if this timeout is
 surpassed the connection will be closed and replaced with a
 newly opened connection. Defaults to -1.</dd>
 <dt>listeners</dt>
-<dd>A list of <tt class="docutils literal"><span class="pre">PoolListener</span></tt>-like objects that receive events when
-DB-API connections are created, checked out and checked in to
-the pool.</dd>
+<dd>A list of <tt class="docutils literal"><span class="pre">PoolListener</span></tt>-like objects or dictionaries of callables
+that receive events when DB-API connections are created, checked out and
+checked in to the pool.</dd>
+<dt>reset_on_return</dt>
+<dd>Defaults to True.  Reset the database state of connections returned to
+the pool.  This is typically a ROLLBACK to release locks and transaction
+resources.  Disable at your own peril.</dd>
 </dl>
 </div>
     
@@ -393,7 +437,7 @@ the pool.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>creator</i>, <i>recycle=-1</i>, <i>echo=None</i>, <i>use_threadlocal=True</i>, <i>listeners=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>creator</i>, <i>recycle=-1</i>, <i>echo=None</i>, <i>use_threadlocal=True</i>, <i>reset_on_return=True</i>, <i>listeners=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Pool</span></tt>.</p>
 
@@ -407,6 +451,9 @@ the pool.</dd>
     <b>def add_listener(<i>self</i>, <i>listener</i>)</b>
     <div class="docstring">
     <p>Add a <tt class="docutils literal"><span class="pre">PoolListener</span></tt>-like object to this pool.</p>
+<p><tt class="docutils literal"><span class="pre">listener</span></tt> may be an object that implements some or all of
+PoolListener, or a dictionary of callables containing implementations
+of some or all of the named methods in PoolListener.</p>
 
     </div>
     </div>
