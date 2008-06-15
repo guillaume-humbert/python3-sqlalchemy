@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.engine</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.engine</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -1519,7 +1519,7 @@ provide a default implementation of SchemaEngine.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>pool</i>, <i>dialect</i>, <i>url</i>, <i>echo=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>pool</i>, <i>dialect</i>, <i>url</i>, <i>echo=None</i>, <i>proxy=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Engine</span></tt>.</p>
 
@@ -2140,7 +2140,7 @@ are exhausted.</p>
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>lastrowid = property()</b>
+         <b>out_parameters = property()</b>
          <div class="docstring">
          
          </div> 
@@ -2149,7 +2149,7 @@ are exhausted.</p>
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>out_parameters = property()</b>
+         <b>lastrowid = property()</b>
          <div class="docstring">
          
          </div> 
@@ -2549,19 +2549,19 @@ an enclosing transaction.</p>
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>connection = property()</b>
+         <b>is_active = property()</b>
          <div class="docstring">
-         <p>The Connection object referenced by this Transaction</p>
-
+         
          </div> 
          </div>
 
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>is_active = property()</b>
+         <b>connection = property()</b>
          <div class="docstring">
-         
+         <p>The Connection object referenced by this Transaction</p>
+
          </div> 
          </div>
 

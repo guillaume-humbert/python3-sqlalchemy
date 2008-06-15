@@ -8,12 +8,12 @@ from testlib import *
 
 
 class DictCollection(dict):
+    @collection.appender
     def append(self, obj):
         self[obj.foo] = obj
-    append = collection.appender(append)
+    @collection.remover
     def remove(self, obj):
         del self[obj.foo]
-    remove = collection.remover(remove)
 
 class SetCollection(set):
     pass
@@ -24,12 +24,12 @@ class ListCollection(list):
 class ObjectCollection(object):
     def __init__(self):
         self.values = list()
+    @collection.appender
     def append(self, obj):
         self.values.append(obj)
-    append = collection.appender(append)
+    @collection.remover
     def remove(self, obj):
         self.values.remove(obj)
-    remove = collection.remover(remove)
     def __iter__(self):
         return iter(self.values)
 
@@ -40,10 +40,12 @@ class _CollectionOperations(TestBase):
         metadata = MetaData(testing.db)
 
         parents_table = Table('Parent', metadata,
-                              Column('id', Integer, primary_key=True),
+                              Column('id', Integer, primary_key=True,
+                                     test_needs_autoincrement=True),
                               Column('name', String(128)))
         children_table = Table('Children', metadata,
-                               Column('id', Integer, primary_key=True),
+                               Column('id', Integer, primary_key=True,
+                                      test_needs_autoincrement=True),
                                Column('parent_id', Integer,
                                       ForeignKey('Parent.id')),
                                Column('foo', String(128)),
@@ -597,10 +599,12 @@ class ScalarTest(TestBase):
         metadata = MetaData(testing.db)
 
         parents_table = Table('Parent', metadata,
-                              Column('id', Integer, primary_key=True),
+                              Column('id', Integer, primary_key=True,
+                                     test_needs_autoincrement=True),
                               Column('name', String(128)))
         children_table = Table('Children', metadata,
-                               Column('id', Integer, primary_key=True),
+                               Column('id', Integer, primary_key=True,
+                                      test_needs_autoincrement=True),
                                Column('parent_id', Integer,
                                       ForeignKey('Parent.id')),
                                Column('foo', String(128)),
@@ -714,10 +718,12 @@ class LazyLoadTest(TestBase):
         metadata = MetaData(testing.db)
 
         parents_table = Table('Parent', metadata,
-                              Column('id', Integer, primary_key=True),
+                              Column('id', Integer, primary_key=True,
+                                     test_needs_autoincrement=True),
                               Column('name', String(128)))
         children_table = Table('Children', metadata,
-                               Column('id', Integer, primary_key=True),
+                               Column('id', Integer, primary_key=True,
+                                      test_needs_autoincrement=True),
                                Column('parent_id', Integer,
                                       ForeignKey('Parent.id')),
                                Column('foo', String(128)),
@@ -820,10 +826,12 @@ class ReconstitutionTest(TestBase):
     def setUp(self):
         metadata = MetaData(testing.db)
         parents = Table('parents', metadata,
-                        Column('id', Integer, primary_key=True),
+                        Column('id', Integer, primary_key=True,
+                               test_needs_autoincrement=True),
                         Column('name', String(30)))
         children = Table('children', metadata,
-                         Column('id', Integer, primary_key=True),
+                         Column('id', Integer, primary_key=True,
+                                test_needs_autoincrement=True),
                          Column('parent_id', Integer, ForeignKey('parents.id')),
                          Column('name', String(30)))
         metadata.create_all()

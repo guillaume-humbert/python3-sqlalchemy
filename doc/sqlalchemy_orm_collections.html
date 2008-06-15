@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.orm.collections</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.orm.collections</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -597,8 +597,8 @@ key.</p>
 <p>keyfunc may be any callable any callable that takes an object and
 returns an object for use as a dictionary key.</p>
 <p>The keyfunc will be called every time the ORM needs to add a member by
-value-only (such as when loading instances from the database) or remove
-a member.  The usual cautions about dictionary keying apply-
+value-only (such as when loading instances from the database) or
+remove a member.  The usual cautions about dictionary keying apply-
 <tt class="docutils literal"><span class="pre">keyfunc(object)</span></tt> should return the same output for the life of the
 collection.  Keying based on mutable properties can result in
 unreachable instances &quot;lost&quot; in the collection.</p>
@@ -612,7 +612,7 @@ unreachable instances &quot;lost&quot; in the collection.</p>
     <A name=""></a>
     <b>def remove(<i>self</i>, <i>value</i>, <i>_sa_initiator=None</i>)</b>
     <div class="docstring">
-    <p>Remove an item from the collection by value, consulting this instance's keyfunc for the key.</p>
+    <p>Remove an item by value, consulting the keyfunc for the key.</p>
 
     </div>
     </div>
@@ -623,7 +623,7 @@ unreachable instances &quot;lost&quot; in the collection.</p>
     <A name=""></a>
     <b>def set(<i>self</i>, <i>value</i>, <i>_sa_initiator=None</i>)</b>
     <div class="docstring">
-    <p>Add an item to the collection, with a key provided by this instance's keyfunc.</p>
+    <p>Add an item by value, consulting the keyfunc for the key.</p>
 
     </div>
     </div>

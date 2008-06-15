@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - Mapper Configuration</title>
+	<title>SQLAlchemy 0.5 Documentation - Mapper Configuration</title>
 	
     <link rel="stylesheet" href="style.css"></link>
     <link rel="stylesheet" href="docs.css"></link>
@@ -23,11 +23,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -222,7 +222,7 @@
                 
     <ul>
         
-        <li><a style="" href="mappers.html#advdatamapping_relation_strategies_combining">Combining Eager Loads with Statement/Result Set Queries</a></li>
+        <li><a style="" href="mappers.html#advdatamapping_relation_strategies_containseager">Routing Explicit Joins/Statements into Eagerly Loaded Collections</a></li>
 
     </ul>
 
@@ -683,40 +683,9 @@
     
     
 
-<p>By default, mappers will attempt to ORDER BY the "oid" column of a table, or the first primary key column, when selecting rows.  This can be modified in several ways.
+<p>As of version 0.5, the ORM does not generate ordering for any query unless explicitly configured.
 </p>
-<p>The "order_by" parameter can be sent to a mapper, overriding the per-engine ordering if any.  A value of None means that the mapper should not use any ordering.  A non-None value, which can be a column, an <code>asc</code> or <code>desc</code> clause, or an array of either one, indicates the ORDER BY clause that should be added to all select queries:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_comment"># disable all ordering
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># order by a column
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># order by multiple items
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">.</span><span class="python_name">desc</span><span class="python_enclosure">()])</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>"order_by" can also be specified with queries, overriding all other per-engine/per-mapper orderings:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_comment"># order by a column
-</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># order by multiple criterion
-</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">([</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">.</span><span class="python_name">desc</span><span class="python_enclosure">()])</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>The "order_by" property can also be specified on a <code>relation()</code> which will control the ordering of the collection:
+<p>The "default" ordering for a collection, which applies to list-based collections, can be configured using the <code>order_by</code> keyword argument on <code>relation()</code>:
 </p>
 
     
@@ -741,6 +710,22 @@
 <span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">street</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+<p>Ordering for rows loaded through <code>Query</code> is usually specified using the <code>order_by()</code> generative method.  There is also an option to set a default ordering for Queries which are against a single mapped entity and where there was no explicit <code>order_by()</code> stated, which is the <code>order_by</code> keyword argument to <code>mapper()</code>:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_comment"># order by a column
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># order by multiple items
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">.</span><span class="python_name">desc</span><span class="python_enclosure">()])</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Above, a <code>Query</code> issued for the <code>User</code> class will use the value of the mapper's <code>order_by</code> setting if the <code>Query</code> itself has no ordering specified.
+</p>
 
 
 
@@ -2160,9 +2145,9 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
         <pre>
 <span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span>
-         <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">,</span>
-         <span class="python_name">foreign_keys</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">])</span>
+    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
+                <span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">,</span>
+                <span class="python_name">foreign_keys</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">])</span>
 <span class="python_enclosure">})</span><span class="python_operator">
 </span></pre>
     </div>
@@ -2622,14 +2607,16 @@ WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
 </p>
 
     
-    <A name="advdatamapping_relation_strategies_combining"></a>
+    <A name="advdatamapping_relation_strategies_containseager"></a>
     
     <div class="sectionL4">
 
-    <h3>Combining Eager Loads with Statement/Result Set Queries</h3>
+    <h3>Routing Explicit Joins/Statements into Eagerly Loaded Collections</h3>
     
     
-<p>When full statement or result-set loads are used with <code>Query</code>, SQLAlchemy does not affect the SQL query itself, and therefore has no way of tacking on its own <code>LEFT [OUTER] JOIN</code> conditions that are normally used to eager load relationships.  If the query being constructed is created in such a way that it returns rows not just from a parent table (or tables) but also returns rows from child tables, the result-set mapping can be notified as to which additional properties are contained within the result set.  This is done using the <code>contains_eager()</code> query option, which specifies the name of the relationship to be eagerly loaded.
+<p>When full statement loads are used with <code>Query</code>, the user defined SQL is used verbatim and the <code>Query</code> does not play any role in generating it.  In this scenario, if eager loading is desired, the <code>Query</code> should be informed as to what collections should also be loaded from the result set.  Similarly, Queries which compile their statement in the usual way may also have user-defined joins built in which are synonymous with what eager loading would normally produce, and it improves performance to utilize those same JOINs for both purposes, instead of allowing the eager load mechanism to generate essentially the same JOIN redundantly.   Yet another use case for such a feature is a Query which returns instances with a filtered view of their collections loaded, in which case the default eager load mechanisms need to be bypassed.
+</p>
+<p>The single option <code>Query</code> provides to control this is the <code>contains_eager()</code> option, which specifies the path of a single relationship to be eagerly loaded.  Like all relation-oriented options, it takes a string or Python descriptor as an argument.  Below it's used with a <code>from_statement</code> load:
 </p>
 
     
@@ -2642,13 +2629,23 @@ WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
 <span class="python_enclosure">})</span><span class="python_operator">
 </span>
 <span class="python_comment"># define a query on USERS with an outer join to ADDRESSES
-</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">apply_labels</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># construct a Query object which expects the "addresses" results 
 </span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
 <span class="python_comment"># get results normally
 </span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">from_statement</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>It works just as well with an inline <code>Query.join()</code> or <code>Query.outerjoin()</code>:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
 <p>If the "eager" portion of the statement is "aliased", the <code>alias</code> keyword argument to <code>contains_eager()</code> may be used to indicate it.  This is a string alias name or reference to an actual <code>Alias</code> object:
@@ -2658,21 +2655,38 @@ WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
 
     <div class="code">
         <pre>
-<span class="python_comment"># use an alias of the addresses table
-</span><span class="python_name">adalias </span><span class="python_operator">= </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">alias</span><span class="python_enclosure">(</span><span class="python_literal">'adalias'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># define a query on USERS with an outer join to adalias
-</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">adalias</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_comment"># use an alias of the Address entity
+</span><span class="python_name">adalias </span><span class="python_operator">= </span><span class="python_name">aliased</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># construct a Query object which expects the "addresses" results 
-</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">alias</span><span class="python_operator">=</span><span class="python_name">adalias</span><span class="python_enclosure">))</span><span class="python_operator">
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">((</span><span class="python_name">adalias</span><span class="python_operator">, </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">, </span><span class="python_name">alias</span><span class="python_operator">=</span><span class="python_name">adalias</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
 <span class="python_comment"># get results normally
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_7', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">from_statement</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_7_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, adalias.address_id AS adalias_address_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_7', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_7_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, adalias.address_id AS adalias_address_id, <br/>
 adalias.user_id AS adalias_user_id, adalias.email_address AS adalias_email_address, (...other columns...)<br/>
-FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias.user_id</div><pre><span class="python_operator"></span></pre>
+FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id = email_addresses_1.user_id</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>In the case that the main table itself is also aliased, the <code>contains_alias()</code> option can be used:
+<p>The path given as the argument to <code>contains_eager()</code> needs to be a full path from the starting entity.  For example if we were loading <code>Users-&gt;orders-&gt;Order-&gt;items-&gt;Item</code>, the string version would look like:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'orders'</span><span class="python_operator">, </span><span class="python_literal">'items'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The descriptor version like:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">orders</span><span class="python_operator">, </span><span class="python_name">Order</span><span class="python_operator">.</span><span class="python_name">items</span><span class="python_enclosure">))</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>A variant on <code>contains_eager()</code> is the <code>contains_alias()</code> option, which is used in the rare case that the parent object is loaded from an alias within a user-defined SELECT statement:
 </p>
 
     
@@ -2683,11 +2697,11 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 </span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">union</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">&gt;</span><span class="python_number">7</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">alias</span><span class="python_enclosure">(</span><span class="python_literal">'ulist'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># add on an eager load of "addresses"
-</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">apply_labels</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># create query, indicating "ulist" is an alias for the main table, "addresses" property should
 # be eager loaded
-</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_alias</span><span class="python_enclosure">(</span><span class="python_literal">'ulist'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_alias</span><span class="python_enclosure">(</span><span class="python_literal">'ulist'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
 <span class="python_comment"># results
 </span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">from_statement</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_enclosure">)</span><span class="python_operator">

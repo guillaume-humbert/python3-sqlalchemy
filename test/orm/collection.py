@@ -1,22 +1,27 @@
 import testenv; testenv.configure_for_tests()
 import sys
 from operator import and_
-from sqlalchemy import *
-import sqlalchemy.exceptions as exceptions
-from sqlalchemy.orm import create_session, mapper, relation, \
-    interfaces, attributes
+
 import sqlalchemy.orm.collections as collections
 from sqlalchemy.orm.collections import collection
-from sqlalchemy import util
-from testlib import *
+
+from testlib import sa, testing
+from testlib.sa import Table, Column, Integer, String, ForeignKey
+from testlib.sa import util, exc as sa_exc
+from testlib.sa.orm import create_session, mapper, relation, \
+    attributes
+from testlib.compat import set, frozenset
+from orm import _base
+
 
 try:
-    py_set = __builtins__.set
-except AttributeError:
+    py_set = set
+except NameError:
     import sets
     py_set = sets.Set
 
-class Canary(interfaces.AttributeExtension):
+
+class Canary(sa.orm.interfaces.AttributeExtension):
     def __init__(self):
         self.data = set()
         self.added = set()
@@ -34,30 +39,39 @@ class Canary(interfaces.AttributeExtension):
             self.remove(obj, oldvalue, None)
         self.append(obj, value, None)
 
-class Entity(object):
-    def __init__(self, a=None, b=None, c=None):
-        self.a = a
-        self.b = b
-        self.c = c
-    def __repr__(self):
-        return str((id(self), self.a, self.b, self.c))
 
-attributes.register_class(Entity)
+class CollectionsTest(_base.ORMTest):
+    class Entity(object):
+        def __init__(self, a=None, b=None, c=None):
+            self.a = a
+            self.b = b
+            self.c = c
+        def __repr__(self):
+            return str((id(self), self.a, self.b, self.c))
 
-_id = 1
-def entity_maker():
-    global _id
-    _id += 1
-    return Entity(_id)
-def dictable_entity(a=None, b=None, c=None):
-    global _id
-    _id += 1
-    return Entity(a or str(_id), b or 'value %s' % _id, c)
+    def setUpAll(self):
+        attributes.register_class(self.Entity)
 
+    def tearDownAll(self):
+        attributes.unregister_class(self.Entity)
+        _base.ORMTest.tearDownAll(self)
 
-class CollectionsTest(TestBase):
-    def _test_adapter(self, typecallable, creator=entity_maker,
-                      to_set=None):
+    _entity_id = 1
+
+    @classmethod
+    def entity_maker(cls):
+        cls._entity_id += 1
+        return cls.Entity(cls._entity_id)
+
+    @classmethod
+    def dictable_entity(cls, a=None, b=None, c=None):
+        id = cls._entity_id = (cls._entity_id + 1)
+        return cls.Entity(a or str(id), b or 'value %s' % id, c)
+
+    def _test_adapter(self, typecallable, creator=None, to_set=None):
+        if creator is None:
+            creator = self.entity_maker
+
         class Foo(object):
             pass
 
@@ -95,7 +109,10 @@ class CollectionsTest(TestBase):
         adapter.remove_with_event(e1)
         assert_eq()
 
-    def _test_list(self, typecallable, creator=entity_maker):
+    def _test_list(self, typecallable, creator=None):
+        if creator is None:
+            creator = self.entity_maker
+
         class Foo(object):
             pass
 
@@ -262,7 +279,10 @@ class CollectionsTest(TestBase):
             control *= 2
             assert_eq()
 
-    def _test_list_bulk(self, typecallable, creator=entity_maker):
+    def _test_list_bulk(self, typecallable, creator=None):
+        if creator is None:
+            creator = self.entity_maker
+
         class Foo(object):
             pass
 
@@ -386,7 +406,10 @@ class CollectionsTest(TestBase):
         self._test_list_bulk(ListIsh)
         self.assert_(getattr(ListIsh, '_sa_instrumented') == id(ListIsh))
 
-    def _test_set(self, typecallable, creator=entity_maker):
+    def _test_set(self, typecallable, creator=None):
+        if creator is None:
+            creator = self.entity_maker
+
         class Foo(object):
             pass
 
@@ -641,7 +664,10 @@ class CollectionsTest(TestBase):
             except TypeError:
                 assert True
 
-    def _test_set_bulk(self, typecallable, creator=entity_maker):
+    def _test_set_bulk(self, typecallable, creator=None):
+        if creator is None:
+            creator = self.entity_maker
+
         class Foo(object):
             pass
 
@@ -746,7 +772,10 @@ class CollectionsTest(TestBase):
         self._test_set_bulk(SetIsh)
         self.assert_(getattr(SetIsh, '_sa_instrumented') == id(SetIsh))
 
-    def _test_dict(self, typecallable, creator=dictable_entity):
+    def _test_dict(self, typecallable, creator=None):
+        if creator is None:
+            creator = self.dictable_entity
+
         class Foo(object):
             pass
 
@@ -865,7 +894,10 @@ class CollectionsTest(TestBase):
                 control.update(**kw)
                 assert_eq()
 
-    def _test_dict_bulk(self, typecallable, creator=dictable_entity):
+    def _test_dict_bulk(self, typecallable, creator=None):
+        if creator is None:
+            creator = self.dictable_entity
+
         class Foo(object):
             pass
 
@@ -930,30 +962,30 @@ class CollectionsTest(TestBase):
 
     def test_dict(self):
         try:
-            self._test_adapter(dict, dictable_entity,
+            self._test_adapter(dict, self.dictable_entity,
                                to_set=lambda c: set(c.values()))
             self.assert_(False)
-        except exceptions.ArgumentError, e:
+        except sa_exc.ArgumentError, e:
             self.assert_(e.args[0] == 'Type InstrumentedDict must elect an appender method to be a collection class')
 
         try:
             self._test_dict(dict)
             self.assert_(False)
-        except exceptions.ArgumentError, e:
+        except sa_exc.ArgumentError, e:
             self.assert_(e.args[0] == 'Type InstrumentedDict must elect an appender method to be a collection class')
 
     def test_dict_subclass(self):
         class MyDict(dict):
+            @collection.appender
+            @collection.internally_instrumented
             def set(self, item, _sa_initiator=None):
                 self.__setitem__(item.a, item, _sa_initiator=_sa_initiator)
-            set = collection.internally_instrumented(set)
-            set = collection.appender(set)
+            @collection.remover
+            @collection.internally_instrumented
             def _remove(self, item, _sa_initiator=None):
                 self.__delitem__(item.a, _sa_initiator=_sa_initiator)
-            _remove = collection.internally_instrumented(_remove)
-            _remove = collection.remover(_remove)
 
-        self._test_adapter(MyDict, dictable_entity,
+        self._test_adapter(MyDict, self.dictable_entity,
                            to_set=lambda c: set(c.values()))
         self._test_dict(MyDict)
         self._test_dict_bulk(MyDict)
@@ -964,7 +996,7 @@ class CollectionsTest(TestBase):
             def __init__(self):
                 super(MyEasyDict, self).__init__(lambda e: e.a)
 
-        self._test_adapter(MyEasyDict, dictable_entity,
+        self._test_adapter(MyEasyDict, self.dictable_entity,
                            to_set=lambda c: set(c.values()))
         self._test_dict(MyEasyDict)
         self._test_dict_bulk(MyEasyDict)
@@ -976,7 +1008,7 @@ class CollectionsTest(TestBase):
                 collections.MappedCollection.__init__(self, lambda e: e.a)
                 util.OrderedDict.__init__(self)
 
-        self._test_adapter(MyOrdered, dictable_entity,
+        self._test_adapter(MyOrdered, self.dictable_entity,
                            to_set=lambda c: set(c.values()))
         self._test_dict(MyOrdered)
         self._test_dict_bulk(MyOrdered)
@@ -987,15 +1019,15 @@ class CollectionsTest(TestBase):
             def __init__(self):
                 self.data = dict()
 
+            @collection.appender
+            @collection.replaces(1)
             def set(self, item):
                 current = self.data.get(item.a, None)
                 self.data[item.a] = item
                 return current
-            set = collection.appender(set)
-            set = collection.replaces(1)(set)
+            @collection.remover
             def _remove(self, item):
                 del self.data[item.a]
-            _remove = collection.remover(_remove)
             def __setitem__(self, key, value):
                 self.data[key] = value
             def __getitem__(self, key):
@@ -1006,15 +1038,15 @@ class CollectionsTest(TestBase):
                 return self.data.values()
             def __contains__(self, key):
                 return key in self.data
+            @collection.iterator
             def itervalues(self):
                 return self.data.itervalues()
-            itervalues = collection.iterator(itervalues)
             def __eq__(self, other):
                 return self.data == other
             def __repr__(self):
                 return 'DictLike(%s)' % repr(self.data)
 
-        self._test_adapter(DictLike, dictable_entity,
+        self._test_adapter(DictLike, self.dictable_entity,
                            to_set=lambda c: set(c.itervalues()))
         self._test_dict(DictLike)
         self._test_dict_bulk(DictLike)
@@ -1026,15 +1058,15 @@ class CollectionsTest(TestBase):
             def __init__(self):
                 self.data = dict()
 
+            @collection.appender
+            @collection.replaces(1)
             def set(self, item):
                 current = self.data.get(item.a, None)
                 self.data[item.a] = item
                 return current
-            set = collection.replaces(1)(set)
-            set = collection.appender(set)
+            @collection.remover
             def _remove(self, item):
                 del self.data[item.a]
-            _remove = collection.remover(_remove)
             def __setitem__(self, key, value):
                 self.data[key] = value
             def __getitem__(self, key):
@@ -1045,21 +1077,24 @@ class CollectionsTest(TestBase):
                 return self.data.values()
             def __contains__(self, key):
                 return key in self.data
+            @collection.iterator
             def itervalues(self):
                 return self.data.itervalues()
-            itervalues = collection.iterator(itervalues)
             def __eq__(self, other):
                 return self.data == other
             def __repr__(self):
                 return 'DictIsh(%s)' % repr(self.data)
 
-        self._test_adapter(DictIsh, dictable_entity,
+        self._test_adapter(DictIsh, self.dictable_entity,
                            to_set=lambda c: set(c.itervalues()))
         self._test_dict(DictIsh)
         self._test_dict_bulk(DictIsh)
         self.assert_(getattr(DictIsh, '_sa_instrumented') == id(DictIsh))
 
-    def _test_object(self, typecallable, creator=entity_maker):
+    def _test_object(self, typecallable, creator=None):
+        if creator is None:
+            creator = self.entity_maker
+
         class Foo(object):
             pass
 
@@ -1108,20 +1143,20 @@ class CollectionsTest(TestBase):
         class MyCollection(object):
             def __init__(self):
                 self.data = set()
+            @collection.appender
             def push(self, item):
                 self.data.add(item)
-            push = collection.appender(push)
+            @collection.remover
             def zark(self, item):
                 self.data.remove(item)
-            zark = collection.remover(zark)
+            @collection.removes_return()
             def maybe_zark(self, item):
                 if item in self.data:
                     self.data.remove(item)
                     return item
-            maybe_zark = collection.removes_return()(maybe_zark)
+            @collection.iterator
             def __iter__(self):
                 return iter(self.data)
-            __iter__ = collection.iterator(__iter__)
             def __eq__(self, other):
                 return self.data == other
 
@@ -1138,20 +1173,20 @@ class CollectionsTest(TestBase):
             # looks like a list
             def append(self, item):
                 assert False
+            @collection.appender
             def push(self, item):
                 self.data.add(item)
-            push = collection.appender(push)
+            @collection.remover
             def zark(self, item):
                 self.data.remove(item)
-            zark = collection.remover(zark)
+            @collection.removes_return()
             def maybe_zark(self, item):
                 if item in self.data:
                     self.data.remove(item)
                     return item
-            maybe_zark = collection.removes_return()(maybe_zark)
+            @collection.iterator
             def __iter__(self):
                 return iter(self.data)
-            __iter__ = collection.iterator(__iter__)
             def __eq__(self, other):
                 return self.data == other
 
@@ -1164,36 +1199,36 @@ class CollectionsTest(TestBase):
         class Custom(object):
             def __init__(self):
                 self.data = []
+            @collection.appender
+            @collection.adds('entity')
             def put(self, entity):
                 self.data.append(entity)
-            put = collection.adds('entity')(put)
-            put = collection.appender(put)
 
+            @collection.remover
+            @collection.removes(1)
             def remove(self, entity):
                 self.data.remove(entity)
-            remove = collection.removes(1)(remove)
-            remove = collection.remover(remove)
 
+            @collection.adds(1)
             def push(self, *args):
                 self.data.append(args[0])
-            push = collection.adds(1)(push)
 
+            @collection.removes('entity')
             def yank(self, entity, arg):
                 self.data.remove(entity)
-            yank = collection.removes('entity')(yank)
 
+            @collection.replaces(2)
             def replace(self, arg, entity, **kw):
                 self.data.insert(0, entity)
                 return self.data.pop()
-            replace = collection.replaces(2)(replace)
 
+            @collection.removes_return()
             def pop(self, key):
                 return self.data.pop()
-            pop = collection.removes_return()(pop)
 
+            @collection.iterator
             def __iter__(self):
                 return iter(self.data)
-            __iter__ = collection.iterator(__iter__)
 
         class Foo(object):
             pass
@@ -1210,7 +1245,7 @@ class CollectionsTest(TestBase):
             self.assert_(set(direct) == canary.data)
             self.assert_(set(adapter) == canary.data)
             self.assert_(list(direct) == control)
-        creator = entity_maker
+        creator = self.entity_maker
 
         e1 = creator()
         direct.put(e1)
@@ -1267,7 +1302,7 @@ class CollectionsTest(TestBase):
             pass
 
         canary = Canary()
-        creator = entity_maker
+        creator = self.entity_maker
         attributes.register_class(Foo)
         attributes.register_attribute(Foo, 'attr', True, extension=canary, useobject=True)
 
@@ -1295,42 +1330,43 @@ class CollectionsTest(TestBase):
         obj.attr[0] = e3
         self.assert_(e3 in canary.data)
 
-class DictHelpersTest(ORMTest):
+class DictHelpersTest(_base.MappedTest):
+
     def define_tables(self, metadata):
-        global parents, children, Parent, Child
+        Table('parents', metadata,
+              Column('id', Integer, primary_key=True),
+              Column('label', String(128)))
+        Table('children', metadata,
+              Column('id', Integer, primary_key=True),
+              Column('parent_id', Integer, ForeignKey('parents.id'),
+                     nullable=False),
+              Column('a', String(128)),
+              Column('b', String(128)),
+              Column('c', String(128)))
 
-        parents = Table('parents', metadata,
-                        Column('id', Integer, primary_key=True),
-                        Column('label', String(128)))
-        children = Table('children', metadata,
-                         Column('id', Integer, primary_key=True),
-                         Column('parent_id', Integer, ForeignKey('parents.id'),
-                                nullable=False),
-                         Column('a', String(128)),
-                         Column('b', String(128)),
-                         Column('c', String(128)))
-
-        class Parent(object):
+    def setup_classes(self):
+        class Parent(_base.BasicEntity):
             def __init__(self, label=None):
                 self.label = label
-        class Child(object):
+
+        class Child(_base.BasicEntity):
             def __init__(self, a=None, b=None, c=None):
                 self.a = a
                 self.b = b
                 self.c = c
 
+    @testing.resolve_artifact_names
     def _test_scalar_mapped(self, collection_class):
         mapper(Child, children)
         mapper(Parent, parents, properties={
             'children': relation(Child, collection_class=collection_class,
-                                 cascade="all, delete-orphan")
-            })
+                                 cascade="all, delete-orphan")})
 
         p = Parent()
         p.children['foo'] = Child('foo', 'value')
         p.children['bar'] = Child('bar', 'value')
         session = create_session()
-        session.save(p)
+        session.add(p)
         session.flush()
         pid = p.id
         session.clear()
@@ -1377,6 +1413,7 @@ class DictHelpersTest(ORMTest):
         self.assert_(len(list(collections.collection_adapter(p.children))) == 0)
 
 
+    @testing.resolve_artifact_names
     def _test_composite_mapped(self, collection_class):
         mapper(Child, children)
         mapper(Parent, parents, properties={
@@ -1389,7 +1426,7 @@ class DictHelpersTest(ORMTest):
         p.children[('foo', '2')] = Child('foo', '2', 'value 2')
 
         session = create_session()
-        session.save(p)
+        session.add(p)
         session.flush()
         pid = p.id
         session.clear()
@@ -1424,13 +1461,16 @@ class DictHelpersTest(ORMTest):
         collection_class = collections.attribute_mapped_collection('a')
         self._test_scalar_mapped(collection_class)
 
+    @testing.resolve_artifact_names
     def test_column_mapped_collection(self):
-        collection_class = collections.column_mapped_collection(children.c.a)
+        collection_class = collections.column_mapped_collection(
+            children.c.a)
         self._test_scalar_mapped(collection_class)
 
+    @testing.resolve_artifact_names
     def test_column_mapped_collection2(self):
-        collection_class = collections.column_mapped_collection((children.c.a,
-                                                                 children.c.b))
+        collection_class = collections.column_mapped_collection(
+            (children.c.a, children.c.b))
         self._test_composite_mapped(collection_class)
 
     def test_mixin(self):
@@ -1451,17 +1491,19 @@ class DictHelpersTest(ORMTest):
 
 # TODO: are these tests redundant vs. the above tests ?
 # remove if so
-class CustomCollectionsTest(ORMTest):
+class CustomCollectionsTest(_base.MappedTest):
+
     def define_tables(self, metadata):
-        global sometable, someothertable
-        sometable = Table('sometable', metadata,
-            Column('col1',Integer, primary_key=True),
-            Column('data', String(30)))
-        someothertable = Table('someothertable', metadata,
-            Column('col1', Integer, primary_key=True),
-            Column('scol1', Integer, ForeignKey(sometable.c.col1)),
-            Column('data', String(20))
-        )
+        Table('sometable', metadata,
+              Column('col1',Integer, primary_key=True),
+              Column('data', String(30)))
+        Table('someothertable', metadata,
+              Column('col1', Integer, primary_key=True),
+              Column('scol1', Integer,
+                     ForeignKey('sometable.col1')),
+              Column('data', String(20)))
+
+    @testing.resolve_artifact_names
     def test_basic(self):
         class MyList(list):
             pass
@@ -1469,13 +1511,15 @@ class CustomCollectionsTest(ORMTest):
             pass
         class Bar(object):
             pass
+
         mapper(Foo, sometable, properties={
             'bars':relation(Bar, collection_class=MyList)
         })
         mapper(Bar, someothertable)
         f = Foo()
         assert isinstance(f.bars, MyList)
-        
+
+    @testing.resolve_artifact_names
     def test_lazyload(self):
         """test that a 'set' can be used as a collection and can lazyload."""
         class Foo(object):
@@ -1490,13 +1534,14 @@ class CustomCollectionsTest(ORMTest):
         f.bars.add(Bar())
         f.bars.add(Bar())
         sess = create_session()
-        sess.save(f)
+        sess.add(f)
         sess.flush()
         sess.clear()
         f = sess.query(Foo).get(f.col1)
         assert len(list(f.bars)) == 2
         f.bars.clear()
 
+    @testing.resolve_artifact_names
     def test_dict(self):
         """test that a 'dict' can be used as a collection and can lazyload."""
 
@@ -1505,13 +1550,13 @@ class CustomCollectionsTest(ORMTest):
         class Bar(object):
             pass
         class AppenderDict(dict):
+            @collection.appender
             def set(self, item):
                 self[id(item)] = item
-            set = collection.appender(set)
+            @collection.remover
             def remove(self, item):
                 if id(item) in self:
                     del self[id(item)]
-            remove = collection.remover(remove)
 
         mapper(Foo, sometable, properties={
             'bars':relation(Bar, collection_class=AppenderDict)
@@ -1521,13 +1566,14 @@ class CustomCollectionsTest(ORMTest):
         f.bars.set(Bar())
         f.bars.set(Bar())
         sess = create_session()
-        sess.save(f)
+        sess.add(f)
         sess.flush()
         sess.clear()
         f = sess.query(Foo).get(f.col1)
         assert len(list(f.bars)) == 2
         f.bars.clear()
 
+    @testing.resolve_artifact_names
     def test_dict_wrapper(self):
         """test that the supplied 'dict' wrapper can be used as a collection and can lazyload."""
 
@@ -1538,7 +1584,8 @@ class CustomCollectionsTest(ORMTest):
 
         mapper(Foo, sometable, properties={
             'bars':relation(Bar,
-                collection_class=collections.column_mapped_collection(someothertable.c.data))
+                collection_class=collections.column_mapped_collection(
+                    someothertable.c.data))
         })
         mapper(Bar, someothertable)
 
@@ -1547,7 +1594,7 @@ class CustomCollectionsTest(ORMTest):
         col.append_with_event(Bar('a'))
         col.append_with_event(Bar('b'))
         sess = create_session()
-        sess.save(f)
+        sess.add(f)
         sess.flush()
         sess.clear()
         f = sess.query(Foo).get(f.col1)
@@ -1566,6 +1613,7 @@ class CustomCollectionsTest(ORMTest):
         replaced = set([id(b) for b in f.bars.values()])
         self.assert_(existing != replaced)
 
+    @testing.resolve_artifact_names
     def test_list(self):
         class Parent(object):
             pass
@@ -1686,6 +1734,7 @@ class CustomCollectionsTest(ORMTest):
         assert control == p.children
         assert control == list(p.children)
 
+    @testing.resolve_artifact_names
     def test_custom(self):
         class Parent(object):
             pass
@@ -1695,15 +1744,15 @@ class CustomCollectionsTest(ORMTest):
         class MyCollection(object):
             def __init__(self):
                 self.data = []
+            @collection.appender
             def append(self, value):
                 self.data.append(value)
-            append = collection.appender(append)
+            @collection.remover
             def remove(self, value):
                 self.data.remove(value)
-            remove = collection.remover(remove)
+            @collection.iterator
             def __iter__(self):
                 return iter(self.data)
-            __iter__ = collection.iterator(__iter__)
 
         mapper(Parent, sometable, properties={
             'children':relation(Child, collection_class=MyCollection)
@@ -1729,7 +1778,7 @@ class CustomCollectionsTest(ORMTest):
         assert control == list(p1.children)
 
         sess = create_session()
-        sess.save(p1)
+        sess.add(p1)
         sess.flush()
         sess.clear()
 
@@ -1738,8 +1787,7 @@ class CustomCollectionsTest(ORMTest):
         assert len(o) == 3
 
 
-class InstrumentationTest(TestBase):
-
+class InstrumentationTest(_base.ORMTest):
     def test_uncooperative_descriptor_in_sweep(self):
         class DoNotTouch(object):
             def __get__(self, obj, owner):

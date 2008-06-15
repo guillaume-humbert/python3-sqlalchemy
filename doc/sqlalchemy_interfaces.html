@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.interfaces</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.interfaces</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -53,7 +53,7 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_exceptions.html">module sqlalchemy.exceptions</a>
+            Previous: <a href="sqlalchemy_exc.html">module sqlalchemy.exc</a>
 
                |   
             Next: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>
@@ -65,6 +65,9 @@
 	
 	
     <ul>
+        
+        <li><a style="" href="sqlalchemy_interfaces.html#docstrings_sqlalchemy.interfaces_ConnectionProxy">class ConnectionProxy(object)</a></li>
+
         
         <li><a style="" href="sqlalchemy_interfaces.html#docstrings_sqlalchemy.interfaces_PoolListener">class PoolListener(object)</a></li>
 
@@ -88,6 +91,56 @@
     <div class="darkcell"><p>Interfaces and abstract types.</p>
 </div>
     
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.interfaces_ConnectionProxy"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class ConnectionProxy(object)</h3>
+    
+    
+    <div class="darkcell"><p>Allows interception of statement execution by Connections.</p>
+<p>Subclass <tt class="docutils literal"><span class="pre">ConnectionProxy</span></tt>, overriding either or both of
+<tt class="docutils literal"><span class="pre">execute()</span></tt> and <tt class="docutils literal"><span class="pre">cursor_execute()</span></tt>  The default behavior is provided,
+which is to call the given executor function with the remaining
+arguments.  The proxy is then connected to an engine via
+<tt class="docutils literal"><span class="pre">create_engine(url,</span> <span class="pre">proxy=MyProxy())</span></tt> where <tt class="docutils literal"><span class="pre">MyProxy</span></tt> is
+the user-defined <tt class="docutils literal"><span class="pre">ConnectionProxy</span></tt> class.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def cursor_execute(<i>self</i>, <i>execute</i>, <i>cursor</i>, <i>statement</i>, <i>parameters</i>, <i>context</i>, <i>executemany</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def execute(<i>self</i>, <i>conn</i>, <i>execute</i>, <i>clauseelement</i>, <i>*multiparams</i>, <i>**params</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
 
 
             
@@ -168,7 +221,7 @@ for detached connections.  (They do not return to the pool.)</p>
 <dd>The <tt class="docutils literal"><span class="pre">_ConnectionFairy</span></tt> which manages the connection for the span of
 the current checkout.</dd>
 </dl>
-<p>If you raise an <tt class="docutils literal"><span class="pre">exceptions.DisconnectionError</span></tt>, the current
+<p>If you raise an <tt class="docutils literal"><span class="pre">exc.DisconnectionError</span></tt>, the current
 connection will be disposed and a fresh connection retrieved.
 Processing of all checkout listeners will abort and restart
 using the new connection.</p>
@@ -216,7 +269,7 @@ using the new connection.</p>
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_exceptions.html">module sqlalchemy.exceptions</a>
+            Previous: <a href="sqlalchemy_exc.html">module sqlalchemy.exc</a>
 
                |   
             Next: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>

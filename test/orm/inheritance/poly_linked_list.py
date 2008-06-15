@@ -70,11 +70,11 @@ class PolymorphicCircularTest(ORMTest):
                                    polymorphic_identity='table1',
                                    properties={
                                     'next': relation(Table1,
-                                        backref=backref('prev', primaryjoin=join.c.id==join.c.related_id, foreignkey=join.c.id, uselist=False),
+                                        backref=backref('prev', foreignkey=join.c.id, uselist=False),
                                         uselist=False, primaryjoin=join.c.id==join.c.related_id),
                                     'data':relation(mapper(Data, data))
-                                    }
-                            )
+                                    },
+                            order_by=table1.c.id)
             table1_mapper.compile()
             assert False
         except:
@@ -92,10 +92,11 @@ class PolymorphicCircularTest(ORMTest):
                                polymorphic_identity='table1',
                                properties={
                                'next': relation(Table1,
-                                   backref=backref('prev', primaryjoin=table1.c.id==table1.c.related_id, remote_side=table1.c.id, uselist=False),
+                                   backref=backref('prev', remote_side=table1.c.id, uselist=False),
                                    uselist=False, primaryjoin=table1.c.id==table1.c.related_id),
-                               'data':relation(mapper(Data, data), lazy=False)
-                                }
+                               'data':relation(mapper(Data, data), lazy=False, order_by=data.c.id)
+                                },
+                                order_by=table1.c.id
                         )
 
         table1b_mapper = mapper(Table1B, inherits=table1_mapper, polymorphic_identity='table1b')
@@ -109,18 +110,19 @@ class PolymorphicCircularTest(ORMTest):
         table1_mapper.compile()
         assert table1_mapper.primary_key == [table1.c.id], table1_mapper.primary_key
 
+    @testing.fails_on('maxdb')
     def testone(self):
         self.do_testlist([Table1, Table2, Table1, Table2])
-    testone = testing.fails_on('maxdb')(testone)
 
+    @testing.fails_on('maxdb')
     def testtwo(self):
         self.do_testlist([Table3])
-    testtwo = testing.fails_on('maxdb')(testtwo)
 
+    @testing.fails_on('maxdb')
     def testthree(self):
         self.do_testlist([Table2, Table1, Table1B, Table3, Table3, Table1B, Table1B, Table2, Table1])
-    testthree = testing.fails_on('maxdb')(testthree)
 
+    @testing.fails_on('maxdb')
     def testfour(self):
         self.do_testlist([
                 Table2('t2', [Data('data1'), Data('data2')]),
@@ -128,7 +130,6 @@ class PolymorphicCircularTest(ORMTest):
                 Table3('t3', [Data('data3')]),
                 Table1B('t1b', [Data('data4'), Data('data5')])
                 ])
-    testfour = testing.fails_on('maxdb')(testfour)
 
     def do_testlist(self, classes):
         sess = create_session( )
@@ -166,7 +167,7 @@ class PolymorphicCircularTest(ORMTest):
 
         # clear and query forwards
         sess.clear()
-        node = sess.query(Table1).filter(Table1.c.id==t.id).first()
+        node = sess.query(Table1).filter(Table1.id==t.id).first()
         assertlist = []
         while (node):
             assertlist.append(node)
@@ -178,7 +179,7 @@ class PolymorphicCircularTest(ORMTest):
 
         # clear and query backwards
         sess.clear()
-        node = sess.query(Table1).filter(Table1.c.id==obj.id).first()
+        node = sess.query(Table1).filter(Table1.id==obj.id).first()
         assertlist = []
         while (node):
             assertlist.insert(0, node)
@@ -189,9 +190,6 @@ class PolymorphicCircularTest(ORMTest):
         backwards = repr(assertlist)
 
         # everything should match !
-        print "ORIGNAL", original
-        print "BACKWARDS",backwards
-        print "FORWARDS", forwards
         assert original == forwards == backwards
 
 if __name__ == '__main__':

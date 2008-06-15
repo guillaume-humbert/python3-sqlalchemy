@@ -78,6 +78,18 @@ connections are active, the following setting may alleviate the problem::
   # Force SA to use a single connection per thread
   dialect.poolclass = pool.SingletonThreadPool
 
+RETURNING support
+-----------------
+
+Firebird 2.0 supports returning a result set from inserts, and 2.1 extends
+that to deletes and updates.
+
+To use this pass the column/expression list to the ``firebird_returning``
+parameter when creating the queries::
+
+  raises = tbl.update(empl.c.sales > 100, values=dict(salary=empl.c.salary * 1.1),
+                      firebird_returning=[empl.c.id, empl.c.salary]).execute().fetchall()
+
 
 .. [#] Well, that is not the whole story, as the client may still ask
        a different (lower) dialect...
@@ -87,9 +99,9 @@ connections are active, the following setting may alleviate the problem::
 """
 
 
-import datetime
+import datetime, re
 
-from sqlalchemy import exceptions, schema, types as sqltypes, sql, util
+from sqlalchemy import exc, schema, types as sqltypes, sql, util
 from sqlalchemy.engine import base, default
 
 
@@ -187,14 +199,20 @@ class FBString(sqltypes.String):
     """Handle ``VARCHAR(length)`` datatype."""
 
     def get_col_spec(self):
-        return "VARCHAR(%(length)s)" % {'length' : self.length}
+        if self.length:
+            return "VARCHAR(%(length)s)" % {'length' : self.length}
+        else:
+            return "BLOB SUB_TYPE 1"
 
 
 class FBChar(sqltypes.CHAR):
     """Handle ``CHAR(length)`` datatype."""
 
     def get_col_spec(self):
-        return "CHAR(%(length)s)" % {'length' : self.length}
+        if self.length:
+            return "CHAR(%(length)s)" % {'length' : self.length}
+        else:
+            return "BLOB SUB_TYPE 1"
 
 
 class FBBinary(sqltypes.Binary):
@@ -255,8 +273,44 @@ def descriptor():
     ]}
 
 
+SELECT_RE = re.compile(
+    r'\s*(?:SELECT|(UPDATE|INSERT|DELETE))',
+    re.I | re.UNICODE)
+
+RETURNING_RE = re.compile(
+    'RETURNING',
+    re.I | re.UNICODE)
+
+# This finds if the RETURNING is not inside a quoted/commented values. Handles string literals,
+# quoted identifiers, dollar quotes, SQL comments and C style multiline comments. This does not
+# handle correctly nested C style quotes, lets hope no one does the following:
+# UPDATE tbl SET x=y /* foo /* bar */ RETURNING */
+RETURNING_QUOTED_RE = re.compile(
+    """\s*(?:UPDATE|INSERT|DELETE)\s
+        (?: # handle quoted and commented tokens separately
+            [^'"$/-] # non quote/comment character
+            | -(?!-) # a dash that does not begin a comment
+            | /(?!\*) # a slash that does not begin a comment
+            | "(?:[^"]|"")*" # quoted literal
+            | '(?:[^']|'')*' # quoted string
+            | --[^\\n]*(?=\\n) # SQL comment, leave out line ending as that counts as whitespace
+                               # for the returning token
+            | /\*([^*]|\*(?!/))*\*/ # C style comment, doesn't handle nesting
+        )*
+        \sRETURNING\s""", re.I | re.UNICODE | re.VERBOSE)
+
+RETURNING_KW_NAME = 'firebird_returning'
+
 class FBExecutionContext(default.DefaultExecutionContext):
-    pass
+    def returns_rows_text(self, statement):
+        m = SELECT_RE.match(statement)
+        return m and (not m.group(1) or (RETURNING_RE.search(statement)
+                                         and RETURNING_QUOTED_RE.match(statement)))
+
+    def returns_rows_compiled(self, compiled):
+        return (isinstance(compiled.statement, sql.expression.Selectable) or
+                ((compiled.isupdate or compiled.isinsert or compiled.isdelete) and
+                 RETURNING_KW_NAME in compiled.statement.kwargs))
 
 
 class FBDialect(default.DefaultDialect):
@@ -272,7 +326,7 @@ class FBDialect(default.DefaultDialect):
         default.DefaultDialect.__init__(self, **kwargs)
 
         self.type_conv = type_conv
-        self.concurrency_level= concurrency_level
+        self.concurrency_level = concurrency_level
 
     def dbapi(cls):
         import kinterbasdb
@@ -320,7 +374,7 @@ class FBDialect(default.DefaultDialect):
         version = fbconn.server_version
         m = match('\w+-V(\d+)\.(\d+)\.(\d+)\.(\d+) \w+ (\d+)\.(\d+)', version)
         if not m:
-            raise exceptions.AssertionError("Could not determine version from string '%s'" % version)
+            raise AssertionError("Could not determine version from string '%s'" % version)
         return tuple([int(x) for x in m.group(5, 6, 4)])
 
     def _normalize_name(self, name):
@@ -392,7 +446,9 @@ class FBDialect(default.DefaultDialect):
         if isinstance(e, self.dbapi.OperationalError):
             return 'Unable to complete network request to host' in str(e)
         elif isinstance(e, self.dbapi.ProgrammingError):
-            return 'Invalid connection state' in str(e)
+            msg = str(e)
+            return ('Invalid connection state' in msg or
+                    'Invalid cursor state' in msg)
         else:
             return False
 
@@ -455,7 +511,7 @@ class FBDialect(default.DefaultDialect):
 
         # get primary key fields
         c = connection.execute(keyqry, ["PRIMARY KEY", tablename])
-        pkfields =[self._normalize_name(r['fname']) for r in c.fetchall()]
+        pkfields = [self._normalize_name(r['fname']) for r in c.fetchall()]
 
         # get all of the fields for this table
         c = connection.execute(tblqry, [tablename])
@@ -494,7 +550,7 @@ class FBDialect(default.DefaultDialect):
                 # the value comes down as "DEFAULT 'value'"
                 assert row['fdefault'].startswith('DEFAULT ')
                 defvalue = row['fdefault'][8:]
-                args.append(schema.PassiveDefault(sql.text(defvalue)))
+                args.append(schema.DefaultClause(sql.text(defvalue)))
 
             col = schema.Column(*args, **kw)
             if kw['primary_key']:
@@ -509,14 +565,15 @@ class FBDialect(default.DefaultDialect):
             table.append_column(col)
 
         if not found_table:
-            raise exceptions.NoSuchTableError(table.name)
+            raise exc.NoSuchTableError(table.name)
 
         # get the foreign keys
         c = connection.execute(fkqry, ["FOREIGN KEY", tablename])
         fks = {}
         while True:
             row = c.fetchone()
-            if not row: break
+            if not row:
+                break
 
             cname = self._normalize_name(row['cname'])
             try:
@@ -530,7 +587,7 @@ class FBDialect(default.DefaultDialect):
             fk[0].append(fname)
             fk[1].append(refspec)
 
-        for name,value in fks.iteritems():
+        for name, value in fks.iteritems():
             table.append_constraint(schema.ForeignKeyConstraint(value[0], value[1], name=name))
 
     def do_execute(self, cursor, statement, parameters, **kwargs):
@@ -620,13 +677,48 @@ class FBCompiler(sql.compiler.DefaultCompiler):
             return self.LENGTH_FUNCTION_NAME + '%(expr)s'
         return super(FBCompiler, self).function_string(func)
 
+    def _append_returning(self, text, stmt):
+        returning_cols = stmt.kwargs[RETURNING_KW_NAME]
+        def flatten_columnlist(collist):
+            for c in collist:
+                if isinstance(c, sql.expression.Selectable):
+                    for co in c.columns:
+                        yield co
+                else:
+                    yield c
+        columns = [self.process(c, render_labels=True)
+                   for c in flatten_columnlist(returning_cols)]
+        text += ' RETURNING ' + ', '.join(columns)
+        return text
+
+    def visit_update(self, update_stmt):
+        text = super(FBCompiler, self).visit_update(update_stmt)
+        if RETURNING_KW_NAME in update_stmt.kwargs:
+            return self._append_returning(text, update_stmt)
+        else:
+            return text
+
+    def visit_insert(self, insert_stmt):
+        text = super(FBCompiler, self).visit_insert(insert_stmt)
+        if RETURNING_KW_NAME in insert_stmt.kwargs:
+            return self._append_returning(text, insert_stmt)
+        else:
+            return text
+
+    def visit_delete(self, delete_stmt):
+        text = super(FBCompiler, self).visit_delete(delete_stmt)
+        if RETURNING_KW_NAME in delete_stmt.kwargs:
+            return self._append_returning(text, delete_stmt)
+        else:
+            return text
+
 
 class FBSchemaGenerator(sql.compiler.SchemaGenerator):
     """Firebird syntactic idiosincrasies"""
 
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
-        colspec += " " + column.type.dialect_impl(self.dialect, _for_ddl=column).get_col_spec()
+        colspec += " " + column.type.dialect_impl(self.dialect).get_col_spec()
 
         default = self.get_column_default_string(column)
         if default is not None:
@@ -640,8 +732,9 @@ class FBSchemaGenerator(sql.compiler.SchemaGenerator):
     def visit_sequence(self, sequence):
         """Generate a ``CREATE GENERATOR`` statement for the sequence."""
 
-        self.append("CREATE GENERATOR %s" % self.preparer.format_sequence(sequence))
-        self.execute()
+        if not self.checkfirst or not self.dialect.has_sequence(self.connection, sequence.name):
+            self.append("CREATE GENERATOR %s" % self.preparer.format_sequence(sequence))
+            self.execute()
 
 
 class FBSchemaDropper(sql.compiler.SchemaDropper):
@@ -650,8 +743,9 @@ class FBSchemaDropper(sql.compiler.SchemaDropper):
     def visit_sequence(self, sequence):
         """Generate a ``DROP GENERATOR`` statement for the sequence."""
 
-        self.append("DROP GENERATOR %s" % self.preparer.format_sequence(sequence))
-        self.execute()
+        if not self.checkfirst or self.dialect.has_sequence(self.connection, sequence.name):
+            self.append("DROP GENERATOR %s" % self.preparer.format_sequence(sequence))
+            self.execute()
 
 
 class FBDefaultRunner(base.DefaultRunner):
@@ -711,7 +805,7 @@ class FBIdentifierPreparer(sql.compiler.IdentifierPreparer):
     reserved_words = RESERVED_WORDS
 
     def __init__(self, dialect):
-        super(FBIdentifierPreparer,self).__init__(dialect, omit_schema=True)
+        super(FBIdentifierPreparer, self).__init__(dialect, omit_schema=True)
 
 
 dialect = FBDialect

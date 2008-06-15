@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.orm.properties</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.orm.properties</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -101,8 +101,8 @@
     
     
     <div class="darkcell"><p>MapperProperty implementations.</p>
-<p>This is a private module which defines the behavior of
-invidual ORM-mapped attributes.</p>
+<p>This is a private module which defines the behavior of invidual ORM-mapped
+attributes.</p>
 </div>
     
 
@@ -142,17 +142,6 @@ invidual ORM-mapped attributes.</p>
     <b>def compile(<i>self</i>, <i>prop</i>)</b>
     <div class="docstring">
     
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_extension(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Return an attribute extension to use with this backreference.</p>
-
     </div>
     </div>
 
@@ -303,7 +292,7 @@ appears across each table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
+    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>path</i>, <i>mapper</i>, <i>row</i>, <i>adapter</i>)</b>
     <div class="docstring">
     
     </div>
@@ -334,7 +323,7 @@ appears across each table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def setup(<i>self</i>, <i>querycontext</i>, <i>**kwargs</i>)</b>
+    <b>def setup(<i>self</i>, <i>context</i>, <i>entity</i>, <i>path</i>, <i>adapter</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -464,7 +453,7 @@ of items that correspond to a related database table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>argument</i>, <i>secondary=None</i>, <i>primaryjoin=None</i>, <i>secondaryjoin=None</i>, <i>entity_name=None</i>, <i>foreign_keys=None</i>, <i>foreignkey=None</i>, <i>uselist=None</i>, <i>private=False</i>, <i>association=None</i>, <i>order_by=False</i>, <i>attributeext=None</i>, <i>backref=None</i>, <i>is_backref=False</i>, <i>post_update=False</i>, <i>cascade=None</i>, <i>viewonly=False</i>, <i>lazy=True</i>, <i>collection_class=None</i>, <i>passive_deletes=False</i>, <i>passive_updates=True</i>, <i>remote_side=None</i>, <i>enable_typechecks=True</i>, <i>join_depth=None</i>, <i>strategy_class=None</i>, <i>_local_remote_pairs=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>argument</i>, <i>secondary=None</i>, <i>primaryjoin=None</i>, <i>secondaryjoin=None</i>, <i>entity_name=None</i>, <i>foreign_keys=None</i>, <i>uselist=None</i>, <i>order_by=False</i>, <i>backref=None</i>, <i>_is_backref=False</i>, <i>post_update=False</i>, <i>cascade=None</i>, <i>viewonly=False</i>, <i>lazy=True</i>, <i>collection_class=None</i>, <i>passive_deletes=False</i>, <i>passive_updates=True</i>, <i>remote_side=None</i>, <i>enable_typechecks=True</i>, <i>join_depth=None</i>, <i>strategy_class=None</i>, <i>_local_remote_pairs=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">PropertyLoader</span></tt>.</p>
 
@@ -510,15 +499,6 @@ of items that correspond to a related database table.</p>
     
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>private = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -567,7 +547,7 @@ of items that correspond to a related database table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
+    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>path</i>, <i>mapper</i>, <i>row</i>, <i>adapter</i>)</b>
     <div class="docstring">
     
     </div>
@@ -597,7 +577,7 @@ of items that correspond to a related database table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def setup(<i>self</i>, <i>querycontext</i>, <i>**kwargs</i>)</b>
+    <b>def setup(<i>self</i>, <i>context</i>, <i>entity</i>, <i>path</i>, <i>adapter</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>

@@ -1,7 +1,7 @@
 import testenv; testenv.configure_for_tests()
 import sets
 from sqlalchemy import *
-from sqlalchemy import sql, exceptions
+from sqlalchemy import sql, exc
 from sqlalchemy.databases import mysql
 from testlib import *
 
@@ -23,7 +23,6 @@ class TypesTest(TestBase, AssertsExecutionResults):
             Column('num3', mysql.MSBigInteger()),
             Column('num4', mysql.MSDouble),
             Column('num5', mysql.MSDouble()),
-            Column('num6', mysql.MSMediumInteger),
             Column('enum1', mysql.MSEnum("'black'", "'white'")),
             )
         try:
@@ -39,7 +38,6 @@ class TypesTest(TestBase, AssertsExecutionResults):
             assert isinstance(t2.c.num3.type, mysql.MSBigInteger)
             assert isinstance(t2.c.num4.type, mysql.MSDouble)
             assert isinstance(t2.c.num5.type, mysql.MSDouble)
-            assert isinstance(t2.c.num6.type, mysql.MSMediumInteger)
             assert isinstance(t2.c.enum1.type, mysql.MSEnum)
             t2.drop()
             t2.create()
@@ -135,17 +133,6 @@ class TypesTest(TestBase, AssertsExecutionResults):
             (mysql.MSBigInteger, [4], {'zerofill':True, 'unsigned':True},
              'BIGINT(4) UNSIGNED ZEROFILL'),
 
-             (mysql.MSMediumInteger, [], {},
-              'MEDIUMINT'),
-             (mysql.MSMediumInteger, [4], {},
-              'MEDIUMINT(4)'),
-             (mysql.MSMediumInteger, [4], {'unsigned':True},
-              'MEDIUMINT(4) UNSIGNED'),
-             (mysql.MSMediumInteger, [4], {'zerofill':True},
-              'MEDIUMINT(4) ZEROFILL'),
-             (mysql.MSMediumInteger, [4], {'zerofill':True, 'unsigned':True},
-              'MEDIUMINT(4) UNSIGNED ZEROFILL'),
-
             (mysql.MSTinyInteger, [], {},
              'TINYINT'),
             (mysql.MSTinyInteger, [1], {},
@@ -190,6 +177,7 @@ class TypesTest(TestBase, AssertsExecutionResults):
             raise
         numeric_table.drop()
 
+    @testing.exclude('mysql', '<', (4, 1, 1), 'no charset support')
     def test_charset(self):
         """Exercise CHARACTER SET and COLLATE-ish options on string types."""
 
@@ -272,8 +260,8 @@ class TypesTest(TestBase, AssertsExecutionResults):
         except:
             raise
         charset_table.drop()
-    test_charset = testing.exclude('mysql', '<', (4, 1, 1))(test_charset)
 
+    @testing.exclude('mysql', '<', (5, 0, 5), 'a 5.0+ feature')
     def test_bit_50(self):
         """Exercise BIT types on 5.0+ (not valid for all engine types)"""
 
@@ -335,7 +323,6 @@ class TypesTest(TestBase, AssertsExecutionResults):
                 roundtrip([0, 0, 0, 0, 0, 0, 0, i])
         finally:
             meta.drop_all()
-    test_bit_50 = testing.exclude('mysql', '<', (5, 0, 5))(test_bit_50)
 
     def test_boolean(self):
         """Test BOOL/TINYINT(1) compatability and reflection."""
@@ -394,6 +381,7 @@ class TypesTest(TestBase, AssertsExecutionResults):
         finally:
             meta.drop_all()
 
+    @testing.exclude('mysql', '<', (4, 1, 0), '4.1+ syntax')
     def test_timestamp(self):
         """Exercise funky TIMESTAMP default syntax."""
 
@@ -406,18 +394,18 @@ class TypesTest(TestBase, AssertsExecutionResults):
                 ([mysql.MSTimeStamp],
                  'TIMESTAMP'),
                 ([mysql.MSTimeStamp,
-                  PassiveDefault(sql.text('CURRENT_TIMESTAMP'))],
+                  DefaultClause(sql.text('CURRENT_TIMESTAMP'))],
                  "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"),
                 ([mysql.MSTimeStamp,
-                  PassiveDefault(sql.text("'1999-09-09 09:09:09'"))],
+                  DefaultClause(sql.text("'1999-09-09 09:09:09'"))],
                  "TIMESTAMP DEFAULT '1999-09-09 09:09:09'"),
                 ([mysql.MSTimeStamp,
-                  PassiveDefault(sql.text("'1999-09-09 09:09:09' "
+                  DefaultClause(sql.text("'1999-09-09 09:09:09' "
                                           "ON UPDATE CURRENT_TIMESTAMP"))],
                  "TIMESTAMP DEFAULT '1999-09-09 09:09:09' "
                  "ON UPDATE CURRENT_TIMESTAMP"),
                 ([mysql.MSTimeStamp,
-                  PassiveDefault(sql.text("CURRENT_TIMESTAMP "
+                  DefaultClause(sql.text("CURRENT_TIMESTAMP "
                                           "ON UPDATE CURRENT_TIMESTAMP"))],
                  "TIMESTAMP DEFAULT CURRENT_TIMESTAMP "
                  "ON UPDATE CURRENT_TIMESTAMP"),
@@ -435,7 +423,6 @@ class TypesTest(TestBase, AssertsExecutionResults):
                     self.assert_(r.c.t is not None)
         finally:
             meta.drop_all()
-    test_timestamp = testing.exclude('mysql', '<', (4, 1, 0))(test_timestamp)
 
     def test_year(self):
         """Exercise YEAR."""
@@ -550,13 +537,13 @@ class TypesTest(TestBase, AssertsExecutionResults):
         try:
             enum_table.insert().execute(e1=None, e2=None, e3=None, e4=None)
             self.assert_(False)
-        except exceptions.SQLError:
+        except exc.SQLError:
             self.assert_(True)
 
         try:
             enum_table.insert().execute(e1='c', e2='c', e3='c', e4='c')
             self.assert_(False)
-        except exceptions.InvalidRequestError:
+        except exc.InvalidRequestError:
             self.assert_(True)
 
         enum_table.insert().execute()
@@ -592,6 +579,7 @@ class TypesTest(TestBase, AssertsExecutionResults):
         self.assert_eq(res, expected)
         enum_table.drop()
 
+    @testing.exclude('mysql', '<', (4,), "3.23 can't handle an ENUM of ''")
     def test_enum_parse(self):
         """More exercises for the ENUM type."""
 
@@ -618,34 +606,33 @@ class TypesTest(TestBase, AssertsExecutionResults):
                 assert t.c.e5.type.enums == ["", "'a'", "b'b", "'"]
         finally:
             enum_table.drop()
-    test_enum_parse = testing.exclude('mysql', '>', (3))(test_enum_parse)
 
     def test_default_reflection(self):
         """Test reflection of column defaults."""
 
         def_table = Table('mysql_def', MetaData(testing.db),
-            Column('c1', String(10), PassiveDefault('')),
-            Column('c2', String(10), PassiveDefault('0')),
-            Column('c3', String(10), PassiveDefault('abc')))
+            Column('c1', String(10), DefaultClause('')),
+            Column('c2', String(10), DefaultClause('0')),
+            Column('c3', String(10), DefaultClause('abc')))
 
         try:
             def_table.create()
             reflected = Table('mysql_def', MetaData(testing.db),
                               autoload=True)
             for t in def_table, reflected:
-                assert t.c.c1.default.arg == ''
-                assert t.c.c2.default.arg == '0'
-                assert t.c.c3.default.arg == 'abc'
+                assert t.c.c1.server_default.arg == ''
+                assert t.c.c2.server_default.arg == '0'
+                assert t.c.c3.server_default.arg == 'abc'
         finally:
             def_table.drop()
 
+    @testing.exclude('mysql', '<', (5, 0, 0), 'early types are squirrely')
+    @testing.uses_deprecated('Using String type with no length')
     def test_type_reflection(self):
         # (ask_for, roundtripped_as_if_different)
-        specs = [( String(), mysql.MSText(), ),
-                 ( String(1), mysql.MSString(1), ),
+        specs = [( String(1), mysql.MSString(1), ),
                  ( String(3), mysql.MSString(3), ),
                  ( Text(), mysql.MSText(), ),
-                 ( Unicode(), mysql.MSText(), ),
                  ( Unicode(1), mysql.MSString(1), ),
                  ( Unicode(3), mysql.MSString(3), ),
                  ( UnicodeText(), mysql.MSText(), ),
@@ -658,8 +645,6 @@ class TypesTest(TestBase, AssertsExecutionResults):
                  ( SmallInteger(4), mysql.MSSmallInteger(4), ),
                  ( mysql.MSSmallInteger(), ),
                  ( mysql.MSSmallInteger(4), mysql.MSSmallInteger(4), ),
-                 ( mysql.MSMediumInteger(), mysql.MSMediumInteger(), ),
-                 ( mysql.MSMediumInteger(8), mysql.MSMediumInteger(8), ),
                  ( Binary(3), mysql.MSBlob(3), ),
                  ( Binary(), mysql.MSBlob() ),
                  ( mysql.MSBinary(3), mysql.MSBinary(3), ),
@@ -706,47 +691,45 @@ class TypesTest(TestBase, AssertsExecutionResults):
                 db.execute('DROP VIEW mysql_types_v')
         finally:
             m.drop_all()
-    test_type_reflection = testing.uses_deprecated('Using String type with no length')(test_type_reflection)
-    test_type_reflection = testing.exclude('mysql', '<', (5, 0, 0))(test_type_reflection)
 
     def test_autoincrement(self):
         meta = MetaData(testing.db)
         try:
             Table('ai_1', meta,
                   Column('int_y', Integer, primary_key=True),
-                  Column('int_n', Integer, PassiveDefault('0'),
+                  Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True))
             Table('ai_2', meta,
                   Column('int_y', Integer, primary_key=True),
-                  Column('int_n', Integer, PassiveDefault('0'),
+                  Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True))
             Table('ai_3', meta,
-                  Column('int_n', Integer, PassiveDefault('0'),
+                  Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True, autoincrement=False),
                   Column('int_y', Integer, primary_key=True))
             Table('ai_4', meta,
-                  Column('int_n', Integer, PassiveDefault('0'),
+                  Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True, autoincrement=False),
-                  Column('int_n2', Integer, PassiveDefault('0'),
+                  Column('int_n2', Integer, DefaultClause('0'),
                          primary_key=True, autoincrement=False))
             Table('ai_5', meta,
                   Column('int_y', Integer, primary_key=True),
-                  Column('int_n', Integer, PassiveDefault('0'),
+                  Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True, autoincrement=False))
             Table('ai_6', meta,
-                  Column('o1', String(1), PassiveDefault('x'),
+                  Column('o1', String(1), DefaultClause('x'),
                          primary_key=True),
                   Column('int_y', Integer, primary_key=True))
             Table('ai_7', meta,
-                  Column('o1', String(1), PassiveDefault('x'),
+                  Column('o1', String(1), DefaultClause('x'),
                          primary_key=True),
-                  Column('o2', String(1), PassiveDefault('x'),
+                  Column('o2', String(1), DefaultClause('x'),
                          primary_key=True),
                   Column('int_y', Integer, primary_key=True))
             Table('ai_8', meta,
-                  Column('o1', String(1), PassiveDefault('x'),
+                  Column('o1', String(1), DefaultClause('x'),
                          primary_key=True),
-                  Column('o2', String(1), PassiveDefault('x'),
+                  Column('o2', String(1), DefaultClause('x'),
                          primary_key=True))
             meta.create_all()
 

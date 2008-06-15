@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.orm.interfaces</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.orm.interfaces</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -84,6 +84,9 @@
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_ExtensionOption">class ExtensionOption(MapperOption)</a></li>
 
         
+        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_InstrumentationManager">class InstrumentationManager(object)</a></li>
+
+        
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_LoaderStrategy">class LoaderStrategy(object)</a></li>
 
         
@@ -100,6 +103,9 @@
 
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_PropertyOption">class PropertyOption(MapperOption)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_SessionExtension">class SessionExtension(object)</a></li>
 
         
         <li><a style="" href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_StrategizedOption">class StrategizedOption(PropertyOption)</a></li>
@@ -124,12 +130,11 @@
     <h3>module sqlalchemy.orm.interfaces</h3>
     
     
-    <div class="darkcell"><p>Semi-private implementation objects which form the basis
-of ORM-mapped attributes, query options and mapper extension.</p>
-<p>Defines the <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperExtension">MapperExtension</a> class,
-which can be end-user subclassed to add event-based functionality
-to mappers.  The remainder of this module is generally private to the
-ORM.</p>
+    <div class="darkcell"><p>Semi-private implementation objects which form the basis of ORM-mapped
+attributes, query options and mapper extension.</p>
+<p>Defines the <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperExtension">MapperExtension</a> class, which can be
+end-user subclassed to add event-based functionality to mappers.  The
+remainder of this module is generally private to the ORM.</p>
 </div>
     
 
@@ -146,7 +151,7 @@ ORM.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm.interfaces_modfunc_build_path"></a>
-    <b>def build_path(<i>mapper</i>, <i>key</i>, <i>prev=None</i>)</b>
+    <b>def build_path(<i>entity</i>, <i>key</i>, <i>prev=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -264,6 +269,171 @@ event handlers to be attached to an object property.</p>
 
     
     
+    <A name="docstrings_sqlalchemy.orm.interfaces_InstrumentationManager"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class InstrumentationManager(object)</h3>
+    
+    
+    <div class="darkcell"><p>User-defined class instrumentation extension.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>class_</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">InstrumentationManager</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def dispose(<i>self</i>, <i>class_</i>, <i>manager</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_instance_dict(<i>self</i>, <i>class_</i>, <i>instance</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def initialize_instance_dict(<i>self</i>, <i>class_</i>, <i>instance</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def install_descriptor(<i>self</i>, <i>class_</i>, <i>key</i>, <i>inst</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def install_member(<i>self</i>, <i>class_</i>, <i>key</i>, <i>implementation</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def install_state(<i>self</i>, <i>class_</i>, <i>instance</i>, <i>state</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def instrument_attribute(<i>self</i>, <i>class_</i>, <i>key</i>, <i>inst</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def instrument_collection_class(<i>self</i>, <i>class_</i>, <i>key</i>, <i>collection_class</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def manage(<i>self</i>, <i>class_</i>, <i>manager</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def manager_getter(<i>self</i>, <i>class_</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def state_getter(<i>self</i>, <i>class_</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def uninstall_descriptor(<i>self</i>, <i>class_</i>, <i>key</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def uninstall_member(<i>self</i>, <i>class_</i>, <i>key</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
     <A name="docstrings_sqlalchemy.orm.interfaces_LoaderStrategy"></a>
     
     <div class="sectionL3">
@@ -309,13 +479,23 @@ attributes in response to eagerly-loaded relations.</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
+    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>path</i>, <i>mapper</i>, <i>row</i>, <i>adapter</i>)</b>
     <div class="docstring">
     <p>Return row processing functions which fulfill the contract specified
 by MapperProperty.create_row_processor.</p>
 <p>StrategizedProperty delegates its create_row_processor method directly
 to this method.</p>
 
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def debug_callable(<i>self</i>, <i>fn</i>, <i>logger</i>, <i>announcement</i>, <i>logfn</i>)</b>
+    <div class="docstring">
+    
     </div>
     </div>
 
@@ -343,7 +523,7 @@ to this method.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def setup_query(<i>self</i>, <i>context</i>, <i>**kwargs</i>)</b>
+    <b>def setup_query(<i>self</i>, <i>context</i>, <i>entity</i>, <i>path</i>, <i>adapter</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -378,8 +558,6 @@ that method.  Some methods such as <tt class="docutils literal"><span class="pre
 requirements, see the individual documentation for details.  Other than
 these exception cases, any return value other than EXT_CONTINUE or
 EXT_STOP will be interpreted as equivalent to EXT_STOP.</p>
-<p>EXT_PASS is a synonym for EXT_CONTINUE and is provided for backward
-compatibility.</p>
 </div>
     
 
@@ -442,7 +620,7 @@ desired.</p>
 <dd>List to which results are being appended.</dd>
 <dt>**flags</dt>
 <dd>extra information about the row, same as criterion in
-<cite>create_row_processor()</cite> method of <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperProperty">MapperProperty</a></dd>
+<tt class="docutils literal"><span class="pre">create_row_processor()</span></tt> method of <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperProperty">MapperProperty</a></dd>
 </dl>
 
     </div>
@@ -540,48 +718,6 @@ EXT_CONTINUE to indicate normal object creation should take place.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Override the <cite>get</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.get()</span></tt> if the value is anything other than EXT_CONTINUE.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_by(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Override the <cite>get_by</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.get_by()</span></tt> if the value is anything other than
-EXT_CONTINUE.</p>
-<p>DEPRECATED.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_session(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Retrieve a contextual Session instance with which to
-register a new object.</p>
-<p>Note: this is not called if a session is provided with the
-<cite>__init__</cite> params (i.e. <cite>_sa_session</cite>).</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def init_failed(<i>self</i>, <i>mapper</i>, <i>class_</i>, <i>oldinit</i>, <i>instance</i>, <i>args</i>, <i>kwargs</i>)</b>
     <div class="docstring">
     
@@ -612,11 +748,18 @@ register a new object.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def load(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def on_reconstitute(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>Override the <cite>load</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.load()</span></tt> if the value is anything other than EXT_CONTINUE.</p>
+    <p>Receive an object instance after it has been created via
+<tt class="docutils literal"><span class="pre">__new__()</span></tt>, and after initial attribute population has
+occurred.</p>
+<p>This typicically occurs when the instance is created based
+on incoming result rows, and is only called once for that
+instance's lifetime.</p>
+<p>Note that during a result-row load, this method is called upon
+the first row received for this instance; therefore, if eager loaders
+are to further populate collections on the instance, those will
+<em>not</em> have been completely loaded as of yet.</p>
 
     </div>
     </div>
@@ -627,46 +770,22 @@ register a new object.</p>
     <A name=""></a>
     <b>def populate_instance(<i>self</i>, <i>mapper</i>, <i>selectcontext</i>, <i>row</i>, <i>instance</i>, <i>**flags</i>)</b>
     <div class="docstring">
-    <p>Receive a newly-created instance before that instance has
+    <p>Receive an instance before that instance has
 its attributes populated.</p>
-<p>The normal population of attributes is according to each
-attribute's corresponding MapperProperty (which includes
-column-based attributes as well as relationships to other
-classes).  If this method returns EXT_CONTINUE, instance
+<p>This usually corresponds to a newly loaded instance but may
+also correspond to an already-loaded instance which has
+unloaded attributes to be populated.  The method may be
+called many times for a single instance, as multiple
+result rows are used to populate eagerly loaded collections.</p>
+<p>If this method returns EXT_CONTINUE, instance
 population will proceed normally.  If any other value or None
 is returned, instance population will not proceed, giving this
 extension an opportunity to populate the instance itself, if
 desired.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def select(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Override the <cite>select</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.select()</span></tt> if the value is anything other than
-EXT_CONTINUE.</p>
-<p>DEPRECATED.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def select_by(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Override the <cite>select_by</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.select_by()</span></tt> if the value is anything other than
-EXT_CONTINUE.</p>
-<p>DEPRECATED.</p>
+<p>As of 0.5, most usages of this hook are obsolete.
+For a generic &quot;object has been newly created from a row&quot; hook,
+use <tt class="docutils literal"><span class="pre">on_reconstitute()</span></tt>, or the &#64;attributes.on_reconstitute
+decorator.</p>
 
     </div>
     </div>
@@ -679,8 +798,9 @@ EXT_CONTINUE.</p>
     <div class="docstring">
     <p>Perform pre-processing on the given result row and return a
 new row instance.</p>
-<p>This is called as the very first step in the <tt class="docutils literal"><span class="pre">_instance()</span></tt>
-method.</p>
+<p>This is called when the mapper first receives a row, before
+the object identity or the instance itself has been derived
+from that row.</p>
 
     </div>
     </div>
@@ -793,9 +913,9 @@ under the attribute name &quot;comparator&quot;.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
+    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>path</i>, <i>mapper</i>, <i>row</i>, <i>adapter</i>)</b>
     <div class="docstring">
-    <p>Return a 3-tuple consiting of two row processing functions and an instance post-processing function.</p>
+    <p>Return a 2-tuple consiting of two row processing functions and an instance post-processing function.</p>
 <p>Input arguments are the query.SelectionContext and the <em>first</em>
 applicable row of a result set obtained within
 query.Query.instances(), called only the first time a particular
@@ -804,31 +924,23 @@ mapper's populate_instance() method is invoked for the overall result.</p>
 columns present in the row (which will be the same columns present in
 all rows) are used to determine the presence and behavior of the
 returned callables.  The callables will then be used to process all
-rows and to post-process all instances, respectively.</p>
+rows and instances.</p>
 <p>Callables are of the following form:</p>
 <pre class="literal-block">
-def new_execute(instance, row, **flags):
-    # process incoming instance and given row.  the instance is
+def new_execute(state, row, **flags):
+    # process incoming instance state and given row.  the instance is
     # &quot;new&quot; and was just created upon receipt of this row.
     # flags is a dictionary containing at least the following
     # attributes:
     #   isnew - indicates if the instance was newly created as a
     #           result of reading this row
     #   instancekey - identity key of the instance
-    # optional attribute:
-    #   ispostselect - indicates if this row resulted from a
-    #                  'post' select of additional tables/columns
 
-def existing_execute(instance, row, **flags):
-    # process incoming instance and given row.  the instance is
+def existing_execute(state, row, **flags):
+    # process incoming instance state and given row.  the instance is
     # &quot;existing&quot; and was created based on a previous row.
 
-def post_execute(instance, **flags):
-    # process instance after all result rows have been processed.
-    # this function should be used to issue additional selections
-    # in order to eagerly load additional properties.
-
-return (new_execute, existing_execute, post_execute)
+return (new_execute, existing_execute)
 </pre>
 <p>Either of the three tuples can be <tt class="docutils literal"><span class="pre">None</span></tt> in which case no function
 is called.</p>
@@ -845,24 +957,6 @@ is called.</p>
     <p>Perform subclass-specific initialization steps.</p>
 <p>This is a <em>template</em> method called by the
 <tt class="docutils literal"><span class="pre">MapperProperty</span></tt> object's init() method.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_criterion(<i>self</i>, <i>query</i>, <i>key</i>, <i>value</i>)</b>
-    <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">WHERE</span></tt> clause suitable for this
-<tt class="docutils literal"><span class="pre">MapperProperty</span></tt> corresponding to the given key/value pair,
-where the key is a column or object property name, and value
-is a value to be matched.  This is only picked up by
-<tt class="docutils literal"><span class="pre">PropertyLoaders</span></tt>.</p>
-<p>This is called by a <tt class="docutils literal"><span class="pre">Query</span></tt>'s <tt class="docutils literal"><span class="pre">join_by</span></tt> method to formulate a set
-of key/value pairs into a <tt class="docutils literal"><span class="pre">WHERE</span></tt> criterion that spans multiple
-tables if needed.</p>
 
     </div>
     </div>
@@ -936,7 +1030,7 @@ for more details).</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def setup(<i>self</i>, <i>querycontext</i>, <i>**kwargs</i>)</b>
+    <b>def setup(<i>self</i>, <i>context</i>, <i>entity</i>, <i>path</i>, <i>adapter</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Called by Query for the purposes of constructing a SQL statement.</p>
 <p>Each MapperProperty associated with the target mapper processes the
@@ -977,7 +1071,7 @@ PropComparator.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>prop</i>)</b>
+    <b>def __init__(<i>self</i>, <i>prop</i>, <i>mapper</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">PropComparator</span></tt>.</p>
 
@@ -1011,16 +1105,6 @@ will be compared via equality to the corresponding values.</dd>
     <div class="docstring">
     <p>Return true if this collection contains other</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def expression_element(<i>self</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -1062,6 +1146,16 @@ query.join(Company.employees.of_type(Engineer)).\
 this specific subclass.</dd>
 </dl>
 
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __clause_element__(<i>self</i>)</b>
+    <div class="docstring">
+    
     </div>
     </div>
 
@@ -1128,6 +1222,121 @@ one of its child mappers, identified by a dot-separated key.</p>
     <b>def process_query_property(<i>self</i>, <i>query</i>, <i>paths</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.orm.interfaces_SessionExtension"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class SessionExtension(object)</h3>
+    
+    
+    <div class="darkcell"><p>An extension hook object for Sessions.  Subclasses may be installed into a Session
+(or sessionmaker) using the <tt class="docutils literal"><span class="pre">extension</span></tt> keyword argument.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_begin(<i>self</i>, <i>session</i>, <i>transaction</i>, <i>connection</i>)</b>
+    <div class="docstring">
+    <p>Execute after a transaction is begun on a connection</p>
+<p><cite>transaction</cite> is the SessionTransaction. This method is called after an
+engine level transaction is begun on a connection.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_commit(<i>self</i>, <i>session</i>)</b>
+    <div class="docstring">
+    <p>Execute after a commit has occured.</p>
+<p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_flush(<i>self</i>, <i>session</i>, <i>flush_context</i>)</b>
+    <div class="docstring">
+    <p>Execute after flush has completed, but before commit has been called.</p>
+<p>Note that the session's state is still in pre-flush, i.e. 'new', 'dirty',
+and 'deleted' lists still show pre-flush state as well as the history
+settings on instance attributes.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_flush_postexec(<i>self</i>, <i>session</i>, <i>flush_context</i>)</b>
+    <div class="docstring">
+    <p>Execute after flush has completed, and after the post-exec state occurs.</p>
+<p>This will be when the 'new', 'dirty', and 'deleted' lists are in their final
+state.  An actual commit() may or may not have occured, depending on whether or not
+the flush started its own transaction or participated in a larger transaction.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_rollback(<i>self</i>, <i>session</i>)</b>
+    <div class="docstring">
+    <p>Execute after a rollback has occured.</p>
+<p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def before_commit(<i>self</i>, <i>session</i>)</b>
+    <div class="docstring">
+    <p>Execute right before commit is called.</p>
+<p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def before_flush(<i>self</i>, <i>session</i>, <i>flush_context</i>, <i>instances</i>)</b>
+    <div class="docstring">
+    <p>Execute before flush process has started.</p>
+<p><cite>instances</cite> is an optional list of objects which were passed to the <tt class="docutils literal"><span class="pre">flush()</span></tt>
+method.</p>
+
     </div>
     </div>
 
@@ -1218,7 +1427,7 @@ strategies can be selected at Query time through the usage of
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
+    <b>def create_row_processor(<i>self</i>, <i>context</i>, <i>path</i>, <i>mapper</i>, <i>row</i>, <i>adapter</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1238,7 +1447,7 @@ strategies can be selected at Query time through the usage of
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def setup(<i>self</i>, <i>querycontext</i>, <i>**kwargs</i>)</b>
+    <b>def setup(<i>self</i>, <i>context</i>, <i>entity</i>, <i>path</i>, <i>adapter</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>

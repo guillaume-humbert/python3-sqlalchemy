@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - Plugins</title>
+	<title>SQLAlchemy 0.5 Documentation - Plugins</title>
 	
     <link rel="stylesheet" href="style.css"></link>
     <link rel="stylesheet" href="docs.css"></link>
@@ -23,11 +23,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -86,27 +86,6 @@
         
         <li><a style="" href="plugins.html#plugins_sqlsoup">SqlSoup</a></li>
 
-        
-        <li><a style="" href="plugins.html#plugins_deprecated">Deprecated Extensions</a></li>
-
-	        <li>
-                
-    <ul>
-        
-        <li><a style="" href="plugins.html#plugins_deprecated_selectresults">SelectResults</a></li>
-
-        
-        <li><a style="" href="plugins.html#plugins_deprecated_sessioncontext">SessionContext</a></li>
-
-        
-        <li><a style="" href="plugins.html#plugins_deprecated_assignmapper">assignmapper</a></li>
-
-        
-        <li><a style="" href="plugins.html#plugins_deprecated_activemapper">ActiveMapper</a></li>
-
-    </ul>
-
-	        </li>
     </ul>
 
 	</div>
@@ -269,12 +248,28 @@
     </span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>When an explicit join condition or other configuration which depends 
-   on multiple classes cannot be defined immediately due to some classes
-   not yet being available, these can be defined after all classes have
-   been created.  Attributes which are added to the class after
-   its creation are associated with the Table/mapping in the same
-   way as if they had been defined inline:
+<p>In addition to the main argument for <code>relation</code>, other arguments
+   which depend upon the columns present on an as-yet undefined class
+   may also be specified as strings.  These strings are evaluated as
+   Python expressions.  The full namespace available within this 
+   evaluation includes all classes mapped for this declarative base,
+   as well as the contents of the <code>sqlalchemy</code> package, including 
+   expression functions like <code>desc</code> and <code>func</code>:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_comment"># ....
+</span><span class="python_operator">    </span><span class="python_name">addresses </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_literal">"Address"</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_literal">"desc(Address.email)"</span><span class="python_operator">, </span>
+        <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_literal">"Address.user_id==User.id"</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>As an alternative to string-based attributes, attributes may also be 
+   defined after all classes have been created.  Just add them to the target
+   class after the fact:
 </p>
 
     
@@ -954,240 +949,8 @@ documentation</a> for more
 
 
 
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="plugins_deprecated"></a>
-    
-    <div class="sectionL2">
-
-    <h3>Deprecated Extensions</h3>
-    
-    
-
-<p>A lot of our extensions are deprecated.  But this is a good thing.  Why ?  Because all of them have been refined and focused, and rolled into the core of SQLAlchemy.  So they aren't removed, they've just graduated into fully integrated features.  Below we describe a set of extensions which are present in 0.4 but are deprecated.
-</p>
-
-
-    
-    <A name="plugins_deprecated_selectresults"></a>
-    
-    <div class="sectionL3">
-
-    <h3>SelectResults</h3>
-    
-    
-
-<p><strong>Author:</strong> Jonas Borgström
-</p>
-<p><em>NOTE:</em> As of version 0.3.6 of SQLAlchemy, most behavior of <code>SelectResults</code> has been rolled into the base <code>Query</code> object.  Explicit usage of <code>SelectResults</code> is therefore no longer needed.
-</p>
-<p><code>SelectResults</code> gives transformative behavior to the results returned from the <code>select</code> and <code>select_by</code> methods of <code>Query</code>. 
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">selectresults </span><span class="python_keyword">import </span><span class="python_name">SelectResults</span><span class="python_operator">
-</span>
-<span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">res </span><span class="python_operator">= </span><span class="python_name">SelectResults</span><span class="python_enclosure">(</span><span class="python_name">query</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_name">res </span><span class="python_operator">= </span><span class="python_name">res</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column </span><span class="python_operator">== </span><span class="python_literal">"something"</span><span class="python_enclosure">) </span><span class="python_comment"># adds a WHERE clause (or appends to the existing via "and")</span><span class="python_operator">
-</span><span class="python_name">res </span><span class="python_operator">= </span><span class="python_name">res</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">([</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column</span><span class="python_enclosure">]) </span><span class="python_comment"># adds an ORDER BY clause</span><span class="python_operator">
-</span>
-<span class="python_keyword">for </span><span class="python_name">x </span><span class="python_keyword">in </span><span class="python_name">res</span><span class="python_enclosure">[</span><span class="python_operator">:</span><span class="python_number">10</span><span class="python_enclosure">]</span><span class="python_operator">:  </span><span class="python_comment"># Fetch and print the top ten instances - adds OFFSET 0 LIMIT 10 or equivalent</span><span class="python_operator">
-  </span><span class="python_keyword">print </span><span class="python_name">x</span><span class="python_operator">.</span><span class="python_name">column2</span><span class="python_operator">
-</span>
-<span class="python_comment"># evaluate as a list, which executes the query
-</span><span class="python_operator"></span><span class="python_name">x </span><span class="python_operator">= </span><span class="python_name">list</span><span class="python_enclosure">(</span><span class="python_name">res</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># Count how many instances that have column2 &gt; 42
-# and column == "something"
-</span><span class="python_keyword">print </span><span class="python_name">res</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column2 </span><span class="python_operator">&gt; </span><span class="python_number">42</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># select() is a synonym for filter()
-</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column</span><span class="python_operator">==</span><span class="python_literal">"something"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">([</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column</span><span class="python_enclosure">])[</span><span class="python_number">2</span><span class="python_operator">:</span><span class="python_number">7</span><span class="python_enclosure">]</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>An important facet of SelectResults is that the actual SQL execution does not occur until the object is used in a list or iterator context.  This means you can call any number of transformative methods (including <code>filter</code>, <code>order_by</code>, list range expressions, etc) before any SQL is actually issued.
-</p>
-<p>Configuration of SelectResults may be per-Query, per Mapper, or per application:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">selectresults </span><span class="python_keyword">import </span><span class="python_name">SelectResults</span><span class="python_operator">, </span><span class="python_name">SelectResultsExt</span><span class="python_operator">
-</span>
-<span class="python_comment"># construct a SelectResults for an individual Query
-</span><span class="python_name">sel </span><span class="python_operator">= </span><span class="python_name">SelectResults</span><span class="python_enclosure">(</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">))</span><span class="python_operator">
-</span>
-<span class="python_comment"># construct a Mapper where the Query.select()/select_by() methods will return a SelectResults:
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_name">SelectResultsExt</span><span class="python_enclosure">())</span><span class="python_operator">
-</span>
-<span class="python_comment"># globally configure all Mappers to return SelectResults, using the "selectresults" mod
-</span><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">mods</span><span class="python_operator">.</span><span class="python_name">selectresults</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>SelectResults greatly enhances querying and is highly recommended.  For example, heres an example of constructing a query using a combination of joins and outerjoins:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'orders'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Order</span><span class="python_operator">, </span><span class="python_name">orders_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-        <span class="python_literal">'items'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_operator">, </span><span class="python_name">items_table</span><span class="python_enclosure">))</span>
-    <span class="python_enclosure">}))</span>
-<span class="python_enclosure">})</span><span class="python_operator">
-</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">SelectResults</span><span class="python_enclosure">(</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">))</span><span class="python_operator">
-</span>
-<span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">outerjoin_to</span><span class="python_enclosure">(</span><span class="python_literal">'orders'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">outerjoin_to</span><span class="python_enclosure">(</span><span class="python_literal">'items'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">or_</span><span class="python_enclosure">(</span><span class="python_name">Order</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">order_id</span><span class="python_operator">==</span><span class="python_name">None</span><span class="python_operator">,</span><span class="python_name">Item</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">item_id</span><span class="python_operator">==</span><span class="python_number">2</span><span class="python_enclosure">))</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>For a full listing of methods, see the <b>generated documentation</b>.
-</p>
-
-
 
             <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="plugins_deprecated_sessioncontext"></a>
-    
-    <div class="sectionL3">
-
-    <h3>SessionContext</h3>
-    
-    
-
-<p><strong>Author:</strong>  Daniel Miller
-</p>
-<p>The <code>SessionContext</code> extension is still available in the 0.4 release of SQLAlchemy, but has been deprecated in favor of the <a href="session.html#unitofwork_contextual">scoped_session()</a> function, which provides a class-like object that constructs a <code>Session</code> on demand which references a thread-local scope.  <br></br>
-</p>
-<p>For docs on <code>SessionContext</code>, see the SQLAlchemy 0.3 documentation.
-</p>
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="plugins_deprecated_assignmapper"></a>
-    
-    <div class="sectionL3">
-
-    <h3>assignmapper</h3>
-    
-    
-
-<p><strong>Author:</strong> Mike Bayer
-</p>
-<p>The <code>assignmapper</code> extension is still available in the 0.4 release of SQLAlchemy, but has been deprecated in favor of the <a href="session.html#unitofwork_contextual">scoped_session()</a> function, which provides a <code>mapper</code> callable that works similarly to <code>assignmapper</code>.
-</p>
-<p>For docs on <code>assignmapper</code>, see the SQLAlchemy 0.3 documentation.
-</p>
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="plugins_deprecated_activemapper"></a>
-    
-    <div class="sectionL3">
-
-    <h3>ActiveMapper</h3>
-    
-    
-
-<p><strong>Author:</strong> Jonathan LaCour
-</p>
-<p>Please note that ActiveMapper has been deprecated in favor of either <a href='http://elixir.ematia.de/'>Elixir</a>, a comprehensive solution to declarative mapping, or <a href="plugins.html#plugins_declarative">declarative</a>, a built in convenience tool which reorganizes <code>Table</code> and <code>mapper()</code> configuration.
-</p>
-<p>ActiveMapper is a so-called "declarative layer" which allows the construction of a class, a <code>Table</code>, and a <code>Mapper</code> all in one step:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_keyword">class </span><span class="python_name">Person</span><span class="python_enclosure">(</span><span class="python_name">ActiveMapper</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_keyword">class </span><span class="python_name">mapping</span><span class="python_operator">:
-        </span><span class="python_name">id          </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">full_name   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">first_name  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">middle_name </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">last_name   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">birth_date  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">DateTime</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">ssn         </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">gender      </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">home_phone  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">cell_phone  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">work_phone  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">prefs_id    </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">foreign_key</span><span class="python_operator">=</span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'preferences.id'</span><span class="python_enclosure">))</span><span class="python_operator">
-        </span><span class="python_name">addresses   </span><span class="python_operator">= </span><span class="python_name">one_to_many</span><span class="python_enclosure">(</span><span class="python_literal">'Address'</span><span class="python_operator">, </span><span class="python_name">colname</span><span class="python_operator">=</span><span class="python_literal">'person_id'</span><span class="python_operator">, </span><span class="python_name">backref</span><span class="python_operator">=</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">preferences </span><span class="python_operator">= </span><span class="python_name">one_to_one</span><span class="python_enclosure">(</span><span class="python_literal">'Preferences'</span><span class="python_operator">, </span><span class="python_name">colname</span><span class="python_operator">=</span><span class="python_literal">'pref_id'</span><span class="python_operator">, </span><span class="python_name">backref</span><span class="python_operator">=</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">__str__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
-        </span><span class="python_name">s </span><span class="python_operator">=  </span><span class="python_literal">'%s\n' </span><span class="python_operator">% </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">full_name</span><span class="python_operator">
-        </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'  * birthdate: %s\n' </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">birth_date </span><span class="python_keyword">or </span><span class="python_literal">'not provided'</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'  * fave color: %s\n' </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">preferences</span><span class="python_operator">.</span><span class="python_name">favorite_color </span><span class="python_keyword">or </span><span class="python_literal">'Unknown'</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'  * personality: %s\n' </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">preferences</span><span class="python_operator">.</span><span class="python_name">personality_type </span><span class="python_keyword">or </span><span class="python_literal">'Unknown'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-        <span class="python_keyword">for </span><span class="python_name">address </span><span class="python_keyword">in </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">:
-            </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'  * address: %s\n' </span><span class="python_operator">% </span><span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">address_1</span><span class="python_operator">
-            </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'             %s, %s %s\n' </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">, </span><span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">state</span><span class="python_operator">, </span><span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">postal_code</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-        <span class="python_operator"></span><span class="python_keyword">return </span><span class="python_name">s</span><span class="python_operator">
-</span>
-<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Preferences</span><span class="python_enclosure">(</span><span class="python_name">ActiveMapper</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_keyword">class </span><span class="python_name">mapping</span><span class="python_operator">:
-        </span><span class="python_name">__table__        </span><span class="python_operator">= </span><span class="python_literal">'preferences'</span><span class="python_operator">
-        </span><span class="python_name">id               </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">favorite_color   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">personality_type </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">ActiveMapper</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_keyword">class </span><span class="python_name">mapping</span><span class="python_operator">:
-        </span><span class="python_name">id          </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">type        </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">address_1   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">city        </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">state       </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">postal_code </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
-        </span><span class="python_name">person_id   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">foreign_key</span><span class="python_operator">=</span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'person.id'</span><span class="python_enclosure">))</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>More discussion on ActiveMapper can be found at <a href='http://cleverdevil.org/computing/35/declarative-mapping-with-sqlalchemy'>Jonathan LaCour's Blog</a> as well as the <a href='http://www.sqlalchemy.org/trac/wiki/ActiveMapper'>SQLAlchemy Wiki</a>.
-</p>
-
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-
     </div>
 
 

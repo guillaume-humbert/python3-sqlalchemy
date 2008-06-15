@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - SQL Expression Language Tutorial</title>
+	<title>SQLAlchemy 0.5 Documentation - SQL Expression Language Tutorial</title>
 	
     <link rel="stylesheet" href="style.css"></link>
     <link rel="stylesheet" href="docs.css"></link>
@@ -23,11 +23,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -181,7 +181,7 @@
     
     
 
-<p>A quick check to verify that we are on at least <strong>version 0.4</strong> of SQLAlchemy:
+<p>A quick check to verify that we are on at least <strong>version 0.5</strong> of SQLAlchemy:
 </p>
 
     
@@ -190,7 +190,7 @@
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">__version__ </span><span class="python_operator">
-</span><span class="python_number">0.4.0</span><span class="python_operator">
+</span><span class="python_number">0.5.0</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -253,14 +253,14 @@
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
 <span class="python_operator">...     </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-<span class="python_operator">...     </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">40</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
-<span class="python_operator">...     </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'fullname'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">100</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+<span class="python_operator">...     </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+<span class="python_operator">...     </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'fullname'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 <span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">addresses </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
 <span class="python_operator">...   </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 <span class="python_operator">...   </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">None</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'users.id'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
-<span class="python_operator">...   </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'email_address'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
+<span class="python_operator">...   </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'email_address'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
 <span class="python_operator">...  </span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
@@ -279,8 +279,8 @@ PRAGMA table_info(&quot;addresses&quot;)<br/>
 {}<br/>
 CREATE TABLE users (<br/>
     id INTEGER NOT NULL, <br/>
-    name VARCHAR(40), <br/>
-    fullname VARCHAR(100), <br/>
+    name VARCHAR, <br/>
+    fullname VARCHAR, <br/>
     PRIMARY KEY (id)<br/>
 )<br/>
 {}<br/>
@@ -288,13 +288,25 @@ COMMIT<br/>
 CREATE TABLE addresses (<br/>
     id INTEGER NOT NULL, <br/>
     user_id INTEGER, <br/>
-    email_address VARCHAR(50) NOT NULL, <br/>
+    email_address VARCHAR NOT NULL, <br/>
     PRIMARY KEY (id), <br/>
      FOREIGN KEY(user_id) REFERENCES users (id)<br/>
 )<br/>
 {}<br/>
 COMMIT</div><pre><span class="python_operator"></span></pre>
     </div>
+<p>Users familiar with the syntax of CREATE TABLE may notice that the VARCHAR columns were generated without a length; on SQLite, this is a valid datatype, but on most databases it's not allowed.  So if running this tutorial on a database such as Postgres or MySQL, and you wish to use SQLAlchemy to generate the tables, a "length" may be provided to the <code>String</code> type as below:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The length field on <code>String</code>, as well as similar fields available on <code>Integer</code>, <code>Numeric</code>, etc. are not referenced by SQLAlchemy other than when creating tables.
+</p>
 
 
 
@@ -758,7 +770,7 @@ WHERE users.id = addresses.user_id<br/>
     <div class="sliding_code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_operator">
-</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">= :</span><span class="python_name">users_id_1</span><span class="python_operator">
+</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">= :</span><span class="python_name">id_1</span><span class="python_operator">
 </span></pre>
     </div>
 <p>The <code>7</code> literal is embedded in <code>ClauseElement</code>; we can use the same trick we did with the <code>Insert</code> object to see it:
@@ -769,7 +781,7 @@ WHERE users.id = addresses.user_id<br/>
     <div class="sliding_code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">compile</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">params</span><span class="python_operator">
-</span><span class="python_enclosure">{</span><span class="python_literal">'users_id_1'</span><span class="python_operator">: </span><span class="python_number">7</span><span class="python_enclosure">}</span><span class="python_operator">
+</span><span class="python_enclosure">{</span><span class="python_literal">'id_1'</span><span class="python_operator">: </span><span class="python_number">7</span><span class="python_enclosure">}</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Most Python operators, as it turns out, produce a SQL expression here, like equals, not equals, etc.:
@@ -780,7 +792,7 @@ WHERE users.id = addresses.user_id<br/>
     <div class="sliding_code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">!= </span><span class="python_number">7</span><span class="python_operator">
-</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">!= :</span><span class="python_name">users_id_1</span><span class="python_operator">
+</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">!= :</span><span class="python_name">id_1</span><span class="python_operator">
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_comment"># None converts to IS NULL</span><span class="python_operator">
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">== </span><span class="python_name">None</span><span class="python_operator">
@@ -788,7 +800,7 @@ WHERE users.id = addresses.user_id<br/>
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_comment"># reverse works too </span><span class="python_operator">
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_literal">'fred' </span><span class="python_operator">&gt; </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">
-</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">&lt; :</span><span class="python_name">users_name_1</span><span class="python_operator">
+</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">&lt; :</span><span class="python_name">name_1</span><span class="python_operator">
 </span></pre>
     </div>
 <p>If we add two integer columns together, we get an addition expression:
@@ -834,7 +846,7 @@ WHERE users.id = addresses.user_id<br/>
     <div class="sliding_code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">.</span><span class="python_name">op</span><span class="python_enclosure">(</span><span class="python_literal">'tiddlywinks'</span><span class="python_enclosure">)(</span><span class="python_literal">'foo'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">name tiddlywinks </span><span class="python_operator">:</span><span class="python_name">users_name_1</span><span class="python_operator">
+</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">name tiddlywinks </span><span class="python_operator">:</span><span class="python_name">name_1</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -865,9 +877,9 @@ WHERE users.id = addresses.user_id<br/>
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'j%'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
 <span class="python_operator">...     </span><span class="python_name">or_</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'wendy@aol.com'</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 <span class="python_operator">...     </span><span class="python_name">not_</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">&gt;</span><span class="python_number">5</span><span class="python_enclosure">))</span><span class="python_operator">
-</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">name LIKE </span><span class="python_operator">:</span><span class="python_name">users_name_1 AND users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">user_id AND </span><span class="python_operator">
-</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">email_address </span><span class="python_operator">= :</span><span class="python_name">addresses_email_address_1 OR addresses</span><span class="python_operator">.</span><span class="python_name">email_address </span><span class="python_operator">= :</span><span class="python_name">addresses_email_address_2</span><span class="python_enclosure">) </span><span class="python_operator">
-</span><span class="python_name">AND users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">&lt;= :</span><span class="python_name">users_id_1</span><span class="python_operator">
+</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">name LIKE </span><span class="python_operator">:</span><span class="python_name">name_1 AND users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">user_id AND </span><span class="python_operator">
+</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">email_address </span><span class="python_operator">= :</span><span class="python_name">email_address_1 OR addresses</span><span class="python_operator">.</span><span class="python_name">email_address </span><span class="python_operator">= :</span><span class="python_name">email_address_2</span><span class="python_enclosure">) </span><span class="python_operator">
+</span><span class="python_name">AND users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">&lt;= :</span><span class="python_name">id_1</span><span class="python_operator">
 </span></pre>
     </div>
 <p>And you can also use the re-jiggered bitwise AND, OR and NOT operators, although because of Python operator precedence you have to watch your parenthesis:
@@ -880,9 +892,9 @@ WHERE users.id = addresses.user_id<br/>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'j%'</span><span class="python_enclosure">) </span><span class="python_operator">&amp; </span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">) </span><span class="python_operator">&amp;  \
 ...     </span><span class="python_enclosure">((</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'wendy@aol.com'</span><span class="python_enclosure">) </span><span class="python_operator">| </span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@yahoo.com'</span><span class="python_enclosure">))</span><span class="python_operator"> \
 ...     &amp; ~</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">&gt;</span><span class="python_number">5</span><span class="python_enclosure">) </span><span class="python_operator">
-</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">name LIKE </span><span class="python_operator">:</span><span class="python_name">users_name_1 AND users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">user_id AND </span><span class="python_operator">
-</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">email_address </span><span class="python_operator">= :</span><span class="python_name">addresses_email_address_1 OR addresses</span><span class="python_operator">.</span><span class="python_name">email_address </span><span class="python_operator">= :</span><span class="python_name">addresses_email_address_2</span><span class="python_enclosure">) </span><span class="python_operator">
-</span><span class="python_name">AND users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">&lt;= :</span><span class="python_name">users_id_1</span><span class="python_operator">
+</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">name LIKE </span><span class="python_operator">:</span><span class="python_name">name_1 AND users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">= </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">user_id AND </span><span class="python_operator">
+</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">email_address </span><span class="python_operator">= :</span><span class="python_name">email_address_1 OR addresses</span><span class="python_operator">.</span><span class="python_name">email_address </span><span class="python_operator">= :</span><span class="python_name">email_address_2</span><span class="python_enclosure">) </span><span class="python_operator">
+</span><span class="python_name">AND users</span><span class="python_operator">.</span><span class="python_name">id </span><span class="python_operator">&lt;= :</span><span class="python_name">id_1</span><span class="python_operator">
 </span></pre>
     </div>
 <p>So with all of this vocabulary, let's select all users who have an email address at AOL or MSN, whose name starts with a letter between "m" and "z", and we'll also generate a column containing their full name combined with their email address.  We will add two new constructs to this statement, <code>between()</code> and <code>label()</code>.  <code>between()</code> produces a BETWEEN clause, and <code>label()</code> is used in a column expression to produce labels using the <code>AS</code> keyword; it's recommended when selecting from expressions that otherwise would not have a name:
@@ -1089,7 +1101,7 @@ WHERE users.id = anon_1.id<br/>
     <div class="sliding_code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">+ </span><span class="python_literal">'%'</span><span class="python_enclosure">))</span><span class="python_operator">
-</span><span class="python_name">users JOIN addresses ON addresses</span><span class="python_operator">.</span><span class="python_name">email_address LIKE users</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">|| :</span><span class="python_name">users_name_1</span><span class="python_operator">
+</span><span class="python_name">users JOIN addresses ON addresses</span><span class="python_operator">.</span><span class="python_name">email_address LIKE users</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">|| :</span><span class="python_name">name_1</span><span class="python_operator">
 </span></pre>
     </div>
 <p>When we create a <code>select()</code> construct, SQLAlchemy looks around at the tables we've mentioned and then places them in the FROM clause of the statement.  When we use JOINs however, we know what FROM clause we want, so here we make usage of the <code>from_obj</code> keyword argument:
@@ -1241,9 +1253,9 @@ WHERE addresses.user_id = users.id AND addresses.email_address LIKE ?)) ORDER BY
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">
 </span></pre><div class="codepop">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, addresses_1.id AS addresses_1_id, addresses_1.user_id AS addresses_1_user_id, addresses_1.email_address AS addresses_1_email_address <br/>
 FROM users LEFT OUTER JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id <br/>
-WHERE users.name = :users_name_1 AND (EXISTS (SELECT addresses_1.id <br/>
+WHERE users.name = :name_1 AND (EXISTS (SELECT addresses_1.id <br/>
 FROM addresses AS addresses_1 <br/>
-WHERE addresses_1.user_id = users.id AND addresses_1.email_address LIKE :addresses_email_address_1)) ORDER BY users.fullname DESC</div><pre>
+WHERE addresses_1.user_id = users.id AND addresses_1.email_address LIKE :email_address_1)) ORDER BY users.fullname DESC</div><pre>
 
 <span class="python_operator"></span></pre>
     </div>
@@ -1526,10 +1538,10 @@ WHERE addresses.email_address LIKE ?<br/>
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_21', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([</span>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_21', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([   </span>
 <span class="python_operator">...       </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">, </span>
 <span class="python_operator">...       </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)]</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">as_scalar</span><span class="python_enclosure">()</span>
-<span class="python_operator">...    </span><span class="python_enclosure">]))</span><span class="python_operator">.</span><span class="python_name">fetchall</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_21_div" class="codepop" style="display:none;">SELECT users.name, (SELECT count(addresses.id) <br/>
+<span class="python_operator">...    </span><span class="python_enclosure">]))</span><span class="python_operator">.</span><span class="python_name">fetchall</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_21_div" class="codepop" style="display:none;">SELECT users.name, (SELECT count(addresses.id) AS count_1<br/>
 FROM addresses <br/>
 WHERE users.id = addresses.user_id) AS anon_1 <br/>
 FROM users<br/>
@@ -1543,10 +1555,10 @@ FROM users<br/>
 
     <div class="code">
         <pre>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_22', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([</span>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_22', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([    </span>
 <span class="python_operator">...       </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">, </span>
 <span class="python_operator">...       </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)]</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">label</span><span class="python_enclosure">(</span><span class="python_literal">'address_count'</span><span class="python_enclosure">)</span>
-<span class="python_operator">...    </span><span class="python_enclosure">]))</span><span class="python_operator">.</span><span class="python_name">fetchall</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_22_div" class="codepop" style="display:none;">SELECT users.name, (SELECT count(addresses.id) <br/>
+<span class="python_operator">...    </span><span class="python_enclosure">]))</span><span class="python_operator">.</span><span class="python_name">fetchall</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_22_div" class="codepop" style="display:none;">SELECT users.name, (SELECT count(addresses.id) AS count_1<br/>
 FROM addresses <br/>
 WHERE users.id = addresses.user_id) AS address_count <br/>
 FROM users<br/>
@@ -1621,7 +1633,7 @@ FROM users<br/>
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)])</span><span class="python_operator">.\
 ...     </span><span class="python_name">group_by</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">having</span><span class="python_enclosure">(</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">fetchall</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div class="codepop">SELECT addresses.user_id, count(addresses.id) <br/>
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">fetchall</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div class="codepop">SELECT addresses.user_id, count(addresses.id) AS count_1 <br/>
 FROM addresses GROUP BY addresses.user_id <br/>
 HAVING count(addresses.id) &gt; ?<br/>
 [1]</div><pre>

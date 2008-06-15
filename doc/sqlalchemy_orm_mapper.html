@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.orm.mapper</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.orm.mapper</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -100,7 +100,8 @@
     <h3>module sqlalchemy.orm.mapper</h3>
     
     
-    <div class="darkcell"><p>Defines the <a href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_Mapper">Mapper</a> class, the central configurational
+    <div class="darkcell"><p>Logic to map Python classes to and from selectables.</p>
+<p>Defines the <a href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_Mapper">Mapper</a> class, the central configurational
 unit which associates a class with a database table.</p>
 <p>This is a semi-private module; the main configurational API of the ORM is
 available in <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm">module sqlalchemy.orm</a>.</p>
@@ -122,7 +123,7 @@ available in <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm">module sqla
     <A name="docstrings_sqlalchemy.orm.mapper_modfunc_class_mapper"></a>
     <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>, <i>compile=True</i>, <i>raiseerror=True</i>)</b>
     <div class="docstring">
-    <p>Given a class and optional entity_name, return the primary Mapper associated with the key.</p>
+    <p>Given a class (or an object) and optional entity_name, return the primary Mapper associated with the key.</p>
 <p>If no mapper can be located, raises <tt class="docutils literal"><span class="pre">InvalidRequestError</span></tt>.</p>
 
     </div>
@@ -264,40 +265,10 @@ repeatedly.</p>
     </div>
 
                     
-         <div class="darkcell">
-         <A name=""></a>
-         <b>compiled = property()</b>
-         <div class="docstring">
-         <p>return True if this mapper is compiled</p>
-
-         </div> 
-         </div>
-
-                    
     <div class="darkcell">
     
     <A name=""></a>
     <b>def dispose(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def do_with_cache(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def do_with_cache(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -318,26 +289,12 @@ repeatedly.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_session(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Return the contextual session provided by the mapper
-extension chain, if any.</p>
-<p>Raise <tt class="docutils literal"><span class="pre">InvalidRequestError</span></tt> if a session cannot be retrieved
-from the extension chain.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def identity_key_from_instance(<i>self</i>, <i>instance</i>)</b>
     <div class="docstring">
     <p>Return the identity key for the given instance, based on
 its primary key attributes.</p>
-<p>This value is typically also found on the instance itself
-under the attribute name <cite>_instance_key</cite>.</p>
+<p>This value is typically also found on the instance state under the
+attribute name <cite>key</cite>.</p>
 
     </div>
     </div>
@@ -362,7 +319,7 @@ item from an identity map.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def identity_key_from_row(<i>self</i>, <i>row</i>)</b>
+    <b>def identity_key_from_row(<i>self</i>, <i>row</i>, <i>adapter=None</i>)</b>
     <div class="docstring">
     <p>Return an identity-map key for use in storing/retrieving an
 item from the identity map.</p>
@@ -380,22 +337,9 @@ instances to their values within a row.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def instances(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Return a list of mapped instances corresponding to the rows
-in a given ResultProxy.</p>
-<p>DEPRECATED.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def isa(<i>self</i>, <i>other</i>)</b>
     <div class="docstring">
-    <p>Return True if the given mapper inherits from this mapper.</p>
+    <p>Return True if the this mapper inherits from the given mapper.</p>
 
     </div>
     </div>
@@ -405,7 +349,7 @@ in a given ResultProxy.</p>
          <A name=""></a>
          <b>iterate_properties = property()</b>
          <div class="docstring">
-         <p>returns an iterator of all MapperProperty objects.</p>
+         <p>return an iterator of all MapperProperty objects.</p>
 
          </div> 
          </div>
@@ -432,17 +376,6 @@ all descendant mappers.</p>
 all their inheriting mappers as well.</p>
 <p>To iterate through an entire hierarchy, use
 <tt class="docutils literal"><span class="pre">mapper.base_mapper.polymorphic_iterator()</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def populate_instance(<i>self</i>, <i>selectcontext</i>, <i>instance</i>, <i>row</i>, <i>ispostselect=None</i>, <i>isnew=False</i>, <i>only_load_props=None</i>, <i>**flags</i>)</b>
-    <div class="docstring">
-    <p>populate an instance from a result row.</p>
 
     </div>
     </div>

@@ -1,7 +1,8 @@
 import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
-from sqlalchemy import exceptions, util
+from sqlalchemy import exc as sa_exc, util
 from sqlalchemy.orm import *
+from sqlalchemy.orm import exc as orm_exc
 from testlib import *
 from testlib import fixtures
 
@@ -275,42 +276,7 @@ class GetTest(ORMTest):
     test_get_polymorphic = create_test(True, 'test_get_polymorphic')
     test_get_nonpolymorphic = create_test(False, 'test_get_nonpolymorphic')
 
-class InheritConditionTest(ORMTest):
-    def define_tables(self, metadata):
-        global base, child
-        base = Table('base', metadata,
-            Column('id', Integer, primary_key = True),
-            Column('type', String(40)))
 
-        child = Table('child', metadata,
-            Column('base_id', Integer, ForeignKey(base.c.id), primary_key = True),
-            Column('title', String(64)),
-            Column('parent_id', Integer, ForeignKey('child.base_id'))
-        )
-    
-    def test_inherit_cond(self):
-        class Base(fixtures.Base):
-            pass
-        class Child(Base):
-            pass
-            
-        mapper(Base, base, polymorphic_on=base.c.type)
-        mapper(Child, child, inherits=Base, inherit_condition=child.c.base_id==base.c.id, polymorphic_identity='c')
-        
-        sess = create_session()
-        sess.save(Child(title='c1'))
-        sess.save(Child(title='c2'))
-        sess.flush()
-        sess.clear()
-
-        for inherit_cond in (child.c.base_id==base.c.id, base.c.id==child.c.base_id):
-            clear_mappers()
-            mapper(Base, base, polymorphic_on=base.c.type)
-            mapper(Child, child, inherits=Base, inherit_condition=inherit_cond, polymorphic_identity='c')
-            
-            assert sess.query(Base).order_by(Base.id).all() == [Child(title='c1'), Child(title='c2')]
-        
-        
 class ConstructionTest(ORMTest):
     def define_tables(self, metadata):
         global content_type, content, product
@@ -337,7 +303,7 @@ class ConstructionTest(ORMTest):
                 'content_type':relation(content_types)
             }, polymorphic_identity='contents')
             assert False
-        except exceptions.ArgumentError, e:
+        except sa_exc.ArgumentError, e:
             assert str(e) == "Mapper 'Mapper|Content|content' specifies a polymorphic_identity of 'contents', but no mapper in it's hierarchy specifies the 'polymorphic_on' column argument"
 
     def testbackref(self):
@@ -373,6 +339,7 @@ class EagerLazyTest(ORMTest):
                         Column('foo_id', Integer, ForeignKey('foo.id'))
         )
 
+    @testing.fails_on('maxdb')
     def testbasic(self):
         class Foo(object): pass
         class Bar(Foo): pass
@@ -398,7 +365,6 @@ class EagerLazyTest(ORMTest):
         q = sess.query(Bar)
         self.assert_(len(q.first().lazy) == 1)
         self.assert_(len(q.first().eager) == 1)
-    testbasic = testing.fails_on('maxdb')(testbasic)
 
 
 class FlushTest(ORMTest):
@@ -432,7 +398,7 @@ class FlushTest(ORMTest):
         class Admin(User):pass
         role_mapper = mapper(Role, roles)
         user_mapper = mapper(User, users, properties = {
-                'roles' : relation(Role, secondary=user_roles, lazy=False, private=False)
+                'roles' : relation(Role, secondary=user_roles, lazy=False)
             }
         )
         admin_mapper = mapper(Admin, admins, inherits=user_mapper)
@@ -467,7 +433,7 @@ class FlushTest(ORMTest):
 
         role_mapper = mapper(Role, roles)
         user_mapper = mapper(User, users, properties = {
-                'roles' : relation(Role, secondary=user_roles, lazy=False, private=False)
+                'roles' : relation(Role, secondary=user_roles, lazy=False)
             }
         )
 
@@ -508,6 +474,7 @@ class VersioningTest(ORMTest):
             Column('parent', Integer, ForeignKey('base.id'))
             )
 
+    @engines.close_open_connections
     def test_save_update(self):
         class Base(fixtures.Base):
             pass
@@ -541,20 +508,19 @@ class VersioningTest(ORMTest):
         try:
             sess2.query(Base).with_lockmode('read').get(s1.id)
             assert False
-        except exceptions.ConcurrentModificationError, e:
+        except orm_exc.ConcurrentModificationError, e:
             assert True
 
         try:
             sess2.flush()
             assert False
-        except exceptions.ConcurrentModificationError, e:
+        except orm_exc.ConcurrentModificationError, e:
             assert True
 
         sess2.refresh(s2)
         assert s2.subdata == 'sess1 subdata'
         s2.subdata = 'sess2 subdata'
         sess2.flush()
-    test_save_update = engines.close_open_connections(test_save_update)
 
     def test_delete(self):
         class Base(fixtures.Base):
@@ -588,7 +554,7 @@ class VersioningTest(ORMTest):
             s1.subdata = 'some new subdata'
             sess.flush()
             assert False
-        except exceptions.ConcurrentModificationError, e:
+        except orm_exc.ConcurrentModificationError, e:
             assert True
 
 
@@ -643,7 +609,7 @@ class DistinctPKTest(ORMTest):
             mapper(Employee, employee_table, inherits=person_mapper, primary_key=[person_table.c.id, employee_table.c.id])
             self._do_test(True)
             assert False
-        except exceptions.SAWarning, e:
+        except sa_exc.SAWarning, e:
             assert str(e) == "On mapper Mapper|Employee|employees, primary key column 'employees.id' is being combined with distinct primary key column 'persons.id' in attribute 'id'.  Use explicit properties to give each column its own mapped attribute name.", str(e)
 
     def test_explicit_pk(self):

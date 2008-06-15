@@ -4,8 +4,8 @@ The ``AssociationProxy`` is a Python property object which provides
 transparent proxied access to the endpoint of an association object.
 
 See the example ``examples/association/proxied_association.py``.
-"""
 
+"""
 import itertools
 import weakref
 from sqlalchemy import exceptions
@@ -14,31 +14,32 @@ from sqlalchemy import util
 from sqlalchemy.orm import collections
 
 
-def association_proxy(targetcollection, attr, **kw):
-    """Convenience function for use in mapped classes.  Implements a Python
-    property representing a relation as a collection of simpler values.  The
-    proxied property will mimic the collection type of the target (list, dict
-    or set), or in the case of a one to one relation, a simple scalar value.
+def association_proxy(target_collection, attr, **kw):
+    """Convenience function for use in mapped classes.
 
-    targetcollection
+    Implements a Python property representing a relation as a collection of
+    simpler values.  The proxied property will mimic the collection type of
+    the target (list, dict or set), or, in the case of a one to one relation,
+    a simple scalar value.
+
+    target_collection
       Name of the relation attribute we'll proxy to, usually created with
       'relation()' in a mapper setup.
 
     attr
       Attribute on the associated instances we'll proxy for.  For example,
       given a target collection of [obj1, obj2], a list created by this proxy
-      property would look like
-      [getattr(obj1, attr), getattr(obj2, attr)]
+      property would look like [getattr(obj1, attr), getattr(obj2, attr)]
 
       If the relation is one-to-one or otherwise uselist=False, then simply:
       getattr(obj, attr)
 
     creator (optional)
       When new items are added to this proxied collection, new instances of
-      the class collected by the target collection will be created.  For
-      list and set collections, the target class constructor will be called
-      with the 'value' for the new instance.  For dict types, two arguments
-      are passed: key and value.
+      the class collected by the target collection will be created.  For list
+      and set collections, the target class constructor will be called with
+      the 'value' for the new instance.  For dict types, two arguments are
+      passed: key and value.
 
       If you want to construct instances differently, supply a 'creator'
       function that takes arguments as above and returns instances.
@@ -47,69 +48,68 @@ def association_proxy(targetcollection, attr, **kw):
       If the target is present, set operations are proxied to setattr() on the
       associated object.
 
-      If you have an associated object with multiple attributes, you may set up
-      multiple association proxies mapping to different attributes.  See the
-      unit tests for examples, and for examples of how creator() functions can
-      be used to construct the scalar relation on-demand in this situation.
+      If you have an associated object with multiple attributes, you may set
+      up multiple association proxies mapping to different attributes.  See
+      the unit tests for examples, and for examples of how creator() functions
+      can be used to construct the scalar relation on-demand in this
+      situation.
 
     Passes along any other arguments to AssociationProxy
-    """
 
-    return AssociationProxy(targetcollection, attr, **kw)
+    """
+    return AssociationProxy(target_collection, attr, **kw)
 
 
 class AssociationProxy(object):
-    """A property object that automatically sets up `AssociationLists`
-    on an object."""
+    """A descriptor that presents a read/write view of an object attribute."""
 
-    def __init__(self, targetcollection, attr, creator=None,
+    def __init__(self, target_collection, attr, creator=None,
                  getset_factory=None, proxy_factory=None, proxy_bulk_set=None):
         """Arguments are:
 
-          targetcollection
-            Name of the collection we'll proxy to, usually created with
-            'relation()' in a mapper setup.
+        target_collection
+          Name of the collection we'll proxy to, usually created with
+          'relation()' in a mapper setup.
 
-          attr
-            Attribute on the collected instances we'll proxy for.  For example,
-            given a target collection of [obj1, obj2],
-            a list created by this proxy property would look like
-            [getattr(obj1, attr), getattr(obj2, attr)]
+        attr
+          Attribute on the collected instances we'll proxy for.  For example,
+          given a target collection of [obj1, obj2], a list created by this
+          proxy property would look like [getattr(obj1, attr), getattr(obj2,
+          attr)]
 
-          creator
-            Optional. When new items are added to this proxied collection, new
-            instances of the class collected by the target collection will be
-            created.  For list and set collections, the target class
-            constructor will be called with the 'value' for the new instance.
-            For dict types, two arguments are passed: key and value.
+        creator
+          Optional. When new items are added to this proxied collection, new
+          instances of the class collected by the target collection will be
+          created.  For list and set collections, the target class constructor
+          will be called with the 'value' for the new instance.  For dict
+          types, two arguments are passed: key and value.
 
-            If you want to construct instances differently, supply a 'creator'
-            function that takes arguments as above and returns instances.
+          If you want to construct instances differently, supply a 'creator'
+          function that takes arguments as above and returns instances.
 
-          getset_factory
-            Optional.  Proxied attribute access is automatically handled
-            by routines that get and set values based on the `attr` argument
-            for this proxy.
+        getset_factory
+          Optional.  Proxied attribute access is automatically handled by
+          routines that get and set values based on the `attr` argument for
+          this proxy.
 
-            If you would like to customize this behavior, you may supply a
-            `getset_factory` callable that produces a tuple of `getter` and
-            `setter` functions.  The factory is called with two arguments,
-            the abstract type of the underlying collection and this proxy
-            instance.
+          If you would like to customize this behavior, you may supply a
+          `getset_factory` callable that produces a tuple of `getter` and
+          `setter` functions.  The factory is called with two arguments, the
+          abstract type of the underlying collection and this proxy instance.
 
-          proxy_factory
-            Optional.  The type of collection to emulate is determined by
-            sniffing the target collection.  If your collection type can't be
-            determined by duck typing or you'd like to use a different collection
-            implementation, you may supply a factory function to produce those
-            collections.  Only applicable to non-scalar relations.
+        proxy_factory
+          Optional.  The type of collection to emulate is determined by
+          sniffing the target collection.  If your collection type can't be
+          determined by duck typing or you'd like to use a different
+          collection implementation, you may supply a factory function to
+          produce those collections.  Only applicable to non-scalar relations.
 
-          proxy_bulk_set
-            Optional, use with proxy_factory.  See the _set() method for
-            details.
+        proxy_bulk_set
+          Optional, use with proxy_factory.  See the _set() method for
+          details.
+
         """
-
-        self.target_collection = targetcollection # backwards compat name...
+        self.target_collection = target_collection
         self.value_attr = attr
         self.creator = creator
         self.getset_factory = getset_factory
@@ -118,16 +118,18 @@ class AssociationProxy(object):
 
         self.scalar = None
         self.owning_class = None
-        self.key = '_%s_%s_%s' % (type(self).__name__,
-                                  targetcollection, id(self))
+        self.key = '_%s_%s_%s' % (
+            type(self).__name__, target_collection, id(self))
         self.collection_class = None
 
     def _get_property(self):
-        return orm.class_mapper(self.owning_class).get_property(self.target_collection)
+        return (orm.class_mapper(self.owning_class).
+                get_property(self.target_collection))
 
-    def _target_class(self):
+    def target_class(self):
+        """The class the proxy is attached to."""
         return self._get_property().mapper.class_
-    target_class = property(_target_class)
+    target_class = property(target_class)
 
     def _target_is_scalar(self):
         return not self._get_property().uselist
@@ -250,20 +252,21 @@ class AssociationProxy(object):
                'no proxy_bulk_set supplied for custom '
                'collection_class implementation')
 
+
 class _AssociationList(object):
-    """Generic proxying list which proxies list operations to a another list,
-    converting association objects to and from a simplified value.
-    """
+    """Generic, converting, list-to-list proxy."""
 
     def __init__(self, lazy_collection, creator, getter, setter):
-        """
+        """Constructs an _AssociationList.
+
         lazy_collection
-          A callable returning a list-based collection of entities (usually
-          an object attribute managed by a SQLAlchemy relation())
+          A callable returning a list-based collection of entities (usually an
+          object attribute managed by a SQLAlchemy relation())
 
         creator
           A function that creates new target entities.  Given one parameter:
-          value.  The assertion is assumed:
+          value.  This assertion is assumed::
+
             obj = creator(somevalue)
             assert getter(obj) == somevalue
 
@@ -271,10 +274,10 @@ class _AssociationList(object):
           A function.  Given an associated object, return the 'value'.
 
         setter
-          A function.  Given an associated object and a value, store
-          that value on the object.
-        """
+          A function.  Given an associated object and a value, store that
+          value on the object.
 
+        """
         self.lazy_collection = lazy_collection
         self.creator = creator
         self.getter = getter
@@ -282,10 +285,8 @@ class _AssociationList(object):
 
     col = property(lambda self: self.lazy_collection())
 
-    # For compatibility with 0.3.1 through 0.3.7- pass kw through to creator.
-    # (see append() below)
-    def _create(self, value, **kw):
-        return self.creator(value, **kw)
+    def _create(self, value):
+        return self.creator(value)
 
     def _get(self, object):
         return self.getter(object)
@@ -366,10 +367,8 @@ class _AssociationList(object):
             yield self._get(member)
         raise StopIteration
 
-    # For compatibility with 0.3.1 through 0.3.7- pass kw through to creator
-    # on append() only.  (Can't on __setitem__, __contains__, etc., obviously.)
-    def append(self, value, **kw):
-        item = self._create(value, **kw)
+    def append(self, value):
+        item = self._create(value)
         self.col.append(item)
 
     def count(self, value):
@@ -406,13 +405,26 @@ class _AssociationList(object):
     def clear(self):
         del self.col[0:len(self.col)]
 
-    def __eq__(self, other): return list(self) == other
-    def __ne__(self, other): return list(self) != other
-    def __lt__(self, other): return list(self) < other
-    def __le__(self, other): return list(self) <= other
-    def __gt__(self, other): return list(self) > other
-    def __ge__(self, other): return list(self) >= other
-    def __cmp__(self, other): return cmp(list(self), other)
+    def __eq__(self, other):
+        return list(self) == other
+
+    def __ne__(self, other):
+        return list(self) != other
+
+    def __lt__(self, other):
+        return list(self) < other
+
+    def __le__(self, other):
+        return list(self) <= other
+
+    def __gt__(self, other):
+        return list(self) > other
+
+    def __ge__(self, other):
+        return list(self) >= other
+
+    def __cmp__(self, other):
+        return cmp(list(self), other)
 
     def __add__(self, iterable):
         try:
@@ -460,32 +472,40 @@ class _AssociationList(object):
     def __hash__(self):
         raise TypeError("%s objects are unhashable" % type(self).__name__)
 
+    for func_name, func in locals().items():
+        if (callable(func) and func.func_name == func_name and
+            not func.__doc__ and hasattr(list, func_name)):
+            func.__doc__ = getattr(list, func_name).__doc__
+    del func_name, func
+
+
 _NotProvided = util.symbol('_NotProvided')
 class _AssociationDict(object):
-    """Generic proxying list which proxies dict operations to a another dict,
-    converting association objects to and from a simplified value.
-    """
+    """Generic, converting, dict-to-dict proxy."""
 
     def __init__(self, lazy_collection, creator, getter, setter):
-        """
+        """Constructs an _AssociationDict.
+
         lazy_collection
-          A callable returning a dict-based collection of entities (usually
-          an object attribute managed by a SQLAlchemy relation())
+          A callable returning a dict-based collection of entities (usually an
+          object attribute managed by a SQLAlchemy relation())
 
         creator
           A function that creates new target entities.  Given two parameters:
-          key and value.  The assertion is assumed:
+          key and value.  The assertion is assumed::
+
             obj = creator(somekey, somevalue)
             assert getter(somekey) == somevalue
 
         getter
-          A function.  Given an associated object and a key, return the 'value'.
+          A function.  Given an associated object and a key, return the
+          'value'.
 
         setter
           A function.  Given an associated object, a key and a value, store
           that value on the object.
-        """
 
+        """
         self.lazy_collection = lazy_collection
         self.creator = creator
         self.getter = getter
@@ -526,7 +546,10 @@ class _AssociationDict(object):
     def __contains__(self, key):
         # testlib.pragma exempt:__hash__
         return key in self.col
-    has_key = __contains__
+
+    def has_key(self, key):
+        # testlib.pragma exempt:__hash__
+        return key in self.col
 
     def __iter__(self):
         return self.col.iterkeys()
@@ -534,13 +557,26 @@ class _AssociationDict(object):
     def clear(self):
         self.col.clear()
 
-    def __eq__(self, other): return dict(self) == other
-    def __ne__(self, other): return dict(self) != other
-    def __lt__(self, other): return dict(self) < other
-    def __le__(self, other): return dict(self) <= other
-    def __gt__(self, other): return dict(self) > other
-    def __ge__(self, other): return dict(self) >= other
-    def __cmp__(self, other): return cmp(dict(self), other)
+    def __eq__(self, other):
+        return dict(self) == other
+
+    def __ne__(self, other):
+        return dict(self) != other
+
+    def __lt__(self, other):
+        return dict(self) < other
+
+    def __le__(self, other):
+        return dict(self) <= other
+
+    def __gt__(self, other):
+        return dict(self) > other
+
+    def __ge__(self, other):
+        return dict(self) >= other
+
+    def __cmp__(self, other):
+        return cmp(dict(self), other)
 
     def __repr__(self):
         return repr(dict(self.items()))
@@ -560,11 +596,13 @@ class _AssociationDict(object):
 
     def keys(self):
         return self.col.keys()
+
     def iterkeys(self):
         return self.col.iterkeys()
 
     def values(self):
         return [ self._get(member) for member in self.col.values() ]
+
     def itervalues(self):
         for key in self.col:
             yield self._get(self.col[key])
@@ -572,6 +610,7 @@ class _AssociationDict(object):
 
     def items(self):
         return [(k, self._get(self.col[k])) for k in self]
+
     def iteritems(self):
         for key in self.col:
             yield (key, self._get(self.col[key]))
@@ -609,20 +648,27 @@ class _AssociationDict(object):
     def __hash__(self):
         raise TypeError("%s objects are unhashable" % type(self).__name__)
 
+    for func_name, func in locals().items():
+        if (callable(func) and func.func_name == func_name and
+            not func.__doc__ and hasattr(dict, func_name)):
+            func.__doc__ = getattr(dict, func_name).__doc__
+    del func_name, func
+
+
 class _AssociationSet(object):
-    """Generic proxying list which proxies set operations to a another set,
-    converting association objects to and from a simplified value.
-    """
+    """Generic, converting, set-to-set proxy."""
 
     def __init__(self, lazy_collection, creator, getter, setter):
-        """
+        """Constructs an _AssociationSet.
+
         collection
           A callable returning a set-based collection of entities (usually an
           object attribute managed by a SQLAlchemy relation())
 
         creator
           A function that creates new target entities.  Given one parameter:
-          value.  The assertion is assumed:
+          value.  The assertion is assumed::
+
             obj = creator(somevalue)
             assert getter(obj) == somevalue
 
@@ -630,10 +676,10 @@ class _AssociationSet(object):
           A function.  Given an associated object, return the 'value'.
 
         setter
-          A function.  Given an associated object and a value, store
-          that value on the object.
-        """
+          A function.  Given an associated object and a value, store that
+          value on the object.
 
+        """
         self.lazy_collection = lazy_collection
         self.creator = creator
         self.getter = getter
@@ -667,9 +713,12 @@ class _AssociationSet(object):
         return False
 
     def __iter__(self):
-        """Iterate over proxied values.  For the actual domain objects,
-        iterate over .col instead or just use the underlying collection
-        directly from its property on the parent."""
+        """Iterate over proxied values.
+
+        For the actual domain objects, iterate over .col instead or just use
+        the underlying collection directly from its property on the parent.
+
+        """
         for member in self.col:
             yield self._get(member)
         raise StopIteration
@@ -802,15 +851,32 @@ class _AssociationSet(object):
     def copy(self):
         return util.Set(self)
 
-    def __eq__(self, other): return util.Set(self) == other
-    def __ne__(self, other): return util.Set(self) != other
-    def __lt__(self, other): return util.Set(self) < other
-    def __le__(self, other): return util.Set(self) <= other
-    def __gt__(self, other): return util.Set(self) > other
-    def __ge__(self, other): return util.Set(self) >= other
+    def __eq__(self, other):
+        return util.Set(self) == other
+
+    def __ne__(self, other):
+        return util.Set(self) != other
+
+    def __lt__(self, other):
+        return util.Set(self) < other
+
+    def __le__(self, other):
+        return util.Set(self) <= other
+
+    def __gt__(self, other):
+        return util.Set(self) > other
+
+    def __ge__(self, other):
+        return util.Set(self) >= other
 
     def __repr__(self):
         return repr(util.Set(self))
 
     def __hash__(self):
         raise TypeError("%s objects are unhashable" % type(self).__name__)
+
+    for func_name, func in locals().items():
+        if (callable(func) and func.func_name == func_name and
+            not func.__doc__ and hasattr(util.Set, func_name)):
+            func.__doc__ = getattr(util.Set, func_name).__doc__
+    del func_name, func

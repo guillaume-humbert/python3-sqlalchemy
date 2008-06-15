@@ -3,7 +3,7 @@
 import testenv; testenv.configure_for_tests()
 import datetime
 from sqlalchemy import *
-from sqlalchemy import exceptions
+from sqlalchemy import exc
 from sqlalchemy.databases import sqlite
 from testlib import *
 
@@ -30,49 +30,15 @@ class TestTypes(TestBase, AssertsExecutionResults):
 
         finally:
             meta.drop_all()
-    
-    def test_time_microseconds(self):
-        dt = datetime.datetime(2008, 6, 27, 12, 0, 0, 125)  # 125 usec
 
-        self.assertEquals(str(dt), '2008-06-27 12:00:00.000125')
-        sldt = sqlite.SLDateTime()
-        bp = sldt.bind_processor(None)
-        self.assertEquals(bp(dt), '2008-06-27 12:00:00.125')
-
-        rp = sldt.result_processor(None)
-        self.assertEquals(rp(bp(dt)), dt)
-
-        sldt.__legacy_microseconds__ = False
-        self.assertEquals(bp(dt), '2008-06-27 12:00:00.000125')
-        self.assertEquals(rp(bp(dt)), dt)
-        
-    
-    def test_no_convert_unicode(self):
-        """test no utf-8 encoding occurs"""
-        
-        dialect = sqlite.dialect()
-        for t in (
-                String(convert_unicode=True),
-                CHAR(convert_unicode=True),
-                Unicode(),
-                UnicodeText(),
-                String(assert_unicode=True, convert_unicode=True),
-                CHAR(assert_unicode=True, convert_unicode=True),
-                Unicode(assert_unicode=True),
-                UnicodeText(assert_unicode=True)
-            ):
-            
-            bindproc = t.dialect_impl(dialect).bind_processor(dialect)
-            assert not bindproc or isinstance(bindproc(u"some string"), unicode)
-        
-        
+    @testing.uses_deprecated('Using String type with no length')
     def test_type_reflection(self):
         # (ask_for, roundtripped_as_if_different)
-        specs = [( String(), sqlite.SLText(), ),
+        specs = [( String(), sqlite.SLString(), ),
                  ( String(1), sqlite.SLString(1), ),
                  ( String(3), sqlite.SLString(3), ),
                  ( Text(), sqlite.SLText(), ),
-                 ( Unicode(), sqlite.SLText(), ),
+                 ( Unicode(), sqlite.SLString(), ),
                  ( Unicode(1), sqlite.SLString(1), ),
                  ( Unicode(3), sqlite.SLString(3), ),
                  ( UnicodeText(), sqlite.SLText(), ),
@@ -128,12 +94,11 @@ class TestTypes(TestBase, AssertsExecutionResults):
                 for table in rt, rv:
                     for i, reflected in enumerate(table.c):
                         print reflected.type, type(expected[i])
-                        assert isinstance(reflected.type, type(expected[i]))
+                        assert isinstance(reflected.type, type(expected[i])), type(expected[i])
             finally:
                 db.execute('DROP VIEW types_v')
         finally:
             m.drop_all()
-    test_type_reflection = testing.uses_deprecated('Using String type with no length')(test_type_reflection)
 
 class DialectTest(TestBase, AssertsExecutionResults):
     __only_on__ = 'sqlite'
@@ -232,6 +197,7 @@ class DialectTest(TestBase, AssertsExecutionResults):
         finally:
             cx.execute('DETACH DATABASE alt_schema')
 
+    @testing.exclude('sqlite', '<', (2, 6), 'no database support')
     def test_temp_table_reflection(self):
         cx = testing.db.connect()
         try:
@@ -246,10 +212,9 @@ class DialectTest(TestBase, AssertsExecutionResults):
         except:
             try:
                 cx.execute('DROP TABLE tempy')
-            except exceptions.DBAPIError:
+            except exc.DBAPIError:
                 pass
             raise
-    test_temp_table_reflection = testing.exclude('sqlite', '<', (2, 6))(test_temp_table_reflection)
 
 class InsertTest(TestBase, AssertsExecutionResults):
     """Tests inserts and autoincrement."""
@@ -273,50 +238,50 @@ class InsertTest(TestBase, AssertsExecutionResults):
         finally:
             table.drop()
 
+    @testing.exclude('sqlite', '<', (3, 4), 'no database support')
     def test_empty_insert_pk1(self):
         self._test_empty_insert(
             Table('a', MetaData(testing.db),
                   Column('id', Integer, primary_key=True)))
-    test_empty_insert_pk1 = testing.exclude('sqlite', '<', (3, 4))(test_empty_insert_pk1)
 
+    @testing.exclude('sqlite', '<', (3, 4), 'no database support')
     def test_empty_insert_pk2(self):
         self.assertRaises(
-            exceptions.DBAPIError,
+            exc.DBAPIError,
             self._test_empty_insert,
             Table('b', MetaData(testing.db),
                   Column('x', Integer, primary_key=True),
                   Column('y', Integer, primary_key=True)))
-    test_empty_insert_pk2 = testing.exclude('sqlite', '<', (3, 4))(test_empty_insert_pk2)
 
+    @testing.exclude('sqlite', '<', (3, 4), 'no database support')
     def test_empty_insert_pk3(self):
         self.assertRaises(
-            exceptions.DBAPIError,
+            exc.DBAPIError,
             self._test_empty_insert,
             Table('c', MetaData(testing.db),
                   Column('x', Integer, primary_key=True),
-                  Column('y', Integer, PassiveDefault('123'),
+                  Column('y', Integer, DefaultClause('123'),
                          primary_key=True)))
-    test_empty_insert_pk3 = testing.exclude('sqlite', '<', (3, 4))(test_empty_insert_pk3)
 
+    @testing.exclude('sqlite', '<', (3, 4), 'no database support')
     def test_empty_insert_pk4(self):
         self._test_empty_insert(
             Table('d', MetaData(testing.db),
                   Column('x', Integer, primary_key=True),
-                  Column('y', Integer, PassiveDefault('123'))))
-    test_empty_insert_pk4 = testing.exclude('sqlite', '<', (3, 4))(test_empty_insert_pk4)
+                  Column('y', Integer, DefaultClause('123'))))
 
+    @testing.exclude('sqlite', '<', (3, 4), 'no database support')
     def test_empty_insert_nopk1(self):
         self._test_empty_insert(
             Table('e', MetaData(testing.db),
                   Column('id', Integer)))
-    test_empty_insert_nopk1 = testing.exclude('sqlite', '<', (3, 4))(test_empty_insert_nopk1)
 
+    @testing.exclude('sqlite', '<', (3, 4), 'no database support')
     def test_empty_insert_nopk2(self):
         self._test_empty_insert(
             Table('f', MetaData(testing.db),
                   Column('x', Integer),
                   Column('y', Integer)))
-    test_empty_insert_nopk2 = testing.exclude('sqlite', '<', (3, 4))(test_empty_insert_nopk2)
 
     def test_inserts_with_spaces(self):
         tbl = Table('tbl', MetaData('sqlite:///'),

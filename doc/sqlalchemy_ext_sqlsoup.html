@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.ext.sqlsoup</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.ext.sqlsoup</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -56,7 +56,7 @@
             Previous: <a href="sqlalchemy_ext_orderinglist.html">module sqlalchemy.ext.orderinglist</a>
 
                |   
-            Next: <a href="sqlalchemy_databases_sqlite.html">module sqlalchemy.databases.sqlite</a>
+            Next: <a href="sqlalchemy_databases_access.html">module sqlalchemy.databases.access</a>
     </div>
 
         <h2>module sqlalchemy.ext.sqlsoup</h2>
@@ -292,7 +292,7 @@ with <cite>with_labels</cite>, to disambiguate columns with their table name
 <h1><a id="advanced-use" name="advanced-use">Advanced Use</a></h1>
 <div class="section">
 <h2><a id="accessing-the-session" name="accessing-the-session">Accessing the Session</a></h2>
-<p>SqlSoup uses a SessionContext to provide thread-local sessions.  You
+<p>SqlSoup uses a ScopedSession to provide thread-local sessions.  You
 can get a reference to the current one like this:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from sqlalchemy.ext.sqlsoup import objectstore
@@ -405,7 +405,7 @@ InvalidRequestError: SQLSoup can only modify mapped Tables (found: Alias)
     
     <div class="sectionL3">
 
-    <h3>class PKNotFoundError(<a href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_SQLAlchemyError">SQLAlchemyError</a>)</h3>
+    <h3>class PKNotFoundError(<a href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_SQLAlchemyError">SQLAlchemyError</a>)</h3>
     
     
     
@@ -568,7 +568,7 @@ suitable for passing to <tt class="docutils literal"><span class="pre">create_en
             Previous: <a href="sqlalchemy_ext_orderinglist.html">module sqlalchemy.ext.orderinglist</a>
 
                |   
-            Next: <a href="sqlalchemy_databases_sqlite.html">module sqlalchemy.databases.sqlite</a>
+            Next: <a href="sqlalchemy_databases_access.html">module sqlalchemy.databases.access</a>
     </div>
 
     </div>

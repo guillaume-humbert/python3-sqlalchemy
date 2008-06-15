@@ -8,6 +8,8 @@ from testlib.engines import utf8_engine
 from sqlalchemy.sql import column
 
 class UnicodeSchemaTest(TestBase):
+    __requires__ = ('unicode_ddl',)
+
     def setUpAll(self):
         global unicode_bind, metadata, t1, t2, t3
 
@@ -53,20 +55,17 @@ class UnicodeSchemaTest(TestBase):
                        test_needs_fk=True,
                        )
         metadata.create_all()
-    setUpAll = testing.unsupported('maxdb', 'oracle', 'sybase')(setUpAll)
 
     def tearDown(self):
         if metadata.tables:
             t3.delete().execute()
             t2.delete().execute()
             t1.delete().execute()
-    tearDown = testing.unsupported('maxdb', 'oracle', 'sybase')(tearDown)
 
     def tearDownAll(self):
         global unicode_bind
         metadata.drop_all()
         del unicode_bind
-    tearDownAll = testing.unsupported('maxdb', 'oracle', 'sybase')(tearDownAll)
 
     def test_insert(self):
         t1.insert().execute({u'méil':1, u'\u6e2c\u8a66':5})
@@ -79,7 +78,6 @@ class UnicodeSchemaTest(TestBase):
         assert t1.select().execute().fetchall() == [(1, 5)]
         assert t2.select().execute().fetchall() == [(1, 1)]
         assert t3.select().execute().fetchall() == [(1, 5, 1, 1)]
-    test_insert = testing.unsupported('maxdb', 'oracle', 'sybase')(test_insert)
 
     def test_reflect(self):
         t1.insert().execute({u'méil':2, u'\u6e2c\u8a66':7})
@@ -110,7 +108,6 @@ class UnicodeSchemaTest(TestBase):
                      [(2, 7, 2, 2), (1, 5, 1, 1)])
         meta.drop_all()
         metadata.create_all()
-    test_reflect = testing.unsupported('maxdb', 'oracle', 'sybase')(test_reflect)
 
 class EscapesDefaultsTest(testing.TestBase):
     def test_default_exec(self):

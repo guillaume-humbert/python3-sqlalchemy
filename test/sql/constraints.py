@@ -1,6 +1,6 @@
 import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
-from sqlalchemy import exceptions
+from sqlalchemy import exc
 from testlib import *
 from testlib import config, engines
 
@@ -54,6 +54,7 @@ class ConstraintTest(TestBase, AssertsExecutionResults):
             )
         metadata.create_all()
 
+    @testing.fails_on('mysql')
     def test_check_constraint(self):
         foo = Table('foo', metadata,
             Column('id', Integer, primary_key=True),
@@ -71,16 +72,15 @@ class ConstraintTest(TestBase, AssertsExecutionResults):
         try:
             foo.insert().execute(id=2,x=5,y=9)
             assert False
-        except exceptions.SQLError:
+        except exc.SQLError:
             assert True
 
         bar.insert().execute(id=1,x=10)
         try:
             bar.insert().execute(id=2,x=5)
             assert False
-        except exceptions.SQLError:
+        except exc.SQLError:
             assert True
-    test_check_constraint = testing.unsupported('mysql')(test_check_constraint)
 
     def test_unique_constraint(self):
         foo = Table('foo', metadata,
@@ -100,12 +100,12 @@ class ConstraintTest(TestBase, AssertsExecutionResults):
         try:
             foo.insert().execute(id=3, value='value1')
             assert False
-        except exceptions.SQLError:
+        except exc.SQLError:
             assert True
         try:
             bar.insert().execute(id=3, value='a', value2='b')
             assert False
-        except exceptions.SQLError:
+        except exc.SQLError:
             assert True
 
     def test_index_create(self):
@@ -201,25 +201,7 @@ class ConstraintTest(TestBase, AssertsExecutionResults):
                                 winner='sweden')
         ss = events.select().execute().fetchall()
 
-    def test_too_long_idx_name(self):
-        dialect = testing.db.dialect.__class__()
-        dialect.max_identifier_length = 20
 
-        schemagen = dialect.schemagenerator(dialect, None)
-        schemagen.execute = lambda : None
-
-        t1 = Table("sometable", MetaData(), Column("foo", Integer))
-        schemagen.visit_index(Index("this_name_is_too_long_for_what_were_doing", t1.c.foo))
-        self.assertEquals(schemagen.buffer.getvalue(), "CREATE INDEX this_name_is_t_1 ON sometable (foo)")
-        schemagen.buffer.truncate(0)
-        schemagen.visit_index(Index("this_other_name_is_too_long_for_what_were_doing", t1.c.foo))
-        self.assertEquals(schemagen.buffer.getvalue(), "CREATE INDEX this_other_nam_2 ON sometable (foo)")
-
-        schemadrop = dialect.schemadropper(dialect, None)
-        schemadrop.execute = lambda: None
-        self.assertRaises(exceptions.IdentifierError, schemadrop.visit_index, Index("this_name_is_too_long_for_what_were_doing", t1.c.foo))
-
-    
 class ConstraintCompilationTest(TestBase, AssertsExecutionResults):
     class accum(object):
         def __init__(self):

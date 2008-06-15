@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.databases.mssql</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.databases.mssql</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -53,10 +53,10 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_databases_oracle.html">module sqlalchemy.databases.oracle</a>
+            Previous: <a href="sqlalchemy_databases_maxdb.html">module sqlalchemy.databases.maxdb</a>
 
                |   
-            Next: <a href="sqlalchemy_databases_firebird.html">module sqlalchemy.databases.firebird</a>
+            Next: <a href="sqlalchemy_databases_mysql.html">module sqlalchemy.databases.mysql</a>
     </div>
 
         <h2>module sqlalchemy.databases.mssql</h2>
@@ -498,7 +498,7 @@ are up to 3 digits left of the decimal place.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __add__(<i>self</i>, <i>other</i>, <i>context=None</i>)</b>
+    <b>def __radd__(<i>self</i>, <i>other</i>, <i>context=None</i>)</b>
     <div class="docstring">
     <p>Returns self + other.</p>
 <p>-INF + INF (or the reverse) cause InvalidOperation errors.</p>
@@ -552,7 +552,7 @@ are up to 3 digits left of the decimal place.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __div__(<i>self</i>, <i>other</i>, <i>context=None</i>)</b>
+    <b>def __truediv__(<i>self</i>, <i>other</i>, <i>context=None</i>)</b>
     <div class="docstring">
     <p>Return self / other.</p>
 
@@ -651,7 +651,7 @@ are up to 3 digits left of the decimal place.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __mul__(<i>self</i>, <i>other</i>, <i>context=None</i>)</b>
+    <b>def __rmul__(<i>self</i>, <i>other</i>, <i>context=None</i>)</b>
     <div class="docstring">
     <p>Return self * other.</p>
 <p>(+-) INF * 0 (or its reverse) raise InvalidOperation.</p>
@@ -745,7 +745,7 @@ are up to 3 digits left of the decimal place.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __rdiv__(<i>self</i>, <i>other</i>, <i>context=None</i>)</b>
+    <b>def __rtruediv__(<i>self</i>, <i>other</i>, <i>context=None</i>)</b>
     <div class="docstring">
     <p>Swaps self/other and returns __div__.</p>
 
@@ -2544,10 +2544,10 @@ into IDENTITY columns.</p>
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_databases_oracle.html">module sqlalchemy.databases.oracle</a>
+            Previous: <a href="sqlalchemy_databases_maxdb.html">module sqlalchemy.databases.maxdb</a>
 
                |   
-            Next: <a href="sqlalchemy_databases_firebird.html">module sqlalchemy.databases.firebird</a>
+            Next: <a href="sqlalchemy_databases_mysql.html">module sqlalchemy.databases.mysql</a>
     </div>
 
     </div>

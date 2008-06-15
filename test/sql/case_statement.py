@@ -2,7 +2,7 @@ import testenv; testenv.configure_for_tests()
 import sys
 from sqlalchemy import *
 from testlib import *
-from sqlalchemy import util, exceptions
+from sqlalchemy import util, exc
 from sqlalchemy.sql import table, column
 
 
@@ -27,6 +27,8 @@ class CaseTest(TestBase, AssertsCompiledSQL):
     def tearDownAll(self):
         info_table.drop()
 
+    @testing.fails_on('firebird', 'maxdb')
+    @testing.requires.subqueries
     def testcase(self):
         inner = select([case([
                 [info_table.c.pk < 3,
@@ -86,17 +88,17 @@ class CaseTest(TestBase, AssertsCompiledSQL):
             (6, 5, 'pk_5_data'),
             (0, 6, 'pk_6_data')
         ]
-    testcase = testing.fails_on('maxdb')(testcase)
 
     def test_literal_interpretation(self):
         t = table('test', column('col1'))
         
-        self.assertRaises(exceptions.ArgumentError, case, [("x", "y")])
+        self.assertRaises(exc.ArgumentError, case, [("x", "y")])
         
         self.assert_compile(case([("x", "y")], value=t.c.col1), "CASE test.col1 WHEN :param_1 THEN :param_2 END")
         self.assert_compile(case([(t.c.col1==7, "y")], else_="z"), "CASE WHEN (test.col1 = :col1_1) THEN :param_1 ELSE :param_2 END")
 
         
+    @testing.fails_on('firebird', 'maxdb')
     def testcase_with_dict(self):
         query = select([case({
                     info_table.c.pk < 3: 'lessthan3',
@@ -128,7 +130,6 @@ class CaseTest(TestBase, AssertsCompiledSQL):
             ('two', 2),
             ('other', 3),
         ]
-    testcase_with_dict = testing.fails_on('maxdb')(testcase_with_dict)
 
 if __name__ == "__main__":
     testenv.main()

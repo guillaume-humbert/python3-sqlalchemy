@@ -1,18 +1,17 @@
 import testenv; testenv.configure_for_tests()
-from sqlalchemy import *
-from sqlalchemy import exceptions
-from sqlalchemy.orm import *
-from testlib import *
-from testlib.fixtures import *
 import pickle
+from testlib import sa, testing
+from testlib.sa import Table, Column, Integer, String, ForeignKey
+from testlib.sa.orm import mapper, relation, create_session
+from orm import _base, _fixtures
 
-class EmailUser(User):
-    pass
 
-class PickleTest(FixtureTest):
-    keep_mappers = False
-    keep_data = False
+User, EmailUser = None, None
 
+class PickleTest(_fixtures.FixtureTest):
+    run_inserts = None
+    
+    @testing.resolve_artifact_names
     def test_transient(self):
         mapper(User, users, properties={
             'addresses':relation(Address, backref="user")
@@ -24,25 +23,26 @@ class PickleTest(FixtureTest):
         u1.addresses.append(Address(email_address='ed@bar.com'))
 
         u2 = pickle.loads(pickle.dumps(u1))
-        sess.save(u2)
+        sess.add(u2)
         sess.flush()
 
         sess.clear()
 
         self.assertEquals(u1, sess.query(User).get(u2.id))
 
+    @testing.resolve_artifact_names
     def test_class_deferred_cols(self):
         mapper(User, users, properties={
-            'name':deferred(users.c.name),
+            'name':sa.orm.deferred(users.c.name),
             'addresses':relation(Address, backref="user")
         })
         mapper(Address, addresses, properties={
-            'email_address':deferred(addresses.c.email_address)
+            'email_address':sa.orm.deferred(addresses.c.email_address)
         })
         sess = create_session()
         u1 = User(name='ed')
         u1.addresses.append(Address(email_address='ed@bar.com'))
-        sess.save(u1)
+        sess.add(u1)
         sess.flush()
         sess.clear()
         u1 = sess.query(User).get(u1.id)
@@ -61,6 +61,7 @@ class PickleTest(FixtureTest):
         self.assertEquals(u2.name, 'ed')
         self.assertEquals(u2, User(name='ed', addresses=[Address(email_address='ed@bar.com')]))
 
+    @testing.resolve_artifact_names
     def test_instance_deferred_cols(self):
         mapper(User, users, properties={
             'addresses':relation(Address, backref="user")
@@ -70,11 +71,11 @@ class PickleTest(FixtureTest):
         sess = create_session()
         u1 = User(name='ed')
         u1.addresses.append(Address(email_address='ed@bar.com'))
-        sess.save(u1)
+        sess.add(u1)
         sess.flush()
         sess.clear()
 
-        u1 = sess.query(User).options(defer('name'), defer('addresses.email_address')).get(u1.id)
+        u1 = sess.query(User).options(sa.orm.defer('name'), sa.orm.defer('addresses.email_address')).get(u1.id)
         assert 'name' not in u1.__dict__
         assert 'addresses' not in u1.__dict__
 
@@ -99,26 +100,37 @@ class PickleTest(FixtureTest):
         self.assertEquals(u2, User(name='ed', addresses=[Address(email_address='ed@bar.com')]))
 
 
-class PolymorphicDeferredTest(ORMTest):
+class PolymorphicDeferredTest(_base.MappedTest):
     def define_tables(self, metadata):
-        global users, email_users
-        users = Table('users', metadata,
+        Table('users', metadata,
             Column('id', Integer, primary_key=True),
             Column('name', String(30)),
-            Column('type', String(30)),
-            )
-        email_users = Table('email_users', metadata,
+            Column('type', String(30)))
+        Table('email_users', metadata,
             Column('id', Integer, ForeignKey('users.id'), primary_key=True),
-            Column('email_address', String(30))
-            )
+            Column('email_address', String(30)))
 
+    def setup_classes(self):
+        global User, EmailUser
+        class User(_base.BasicEntity):
+            pass
+
+        class EmailUser(User):
+            pass
+
+    def tearDownAll(self):
+        global User, EmailUser
+        User, EmailUser = None, None
+        _base.MappedTest.tearDownAll(self)
+
+    @testing.resolve_artifact_names
     def test_polymorphic_deferred(self):
-        mapper(User, users, polymorphic_identity='user', polymorphic_on=users.c.type, polymorphic_fetch='deferred')
+        mapper(User, users, polymorphic_identity='user', polymorphic_on=users.c.type)
         mapper(EmailUser, email_users, inherits=User, polymorphic_identity='emailuser')
 
         eu = EmailUser(name="user1", email_address='foo@bar.com')
         sess = create_session()
-        sess.save(eu)
+        sess.add(eu)
         sess.flush()
         sess.clear()
 

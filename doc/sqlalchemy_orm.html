@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.orm</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.orm</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -162,6 +162,9 @@
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_AliasedClass">class AliasedClass(object)</a></li>
 
         
+        <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_InstrumentationManager">class InstrumentationManager(object)</a></li>
+
+        
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_MapperExtension">class MapperExtension(object)</a></li>
 
         
@@ -222,7 +225,7 @@ place of a string argument.</p>
     <A name="docstrings_sqlalchemy.orm_modfunc_class_mapper"></a>
     <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>, <i>compile=True</i>, <i>raiseerror=True</i>)</b>
     <div class="docstring">
-    <p>Given a class and optional entity_name, return the primary Mapper associated with the key.</p>
+    <p>Given a class (or an object) and optional entity_name, return the primary Mapper associated with the key.</p>
 <p>If no mapper can be located, raises <tt class="docutils literal"><span class="pre">InvalidRequestError</span></tt>.</p>
 
     </div>
@@ -390,7 +393,7 @@ alias.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_contains_eager"></a>
-    <b>def contains_eager(<i>key</i>, <i>alias=None</i>, <i>decorator=None</i>)</b>
+    <b>def contains_eager(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will indicate to the query that
 the given attribute will be eagerly loaded.</p>
@@ -400,10 +403,6 @@ turn on eager loading in case it isn't already.</p>
 <p><cite>alias</cite> is the string name of an alias, <strong>or</strong> an <tt class="docutils literal"><span class="pre">sql.Alias</span></tt>
 object, which represents the aliased columns in the query.  This
 argument is optional.</p>
-<p><cite>decorator</cite> is mutually exclusive of <cite>alias</cite> and is a
-row-processing function which will be applied to the incoming row
-before sending to the eager load handler.  use this for more
-sophisticated row adjustments beyond a straight alias.</p>
 
     </div>
     </div>
@@ -427,7 +426,7 @@ instead of create_session().</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_defer"></a>
-    <b>def defer(<i>name</i>)</b>
+    <b>def defer(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the column property
 of the given name into a deferred load.</p>
@@ -472,7 +471,7 @@ operations are available.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_eagerload"></a>
-    <b>def eagerload(<i>name</i>, <i>mapper=None</i>)</b>
+    <b>def eagerload(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given name into an eager load.</p>
 <p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
@@ -484,7 +483,7 @@ operations are available.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_eagerload_all"></a>
-    <b>def eagerload_all(<i>name</i>, <i>mapper=None</i>)</b>
+    <b>def eagerload_all(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the given dot-separated path into an eager load.</p>
 <p>For example, this:</p>
@@ -516,7 +515,7 @@ that will be called in the context of the <tt class="docutils literal"><span cla
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_lazyload"></a>
-    <b>def lazyload(<i>name</i>, <i>mapper=None</i>)</b>
+    <b>def lazyload(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the
 given name into a lazy load.</p>
@@ -682,7 +681,7 @@ during the lifetime of the entity, else a
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_noload"></a>
-    <b>def noload(<i>name</i>)</b>
+    <b>def noload(<i>*keys</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the
 given name into a non-load.</p>
@@ -719,7 +718,7 @@ be located.  If False, return None.</dd>
     <A name="docstrings_sqlalchemy.orm_modfunc_object_session"></a>
     <b>def object_session(<i>instance</i>)</b>
     <div class="docstring">
-    <p>Return the <tt class="docutils literal"><span class="pre">Session</span></tt> to which the given instance is bound, or <tt class="docutils literal"><span class="pre">None</span></tt> if none.</p>
+    <p>Return the <tt class="docutils literal"><span class="pre">Session</span></tt> to which instance belongs, or None.</p>
 
     </div>
     </div>
@@ -744,30 +743,23 @@ this is used.</p>
     <b>def relation(<i>argument</i>, <i>secondary=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Provide a relationship of a primary Mapper to a secondary Mapper.</p>
-<p>This corresponds to a parent-child or associative table relationship.
-The constructed class is an instance of <a href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_PropertyLoader">PropertyLoader</a>.</p>
+<p>This corresponds to a parent-child or associative table relationship.  The
+constructed class is an instance of
+<a href="sqlalchemy_orm_properties.html#docstrings_sqlalchemy.orm.properties_PropertyLoader">PropertyLoader</a>.</p>
 <blockquote>
 <dl class="docutils">
 <dt>argument</dt>
 <dd>a class or Mapper instance, representing the target of the relation.</dd>
 <dt>secondary</dt>
 <dd>for a many-to-many relationship, specifies the intermediary table. The
-<tt class="docutils literal"><span class="pre">secondary</span></tt> keyword argument should generally only be used for a table
-that is not otherwise expressed in any class mapping. In particular,
-using the Association Object Pattern is
-generally mutually exclusive against using the <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword
-argument.</dd>
+<tt class="docutils literal"><span class="pre">secondary</span></tt> keyword argument should generally only be used for a
+table that is not otherwise expressed in any class mapping. In
+particular, using the Association Object Pattern is generally mutually
+exclusive against using the <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword argument.</dd>
 </dl>
 <p>**kwargs follow:</p>
 <blockquote>
 <dl class="docutils">
-<dt>association</dt>
-<dd>Deprecated; as of version 0.3.0 the association keyword is synonymous
-with applying the &quot;all, delete-orphan&quot; cascade to a &quot;one-to-many&quot;
-relationship. SA can now automatically reconcile a &quot;delete&quot; and
-&quot;insert&quot; operation of two objects with the same &quot;identity&quot; in a flush()
-operation into a single &quot;update&quot; statement, which is the pattern that
-&quot;association&quot; used to indicate.</dd>
 <dt>backref</dt>
 <dd>indicates the name of a property to be placed on the related mapper's
 class that will handle this relationship in the other direction,
@@ -790,9 +782,6 @@ columns within the join conditions to determine which columns are
 the &quot;foreign key&quot; columns, based on information in the <tt class="docutils literal"><span class="pre">Table</span></tt>
 metadata. Use this argument when no ForeignKey's are present in the
 join condition, or to override the table-defined foreign keys.</dd>
-<dt>foreignkey</dt>
-<dd>deprecated. use the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> argument for foreign key
-specification, or <tt class="docutils literal"><span class="pre">remote_side</span></tt> for &quot;directional&quot; logic.</dd>
 <dt>join_depth=None</dt>
 <dd>when non-<tt class="docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels
 deep eagerload joins should be constructed on a self-referring
@@ -883,10 +872,6 @@ object against the parent object, or in a many-to-many relationship the
 join of the primary object to the association table. By default, this
 value is computed based on the foreign key relationships of the parent
 and child tables (or association table).</dd>
-<dt>private=False</dt>
-<dd>deprecated. setting <tt class="docutils literal"><span class="pre">private=True</span></tt> is the equivalent of setting
-<tt class="docutils literal"><span class="pre">cascade=&quot;all,</span> <span class="pre">delete-orphan&quot;</span></tt>, and indicates the lifecycle of child
-objects should be contained within that of the parent.</dd>
 <dt>remote_side</dt>
 <dd>used for self-referential relationships, indicates the column or list
 of columns that form the &quot;remote side&quot; of the relationship.</dd>
@@ -929,21 +914,20 @@ class.</p>
 <pre class="literal-block">
 Session = scoped_session(sessionmaker(autoflush=True))
 </pre>
-<p>To instantiate a Session object which is part of the scoped
-context, instantiate normally:</p>
+<p>To instantiate a Session object which is part of the scoped context,
+instantiate normally:</p>
 <pre class="literal-block">
 session = Session()
 </pre>
-<p>Most session methods are available as classmethods from
-the scoped session:</p>
+<p>Most session methods are available as classmethods from the scoped
+session:</p>
 <pre class="literal-block">
 Session.commit()
 Session.close()
 </pre>
-<p>To map classes so that new instances are saved in the current
-Session automatically, as well as to provide session-aware
-class attributes such as &quot;query&quot;, use the <cite>mapper</cite> classmethod
-from the scoped session:</p>
+<p>To map classes so that new instances are saved in the current Session
+automatically, as well as to provide session-aware class attributes such
+as &quot;query&quot;, use the <cite>mapper</cite> classmethod from the scoped session:</p>
 <pre class="literal-block">
 mapper = Session.mapper
 mapper(Class, table, ...)
@@ -956,14 +940,16 @@ mapper(Class, table, ...)
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_sessionmaker"></a>
-    <b>def sessionmaker(<i>bind=None</i>, <i>class_=None</i>, <i>autoflush=True</i>, <i>transactional=True</i>, <i>**kwargs</i>)</b>
+    <b>def sessionmaker(<i>bind=None</i>, <i>class_=None</i>, <i>autoflush=True</i>, <i>autocommit=False</i>, <i>autoexpire=True</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Generate a custom-configured <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_Session">Session</a> class.</p>
-<p>The returned object is a subclass of <tt class="docutils literal"><span class="pre">Session</span></tt>, which, when instantiated with no
-arguments, uses the keyword arguments configured here as its constructor arguments.</p>
-<p>It is intended that the <cite>sessionmaker()</cite> function be called within the global scope
-of an application, and the returned class be made available to the rest of the
-application as the single class used to instantiate sessions.</p>
+<p>The returned object is a subclass of <tt class="docutils literal"><span class="pre">Session</span></tt>, which, when instantiated
+with no arguments, uses the keyword arguments configured here as its
+constructor arguments.</p>
+<p>It is intended that the <cite>sessionmaker()</cite> function be called within the
+global scope of an application, and the returned class be made available
+to the rest of the application as the single class used to instantiate
+sessions.</p>
 <p>e.g.:</p>
 <pre class="literal-block">
 # global scope
@@ -972,29 +958,112 @@ Session = sessionmaker(autoflush=False)
 # later, in a local scope, create and use a session:
 sess = Session()
 </pre>
-<p>Any keyword arguments sent to the constructor itself will override the &quot;configured&quot;
-keywords:</p>
+<p>Any keyword arguments sent to the constructor itself will override the
+&quot;configured&quot; keywords:</p>
 <pre class="literal-block">
 Session = sessionmaker()
 
 # bind an individual session to a connection
 sess = Session(bind=connection)
 </pre>
-<p>The class also includes a special classmethod <tt class="docutils literal"><span class="pre">configure()</span></tt>, which allows
-additional configurational options to take place after the custom <tt class="docutils literal"><span class="pre">Session</span></tt>
-class has been generated.  This is useful particularly for defining the
-specific <tt class="docutils literal"><span class="pre">Engine</span></tt> (or engines) to which new instances of <tt class="docutils literal"><span class="pre">Session</span></tt>
-should be bound:</p>
+<p>The class also includes a special classmethod <tt class="docutils literal"><span class="pre">configure()</span></tt>, which
+allows additional configurational options to take place after the custom
+<tt class="docutils literal"><span class="pre">Session</span></tt> class has been generated.  This is useful particularly for
+defining the specific <tt class="docutils literal"><span class="pre">Engine</span></tt> (or engines) to which new instances of
+<tt class="docutils literal"><span class="pre">Session</span></tt> should be bound:</p>
 <pre class="literal-block">
 Session = sessionmaker()
 Session.configure(bind=create_engine('sqlite:///foo.db'))
 
 sess = Session()
 </pre>
-<p>The function features a single keyword argument of its own, <cite>class_</cite>, which
-may be used to specify an alternate class other than <tt class="docutils literal"><span class="pre">sqlalchemy.orm.session.Session</span></tt>
-which should be used by the returned class.  All other keyword arguments sent to
-<cite>sessionmaker()</cite> are passed through to the instantiated <cite>Session()</cite> object.</p>
+<p>Options:</p>
+<dl class="docutils">
+<dt>autocommit</dt>
+<dd><p class="first">Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>. When <tt class="docutils literal"><span class="pre">True</span></tt>, the <tt class="docutils literal"><span class="pre">Session</span></tt> does not keep a
+persistent transaction running, and will acquire connections from the
+engine on an as-needed basis, returning them immediately after their
+use. Flushes will begin and commit (or possibly rollback) their own
+transaction if no transaction is present. When using this mode, the
+<cite>session.begin()</cite> method may be used to begin a transaction explicitly.</p>
+<p class="last">Leaving it on its default value of <tt class="docutils literal"><span class="pre">False</span></tt> means that the <tt class="docutils literal"><span class="pre">Session</span></tt>
+will acquire a connection and begin a transaction the first time it is
+used, which it will maintain persistently until <tt class="docutils literal"><span class="pre">rollback()</span></tt>,
+<tt class="docutils literal"><span class="pre">commit()</span></tt>, or <tt class="docutils literal"><span class="pre">close()</span></tt> is called. When the transaction is released
+by any of these methods, the <tt class="docutils literal"><span class="pre">Session</span></tt> is ready for the next usage,
+which will again acquire and maintain a new connection/transaction.</p>
+</dd>
+<dt>autoexpire</dt>
+<dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, all instances will be fully expired after each
+<tt class="docutils literal"><span class="pre">rollback()</span></tt> and after each <tt class="docutils literal"><span class="pre">commit()</span></tt>, so that all attribute/object
+access subsequent to a completed transaction will load from the most
+recent database state.</dd>
+<dt>autoflush</dt>
+<dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, all query operations will issue a <tt class="docutils literal"><span class="pre">flush()</span></tt> call to
+this <tt class="docutils literal"><span class="pre">Session</span></tt> before proceeding. This is a convenience feature so
+that <tt class="docutils literal"><span class="pre">flush()</span></tt> need not be called repeatedly in order for database
+queries to retrieve results. It's typical that <tt class="docutils literal"><span class="pre">autoflush</span></tt> is used in
+conjunction with <tt class="docutils literal"><span class="pre">autocommit=False</span></tt>.  In this scenario, explicit calls
+to <tt class="docutils literal"><span class="pre">flush()</span></tt> are rarely needed; you usually only need to call
+<tt class="docutils literal"><span class="pre">commit()</span></tt> (which flushes) to finalize changes.</dd>
+<dt>bind</dt>
+<dd>An optional <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> to which this <tt class="docutils literal"><span class="pre">Session</span></tt>
+should be bound. When specified, all SQL operations performed by this
+session will execute via this connectable.</dd>
+<dt>binds</dt>
+<dd><p class="first">An optional dictionary, which contains more granular &quot;bind&quot; information
+than the <tt class="docutils literal"><span class="pre">bind</span></tt> parameter provides. This dictionary can map individual
+<tt class="docutils literal"><span class="pre">Table</span></tt> instances as well as <tt class="docutils literal"><span class="pre">Mapper</span></tt> instances to individual
+<tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> objects. Operations which proceed relative
+to a particular <tt class="docutils literal"><span class="pre">Mapper</span></tt> will consult this dictionary for the direct
+<tt class="docutils literal"><span class="pre">Mapper</span></tt> instance as well as the mapper's <tt class="docutils literal"><span class="pre">mapped_table</span></tt> attribute
+in order to locate an connectable to use. The full resolution is
+described in the <tt class="docutils literal"><span class="pre">get_bind()</span></tt> method of <tt class="docutils literal"><span class="pre">Session</span></tt>. Usage looks
+like:</p>
+<pre class="literal-block">
+sess = Session(binds={
+    SomeMappedClass: create_engine('postgres://engine1'),
+    somemapper: create_engine('postgres://engine2'),
+    some_table: create_engine('postgres://engine3'),
+    })
+</pre>
+<p class="last">Also see the <tt class="docutils literal"><span class="pre">bind_mapper()</span></tt> and <tt class="docutils literal"><span class="pre">bind_table()</span></tt> methods.</p>
+</dd>
+<dt>class_</dt>
+<dd>Specify an alternate class other than <tt class="docutils literal"><span class="pre">sqlalchemy.orm.session.Session</span></tt>
+which should be used by the returned class.  This is the only argument
+that is local to the <tt class="docutils literal"><span class="pre">sessionmaker()</span></tt> function, and is not sent
+directly to the constructor for <tt class="docutils literal"><span class="pre">Session</span></tt>.</dd>
+<dt>echo_uow</dt>
+<dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, configure Python logging to dump all unit-of-work
+transactions. This is the equivalent of
+<tt class="docutils literal"><span class="pre">logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG)</span></tt>.</dd>
+<dt>extension</dt>
+<dd>An optional <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_SessionExtension">SessionExtension</a> instance, which
+will receive pre- and post- commit and flush events, as well as a
+post-rollback event.  User- defined code may be placed within these
+hooks using a user-defined subclass of <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</dd>
+<dt>twophase</dt>
+<dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, all transactions will be started using
+[sqlalchemy.engine_TwoPhaseTransaction]. During a <tt class="docutils literal"><span class="pre">commit()</span></tt>, after
+<tt class="docutils literal"><span class="pre">flush()</span></tt> has been issued for all attached databases, the
+<tt class="docutils literal"><span class="pre">prepare()</span></tt> method on each database's <tt class="docutils literal"><span class="pre">TwoPhaseTransaction</span></tt> will be
+called. This allows each database to roll back the entire transaction,
+before each transaction is committed.</dd>
+<dt>query_cls</dt>
+<dd>Class which should be used to create new Query objects, as returned
+by the <tt class="docutils literal"><span class="pre">query()</span></tt> method.  Defaults to <a href="sqlalchemy_orm_query.html#docstrings_sqlalchemy.orm.query_Query">Query</a>.</dd>
+<dt>weak_identity_map</dt>
+<dd>When set to the default value of <tt class="docutils literal"><span class="pre">False</span></tt>, a weak-referencing map is
+used; instances which are not externally referenced will be garbage
+collected immediately. For dereferenced instances which have pending
+changes present, the attribute management system will create a temporary
+strong-reference to the object which lasts until the changes are flushed
+to the database, at which point it's again dereferenced. Alternatively,
+when using the value <tt class="docutils literal"><span class="pre">True</span></tt>, the identity map uses a regular Python
+dictionary to store instances. The session will maintain all instances
+present until they are removed using expunge(), clear(), or purge().</dd>
+</dl>
 
     </div>
     </div>
@@ -1047,7 +1116,7 @@ is not already available.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_undefer"></a>
-    <b>def undefer(<i>name</i>)</b>
+    <b>def undefer(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the column property
 of the given name into a non-deferred (regular column) load.</p>
@@ -1094,10 +1163,185 @@ group of deferred column properties into a non-deferred (regular column) load.</
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>alias</i>)</b>
+    <b>def __init__(<i>self</i>, <i>cls</i>, <i>alias=None</i>, <i>name=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">AliasedClass</span></tt>.</p>
 
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __getattr__(<i>self</i>, <i>key</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.orm_InstrumentationManager"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class InstrumentationManager(object)</h3>
+    
+    
+    <div class="darkcell"><p>User-defined class instrumentation extension.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>class_</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">InstrumentationManager</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def dispose(<i>self</i>, <i>class_</i>, <i>manager</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_instance_dict(<i>self</i>, <i>class_</i>, <i>instance</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def initialize_instance_dict(<i>self</i>, <i>class_</i>, <i>instance</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def install_descriptor(<i>self</i>, <i>class_</i>, <i>key</i>, <i>inst</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def install_member(<i>self</i>, <i>class_</i>, <i>key</i>, <i>implementation</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def install_state(<i>self</i>, <i>class_</i>, <i>instance</i>, <i>state</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def instrument_attribute(<i>self</i>, <i>class_</i>, <i>key</i>, <i>inst</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def instrument_collection_class(<i>self</i>, <i>class_</i>, <i>key</i>, <i>collection_class</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def manage(<i>self</i>, <i>class_</i>, <i>manager</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def manager_getter(<i>self</i>, <i>class_</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def state_getter(<i>self</i>, <i>class_</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def uninstall_descriptor(<i>self</i>, <i>class_</i>, <i>key</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def uninstall_member(<i>self</i>, <i>class_</i>, <i>key</i>)</b>
+    <div class="docstring">
+    
     </div>
     </div>
 
@@ -1130,8 +1374,6 @@ that method.  Some methods such as <tt class="docutils literal"><span class="pre
 requirements, see the individual documentation for details.  Other than
 these exception cases, any return value other than EXT_CONTINUE or
 EXT_STOP will be interpreted as equivalent to EXT_STOP.</p>
-<p>EXT_PASS is a synonym for EXT_CONTINUE and is provided for backward
-compatibility.</p>
 </div>
     
 
@@ -1194,7 +1436,7 @@ desired.</p>
 <dd>List to which results are being appended.</dd>
 <dt>**flags</dt>
 <dd>extra information about the row, same as criterion in
-<cite>create_row_processor()</cite> method of <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperProperty">MapperProperty</a></dd>
+<tt class="docutils literal"><span class="pre">create_row_processor()</span></tt> method of <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_MapperProperty">MapperProperty</a></dd>
 </dl>
 
     </div>
@@ -1292,48 +1534,6 @@ EXT_CONTINUE to indicate normal object creation should take place.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Override the <cite>get</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.get()</span></tt> if the value is anything other than EXT_CONTINUE.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_by(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Override the <cite>get_by</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.get_by()</span></tt> if the value is anything other than
-EXT_CONTINUE.</p>
-<p>DEPRECATED.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_session(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Retrieve a contextual Session instance with which to
-register a new object.</p>
-<p>Note: this is not called if a session is provided with the
-<cite>__init__</cite> params (i.e. <cite>_sa_session</cite>).</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def init_failed(<i>self</i>, <i>mapper</i>, <i>class_</i>, <i>oldinit</i>, <i>instance</i>, <i>args</i>, <i>kwargs</i>)</b>
     <div class="docstring">
     
@@ -1364,11 +1564,18 @@ register a new object.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def load(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def on_reconstitute(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>Override the <cite>load</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.load()</span></tt> if the value is anything other than EXT_CONTINUE.</p>
+    <p>Receive an object instance after it has been created via
+<tt class="docutils literal"><span class="pre">__new__()</span></tt>, and after initial attribute population has
+occurred.</p>
+<p>This typicically occurs when the instance is created based
+on incoming result rows, and is only called once for that
+instance's lifetime.</p>
+<p>Note that during a result-row load, this method is called upon
+the first row received for this instance; therefore, if eager loaders
+are to further populate collections on the instance, those will
+<em>not</em> have been completely loaded as of yet.</p>
 
     </div>
     </div>
@@ -1379,46 +1586,22 @@ register a new object.</p>
     <A name=""></a>
     <b>def populate_instance(<i>self</i>, <i>mapper</i>, <i>selectcontext</i>, <i>row</i>, <i>instance</i>, <i>**flags</i>)</b>
     <div class="docstring">
-    <p>Receive a newly-created instance before that instance has
+    <p>Receive an instance before that instance has
 its attributes populated.</p>
-<p>The normal population of attributes is according to each
-attribute's corresponding MapperProperty (which includes
-column-based attributes as well as relationships to other
-classes).  If this method returns EXT_CONTINUE, instance
+<p>This usually corresponds to a newly loaded instance but may
+also correspond to an already-loaded instance which has
+unloaded attributes to be populated.  The method may be
+called many times for a single instance, as multiple
+result rows are used to populate eagerly loaded collections.</p>
+<p>If this method returns EXT_CONTINUE, instance
 population will proceed normally.  If any other value or None
 is returned, instance population will not proceed, giving this
 extension an opportunity to populate the instance itself, if
 desired.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def select(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Override the <cite>select</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.select()</span></tt> if the value is anything other than
-EXT_CONTINUE.</p>
-<p>DEPRECATED.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def select_by(<i>self</i>, <i>query</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Override the <cite>select_by</cite> method of the Query object.</p>
-<p>The return value of this method is used as the result of
-<tt class="docutils literal"><span class="pre">query.select_by()</span></tt> if the value is anything other than
-EXT_CONTINUE.</p>
-<p>DEPRECATED.</p>
+<p>As of 0.5, most usages of this hook are obsolete.
+For a generic &quot;object has been newly created from a row&quot; hook,
+use <tt class="docutils literal"><span class="pre">on_reconstitute()</span></tt>, or the &#64;attributes.on_reconstitute
+decorator.</p>
 
     </div>
     </div>
@@ -1431,8 +1614,9 @@ EXT_CONTINUE.</p>
     <div class="docstring">
     <p>Perform pre-processing on the given result row and return a
 new row instance.</p>
-<p>This is called as the very first step in the <tt class="docutils literal"><span class="pre">_instance()</span></tt>
-method.</p>
+<p>This is called when the mapper first receives a row, before
+the object identity or the instance itself has been derived
+from that row.</p>
 
     </div>
     </div>
@@ -1468,7 +1652,7 @@ PropComparator.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>prop</i>)</b>
+    <b>def __init__(<i>self</i>, <i>prop</i>, <i>mapper</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">PropComparator</span></tt>.</p>
 
@@ -1502,16 +1686,6 @@ will be compared via equality to the corresponding values.</dd>
     <div class="docstring">
     <p>Return true if this collection contains other</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def expression_element(<i>self</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -1556,6 +1730,16 @@ this specific subclass.</dd>
     </div>
     </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __clause_element__(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
 
     
 
@@ -1584,7 +1768,7 @@ this specific subclass.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>class_or_mapper</i>, <i>session=None</i>, <i>entity_name=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>entities</i>, <i>session=None</i>, <i>entity_name=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
@@ -1595,23 +1779,9 @@ this specific subclass.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def add_column(<i>self</i>, <i>column</i>, <i>id=None</i>)</b>
+    <b>def add_column(<i>self</i>, <i>column</i>)</b>
     <div class="docstring">
     <p>Add a SQL ColumnElement to the list of result columns to be returned.</p>
-<p>This will have the effect of all result-returning methods returning a
-tuple of results, the first element being an instance of the primary
-class for this Query, and subsequent elements matching columns or
-entities which were specified via add_column or add_entity.</p>
-<p>When adding columns to the result, its generally desirable to add
-limiting criterion to the query which can associate the primary entity
-of this Query along with the additional columns, if the column is
-based on a table or selectable that is not the primary mapped
-selectable.  The Query selects from all tables with no joining
-criterion by default.</p>
-<dl class="docutils">
-<dt>column</dt>
-<dd>a string column name or sql.ColumnElement to be added to the results.</dd>
-</dl>
 
     </div>
     </div>
@@ -1620,29 +1790,9 @@ criterion by default.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def add_entity(<i>self</i>, <i>entity</i>, <i>alias=None</i>, <i>id=None</i>)</b>
+    <b>def add_entity(<i>self</i>, <i>entity</i>, <i>alias=None</i>)</b>
     <div class="docstring">
     <p>add a mapped entity to the list of result columns to be returned.</p>
-<p>This will have the effect of all result-returning methods returning a tuple
-of results, the first element being an instance of the primary class for this
-Query, and subsequent elements matching columns or entities which were
-specified via add_column or add_entity.</p>
-<p>When adding entities to the result, its generally desirable to add
-limiting criterion to the query which can associate the primary entity
-of this Query along with the additional entities.  The Query selects
-from all tables with no joining criterion by default.</p>
-<blockquote>
-<dl class="docutils">
-<dt>entity</dt>
-<dd>a class or mapper which will be added to the results.</dd>
-<dt>alias</dt>
-<dd>a sqlalchemy.sql.Alias object which will be used to select rows.  this
-will match the usage of the given Alias in filter(), order_by(), etc. expressions</dd>
-<dt>id</dt>
-<dd>a string ID matching that given to query.join() or query.outerjoin(); rows will be
-selected from the aliased join created via those methods.</dd>
-</dl>
-</blockquote>
 
     </div>
     </div>
@@ -1655,58 +1805,6 @@ selected from the aliased join created via those methods.</dd>
     <div class="docstring">
     <p>Return the results represented by this <tt class="docutils literal"><span class="pre">Query</span></tt> as a list.</p>
 <p>This results in an execution of the underlying query.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def apply_avg(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>apply the SQL <tt class="docutils literal"><span class="pre">avg()</span></tt> function against the given column to the
-query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p>DEPRECATED.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def apply_max(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>apply the SQL <tt class="docutils literal"><span class="pre">max()</span></tt> function against the given column to the
-query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p>DEPRECATED.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def apply_min(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>apply the SQL <tt class="docutils literal"><span class="pre">min()</span></tt> function against the given column to the
-query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p>DEPRECATED.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def apply_sum(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>apply the SQL <tt class="docutils literal"><span class="pre">sum()</span></tt> function against the given column to the
-query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p>DEPRECATED.</p>
 
     </div>
     </div>
@@ -1730,10 +1828,9 @@ to disable autoflush for a specific Query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def avg(<i>self</i>, <i>col</i>)</b>
+    <b>def correlate(<i>self</i>, <i>*args</i>)</b>
     <div class="docstring">
-    <p>Execute the SQL <tt class="docutils literal"><span class="pre">avg()</span></tt> function against the given column.</p>
-
+    
     </div>
     </div>
 
@@ -1741,22 +1838,9 @@ to disable autoflush for a specific Query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def compile(<i>self</i>)</b>
-    <div class="docstring">
-    <p>compiles and returns a SQL statement based on the criterion and conditions within this Query.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def count(<i>self</i>, <i>whereclause=None</i>, <i>params=None</i>, <i>**kwargs</i>)</b>
+    <b>def count(<i>self</i>)</b>
     <div class="docstring">
     <p>Apply this query's criterion to a SELECT COUNT statement.</p>
-<p>the whereclause, params and **kwargs arguments are deprecated.  use filter()
-and other generative methods to establish modifiers.</p>
 
     </div>
     </div>
@@ -1765,9 +1849,9 @@ and other generative methods to establish modifiers.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def count_by(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def delete(<i>self</i>, <i>synchronize_session='evaluate'</i>)</b>
     <div class="docstring">
-    <p>DEPRECATED.  use query.filter_by(**params).count()</p>
+    <p>EXPERIMENTAL</p>
 
     </div>
     </div>
@@ -1780,17 +1864,6 @@ and other generative methods to establish modifiers.</p>
     <div class="docstring">
     <p>Apply a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> to the query and return the newly resulting
 <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def execute(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED.  use query.from_statement().all()</p>
 
     </div>
     </div>
@@ -1834,6 +1907,19 @@ and other generative methods to establish modifiers.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def from_self(<i>self</i>, <i>*entities</i>)</b>
+    <div class="docstring">
+    <p>return a Query that selects from this Query's SELECT statement.</p>
+<p>*entities - optional list of entities which will replace
+those being selected.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def from_statement(<i>self</i>, <i>statement</i>)</b>
     <div class="docstring">
     <p>Execute the given SELECT statement and return results.</p>
@@ -1851,7 +1937,7 @@ appropriate to the entity class represented by this <tt class="docutils literal"
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get(<i>self</i>, <i>ident</i>, <i>**kwargs</i>)</b>
+    <b>def get(<i>self</i>, <i>ident</i>)</b>
     <div class="docstring">
     <p>Return an instance of the object based on the given identifier, or None if not found.</p>
 <p>The <cite>ident</cite> argument is a scalar or tuple of primary key column values
@@ -1864,9 +1950,9 @@ in the order of the table def's primary key columns.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_by(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def group_by(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>DEPRECATED.  use query.filter_by(**params).first()</p>
+    <p>apply one or more GROUP BY criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
 
     </div>
     </div>
@@ -1886,7 +1972,7 @@ in the order of the table def's primary key columns.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def instances(<i>self</i>, <i>cursor</i>, <i>*mappers_or_columns</i>, <i>**kwargs</i>)</b>
+    <b>def instances(<i>self</i>, <i>cursor</i>, <i>_Query__context=None</i>)</b>
     <div class="docstring">
     <p>Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as a list.</p>
 <p>e.g.:</p>
@@ -1902,7 +1988,7 @@ users = session.query(User).instances(result)
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def iterate_instances(<i>self</i>, <i>cursor</i>, <i>*mappers_or_columns</i>, <i>**kwargs</i>)</b>
+    <b>def iterate_instances(<i>self</i>, <i>cursor</i>, <i>_Query__context=None</i>)</b>
     <div class="docstring">
     <p>Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as an iterator.</p>
 <p>e.g.:</p>
@@ -1919,61 +2005,65 @@ for u in session.query(User).iterate_instances(result):
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def join(<i>self</i>, <i>prop</i>, <i>id=None</i>, <i>aliased=False</i>, <i>from_joinpoint=False</i>)</b>
+    <b>def join(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Create a join against this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
-and apply generatively, retunring the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<dl class="docutils">
-<dt>'prop' may be one of:</dt>
-<dd><ul class="first last simple">
-<li>a string property name, i.e. &quot;rooms&quot;</li>
-<li>a class-mapped attribute, i.e. Houses.rooms</li>
-<li>a 2-tuple containing one of the above, combined with a selectable
-which derives from the properties' mapped table</li>
-<li>a list (not a tuple) containing a combination of any of the above.</li>
+and apply generatively, returning the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<p>each element in *props may be:</p>
+<blockquote>
+<ul class="simple">
+<li>a string property name, i.e. &quot;rooms&quot;.  This will join along
+the relation of the same name from this Query's &quot;primary&quot;
+mapper, if one is present.</li>
+<li>a class-mapped attribute, i.e. Houses.rooms.  This will create a
+join from &quot;Houses&quot; table to that of the &quot;rooms&quot; relation.</li>
+<li>a 2-tuple containing a target class or selectable, and
+an &quot;ON&quot; clause.  The ON clause can be the property name/
+attribute like above, or a SQL expression.</li>
 </ul>
-</dd>
-</dl>
+</blockquote>
 <p>e.g.:</p>
 <pre class="literal-block">
+# join along string attribute names
 session.query(Company).join('employees')
-session.query(Company).join(['employees', 'tasks'])
-session.query(Houses).join([Colonials.rooms, Room.closets])
-session.query(Company).join([('employees', people.join(engineers)), Engineer.computers])
+session.query(Company).join('employees', 'tasks')
+
+# join the Person entity to an alias of itself,
+# along the &quot;friends&quot; relation
+PAlias = aliased(Person)
+session.query(Person).join((Palias, Person.friends))
+
+# join from Houses to the &quot;rooms&quot; attribute on the
+# &quot;Colonials&quot; subclass of Houses, then join to the
+# &quot;closets&quot; relation on Room
+session.query(Houses).join(Colonials.rooms, Room.closets)
+
+# join from Company entities to the &quot;employees&quot; collection,
+# using &quot;people JOIN engineers&quot; as the target.  Then join
+# to the &quot;computers&quot; collection on the Engineer entity.
+session.query(Company).join((people.join(engineers), 'employees'), Engineer.computers)
+
+# join from Articles to Keywords, using the &quot;keywords&quot; attribute.
+# assume this is a many-to-many relation.
+session.query(Article).join(Article.keywords)
+
+# same thing, but spelled out entirely explicitly
+# including the association table.
+session.query(Article).join(
+    (article_keywords, Articles.id==article_keywords.c.article_id),
+    (Keyword, Keyword.id==article_keywords.c.keyword_id)
+    )
 </pre>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def join_by(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED. use join() to construct joins based on attribute names.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def join_to(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED. use join() to create joins based on property names.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def join_via(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED. use join() to create joins based on property names.</p>
+<p>**kwargs include:</p>
+<blockquote>
+<p>aliased - when joining, create anonymous aliases of each table.  This is
+used for self-referential joins or multiple joins to the same table.
+Consider usage of the aliased(SomeClass) construct as a more explicit
+approach to this.</p>
+<p>from_joinpoint - when joins are specified using string property names,
+locate the property from the mapper found in the most recent previous
+join() call, instead of from the root entity.</p>
+</blockquote>
 
     </div>
     </div>
@@ -1986,55 +2076,6 @@ session.query(Company).join([('employees', people.join(engineers)), Engineer.com
     <div class="docstring">
     <p>Apply a <tt class="docutils literal"><span class="pre">LIMIT</span></tt> to the query and return the newly resulting</p>
 <p><tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def list(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED.  use all()</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def load(<i>self</i>, <i>ident</i>, <i>raiseerr=True</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Return an instance of the object based on the given identifier.</p>
-<p>If not found, raises an exception.  The method will <strong>remove all
-pending changes</strong> to the object already existing in the Session.  The
-<cite>ident</cite> argument is a scalar or tuple of primary key column values in
-the order of the table def's primary key columns.</p>
-<p>DEPRECATED.  Use query.populate_existing().get() instead.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def max(<i>self</i>, <i>col</i>)</b>
-    <div class="docstring">
-    <p>Execute the SQL <tt class="docutils literal"><span class="pre">max()</span></tt> function against the given column.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def min(<i>self</i>, <i>col</i>)</b>
-    <div class="docstring">
-    <p>Execute the SQL <tt class="docutils literal"><span class="pre">min()</span></tt> function against the given column.</p>
 
     </div>
     </div>
@@ -2057,7 +2098,10 @@ the order of the table def's primary key columns.</p>
     <A name=""></a>
     <b>def one(<i>self</i>)</b>
     <div class="docstring">
-    <p>Return the first result, raising an exception unless exactly one row exists.</p>
+    <p>Return exactly one result or raise an exception.</p>
+<p>Raises <tt class="docutils literal"><span class="pre">sqlalchemy.orm.NoResultError</span></tt> if the query selects no rows.
+Raisees <tt class="docutils literal"><span class="pre">sqlalchemy.orm.MultipleResultsError</span></tt> if multiple rows are
+selected.</p>
 <p>This results in an execution of the underlying query.</p>
 
     </div>
@@ -2079,28 +2123,22 @@ MapperOptions.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def outerjoin(<i>self</i>, <i>prop</i>, <i>id=None</i>, <i>aliased=False</i>, <i>from_joinpoint=False</i>)</b>
+    <b>def order_by(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    <p>apply one or more ORDER BY criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def outerjoin(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Create a left outer join against this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
 and apply generatively, retunring the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<dl class="docutils">
-<dt>'prop' may be one of:</dt>
-<dd><ul class="first last simple">
-<li>a string property name, i.e. &quot;rooms&quot;</li>
-<li>a class-mapped attribute, i.e. Houses.rooms</li>
-<li>a 2-tuple containing one of the above, combined with a selectable
-which derives from the properties' mapped table</li>
-<li>a list (not a tuple) containing a combination of any of the above.</li>
-</ul>
-</dd>
-</dl>
-<p>e.g.:</p>
-<pre class="literal-block">
-session.query(Company).outerjoin('employees')
-session.query(Company).outerjoin(['employees', 'tasks'])
-session.query(Houses).outerjoin([Colonials.rooms, Room.closets])
-session.query(Company).join([('employees', people.join(engineers)), Engineer.computers])
-</pre>
+<p>Usage is the same as the <tt class="docutils literal"><span class="pre">join()</span></tt> method.</p>
 
     </div>
     </div>
@@ -2141,9 +2179,10 @@ fully using session.expire_all().</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def query_from_parent(<i>cls</i>, <i>instance</i>, <i>property</i>, <i>**kwargs</i>)</b>
+    <b>def query_from_parent(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a new Query with criterion corresponding to a parent instance.</p>
+<blockquote>
 <p>Return a newly constructed Query object, with criterion corresponding
 to a relationship to the given parent instance.</p>
 <dl class="docutils">
@@ -2161,6 +2200,9 @@ Query.</dd>
 </dl>
 </dd>
 </dl>
+</blockquote>
+<p>deprecated.  use sqlalchemy.orm.with_parent in conjunction with
+filter().</p>
 
     </div>
     </div>
@@ -2184,39 +2226,6 @@ the root.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def scalar(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED.  use first()</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def select(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED.  use query.filter(whereclause).all(), or query.from_statement(statement).all()</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def select_by(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED. use use query.filter_by(**params).all().</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def select_from(<i>self</i>, <i>from_obj</i>)</b>
     <div class="docstring">
     <p>Set the <cite>from_obj</cite> parameter of the query and return the newly
@@ -2231,105 +2240,10 @@ from with the given table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def select_statement(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def slice(<i>self</i>, <i>start</i>, <i>stop</i>)</b>
     <div class="docstring">
-    <p>DEPRECATED.  Use query.from_statement(statement)</p>
+    <p>apply LIMIT/OFFSET to the <tt class="docutils literal"><span class="pre">Query</span></tt> based on a range and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def select_text(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED.  Use query.from_statement(statement)</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def select_whereclause(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED.  use query.filter(whereclause).all()</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def selectfirst(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED.  use query.filter(whereclause).first()</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def selectfirst_by(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED. Use query.filter_by(**kwargs).first()</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def selectone(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED.  use query.filter(whereclause).one()</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def selectone_by(<i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>DEPRECATED. Use query.filter_by(**kwargs).one()</p>
-
-    </div>
-    </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>session = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def starargs_as_list(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def starargs_as_list(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -2347,9 +2261,9 @@ from with the given table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def sum(<i>self</i>, <i>col</i>)</b>
+    <b>def subquery(<i>self</i>)</b>
     <div class="docstring">
-    <p>Execute the SQL <tt class="docutils literal"><span class="pre">sum()</span></tt> function against the given column.</p>
+    <p>return the full SELECT statement represented by this Query, embedded within an Alias.</p>
 
     </div>
     </div>
@@ -2358,9 +2272,9 @@ from with the given table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def values(<i>self</i>, <i>*columns</i>)</b>
+    <b>def update(<i>self</i>, <i>values</i>, <i>synchronize_session='evaluate'</i>)</b>
     <div class="docstring">
-    <p>Return an iterator yielding result tuples corresponding to the given list of columns</p>
+    <p>EXPERIMENTAL</p>
 
     </div>
     </div>
@@ -2385,6 +2299,23 @@ from with the given table.</p>
 
          </div> 
          </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def with_labels(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Apply column labels to the return value of Query.statement.</p>
+<p>Indicates that this Query's <cite>statement</cite> accessor should return a SELECT statement
+that applies labels to all columns in the form &lt;tablename&gt;_&lt;columnname&gt;; this
+is commonly used to disambiguate columns from multiple tables which have the
+same name.</p>
+<p>When the <cite>Query</cite> actually issues SQL to load rows, it always uses
+column labeling.</p>
+
+    </div>
+    </div>
 
                     
     <div class="darkcell">
