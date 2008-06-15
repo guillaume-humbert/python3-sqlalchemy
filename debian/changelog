@@ -1,3 +1,11 @@
+sqlalchemy (0.5.0~beta1-1) experimental; urgency=low
+
+  * New upstream release
+  * Standards-Version bumped to 3.8.0:
+    + debian/README.source file added
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 15 Jun 2008 20:06:03 +0200
+
 sqlalchemy (0.4.6-1) unstable; urgency=low
 
   * New upstream release
