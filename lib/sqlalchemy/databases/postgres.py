@@ -32,6 +32,10 @@ class PGInet(sqltypes.TypeEngine):
     def get_col_spec(self):
         return "INET"
 
+class PGCidr(sqltypes.TypeEngine):
+    def get_col_spec(self):
+        return "CIDR"
+
 class PGMacAddr(sqltypes.TypeEngine):
     def get_col_spec(self):
         return "MACADDR"
@@ -206,6 +210,7 @@ ischema_names = {
     'float' : PGFloat,
     'real' : PGFloat,
     'inet': PGInet,
+    'cidr': PGCidr,
     'macaddr': PGMacAddr,
     'double precision' : PGFloat,
     'timestamp' : PGDateTime,
@@ -219,16 +224,6 @@ ischema_names = {
     'boolean' : PGBoolean,
     'interval':PGInterval,
 }
-
-def descriptor():
-    return {'name':'postgres',
-    'description':'PostGres',
-    'arguments':[
-        ('username',"Database Username",None),
-        ('password',"Database Password",None),
-        ('database',"Database Name",None),
-        ('host',"Hostname", None),
-    ]}
 
 SERVER_SIDE_CURSOR_RE = re.compile(
     r'\s*SELECT',
@@ -278,7 +273,10 @@ class PGExecutionContext(default.DefaultExecutionContext):
             self.dialect.server_side_cursors and \
             ((self.compiled and isinstance(self.compiled.statement, expression.Selectable)) \
             or \
-            (not self.compiled and self.statement and SERVER_SIDE_CURSOR_RE.match(self.statement)))
+            (
+                (not self.compiled or isinstance(self.compiled.statement, expression._TextClause)) 
+                and self.statement and SERVER_SIDE_CURSOR_RE.match(self.statement))
+            )
 
         if self.__is_server_side:
             # use server-side cursors:
@@ -308,6 +306,7 @@ class PGExecutionContext(default.DefaultExecutionContext):
         super(PGExecutionContext, self).post_exec()
 
 class PGDialect(default.DefaultDialect):
+    name = 'postgres'
     supports_alter = True
     supports_unicode_statements = False
     max_identifier_length = 63
@@ -649,6 +648,7 @@ class PGCompiler(compiler.DefaultCompiler):
             sql_operators.mod : '%%',
             sql_operators.ilike_op: lambda x, y, escape=None: '%s ILIKE %s' % (x, y) + (escape and ' ESCAPE \'%s\'' % escape or ''),
             sql_operators.notilike_op: lambda x, y, escape=None: '%s NOT ILIKE %s' % (x, y) + (escape and ' ESCAPE \'%s\'' % escape or ''),
+            sql_operators.match_op: lambda x, y: '%s @@ to_tsquery(%s)' % (x, y),
         }
     )
 
@@ -750,7 +750,7 @@ class PGSchemaGenerator(compiler.SchemaGenerator):
         if index.unique:
             self.append("UNIQUE ")
         self.append("INDEX %s ON %s (%s)" \
-                    % (preparer.format_index(index),
+                    % (preparer.quote(self._validate_identifier(index.name, True), index.quote),
                        preparer.format_table(index.table),
                        string.join([preparer.format_column(c) for c in index.columns], ', ')))
         whereclause = index.kwargs.get('postgres_where', None)

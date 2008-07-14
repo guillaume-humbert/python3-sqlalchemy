@@ -17,6 +17,22 @@ class OrderedDictTest(TestBase):
         eq_(o.values(), [1, 2, 'attack', 3])
 
         o.pop('snack')
+        eq_(o.keys(), ['a', 'b', 'c'])
+        eq_(o.values(), [1, 2, 3])
+
+        try:
+            o.pop('eep')
+            assert False
+        except KeyError:
+            pass
+
+        eq_(o.pop('eep', 'woot'), 'woot')
+
+        try:
+            o.pop('whiff', 'bang', 'pow')
+            assert False
+        except TypeError:
+            pass
 
         eq_(o.keys(), ['a', 'b', 'c'])
         eq_(o.values(), [1, 2, 3])
@@ -664,7 +680,7 @@ class TestFormatArgspec(TestBase):
            grouped=False)
 
         test(lambda *a: None,
-           {'args': '(*a)', 'self_arg': None,
+           {'args': '(*a)', 'self_arg': 'a[0]',
             'apply_kw': '(*a)', 'apply_pos': '(*a)' })
 
         test(lambda **kw: None,
@@ -672,7 +688,7 @@ class TestFormatArgspec(TestBase):
             'apply_kw': '(**kw)', 'apply_pos': '(**kw)' })
 
         test(lambda *a, **kw: None,
-           {'args': '(*a, **kw)', 'self_arg': None,
+           {'args': '(*a, **kw)', 'self_arg': 'a[0]',
             'apply_kw': '(*a, **kw)', 'apply_pos': '(*a, **kw)' })
 
         test(lambda a, *b: None,

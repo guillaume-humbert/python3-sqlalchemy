@@ -176,6 +176,10 @@ class Table(SchemaItem, expression.TableClause):
             been defined elsewhere in the application, else an exception is
             raised.
 
+          prefixes
+            A list of strings to insert after CREATE in the CREATE TABLE
+            statement.  They will be separated by spaces.
+
           useexisting
             Defaults to False: indicates that if this Table was already
             defined elsewhere in the application, disregard the rest of the
@@ -185,14 +189,14 @@ class Table(SchemaItem, expression.TableClause):
             Deprecated; this is an oracle-only argument - "schema" should
             be used in its place.
 
-        quote
-          Force quoting of the identifier on or off, based on `True` or
-          `False`.  Defaults to `None`.  This flag is rarely needed,
-          as quoting is normally applied
-          automatically for known reserved words, as well as for
-          "case sensitive" identifiers.  An identifier is "case sensitive"
-          if it contains non-lowercase letters, otherwise it's
-          considered to be "case insensitive".
+          quote
+            Force quoting of the identifier on or off, based on `True` or
+            `False`.  Defaults to `None`.  This flag is rarely needed,
+            as quoting is normally applied
+            automatically for known reserved words, as well as for
+            "case sensitive" identifiers.  An identifier is "case sensitive"
+            if it contains non-lowercase letters, otherwise it's
+            considered to be "case insensitive".
 
           quote_schema
             same as 'quote' but applies to the schema identifier.
@@ -223,6 +227,8 @@ class Table(SchemaItem, expression.TableClause):
         self.quote_schema = kwargs.pop('quote_schema', None)
         if kwargs.get('info'):
             self._info = kwargs.pop('info')
+
+        self._prefixes = kwargs.pop('prefixes', [])
 
         self.__extra_kwargs(**kwargs)
 
@@ -789,12 +795,8 @@ class ForeignKey(SchemaItem):
     def _get_colspec(self):
         if isinstance(self._colspec, basestring):
             return self._colspec
-        elif self._colspec.table.schema is not None:
-            return "%s.%s.%s" % (self._colspec.table.schema,
-                                 self._colspec.table.name, self._colspec.key)
         else:
-            return "%s.%s" % (self._colspec.table.name, self._colspec.key)
-
+            return "%s.%s" % (self._colspec.table.fullname, self._colspec.key)
     target_fullname = property(_get_colspec)
 
     def references(self, table):

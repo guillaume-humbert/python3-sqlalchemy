@@ -222,6 +222,9 @@ class Query(object):
         return getattr(ent, 'extension', ent.mapper.extension)
 
     def _mapper_entities(self):
+        # TODO: this is wrong, its hardcoded to "priamry entity" when
+        # for the case of __all_equivs() it should not be
+        # the name of this accessor is wrong too
         for ent in self._entities:
             if hasattr(ent, 'primary_entity'):
                 yield ent
@@ -820,13 +823,13 @@ class Query(object):
                 if isinstance(onclause, interfaces.PropComparator):
                     clause = onclause.__clause_element__()
 
-                for ent in self._mapper_entities:
+                for ent in self._entities:
                     if ent.corresponds_to(left_entity):
                         clause = ent.selectable
                         break
 
             if not clause:
-                raise exc.InvalidRequestError("Could not find a FROM clause to join from")
+                raise sa_exc.InvalidRequestError("Could not find a FROM clause to join from")
 
             bogus, right_selectable, is_aliased_class = _entity_info(right_entity)
 
@@ -842,14 +845,14 @@ class Query(object):
                     right_entity = aliased(right_mapper, right_selectable)
                     alias_criterion = True
 
-                elif right_mapper.with_polymorphic or isinstance(right_mapper.mapped_table, expression.Join):
-                    aliased_entity = True
-                    right_entity = aliased(right_mapper)
-                    alias_criterion = True
-                
                 elif create_aliases:
                     right_entity = aliased(right_mapper)
                     alias_criterion = True
+
+                elif right_mapper.with_polymorphic or isinstance(right_mapper.mapped_table, expression.Join):
+                    right_entity = aliased(right_mapper)
+                    alias_criterion = True
+                    aliased_entity = True
                     
                 elif prop:
                     if prop.table in self.__currenttables:
@@ -873,7 +876,7 @@ class Query(object):
             if alias_criterion: 
                 self._filter_aliases = ORMAdapter(right_entity, 
                         equivalents=right_mapper._equivalent_columns, chain_to=self._filter_aliases)
-
+                
                 if aliased_entity:
                     self.__mapper_loads_polymorphically_with(right_mapper, ORMAdapter(right_entity, equivalents=right_mapper._equivalent_columns))
 
@@ -913,7 +916,8 @@ class Query(object):
     def __getitem__(self, item):
         if isinstance(item, slice):
             start, stop, step = util.decode_slice(item)
-            # if we slice from the end we need to execute the query
+            # if we slice from the end we need to execute the query before
+            # slicing
             if start < 0 or stop < 0:
                 return list(self)[item]
             else:
@@ -1039,28 +1043,16 @@ class Query(object):
 
     def _execute_and_instances(self, querycontext):
         result = self.session.execute(querycontext.statement, params=self._params, mapper=self._mapper_zero_or_none(), _state=self._refresh_state)
-        return self.iterate_instances(result, querycontext)
-
+        return self.instances(result, querycontext)
+    
     def instances(self, cursor, __context=None):
-        """Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as a list.
-
-        e.g.::
-        
-            result = engine.execute("select * from users")
-            users = session.query(User).instances(result)
-
-        """
-        return list(self.iterate_instances(cursor, __context))
-
-    def iterate_instances(self, cursor, __context=None):
         """Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as an iterator.
-        
-        e.g.::
-        
-            result = engine.execute("select * from users")
-            for u in session.query(User).iterate_instances(result):
-                print u
 
+        e.g.::
+
+            result = engine.execute("select * from users")
+            for u in session.query(User).instances(result):
+                print u
         """
         session = self.session
 
@@ -1089,7 +1081,7 @@ class Query(object):
             labels = dict([(label, property(util.itemgetter(i))) for i, label in enumerate(labels) if label])
             rowtuple = type.__new__(type, "RowTuple", (tuple,), labels)
             rowtuple.keys = labels.keys
-            
+        
         while True:
             context.progress = util.Set()
             context.partials = {}
@@ -1127,6 +1119,7 @@ class Query(object):
 
             if not self._yield_per:
                 break
+    iterate_instances = util.deprecated()(instances)
 
     def _get(self, key=None, ident=None, refresh_state=None, lockmode=None, only_load_props=None):
         lockmode = lockmode or self._lockmode
@@ -1172,7 +1165,11 @@ class Query(object):
 
         if lockmode is not None:
             q._lockmode = lockmode
-        q.__get_options(populate_existing=bool(refresh_state), version_check=(lockmode is not None), only_load_props=only_load_props, refresh_state=refresh_state)
+        q.__get_options(
+            populate_existing=bool(refresh_state), 
+            version_check=(lockmode is not None), 
+            only_load_props=only_load_props, 
+            refresh_state=refresh_state)
         q._order_by = None
         try:
             # call using all() to avoid LIMIT compilation complexity
@@ -1181,7 +1178,13 @@ class Query(object):
             return None
 
     def _select_args(self):
-        return {'limit':self._limit, 'offset':self._offset, 'distinct':self._distinct, 'group_by':self._group_by or None, 'having':self._having or None}
+        return {
+            'limit':self._limit, 
+            'offset':self._offset, 
+            'distinct':self._distinct, 
+            'group_by':self._group_by or None, 
+            'having':self._having or None
+        }
     _select_args = property(_select_args)
 
     def _should_nest_selectable(self):
@@ -1350,6 +1353,13 @@ class Query(object):
         
         self._adjust_for_single_inheritance(context)
         
+        if not context.primary_columns:
+            if self._only_load_props:
+                raise sa_exc.InvalidRequestError("No column-based properties specified for refresh operation."
+                " Use session.expire() to reload collections and related items.")
+            else:
+                raise sa_exc.InvalidRequestError("Query contains no columns with which to SELECT from.")
+            
         if eager_joins and self._should_nest_selectable:
             # for eager joins present and LIMIT/OFFSET/DISTINCT, wrap the query inside a select,
             # then append eager joins onto that
@@ -1390,8 +1400,7 @@ class Query(object):
             statement.append_from(from_clause)
 
             if context.order_by:
-                local_adapter = sql_util.ClauseAdapter(inner)
-                statement.append_order_by(*local_adapter.copy_and_process(context.order_by))
+                statement.append_order_by(*context.adapter.copy_and_process(context.order_by))
 
             statement.append_order_by(*context.eager_order_by)
         else:
@@ -1445,7 +1454,7 @@ class Query(object):
         self.logger.debug(msg)
 
     def __str__(self):
-        return str(self.compile())
+        return str(self._compile_context().statement)
 
 
 class _QueryEntity(object):
@@ -1567,7 +1576,7 @@ class _MapperEntity(_QueryEntity):
 
     def setup_context(self, query, context):
         adapter = self._get_entity_clauses(query, context)
-
+        
         context.froms.append(self.selectable)
 
         if context.order_by is False and self.mapper.order_by:
@@ -1579,7 +1588,14 @@ class _MapperEntity(_QueryEntity):
         for value in self.mapper._iterate_polymorphic_properties(self._with_polymorphic):
             if query._only_load_props and value.key not in query._only_load_props:
                 continue
-            value.setup(context, self, (self.path_entity,), adapter, only_load_props=query._only_load_props, column_collection=context.primary_columns)
+            value.setup(
+                context, 
+                self, 
+                (self.path_entity,), 
+                adapter, 
+                only_load_props=query._only_load_props, 
+                column_collection=context.primary_columns
+            )
 
     def __str__(self):
         return str(self.mapper)
@@ -1609,7 +1625,11 @@ class _ColumnEntity(_QueryEntity):
         self.column = column
         self.entity_name = None
         self.froms = util.Set()
-        self.entities = util.OrderedSet([elem._annotations['parententity'] for elem in visitors.iterate(column, {}) if 'parententity' in elem._annotations])
+        self.entities = util.OrderedSet([
+            elem._annotations['parententity'] for elem in visitors.iterate(column, {}) 
+            if 'parententity' in elem._annotations
+        ])
+        
         if self.entities:
             self.entity_zero = list(self.entities)[0]
         else:
@@ -1619,11 +1639,20 @@ class _ColumnEntity(_QueryEntity):
         self.selectable = from_obj
         self.froms.add(from_obj)
 
-    def __resolve_expr_against_query_aliases(self, query, expr, context):
+    def corresponds_to(self, entity):
+        if _is_aliased_class(entity):
+            return entity is self.entity_zero
+        else:
+            # TODO: this will fail with inheritance, entity_zero
+            # is not a base mapper.  MapperEntity has path_entity
+            # which serves this purpose (when saying: query(FooBar.somecol).join(SomeClass, FooBar.id==SomeClass.foo_id))
+            return entity.base_mapper is self.entity_zero
+
+    def _resolve_expr_against_query_aliases(self, query, expr, context):
         return query._adapt_clause(expr, False, True)
 
     def row_processor(self, query, context, custom_rows):
-        column = self.__resolve_expr_against_query_aliases(query, self.column, context)
+        column = self._resolve_expr_against_query_aliases(query, self.column, context)
 
         if context.adapter:
             column = context.adapter.columns[column]
@@ -1634,7 +1663,7 @@ class _ColumnEntity(_QueryEntity):
         return (proc, getattr(column, 'name', None))
 
     def setup_context(self, query, context):
-        column = self.__resolve_expr_against_query_aliases(query, self.column, context)
+        column = self._resolve_expr_against_query_aliases(query, self.column, context)
         context.froms += list(self.froms)
         context.primary_columns.append(column)
 

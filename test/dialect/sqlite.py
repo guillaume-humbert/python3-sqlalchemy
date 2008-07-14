@@ -11,26 +11,23 @@ from testlib import *
 class TestTypes(TestBase, AssertsExecutionResults):
     __only_on__ = 'sqlite'
 
-    def test_date(self):
-        meta = MetaData(testing.db)
-        t = Table('testdate', meta,
-                  Column('id', Integer, primary_key=True),
-                  Column('adate', Date),
-                  Column('adatetime', DateTime))
-        meta.create_all()
-        try:
-            d1 = datetime.date(2007, 10, 30)
-            d2 = datetime.datetime(2007, 10, 30)
-
-            t.insert().execute(adate=str(d1), adatetime=str(d2))
-
-            self.assert_(t.select().execute().fetchall()[0] ==
-                         (1, datetime.date(2007, 10, 30),
-                          datetime.datetime(2007, 10, 30)))
-
-        finally:
-            meta.drop_all()
-
+    def test_string_dates_raise(self):
+        self.assertRaises(TypeError, testing.db.execute, select([1]).where(bindparam("date", type_=Date)), date=str(datetime.date(2007, 10, 30)))
+    
+    def test_time_microseconds(self):
+        dt = datetime.datetime(2008, 6, 27, 12, 0, 0, 125)  # 125 usec
+        self.assertEquals(str(dt), '2008-06-27 12:00:00.000125')
+        sldt = sqlite.SLDateTime()
+        bp = sldt.bind_processor(None)
+        self.assertEquals(bp(dt), '2008-06-27 12:00:00.000125')
+        
+        rp = sldt.result_processor(None)
+        self.assertEquals(rp(bp(dt)), dt)
+        
+        sldt.__legacy_microseconds__ = True
+        self.assertEquals(bp(dt), '2008-06-27 12:00:00.125')
+        self.assertEquals(rp(bp(dt)), dt)
+        
     @testing.uses_deprecated('Using String type with no length')
     def test_type_reflection(self):
         # (ask_for, roundtripped_as_if_different)
@@ -297,6 +294,88 @@ class InsertTest(TestBase, AssertsExecutionResults):
 
         finally:
             tbl.drop()
+
+def full_text_search_missing():
+    """Test if full text search is not implemented and return False if 
+    it is and True otherwise."""
+
+    try:
+        testing.db.execute("CREATE VIRTUAL TABLE t using FTS3;")
+        testing.db.execute("DROP TABLE t;")
+        return False
+    except:
+        return True
+
+class MatchTest(TestBase, AssertsCompiledSQL):
+    __only_on__ = 'sqlite'
+    __skip_if__ = (full_text_search_missing, )
+
+    def setUpAll(self):
+        global metadata, cattable, matchtable
+        metadata = MetaData(testing.db)
+        
+        testing.db.execute("""
+        CREATE VIRTUAL TABLE cattable using FTS3 (
+            id INTEGER NOT NULL, 
+            description VARCHAR(50), 
+            PRIMARY KEY (id)
+        )
+        """)
+        cattable = Table('cattable', metadata, autoload=True)
+        
+        testing.db.execute("""
+        CREATE VIRTUAL TABLE matchtable using FTS3 (
+            id INTEGER NOT NULL, 
+            title VARCHAR(200),
+            category_id INTEGER NOT NULL, 
+            PRIMARY KEY (id)
+        )
+        """)
+        matchtable = Table('matchtable', metadata, autoload=True)
+        metadata.create_all()
+
+        cattable.insert().execute([
+            {'id': 1, 'description': 'Python'},
+            {'id': 2, 'description': 'Ruby'},
+        ])
+        matchtable.insert().execute([
+            {'id': 1, 'title': 'Agile Web Development with Rails', 'category_id': 2},
+            {'id': 2, 'title': 'Dive Into Python', 'category_id': 1},
+            {'id': 3, 'title': 'Programming Matz''s Ruby', 'category_id': 2},
+            {'id': 4, 'title': 'The Definitive Guide to Django', 'category_id': 1},
+            {'id': 5, 'title': 'Python in a Nutshell', 'category_id': 1}
+        ])
+
+    def tearDownAll(self):
+        metadata.drop_all()
+
+    def test_expression(self):
+        self.assert_compile(matchtable.c.title.match('somstr'), "matchtable.title MATCH ?")
+
+    def test_simple_match(self):
+        results = matchtable.select().where(matchtable.c.title.match('python')).order_by(matchtable.c.id).execute().fetchall()
+        self.assertEquals([2, 5], [r.id for r in results])
+
+    def test_simple_prefix_match(self):
+        results = matchtable.select().where(matchtable.c.title.match('nut*')).execute().fetchall()
+        self.assertEquals([5], [r.id for r in results])
+
+    def test_or_match(self):
+        results2 = matchtable.select().where(matchtable.c.title.match('nutshell OR ruby'), 
+                                            ).order_by(matchtable.c.id).execute().fetchall()
+        self.assertEquals([3, 5], [r.id for r in results2])
+        
+
+    def test_and_match(self):
+        results2 = matchtable.select().where(matchtable.c.title.match('python nutshell'), 
+                                            ).execute().fetchall()
+        self.assertEquals([5], [r.id for r in results2])
+
+    def test_match_across_joins(self):
+        results = matchtable.select().where(and_(cattable.c.id==matchtable.c.category_id, 
+                                            cattable.c.description.match('Ruby'))
+                                           ).order_by(matchtable.c.id).execute().fetchall()
+        self.assertEquals([1, 3], [r.id for r in results])
 
 
 if __name__ == "__main__":

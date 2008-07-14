@@ -1,7 +1,9 @@
 import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
 from sqlalchemy.orm import *
+from sqlalchemy.orm import exc as orm_exc
 from testlib import *
+from sqlalchemy.orm import attributes
 
 class ConcreteTest(ORMTest):
     def define_tables(self, metadata):
@@ -133,10 +135,23 @@ class ConcreteTest(ORMTest):
                                concrete=True, polymorphic_identity='hacker')
 
         session = create_session()
-        session.save(Manager('Tom', 'knows how to manage things'))
-        session.save(Engineer('Jerry', 'knows how to program'))
-        session.save(Hacker('Kurt', 'Badass', 'knows how to hack'))
+        tom = Manager('Tom', 'knows how to manage things')
+        jerry = Engineer('Jerry', 'knows how to program')
+        hacker = Hacker('Kurt', 'Badass', 'knows how to hack')
+        session.add_all((tom, jerry, hacker))
         session.flush()
+
+        # ensure "readonly" on save logic didn't pollute the expired_attributes
+        # collection
+        assert 'nickname' not in attributes.instance_state(jerry).expired_attributes
+        assert 'name' not in attributes.instance_state(jerry).expired_attributes
+        assert 'name' not in attributes.instance_state(hacker).expired_attributes
+        assert 'nickname' not in attributes.instance_state(hacker).expired_attributes
+        def go():
+            self.assertEquals(jerry.name, "Jerry")
+            self.assertEquals(hacker.nickname, "Badass")
+        self.assert_sql_count(testing.db, go, 0)
+        
         session.clear()
 
         assert set([repr(x) for x in session.query(Employee).all()]) == set(["Engineer Jerry knows how to program", "Manager Tom knows how to manage things", "Hacker Kurt 'Badass' knows how to hack"])

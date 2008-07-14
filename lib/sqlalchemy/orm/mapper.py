@@ -82,7 +82,6 @@ class Mapper(object):
                  inherit_foreign_keys = None,
                  extension = None,
                  order_by = False,
-                 allow_column_override = False,
                  entity_name = None,
                  always_refresh = False,
                  version_id_col = None,
@@ -127,7 +126,6 @@ class Mapper(object):
         self.inherit_foreign_keys = inherit_foreign_keys
         self.extension = extension
         self._init_properties = properties or {}
-        self.allow_column_override = allow_column_override
         self.allow_null_pks = allow_null_pks
         self.delete_orphans = []
         self.batch = batch
@@ -138,7 +136,7 @@ class Mapper(object):
         self._clause_adapter = None
         self._requires_row_aliasing = False
         self.__inherits_equated_pairs = None
-
+        
         if not issubclass(class_, object):
             raise sa_exc.ArgumentError("Class '%s' is not a new-style class" % class_.__name__)
 
@@ -368,7 +366,7 @@ class Mapper(object):
             for mapper in list(_mapper_registry):
                 if not mapper.compiled:
                     mapper.__initialize_properties()
-
+                    
             _new_mappers = False
             return self
         finally:
@@ -521,7 +519,15 @@ class Mapper(object):
                 # ordering is important since it determines the ordering of mapper.primary_key (and therefore query.get())
                 self._pks_by_table[t] = util.OrderedSet(t.primary_key).intersection(pk_cols)
             self._cols_by_table[t] = util.OrderedSet(t.c).intersection(all_cols)
-
+        
+        # determine cols that aren't expressed within our tables; 
+        # mark these as "read only" properties which are refreshed upon 
+        # INSERT/UPDATE
+        self._readonly_props = util.Set([
+            self._columntoproperty[col] for col in self._columntoproperty if 
+                not hasattr(col, 'table') or col.table not in self._cols_by_table
+        ])
+        
         # if explicit PK argument sent, add those columns to the primary key mappings
         if self.primary_key_argument:
             for k in self.primary_key_argument:
@@ -709,10 +715,7 @@ class Mapper(object):
                     mapped_column.append(mc)
                 prop = ColumnProperty(*mapped_column)
             else:
-                if not self.allow_column_override:
-                    raise sa_exc.ArgumentError("WARNING: column '%s' not being added due to property '%s'.  Specify 'allow_column_override=True' to mapper() to ignore this condition." % (column.key, repr(prop)))
-                else:
-                    return
+                raise sa_exc.ArgumentError("WARNING: column '%s' conflicts with property '%s'.  To resolve this, map the column to the class under a different name in the 'properties' dictionary.  Or, to remove all awareness of the column entirely (including its availability as a foreign key), use the 'include_properties' or 'exclude_properties' mapper arguments to control specifically which table columns get mapped." % (column.key, repr(prop)))
 
         if isinstance(prop, ColumnProperty):
             col = self.mapped_table.corresponding_column(prop.columns[0])
@@ -720,6 +723,13 @@ class Mapper(object):
             # columns (included in zblog tests)
             if col is None:
                 col = prop.columns[0]
+                
+                # column is coming in after _readonly_props was initialized; check
+                # for 'readonly'
+                if hasattr(self, '_readonly_props') and \
+                    (not hasattr(col, 'table') or col.table not in self._cols_by_table):
+                        self._readonly_props.add(prop)
+                    
             else:
                 # if column is coming in after _cols_by_table was initialized, ensure the col is in the
                 # right set
@@ -1169,10 +1179,27 @@ class Mapper(object):
 
                     # testlib.pragma exempt:__hash__
                     inserted_objects.add((state, connection))
-
+        
         if not postupdate:
-            # call after_XXX extensions
             for state, mapper, connection, has_identity in tups:
+                
+                # expire readonly attributes
+                readonly = state.unmodified.intersection([
+                    p.key for p in mapper._readonly_props
+                ])
+                
+                if readonly:
+                    _expire_state(state, readonly)
+
+                # if specified, eagerly refresh whatever has
+                # been expired.
+                if self.eager_defaults and state.unloaded:
+                    state.key = self._identity_key_from_state(state)
+                    uowtransaction.session.query(self)._get(
+                        state.key, refresh_state=state,
+                        only_load_props=state.unloaded)
+                
+                # call after_XXX extensions
                 if not has_identity:
                     if 'after_insert' in mapper.extension.methods:
                         mapper.extension.after_insert(mapper, connection, state.obj())
@@ -1184,12 +1211,13 @@ class Mapper(object):
         sync.populate(state, self, state, self, self.__inherits_equated_pairs)
 
     def __postfetch(self, uowtransaction, connection, table, state, resultproxy, params, value_params):
-        """After an ``INSERT`` or ``UPDATE``, assemble newly generated
-        values on an instance.  For columns which are marked as being generated
-        on the database side, set up a group-based "deferred" loader
-        which will populate those attributes in one query when next accessed.
+        """For a given Table that has just been inserted/updated,
+        mark as 'expired' those attributes which correspond to columns
+        that are marked as 'postfetch', and populate attributes which 
+        correspond to columns marked as 'prefetch' or were otherwise generated
+        within _save_obj().
+        
         """
-
         postfetch_cols = resultproxy.postfetch_cols()
         generated_cols = list(resultproxy.prefetch_cols())
 
@@ -1197,6 +1225,7 @@ class Mapper(object):
             po = table.corresponding_column(self.polymorphic_on)
             if po:
                 generated_cols.append(po)
+
         if self.version_id_col:
             generated_cols.append(self.version_id_col)
 
@@ -1205,15 +1234,9 @@ class Mapper(object):
                 self._set_state_attr_by_column(state, c, params[c.key])
 
         deferred_props = [prop.key for prop in [self._columntoproperty[c] for c in postfetch_cols]]
-
+        
         if deferred_props:
-            if self.eager_defaults:
-                state.key = self._identity_key_from_state(state)
-                uowtransaction.session.query(self)._get(
-                    state.key, refresh_state=state,
-                    only_load_props=deferred_props)
-            else:
-                _expire_state(state, deferred_props)
+            _expire_state(state, deferred_props)
 
     def _delete_obj(self, states, uowtransaction):
         """Issue ``DELETE`` statements for a list of objects.
@@ -1473,16 +1496,15 @@ class Mapper(object):
 
             else:
                 # populate attributes on non-loading instances which have been expired
-                # TODO: also support deferred attributes here [ticket:870]
                 # TODO: apply eager loads to un-lazy loaded collections ?
-                # we might want to create an expanded form of 'state.expired_attributes' which includes deferred/un-lazy loaded
-                if state.expired_attributes:
+                if state in context.partials or state.unloaded:
+                        
                     if state in context.partials:
                         isnew = False
                         attrs = context.partials[state]
                     else:
                         isnew = True
-                        attrs = state.expired_attributes.intersection(state.unmodified)
+                        attrs = state.unloaded
                         context.partials[state] = attrs  #<-- allow query.instances to commit the subset of attrs
 
                     if not populate_instance or extension.populate_instance(self, context, row, instance, only_load_props=attrs, instancekey=identitykey, isnew=isnew) is EXT_CONTINUE:

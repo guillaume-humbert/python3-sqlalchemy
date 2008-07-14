@@ -1,4 +1,3 @@
-# exceptions.py - exceptions for SQLAlchemy
 # Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
@@ -8,7 +7,7 @@
 
 The base exception class is SQLAlchemyError.  Exceptions which are raised as a
 result of DBAPI exceptions are all subclasses of
-[sqlalchemy.exceptions#DBAPIError].
+[sqlalchemy.exc#DBAPIError].
 
 """
 
@@ -32,6 +31,8 @@ class CircularDependencyError(SQLAlchemyError):
 class CompileError(SQLAlchemyError):
     """Raised when an error occurs during SQL compilation"""
 
+class IdentifierError(SQLAlchemyError):
+    """Raised when a schema name is beyond the max character limit"""
 
 # Moved to orm.exc; compatability definition installed by orm import until 0.6
 ConcurrentModificationError = None

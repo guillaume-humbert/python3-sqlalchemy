@@ -3,9 +3,106 @@
 =======
 CHANGES
 =======
+0.5beta2
+========
+    - 0.5beta2 includes all bugfixes listed under release 
+      "0.4.7".
 
+- orm
+    - In addition to expired attributes, deferred attributes
+      also load if their data is present in the result set.
+      [ticket:870]
+    
+    - session.refresh() raises an informative error message if
+      the list of attributes does not include any column-based
+      attributes.
+    
+    - query() raises an informative error message if no columns
+      or mappers are specified.
+      
+    - lazy loaders now trigger autoflush before proceeding.  This
+      allows expire() of a collection or scalar relation to 
+      function properly in the context of autoflush.
+      
+    - column_property() attributes which represent SQL expressions
+      or columns that are not present in the mapped tables
+      (such as those from views) are automatically expired
+      after an INSERT or UPDATE, assuming they have not been
+      locally modified, so that they are refreshed with the
+      most recent data upon access.  [ticket:887]
+
+    - Fixed explicit, self-referential joins between two 
+      joined-table inheritance mappers when using 
+      query.join(cls, aliased=True).  [ticket:1082]
+
+    - Fixed query.join() when used in conjunction with a
+      columns-only clause and an SQL-expression 
+      ON clause in the join.
+      
+    - The "allow_column_override" flag from mapper() has
+      been removed.  This flag is virtually always misunderstood.
+      Its specific functionality is available via the 
+      include_properties/exclude_properties mapper arguments.
+      
+    - Repaired `__str__()` method on Query. [ticket:1066]
+
+    - Session.bind gets used as a default even when table/mapper
+      specific binds are defined.
+
+- schema
+    - Added prefixes option to `Table` that accepts a list of 
+      strings to insert after CREATE in the CREATE TABLE statement.
+      [ticket:1075]
+
+    - Unicode, UnicodeText types now set "assert_unicode" and
+      "convert_unicode" by default, but accept overriding
+      **kwargs for these values.
+
+- sql
+    - Added new match() operator that performs a full-text search.
+      Supported on PostgreSQL, SQLite, MySQL, MS-SQL, and Oracle
+      backends.
+
+- sqlite
+    - Modified SQLite's representation of "microseconds" to 
+      match the output of str(somedatetime), i.e. in that the
+      microseconds are represented as fractional seconds in
+      string format.  This makes SQLA's SQLite date type
+      compatible with datetimes that were saved directly
+      using Pysqlite (which just calls str()).  
+      Note that this is incompatible with the existing microseconds
+      values in a SQLA 0.4 generated SQLite database file.
+      
+      To get the old behavior globally:
+      
+           from sqlalchemy.databases.sqlite import DateTimeMixin
+           DateTimeMixin.__legacy_microseconds__ = True
+           
+      To get the behavior on individual DateTime types:
+      
+            t = sqlite.SLDateTime()
+            t.__legacy_microseconds__ = True
+            
+      Then use "t" as the type on the Column.
+           
+      [ticket:1090]
+
+    - SQLite Date, DateTime, and Time types only accept Python
+      datetime objects now, not strings.  If you'd like to format
+      dates as strings yourself with SQLite, use a String type.
+      If you'd like them to return datetime objects anyway despite 
+      their accepting strings as input, make a TypeDecorator around 
+      String - SQLA doesn't encourage this pattern.
+
+- extensions
+    - Declarative supports a __table_args__ class variable, which
+      is either a dictionary, or tuple of the form
+      (arg1, arg2, ..., {kwarg1:value, ...}) which contains 
+      positional + kw arguments to be passed to the Table 
+      constructor. [ticket:1096]
+      
 0.5beta1
-==================
+========
     - An ongoing document describing the changes from 0.4 to 0.5
       is at:  http://www.sqlalchemy.org/trac/wiki/05Migration
 
@@ -83,7 +180,36 @@ CHANGES
       Totally unrelated types, or subtypes not set up with
       mapper inheritance against the target mapper are 
       still not allowed.
+
+    - Added is_active flag to Sessions to detect when 
+      a transaction is in progress [ticket:976].  This
+      flag is always True with a "transactional" 
+      (in 0.5 a non-"autocommit") Session.
+
+- schema
+    - create_all(), drop_all(), create(), drop() all raise
+      an error if the table name or schema name contains
+      more characters than that dialect's configured
+      character limit.  Some DB's can handle too-long
+      table names during usage, and SQLA can handle this
+      as well. But various reflection/
+      checkfirst-during-create scenarios fail since we are
+      looking for the name within the DB's catalog tables.
+      [ticket:571]
+
+    - The index name generated when you say "index=True"
+      on a Column is truncated to the length appropriate
+      for the dialect. Additionally, an Index with a too-
+      long name cannot be explicitly dropped with
+      Index.drop(), similar to [ticket:571].
+      [ticket:820]
       
+- postgres
+    - Repaired server_side_cursors to properly detect 
+      text() clauses.
+
+    - Added PGCidr type. [ticket:1092] 
+
 - mysql
     - Added 'CALL' to the list of SQL keywords which return
       result rows.
@@ -109,6 +235,11 @@ CHANGES
       that row request (so BufferedColumnRow is still needed, 
       but less so). [ticket:1062]
 
+- sqlite
+      - add SLFloat type, which matches the SQLite REAL 
+        type affinity.  Previously, only SLNumeric was provided
+        which fulfills NUMERIC affinity, but that's not the 
+        same as REAL.
 
 0.4.6
 =====
@@ -145,9 +276,9 @@ CHANGES
       class, not the mapped selectable, as the source of column
       attributes - so a warning is still issued.
 
-    - fixes to the "exists" function involving inheritance (any(), has(),
-      ~contains()); the full target join will be rendered into the
-      EXISTS clause for relations that link to subclasses.
+    - fixes to the "exists" function involving inheritance (any(), 
+      has(), ~contains()); the full target join will be rendered 
+      into the EXISTS clause for relations that link to subclasses.
       
     - restored usage of append_result() extension method for primary 
       query rows, when the extension is present and only a single-

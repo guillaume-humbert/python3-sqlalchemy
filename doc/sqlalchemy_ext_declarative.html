@@ -30,7 +30,10 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
+<div class="versionheader">
+  Version: <span class="versionnum prerelease">0.5.0beta2</span>
+  Last Updated: 07/14/08 16:12:25
+</div>
 
 
 
@@ -248,10 +251,19 @@ class MyClass(Base):
         Column('name', String(50))
     )
 </pre>
-<p>This is the preferred approach when using reflected tables, as below:</p>
+<p>Other table-based attributes include <tt class="docutils literal"><span class="pre">__table_args__</span></tt>, which is
+either a dictionary as in:</p>
 <pre class="literal-block">
-class MyClass(Base):
-    __table__ = Table('my_table', Base.metadata, autoload=True)
+class MyClass(Base)
+    __tablename__ = 'sometable'
+    __table_args__ = {'mysql_engine':'InnoDB'}
+</pre>
+<p>or a dictionary-containing tuple in the form
+<tt class="docutils literal"><span class="pre">(arg1,</span> <span class="pre">arg2,</span> <span class="pre">...,</span> <span class="pre">{kwarg1:value,</span> <span class="pre">...})</span></tt>, as in:</p>
+<pre class="literal-block">
+class MyClass(Base)
+    __tablename__ = 'sometable'
+    __table_args__ = (ForeignKeyConstraint(['id'], ['remote_table.id']), {'autoload':True})
 </pre>
 <p>Mapper arguments are specified using the <tt class="docutils literal"><span class="pre">__mapper_args__</span></tt> class variable.
 Note that the column objects declared on the class are immediately usable, as
@@ -310,7 +322,7 @@ Base = declarative_base()
     <div class="docstring">
     <p>Decorator, allow a Python &#64;property to be used in query criteria.</p>
 <p>A decorator front end to <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_comparable_property">comparable_property()</a>, passes
-throgh the comparator_factory and the function being decorated:</p>
+through the comparator_factory and the function being decorated:</p>
 <pre class="literal-block">
 &#64;comparable_using(MyComparatorType)
 &#64;property

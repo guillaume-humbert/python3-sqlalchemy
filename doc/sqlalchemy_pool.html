@@ -30,7 +30,10 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
+<div class="versionheader">
+  Version: <span class="versionnum prerelease">0.5.0beta2</span>
+  Last Updated: 07/14/08 16:12:25
+</div>
 
 
 
@@ -415,7 +418,7 @@ a connection from the pool, and then while still holding on to
 that connection, to call other functions which also ask the pool
 for a connection of the same arguments; those functions will act
 upon the same connection that the calling method is using.
-Defaults to True.</dd>
+Defaults to False.</dd>
 <dt>recycle</dt>
 <dd>If set to non -1, a number of seconds between connection
 recycling, which means upon checkout, if this timeout is

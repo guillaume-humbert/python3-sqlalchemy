@@ -3,6 +3,7 @@ LICENSE
 MANIFEST.in
 README
 README.unittests
+README_THIS_IS_NOW_VERSION_0.5.txt
 VERSION
 ez_setup.py
 setup.py

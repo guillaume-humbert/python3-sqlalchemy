@@ -1380,16 +1380,6 @@ ischema_names = {
     'year': MSYear,
 }
 
-def descriptor():
-    return {'name':'mysql',
-    'description':'MySQL',
-    'arguments':[
-        ('username',"Database Username",None),
-        ('password',"Database Password",None),
-        ('database',"Database Name",None),
-        ('host',"Hostname", None),
-    ]}
-
 
 class MySQLExecutionContext(default.DefaultExecutionContext):
     def post_exec(self):
@@ -1413,7 +1403,7 @@ class MySQLExecutionContext(default.DefaultExecutionContext):
 
 class MySQLDialect(default.DefaultDialect):
     """Details of the MySQL dialect.  Not used directly in application code."""
-
+    name = 'mysql'
     supports_alter = True
     supports_unicode_statements = False
     # identifiers are 64, however aliases can be 255...
@@ -1897,7 +1887,8 @@ class MySQLCompiler(compiler.DefaultCompiler):
     operators = compiler.DefaultCompiler.operators.copy()
     operators.update({
         sql_operators.concat_op: lambda x, y: "concat(%s, %s)" % (x, y),
-        sql_operators.mod: '%%'
+        sql_operators.mod: '%%',
+        sql_operators.match_op: lambda x, y: "MATCH (%s) AGAINST (%s IN BOOLEAN MODE)" % (x, y)
     })
     functions = compiler.DefaultCompiler.functions.copy()
     functions.update ({
@@ -2062,7 +2053,7 @@ class MySQLSchemaGenerator(compiler.SchemaGenerator):
 class MySQLSchemaDropper(compiler.SchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX %s ON %s" %
-                    (self.preparer.format_index(index),
+                    (self.preparer.quote(self._validate_identifier(index.name, False), index.quote),
                      self.preparer.format_table(index.table)))
         self.execute()
 
