@@ -213,6 +213,12 @@ class OracleExecutionContext(default.DefaultExecutionContext):
                     self.out_parameters[name] = self.cursor.var(dbtype)
                     self.parameters[0][name] = self.out_parameters[name]
 
+    def create_cursor(self):
+        c = self._connection.connection.cursor()
+        if self.dialect.arraysize:
+            c.cursor.arraysize = self.dialect.arraysize
+        return c
+
     def get_result_proxy(self):
         if hasattr(self, 'out_parameters'):
             if self.compiled_parameters is not None and len(self.compiled_parameters) == 1:
@@ -242,10 +248,11 @@ class OracleDialect(default.DefaultDialect):
     supports_pk_autoincrement = False
     default_paramstyle = 'named'
 
-    def __init__(self, use_ansi=True, auto_setinputsizes=True, auto_convert_lobs=True, threaded=True, allow_twophase=True, **kwargs):
+    def __init__(self, use_ansi=True, auto_setinputsizes=True, auto_convert_lobs=True, threaded=True, allow_twophase=True, arraysize=50, **kwargs):
         default.DefaultDialect.__init__(self, **kwargs)
         self.use_ansi = use_ansi
         self.threaded = threaded
+        self.arraysize = arraysize
         self.allow_twophase = allow_twophase
         self.supports_timestamp = self.dbapi is None or hasattr(self.dbapi, 'TIMESTAMP' )
         self.auto_setinputsizes = auto_setinputsizes
@@ -357,7 +364,9 @@ class OracleDialect(default.DefaultDialect):
         return OracleExecutionContext(self, *args, **kwargs)
 
     def has_table(self, connection, table_name, schema=None):
-        cursor = connection.execute("""select table_name from all_tables where table_name=:name""", {'name':self._denormalize_name(table_name)})
+        if not schema:
+            schema = self.get_default_schema_name(connection)
+        cursor = connection.execute("""select table_name from all_tables where table_name=:name and owner=:schema_name""", {'name':self._denormalize_name(table_name), 'schema_name':self._denormalize_name(schema)})
         return bool( cursor.fetchone() is not None )
 
     def has_sequence(self, connection, sequence_name):
@@ -381,7 +390,7 @@ class OracleDialect(default.DefaultDialect):
             return name.encode(self.encoding)
 
     def get_default_schema_name(self, connection):
-        return connection.execute('SELECT USER FROM DUAL').scalar()
+        return self._normalize_name(connection.execute('SELECT USER FROM DUAL').scalar())
     get_default_schema_name = base.connection_memoize(
         ('dialect', 'default_schema_name'))(get_default_schema_name)
 
@@ -452,7 +461,7 @@ class OracleDialect(default.DefaultDialect):
         if not dblink:
             dblink = ''
         if not owner:
-            owner = self._denormalize_name(table.schema) or self.get_default_schema_name(connection)
+            owner = self._denormalize_name(table.schema or self.get_default_schema_name(connection))
 
         c = connection.execute ("select COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE, DATA_DEFAULT from ALL_TAB_COLUMNS%(dblink)s where TABLE_NAME = :table_name and OWNER = :owner" % {'dblink':dblink}, {'table_name':actual_name, 'owner':owner})
 

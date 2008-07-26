@@ -221,7 +221,7 @@ AUTOCOMMIT_RE = re.compile(
     r'\s*(?:UPDATE|INSERT|CREATE|DELETE|DROP|ALTER|LOAD +DATA|REPLACE)',
     re.I | re.UNICODE)
 SELECT_RE = re.compile(
-    r'\s*(?:SELECT|SHOW|DESCRIBE|XA RECOVER)',
+    r'\s*(?:SELECT|SHOW|DESCRIBE|XA RECOVER|CALL)',
     re.I | re.UNICODE)
 SET_RE = re.compile(
     r'\s*SET\s+(?:(?:GLOBAL|SESSION)\s+)?\w',
@@ -2064,7 +2064,7 @@ class MySQLSchemaGenerator(compiler.SchemaGenerator):
 class MySQLSchemaDropper(compiler.SchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX %s ON %s" %
-                    (self.preparer.format_index(index),
+                    (self.preparer.quote(index, self._validate_identifier(index.name, False)),
                      self.preparer.format_table(index.table)))
         self.execute()
 

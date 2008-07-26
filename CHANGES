@@ -2,6 +2,142 @@
 CHANGES
 =======
 
+0.4.7
+=====
+- orm
+    - The contains() operator when used with many-to-many
+      will alias() the secondary (association) table so
+      that multiple contains() calls will not conflict
+      with each other [ticket:1058]
+
+    - A critical fix to dynamic relations allows the 
+      "modified" history to be properly cleared after
+      a flush() (backported from 0.5).
+
+    - added add() and add_all() methods to Session,
+      establishing forwards compatibility with 0.5.
+      
+    - fixed bug preventing merge() from functioning in 
+      conjunction with a comparable_property()
+
+    - Query.count() will take single-table inheritance
+      subtypes into account the same way row-based
+      results do. [ticket:1008]
+
+    - the enable_typechecks=False setting on relation()
+      now only allows subtypes with inheriting mappers.  
+      Totally unrelated types, or subtypes not set up with
+      mapper inheritance against the target mapper are 
+      still not allowed.
+
+    - Added is_active flag to Sessions to detect when 
+      a transaction is in progress [ticket:976].  This
+      flag is always True with a "transactional" 
+      (in 0.5 a non-"autocommit") Session.
+
+    - Removed erroneous 'self' reference when raising
+      UnmappedColumnError during flush() operation.
+
+    - Added a new SessionExtension hook called after_attach().
+      This is called at the point of attachment for objects
+      via save(), update(), delete(), and merge() 
+      (backported from 0.5).
+
+- sql
+    - Fixed bug when calling select([literal('foo')])
+      or select([bindparam('foo')]).
+      
+- schema
+    - create_all(), drop_all(), create(), drop() all raise
+      an error if the table name or schema name contains
+      more characters than that dialect's configured
+      character limit.  Some DB's can handle too-long
+      table names during usage, and SQLA can handle this
+      as well. But various reflection/
+      checkfirst-during-create scenarios fail since we are
+      looking for the name within the DB's catalog tables.
+      [ticket:571]
+
+    - The index name generated when you say "index=True"
+      on a Column is truncated to the length appropriate
+      for the dialect. Additionally, an Index with a too-
+      long name cannot be explicitly dropped with
+      Index.drop(), similar to [ticket:571].
+      [ticket:820]
+      
+- postgres
+    - Repaired server_side_cursors to properly detect 
+      text() clauses.
+
+    - Added PGCidr type. [ticket:1092] 
+
+- mysql
+    - Added 'CALL' to the list of SQL keywords which return
+      result rows.
+
+- oracle
+    - Oracle get_default_schema_name() "normalizes" the name
+      before returning, meaning it returns a lower-case name
+      when the identifier is detected as case insensitive.
+
+    - Creating/dropping tables takes schema name into account
+      when searching for the existing table, so that tables
+      in other owner namespaces with the same name do not
+      conflict. [ticket:709]
+
+    - Cursors now have "arraysize" set to 50 by default on 
+      them, the value of which is configurable using the 
+      "arraysize" argument to create_engine() with the
+      Oracle dialect.  This to account for cx_oracle's default 
+      setting of "1", which has the effect of many round trips 
+      being sent to Oracle.  This actually works well in 
+      conjunction with BLOB/CLOB-bound cursors, of which 
+      there are any number available but only for the life of 
+      that row request (so BufferedColumnRow is still needed, 
+      but less so). [ticket:1062]
+
+- sqlite
+    - SQLite supports a "forwards compatible" mode for its
+      DateTime and Time types, regarding the representation of
+      microseconds.  When the mode is enabled, microseconds 
+      are represented as fractional seconds in string format.  
+      This makes SQLA's SQLite date type compatible with datetimes 
+      that were saved directly using Pysqlite (which just calls 
+      str()).  This mode is the default in 0.5, where the 
+      same selector flag exists with the reverse default value.
+
+      To get the new behavior globally:
+
+         from sqlalchemy.databases.sqlite import DateTimeMixin
+         DateTimeMixin.__legacy_microseconds__ = False
+
+      To get the behavior on individual DateTime types:
+
+          t = sqlite.SLDateTime()
+          t.__legacy_microseconds__ = False
+
+      Then use "t" as the type on the Column.
+
+      [ticket:1090]
+
+    - add SLFloat type, which matches the SQLite REAL 
+      type affinity.  Previously, only SLNumeric was provided
+      which fulfills NUMERIC affinity, but that's not the 
+      same as REAL.
+
+- extensions
+    - Merged 0.5's declarative behavior such that all 
+      Column and MapperProperty objects keep a state
+      variable indicating their creation order, which 
+      declarative_base() maintains when generating
+      Table constructs.
+
+    - Class-bound attributes sent as arguments to 
+      relation()'s remote_side and foreign_keys parameters 
+      are now accepted, allowing them to be used with 
+      declarative (and therefore self-referential many-to-one
+      relations); merged from 0.5.
+      
 0.4.6
 =====
 - orm

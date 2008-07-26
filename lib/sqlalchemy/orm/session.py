@@ -135,6 +135,9 @@ class SessionExtension(object):
         engine level transaction is begun on a connection.
         """
 
+    def after_attach(self, session, instance):
+        """Execute after an instance is attached to a session."""
+
 class SessionTransaction(object):
     """Represents a Session-level Transaction.
 
@@ -788,16 +791,10 @@ class Session(object):
     def get(self, class_, ident, **kwargs):
         """Return an instance of the object based on the given
         identifier, or ``None`` if not found.
+        
+        DEPRECATED.  use session.query(class_).get(ident)
 
-        The `ident` argument is a scalar or tuple of primary key
-        column values in the order of the table def's primary key
-        columns.
-
-        The `entity_name` keyword argument may also be specified which
-        further qualifies the underlying Mapper used to perform the
-        query.
         """
-
         entity_name = kwargs.pop('entity_name', None)
         return self.query(class_, entity_name=entity_name).get(ident, **kwargs)
 
@@ -805,17 +802,9 @@ class Session(object):
         """Return an instance of the object based on the given
         identifier.
 
-        If not found, raises an exception.  The method will **remove
-        all pending changes** to the object already existing in the
-        ``Session``.  The `ident` argument is a scalar or tuple of primary
-        key columns in the order of the table def's primary key
-        columns.
+        DEPRECATED.  use session.query(class_).populate_existing().get(ident).
 
-        The `entity_name` keyword argument may also be specified which
-        further qualifies the underlying ``Mapper`` used to perform the
-        query.
         """
-
         entity_name = kwargs.pop('entity_name', None)
         return self.query(class_, entity_name=entity_name).load(ident, **kwargs)
 
@@ -940,6 +929,23 @@ class Session(object):
 
         self._save_or_update_impl(instance, entity_name=entity_name)
         self._cascade_save_or_update(instance)
+
+    def add(self, instance, entity_name=None):
+        """Add the given instance into this ``Session``.
+
+        This provides forwards compatibility with 0.5.
+
+        """
+        self.save_or_update(instance, entity_name)
+
+    def add_all(self, instances):
+        """Add the given collection of instances to this ``Session``.
+        
+        This provides forwards compatibility with 0.5.
+        """
+
+        for instance in instances:
+            self.add(instance)
 
     def _cascade_save_or_update(self, instance):
         for obj, mapper in _cascade_iterator('save-update', instance, halt_on=lambda c:c in self):
@@ -1137,6 +1143,9 @@ class Session(object):
                 self.identity_map[key] = instance
             instance._sa_session_id = self.hash_key
 
+            if self.extension is not None:
+                self.extension.after_attach(self, instance)
+
     def _unattach(self, instance):
         if instance._sa_session_id == self.hash_key:
             del instance._sa_session_id
@@ -1187,7 +1196,13 @@ class Session(object):
             if added or deleted:
                 return True
         return False
-
+    
+    def is_active(self):
+        """return True if this Session has an active transaction."""
+        
+        return self.transaction and self.transaction.is_active
+    is_active = property(is_active)
+    
     def dirty(self):
         """Return a ``Set`` of all instances marked as 'dirty' within this ``Session``.
 

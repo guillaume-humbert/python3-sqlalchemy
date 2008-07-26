@@ -12,7 +12,7 @@ invidual ORM-mapped attributes.
 
 from sqlalchemy import sql, schema, util, exceptions, logging
 from sqlalchemy.sql.util import ClauseAdapter, criterion_as_pairs, find_columns
-from sqlalchemy.sql import visitors, operators, ColumnElement
+from sqlalchemy.sql import visitors, operators, ColumnElement, expression
 from sqlalchemy.orm import mapper, sync, strategies, attributes, dependency, object_mapper
 from sqlalchemy.orm import session as sessionlib
 from sqlalchemy.orm.mapper import _class_to_mapper
@@ -38,6 +38,8 @@ class ColumnProperty(StrategizedProperty):
         self.group = kwargs.pop('group', None)
         self.deferred = kwargs.pop('deferred', False)
         self.comparator = ColumnProperty.ColumnComparator(self)
+        util.set_creation_order(self)
+        
         if self.deferred:
             self.strategy_class = strategies.DeferredColumnLoader
         else:
@@ -151,6 +153,7 @@ class SynonymProperty(MapperProperty):
         self.name = name
         self.map_column=map_column
         self.descriptor = descriptor
+        util.set_creation_order(self)
 
     def setup(self, querycontext, **kwargs):
         pass
@@ -176,7 +179,7 @@ class SynonymProperty(MapperProperty):
             self.descriptor = SynonymProp()
         sessionlib.register_attribute(class_, self.key, uselist=False, proxy_property=self.descriptor, useobject=False, comparator=comparator)
 
-    def merge(self, session, source, dest, _recursive):
+    def merge(self, session, source, dest, dont_load, _recursive):
         pass
 SynonymProperty.logger = logging.class_logger(SynonymProperty)
 
@@ -187,7 +190,8 @@ class ComparableProperty(MapperProperty):
     def __init__(self, comparator_factory, descriptor=None):
         self.descriptor = descriptor
         self.comparator = comparator_factory(self)
-
+        util.set_creation_order(self)
+        
     def do_init(self):
         """Set up a proxy to the unmanaged descriptor."""
 
@@ -203,6 +207,9 @@ class ComparableProperty(MapperProperty):
 
     def create_row_processor(self, selectcontext, mapper, row):
         return (None, None, None)
+
+    def merge(self, session, source, dest, dont_load, _recursive):
+        pass
 
 
 class PropertyLoader(StrategizedProperty):
@@ -233,6 +240,7 @@ class PropertyLoader(StrategizedProperty):
         self.comparator = PropertyLoader.Comparator(self)
         self.join_depth = join_depth
         self._arg_local_remote_pairs = _local_remote_pairs
+        util.set_creation_order(self)
         
         if strategy_class:
             self.strategy_class = strategy_class
@@ -390,7 +398,7 @@ class PropertyLoader(StrategizedProperty):
             return op(self.comparator, value)
 
     def _optimized_compare(self, value, value_is_parent=False):
-        return self._get_strategy(strategies.LazyLoader).lazy_clause(value, reverse_direction=not value_is_parent)
+        return self._get_strategy(strategies.LazyLoader).lazy_clause(value, reverse_direction=not value_is_parent, alias_secondary=True)
 
     def private(self):
         return self.cascade.delete_orphan
@@ -543,7 +551,7 @@ class PropertyLoader(StrategizedProperty):
         if self._legacy_foreignkey and not self._refers_to_parent_table():
             self.foreign_keys = self._legacy_foreignkey
 
-        arg_foreign_keys = self.foreign_keys
+        arg_foreign_keys = set(expression._literal_as_column(x) for x in util.to_set(self.foreign_keys))
 
         if self._arg_local_remote_pairs:
             if not arg_foreign_keys:
@@ -605,10 +613,12 @@ class PropertyLoader(StrategizedProperty):
             else:
                 eq_pairs = self._arg_local_remote_pairs
         elif self.remote_side:
+            remote_side = set(expression._literal_as_column(x) for x in util.to_set(self.remote_side))
+            
             if self.direction is MANYTOONE:
-                eq_pairs = criterion_as_pairs(self.primaryjoin, consider_as_referenced_keys=self.remote_side, any_operator=True)
+                eq_pairs = criterion_as_pairs(self.primaryjoin, consider_as_referenced_keys=remote_side, any_operator=True)
             else:
-                eq_pairs = criterion_as_pairs(self.primaryjoin, consider_as_foreign_keys=self.remote_side, any_operator=True)
+                eq_pairs = criterion_as_pairs(self.primaryjoin, consider_as_foreign_keys=remote_side, any_operator=True)
         else:
             if self.viewonly:
                 eq_pairs = self.synchronize_pairs

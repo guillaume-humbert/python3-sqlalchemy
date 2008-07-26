@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.6   Last Updated: 05/14/08 14:36:43</div>
+<div class="versionheader">Version: 0.4.7   Last Updated: 07/26/08 12:44:18</div>
 
 
 
@@ -601,7 +601,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>use_ansi=True</i>, <i>auto_setinputsizes=True</i>, <i>auto_convert_lobs=True</i>, <i>threaded=True</i>, <i>allow_twophase=True</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>use_ansi=True</i>, <i>auto_setinputsizes=True</i>, <i>auto_convert_lobs=True</i>, <i>threaded=True</i>, <i>allow_twophase=True</i>, <i>arraysize=50</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">OracleDialect</span></tt>.</p>
 
@@ -812,6 +812,16 @@ do_commit_twophase().  its format is unspecified.</p>
     
     
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def create_cursor(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
 
                     
     <div class="darkcell">

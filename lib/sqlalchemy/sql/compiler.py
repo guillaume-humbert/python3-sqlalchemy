@@ -461,7 +461,7 @@ class DefaultCompiler(engine.Compiled):
             column.table is not None and \
             not isinstance(column.table, sql.Select):
             return column.label(column.name)
-        elif not isinstance(column, (sql._UnaryExpression, sql._TextClause)) and (not hasattr(column, 'name') or isinstance(column, sql._Function)):
+        elif not isinstance(column, (sql._UnaryExpression, sql._TextClause, sql._BindParamClause)) and (not hasattr(column, 'name') or isinstance(column, sql._Function)):
             return column.label(column.anon_label)
         else:
             return column
@@ -741,6 +741,19 @@ class DDLBase(engine.SchemaIterator):
                 findalterables.traverse(c)
         return alterables
 
+    def _validate_identifier(self, ident, truncate):
+        if truncate:
+            if len(ident) > self.dialect.max_identifier_length:
+                counter = getattr(self, 'counter', 0)
+                self.counter = counter + 1
+                return ident[0:self.dialect.max_identifier_length - 6] + "_" + hex(self.counter)[2:]
+            else:
+                return ident
+        else:
+            self.dialect.validate_identifier(ident)
+            return ident
+
+
 class SchemaGenerator(DDLBase):
     def __init__(self, dialect, connection, checkfirst=False, tables=None, **kwargs):
         super(SchemaGenerator, self).__init__(connection, **kwargs)
@@ -752,8 +765,14 @@ class SchemaGenerator(DDLBase):
     def get_column_specification(self, column, first_pk=False):
         raise NotImplementedError()
 
+    def _can_create(self, table):
+        self.dialect.validate_identifier(table.name)
+        if table.schema:
+            self.dialect.validate_identifier(table.schema)
+        return not self.checkfirst or not self.dialect.has_table(self.connection, table.name, schema=table.schema)
+
     def visit_metadata(self, metadata):
-        collection = [t for t in metadata.table_iterator(reverse=False, tables=self.tables) if (not self.checkfirst or not self.dialect.has_table(self.connection, t.name, schema=t.schema))]
+        collection = [t for t in metadata.table_iterator(reverse=False, tables=self.tables) if self._can_create(t)]
         for table in collection:
             self.traverse_single(table)
         if self.dialect.supports_alter:
@@ -894,7 +913,7 @@ class SchemaGenerator(DDLBase):
         if index.unique:
             self.append("UNIQUE ")
         self.append("INDEX %s ON %s (%s)" \
-                    % (preparer.format_index(index),
+                    % (preparer.quote(index, self._validate_identifier(index.name, True)),
                        preparer.format_table(index.table),
                        string.join([preparer.quote(c, c.name) for c in index.columns], ', ')))
         self.execute()
@@ -909,15 +928,21 @@ class SchemaDropper(DDLBase):
         self.dialect = dialect
 
     def visit_metadata(self, metadata):
-        collection = [t for t in metadata.table_iterator(reverse=True, tables=self.tables) if (not self.checkfirst or  self.dialect.has_table(self.connection, t.name, schema=t.schema))]
+        collection = [t for t in metadata.table_iterator(reverse=True, tables=self.tables) if self._can_drop(t)]
         if self.dialect.supports_alter:
             for alterable in self.find_alterables(collection):
                 self.drop_foreignkey(alterable)
         for table in collection:
             self.traverse_single(table)
 
+    def _can_drop(self, table):
+        self.dialect.validate_identifier(table.name)
+        if table.schema:
+            self.dialect.validate_identifier(table.schema)
+        return not self.checkfirst or self.dialect.has_table(self.connection, table.name, schema=table.schema)
+
     def visit_index(self, index):
-        self.append("\nDROP INDEX " + self.preparer.format_index(index))
+        self.append("\nDROP INDEX " + self.preparer.quote(index, self._validate_identifier(index.name, False)))
         self.execute()
 
     def drop_foreignkey(self, constraint):
@@ -1037,9 +1062,6 @@ class IdentifierPreparer(object):
 
     def format_constraint(self, constraint):
         return self.quote(constraint, constraint.name)
-
-    def format_index(self, index):
-        return self.quote(index, index.name)
 
     def format_table(self, table, use_schema=True, name=None):
         """Prepare a quoted table and schema name."""

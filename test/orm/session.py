@@ -6,7 +6,7 @@ from sqlalchemy.orm.session import SessionExtension
 from sqlalchemy.orm.session import Session as SessionCls
 from testlib import *
 from testlib.tables import *
-from testlib import fixtures, tables
+from testlib import fixtures, tables, config
 import pickle
 import gc
 
@@ -147,7 +147,23 @@ class SessionTest(TestBase, AssertsExecutionResults):
         session.flush(objects=set())
         session.flush(objects=())
         session.flush(objects=iter([]))
-
+    
+    def test_forwards_compat_add(self):
+        class User(object):pass
+        mapper(User, users)
+        sess = create_session()
+        u1 = User()
+        sess.add(u1)
+        assert u1 in sess
+        u2, u3 = User(), User()
+        sess.add_all([u2, u3])
+        assert u2, u3 in sess
+        sess.flush()
+        sess.expunge(u1)
+        assert u1 not in sess
+        sess.add(u1)
+        assert u1 in sess
+        
     @testing.unsupported('sqlite', 'mssql') # TEMP: test causes mssql to hang
     @engines.close_open_connections
     def test_autoflush(self):
@@ -245,6 +261,13 @@ class SessionTest(TestBase, AssertsExecutionResults):
         assert len(u.addresses) == 3
         assert newad not in u.addresses
 
+    def test_active_flag(self):
+        sess = create_session(bind=config.db, transactional=False)
+        assert not sess.is_active
+        sess.begin()
+        assert sess.is_active
+        sess.rollback()
+        assert not sess.is_active
 
     @engines.close_open_connections
     def test_external_joined_transaction(self):
@@ -883,18 +906,21 @@ class SessionTest(TestBase, AssertsExecutionResults):
                 log.append('after_flush_postexec')
             def after_begin(self, session, transaction, connection):
                 log.append('after_begin')
+            def after_attach(self, session, instance):
+                log.append('after_attach')
+
         sess = create_session(extension = MyExt())
         u = User()
         sess.save(u)
         sess.flush()
-        assert log == ['before_flush', 'after_begin', 'after_flush', 'before_commit', 'after_commit', 'after_flush_postexec']
+        assert log == ['after_attach', 'before_flush', 'after_begin', 'after_flush', 'before_commit', 'after_commit', 'after_flush_postexec']
 
         log = []
         sess = create_session(transactional=True, extension=MyExt())
         u = User()
         sess.save(u)
         sess.flush()
-        assert log == ['before_flush', 'after_begin', 'after_flush', 'after_flush_postexec']
+        assert log == ['after_attach', 'before_flush', 'after_begin', 'after_flush', 'after_flush_postexec']
 
         log = []
         u.user_name = 'ed'
