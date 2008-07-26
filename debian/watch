@@ -1,0 +1,3 @@
+version=3
+opts=uversionmangle=s/beta/~beta/ \
+http://qa.debian.org/watch/sf.php/sqlalchemy/SQLAlchemy-(.*)\.tar\.gz debian uupdate
