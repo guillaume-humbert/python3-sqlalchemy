@@ -1,12 +1,12 @@
-Index: sqlalchemy-0.3.11/setup.py
+Index: sqlalchemy-0.5.0~beta3/setup.py
 ===================================================================
---- sqlalchemy-0.3.11.orig/setup.py
-+++ sqlalchemy-0.3.11/setup.py
+--- sqlalchemy-0.5.0~beta3.orig/setup.py
++++ sqlalchemy-0.5.0~beta3/setup.py
 @@ -1,5 +1,5 @@
 -from ez_setup import use_setuptools
 -use_setuptools()
 +#from ez_setup import use_setuptools
 +#use_setuptools()
- from setuptools import setup, find_packages
- 
- setup(name = "SQLAlchemy",
+ import os
+ import sys
+ from os import path
