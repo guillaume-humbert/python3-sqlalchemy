@@ -31,8 +31,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta2</span>
-  Last Updated: 07/14/08 16:12:25
+  Version: <span class="versionnum prerelease">0.5.0beta3</span>
+  Last Updated: 08/04/08 18:36:49
 </div>
 
 
@@ -296,7 +296,7 @@ objects.  A typical application setup using <tt class="docutils literal"><span c
 like:</p>
 <pre class="literal-block">
 engine = create_engine('postgres://scott:tiger&#64;localhost/test')
-Session = scoped_session(sessionmaker(transactional=True,
+Session = scoped_session(sessionmaker(autocommit=False,
                                       autoflush=False,
                                       bind=engine))
 Base = declarative_base()
@@ -342,9 +342,46 @@ prop = comparable_property(MyComparatorType)
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.ext.declarative_modfunc_declarative_base"></a>
-    <b>def declarative_base(<i>engine=None</i>, <i>metadata=None</i>, <i>mapper=None</i>, <i>cls=<type 'object'></i>)</b>
+    <b>def declarative_base(<i>bind=None</i>, <i>metadata=None</i>, <i>mapper=None</i>, <i>cls=<type 'object'></i>, <i>name='Base'</i>, <i>constructor=<function __init__ at 0xb811b0></i>, <i>metaclass=<class 'sqlalchemy.ext.declarative.DeclarativeMeta'></i>, <i>engine=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a base class for declarative class definitions.</p>
+<p>The new base class will be given a metaclass that invokes
+<cite>instrument_declarative()</cite> upon each subclass definition, and routes
+later Column- and Mapper-related attribute assignments made on the class
+into Table and Mapper assignments.  See the <cite>declarative</cite> module
+documentation for examples.</p>
+<dl class="docutils">
+<dt>bind</dt>
+<dd>An optional <cite>Connectable</cite>, will be assigned to the <cite>metadata.bind</cite>.
+The <cite>engine</cite> keyword argument is a deprecated synonym for <cite>bind</cite>.</dd>
+<dt>metadata</dt>
+<dd>An optional <cite>MetaData</cite> instance.  All Tables implicitly declared by
+subclasses of the base will share this MetaData.  A MetaData instance
+will be create if none is provided.  The MetaData instance will be
+available via the <cite>metadata</cite> attribute of the generated declarative
+base class.</dd>
+<dt>mapper</dt>
+<dd>An optional callable, defaults to <cite>sqlalchemy.orm.mapper</cite>.  Will be
+used to map subclasses to their Tables.</dd>
+<dt>cls</dt>
+<dd>Defaults to <cite>object</cite>.  A type to use as the base for the generated
+declarative base class.  May be a type or tuple of types.</dd>
+<dt>name</dt>
+<dd>Defaults to 'Base', Python's internal display name for the generated
+class.  Customizing this is not required, but can improve clarity in
+tracebacks and debugging.</dd>
+<dt>constructor</dt>
+<dd>Defaults to declarative._declarative_constructor, an __init__
+implementation that assigns **kwargs for declared fields and relations
+to an instance.  If <cite>None</cite> is supplied, no __init__ will be installed
+and construction will fall back to cls.__init__ with normal Python
+semantics.</dd>
+<dt>metaclass</dt>
+<dd>Defaults to <cite>DeclarativeMeta</cite>.  A metaclass or __metaclass__
+compatible callable to use as the meta type of the generated
+declarative base class.</dd>
+</dl>
+
     </div>
     </div>
 

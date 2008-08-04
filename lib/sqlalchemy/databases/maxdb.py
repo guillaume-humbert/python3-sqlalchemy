@@ -473,6 +473,7 @@ class MaxDBDialect(default.DefaultDialect):
     supports_sane_rowcount = True
     supports_sane_multi_rowcount = False
     preexecute_pk_sequences = True
+    supports_simple_order_by_label = False
 
     # MaxDB-specific
     datetimeformat = 'internal'
@@ -602,7 +603,7 @@ class MaxDBDialect(default.DefaultDialect):
         if not rows:
             raise exc.NoSuchTableError(table.fullname)
 
-        include_columns = util.Set(include_columns or [])
+        include_columns = set(include_columns or [])
 
         for row in rows:
             (name, mode, col_type, encoding, length, scale,
@@ -666,7 +667,7 @@ class MaxDBDialect(default.DefaultDialect):
         for fkeyname, fkey in fk_sets:
             fkey = list(fkey)
             if include_columns:
-                key_cols = util.Set([r.COLUMNNAME for r in fkey])
+                key_cols = set([r.COLUMNNAME for r in fkey])
                 if key_cols != include_columns:
                     continue
 
@@ -732,7 +733,7 @@ class MaxDBCompiler(compiler.DefaultCompiler):
 
     # These functions must be written without parens when called with no
     # parameters.  e.g. 'SELECT DATE FROM DUAL' not 'SELECT DATE() FROM DUAL'
-    bare_functions = util.Set([
+    bare_functions = set([
         'CURRENT_SCHEMA', 'DATE', 'FALSE', 'SYSDBA', 'TIME', 'TIMESTAMP',
         'TIMEZONE', 'TRANSACTION', 'TRUE', 'USER', 'UID', 'USERGROUP',
         'UTCDATE', 'UTCDIFF'])
@@ -893,7 +894,7 @@ class MaxDBDefaultRunner(engine_base.DefaultRunner):
 
 
 class MaxDBIdentifierPreparer(compiler.IdentifierPreparer):
-    reserved_words = util.Set([
+    reserved_words = set([
         'abs', 'absolute', 'acos', 'adddate', 'addtime', 'all', 'alpha',
         'alter', 'any', 'ascii', 'asin', 'atan', 'atan2', 'avg', 'binary',
         'bit', 'boolean', 'byte', 'case', 'ceil', 'ceiling', 'char',

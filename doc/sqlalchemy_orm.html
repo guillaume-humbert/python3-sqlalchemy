@@ -31,8 +31,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta2</span>
-  Last Updated: 07/14/08 16:12:25
+  Version: <span class="versionnum prerelease">0.5.0beta3</span>
+  Last Updated: 08/04/08 18:36:49
 </div>
 
 
@@ -59,7 +59,7 @@
             Previous: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
 
                |   
-            Next: <a href="sqlalchemy_orm_collections.html">module sqlalchemy.orm.collections</a>
+            Next: <a href="sqlalchemy_orm_attributes.html">module sqlalchemy.orm.attributes</a>
     </div>
 
         <h2>module sqlalchemy.orm</h2>
@@ -214,8 +214,8 @@ documentation for an overview of how this module is used.</p>
     <A name="docstrings_sqlalchemy.orm_modfunc_backref"></a>
     <b>def backref(<i>name</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Create a BackRef object with explicit arguments, which are the same arguments one
-can send to <tt class="docutils literal"><span class="pre">relation()</span></tt>.</p>
+    <p>Create a BackRef object with explicit arguments, which are the same
+arguments one can send to <tt class="docutils literal"><span class="pre">relation()</span></tt>.</p>
 <p>Used with the <cite>backref</cite> keyword argument to <tt class="docutils literal"><span class="pre">relation()</span></tt> in
 place of a string argument.</p>
 
@@ -226,9 +226,9 @@ place of a string argument.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_class_mapper"></a>
-    <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>, <i>compile=True</i>, <i>raiseerror=True</i>)</b>
+    <b>def class_mapper(<i>class_</i>, <i>compile=True</i>, <i>raiseerror=True</i>)</b>
     <div class="docstring">
-    <p>Given a class (or an object) and optional entity_name, return the primary Mapper associated with the key.</p>
+    <p>Given a class (or an object), return the primary Mapper associated with the key.</p>
 <p>If no mapper can be located, raises <tt class="docutils literal"><span class="pre">InvalidRequestError</span></tt>.</p>
 
     </div>
@@ -241,8 +241,8 @@ place of a string argument.</p>
     <b>def clear_mappers()</b>
     <div class="docstring">
     <p>Remove all mappers that have been created thus far.</p>
-<p>The mapped classes will return to their initial &quot;unmapped&quot;
-state and can be re-mapped with new mappers.</p>
+<p>The mapped classes will return to their initial &quot;unmapped&quot; state and can
+be re-mapped with new mappers.</p>
 
     </div>
     </div>
@@ -256,9 +256,9 @@ state and can be re-mapped with new mappers.</p>
     <p>Provide a column-level property for use with a Mapper.</p>
 <p>Column-based properties can normally be applied to the mapper's
 <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary using the <tt class="docutils literal"><span class="pre">schema.Column</span></tt> element directly.
-Use this function when the given column is not directly present within
-the mapper's selectable; examples include SQL expressions, functions,
-and scalar SELECT queries.</p>
+Use this function when the given column is not directly present within the
+mapper's selectable; examples include SQL expressions, functions, and
+scalar SELECT queries.</p>
 <p>Columns that aren't present in the mapper's selectable won't be persisted
 by the mapper and are effectively &quot;read-only&quot; attributes.</p>
 <blockquote>
@@ -288,8 +288,8 @@ attribute is first accessed on an instance.  See also
 <p>Allows a regular Python &#64;property (descriptor) to be used in Queries and
 SQL constructs like a managed attribute.  comparable_property wraps a
 descriptor with a proxy that directs operator overrides such as ==
-(__eq__) to the supplied comparator but proxies everything else through
-to the original descriptor:</p>
+(__eq__) to the supplied comparator but proxies everything else through to
+the original descriptor:</p>
 <pre class="literal-block">
 class MyClass(object):
     &#64;property
@@ -338,8 +338,8 @@ mapped class if left blank in a <tt class="docutils literal"><span class="pre">p
     <b>def composite(<i>class_</i>, <i>*cols</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a composite column-based property for use with a Mapper.</p>
-<p>This is very much like a column-based property except the given class
-is used to represent &quot;composite&quot; values composed of one or more columns.</p>
+<p>This is very much like a column-based property except the given class is
+used to represent &quot;composite&quot; values composed of one or more columns.</p>
 <p>The class must implement a constructor with positional arguments matching
 the order of columns supplied here, as well as a __composite_values__()
 method which returns values in the same order.</p>
@@ -365,14 +365,12 @@ class Point(object):
 <dt>group</dt>
 <dd>A group name for this property when marked as deferred.</dd>
 <dt>deferred</dt>
-<dd>When True, the column property is &quot;deferred&quot;, meaning that
-it does not load immediately, and is instead loaded when the
-attribute is first accessed on an instance.  See also
-<a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_deferred">deferred()</a>.</dd>
+<dd>When True, the column property is &quot;deferred&quot;, meaning that it does not
+load immediately, and is instead loaded when the attribute is first
+accessed on an instance.  See also <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_deferred">deferred()</a>.</dd>
 <dt>comparator</dt>
-<dd>An optional instance of <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_PropComparator">PropComparator</a> which
-provides SQL expression generation functions for this composite
-type.</dd>
+<dd>An optional instance of <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_PropComparator">PropComparator</a> which provides
+SQL expression generation functions for this composite type.</dd>
 </dl>
 
     </div>
@@ -396,16 +394,16 @@ alias.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_contains_eager"></a>
-    <b>def contains_eager(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def contains_eager(<i>*keys</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will indicate to the query that
 the given attribute will be eagerly loaded.</p>
-<p>Used when feeding SQL result sets directly into
-<tt class="docutils literal"><span class="pre">query.instances()</span></tt>.  Also bundles an <tt class="docutils literal"><span class="pre">EagerLazyOption</span></tt> to
-turn on eager loading in case it isn't already.</p>
-<p><cite>alias</cite> is the string name of an alias, <strong>or</strong> an <tt class="docutils literal"><span class="pre">sql.Alias</span></tt>
-object, which represents the aliased columns in the query.  This
-argument is optional.</p>
+<p>Used when feeding SQL result sets directly into <tt class="docutils literal"><span class="pre">query.instances()</span></tt>.
+Also bundles an <tt class="docutils literal"><span class="pre">EagerLazyOption</span></tt> to turn on eager loading in case it
+isn't already.</p>
+<p><cite>alias</cite> is the string name of an alias, <strong>or</strong> an <tt class="docutils literal"><span class="pre">sql.Alias</span></tt> object,
+which represents the aliased columns in the query.  This argument is
+optional.</p>
 
     </div>
     </div>
@@ -417,8 +415,11 @@ argument is optional.</p>
     <b>def create_session(<i>bind=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>create a new <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_Session">Session</a>.</p>
-<p>The session by default does not begin a transaction, and requires that
-flush() be called explicitly in order to persist results to the database.</p>
+<p>The defaults of create_session() are the opposite of
+that of sessionmaker(); autoflush and expire_on_commit
+are false, autocommit is True.
+In this sense the session acts more like the &quot;classic&quot;
+SQLAlchemy 0.3 session with these defaults.</p>
 <p>It is recommended to use the <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_sessionmaker">sessionmaker()</a> function
 instead of create_session().</p>
 
@@ -429,10 +430,10 @@ instead of create_session().</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_defer"></a>
-    <b>def defer(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def defer(<i>*keys</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the column property
-of the given name into a deferred load.</p>
+    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the column property of the
+given name into a deferred load.</p>
 <p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt></p>
 
     </div>
@@ -456,15 +457,14 @@ table column when first accessed.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_dynamic_loader"></a>
-    <b>def dynamic_loader(<i>argument</i>, <i>secondary=None</i>, <i>primaryjoin=None</i>, <i>secondaryjoin=None</i>, <i>entity_name=None</i>, <i>foreign_keys=None</i>, <i>backref=None</i>, <i>post_update=False</i>, <i>cascade=None</i>, <i>remote_side=None</i>, <i>enable_typechecks=True</i>, <i>passive_deletes=False</i>, <i>order_by=None</i>)</b>
+    <b>def dynamic_loader(<i>argument</i>, <i>secondary=None</i>, <i>primaryjoin=None</i>, <i>secondaryjoin=None</i>, <i>foreign_keys=None</i>, <i>backref=None</i>, <i>post_update=False</i>, <i>cascade=False</i>, <i>remote_side=None</i>, <i>enable_typechecks=True</i>, <i>passive_deletes=False</i>, <i>order_by=None</i>)</b>
     <div class="docstring">
-    <p>construct a dynamically-loading mapper property.</p>
-<p>This property is similar to relation(), except read operations
-return an active Query object, which reads from the database in all
-cases.  Items may be appended to the attribute via append(), or
-removed via remove(); changes will be persisted
-to the database during a flush().  However, no other list mutation
-operations are available.</p>
+    <p>Construct a dynamically-loading mapper property.</p>
+<p>This property is similar to relation(), except read operations return an
+active Query object, which reads from the database in all cases.  Items
+may be appended to the attribute via append(), or removed via remove();
+changes will be persisted to the database during a flush().  However, no
+other list mutation operations are available.</p>
 <p>A subset of arguments available to relation() are available here.</p>
 
     </div>
@@ -474,9 +474,10 @@ operations are available.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_eagerload"></a>
-    <b>def eagerload(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def eagerload(<i>*keys</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given name into an eager load.</p>
+    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
+name into an eager load.</p>
 <p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
 
     </div>
@@ -486,15 +487,16 @@ operations are available.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_eagerload_all"></a>
-    <b>def eagerload_all(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def eagerload_all(<i>*keys</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the given dot-separated path into an eager load.</p>
+    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the
+given dot-separated path into an eager load.</p>
 <p>For example, this:</p>
 <pre class="literal-block">
 query.options(eagerload_all('orders.items.keywords'))...
 </pre>
-<p>will set all of 'orders', 'orders.items', and 'orders.items.keywords'
-to load in one eager load.</p>
+<p>will set all of 'orders', 'orders.items', and 'orders.items.keywords' to
+load in one eager load.</p>
 <p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
 
     </div>
@@ -518,10 +520,10 @@ that will be called in the context of the <tt class="docutils literal"><span cla
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_lazyload"></a>
-    <b>def lazyload(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def lazyload(<i>*keys</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the
-given name into a lazy load.</p>
+    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
+name into a lazy load.</p>
 <p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
 
     </div>
@@ -538,142 +540,128 @@ given name into a lazy load.</p>
 <dt>class_</dt>
 <dd>The class to be mapped.</dd>
 <dt>local_table</dt>
-<dd>The table to which the class is mapped, or None if this
-mapper inherits from another mapper using concrete table
-inheritance.</dd>
-<dt>entity_name</dt>
-<dd>A name to be associated with the <cite>class</cite>, to allow alternate
-mappings for a single class.</dd>
+<dd>The table to which the class is mapped, or None if this mapper
+inherits from another mapper using concrete table inheritance.</dd>
 <dt>always_refresh</dt>
-<dd>If True, all query operations for this mapped class will
-overwrite all data within object instances that already
-exist within the session, erasing any in-memory changes with
-whatever information was loaded from the database.  Usage
-of this flag is highly discouraged; as an alternative,
-see the method <cite>populate_existing()</cite> on <a href="sqlalchemy_orm_query.html#docstrings_sqlalchemy.orm.query_Query">Query</a>.</dd>
+<dd>If True, all query operations for this mapped class will overwrite all
+data within object instances that already exist within the session,
+erasing any in-memory changes with whatever information was loaded
+from the database.  Usage of this flag is highly discouraged; as an
+alternative, see the method <cite>populate_existing()</cite> on
+<a href="sqlalchemy_orm_query.html#docstrings_sqlalchemy.orm.query_Query">Query</a>.</dd>
 <dt>allow_column_override</dt>
 <dd>If True, allows the usage of a <tt class="docutils literal"><span class="pre">relation()</span></tt> which has the
 same name as a column in the mapped table.  The table column
 will no longer be mapped.</dd>
 <dt>allow_null_pks</dt>
-<dd>Indicates that composite primary keys where one or more (but
-not all) columns contain NULL is a valid primary key.
-Primary keys which contain NULL values usually indicate that
-a result row does not contain an entity and should be
-skipped.</dd>
+<dd>Indicates that composite primary keys where one or more (but not all)
+columns contain NULL is a valid primary key.  Primary keys which
+contain NULL values usually indicate that a result row does not
+contain an entity and should be skipped.</dd>
 <dt>batch</dt>
-<dd>Indicates that save operations of multiple entities can be
-batched together for efficiency.  setting to False indicates
-that an instance will be fully saved before saving the next
-instance, which includes inserting/updating all table rows
-corresponding to the entity as well as calling all
-<tt class="docutils literal"><span class="pre">MapperExtension</span></tt> methods corresponding to the save
+<dd>Indicates that save operations of multiple entities can be batched
+together for efficiency.  setting to False indicates that an instance
+will be fully saved before saving the next instance, which includes
+inserting/updating all table rows corresponding to the entity as well
+as calling all <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> methods corresponding to the save
 operation.</dd>
 <dt>column_prefix</dt>
-<dd>A string which will be prepended to the <cite>key</cite> name of all
-Columns when creating column-based properties from the given
-Table.  Does not affect explicitly specified column-based
-properties</dd>
+<dd>A string which will be prepended to the <cite>key</cite> name of all Columns when
+creating column-based properties from the given Table.  Does not
+affect explicitly specified column-based properties</dd>
 <dt>concrete</dt>
-<dd>If True, indicates this mapper should use concrete table
-inheritance with its parent mapper.</dd>
+<dd>If True, indicates this mapper should use concrete table inheritance
+with its parent mapper.</dd>
 <dt>extension</dt>
 <dd>A <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_MapperExtension">MapperExtension</a> instance or list of
 <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> instances which will be applied to all
 operations by this <tt class="docutils literal"><span class="pre">Mapper</span></tt>.</dd>
 <dt>inherits</dt>
-<dd>Another <tt class="docutils literal"><span class="pre">Mapper</span></tt> for which this <tt class="docutils literal"><span class="pre">Mapper</span></tt> will have an
-inheritance relationship with.</dd>
+<dd>Another <tt class="docutils literal"><span class="pre">Mapper</span></tt> for which this <tt class="docutils literal"><span class="pre">Mapper</span></tt> will have an inheritance
+relationship with.</dd>
 <dt>inherit_condition</dt>
 <dd>For joined table inheritance, a SQL expression (constructed
-<tt class="docutils literal"><span class="pre">ClauseElement</span></tt>) which will define how the two tables are
-joined; defaults to a natural join between the two tables.</dd>
+<tt class="docutils literal"><span class="pre">ClauseElement</span></tt>) which will define how the two tables are joined;
+defaults to a natural join between the two tables.</dd>
 <dt>inherit_foreign_keys</dt>
 <dd>when inherit_condition is used and the condition contains no
 ForeignKey columns, specify the &quot;foreign&quot; columns of the join
 condition in this list.  else leave as None.</dd>
 <dt>order_by</dt>
 <dd>A single <tt class="docutils literal"><span class="pre">Column</span></tt> or list of <tt class="docutils literal"><span class="pre">Columns</span></tt> for which
-selection operations should use as the default ordering for
-entities.  Defaults to the OID/ROWID of the table if any, or
-the first primary key column of the table.</dd>
+selection operations should use as the default ordering for entities.
+Defaults to the OID/ROWID of the table if any, or the first primary
+key column of the table.</dd>
 <dt>non_primary</dt>
-<dd>Construct a <tt class="docutils literal"><span class="pre">Mapper</span></tt> that will define only the selection
-of instances, not their persistence.  Any number of non_primary
-mappers may be created for a particular class.</dd>
+<dd>Construct a <tt class="docutils literal"><span class="pre">Mapper</span></tt> that will define only the selection of
+instances, not their persistence.  Any number of non_primary mappers
+may be created for a particular class.</dd>
 <dt>polymorphic_on</dt>
-<dd>Used with mappers in an inheritance relationship, a <tt class="docutils literal"><span class="pre">Column</span></tt>
-which will identify the class/mapper combination to be used
-with a particular row.  Requires the <tt class="docutils literal"><span class="pre">polymorphic_identity</span></tt>
-value to be set for all mappers in the inheritance
-hierarchy.  The column specified by <tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> is
-usually a column that resides directly within the base
-mapper's mapped table; alternatively, it may be a column
-that is only present within the &lt;selectable&gt; portion
-of the <tt class="docutils literal"><span class="pre">with_polymorphic</span></tt> argument.</dd>
+<dd>Used with mappers in an inheritance relationship, a <tt class="docutils literal"><span class="pre">Column</span></tt> which
+will identify the class/mapper combination to be used with a
+particular row.  Requires the <tt class="docutils literal"><span class="pre">polymorphic_identity</span></tt> value to be set
+for all mappers in the inheritance hierarchy.  The column specified by
+<tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> is usually a column that resides directly within
+the base mapper's mapped table; alternatively, it may be a column that
+is only present within the &lt;selectable&gt; portion of the
+<tt class="docutils literal"><span class="pre">with_polymorphic</span></tt> argument.</dd>
 <dt>_polymorphic_map</dt>
-<dd>Used internally to propagate the full map of polymorphic
-identifiers to surrogate mappers.</dd>
+<dd>Used internally to propagate the full map of polymorphic identifiers
+to surrogate mappers.</dd>
 <dt>polymorphic_identity</dt>
-<dd>A value which will be stored in the Column denoted by
-polymorphic_on, corresponding to the <em>class identity</em> of
-this mapper.</dd>
+<dd>A value which will be stored in the Column denoted by polymorphic_on,
+corresponding to the <em>class identity</em> of this mapper.</dd>
 <dt>polymorphic_fetch</dt>
-<dd>specifies how subclasses mapped through joined-table
-inheritance will be fetched.  options are 'union',
-'select', and 'deferred'.  if the 'with_polymorphic' argument
-is present, defaults to 'union', otherwise defaults to
-'select'.</dd>
+<dd>specifies how subclasses mapped through joined-table inheritance will
+be fetched.  options are 'union', 'select', and 'deferred'.  if the
+'with_polymorphic' argument is present, defaults to 'union', otherwise
+defaults to 'select'.</dd>
 <dt>properties</dt>
-<dd>A dictionary mapping the string names of object attributes
-to <tt class="docutils literal"><span class="pre">MapperProperty</span></tt> instances, which define the
-persistence behavior of that attribute.  Note that the
-columns in the mapped table are automatically converted into
-<tt class="docutils literal"><span class="pre">ColumnProperty</span></tt> instances based on the <cite>key</cite> property of
-each <tt class="docutils literal"><span class="pre">Column</span></tt> (although they can be overridden using this
-dictionary).</dd>
+<dd>A dictionary mapping the string names of object attributes to
+<tt class="docutils literal"><span class="pre">MapperProperty</span></tt> instances, which define the persistence behavior of
+that attribute.  Note that the columns in the mapped table are
+automatically converted into <tt class="docutils literal"><span class="pre">ColumnProperty</span></tt> instances based on the
+<cite>key</cite> property of each <tt class="docutils literal"><span class="pre">Column</span></tt> (although they can be overridden
+using this dictionary).</dd>
 <dt>include_properties</dt>
-<dd>An inclusive list of properties to map.  Columns present in the
-mapped table but not present in this list will not be automatically
-converted into properties.</dd>
+<dd>An inclusive list of properties to map.  Columns present in the mapped
+table but not present in this list will not be automatically converted
+into properties.</dd>
 <dt>exclude_properties</dt>
-<dd>A list of properties not to map.  Columns present in the
-mapped table and present in this list will not be automatically
-converted into properties.  Note that neither this option nor
-include_properties will allow an end-run around Python inheritance.
-If mapped class <tt class="docutils literal"><span class="pre">B</span></tt> inherits from mapped class <tt class="docutils literal"><span class="pre">A</span></tt>, no combination
-of includes or excludes will allow <tt class="docutils literal"><span class="pre">B</span></tt> to have fewer properties
-than its superclass, <tt class="docutils literal"><span class="pre">A</span></tt>.</dd>
+<dd>A list of properties not to map.  Columns present in the mapped table
+and present in this list will not be automatically converted into
+properties.  Note that neither this option nor include_properties will
+allow an end-run around Python inheritance.  If mapped class <tt class="docutils literal"><span class="pre">B</span></tt>
+inherits from mapped class <tt class="docutils literal"><span class="pre">A</span></tt>, no combination of includes or
+excludes will allow <tt class="docutils literal"><span class="pre">B</span></tt> to have fewer properties than its
+superclass, <tt class="docutils literal"><span class="pre">A</span></tt>.</dd>
 <dt>primary_key</dt>
-<dd>A list of <tt class="docutils literal"><span class="pre">Column</span></tt> objects which define the <em>primary key</em>
-to be used against this mapper's selectable unit.  This is
-normally simply the primary key of the <cite>local_table</cite>, but
-can be overridden here.</dd>
+<dd>A list of <tt class="docutils literal"><span class="pre">Column</span></tt> objects which define the <em>primary key</em> to be used
+against this mapper's selectable unit.  This is normally simply the
+primary key of the <cite>local_table</cite>, but can be overridden here.</dd>
 <dt>with_polymorphic</dt>
 <dd>A tuple in the form <tt class="docutils literal"><span class="pre">(&lt;classes&gt;,</span> <span class="pre">&lt;selectable&gt;)</span></tt> indicating the
-default style of &quot;polymorphic&quot; loading, that is, which tables
-are queried at once. &lt;classes&gt; is any single or list of mappers
-and/or classes indicating the inherited classes that should be
-loaded at once. The special value <tt class="docutils literal"><span class="pre">'*'</span></tt> may be used to indicate
-all descending classes should be loaded immediately. The second
-tuple argument &lt;selectable&gt; indicates a selectable that will be
-used to query for multiple classes. Normally, it is left as
-None, in which case this mapper will form an outer join from
-the base mapper's table to that of all desired sub-mappers.
-When specified, it provides the selectable to be used for
-polymorphic loading. When with_polymorphic includes mappers
-which load from a &quot;concrete&quot; inheriting table, the &lt;selectable&gt;
-argument is required, since it usually requires more complex
-UNION queries.</dd>
+default style of &quot;polymorphic&quot; loading, that is, which tables are
+queried at once. &lt;classes&gt; is any single or list of mappers and/or
+classes indicating the inherited classes that should be loaded at
+once. The special value <tt class="docutils literal"><span class="pre">'*'</span></tt> may be used to indicate all descending
+classes should be loaded immediately. The second tuple argument
+&lt;selectable&gt; indicates a selectable that will be used to query for
+multiple classes. Normally, it is left as None, in which case this
+mapper will form an outer join from the base mapper's table to that of
+all desired sub-mappers.  When specified, it provides the selectable
+to be used for polymorphic loading. When with_polymorphic includes
+mappers which load from a &quot;concrete&quot; inheriting table, the
+&lt;selectable&gt; argument is required, since it usually requires more
+complex UNION queries.</dd>
 <dt>select_table</dt>
 <dd>Deprecated.  Synonymous with
 <tt class="docutils literal"><span class="pre">with_polymorphic=('*',</span> <span class="pre">&lt;selectable&gt;)</span></tt>.</dd>
 <dt>version_id_col</dt>
-<dd>A <tt class="docutils literal"><span class="pre">Column</span></tt> which must have an integer type that will be
-used to keep a running <em>version id</em> of mapped entities in
-the database.  this is used during save operations to ensure
-that no other thread or process has updated the instance
-during the lifetime of the entity, else a
+<dd>A <tt class="docutils literal"><span class="pre">Column</span></tt> which must have an integer type that will be used to keep
+a running <em>version id</em> of mapped entities in the database.  this is
+used during save operations to ensure that no other thread or process
+has updated the instance during the lifetime of the entity, else a
 <tt class="docutils literal"><span class="pre">ConcurrentModificationError</span></tt> exception is thrown.</dd>
 </dl>
 
@@ -697,16 +685,12 @@ given name into a non-load.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_object_mapper"></a>
-    <b>def object_mapper(<i>object</i>, <i>entity_name=None</i>, <i>raiseerror=True</i>)</b>
+    <b>def object_mapper(<i>object</i>, <i>raiseerror=True</i>)</b>
     <div class="docstring">
     <p>Given an object, return the primary Mapper associated with the object instance.</p>
 <dl class="docutils">
 <dt>object</dt>
 <dd>The object instance.</dd>
-<dt>entity_name</dt>
-<dd>Entity name of the mapper to retrieve, if the given instance is
-transient.  Otherwise uses the entity name already associated
-with the instance.</dd>
 <dt>raiseerror</dt>
 <dd>Defaults to True: raise an <tt class="docutils literal"><span class="pre">InvalidRequestError</span></tt> if no mapper can
 be located.  If False, return None.</dd>
@@ -770,8 +754,25 @@ including synchronizing the object attributes on both sides of the
 relation. Can also point to a <tt class="docutils literal"><span class="pre">backref()</span></tt> construct for more
 configurability.</dd>
 <dt>cascade</dt>
-<dd>a string list of cascade rules which determines how persistence
-operations should be &quot;cascaded&quot; from parent to child.</dd>
+<dd><p class="first">a comma-separated list of cascade rules which determines how Session
+operations should be &quot;cascaded&quot; from parent to child.  This defaults
+to &quot;False&quot;, which means the default cascade should be used.
+The default value is &quot;save-update, merge&quot;.
+Available cascades are:</p>
+<blockquote class="last">
+<p>save-update - cascade the &quot;add()&quot; operation
+(formerly known as save() and update())</p>
+<p>merge - cascade the &quot;merge()&quot; operation</p>
+<p>expunge - cascade the &quot;expunge()&quot; operation</p>
+<p>delete - cascade the &quot;delete()&quot; operation</p>
+<p>delete-orphan - if an item of the child's type with no parent is detected,
+mark it for deletion.  Note that this option prevents a pending item
+of the child's class from being persisted without a parent
+present.</p>
+<p>refresh-expire - cascade the expire() and refresh() operations</p>
+<p>all - shorthand for &quot;save-update,merge, refresh-expire, expunge, delete&quot;</p>
+</blockquote>
+</dd>
 <dt>collection_class</dt>
 <dd>a class or function that returns a new list-holding object. will be
 used in place of a plain list for storing elements.</dd>
@@ -786,13 +787,13 @@ the &quot;foreign key&quot; columns, based on information in the <tt class="docu
 metadata. Use this argument when no ForeignKey's are present in the
 join condition, or to override the table-defined foreign keys.</dd>
 <dt>join_depth=None</dt>
-<dd>when non-<tt class="docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels
-deep eagerload joins should be constructed on a self-referring
-or cyclical relationship.  The number counts how many times
-the same Mapper shall be present in the loading condition along
-a particular join branch.  When left at its default of <tt class="docutils literal"><span class="pre">None</span></tt>,
-eager loads will automatically stop chaining joins when they encounter
-a mapper which is already higher up in the chain.</dd>
+<dd>when non-<tt class="docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels deep
+eagerload joins should be constructed on a self-referring or
+cyclical relationship.  The number counts how many times the same
+Mapper shall be present in the loading condition along a particular
+join branch.  When left at its default of <tt class="docutils literal"><span class="pre">None</span></tt>, eager loads will
+automatically stop chaining joins when they encounter a mapper which
+is already higher up in the chain.</dd>
 <dt>lazy=(True|False|None|'dynamic')</dt>
 <dd><p class="first">specifies how the related items should be loaded. Values include:</p>
 <blockquote class="last">
@@ -802,34 +803,36 @@ a mapper which is already higher up in the chain.</dd>
 <dt>False - items should be loaded &quot;eagerly&quot; in the same query as that</dt>
 <dd>of the parent, using a JOIN or LEFT OUTER JOIN.</dd>
 <dt>None - no loading should occur at any time.  This is to support</dt>
-<dd>&quot;write-only&quot; attributes, or attributes which are populated in
-some manner specific to the application.</dd>
+<dd>&quot;write-only&quot; attributes, or attributes which are populated
+in some manner specific to the application.</dd>
 <dt>'dynamic' - a <tt class="docutils literal"><span class="pre">DynaLoader</span></tt> will be attached, which returns a</dt>
-<dd><tt class="docutils literal"><span class="pre">Query</span></tt> object for all read operations.  The dynamic-
-collection supports only <tt class="docutils literal"><span class="pre">append()</span></tt> and <tt class="docutils literal"><span class="pre">remove()</span></tt>
-for write operations; changes to the dynamic property
-will not be visible until the data is flushed to the
-database.</dd>
+<dd><tt class="docutils literal"><span class="pre">Query</span></tt> object for all read operations.  The
+dynamic- collection supports only <tt class="docutils literal"><span class="pre">append()</span></tt> and
+<tt class="docutils literal"><span class="pre">remove()</span></tt> for write operations; changes to the
+dynamic property will not be visible until the data is
+flushed to the database.</dd>
 </dl>
 </blockquote>
 </dd>
 <dt>order_by</dt>
-<dd>indicates the ordering that should be applied when loading these items.</dd>
+<dd>indicates the ordering that should be applied when loading these
+items.</dd>
 <dt>passive_deletes=False</dt>
 <dd><p class="first">Indicates loading behavior during delete operations.</p>
-<p>A value of True indicates that unloaded child items should not be loaded
-during a delete operation on the parent.  Normally, when a parent
-item is deleted, all child items are loaded so that they can either be
-marked as deleted, or have their foreign key to the parent set to NULL.
-Marking this flag as True usually implies an ON DELETE &lt;CASCADE|SET NULL&gt;
-rule is in place which will handle updating/deleting child rows on the
-database side.</p>
-<p class="last">Additionally, setting the flag to the string value 'all' will disable
-the &quot;nulling out&quot; of the child foreign keys, when there is no delete or
-delete-orphan cascade enabled.  This is typically used when a triggering
-or error raise scenario is in place on the database side.  Note that
-the foreign key attributes on in-session child objects will not be changed
-after a flush occurs so this is a very special use-case setting.</p>
+<p>A value of True indicates that unloaded child items should not be
+loaded during a delete operation on the parent.  Normally, when a
+parent item is deleted, all child items are loaded so that they can
+either be marked as deleted, or have their foreign key to the parent
+set to NULL.  Marking this flag as True usually implies an ON DELETE
+&lt;CASCADE|SET NULL&gt; rule is in place which will handle
+updating/deleting child rows on the database side.</p>
+<p class="last">Additionally, setting the flag to the string value 'all' will
+disable the &quot;nulling out&quot; of the child foreign keys, when there is
+no delete or delete-orphan cascade enabled.  This is typically used
+when a triggering or error raise scenario is in place on the
+database side.  Note that the foreign key attributes on in-session
+child objects will not be changed after a flush occurs so this is a
+very special use-case setting.</p>
 </dd>
 <dt>passive_updates=True</dt>
 <dd><p class="first">Indicates loading and INSERT/UPDATE/DELETE behavior when the source
@@ -871,32 +874,35 @@ dependency&quot; was detected, this is a cue that you might want to use
 <tt class="docutils literal"><span class="pre">post_update</span></tt> to &quot;break&quot; the cycle.</dd>
 <dt>primaryjoin</dt>
 <dd>a ClauseElement that will be used as the primary join of this child
-object against the parent object, or in a many-to-many relationship the
-join of the primary object to the association table. By default, this
-value is computed based on the foreign key relationships of the parent
-and child tables (or association table).</dd>
+object against the parent object, or in a many-to-many relationship
+the join of the primary object to the association table. By default,
+this value is computed based on the foreign key relationships of the
+parent and child tables (or association table).</dd>
 <dt>remote_side</dt>
-<dd>used for self-referential relationships, indicates the column or list
-of columns that form the &quot;remote side&quot; of the relationship.</dd>
+<dd>used for self-referential relationships, indicates the column or
+list of columns that form the &quot;remote side&quot; of the relationship.</dd>
 <dt>secondaryjoin</dt>
-<dd>a ClauseElement that will be used as the join of an association table
-to the child object. By default, this value is computed based on the
-foreign key relationships of the association and child tables.</dd>
+<dd>a ClauseElement that will be used as the join of an association
+table to the child object. By default, this value is computed based
+on the foreign key relationships of the association and child
+tables.</dd>
 <dt>uselist=(True|False)</dt>
-<dd>a boolean that indicates if this property should be loaded as a list or
-a scalar. In most cases, this value is determined automatically by
-<tt class="docutils literal"><span class="pre">relation()</span></tt>, based on the type and direction of the relationship - one
-to many forms a list, many to one forms a scalar, many to many is a
-list. If a scalar is desired where normally a list would be present,
-such as a bi-directional one-to-one relationship, set uselist to False.</dd>
+<dd>a boolean that indicates if this property should be loaded as a list
+or a scalar. In most cases, this value is determined automatically
+by <tt class="docutils literal"><span class="pre">relation()</span></tt>, based on the type and direction of the
+relationship - one to many forms a list, many to one forms a scalar,
+many to many is a list. If a scalar is desired where normally a list
+would be present, such as a bi-directional one-to-one relationship,
+set uselist to False.</dd>
 <dt>viewonly=False</dt>
-<dd>when set to True, the relation is used only for loading objects within
-the relationship, and has no effect on the unit-of-work flush process.
-Relations with viewonly can specify any kind of join conditions to
-provide additional views of related objects onto a parent object. Note
-that the functionality of a viewonly relationship has its limits -
-complicated join conditions may not compile into eager or lazy loaders
-properly. If this is the case, use an alternative method.</dd>
+<dd>when set to True, the relation is used only for loading objects
+within the relationship, and has no effect on the unit-of-work flush
+process.  Relations with viewonly can specify any kind of join
+conditions to provide additional views of related objects onto a
+parent object. Note that the functionality of a viewonly
+relationship has its limits - complicated join conditions may not
+compile into eager or lazy loaders properly. If this is the case,
+use an alternative method.</dd>
 </dl>
 </blockquote>
 </blockquote>
@@ -943,7 +949,7 @@ mapper(Class, table, ...)
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_sessionmaker"></a>
-    <b>def sessionmaker(<i>bind=None</i>, <i>class_=None</i>, <i>autoflush=True</i>, <i>autocommit=False</i>, <i>autoexpire=True</i>, <i>**kwargs</i>)</b>
+    <b>def sessionmaker(<i>bind=None</i>, <i>class_=None</i>, <i>autoflush=True</i>, <i>autocommit=False</i>, <i>expire_on_commit=True</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Generate a custom-configured <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_Session">Session</a> class.</p>
 <p>The returned object is a subclass of <tt class="docutils literal"><span class="pre">Session</span></tt>, which, when instantiated
@@ -996,11 +1002,16 @@ used, which it will maintain persistently until <tt class="docutils literal"><sp
 by any of these methods, the <tt class="docutils literal"><span class="pre">Session</span></tt> is ready for the next usage,
 which will again acquire and maintain a new connection/transaction.</p>
 </dd>
-<dt>autoexpire</dt>
-<dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, all instances will be fully expired after each
-<tt class="docutils literal"><span class="pre">rollback()</span></tt> and after each <tt class="docutils literal"><span class="pre">commit()</span></tt>, so that all attribute/object
-access subsequent to a completed transaction will load from the most
-recent database state.</dd>
+<dt>expire_on_commit</dt>
+<dd>Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>. When <tt class="docutils literal"><span class="pre">True</span></tt>, all instances will be fully expired after
+each <tt class="docutils literal"><span class="pre">commit()</span></tt>, so that all attribute/object access subsequent to a completed
+transaction will load from the most recent database state.</dd>
+<dt>_enable_transaction_accounting</dt>
+<dd>Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.  A legacy-only flag which when <tt class="docutils literal"><span class="pre">False</span></tt>
+disables <em>all</em> 0.5-style object accounting on transaction boundaries,
+including auto-expiry of instances on rollback and commit, maintenance of
+the &quot;new&quot; and &quot;deleted&quot; lists upon rollback, and autoflush
+of pending changes upon begin(), all of which are interdependent.</dd>
 <dt>autoflush</dt>
 <dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, all query operations will issue a <tt class="docutils literal"><span class="pre">flush()</span></tt> call to
 this <tt class="docutils literal"><span class="pre">Session</span></tt> before proceeding. This is a convenience feature so
@@ -1080,15 +1091,15 @@ present until they are removed using expunge(), clear(), or purge().</dd>
     <p>Set up <cite>name</cite> as a synonym to another mapped property.</p>
 <p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to  <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a>.</p>
 <p>Any existing attributes on the class which map the key name sent
-to the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary will be used by the synonym to
-provide instance-attribute behavior (that is, any Python property object,
-provided by the <tt class="docutils literal"><span class="pre">property</span></tt> builtin or providing a <tt class="docutils literal"><span class="pre">__get__()</span></tt>,
-<tt class="docutils literal"><span class="pre">__set__()</span></tt> and <tt class="docutils literal"><span class="pre">__del__()</span></tt> method).  If no name exists for the key,
-the <tt class="docutils literal"><span class="pre">synonym()</span></tt> creates a default getter/setter object automatically
-and applies it to the class.</p>
-<p><cite>name</cite> refers to the name of the existing mapped property, which
-can be any other <tt class="docutils literal"><span class="pre">MapperProperty</span></tt> including column-based
-properties and relations.</p>
+to the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary will be used by the synonym to provide
+instance-attribute behavior (that is, any Python property object, provided
+by the <tt class="docutils literal"><span class="pre">property</span></tt> builtin or providing a <tt class="docutils literal"><span class="pre">__get__()</span></tt>, <tt class="docutils literal"><span class="pre">__set__()</span></tt>
+and <tt class="docutils literal"><span class="pre">__del__()</span></tt> method).  If no name exists for the key, the
+<tt class="docutils literal"><span class="pre">synonym()</span></tt> creates a default getter/setter object automatically and
+applies it to the class.</p>
+<p><cite>name</cite> refers to the name of the existing mapped property, which can be
+any other <tt class="docutils literal"><span class="pre">MapperProperty</span></tt> including column-based properties and
+relations.</p>
 <p>If <cite>map_column</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>, an additional <tt class="docutils literal"><span class="pre">ColumnProperty</span></tt> is created
 on the mapper automatically, using the synonym's name as the keyname of
 the property, and the keyname of this <tt class="docutils literal"><span class="pre">synonym()</span></tt> as the name of the
@@ -1119,10 +1130,10 @@ is not already available.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_undefer"></a>
-    <b>def undefer(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def undefer(<i>*keys</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the column property
-of the given name into a non-deferred (regular column) load.</p>
+    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the column property of the
+given name into a non-deferred (regular column) load.</p>
 <p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
 
     </div>
@@ -1134,8 +1145,8 @@ of the given name into a non-deferred (regular column) load.</p>
     <A name="docstrings_sqlalchemy.orm_modfunc_undefer_group"></a>
     <b>def undefer_group(<i>name</i>)</b>
     <div class="docstring">
-    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the given
-group of deferred column properties into a non-deferred (regular column) load.</p>
+    <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the given group of deferred
+column properties into a non-deferred (regular column) load.</p>
 <p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
 
     </div>
@@ -1771,7 +1782,7 @@ this specific subclass.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>entities</i>, <i>session=None</i>, <i>entity_name=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>entities</i>, <i>session=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
@@ -1953,7 +1964,7 @@ in the order of the table def's primary key columns.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def group_by(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def group_by(<i>self</i>, <i>*criterion</i>)</b>
     <div class="docstring">
     <p>apply one or more GROUP BY criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
 
@@ -1992,18 +2003,16 @@ for u in session.query(User).instances(result):
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def iterate_instances(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def iterate_instances(<i>self</i>, <i>cursor</i>, <i>_Query__context=None</i>)</b>
     <div class="docstring">
-    <p>Deprecated.
-Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as an iterator.</p>
-<blockquote>
+    <p>Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as an iterator.</p>
+<p>Deprecated.</p>
 <p>e.g.:</p>
 <pre class="literal-block">
 result = engine.execute(&quot;select * from users&quot;)
 for u in session.query(User).instances(result):
     print u
 </pre>
-</blockquote>
 
     </div>
     </div>
@@ -2012,21 +2021,21 @@ for u in session.query(User).instances(result):
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def join(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def join(<i>self</i>, <i>*props</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Create a join against this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
 and apply generatively, returning the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p>each element in *props may be:</p>
+<p>Each element in *props may be:</p>
 <blockquote>
 <ul class="simple">
-<li>a string property name, i.e. &quot;rooms&quot;.  This will join along
-the relation of the same name from this Query's &quot;primary&quot;
-mapper, if one is present.</li>
+<li>a string property name, i.e. &quot;rooms&quot;.  This will join along the
+relation of the same name from this Query's &quot;primary&quot; mapper, if
+one is present.</li>
 <li>a class-mapped attribute, i.e. Houses.rooms.  This will create a
 join from &quot;Houses&quot; table to that of the &quot;rooms&quot; relation.</li>
-<li>a 2-tuple containing a target class or selectable, and
-an &quot;ON&quot; clause.  The ON clause can be the property name/
-attribute like above, or a SQL expression.</li>
+<li>a 2-tuple containing a target class or selectable, and an &quot;ON&quot;
+clause.  The ON clause can be the property name/ attribute like
+above, or a SQL expression.</li>
 </ul>
 </blockquote>
 <p>e.g.:</p>
@@ -2130,7 +2139,7 @@ MapperOptions.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def order_by(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def order_by(<i>self</i>, <i>*criterion</i>)</b>
     <div class="docstring">
     <p>apply one or more ORDER BY criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
 
@@ -2141,7 +2150,7 @@ MapperOptions.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def outerjoin(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def outerjoin(<i>self</i>, <i>*props</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Create a left outer join against this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
 and apply generatively, retunring the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
@@ -2186,10 +2195,10 @@ fully using session.expire_all().</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def query_from_parent(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def query_from_parent(<i>cls</i>, <i>instance</i>, <i>property</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a new Query with criterion corresponding to a parent instance.</p>
-<blockquote>
+<p>Deprecated.  Use sqlalchemy.orm.with_parent in conjunction with filter().</p>
 <p>Return a newly constructed Query object, with criterion corresponding
 to a relationship to the given parent instance.</p>
 <dl class="docutils">
@@ -2207,9 +2216,6 @@ Query.</dd>
 </dl>
 </dd>
 </dl>
-</blockquote>
-<p>deprecated.  use sqlalchemy.orm.with_parent in conjunction with
-filter().</p>
 
     </div>
     </div>
@@ -2314,10 +2320,10 @@ from with the given table.</p>
     <b>def with_labels(<i>self</i>)</b>
     <div class="docstring">
     <p>Apply column labels to the return value of Query.statement.</p>
-<p>Indicates that this Query's <cite>statement</cite> accessor should return a SELECT statement
-that applies labels to all columns in the form &lt;tablename&gt;_&lt;columnname&gt;; this
-is commonly used to disambiguate columns from multiple tables which have the
-same name.</p>
+<p>Indicates that this Query's <cite>statement</cite> accessor should return a
+SELECT statement that applies labels to all columns in the form
+&lt;tablename&gt;_&lt;columnname&gt;; this is commonly used to disambiguate
+columns from multiple tables which have the same name.</p>
 <p>When the <cite>Query</cite> actually issues SQL to load rows, it always uses
 column labeling.</p>
 
@@ -2341,19 +2347,20 @@ column labeling.</p>
     <A name=""></a>
     <b>def with_parent(<i>self</i>, <i>instance</i>, <i>property=None</i>)</b>
     <div class="docstring">
-    <p>add a join criterion corresponding to a relationship to the given parent instance.</p>
-<blockquote>
+    <p>Add a join criterion corresponding to a relationship to the given
+parent instance.</p>
 <dl class="docutils">
 <dt>instance</dt>
-<dd>a persistent or detached instance which is related to class represented
-by this query.</dd>
+<dd>a persistent or detached instance which is related to class
+represented by this query.</dd>
 <dt>property</dt>
 <dd>string name of the property which relates this query's class to the
-instance.  if None, the method will attempt to find a suitable property.</dd>
+instance.  if None, the method will attempt to find a suitable
+property.</dd>
 </dl>
-</blockquote>
-<p>currently, this method only works with immediate parent relationships, but in the
-future may be enhanced to work across a chain of parent mappers.</p>
+<p>Currently, this method only works with immediate parent relationships,
+but in the future may be enhanced to work across a chain of parent
+mappers.</p>
 
     </div>
     </div>
@@ -2450,7 +2457,7 @@ subsequent result batch.</p>
             Previous: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
 
                |   
-            Next: <a href="sqlalchemy_orm_collections.html">module sqlalchemy.orm.collections</a>
+            Next: <a href="sqlalchemy_orm_attributes.html">module sqlalchemy.orm.attributes</a>
     </div>
 
     </div>

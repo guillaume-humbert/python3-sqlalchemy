@@ -46,7 +46,7 @@ __all__ = [
     ]
 
 
-RESERVED_WORDS = util.Set([
+RESERVED_WORDS = set([
     "add", "all", "alter", "and",
     "any", "as", "asc", "backup",
     "begin", "between", "bigint", "binary",
@@ -455,6 +455,7 @@ class SybaseSQLDialect(default.DefaultDialect):
     supports_unicode_statements = False
     supports_sane_rowcount = False
     supports_sane_multi_rowcount = False
+    supports_simple_order_by_label = False
 
     def __new__(cls, dbapi=None, *args, **kwargs):
         if cls != SybaseSQLDialect:

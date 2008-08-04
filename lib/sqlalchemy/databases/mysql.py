@@ -153,7 +153,7 @@ Notes page on the wiki at http://www.sqlalchemy.org is a good resource for
 timely information affecting MySQL in SQLAlchemy.
 """
 
-import datetime, inspect, re, sys
+import datetime, decimal, inspect, re, sys
 from array import array as _array
 
 from sqlalchemy import exc, log, schema, sql, util
@@ -175,7 +175,7 @@ __all__ = (
     'MSTinyText', 'MSVarBinary', 'MSYear' )
 
 
-RESERVED_WORDS = util.Set(
+RESERVED_WORDS = set(
     ['accessible', 'add', 'all', 'alter', 'analyze','and', 'as', 'asc',
      'asensitive', 'before', 'between', 'bigint', 'binary', 'blob', 'both',
      'by', 'call', 'cascade', 'case', 'change', 'char', 'character', 'check',
@@ -338,7 +338,7 @@ class MSNumeric(sqltypes.Numeric, _NumericType):
     def result_processor(self, dialect):
         if not self.asdecimal:
             def process(value):
-                if isinstance(value, util.decimal_type):
+                if isinstance(value, decimal.Decimal):
                     return float(value)
                 else:
                     return value
@@ -1128,16 +1128,14 @@ class MSEnum(MSString):
 
         Example:
 
-          Column('myenum', MSEnum("'foo'", "'bar'", "'baz'"))
+          Column('myenum', MSEnum("foo", "bar", "baz"))
 
         Arguments are:
 
         enums
-          The range of valid values for this ENUM.  Values will be used
-          exactly as they appear when generating schemas.  Strings must
-          be quoted, as in the example above.  Single-quotes are suggested
-          for ANSI compatability and are required for portability to servers
-          with ANSI_QUOTES enabled.
+          The range of valid values for this ENUM.  Values will be quoted
+          when generating the schema according to the quoting flag (see
+          below).
 
         strict
           Defaults to False: ensure that a given value is in this ENUM's
@@ -1167,20 +1165,58 @@ class MSEnum(MSString):
           that matches the column's character set.  Generates BINARY in
           schema.  This does not affect the type of data stored, only the
           collation of character data.
+
+        quoting
+          Defaults to 'auto': automatically determine enum value quoting.  If
+          all enum values are surrounded by the same quoting character, then
+          use 'quoted' mode.  Otherwise, use 'unquoted' mode.
+
+          'quoted': values in enums are already quoted, they will be used
+          directly when generating the schema.
+
+          'unquoted': values in enums are not quoted, they will be escaped and
+          surrounded by single quotes when generating the schema.
+
+          Previous versions of this type always required manually quoted
+          values to be supplied; future versions will always quote the string
+          literals for you.  This is a transitional option.
+
         """
+        self.quoting = kw.pop('quoting', 'auto')
 
-        self.__ddl_values = enums
+        if self.quoting == 'auto':
+            # What quoting character are we using?
+            q = None
+            for e in enums:
+                if len(e) == 0:
+                    self.quoting = 'unquoted'
+                    break
+                elif q is None:
+                    q = e[0]
 
-        strip_enums = []
-        for a in enums:
-            if a[0:1] == '"' or a[0:1] == "'":
-                # strip enclosing quotes and unquote interior
-                a = a[1:-1].replace(a[0] * 2, a[0])
-            strip_enums.append(a)
+                if e[0] != q or e[-1] != q:
+                    self.quoting = 'unquoted'
+                    break
+            else:
+                self.quoting = 'quoted'
 
-        self.enums = strip_enums
+        if self.quoting == 'quoted':
+            util.warn_pending_deprecation(
+                'Manually quoting ENUM value literals is deprecated.  Supply '
+                'unquoted values and use the quoting= option in cases of '
+                'ambiguity.')
+            strip_enums = []
+            for a in enums:
+                if a[0:1] == '"' or a[0:1] == "'":
+                    # strip enclosing quotes and unquote interior
+                    a = a[1:-1].replace(a[0] * 2, a[0])
+                strip_enums.append(a)
+            self.enums = strip_enums
+        else:
+            self.enums = list(enums)
+
         self.strict = kw.pop('strict', False)
-        length = max([len(v) for v in strip_enums] + [0])
+        length = max([len(v) for v in self.enums] + [0])
         super(MSEnum, self).__init__(length, **kw)
 
     def bind_processor(self, dialect):
@@ -1196,8 +1232,10 @@ class MSEnum(MSString):
         return process
 
     def get_col_spec(self):
-        return self._extend("ENUM(%s)" % ",".join(self.__ddl_values))
-
+        quoted_enums = []
+        for e in self.enums:
+            quoted_enums.append("'%s'" % e.replace("'", "''"))
+        return self._extend("ENUM(%s)" % ",".join(quoted_enums))
 
 class MSSet(MSString):
     """MySQL SET type."""
@@ -1265,12 +1303,12 @@ class MSSet(MSString):
                 if not value:
                     value.add('')
                 # ..some return sets.Set, even for pythons that have __builtin__.set
-                if not isinstance(value, util.Set):
-                    value = util.Set(value)
+                if not isinstance(value, set):
+                    value = set(value)
                 return value
             # ...and some versions return strings
             if value is not None:
-                return util.Set(value.split(','))
+                return set(value.split(','))
             else:
                 return value
         return process
@@ -1282,7 +1320,7 @@ class MSSet(MSString):
                 pass
             else:
                 if None in value:
-                    value = util.Set(value)
+                    value = set(value)
                     value.remove(None)
                     value.add('')
                 value = ','.join(value)
@@ -1612,19 +1650,6 @@ class MySQLDialect(default.DefaultDialect):
             except ValueError:
                 version.append(n)
         return tuple(version)
-
-    # @deprecated
-    def get_version_info(self, connectable):
-        """A tuple of the database server version.
-
-        Deprecated, use ``server_version_info()``.
-        """
-
-        if isinstance(connectable, engine_base.Engine):
-            connectable = connectable.contextual_connect()
-
-        return self.server_version_info(connectable)
-    get_version_info = util.deprecated()(get_version_info)
 
     def reflecttable(self, connection, table, include_columns):
         """Load column definitions from the server."""
@@ -1984,7 +2009,7 @@ class MySQLCompiler(compiler.DefaultCompiler):
             return ' \n LIMIT %s' % (limit,)
 
     def visit_update(self, update_stmt):
-        self.stack.append({'from':util.Set([update_stmt.table])})
+        self.stack.append({'from': set([update_stmt.table])})
 
         self.isupdate = True
         colparams = self._get_colparams(update_stmt)
@@ -2104,7 +2129,7 @@ class MySQLSchemaReflector(object):
         keys, constraints = [], []
 
         if only:
-            only = util.Set(only)
+            only = set(only)
 
         for line in re.split(r'\r?\n', show_create):
             if line.startswith('  ' + self.preparer.initial_quote):
@@ -2193,6 +2218,9 @@ class MySQLSchemaReflector(object):
             if spec.get(kw, False):
                 type_kw[kw] = spec[kw]
 
+        if type_ == 'enum':
+            type_kw['quoting'] = 'quoted'
+
         type_instance = col_type(*type_args, **type_kw)
 
         col_args, col_kw = [], {}
@@ -2244,7 +2272,7 @@ class MySQLSchemaReflector(object):
             flavor = spec['type']
             col_names = [s[0] for s in spec['columns']]
 
-            if only and not util.Set(col_names).issubset(only):
+            if only and not set(col_names).issubset(only):
                 if flavor is None:
                     flavor = 'index'
                 self.logger.info(
@@ -2280,7 +2308,7 @@ class MySQLSchemaReflector(object):
             ref_schema = len(spec['table']) > 1 and spec['table'][-2] or None
 
             loc_names = spec['local']
-            if only and not util.Set(loc_names).issubset(only):
+            if only and not set(loc_names).issubset(only):
                 self.logger.info(
                     "Omitting FOREIGN KEY for (%s), key covers ommitted "
                     "columns." % (', '.join(loc_names)))
@@ -2295,8 +2323,8 @@ class MySQLSchemaReflector(object):
                     autoload=True, autoload_with=connection)
 
             ref_names = spec['foreign']
-            if not util.Set(ref_names).issubset(
-                util.Set([c.name for c in ref_table.c])):
+            if not set(ref_names).issubset(
+                set(c.name for c in ref_table.c)):
                 raise exc.InvalidRequestError(
                     "Foreign key columns (%s) are not present on "
                     "foreign table %s" %

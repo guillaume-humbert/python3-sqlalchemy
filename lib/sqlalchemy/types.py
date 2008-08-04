@@ -17,15 +17,16 @@ __all__ = [ 'TypeEngine', 'TypeDecorator', 'AbstractType',
             'BOOLEAN', 'SMALLINT', 'DATE', 'TIME',
             'String', 'Integer', 'SmallInteger','Smallinteger',
             'Numeric', 'Float', 'DateTime', 'Date', 'Time', 'Binary',
-            'Boolean', 'Unicode', 'UnicodeText', 'PickleType', 'Interval',
+            'Boolean', 'Unicode', 'MutableType', 'Concatenable', 'UnicodeText', 'PickleType', 'Interval',
             'type_map'
             ]
 
 import inspect
 import datetime as dt
+from decimal import Decimal as _python_Decimal
 
 from sqlalchemy import exc
-from sqlalchemy.util import pickle, Decimal as _python_Decimal
+from sqlalchemy.util import pickle
 import sqlalchemy.util as util
 NoneType = type(None)
 
@@ -152,8 +153,8 @@ class AbstractType(object):
     def __repr__(self):
         return "%s(%s)" % (
             self.__class__.__name__,
-            ", ".join(["%s=%r" % (k, getattr(self, k, None))
-                      for k in inspect.getargspec(self.__init__)[0][1:]]))
+            ", ".join("%s=%r" % (k, getattr(self, k, None))
+                      for k in inspect.getargspec(self.__init__)[0][1:]))
 
 class TypeEngine(AbstractType):
     def dialect_impl(self, dialect, **kwargs):

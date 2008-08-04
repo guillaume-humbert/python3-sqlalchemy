@@ -31,8 +31,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta2</span>
-  Last Updated: 07/14/08 16:12:25
+  Version: <span class="versionnum prerelease">0.5.0beta3</span>
+  Last Updated: 08/04/08 18:36:49
 </div>
 
 
@@ -171,7 +171,7 @@ function.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>bind=None</i>, <i>autoflush=True</i>, <i>autoexpire=True</i>, <i>autocommit=False</i>, <i>twophase=False</i>, <i>echo_uow=False</i>, <i>weak_identity_map=True</i>, <i>binds=None</i>, <i>extension=None</i>, <i>query_cls=<class 'sqlalchemy.orm.query.Query'></i>)</b>
+    <b>def __init__(<i>self</i>, <i>bind=None</i>, <i>autoflush=True</i>, <i>expire_on_commit=True</i>, <i>_enable_transaction_accounting=True</i>, <i>autocommit=False</i>, <i>twophase=False</i>, <i>echo_uow=False</i>, <i>weak_identity_map=True</i>, <i>binds=None</i>, <i>extension=None</i>, <i>query_cls=<class 'sqlalchemy.orm.query.Query'></i>)</b>
     <div class="docstring">
     <p>Construct a new Session.</p>
 <p>Arguments to <tt class="docutils literal"><span class="pre">Session</span></tt> are described using the
@@ -184,7 +184,7 @@ function.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def add(<i>self</i>, <i>instance</i>, <i>entity_name=None</i>)</b>
+    <b>def add(<i>self</i>, <i>instance</i>)</b>
     <div class="docstring">
     <p>Add the given instance into this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
 <p>TODO: rephrase the below in user terms; possibly tie into future
@@ -199,16 +199,14 @@ to <tt class="docutils literal"><span class="pre">save()</span></tt> or <tt clas
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def save_or_update(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def save_or_update(<i>self</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>Use session.add()
-Add the given instance into this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
-<blockquote>
+    <p>Add the given instance into this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+<p>Use session.add()</p>
 <p>TODO: rephrase the below in user terms; possibly tie into future
 function that downgrades persistent to transient. [ticket:1052]</p>
 <p>The non-None state <cite>key</cite> on the instance's state determines whether
 to <tt class="docutils literal"><span class="pre">save()</span></tt> or <tt class="docutils literal"><span class="pre">update()</span></tt> the instance.</p>
-</blockquote>
 
     </div>
     </div>
@@ -228,7 +226,7 @@ to <tt class="docutils literal"><span class="pre">save()</span></tt> or <tt clas
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def begin(<i>self</i>, <i>subtransactions=False</i>, <i>nested=False</i>, <i>_autoflush=True</i>)</b>
+    <b>def begin(<i>self</i>, <i>subtransactions=False</i>, <i>nested=False</i>, <i>_reentrant_flush=False</i>)</b>
     <div class="docstring">
     <p>Begin a transaction on this Session.</p>
 <p>If this Session is already within a transaction, either a plain
@@ -271,7 +269,7 @@ transaction.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def bind_mapper(<i>self</i>, <i>mapper</i>, <i>bind</i>, <i>entity_name=None</i>)</b>
+    <b>def bind_mapper(<i>self</i>, <i>mapper</i>, <i>bind</i>)</b>
     <div class="docstring">
     <p>Bind operations for a mapper to a Connectable.</p>
 <dl class="docutils">
@@ -279,8 +277,6 @@ transaction.</p>
 <dd>A mapper instance or mapped class</dd>
 <dt>bind</dt>
 <dd>Any Connectable: a <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>.</dd>
-<dt>entity_name</dt>
-<dd>Defaults to None.</dd>
 </dl>
 <p>All subsequent operations involving this mapper will use the given
 <cite>bind</cite>.</p>
@@ -315,7 +311,7 @@ given <cite>bind</cite>.</p>
     <div class="docstring">
     <p>Close this Session.</p>
 <p>This clears all items and ends any transaction in progress.</p>
-<p>If this session were created with <tt class="docutils literal"><span class="pre">transactional=True</span></tt>, a new
+<p>If this session were created with <tt class="docutils literal"><span class="pre">autocommit=False</span></tt>, a new
 transaction is immediately begun.  Note that this new transaction does
 not use any connection resources until they are first needed.</p>
 
@@ -612,7 +608,7 @@ should not be loaded in the course of performing this test.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def merge(<i>self</i>, <i>instance</i>, <i>entity_name=None</i>, <i>dont_load=False</i>, <i>_recursive=None</i>)</b>
+    <b>def merge(<i>self</i>, <i>instance</i>, <i>dont_load=False</i>, <i>_recursive=None</i>)</b>
     <div class="docstring">
     <p>Copy the state an instance onto the persistent instance with the same identifier.</p>
 <p>If there is no persistent instance currently associated with the
@@ -729,16 +725,12 @@ begin() is called mulitple times.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def save(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def save(<i>self</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>Use session.add()
-Add a transient (unsaved) instance to this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
-<blockquote>
+    <p>Add a transient (unsaved) instance to this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+<p>Use session.add()</p>
 <p>This operation cascades the <cite>save_or_update</cite> method to associated
 instances if the relation is mapped with <tt class="docutils literal"><span class="pre">cascade=&quot;save-update&quot;</span></tt>.</p>
-<p>The <cite>entity_name</cite> keyword argument will further qualify the specific
-<tt class="docutils literal"><span class="pre">Mapper</span></tt> used to handle this instance.</p>
-</blockquote>
 
     </div>
     </div>
@@ -758,17 +750,15 @@ instances if the relation is mapped with <tt class="docutils literal"><span clas
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def update(<i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def update(<i>self</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>Use session.add()
-Bring a detached (saved) instance into this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
-<blockquote>
+    <p>Bring a detached (saved) instance into this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+<p>Use session.add()</p>
 <p>If there is a persistent instance with the same instance key, but
 different identity already associated with this <tt class="docutils literal"><span class="pre">Session</span></tt>, an
 InvalidRequestError exception is thrown.</p>
 <p>This operation cascades the <cite>save_or_update</cite> method to associated
 instances if the relation is mapped with <tt class="docutils literal"><span class="pre">cascade=&quot;save-update&quot;</span></tt>.</p>
-</blockquote>
 
     </div>
     </div>
@@ -821,6 +811,18 @@ result of True.</p>
 (or sessionmaker) using the <tt class="docutils literal"><span class="pre">extension</span></tt> keyword argument.</p>
 </div>
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_attach(<i>self</i>, <i>session</i>, <i>instance</i>)</b>
+    <div class="docstring">
+    <p>Execute after an instance is attached to a session.</p>
+<p>This is called after an add, delete or merge.</p>
+
+    </div>
+    </div>
 
                     
     <div class="darkcell">

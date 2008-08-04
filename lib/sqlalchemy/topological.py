@@ -18,7 +18,6 @@ conditions.
 
 """
 
-from sqlalchemy import util
 from sqlalchemy.exc import CircularDependencyError
 
 __all__ = ['sort', 'sort_with_cycles', 'sort_as_tree']
@@ -64,7 +63,7 @@ class _Node(object):
 
     def __init__(self, item):
         self.item = item
-        self.dependencies = util.Set()
+        self.dependencies = set()
         self.children = []
         self.cycles = None
 
@@ -76,7 +75,7 @@ class _Node(object):
             str(self.item) + \
             (self.cycles is not None and (" (cycles: " + repr([x for x in self.cycles]) + ")") or "") + \
             "\n" + \
-            ''.join([str(n) for n in self.children])
+            ''.join(str(n) for n in self.children)
 
     def __repr__(self):
         return "%s" % (str(self.item))
@@ -84,7 +83,7 @@ class _Node(object):
     def all_deps(self):
         """Return a set of dependencies for this node and all its cycles."""
 
-        deps = util.Set(self.dependencies)
+        deps = set(self.dependencies)
         if self.cycles is not None:
             for c in self.cycles:
                 deps.update(c.dependencies)
@@ -102,10 +101,10 @@ class _EdgeCollection(object):
 
         (parentnode, childnode) = edge
         if parentnode not in self.parent_to_children:
-            self.parent_to_children[parentnode] = util.Set()
+            self.parent_to_children[parentnode] = set()
         self.parent_to_children[parentnode].add(childnode)
         if childnode not in self.child_to_parents:
-            self.child_to_parents[childnode] = util.Set()
+            self.child_to_parents[childnode] = set()
         self.child_to_parents[childnode].add(parentnode)
         parentnode.dependencies.add(childnode)
 
@@ -150,7 +149,7 @@ class _EdgeCollection(object):
                     yield child
 
     def __len__(self):
-        return sum([len(x) for x in self.parent_to_children.values()])
+        return sum(len(x) for x in self.parent_to_children.values())
 
     def __iter__(self):
         for parent, children in self.parent_to_children.iteritems():
@@ -176,7 +175,7 @@ def _sort(tuples, allitems, allow_cycles=False, ignore_self_cycles=False):
         if t[0] is t[1]:
             if allow_cycles:
                 n = nodes[t[0]]
-                n.cycles = util.Set([n])
+                n.cycles = set([n])
             elif not ignore_self_cycles:
                 raise CircularDependencyError("Self-referential dependency detected " + repr(t))
             continue
@@ -197,7 +196,7 @@ def _sort(tuples, allitems, allow_cycles=False, ignore_self_cycles=False):
             if allow_cycles:
                 for cycle in _find_cycles(edges):
                     lead = cycle[0][0]
-                    lead.cycles = util.Set()
+                    lead.cycles = set()
                     for edge in cycle:
                         n = edges.remove(edge)
                         lead.cycles.add(edge[0])
@@ -237,13 +236,13 @@ def _organize_as_tree(nodes):
     # order of the list has no semantics for the algorithmic
     independents = []
     # in reverse topological order
-    for node in util.reversed(nodes):
+    for node in reversed(nodes):
         # nodes subtree and cycles contain the node itself
-        subtree = util.Set([node])
+        subtree = set([node])
         if node.cycles is not None:
-            cycles = util.Set(node.cycles)
+            cycles = set(node.cycles)
         else:
-            cycles = util.Set()
+            cycles = set()
         # get a set of dependent nodes of node and its cycles
         nodealldeps = node.all_deps()
         if nodealldeps:
@@ -270,7 +269,7 @@ def _organize_as_tree(nodes):
     return (head.item, [n.item for n in head.cycles or []], head.children)
 
 def _find_cycles(edges):
-    involved_in_cycles = util.Set()
+    involved_in_cycles = set()
     cycles = {}
     def traverse(node, goal=None, cycle=None):
         if goal is None:
@@ -284,7 +283,7 @@ def _find_cycles(edges):
                 continue
             cycle.append(key)
             if traverse(key, goal, cycle):
-                cycset = util.Set(cycle)
+                cycset = set(cycle)
                 for x in cycle:
                     involved_in_cycles.add(x)
                     if x in cycles:
@@ -301,7 +300,7 @@ def _find_cycles(edges):
         traverse(parent)
 
     # sets are not hashable, so uniquify with id
-    unique_cycles = dict([(id(s), s) for s in cycles.values()]).values()
+    unique_cycles = dict((id(s), s) for s in cycles.values()).values()
     for cycle in unique_cycles:
         edgecollection = [edge for edge in edges
                           if edge[0] in cycle and edge[1] in cycle]

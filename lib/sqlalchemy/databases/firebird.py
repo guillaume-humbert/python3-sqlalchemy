@@ -99,7 +99,7 @@ parameter when creating the queries::
 """
 
 
-import datetime, re
+import datetime, decimal, re
 
 from sqlalchemy import exc, schema, types as sqltypes, sql, util
 from sqlalchemy.engine import base, default
@@ -126,7 +126,7 @@ class FBNumeric(sqltypes.Numeric):
             return None
         else:
             def process(value):
-                if isinstance(value, util.decimal_type):
+                if isinstance(value, decimal.Decimal):
                     return float(value)
                 else:
                     return value
@@ -310,6 +310,7 @@ class FBDialect(default.DefaultDialect):
     max_identifier_length = 31
     preexecute_pk_sequences = True
     supports_pk_autoincrement = False
+    supports_simple_order_by_label = False
 
     def __init__(self, type_conv=200, concurrency_level=1, **kwargs):
         default.DefaultDialect.__init__(self, **kwargs)
@@ -537,7 +538,7 @@ class FBDialect(default.DefaultDialect):
             # does it have a default value?
             if row['fdefault'] is not None:
                 # the value comes down as "DEFAULT 'value'"
-                assert row['fdefault'].startswith('DEFAULT ')
+                assert row['fdefault'].upper().startswith('DEFAULT '), row
                 defvalue = row['fdefault'][8:]
                 args.append(schema.DefaultClause(sql.text(defvalue)))
 
@@ -675,7 +676,7 @@ class FBCompiler(sql.compiler.DefaultCompiler):
                         yield co
                 else:
                     yield c
-        columns = [self.process(c, render_labels=True)
+        columns = [self.process(c, within_columns_clause=True)
                    for c in flatten_columnlist(returning_cols)]
         text += ' RETURNING ' + ', '.join(columns)
         return text
@@ -747,7 +748,7 @@ class FBDefaultRunner(base.DefaultRunner):
             self.dialect.identifier_preparer.format_sequence(seq))
 
 
-RESERVED_WORDS = util.Set(
+RESERVED_WORDS = set(
     ["action", "active", "add", "admin", "after", "all", "alter", "and", "any",
      "as", "asc", "ascending", "at", "auto", "autoddl", "avg", "based", "basename",
      "base_name", "before", "begin", "between", "bigint", "blob", "blobedit", "buffer",

@@ -12,10 +12,9 @@ higher-level statement-construction, connection-management, execution
 and result contexts.
 """
 
-import inspect, StringIO, sys
+import inspect, StringIO
 from sqlalchemy import exc, schema, util, types, log
 from sqlalchemy.sql import expression
-
 
 class Dialect(object):
     """Define the behavior of a specific database and DB-API combination.
@@ -101,6 +100,8 @@ class Dialect(object):
       result sets against textual statements where no explicit
       typemap was present.
 
+    supports_default_values
+      Indicates if the construct ``INSERT INTO tablename DEFAULT VALUES`` is supported
     """
 
     def create_connect_args(self, url):
@@ -466,10 +467,10 @@ class Compiled(object):
 
         raise NotImplementedError()
 
+    @util.deprecated('Deprecated. Use construct_params(). '
+                     '(supports Unicode key names.)')
     def get_params(self, **params):
-        """Use construct_params().  (supports unicode names)"""
         return self.construct_params(params)
-    get_params = util.deprecated()(get_params)
 
     def construct_params(self, params):
         """Return the bind params for this compiled object.
@@ -1346,8 +1347,8 @@ class RowProxy(object):
 
     def __eq__(self, other):
         return ((other is self) or
-                (other == tuple([self.__parent._get_col(self.__row, key)
-                                 for key in xrange(len(self.__row))])))
+                (other == tuple(self.__parent._get_col(self.__row, key)
+                                for key in xrange(len(self.__row)))))
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -1489,12 +1490,12 @@ class ResultProxy(object):
                         self.__props[o] = rec
 
             if self.__echo:
-                self.context.engine.logger.debug("Col " + repr(tuple([x[0] for x in metadata])))
+                self.context.engine.logger.debug(
+                    "Col " + repr(tuple(x[0] for x in metadata)))
 
     def _create_key_cache(self):
         # local copies to avoid circular ref against 'self'
         props = self.__props
-        context = self.context
         def lookup_key(key):
             """Given a key, which could be a ColumnElement, string, etc.,
             matches it to the appropriate key we got from the result set's
@@ -1622,7 +1623,7 @@ class ResultProxy(object):
             # so we use an exception catch to reduce conditionals in _get_col
             if isinstance(key, slice):
                 indices = key.indices(len(row))
-                return tuple([self._get_col(row, i) for i in xrange(*indices)])
+                return tuple(self._get_col(row, i) for i in xrange(*indices))
             else:
                 raise
 
@@ -1773,7 +1774,7 @@ class BufferedColumnResultProxy(ResultProxy):
             # so we use an exception catch to reduce conditionals in _get_col
             if isinstance(key, slice):
                 indices = key.indices(len(row))
-                return tuple([self._get_col(row, i) for i in xrange(*indices)])
+                return tuple(self._get_col(row, i) for i in xrange(*indices))
             else:
                 raise
 

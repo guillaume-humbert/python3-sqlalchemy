@@ -39,6 +39,8 @@ class DefaultDialect(base.Dialect):
     supports_pk_autoincrement = True
     dbapi_type_map = {}
     default_paramstyle = 'named'
+    supports_default_values = True
+    supports_simple_order_by_label = True
 
     def __init__(self, convert_unicode=False, assert_unicode=False, encoding='utf-8', paramstyle=None, dbapi=None, **kwargs):
         self.convert_unicode = convert_unicode
@@ -136,14 +138,12 @@ class DefaultExecutionContext(base.ExecutionContext):
             # compiled clauseelement.  process bind params, process table defaults,
             # track collections used by ResultProxy to target and process results
 
-            self.processors = dict([
+            self.processors = dict(
                 (key, value) for key, value in
-                [(
-                    compiled.bind_names[bindparam],
-                    bindparam.bind_processor(self.dialect)
-                ) for bindparam in compiled.bind_names]
-                if value is not None
-            ])
+                ( (compiled.bind_names[bindparam],
+                   bindparam.bind_processor(self.dialect))
+                  for bindparam in compiled.bind_names )
+                if value is not None)
 
             self.result_map = compiled.result_map
 
@@ -212,7 +212,7 @@ class DefaultExecutionContext(base.ExecutionContext):
                 # that doesnt specify positional (because of execute_text())
                 if not isinstance(d, dict):
                     return d
-                return dict([(k.encode(self.dialect.encoding), d[k]) for k in d])
+                return dict((k.encode(self.dialect.encoding), d[k]) for k in d)
             return [proc(d) for d in params] or [{}]
 
     def __convert_compiled_params(self, compiled_parameters):
@@ -315,10 +315,9 @@ class DefaultExecutionContext(base.ExecutionContext):
         from the bind parameter's ``TypeEngine`` objects.
         """
 
-        types = dict([
+        types = dict(
                 (self.compiled.bind_names[bindparam], bindparam.type)
-                 for bindparam in self.compiled.bind_names
-            ])
+                 for bindparam in self.compiled.bind_names)
 
         if self.dialect.positional:
             inputsizes = []

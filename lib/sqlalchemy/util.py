@@ -12,114 +12,30 @@ from sqlalchemy import exc
 
 try:
     import thread, threading
+    from threading import local as ThreadLocal
 except ImportError:
     import dummy_thread as thread
     import dummy_threading as threading
+    from dummy_threading import local as ThreadLocal
 
-try:
-    Set = set
-    FrozenSet = frozenset
-    set_types = set, sets.Set
-except NameError:
-    set_types = sets.Set,
+# TODO: 2.6 will whine about importing `sets`, but I think we still need it to
+# around to support older DB-API modules that return the 2.3 style set.
+set_types = set, sets.Set
 
-    def py24_style_ops():
-        """Layer some of __builtin__.set's binop behavior onto sets.Set."""
-
-        def _binary_sanity_check(self, other):
-            pass
-        def issubset(self, iterable):
-            other = type(self)(iterable)
-            return sets.Set.issubset(self, other)
-        def __le__(self, other):
-            sets.Set._binary_sanity_check(self, other)
-            return sets.Set.__le__(self, other)
-        def issuperset(self, iterable):
-            other = type(self)(iterable)
-            return sets.Set.issuperset(self, other)
-        def __ge__(self, other):
-            sets.Set._binary_sanity_check(self, other)
-            return sets.Set.__ge__(self, other)
-        # lt and gt still require a BaseSet
-        def __lt__(self, other):
-            sets.Set._binary_sanity_check(self, other)
-            return sets.Set.__lt__(self, other)
-        def __gt__(self, other):
-            sets.Set._binary_sanity_check(self, other)
-            return sets.Set.__gt__(self, other)
-
-        def __ior__(self, other):
-            if not isinstance(other, sets.BaseSet):
-                return NotImplemented
-            return sets.Set.__ior__(self, other)
-        def __iand__(self, other):
-            if not isinstance(other, sets.BaseSet):
-                return NotImplemented
-            return sets.Set.__iand__(self, other)
-        def __ixor__(self, other):
-            if not isinstance(other, sets.BaseSet):
-                return NotImplemented
-            return sets.Set.__ixor__(self, other)
-        def __isub__(self, other):
-            if not isinstance(other, sets.BaseSet):
-                return NotImplemented
-            return sets.Set.__isub__(self, other)
-        return locals()
-
-    py24_style_ops = py24_style_ops()
-    Set = type('Set', (sets.Set,), py24_style_ops)
-    FrozenSet = type('FrozenSet', (sets.ImmutableSet,), py24_style_ops)
-    del py24_style_ops
-
-EMPTY_SET = FrozenSet()
+EMPTY_SET = frozenset()
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 
-try:
-    reversed = __builtin__.reversed
-except AttributeError:
-    def reversed(seq):
-        i = len(seq) -1
-        while  i >= 0:
-            yield seq[i]
-            i -= 1
-        raise StopIteration()
-
-try:
-    # Try the standard decimal for > 2.3 or the compatibility module
-    # for 2.3, if installed.
-    from decimal import Decimal
-    decimal_type = Decimal
-except ImportError:
-    def Decimal(arg):
-        if Decimal.warn:
-            warn("True Decimal types not available on this Python, "
-                "falling back to floats.")
-            Decimal.warn = False
-        return float(arg)
-    Decimal.warn = True
-    decimal_type = float
-
-try:
-    from operator import attrgetter
-except ImportError:
-    def attrgetter(attribute):
-        return lambda value: getattr(value, attribute)
-
-try:
-    from operator import itemgetter
-except ImportError:
-    def itemgetter(attribute):
-        return lambda value: value[attribute]
-
 if sys.version_info >= (2, 5):
     class PopulateDict(dict):
-        """a dict which populates missing values via a creation function.
+        """A dict which populates missing values via a creation function.
 
-        note the creation function takes a key, unlike collections.defaultdict.
+        Note the creation function takes a key, unlike
+        collections.defaultdict.
+
         """
 
         def __init__(self, creator):
@@ -129,7 +45,7 @@ if sys.version_info >= (2, 5):
             return val
 else:
     class PopulateDict(dict):
-        """a dict which populates missing values via a creation function."""
+        """A dict which populates missing values via a creation function."""
 
         def __init__(self, creator):
             self.creator = creator
@@ -178,22 +94,6 @@ except ImportError:
             return 'defaultdict(%s, %s)' % (self.default_factory,
                                             dict.__repr__(self))
 
-try:
-    from collections import deque
-except ImportError:
-    class deque(list):
-        def appendleft(self, x):
-            self.insert(0, x)
-
-        def extendleft(self, iterable):
-            self[0:0] = list(iterable)
-
-        def popleft(self):
-            return self.pop(0)
-
-        def rotate(self, n):
-            for i in xrange(n):
-                self.appendleft(self.pop())
 
 def to_list(x, default=None):
     if x is None:
@@ -203,39 +103,99 @@ def to_list(x, default=None):
     else:
         return x
 
-def array_as_starargs_decorator(fn):
-    """Interpret a single positional array argument as
-    *args for the decorated method.
+try:
+    from functools import update_wrapper
+except ImportError:
+    def update_wrapper(wrapper, wrapped,
+                       assigned=('__doc__', '__module__', '__name__'),
+                       updated=('__dict__',)):
+        for attr in assigned:
+            setattr(wrapper, attr, getattr(wrapped, attr))
+        for attr in updated:
+            getattr(wrapper, attr).update(getattr(wrapped, attr, ()))
+        return wrapper
 
-    """
+def accepts_a_list_as_starargs(list_deprecation=None):
+    def decorate(fn):
 
-    def starargs_as_list(self, *args, **kwargs):
-        if isinstance(args, basestring) or (len(args) == 1 and not isinstance(args[0], tuple)):
-            return fn(self, *to_list(args[0], []), **kwargs)
+        spec = inspect.getargspec(fn)
+        assert spec[1], 'Decorated function does not accept *args'
+
+        meta = format_argspec_plus(spec)
+        meta['name'] = fn.func_name
+        meta['varg'] = spec[1]
+        scratch = list(spec)
+        scratch[1] = '(%s[0])' % scratch[1]
+        meta['unpacked_pos'] = format_argspec_plus(scratch)['apply_pos']
+
+        def _deprecate():
+            if list_deprecation:
+                if list_deprecation == 'pending':
+                    warning_type = exc.SAPendingDeprecationWarning
+                else:
+                    warning_type = exc.SADeprecationWarning
+                    msg = (
+                        "%s%s now accepts multiple %s arguments as a "
+                        "variable argument list.  Supplying %s as a single "
+                        "list is deprecated and support will be removed "
+                        "in a future release." % (
+                            fn.func_name,
+                            inspect.formatargspec(*spec),
+                            spec[1], spec[1]))
+                    warnings.warn(msg, warning_type, stacklevel=3)
+
+        code = "\n".join((
+            "def %(name)s%(args)s:",
+            "    if len(%(varg)s) == 1 and isinstance(%(varg)s[0], list):",
+            "        _deprecate()",
+            "        return fn%(unpacked_pos)s",
+            "    else:",
+            "        return fn%(apply_pos)s")) % meta
+
+        env = locals().copy()
+        exec code in env
+        decorated = env[fn.func_name]
+        update_wrapper(decorated, fn)
+        decorated.generated_src = code
+        return decorated
+    return decorate
+
+def unique_symbols(used, *bases):
+    used = set(used)
+    for base in bases:
+        pool = itertools.chain((base,),
+                               itertools.imap(lambda i: base + str(i),
+                                              xrange(1000)))
+        for sym in pool:
+            if sym not in used:
+                used.add(sym)
+                yield sym
+                break
         else:
-            return fn(self, *args, **kwargs)
-    starargs_as_list.__doc__ = fn.__doc__
-    return function_named(starargs_as_list, fn.__name__)
+            raise NameError("exhausted namespace for symbol base %s" % base)
 
-def array_as_starargs_fn_decorator(fn):
-    """Interpret a single positional array argument as
-    *args for the decorated function.
+def decorator(target):
+    """A signature-matching decorator factory."""
 
-    """
+    def decorate(fn):
+        spec = inspect.getargspec(fn)
+        names = tuple(spec[0]) + spec[1:3] + (fn.func_name,)
+        targ_name, fn_name = unique_symbols(names, 'target', 'fn')
 
-    def starargs_as_list(*args, **kwargs):
-        if isinstance(args, basestring) or (len(args) == 1 and not isinstance(args[0], tuple)):
-            return fn(*to_list(args[0], []), **kwargs)
-        else:
-            return fn(*args, **kwargs)
-    starargs_as_list.__doc__ = fn.__doc__
-    return function_named(starargs_as_list, fn.__name__)
+        metadata = dict(target=targ_name, fn=fn_name)
+        metadata.update(format_argspec_plus(spec, grouped=False))
+
+        code = 'lambda %(args)s: %(target)s(%(fn)s, %(apply_kw)s)' % (
+                metadata)
+        decorated = eval(code, {targ_name:target, fn_name:fn})
+        return update_wrapper(decorated, fn)
+    return update_wrapper(decorate, target)
 
 def to_set(x):
     if x is None:
-        return Set()
-    if not isinstance(x, Set):
-        return Set(to_list(x))
+        return set()
+    if not isinstance(x, set):
+        return set(to_list(x))
     else:
         return x
 
@@ -252,9 +212,9 @@ def to_ascii(x):
 if sys.version_info >= (2, 5):
     def decode_slice(slc):
         """decode a slice object as sent to __getitem__.
-    
+
         takes into account the 2.5 __index__() method, basically.
-    
+
         """
         ret = []
         for x in slc.start, slc.stop, slc.step:
@@ -265,8 +225,7 @@ if sys.version_info >= (2, 5):
 else:
     def decode_slice(slc):
         return (slc.start, slc.stop, slc.step)
-    
-    
+
 def flatten_iterator(x):
     """Given an iterator of which further sub-elements may also be
     iterators, flatten the sub-elements into a single iterator.
@@ -308,12 +267,12 @@ def get_cls_kwargs(cls):
 
     for c in cls.__mro__:
         if '__init__' in c.__dict__:
-            stack = Set([c])
+            stack = set([c])
             break
     else:
         return []
 
-    args = Set()
+    args = set()
     while stack:
         class_ = stack.pop()
         ctr = class_.__dict__.get('__init__', False)
@@ -336,7 +295,7 @@ def format_argspec_plus(fn, grouped=True):
     A enhanced variant of inspect.formatargspec to support code generation.
 
     fn
-       An inspectable callable
+       An inspectable callable or tuple of inspect getargspec() results.
     grouped
       Defaults to True; include (parens, around, argument) lists
 
@@ -362,7 +321,7 @@ def format_argspec_plus(fn, grouped=True):
        'apply_pos': '(self, a, b, c, **d)'}
 
     """
-    spec = inspect.getargspec(fn)
+    spec = callable(fn) and inspect.getargspec(fn) or fn
     args = inspect.formatargspec(*spec)
     if spec[0]:
         self_arg = spec[0][0]
@@ -437,7 +396,7 @@ def class_hierarchy(cls):
     class systemwide that derives from object.
 
     """
-    hier = Set([cls])
+    hier = set([cls])
     process = list(cls.__mro__)
     while process:
         c = process.pop()
@@ -482,10 +441,10 @@ def duck_type_collection(specimen, default=None):
     """
 
     if hasattr(specimen, '__emulates__'):
-        # canonicalize set vs sets.Set to a standard: util.Set
+        # canonicalize set vs sets.Set to a standard: the builtin set
         if (specimen.__emulates__ is not None and
             issubclass(specimen.__emulates__, set_types)):
-            return Set
+            return set
         else:
             return specimen.__emulates__
 
@@ -493,14 +452,14 @@ def duck_type_collection(specimen, default=None):
     if isa(specimen, list):
         return list
     elif isa(specimen, set_types):
-        return Set
+        return set
     elif isa(specimen, dict):
         return dict
 
     if hasattr(specimen, 'append'):
         return list
     elif hasattr(specimen, 'add'):
-        return Set
+        return set
     elif hasattr(specimen, 'set'):
         return dict
     else:
@@ -525,7 +484,7 @@ def dictlike_iteritems(dictlike):
                 yield key, getter(key)
         return iterator()
     elif hasattr(dictlike, 'keys'):
-        return iter([(key, getter(key)) for key in dictlike.keys()])
+        return iter((key, getter(key)) for key in dictlike.keys())
     else:
         raise TypeError(
             "Object '%r' is not dict-like" % dictlike)
@@ -535,23 +494,23 @@ def assert_arg_type(arg, argtype, name):
         return arg
     else:
         if isinstance(argtype, tuple):
-            raise exc.ArgumentError("Argument '%s' is expected to be one of type %s, got '%s'" % (name, ' or '.join(["'%s'" % str(a) for a in argtype]), str(type(arg))))
+            raise exc.ArgumentError("Argument '%s' is expected to be one of type %s, got '%s'" % (name, ' or '.join("'%s'" % str(a) for a in argtype), str(type(arg))))
         else:
             raise exc.ArgumentError("Argument '%s' is expected to be of type '%s', got '%s'" % (name, str(argtype), str(type(arg))))
 
 _creation_order = 1
 def set_creation_order(instance):
-    """assign a '_creation_order' sequence to the given instance.
-    
-    This allows multiple instances to be sorted in order of
-    creation (typically within a single thread; the counter is
-    not particularly threadsafe).
-    
+    """Assign a '_creation_order' sequence to the given instance.
+
+    This allows multiple instances to be sorted in order of creation
+    (typically within a single thread; the counter is not particularly
+    threadsafe).
+
     """
     global _creation_order
     instance._creation_order = _creation_order
     _creation_order +=1
-    
+
 def warn_exception(func, *args, **kwargs):
     """executes the given function, catches all exceptions and converts to a warning."""
     try:
@@ -587,6 +546,7 @@ def monkeypatch_proxied_specials(into_cls, from_cls, skip=None, only=None,
         env = from_instance is not None and {name: from_instance} or {}
         exec py in env
         setattr(into_cls, method, env[method])
+
 
 class SimpleProperty(object):
     """A *default* property accessor."""
@@ -693,8 +653,9 @@ class OrderedProperties(object):
     def clear(self):
         self._data.clear()
 
+
 class OrderedDict(dict):
-    """A Dictionary that returns keys/values/items in the order they were added."""
+    """A dict that returns keys/values/items in the order they were added."""
 
     def __init__(self, ____sequence=None, **kwargs):
         self._list = []
@@ -707,10 +668,10 @@ class OrderedDict(dict):
     def clear(self):
         self._list = []
         dict.clear(self)
-    
+
     def sort(self, fn=None):
         self._list.sort(fn)
-        
+
     def update(self, ____sequence=None, **kwargs):
         if ____sequence is not None:
             if hasattr(____sequence, 'keys'):
@@ -771,36 +732,10 @@ class OrderedDict(dict):
         self._list.remove(item[0])
         return item
 
-try:
-    from threading import local as ThreadLocal
-except ImportError:
-    try:
-        from dummy_threading import local as ThreadLocal
-    except ImportError:
-        class ThreadLocal(object):
-            """An object in which attribute access occurs only within the context of the current thread."""
 
-            def __init__(self):
-                self.__dict__['_tdict'] = {}
-
-            def __delattr__(self, key):
-                try:
-                    del self._tdict[(thread.get_ident(), key)]
-                except KeyError:
-                    raise AttributeError(key)
-
-            def __getattr__(self, key):
-                try:
-                    return self._tdict[(thread.get_ident(), key)]
-                except KeyError:
-                    raise AttributeError(key)
-
-            def __setattr__(self, key, value):
-                self._tdict[(thread.get_ident(), key)] = value
-
-class OrderedSet(Set):
+class OrderedSet(set):
     def __init__(self, d=None):
-        Set.__init__(self)
+        set.__init__(self)
         self._list = []
         if d is not None:
             self.update(d)
@@ -808,24 +743,24 @@ class OrderedSet(Set):
     def add(self, element):
         if element not in self:
             self._list.append(element)
-        Set.add(self, element)
+        set.add(self, element)
 
     def remove(self, element):
-        Set.remove(self, element)
+        set.remove(self, element)
         self._list.remove(element)
 
     def insert(self, pos, element):
         if element not in self:
             self._list.insert(pos, element)
-        Set.add(self, element)
+        set.add(self, element)
 
     def discard(self, element):
         if element in self:
             self._list.remove(element)
-            Set.remove(self, element)
+            set.remove(self, element)
 
     def clear(self):
-        Set.clear(self)
+        set.clear(self)
         self._list = []
 
     def __getitem__(self, key):
@@ -855,35 +790,35 @@ class OrderedSet(Set):
     __or__ = union
 
     def intersection(self, other):
-        other = Set(other)
-        return self.__class__([a for a in self if a in other])
+        other = set(other)
+        return self.__class__(a for a in self if a in other)
 
     __and__ = intersection
 
     def symmetric_difference(self, other):
-        other = Set(other)
-        result = self.__class__([a for a in self if a not in other])
-        result.update([a for a in other if a not in self])
+        other = set(other)
+        result = self.__class__(a for a in self if a not in other)
+        result.update(a for a in other if a not in self)
         return result
 
     __xor__ = symmetric_difference
 
     def difference(self, other):
-        other = Set(other)
-        return self.__class__([a for a in self if a not in other])
+        other = set(other)
+        return self.__class__(a for a in self if a not in other)
 
     __sub__ = difference
 
     def intersection_update(self, other):
-        other = Set(other)
-        Set.intersection_update(self, other)
+        other = set(other)
+        set.intersection_update(self, other)
         self._list = [ a for a in self._list if a in other]
         return self
 
     __iand__ = intersection_update
 
     def symmetric_difference_update(self, other):
-        Set.symmetric_difference_update(self, other)
+        set.symmetric_difference_update(self, other)
         self._list =  [ a for a in self._list if a in self]
         self._list += [ a for a in other._list if a in self]
         return self
@@ -891,20 +826,12 @@ class OrderedSet(Set):
     __ixor__ = symmetric_difference_update
 
     def difference_update(self, other):
-        Set.difference_update(self, other)
+        set.difference_update(self, other)
         self._list = [ a for a in self._list if a in self]
         return self
 
     __isub__ = difference_update
 
-    if hasattr(Set, '__getstate__'):
-        def __getstate__(self):
-            base = Set.__getstate__(self)
-            return base, self._list
-
-        def __setstate__(self, state):
-            Set.__setstate__(self, state[0])
-            self._list = state[1]
 
 class IdentitySet(object):
     """A set that considers only object id() for uniqueness.
@@ -913,10 +840,10 @@ class IdentitySet(object):
     two 'foo' strings in one of these sets, for example.  Use sparingly.
     """
 
-    _working_set = Set
+    _working_set = set
 
     def __init__(self, iterable=None):
-        self._members = _IterableUpdatableDict()
+        self._members = dict()
         if iterable:
             for o in iterable:
                 self.add(o)
@@ -1103,24 +1030,11 @@ class IdentitySet(object):
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self._members.values())
 
-if sys.version_info >= (2, 4):
-    _IterableUpdatableDict = dict
-else:
-    class _IterableUpdatableDict(dict):
-        """A dict that can update(iterable) like Python 2.4+'s dict."""
-        def update(self, __iterable=None, **kw):
-            if __iterable is not None:
-                if not isinstance(__iterable, dict):
-                    __iterable = dict(__iterable)
-                dict.update(self, __iterable)
-            if kw:
-                dict.update(self, **kw)
 
 def _iter_id(iterable):
     """Generator: ((id(o), o) for o in iterable)."""
     for item in iterable:
         yield id(item), item
-
 
 class OrderedIdentitySet(IdentitySet):
     class _working_set(OrderedSet):
@@ -1136,6 +1050,7 @@ class OrderedIdentitySet(IdentitySet):
         if iterable:
             for o in iterable:
                 self.add(o)
+
 
 class UniqueAppender(object):
     """Only adds items to a collection once.
@@ -1162,6 +1077,7 @@ class UniqueAppender(object):
 
     def __iter__(self):
         return iter(self.data)
+
 
 class ScopedRegistry(object):
     """A Registry that can store one or multiple instances of a single
@@ -1206,12 +1122,13 @@ class ScopedRegistry(object):
     def _get_key(self):
         return self.scopefunc()
 
+
 class WeakCompositeKey(object):
     """an weak-referencable, hashable collection which is strongly referenced
     until any one of its members is garbage collected.
 
     """
-    keys = Set()
+    keys = set()
 
     def __init__(self, *args):
         self.args = [self.__ref(arg) for arg in args]
@@ -1233,7 +1150,8 @@ class WeakCompositeKey(object):
         return cmp(tuple(self), tuple(other))
 
     def __iter__(self):
-        return iter([arg() for arg in self.args])
+        return iter(arg() for arg in self.args)
+
 
 class _symbol(object):
     def __init__(self, name):
@@ -1245,6 +1163,7 @@ class _symbol(object):
     def __repr__(self):
         return "<symbol '%s>" % self.name
 _symbol.__name__ = 'symbol'
+
 
 class symbol(object):
     """A constant symbol.
@@ -1272,6 +1191,7 @@ class symbol(object):
             return sym
         finally:
             symbol._lock.release()
+
 
 def as_interface(obj, cls=None, methods=None, required=None):
     """Ensure basic interface compliance for an instance or dict of callables.
@@ -1312,17 +1232,17 @@ def as_interface(obj, cls=None, methods=None, required=None):
     if isinstance(cls, type) and isinstance(obj, cls):
         return obj
 
-    interface = Set(methods or [m for m in dir(cls) if not m.startswith('_')])
-    implemented = Set(dir(obj))
+    interface = set(methods or [m for m in dir(cls) if not m.startswith('_')])
+    implemented = set(dir(obj))
 
     complies = operator.ge
     if isinstance(required, type):
         required = interface
     elif not required:
-        required = Set()
+        required = set()
         complies = operator.gt
     else:
-        required = Set(required)
+        required = set(required)
 
     if complies(implemented.intersection(interface), required):
         return obj
@@ -1338,7 +1258,7 @@ def as_interface(obj, cls=None, methods=None, required=None):
 
     if cls:
         AnonymousInterface.__name__ = 'Anonymous' + cls.__name__
-    found = Set()
+    found = set()
 
     for method, impl in dictlike_iteritems(obj):
         if method not in interface:
@@ -1485,6 +1405,9 @@ def warn(msg):
 def warn_deprecated(msg):
     warnings.warn(msg, exc.SADeprecationWarning, stacklevel=3)
 
+def warn_pending_deprecation(msg):
+    warnings.warn(msg, exc.SAPendingDeprecationWarning, stacklevel=3)
+
 def deprecated(message=None, add_deprecation_to_docstring=True):
     """Decorates a function and issues a deprecation warning on use.
 
@@ -1547,15 +1470,25 @@ def pending_deprecation(version, message=None,
 def _decorate_with_warning(func, wtype, message, docstring_header=None):
     """Wrap a function with a warnings.warn and augmented docstring."""
 
-    def func_with_warning(*args, **kwargs):
-        warnings.warn(wtype(message), stacklevel=2)
-        return func(*args, **kwargs)
+    @decorator
+    def warned(fn, *args, **kwargs):
+        warnings.warn(wtype(message), stacklevel=3)
+        return fn(*args, **kwargs)
 
     doc = func.__doc__ is not None and func.__doc__ or ''
     if docstring_header is not None:
-        doc = '\n'.join((docstring_header.rstrip(), doc))
+        docstring_header %= dict(func=func.__name__)
+        docs = doc and doc.expandtabs().split('\n') or []
+        indent = ''
+        for line in docs[1:]:
+            text = line.lstrip()
+            if text:
+                indent = line[0:len(line) - len(text)]
+                break
+        point = min(len(docs), 1)
+        docs.insert(point, '\n' + indent + docstring_header.rstrip())
+        doc = '\n'.join(docs)
 
-    func_with_warning.__doc__ = doc
-    func_with_warning.__dict__.update(func.__dict__)
-
-    return function_named(func_with_warning, func.__name__)
+    decorated = warned(func)
+    decorated.__doc__ = doc
+    return decorated

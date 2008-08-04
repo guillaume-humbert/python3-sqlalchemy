@@ -3,12 +3,27 @@
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
+"""
+
+Defines SQLAlchemy's system of class instrumentation.
+
+This module is usually not visible to user applications, but forms
+a large part of the ORM's interactivity.  The primary "public"
+function is the ``on_reconstitute`` decorator which is described in
+the main mapper documentation.
+
+SQLA's instrumentation system is completely customizable, in which
+case an understanding of the general mechanics of this module is helpful.
+An example of full customization is in /examples/custom_attributes.
+
+"""
 
 import operator
+from operator import attrgetter, itemgetter
 import weakref
 
 from sqlalchemy import util
-from sqlalchemy.util import attrgetter, itemgetter, EMPTY_SET
+from sqlalchemy.util import EMPTY_SET
 from sqlalchemy.orm import interfaces, collections, exc
 import sqlalchemy.exceptions as sa_exc
 
@@ -21,7 +36,6 @@ PASSIVE_NORESULT = util.symbol('PASSIVE_NORESULT')
 ATTR_WAS_SET = util.symbol('ATTR_WAS_SET')
 NO_VALUE = util.symbol('NO_VALUE')
 NEVER_SET = util.symbol('NEVER_SET')
-NO_ENTITY_NAME = util.symbol('NO_ENTITY_NAME')
 
 INSTRUMENTATION_MANAGER = '__sa_instrumentation_manager__'
 """Attribute, elects custom instrumentation when present on a mapped class.
@@ -69,8 +83,9 @@ class QueryableAttribute(interfaces.PropComparator):
 
     def __init__(self, impl, comparator=None, parententity=None):
         """Construct an InstrumentedAttribute.
-        comparator
-          a sql.Comparator to which class-level compare/math events will be sent
+        
+          comparator
+            a sql.Comparator to which class-level compare/math events will be sent
         """
 
         self.impl = impl
@@ -122,18 +137,18 @@ class InstrumentedAttribute(QueryableAttribute):
             return self
         return self.impl.get(instance_state(instance))
 
+class _ProxyImpl(object):
+    accepts_scalar_loader = False
+
+    def __init__(self, key):
+        self.key = key
+
 def proxied_attribute_factory(descriptor):
     """Create an InstrumentedAttribute / user descriptor hybrid.
 
     Returns a new InstrumentedAttribute type that delegates descriptor
     behavior and getattr() to the given descriptor.
     """
-
-    class ProxyImpl(object):
-        accepts_scalar_loader = False
-
-        def __init__(self, key):
-            self.key = key
 
     class Proxy(InstrumentedAttribute):
         """A combination of InsturmentedAttribute and a regular descriptor."""
@@ -144,7 +159,7 @@ def proxied_attribute_factory(descriptor):
             self.descriptor = self.user_prop = descriptor
             self._comparator = comparator
             self._parententity = parententity
-            self.impl = ProxyImpl(key)
+            self.impl = _ProxyImpl(key)
 
         def comparator(self):
             if callable(self._comparator):
@@ -188,13 +203,13 @@ class AttributeImpl(object):
     def __init__(self, class_, key, callable_, class_manager, trackparent=False, extension=None, compare_function=None, **kwargs):
         """Construct an AttributeImpl.
 
-        class_
+        \class_
           the class to be instrumented.
 
         key
           string name of the attribute
 
-        callable_
+        \callable_
           optional function which generates a callable based on a parent
           instance, which produces the "default" values for a scalar or
           collection attribute when it's first accessed, if not present
@@ -262,7 +277,7 @@ class AttributeImpl(object):
         fired.
 
         The callable overrides the class level callable set in the
-        ``InstrumentedAttribute` constructor.
+        ``InstrumentedAttribute`` constructor.
 
         """
         if callable_ is None:
@@ -324,7 +339,7 @@ class AttributeImpl(object):
     def set(self, state, value, initiator):
         raise NotImplementedError()
 
-    def get_committed_value(self, state):
+    def get_committed_value(self, state, passive=False):
         """return the unchanged value of this attribute"""
 
         if self.key in state.committed_state:
@@ -333,7 +348,7 @@ class AttributeImpl(object):
             else:
                 return state.committed_state.get(self.key)
         else:
-            return self.get(state)
+            return self.get(state, passive=passive)
 
     def set_committed_value(self, state, value):
         """set an attribute value on the given instance and 'commit' it."""
@@ -466,10 +481,10 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
         """Set a value on the given InstanceState.
 
         `initiator` is the ``InstrumentedAttribute`` that initiated the
-        ``set()` operation and is used to control the depth of a circular
+        ``set()`` operation and is used to control the depth of a circular
         setter operation.
+        
         """
-
         if initiator is self:
             return
 
@@ -607,7 +622,7 @@ class CollectionAttributeImpl(AttributeImpl):
         """Set a value on the given object.
 
         `initiator` is the ``InstrumentedAttribute`` that initiated the
-        ``set()` operation and is used to control the depth of a circular
+        ``set()`` operation and is used to control the depth of a circular
         setter operation.
         """
 
@@ -739,9 +754,8 @@ class InstanceState(object):
     session_id = None
     key = None
     runid = None
-    entity_name = NO_ENTITY_NAME
     expired_attributes = EMPTY_SET
-
+    
     def __init__(self, obj, manager):
         self.class_ = obj.__class__
         self.manager = manager
@@ -806,6 +820,7 @@ class InstanceState(object):
         impl = self.get_impl(key)
         x = impl.get(self, passive=passive)
         if x is PASSIVE_NORESULT:
+            
             return None
         elif hasattr(impl, 'get_collection'):
             return impl.get_collection(self, x, passive=passive)
@@ -821,7 +836,6 @@ class InstanceState(object):
 
     def __getstate__(self):
         return {'key': self.key,
-                'entity_name': self.entity_name,
                 'committed_state': self.committed_state,
                 'pending': self.pending,
                 'parents': self.parents,
@@ -836,7 +850,6 @@ class InstanceState(object):
         self.parents = state['parents']
         self.key = state['key']
         self.session_id = None
-        self.entity_name = state['entity_name']
         self.pending = state['pending']
         self.modified = state['modified']
         self.obj = weakref.ref(state['instance'])
@@ -877,11 +890,12 @@ class InstanceState(object):
     def unmodified(self):
         """a set of keys which have no uncommitted changes"""
 
-        return util.Set([
-            key for key in self.manager.keys() if
-            key not in self.committed_state
-            or (key in self.manager.mutable_attributes and not self.manager[key].impl.check_mutable_modified(self))
-        ])
+        return set(
+            key for key in self.manager.keys()
+            if (key not in self.committed_state or
+                (key in self.manager.mutable_attributes and
+                 not self.manager[key].impl.check_mutable_modified(self))))
+
     unmodified = property(unmodified)
     
     def unloaded(self):
@@ -891,14 +905,14 @@ class InstanceState(object):
         was never populated or modified.
         
         """
-        return util.Set([
-            key for key in self.manager.keys() if
-            key not in self.committed_state and key not in self.dict
-        ])
+        return set(
+            key for key in self.manager.keys()
+            if key not in self.committed_state and key not in self.dict)
+
     unloaded = property(unloaded)
 
     def expire_attributes(self, attribute_names):
-        self.expired_attributes = util.Set(self.expired_attributes)
+        self.expired_attributes = set(self.expired_attributes)
 
         if attribute_names is None:
             attribute_names = self.manager.keys()
@@ -1029,8 +1043,8 @@ class ClassManager(dict):
         self.class_ = class_
         self.factory = None  # where we came from, for inheritance bookkeeping
         self.info = {}
-        self.mappers = {}
-        self.mutable_attributes = util.Set()
+        self.mapper = None
+        self.mutable_attributes = set()
         self.local_attrs = {}
         self.originals = {}
         for base in class_.__mro__[-2:0:-1]:   # reverse, skipping 1st and last
@@ -1396,13 +1410,8 @@ def unregister_class(class_):
     manager.unregister()
 
 def register_attribute(class_, key, uselist, useobject, callable_=None, proxy_property=None, mutable_scalars=False, impl_class=None, **kwargs):
-
     manager = manager_of_class(class_)
     if manager.is_instrumented(key):
-        # this currently only occurs if two primary mappers are made for the
-        # same class.  TODO: possibly have InstrumentedAttribute check
-        # "entity_name" when searching for impl.  raise an error if two
-        # attrs attached simultaneously otherwise
         return
 
     if uselist:
@@ -1428,7 +1437,7 @@ def register_attribute(class_, key, uselist, useobject, callable_=None, proxy_pr
                     impl_class=impl_class,
                     **kwargs),
                 comparator=comparator, parententity=parententity)
-
+    
     manager.instrument_attribute(key, descriptor)
 
 def unregister_attribute(class_, key):
@@ -1593,7 +1602,7 @@ def collect_management_factories_for(cls):
 
     """
     hierarchy = util.class_hierarchy(cls)
-    factories = util.Set()
+    factories = set()
     for member in hierarchy:
         manager = manager_of_class(member)
         if manager is not None:

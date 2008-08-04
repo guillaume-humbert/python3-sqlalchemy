@@ -187,8 +187,6 @@ class CascadeTest(ORMTest):
         assert t4_1 in sess.deleted
         sess.flush()
 
-
-
 class GetTest(ORMTest):
     def define_tables(self, metadata):
         global foo, bar, blub
@@ -275,7 +273,6 @@ class GetTest(ORMTest):
 
     test_get_polymorphic = create_test(True, 'test_get_polymorphic')
     test_get_nonpolymorphic = create_test(False, 'test_get_nonpolymorphic')
-
 
 class ConstructionTest(ORMTest):
     def define_tables(self, metadata):
@@ -557,8 +554,6 @@ class VersioningTest(ORMTest):
         except orm_exc.ConcurrentModificationError, e:
             assert True
 
-
-
 class DistinctPKTest(ORMTest):
     """test the construction of mapper.primary_key when an inheriting relationship
     joins on a column other than primary key column."""
@@ -699,7 +694,316 @@ class SyncCompileTest(ORMTest):
         assert len(session.query(B).all()) == 2
         assert len(session.query(C).all()) == 1
 
+class OverrideColKeyTest(ORMTest):
+    """test overriding of column attributes."""
+    
+    def define_tables(self, metadata):
+        global base, subtable
+        
+        base = Table('base', metadata, 
+            Column('base_id', Integer, primary_key=True),
+            Column('data', String(255)),
+            Column('sqlite_fixer', String(10))
+            )
+            
+        subtable = Table('subtable', metadata,
+            Column('base_id', Integer, ForeignKey('base.base_id'), primary_key=True),
+            Column('subdata', String(255))
+        )
 
+    def test_plain(self):
+        # control case
+        class Base(object):
+            pass
+        class Sub(Base):
+            pass
 
+        mapper(Base, base)
+        mapper(Sub, subtable, inherits=Base)
+        
+        # Sub gets a "base_id" property using the "base_id"
+        # column of both tables.
+        self.assertEquals(
+            class_mapper(Sub).get_property('base_id').columns,
+            [base.c.base_id, subtable.c.base_id]
+        )
+
+    def test_override_explicit(self):
+        # this pattern is what you see when using declarative
+        # in particular, here we do a "manual" version of
+        # what we'd like the mapper to do.
+        
+        class Base(object):
+            pass
+        class Sub(Base):
+            pass
+        
+        mapper(Base, base, properties={
+            'id':base.c.base_id
+        })
+        mapper(Sub, subtable, inherits=Base, properties={
+            # this is the manual way to do it, is not really
+            # possible in declarative
+            'id':[base.c.base_id, subtable.c.base_id]
+        })
+
+        self.assertEquals(
+            class_mapper(Sub).get_property('id').columns,
+            [base.c.base_id, subtable.c.base_id]
+        )
+ 
+        s1 = Sub()
+        s1.id = 10
+        sess = create_session()
+        sess.add(s1)
+        sess.flush()
+        assert sess.query(Sub).get(10) is s1
+    
+    def test_override_onlyinparent(self):
+        class Base(object):
+            pass
+        class Sub(Base):
+            pass
+
+        mapper(Base, base, properties={
+            'id':base.c.base_id
+        })
+        mapper(Sub, subtable, inherits=Base)
+        
+        self.assertEquals(
+            class_mapper(Sub).get_property('id').columns,
+            [base.c.base_id]
+        )
+
+        self.assertEquals(
+            class_mapper(Sub).get_property('base_id').columns,
+            [subtable.c.base_id]
+        )
+        
+        s1 = Sub()
+        s1.id = 10
+        
+        s2 = Sub()
+        s2.base_id = 15
+        
+        sess = create_session()
+        sess.add_all([s1, s2])
+        sess.flush()
+        
+        # s1 gets '10'
+        assert sess.query(Sub).get(10) is s1
+        
+        # s2 gets a new id, base_id is overwritten by the ultimate
+        # PK col
+        assert s2.id == s2.base_id != 15
+        
+    def test_override_implicit(self):
+        # this is how the pattern looks intuitively when 
+        # using declarative.
+        # fixed as part of [ticket:1111]
+        
+        class Base(object):
+            pass
+        class Sub(Base):
+            pass
+
+        mapper(Base, base, properties={
+            'id':base.c.base_id
+        })
+        mapper(Sub, subtable, inherits=Base, properties={
+            'id':subtable.c.base_id
+        })
+        
+        # Sub mapper compilation needs to detect that "base.c.base_id"
+        # is renamed in the inherited mapper as "id", even though
+        # it has its own "id" property.  Sub's "id" property 
+        # gets joined normally with the extra column.
+        
+        self.assertEquals(
+            class_mapper(Sub).get_property('id').columns,
+            [base.c.base_id, subtable.c.base_id]
+        )
+        
+        s1 = Sub()
+        s1.id = 10
+        sess = create_session()
+        sess.add(s1)
+        sess.flush()
+        assert sess.query(Sub).get(10) is s1
+
+    def test_plain_descriptor(self):
+        """test that descriptors prevent inheritance from propigating properties to subclasses."""
+        
+        class Base(object):
+            pass
+        class Sub(Base):
+            @property
+            def data(self):
+                return "im the data"
+
+        mapper(Base, base)
+        mapper(Sub, subtable, inherits=Base)
+        
+        s1 = Sub()
+        sess = create_session()
+        sess.add(s1)
+        sess.flush()
+        assert sess.query(Sub).one().data == "im the data"
+
+    def test_custom_descriptor(self):
+        """test that descriptors prevent inheritance from propigating properties to subclasses."""
+
+        class MyDesc(object):
+            def __get__(self, instance, owner):
+                if instance is None:
+                    return self
+                return "im the data"
+            
+        class Base(object):
+            pass
+        class Sub(Base):
+            data = MyDesc()
+
+        mapper(Base, base)
+        mapper(Sub, subtable, inherits=Base)
+
+        s1 = Sub()
+        sess = create_session()
+        sess.add(s1)
+        sess.flush()
+        assert sess.query(Sub).one().data == "im the data"
+    
+    def test_sub_columns_over_base_descriptors(self):
+        class Base(object):
+            @property
+            def subdata(self):
+                return "this is base"
+
+        class Sub(Base):
+            pass
+
+        mapper(Base, base)
+        mapper(Sub, subtable, inherits=Base)
+        
+        sess = create_session()
+        b1 = Base()
+        assert b1.subdata == "this is base"
+        s1 = Sub()
+        s1.subdata = "this is sub"
+        assert s1.subdata == "this is sub"
+
+        sess.add_all([s1, b1])
+        sess.flush()
+        sess.clear()
+        
+        assert sess.query(Base).get(b1.base_id).subdata == "this is base"
+        assert sess.query(Sub).get(s1.base_id).subdata == "this is sub"
+
+    def test_base_descriptors_over_base_cols(self):
+        class Base(object):
+            @property
+            def data(self):
+                return "this is base"
+
+        class Sub(Base):
+            pass
+
+        mapper(Base, base)
+        mapper(Sub, subtable, inherits=Base)
+
+        sess = create_session()
+        b1 = Base()
+        assert b1.data == "this is base"
+        s1 = Sub()
+        assert s1.data == "this is base"
+
+        sess.add_all([s1, b1])
+        sess.flush()
+        sess.clear()
+
+        assert sess.query(Base).get(b1.base_id).data == "this is base"
+        assert sess.query(Sub).get(s1.base_id).data == "this is base"
+
+class OptimizedLoadTest(ORMTest):
+    """test that the 'optimized load' routine doesn't crash when 
+    a column in the join condition is not available.
+    
+    """
+    def define_tables(self, metadata):
+        global base, sub
+        base = Table('base', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', String(50)),
+            Column('type', String(50))
+        )
+        sub = Table('sub', metadata, 
+            Column('id', Integer, ForeignKey('base.id'), primary_key=True),
+            Column('sub', String(50))
+        )
+    
+    def test_optimized_passes(self):
+        class Base(object):
+            pass
+        class Sub(Base):
+            pass
+            
+        mapper(Base, base, polymorphic_on=base.c.type, polymorphic_identity='base')
+        
+        # redefine Sub's "id" to favor the "id" col in the subtable.
+        # "id" is also part of the primary join condition
+        mapper(Sub, sub, inherits=Base, polymorphic_identity='sub', properties={'id':sub.c.id})
+        sess = create_session()
+        s1 = Sub()
+        s1.data = 's1data'
+        s1.sub = 's1sub'
+        sess.save(s1)
+        sess.flush()
+        sess.clear()
+        
+        # load s1 via Base.  s1.id won't populate since it's relative to 
+        # the "sub" table.  The optimized load kicks in and tries to 
+        # generate on the primary join, but cannot since "id" is itself unloaded.
+        # the optimized load needs to return "None" so regular full-row loading proceeds
+        s1 = sess.query(Base).get(s1.id)
+        assert s1.sub == 's1sub'
+        
+class DeleteOrphanTest(ORMTest):
+    def define_tables(self, metadata):
+        global single, parent
+        single = Table('single', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('type', String(50), nullable=False),
+            Column('data', String(50)),
+            Column('parent_id', Integer, ForeignKey('parent.id'), nullable=False),
+            )
+            
+        parent = Table('parent', metadata,
+                Column('id', Integer, primary_key=True),
+                Column('data', String(50))
+            )
+    
+    def test_orphan_message(self):
+        class Base(fixtures.Base):
+            pass
+        
+        class SubClass(Base):
+            pass
+        
+        class Parent(fixtures.Base):
+            pass
+        
+        mapper(Base, single, polymorphic_on=single.c.type, polymorphic_identity='base')
+        mapper(SubClass, inherits=Base, polymorphic_identity='sub')
+        mapper(Parent, parent, properties={
+            'related':relation(Base, cascade="all, delete-orphan")
+        })
+        
+        sess = create_session()
+        s1 = SubClass(data='s1')
+        sess.add(s1)
+        self.assertRaisesMessage(orm_exc.FlushError, 
+            "is not attached to any parent 'Parent' instance via that classes' 'related' attribute", sess.flush)
+        
+    
 if __name__ == "__main__":
     testenv.main()

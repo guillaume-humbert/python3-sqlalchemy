@@ -1,7 +1,7 @@
 import testenv; testenv.configure_for_tests()
 
 from testlib.sa import Table, Column, Integer, String, ForeignKey, Sequence
-from testlib.sa.orm import mapper, relation, create_session, class_mapper
+from testlib.sa.orm import mapper, relation, create_session, class_mapper, backref
 from testlib.sa.orm import attributes, exc as orm_exc
 from testlib import testing
 from testlib.testing import eq_
@@ -54,6 +54,7 @@ class O2MCascadeTest(_fixtures.FixtureTest):
             assert False
         except orm_exc.FlushError, e:
             assert "is an orphan" in str(e)
+
 
     @testing.resolve_artifact_names
     def test_delete(self):
@@ -155,6 +156,111 @@ class O2MCascadeTest(_fixtures.FixtureTest):
         assert users.count().scalar() == 1
         assert orders.count().scalar() == 0
 
+
+class O2MBackrefTest(_fixtures.FixtureTest):
+    run_inserts = None
+
+    @testing.resolve_artifact_names
+    def setup_mappers(self):
+        mapper(User, users, properties = dict(
+            orders = relation(
+                mapper(Order, orders), cascade="all, delete-orphan", backref="user")
+        ))
+
+    @testing.resolve_artifact_names
+    def test_lazyload_bug(self):
+        sess = create_session()
+
+        u = User(name="jack")
+        sess.add(u)
+        sess.expunge(u)
+
+        o1 = Order(description='someorder')
+        o1.user = u
+        sess.add(u)
+        assert u in sess
+        assert o1 in sess
+
+
+class NoSaveCascadeTest(_fixtures.FixtureTest):
+    """test that backrefs don't force save-update cascades to occur
+    when the cascade initiated from the forwards side."""
+    
+    @testing.resolve_artifact_names
+    def test_unidirectional_cascade_o2m(self):
+        mapper(Order, orders)
+        mapper(User, users, properties = dict(
+            orders = relation(
+                Order, backref=backref("user", cascade=None))
+        ))
+        
+        sess = create_session()
+        
+        o1 = Order()
+        sess.add(o1)
+        u1 = User(orders=[o1])
+        assert u1 not in sess
+        assert o1 in sess
+        
+        sess.clear()
+        
+        o1 = Order()
+        u1 = User(orders=[o1])
+        sess.add(o1)
+        assert u1 not in sess
+        assert o1 in sess
+
+    @testing.resolve_artifact_names
+    def test_unidirectional_cascade_m2o(self):
+        mapper(Order, orders, properties={
+            'user':relation(User, backref=backref("orders", cascade=None))
+        })
+        mapper(User, users)
+        
+        sess = create_session()
+        
+        u1 = User()
+        sess.add(u1)
+        o1 = Order()
+        o1.user = u1
+        assert o1 not in sess
+        assert u1 in sess
+        
+        sess.clear()
+
+        u1 = User()
+        o1 = Order()
+        o1.user = u1
+        sess.add(u1)
+        assert o1 not in sess
+        assert u1 in sess
+
+    @testing.resolve_artifact_names
+    def test_unidirectional_cascade_m2m(self):
+        mapper(Item, items, properties={
+            'keywords':relation(Keyword, secondary=item_keywords, cascade="none", backref="items")
+        })
+        mapper(Keyword, keywords)
+
+        sess = create_session()
+
+        i1 = Item()
+        k1 = Keyword()
+        sess.add(i1)
+        i1.keywords.append(k1)
+        assert i1 in sess
+        assert k1 not in sess
+        
+        sess.clear()
+        
+        i1 = Item()
+        k1 = Keyword()
+        sess.add(i1)
+        k1.items.append(i1)
+        assert i1 in sess
+        assert k1 not in sess
+        
+    
 class O2MCascadeNoOrphanTest(_fixtures.FixtureTest):
     run_inserts = None
 

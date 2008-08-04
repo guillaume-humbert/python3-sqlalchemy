@@ -44,10 +44,10 @@ from sqlalchemy.sql import compiler, expression, operators as sqlops, functions 
 from sqlalchemy.sql import compiler, expression, operators as sql_operators, functions as sql_functions
 from sqlalchemy.engine import default, base
 from sqlalchemy import types as sqltypes
-from sqlalchemy.util import Decimal as _python_Decimal
+from decimal import Decimal as _python_Decimal
 
 
-MSSQL_RESERVED_WORDS = util.Set(['function'])
+MSSQL_RESERVED_WORDS = set(['function'])
 
 class MSNumeric(sqltypes.Numeric):
     def result_processor(self, dialect):
@@ -361,6 +361,8 @@ class MSSQLExecutionContext_pyodbc (MSSQLExecutionContext):
 
 class MSSQLDialect(default.DefaultDialect):
     name = 'mssql'
+    supports_simple_order_by_label = False
+
     colspecs = {
         sqltypes.Unicode : MSNVarchar,
         sqltypes.Integer : MSInteger,
@@ -582,7 +584,7 @@ class MSSQLDialect(default.DefaultDialect):
                 if a is not None:
                     args.append(a)
             coltype = self.ischema_names.get(type, None)
-            if coltype == MSString and charlen == -1:
+            if coltype == MSText or (coltype == MSString and charlen == -1):
                 coltype = MSText()
             else:
                 if coltype is None:
@@ -638,7 +640,8 @@ class MSSQLDialect(default.DefaultDialect):
 
         # Primary key constraints
         s = sql.select([C.c.column_name, TC.c.constraint_type], sql.and_(TC.c.constraint_name == C.c.constraint_name,
-                                                                         C.c.table_name == table.name))
+                                                                         C.c.table_name == table.name,
+                                                                         C.c.table_schema == (table.schema or current_schema)))
         c = connection.execute(s)
         for row in c:
             if 'PRIMARY' in row[TC.c.constraint_type.name]:
@@ -803,7 +806,12 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
         return [[";".join (connectors)], {}]
 
     def is_disconnect(self, e):
-        return isinstance(e, self.dbapi.Error) and '[08S01]' in str(e)
+        if isinstance(e, self.dbapi.ProgrammingError):
+            return "The cursor's connection has been closed." in str(e) or 'Attempt to use a closed connection.' in str(e)
+        elif isinstance(e, self.dbapi.Error):
+            return '[08S01]' in str(e)
+        else:
+            return False
 
     def create_execution_context(self, *args, **kwargs):
         return MSSQLExecutionContext_pyodbc(self, *args, **kwargs)

@@ -2,12 +2,11 @@ import testenv; testenv.configure_for_tests()
 import gc
 import inspect
 import pickle
-from sqlalchemy.orm import create_session, sessionmaker
+from sqlalchemy.orm import create_session, sessionmaker, attributes
 from testlib import engines, sa, testing, config
 from testlib.sa import Table, Column, Integer, String
 from testlib.sa.orm import mapper, relation, backref
 from testlib.testing import eq_
-from testlib.compat import set
 from engine import _base as engine_base
 from orm import _base, _fixtures
 
@@ -838,16 +837,11 @@ class SessionTest(_fixtures.FixtureTest):
     @testing.resolve_artifact_names
     def test_identity_key_1(self):
         mapper(User, users)
-        mapper(User, users, entity_name="en")
         s = create_session()
         key = s.identity_key(User, 1)
-        eq_(key, (User, (1,), None))
-        key = s.identity_key(User, 1, "en")
-        eq_(key, (User, (1,), "en"))
-        key = s.identity_key(User, 1, entity_name="en")
-        eq_(key, (User, (1,), "en"))
-        key = s.identity_key(User, ident=1, entity_name="en")
-        eq_(key, (User, (1,), "en"))
+        eq_(key, (User, (1,)))
+        key = s.identity_key(User, ident=1)
+        eq_(key, (User, (1,)))
 
     @testing.resolve_artifact_names
     def test_identity_key_2(self):
@@ -857,18 +851,15 @@ class SessionTest(_fixtures.FixtureTest):
         s.add(u)
         s.flush()
         key = s.identity_key(instance=u)
-        eq_(key, (User, (u.id,), None))
+        eq_(key, (User, (u.id,)))
 
     @testing.resolve_artifact_names
     def test_identity_key_3(self):
         mapper(User, users)
-        mapper(User, users, entity_name="en")
         s = create_session()
         row = {users.c.id: 1, users.c.name: "Frank"}
         key = s.identity_key(User, row=row)
-        eq_(key, (User, (1,), None))
-        key = s.identity_key(User, row=row, entity_name="en")
-        eq_(key, (User, (1,), "en"))
+        eq_(key, (User, (1,)))
 
     @testing.resolve_artifact_names
     def test_extension(self):
@@ -889,18 +880,21 @@ class SessionTest(_fixtures.FixtureTest):
                 log.append('after_flush_postexec')
             def after_begin(self, session, transaction, connection):
                 log.append('after_begin')
+            def after_attach(self, session, instance):
+                log.append('after_attach')
+
         sess = create_session(extension = MyExt())
         u = User(name='u1')
         sess.add(u)
         sess.flush()
-        assert log == ['before_flush', 'after_begin', 'after_flush', 'before_commit', 'after_commit', 'after_flush_postexec']
+        assert log == ['after_attach', 'before_flush', 'after_begin', 'after_flush', 'before_commit', 'after_commit', 'after_flush_postexec']
 
         log = []
         sess = create_session(autocommit=False, extension=MyExt())
         u = User(name='u1')
         sess.add(u)
         sess.flush()
-        assert log == ['before_flush', 'after_begin', 'after_flush', 'after_flush_postexec']
+        assert log == ['after_attach', 'before_flush', 'after_begin', 'after_flush', 'after_flush_postexec']
 
         log = []
         u.name = 'ed'
@@ -988,7 +982,87 @@ class SessionTest(_fixtures.FixtureTest):
         assert b in sess
         assert len(list(sess)) == 1
 
+class DisposedStates(testing.ORMTest):
+    keep_mappers = True
+    keep_tables = True
+    
+    def define_tables(self, metadata):
+        global t1
+        t1 = Table('t1', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('data', String(50))
+            )
 
+    def setup_mappers(self):
+        global T
+        class T(object):
+            def __init__(self, data):
+                self.data = data
+        mapper(T, t1)
+    
+    def tearDown(self):
+        from sqlalchemy.orm.session import _sessions
+        _sessions.clear()
+        super(DisposedStates, self).tearDown()
+        
+    def _set_imap_in_disposal(self, sess, *objs):
+        """remove selected objects from the given session, as though they 
+        were dereferenced and removed from WeakIdentityMap.
+        
+        Hardcodes the identity map's "all_states()" method to return the full list
+        of states.  This simulates the all_states() method returning results, afterwhich
+        some of the states get garbage collected (this normally only happens during
+        asynchronous gc).  The Session now has one or more 
+        InstanceState's which have been removed from the identity map and disposed.
+        
+        Will the Session not trip over this ???  Stay tuned.
+        
+        """
+        all_states = sess.identity_map.all_states()
+        sess.identity_map.all_states = lambda: all_states
+        for obj in objs:
+            state = attributes.instance_state(obj)
+            sess.identity_map.remove(state)
+            state.dispose()
+    
+    def _test_session(self, **kwargs):
+        global sess
+        sess = create_session(**kwargs)
+
+        data = o1, o2, o3, o4, o5 = [T('t1'), T('t2'), T('t3'), T('t4'), T('t5')]
+
+        sess.add_all(data)
+
+        sess.flush()
+
+        o1.data = 't1modified'
+        o5.data = 't5modified'
+        
+        self._set_imap_in_disposal(sess, o2, o4, o5)
+        return sess
+        
+    def test_flush(self):
+        self._test_session().flush()
+    
+    def test_clear(self):
+        self._test_session().clear()
+    
+    def test_close(self):
+        self._test_session().close()
+        
+    def test_expunge_all(self):
+        self._test_session().expunge_all()
+        
+    def test_expire_all(self):
+        self._test_session().expire_all()
+    
+    def test_rollback(self):
+        sess = self._test_session(autocommit=False, expire_on_commit=True)
+        sess.commit()
+        
+        sess.rollback()
+        
+        
 class SessionInterface(testing.TestBase):
     """Bogus args to Session methods produce actionable exceptions."""
 

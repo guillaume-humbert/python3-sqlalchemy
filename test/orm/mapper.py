@@ -3,10 +3,9 @@
 import testenv; testenv.configure_for_tests()
 from testlib import sa, testing
 from testlib.sa import MetaData, Table, Column, Integer, String, ForeignKey
-from testlib.sa.orm import mapper, relation, backref, create_session
+from testlib.sa.orm import mapper, relation, backref, create_session, class_mapper
 from testlib.sa.orm import defer, deferred, synonym, attributes
 from testlib.testing import eq_
-from testlib.compat import set
 import pickleable
 from orm import _base, _fixtures
 
@@ -397,7 +396,7 @@ class MapperTest(_fixtures.FixtureTest):
           exclude_properties=('vendor_id',))
 
         m_m = mapper(Manager, inherits=e_m, polymorphic_identity='manager',
-                     include_properties=())
+                     include_properties=('id', 'type'))
 
         v_m = mapper(Vendor, inherits=p_m, polymorphic_identity='vendor',
                      exclude_properties=('boss_id', 'employee_number'))
@@ -413,15 +412,32 @@ class MapperTest(_fixtures.FixtureTest):
             want = set(want)
             eq_(have, want)
 
+        def assert_instrumented(cls, want):
+            have = set([p.key for p in class_mapper(cls).iterate_properties])
+            want = set(want)
+            eq_(have, want)
+            
         assert_props(Person, ['id', 'name', 'type'])
+        assert_instrumented(Person, ['id', 'name', 'type'])
         assert_props(Employee, ['boss', 'boss_id', 'employee_number',
                                 'id', 'name', 'type'])
+        assert_instrumented(Employee,['boss', 'boss_id', 'employee_number',
+                                                        'id', 'name', 'type'])
         assert_props(Manager, ['boss', 'boss_id', 'employee_number', 'peon',
                                'id', 'name', 'type'])
+                               
+        # 'peon' and 'type' are both explicitly stated properties
+        assert_instrumented(Manager, ['peon', 'type', 'id'])
+        
         assert_props(Vendor, ['vendor_id', 'id', 'name', 'type'])
         assert_props(Hoho, ['id', 'name', 'type'])
         assert_props(Lala, ['p_employee_number', 'p_id', 'p_name', 'p_type'])
 
+        # excluding the discriminator column is currently not allowed
+        class Foo(Person):
+            pass
+        self.assertRaises(sa.exc.InvalidRequestError, mapper, Foo, inherits=Person, polymorphic_identity='foo', exclude_properties=('type',) )
+    
     @testing.resolve_artifact_names
     def test_mapping_to_join(self):
         """Mapping to a join"""
@@ -1691,43 +1707,6 @@ class MapperExtensionTest(_fixtures.FixtureTest):
              'populate_instance', 'append_result', 'translate_row',
              'create_instance', 'populate_instance', 'on_reconstitute', 'append_result',
              'before_update', 'after_update', 'before_delete', 'after_delete'])
-
-    @testing.resolve_artifact_names
-    def test_single_instrumentor(self):
-        ext_None, methods_None = self.extension()
-        ext_x, methods_x = self.extension()
-
-        def reset():
-            sa.orm.clear_mappers()
-            del methods_None[:]
-            del methods_x[:]
-
-        mapper(User, users, extension=ext_None())
-        mapper(User, users, extension=ext_x(), entity_name='x')
-        User()
-
-        eq_(methods_None, ['instrument_class', 'init_instance'])
-        eq_(methods_x, [])
-
-        reset()
-
-        mapper(User, users, extension=ext_x(), entity_name='x')
-        mapper(User, users, extension=ext_None())
-        User()
-
-        eq_(methods_x, ['instrument_class', 'init_instance'])
-        eq_(methods_None, [])
-
-        reset()
-
-        ext_y, methods_y = self.extension()
-
-        mapper(User, users, extension=ext_x(), entity_name='x')
-        mapper(User, users, extension=ext_y(), entity_name='y')
-        User()
-
-        eq_(methods_x, ['instrument_class', 'init_instance'])
-        eq_(methods_y, [])
 
 
 class RequirementsTest(_base.MappedTest):
