@@ -1,4 +1,4 @@
-sqlalchemy (0.4.7p1-1) UNRELEASED; urgency=low
+sqlalchemy (0.4.7p1-1) unstable; urgency=low
 
   * New upstream release
 
