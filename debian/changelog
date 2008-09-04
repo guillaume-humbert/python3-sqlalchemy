@@ -1,3 +1,10 @@
+sqlalchemy (0.4.7p1-2) unstable; urgency=low
+
+  * Fixed typos in orm/mapper.py and schema.py (closes: #494948, thanks
+    Sebastian)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Thu, 04 Sep 2008 21:20:49 +0200
+
 sqlalchemy (0.4.7p1-1) unstable; urgency=low
 
   * New upstream release
