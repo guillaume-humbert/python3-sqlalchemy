@@ -19,7 +19,7 @@ class OracleNumeric(sqltypes.Numeric):
         if self.precision is None:
             return "NUMERIC"
         else:
-            return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
+            return "NUMERIC(%(precision)s, %(scale)s)" % {'precision': self.precision, 'scale' : self.scale}
 
 class OracleInteger(sqltypes.Integer):
     def get_col_spec(self):
@@ -180,6 +180,7 @@ ischema_names = {
     'DATETIME' : OracleDateTime,
     'NUMBER' : OracleNumeric,
     'BLOB' : OracleBinary,
+    'BFILE' : OracleBinary,
     'CLOB' : OracleText,
     'TIMESTAMP' : OracleTimestamp,
     'RAW' : OracleRaw,
@@ -240,7 +241,6 @@ class OracleDialect(default.DefaultDialect):
     preexecute_pk_sequences = True
     supports_pk_autoincrement = False
     default_paramstyle = 'named'
-    supports_simple_order_by_label = False
 
     def __init__(self, use_ansi=True, auto_setinputsizes=True, auto_convert_lobs=True, threaded=True, allow_twophase=True, arraysize=50, **kwargs):
         default.DefaultDialect.__init__(self, **kwargs)
@@ -363,8 +363,10 @@ class OracleDialect(default.DefaultDialect):
         cursor = connection.execute("""select table_name from all_tables where table_name=:name and owner=:schema_name""", {'name':self._denormalize_name(table_name), 'schema_name':self._denormalize_name(schema)})
         return cursor.fetchone() is not None
 
-    def has_sequence(self, connection, sequence_name):
-        cursor = connection.execute("""select sequence_name from all_sequences where sequence_name=:name""", {'name':self._denormalize_name(sequence_name)})
+    def has_sequence(self, connection, sequence_name, schema=None):
+        if not schema:
+            schema = self.get_default_schema_name(connection)
+        cursor = connection.execute("""select sequence_name from all_sequences where sequence_name=:name and sequence_owner=:schema_name""", {'name':self._denormalize_name(sequence_name), 'schema_name':self._denormalize_name(schema)})
         return cursor.fetchone() is not None
 
     def _normalize_name(self, name):
@@ -567,8 +569,6 @@ class OracleDialect(default.DefaultDialect):
             table.append_constraint(schema.ForeignKeyConstraint(value[0], value[1], name=name))
 
 
-OracleDialect.logger = log.class_logger(OracleDialect)
-
 class _OuterJoinColumn(sql.ClauseElement):
     __visit_name__ = 'outer_join_column'
     def __init__(self, column):
@@ -657,7 +657,7 @@ class OracleCompiler(compiler.DefaultCompiler):
 
     def visit_select(self, select, **kwargs):
         """Look for ``LIMIT`` and OFFSET in a select statement, and if
-        so tries to wrap it in a subquery with ``row_number()`` criterion.
+        so tries to wrap it in a subquery with ``rownum`` criterion.
         """
 
         if not getattr(select, '_oracle_visit', None):
@@ -674,26 +674,54 @@ class OracleCompiler(compiler.DefaultCompiler):
                     select._oracle_visit = True
 
             if select._limit is not None or select._offset is not None:
-                # to use ROW_NUMBER(), an ORDER BY is required.
-                orderby = self.process(select._order_by_clause)
-                if not orderby:
-                    orderby = list(select.oid_column.proxies)[0]
-                    orderby = self.process(orderby)
+                # See http://www.oracle.com/technology/oramag/oracle/06-sep/o56asktom.html
+                #
+                # Generalized form of an Oracle pagination query:
+                #   select ... from (
+                #     select /*+ FIRST_ROWS(N) */ ...., rownum as ora_rn from (
+                #         select distinct ... where ... order by ...
+                #     ) where ROWNUM <= :limit+:offset
+                #   ) where ora_rn > :offset
+                # Outer select and "ROWNUM as ora_rn" can be dropped if limit=0
 
-                select = select.column(sql.literal_column("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn")).order_by(None)
+                # TODO: use annotations instead of clone + attr set ?
+                select = select._generate()
                 select._oracle_visit = True
 
-                limitselect = sql.select([c for c in select.c if c.key!='ora_rn'])
+                # Wrap the middle select and add the hint
+                limitselect = sql.select([c for c in select.c])
+                if select._limit:
+                    limitselect = limitselect.prefix_with("/*+ FIRST_ROWS(%d) */" % select._limit)
+
                 limitselect._oracle_visit = True
                 limitselect._is_wrapper = True
 
-                if select._offset is not None:
-                    limitselect.append_whereclause("ora_rn>%d" % select._offset)
-                    if select._limit is not None:
-                        limitselect.append_whereclause("ora_rn<=%d" % (select._limit + select._offset))
+                # If needed, add the limiting clause
+                if select._limit is not None:
+                    max_row = select._limit
+                    if select._offset is not None:
+                        max_row += select._offset
+                    limitselect.append_whereclause(
+                            sql.literal_column("ROWNUM")<=max_row)
+ 
+                # If needed, add the ora_rn, and wrap again with offset.
+                if select._offset is None:
+                    select = limitselect
                 else:
-                    limitselect.append_whereclause("ora_rn<=%d" % select._limit)
-                select = limitselect
+                     limitselect = limitselect.column(
+                             sql.literal_column("ROWNUM").label("ora_rn"))
+                     limitselect._oracle_visit = True
+                     limitselect._is_wrapper = True
+ 
+                     offsetselect = sql.select(
+                             [c for c in limitselect.c if c.key!='ora_rn'])
+                     offsetselect._oracle_visit = True
+                     offsetselect._is_wrapper = True
+ 
+                     offsetselect.append_whereclause(
+                             sql.literal_column("ora_rn")>select._offset)
+ 
+                     select = offsetselect
 
         kwargs['iswrapper'] = getattr(select, '_is_wrapper', False)
         return compiler.DefaultCompiler.visit_select(self, select, **kwargs)
@@ -721,13 +749,13 @@ class OracleSchemaGenerator(compiler.SchemaGenerator):
         return colspec
 
     def visit_sequence(self, sequence):
-        if not self.checkfirst  or not self.dialect.has_sequence(self.connection, sequence.name):
+        if not self.checkfirst  or not self.dialect.has_sequence(self.connection, sequence.name, sequence.schema):
             self.append("CREATE SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
 
 class OracleSchemaDropper(compiler.SchemaDropper):
     def visit_sequence(self, sequence):
-        if not self.checkfirst or self.dialect.has_sequence(self.connection, sequence.name):
+        if not self.checkfirst or self.dialect.has_sequence(self.connection, sequence.name, sequence.schema):
             self.append("DROP SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
 

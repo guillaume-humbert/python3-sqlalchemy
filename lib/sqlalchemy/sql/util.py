@@ -4,7 +4,7 @@ from itertools import chain
 
 """Utility functions that build upon SQL and Schema constructs."""
 
-def sort_tables(tables, reverse=False):
+def sort_tables(tables):
     """sort a collection of Table objects in order of their foreign-key dependency."""
     
     tuples = []
@@ -18,11 +18,7 @@ def sort_tables(tables, reverse=False):
 
     for table in tables:
         visitors.traverse(table, {'schema_visitor':True}, {'foreign_key':visit_foreign_key})    
-    sequence = topological.sort(tuples, tables)
-    if reverse:
-        return reversed(sequence)
-    else:
-        return sequence
+    return topological.sort(tuples, tables)
 
 def search(clause, target):
     if not clause:
@@ -194,7 +190,7 @@ def splice_joins(left, right, stop_on=None):
 
     return ret
     
-def reduce_columns(columns, *clauses):
+def reduce_columns(columns, *clauses, **kw):
     """given a list of columns, return a 'reduced' set based on natural equivalents.
 
     the set is reduced to the smallest list of columns which have no natural
@@ -204,12 +200,17 @@ def reduce_columns(columns, *clauses):
     \*clauses is an optional list of join clauses which will be traversed
     to further identify columns that are "equivalent".
 
+    \**kw may specify 'ignore_nonexistent_tables' to ignore foreign keys
+    whose tables are not yet configured.
+    
     This function is primarily used to determine the most minimal "primary key"
     from a selectable, by reducing the set of primary key columns present
     in the the selectable to just those that are not repeated.
 
     """
 
+    ignore_nonexistent_tables = kw.pop('ignore_nonexistent_tables', False)
+    
     columns = util.OrderedSet(columns)
 
     omit = set()
@@ -218,7 +219,14 @@ def reduce_columns(columns, *clauses):
             for c in columns:
                 if c is col:
                     continue
-                if fk.column.shares_lineage(c):
+                try:
+                    fk_col = fk.column
+                except exc.NoReferencedTableError:
+                    if ignore_nonexistent_tables:
+                        continue
+                    else:
+                        raise
+                if fk_col.shares_lineage(c):
                     omit.add(col)
                     break
 
@@ -275,7 +283,11 @@ def folded_equivalents(join, equivs=None):
 
     This function is used by Join.select(fold_equivalents=True).
     
-    TODO: deprecate ?
+    Deprecated.   This function is used for a certain kind of 
+    "polymorphic_union" which is designed to achieve joined
+    table inheritance where the base table has no "discriminator"
+    column; [ticket:1131] will provide a better way to 
+    achieve this.
 
     """
     if equivs is None:

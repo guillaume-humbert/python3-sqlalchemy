@@ -41,7 +41,8 @@ class ColumnProperty(StrategizedProperty):
         self.columns = [expression._labeled(c) for c in columns]
         self.group = kwargs.pop('group', None)
         self.deferred = kwargs.pop('deferred', False)
-        self.comparator_factory = ColumnProperty.ColumnComparator
+        self.comparator_factory = kwargs.pop('comparator_factory', ColumnProperty.ColumnComparator)
+        self.extension = kwargs.pop('extension', None)
         util.set_creation_order(self)
         if self.deferred:
             self.strategy_class = strategies.DeferredColumnLoader
@@ -82,9 +83,9 @@ class ColumnProperty(StrategizedProperty):
         return value
 
     class ColumnComparator(PropComparator):
+        @util.memoize
         def __clause_element__(self):
             return self.prop.columns[0]._annotate({"parententity": self.mapper})
-        __clause_element__ = util.cache_decorator(__clause_element__)
 
         def operate(self, op, *other, **kwargs):
             return op(self.__clause_element__(), *other, **kwargs)
@@ -96,13 +97,14 @@ class ColumnProperty(StrategizedProperty):
     def __str__(self):
         return str(self.parent.class_.__name__) + "." + self.key
 
-ColumnProperty.logger = log.class_logger(ColumnProperty)
+log.class_logger(ColumnProperty)
 
 class CompositeProperty(ColumnProperty):
     """subclasses ColumnProperty to provide composite type support."""
-
+    
     def __init__(self, class_, *columns, **kwargs):
         super(CompositeProperty, self).__init__(*columns, **kwargs)
+        self._col_position_map = dict((c, i) for i, c in enumerate(columns))
         self.composite_class = class_
         self.comparator_factory = kwargs.pop('comparator', CompositeProperty.Comparator)
         self.strategy_class = strategies.CompositeColumnLoader
@@ -123,17 +125,22 @@ class CompositeProperty(ColumnProperty):
         return self.get_col_value(column, obj)
 
     def setattr(self, state, value, column):
-        # TODO: test coverage for this method
+
         obj = state.get_impl(self.key).get(state)
         if obj is None:
             obj = self.composite_class(*[None for c in self.columns])
             state.get_impl(self.key).set(state, obj, None)
 
-        for a, b in zip(self.columns, value.__composite_values__()):
-            if a is column:
-                setattr(obj, b, value)
-
+        if hasattr(obj, '__set_composite_values__'):
+            values = list(obj.__composite_values__())
+            values[self._col_position_map[column]] = value
+            obj.__set_composite_values__(*values)
+        else:
+            setattr(obj, column.key, value)
+            
     def get_col_value(self, column, value):
+        if value is None:
+            return None
         for a, b in zip(self.columns, value.__composite_values__()):
             if a is column:
                 return b
@@ -144,25 +151,25 @@ class CompositeProperty(ColumnProperty):
 
         def __eq__(self, other):
             if other is None:
-                return sql.and_(*[a==None for a in self.prop.columns])
+                values = [None] * len(self.prop.columns)
             else:
-                return sql.and_(*[a==b for a, b in
-                                  zip(self.prop.columns,
-                                      other.__composite_values__())])
-
+                values = other.__composite_values__()
+            return sql.and_(*[a==b for a, b in zip(self.prop.columns, values)])
         def __ne__(self, other):
-            return sql.or_(*[a!=b for a, b in
-                             zip(self.prop.columns,
-                                 other.__composite_values__())])
+            return sql.not_(self.__eq__(other))
 
     def __str__(self):
         return str(self.parent.class_.__name__) + "." + self.key
 
 class SynonymProperty(MapperProperty):
-    def __init__(self, name, map_column=None, descriptor=None):
+
+    extension = None
+
+    def __init__(self, name, map_column=None, descriptor=None, comparator_factory=None):
         self.name = name
         self.map_column = map_column
         self.descriptor = descriptor
+        self.comparator_factory = comparator_factory
         util.set_creation_order(self)
 
     def setup(self, context, entity, path, adapter, **kwargs):
@@ -190,18 +197,25 @@ class SynonymProperty(MapperProperty):
         def comparator_callable(prop, mapper):
             def comparator():
                 prop = self.parent._get_property(self.key, resolve_synonyms=True)
-                return prop.comparator_factory(prop, mapper)
+                if self.comparator_factory:
+                    return self.comparator_factory(prop, mapper)
+                else:
+                    return prop.comparator_factory(prop, mapper)
             return comparator
 
-        strategies.DefaultColumnLoader(self)._register_attribute(None, None, False, comparator_callable, proxy_property=self.descriptor)
+        strategies.DefaultColumnLoader(self)._register_attribute(
+            None, None, False, comparator_callable, proxy_property=self.descriptor)
 
     def merge(self, session, source, dest, dont_load, _recursive):
         pass
-SynonymProperty.logger = log.class_logger(SynonymProperty)
+        
+log.class_logger(SynonymProperty)
 
 class ComparableProperty(MapperProperty):
     """Instruments a Python property for use in query expressions."""
 
+    extension = None
+    
     def __init__(self, comparator_factory, descriptor=None):
         self.descriptor = descriptor
         self.comparator_factory = comparator_factory
@@ -236,7 +250,7 @@ class PropertyLoader(StrategizedProperty):
         backref=None,
         _is_backref=False,
         post_update=False,
-        cascade=False,
+        cascade=False, extension=None,
         viewonly=False, lazy=True,
         collection_class=None, passive_deletes=False,
         passive_updates=True, remote_side=None,
@@ -261,6 +275,7 @@ class PropertyLoader(StrategizedProperty):
         self.comparator = PropertyLoader.Comparator(self, None)
         self.join_depth = join_depth
         self.local_remote_pairs = _local_remote_pairs
+        self.extension = extension
         self.__join_cache = {}
         self.comparator_factory = PropertyLoader.Comparator
         util.set_creation_order(self)
@@ -308,9 +323,9 @@ class PropertyLoader(StrategizedProperty):
             if of_type:
                 self._of_type = _class_to_mapper(of_type)
 
+        @property
         def parententity(self):
             return self.prop.parent
-        parententity = property(parententity)
 
         def __clause_element__(self):
             return self.prop.parent._with_polymorphic_selectable
@@ -391,7 +406,7 @@ class PropertyLoader(StrategizedProperty):
                 raise sa_exc.InvalidRequestError("'has()' not implemented for collections.  Use any().")
             return self._criterion_exists(criterion, **kwargs)
 
-        def contains(self, other):
+        def contains(self, other, **kwargs):
             if not self.prop.uselist:
                 raise sa_exc.InvalidRequestError("'contains' not implemented for scalar attributes.  Use ==")
             clause = self.prop._optimized_compare(other)
@@ -728,7 +743,7 @@ class PropertyLoader(StrategizedProperty):
 
 
     def _post_init(self):
-        if log.is_info_enabled(self.logger):
+        if self._should_log_info:
             self.logger.info(str(self) + " setup primary join %s" % self.primaryjoin)
             self.logger.info(str(self) + " setup secondary join %s" % self.secondaryjoin)
             self.logger.info(str(self) + " synchronize pairs [%s]" % ",".join("(%s => %s)" % (l, r) for l, r in self.synchronize_pairs))
@@ -788,6 +803,21 @@ class PropertyLoader(StrategizedProperty):
         aliased = aliased or bool(source_selectable)
 
         primaryjoin, secondaryjoin, secondary = self.primaryjoin, self.secondaryjoin, self.secondary
+        
+        # adjust the join condition for single table inheritance,
+        # in the case that the join is to a subclass
+        # this is analgous to the "_adjust_for_single_table_inheritance()"
+        # method in Query.
+        if self.mapper.single and self.mapper.inherits and self.mapper.polymorphic_on and self.mapper.polymorphic_identity is not None:
+            crit = self.mapper.polymorphic_on.in_(
+                m.polymorphic_identity
+                for m in self.mapper.polymorphic_iterator())
+            if secondaryjoin:
+                secondaryjoin = secondaryjoin & crit
+            else:
+                primaryjoin = primaryjoin & crit
+            
+
         if aliased:
             if secondary:
                 secondary = secondary.alias()
@@ -839,7 +869,7 @@ class PropertyLoader(StrategizedProperty):
         if not self.viewonly:
             self._dependency_processor.register_dependencies(uowcommit)
 
-PropertyLoader.logger = log.class_logger(PropertyLoader)
+log.class_logger(PropertyLoader)
 
 class BackRef(object):
     """Attached to a PropertyLoader to indicate a complementary reverse relationship.

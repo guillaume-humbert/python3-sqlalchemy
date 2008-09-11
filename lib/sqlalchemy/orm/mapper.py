@@ -14,6 +14,7 @@ available in [sqlalchemy.orm#].
 
 """
 
+import types
 import weakref
 from itertools import chain
 
@@ -106,15 +107,15 @@ class Mapper(object):
 
         self.class_ = class_
         self.class_manager = None
-            
+
         self.primary_key_argument = primary_key
         self.non_primary = non_primary
-        
+
         if order_by:
             self.order_by = util.to_list(order_by)
         else:
             self.order_by = order_by
-            
+
         self.always_refresh = always_refresh
         self.version_id_col = version_id_col
         self.concrete = concrete
@@ -132,10 +133,11 @@ class Mapper(object):
         self.column_prefix = column_prefix
         self.polymorphic_on = polymorphic_on
         self._dependency_processors = []
+        self._validators = {}
         self._clause_adapter = None
         self._requires_row_aliasing = False
         self.__inherits_equated_pairs = None
-        
+
         if not issubclass(class_, object):
             raise sa_exc.ArgumentError("Class '%s' is not a new-style class" % class_.__name__)
 
@@ -188,9 +190,6 @@ class Mapper(object):
 
         self.compiled = False
 
-        self.__should_log_info = log.is_info_enabled(self.logger)
-        self.__should_log_debug = log.is_debug_enabled(self.logger)
-
         self.__compile_inheritance()
         self.__compile_extensions()
         self.__compile_class()
@@ -201,11 +200,11 @@ class Mapper(object):
         self.__log("constructed")
 
     def __log(self, msg):
-        if self.__should_log_info:
+        if self._should_log_info:
             self.logger.info("(" + self.class_.__name__ + "|" + (self.local_table and self.local_table.description or str(self.local_table)) + (self.non_primary and "|non-primary" or "") + ") " + msg)
 
     def __log_debug(self, msg):
-        if self.__should_log_debug:
+        if self._should_log_debug:
             self.logger.debug("(" + self.class_.__name__ + "|" + (self.local_table and self.local_table.description or str(self.local_table)) + (self.non_primary and "|non-primary" or "") + ") " + msg)
 
     def _is_orphan(self, state):
@@ -220,7 +219,7 @@ class Mapper(object):
 
     def has_property(self, key):
         return key in self.__props
-        
+
     def get_property(self, key, resolve_synonyms=False, raiseerr=True):
         """return a MapperProperty associated with the given key."""
 
@@ -236,11 +235,11 @@ class Mapper(object):
             raise sa_exc.InvalidRequestError("Mapper '%s' has no property '%s'" % (str(self), key))
         return prop
 
+    @property
     def iterate_properties(self):
         """return an iterator of all MapperProperty objects."""
         self.compile()
         return self.__props.itervalues()
-    iterate_properties = property(iterate_properties)
 
     def __mappers_from_spec(self, spec, selectable):
         """given a with_polymorphic() argument, return the set of mappers it represents.
@@ -281,12 +280,15 @@ class Mapper(object):
 
         return from_obj
 
+    @property
+    @util.memoize
     def _with_polymorphic_mappers(self):
         if not self.with_polymorphic:
             return [self]
         return self.__mappers_from_spec(*self.with_polymorphic)
-    _with_polymorphic_mappers = property(util.cache_decorator(_with_polymorphic_mappers))
 
+    @property
+    @util.memoize
     def _with_polymorphic_selectable(self):
         if not self.with_polymorphic:
             return self.mapped_table
@@ -296,7 +298,6 @@ class Mapper(object):
             return selectable
         else:
             return self.__selectable_from_mappers(self.__mappers_from_spec(spec, selectable))
-    _with_polymorphic_selectable = property(util.cache_decorator(_with_polymorphic_selectable))
 
     def _with_polymorphic_args(self, spec=None, selectable=False):
         if self.with_polymorphic:
@@ -318,14 +319,13 @@ class Mapper(object):
             chain(*[list(mapper.iterate_properties) for mapper in [self] + mappers])
         ))
 
+    @property
     def properties(self):
         raise NotImplementedError("Public collection of MapperProperty objects is provided by the get_property() and iterate_properties accessors.")
-    properties = property(properties)
 
     def dispose(self):
         # Disable any attribute-based compilation.
         self.compiled = True
-
         manager = self.class_manager
 
         if not self.non_primary and manager.mapper is self:
@@ -347,12 +347,12 @@ class Mapper(object):
         global _new_mappers
         if self.compiled and not _new_mappers:
             return self
-            
+
         _COMPILE_MUTEX.acquire()
         global _already_compiling
         if _already_compiling:
-            # re-entrance to compile() occurs rarely, when a class-mapped construct is 
-            # used within a ForeignKey, something that is possible 
+            # re-entrance to compile() occurs rarely, when a class-mapped construct is
+            # used within a ForeignKey, something that is possible
             # when using the declarative layer
             self.__initialize_properties()
             return
@@ -367,7 +367,7 @@ class Mapper(object):
             for mapper in list(_mapper_registry):
                 if not mapper.compiled:
                     mapper.__initialize_properties()
-                    
+
             _new_mappers = False
             return self
         finally:
@@ -464,11 +464,11 @@ class Mapper(object):
                 self.version_id_col = self.inherits.version_id_col
 
             for mapper in self.iterate_to_root():
-                util.reset_cached(mapper, '_equivalent_columns')
+                util.reset_memoized(mapper, '_equivalent_columns')
 
             if self.order_by is False and not self.concrete and self.inherits.order_by is not False:
                 self.order_by = self.inherits.order_by
-                
+
             self.polymorphic_map = self.inherits.polymorphic_map
             self.batch = self.inherits.batch
             self.inherits._inheriting_mappers.add(self)
@@ -496,7 +496,7 @@ class Mapper(object):
                     raise sa_exc.ArgumentError("Mapper '%s' specifies a polymorphic_identity of '%s', but no mapper in it's hierarchy specifies the 'polymorphic_on' column argument" % (str(self), self.polymorphic_identity))
                 self.polymorphic_map[self.polymorphic_identity] = self
             self._identity_class = self.class_
-            
+
         if self.mapped_table is None:
             raise sa_exc.ArgumentError("Mapper '%s' does not have a mapped_table specified.  (Are you using the return value of table.create()?  It no longer has a return value.)" % str(self))
 
@@ -545,11 +545,11 @@ class Mapper(object):
             # determine primary key from argument or mapped_table pks - reduce to the minimal set of columns
             if self.primary_key_argument:
                 primary_key = sqlutil.reduce_columns(
-                    self.mapped_table.corresponding_column(c)
-                    for c in self.primary_key_argument)
+                    [self.mapped_table.corresponding_column(c) for c in self.primary_key_argument], 
+                    ignore_nonexistent_tables=True)
             else:
                 primary_key = sqlutil.reduce_columns(
-                    self._pks_by_table[self.mapped_table])
+                    self._pks_by_table[self.mapped_table], ignore_nonexistent_tables=True)
 
             if len(primary_key) == 0:
                 raise sa_exc.ArgumentError("Mapper %s could not assemble any primary key columns for mapped table '%s'" % (self, self.mapped_table.description))
@@ -557,6 +557,8 @@ class Mapper(object):
             self.primary_key = primary_key
             self.__log("Identified primary key columns: " + str(primary_key))
 
+    @property
+    @util.memoize
     def _get_clause(self):
         """create a "get clause" based on the primary key.  this is used
         by query.get() and many-to-one lazyloads to load this item
@@ -565,15 +567,16 @@ class Mapper(object):
         """
         params = [(primary_key, sql.bindparam(None, type_=primary_key.type)) for primary_key in self.primary_key]
         return sql.and_(*[k==v for (k, v) in params]), dict(params)
-    _get_clause = property(util.cache_decorator(_get_clause))
 
+    @property
+    @util.memoize
     def _equivalent_columns(self):
         """Create a map of all *equivalent* columns, based on
         the determination of column pairs that are equated to
         one another based on inherit condition.  This is designed
-        to work with the queries that util.polymorphic_union 
+        to work with the queries that util.polymorphic_union
         comes up with, which often don't include the columns from
-        the base table directly (including the subclass table columns 
+        the base table directly (including the subclass table columns
         only).
 
         The resulting structure is a dictionary of columns mapped
@@ -604,7 +607,6 @@ class Mapper(object):
                 visitors.traverse(mapper.inherit_condition, {}, {'binary':visit_binary})
 
         return result
-    _equivalent_columns = property(util.cache_decorator(_equivalent_columns))
 
     class _CompileOnAttr(PropComparator):
         """A placeholder descriptor which triggers compilation on access."""
@@ -618,6 +620,7 @@ class Mapper(object):
             cls = object.__getattribute__(self, 'class_')
             clskey = object.__getattribute__(self, 'key')
 
+            # ugly hack
             if key.startswith('__') and key != '__clause_element__':
                 return object.__getattribute__(self, key)
 
@@ -635,23 +638,26 @@ class Mapper(object):
 
             return getattr(getattr(cls, clskey), key)
 
+    def _is_userland_descriptor(self, obj):
+        return not isinstance(obj, (MapperProperty, attributes.InstrumentedAttribute)) and hasattr(obj, '__get__')
+        
     def _should_exclude(self, name, local):
         """determine whether a particular property should be implicitly present on the class.
-        
-        This occurs when properties are propagated from an inherited class, or are 
+
+        This occurs when properties are propagated from an inherited class, or are
         applied from the columns present in the mapped table.
-        
+
         """
-        
+
         # check for descriptors, either local or from
         # an inherited class
         if local:
             if self.class_.__dict__.get(name, None)\
-                and hasattr(self.class_.__dict__[name], '__get__'):
+                and self._is_userland_descriptor(self.class_.__dict__[name]):
                 return True
         else:
             if getattr(self.class_, name, None)\
-                and hasattr(getattr(self.class_, name), '__get__'):
+                and self._is_userland_descriptor(getattr(self.class_, name)):
                 return True
 
         if (self.include_properties is not None and
@@ -663,9 +669,9 @@ class Mapper(object):
             name in self.exclude_properties):
             self.__log("excluding property %s" % (name))
             return True
-            
+
         return False
-        
+
     def __compile_properties(self):
 
         # object attribute names mapped to MapperProperty objects
@@ -695,7 +701,7 @@ class Mapper(object):
 
             if self._should_exclude(column.key, local=self.local_table.c.contains_column(column)):
                 continue
-                
+
             column_key = (self.column_prefix or '') + column.key
 
             # adjust the "key" used for this column to that
@@ -703,7 +709,7 @@ class Mapper(object):
             for mapper in self.iterate_to_root():
                 if column in mapper._columntoproperty:
                     column_key = mapper._columntoproperty[column].key
-            
+
             self._compile_property(column_key, column, init=False, setparent=True)
 
         # do a special check for the "discriminiator" column, as it may only be present
@@ -758,13 +764,13 @@ class Mapper(object):
             # columns (included in zblog tests)
             if col is None:
                 col = prop.columns[0]
-                
+
                 # column is coming in after _readonly_props was initialized; check
                 # for 'readonly'
                 if hasattr(self, '_readonly_props') and \
                     (not hasattr(col, 'table') or col.table not in self._cols_by_table):
                         self._readonly_props.add(prop)
-                    
+
             else:
                 # if column is coming in after _cols_by_table was initialized, ensure the col is in the
                 # right set
@@ -778,9 +784,11 @@ class Mapper(object):
 
         elif isinstance(prop, (ComparableProperty, SynonymProperty)) and setparent:
             if prop.descriptor is None:
-                prop.descriptor = getattr(self.class_, key, None)
-                if isinstance(prop.descriptor, Mapper._CompileOnAttr):
-                    prop.descriptor = object.__getattribute__(prop.descriptor, 'existing_prop')
+                desc = getattr(self.class_, key, None)
+                if isinstance(desc, Mapper._CompileOnAttr):
+                    desc = object.__getattribute__(desc, 'existing_prop')
+                if self._is_userland_descriptor(desc):
+                    prop.descriptor = desc
             if getattr(prop, 'map_column', False):
                 if key not in self.mapped_table.c:
                     raise sa_exc.ArgumentError("Can't compile synonym '%s': no column on table '%s' named '%s'"  % (prop.name, self.mapped_table.description, key))
@@ -788,14 +796,14 @@ class Mapper(object):
 
         self.__props[key] = prop
         prop.key = key
-        
+
         if setparent:
             prop.set_parent(self)
 
             if not self.non_primary:
                 self.class_manager.install_descriptor(
                     key, Mapper._CompileOnAttr(self.class_, key))
-                    
+
         if init:
             prop.init(key, self)
 
@@ -860,10 +868,18 @@ class Mapper(object):
         event_registry = manager.events
         event_registry.add_listener('on_init', _event_on_init)
         event_registry.add_listener('on_init_failure', _event_on_init_failure)
-        if 'on_reconstitute' in self.extension.methods:
-            def reconstitute(instance):
-                self.extension.on_reconstitute(self, instance)
-            event_registry.add_listener('on_load', reconstitute)
+        for key, method in util.iterate_attributes(self.class_):
+            if isinstance(method, types.FunctionType):
+                if hasattr(method, '__sa_reconstructor__'):
+                    event_registry.add_listener('on_load', method)
+                elif hasattr(method, '__sa_validators__'):
+                    for name in method.__sa_validators__:
+                        self._validators[name] = method
+                        
+        if 'reconstruct_instance' in self.extension.methods:
+            def reconstruct(instance):
+                self.extension.reconstruct_instance(self, instance)
+            event_registry.add_listener('on_load', reconstruct)
 
         manager.info[_INSTRUMENTOR] = self
 
@@ -1026,7 +1042,7 @@ class Mapper(object):
         mapper which does not inherit from any other mapper.
         """
 
-        if self.__should_log_debug:
+        if self._should_log_debug:
             self.__log_debug("_save_obj() start, " + (single and "non-batched" or "batched"))
 
         # if batch=false, call _save_obj separately for each object
@@ -1064,7 +1080,7 @@ class Mapper(object):
                 existing = attributes.instance_state(instance)
                 if not uowtransaction.is_deleted(existing):
                     raise exc.FlushError("New instance %s with identity key %s conflicts with persistent instance %s" % (state_str(state), str(instance_key), state_str(existing)))
-                if self.__should_log_debug:
+                if self._should_log_debug:
                     self.__log_debug("detected row switch for identity %s.  will update %s, remove %s from transaction" % (instance_key, state_str(state), state_str(existing)))
                 uowtransaction.set_row_switch(existing)
 
@@ -1086,7 +1102,7 @@ class Mapper(object):
                 pks = mapper._pks_by_table[table]
                 instance_key = mapper._identity_key_from_state(state)
 
-                if self.__should_log_debug:
+                if self._should_log_debug:
                     self.__log_debug("_save_obj() table '%s' instance %s identity %s" % (table.name, state_str(state), str(instance_key)))
 
                 isinsert = not instance_key in uowtransaction.session.identity_map and not postupdate and not has_identity
@@ -1103,7 +1119,7 @@ class Mapper(object):
                             if value is not None:
                                 params[col.key] = value
                         elif mapper.polymorphic_on and mapper.polymorphic_on.shares_lineage(col):
-                            if self.__should_log_debug:
+                            if self._should_log_debug:
                                 self.__log_debug("Using polymorphic identity '%s' for insert column '%s'" % (mapper.polymorphic_identity, col.key))
                             value = mapper.polymorphic_identity
                             if ((col.default is None and
@@ -1207,23 +1223,25 @@ class Mapper(object):
                     mapper.__postfetch(uowtransaction, connection, table, state, c, c.last_inserted_params(), value_params)
 
                     # synchronize newly inserted ids from one table to the next
-                    # TODO: this fires off more than needed, try to organize syncrules
-                    # per table
-                    for m in reversed(list(mapper.iterate_to_root())):
+                    # TODO: this performs some unnecessary attribute transfers
+                    # from an attribute to itself, since the attribute is often mapped
+                    # to multiple, equivalent columns.  it also may fire off more
+                    # than needed overall.
+                    for m in mapper.iterate_to_root():
                         if m.__inherits_equated_pairs:
-                            m.__synchronize_inherited(state)
-
+                            sync.populate(state, m, state, m, m.__inherits_equated_pairs)
+                        
                     # testlib.pragma exempt:__hash__
                     inserted_objects.add((state, connection))
-        
+
         if not postupdate:
             for state, mapper, connection, has_identity in tups:
-                
+
                 # expire readonly attributes
                 readonly = state.unmodified.intersection(
                     p.key for p in mapper._readonly_props
                 )
-                
+
                 if readonly:
                     _expire_state(state, readonly)
 
@@ -1234,7 +1252,7 @@ class Mapper(object):
                     uowtransaction.session.query(self)._get(
                         state.key, refresh_state=state,
                         only_load_props=state.unloaded)
-                
+
                 # call after_XXX extensions
                 if not has_identity:
                     if 'after_insert' in mapper.extension.methods:
@@ -1243,16 +1261,13 @@ class Mapper(object):
                     if 'after_update' in mapper.extension.methods:
                         mapper.extension.after_update(mapper, connection, state.obj())
 
-    def __synchronize_inherited(self, state):
-        sync.populate(state, self, state, self, self.__inherits_equated_pairs)
-
     def __postfetch(self, uowtransaction, connection, table, state, resultproxy, params, value_params):
         """For a given Table that has just been inserted/updated,
         mark as 'expired' those attributes which correspond to columns
-        that are marked as 'postfetch', and populate attributes which 
+        that are marked as 'postfetch', and populate attributes which
         correspond to columns marked as 'prefetch' or were otherwise generated
         within _save_obj().
-        
+
         """
         postfetch_cols = resultproxy.postfetch_cols()
         generated_cols = list(resultproxy.prefetch_cols())
@@ -1270,7 +1285,7 @@ class Mapper(object):
                 self._set_state_attr_by_column(state, c, params[c.key])
 
         deferred_props = [prop.key for prop in [self._columntoproperty[c] for c in postfetch_cols]]
-        
+
         if deferred_props:
             _expire_state(state, deferred_props)
 
@@ -1281,7 +1296,7 @@ class Mapper(object):
         flush operation.
         """
 
-        if self.__should_log_debug:
+        if self._should_log_debug:
             self.__log_debug("_delete_obj() start")
 
         if 'connection_callable' in uowtransaction.mapper_flush_opts:
@@ -1300,7 +1315,7 @@ class Mapper(object):
             for t in mapper.tables:
                 table_to_mapper[t] = mapper
 
-        for table in sqlutil.sort_tables(table_to_mapper.keys(), reverse=True):
+        for table in reversed(sqlutil.sort_tables(table_to_mapper.keys())):
             delete = {}
             for state, mapper, connection in tups:
                 if table not in mapper._pks_by_table:
@@ -1458,12 +1473,12 @@ class Mapper(object):
                     identitykey = self._identity_key_from_state(refresh_state)
             else:
                 identitykey = identity_key(row)
-            
+
             if identitykey in session_identity_map:
                 instance = session_identity_map[identitykey]
                 state = attributes.instance_state(instance)
 
-                if self.__should_log_debug:
+                if self._should_log_debug:
                     self.__log_debug("_instance(): using existing instance %s identity %s" % (instance_str(instance), str(identitykey)))
 
                 isnew = state.runid != context.runid
@@ -1482,7 +1497,7 @@ class Mapper(object):
                 currentload = True
                 loaded_instance = False
             else:
-                if self.__should_log_debug:
+                if self._should_log_debug:
                     self.__log_debug("_instance(): identity key %s not in session" % str(identitykey))
 
                 if self.allow_null_pks:
@@ -1511,7 +1526,7 @@ class Mapper(object):
                 else:
                     instance = self.class_manager.new_instance()
 
-                if self.__should_log_debug:
+                if self._should_log_debug:
                     self.__log_debug("_instance(): created new instance %s identity %s" % (instance_str(instance), str(identitykey)))
 
                 state = attributes.instance_state(instance)
@@ -1534,7 +1549,7 @@ class Mapper(object):
                 # populate attributes on non-loading instances which have been expired
                 # TODO: apply eager loads to un-lazy loaded collections ?
                 if state in context.partials or state.unloaded:
-                        
+
                     if state in context.partials:
                         isnew = False
                         attrs = context.partials[state]
@@ -1584,7 +1599,7 @@ class Mapper(object):
 
         class ColumnsNotAvailable(Exception):
             pass
-            
+
         def visit_binary(binary):
             leftcol = binary.left
             rightcol = binary.right
@@ -1613,13 +1628,48 @@ class Mapper(object):
                     allconds.append(visitors.cloned_traverse(mapper.inherit_condition, {}, {'binary':visit_binary}))
         except ColumnsNotAvailable:
             return None
-            
+
         cond = sql.and_(*allconds)
         return sql.select(tables, cond, use_labels=True)
 
-Mapper.logger = log.class_logger(Mapper)
+log.class_logger(Mapper)
 
 
+def reconstructor(fn):
+    """Decorate a method as the 'reconstructor' hook.
+
+    Designates a method as the "reconstructor", an ``__init__``-like
+    method that will be called by the ORM after the instance has been
+    loaded from the database or otherwise reconstituted.
+
+    The reconstructor will be invoked with no arguments.  Scalar
+    (non-collection) database-mapped attributes of the instance will
+    be available for use within the function.  Eagerly-loaded
+    collections are generally not yet available and will usually only
+    contain the first element.  ORM state changes made to objects at
+    this stage will not be recorded for the next flush() operation, so
+    the activity within a reconstructor should be conservative.
+
+    """
+    fn.__sa_reconstructor__ = True
+    return fn
+
+def validates(*names):
+    """Decorate a method as a 'validator' for one or more named properties.
+    
+    Designates a method as a validator, a method which receives the 
+    name of the attribute as well as a value to be assigned, or in the
+    case of a collection to be added to the collection.  The function 
+    can then raise validation exceptions to halt the process from continuing,
+    or can modify or replace the value before proceeding.   The function
+    should otherwise return the given value.
+    
+    """
+    def wrap(fn):
+        fn.__sa_validators__ = names
+        return fn
+    return wrap
+    
 def _event_on_init(state, instance, args, kwargs):
     """Trigger mapper compilation and run init_instance hooks."""
 
@@ -1650,7 +1700,7 @@ def _load_scalar_attributes(state, attribute_names):
         raise sa_exc.UnboundExecutionError("Instance %s is not bound to a Session; attribute refresh operation cannot proceed" % (state_str(state)))
 
     has_key = _state_has_identity(state)
-    
+
     result = False
     if mapper.inherits and not mapper.concrete:
         statement = mapper._optimized_get_statement(state, attribute_names)

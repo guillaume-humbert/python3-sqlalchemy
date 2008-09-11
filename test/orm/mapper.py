@@ -3,7 +3,7 @@
 import testenv; testenv.configure_for_tests()
 from testlib import sa, testing
 from testlib.sa import MetaData, Table, Column, Integer, String, ForeignKey
-from testlib.sa.orm import mapper, relation, backref, create_session, class_mapper
+from testlib.sa.orm import mapper, relation, backref, create_session, class_mapper, reconstructor, validates
 from testlib.sa.orm import defer, deferred, synonym, attributes
 from testlib.testing import eq_
 import pickleable
@@ -138,11 +138,7 @@ class MapperTest(_fixtures.FixtureTest):
             raise Exception("this exception should be stated as a warning")
 
         sess.expunge = bad_expunge
-        try:
-            Foo(_sa_session=sess)
-            assert False
-        except Exception, e:
-            assert isinstance(e, sa.exc.SAWarning), e
+        self.assertRaises(sa.exc.SAWarning, Foo, _sa_session=sess)
 
     @testing.resolve_artifact_names
     def test_constructor_exc_2(self):
@@ -156,17 +152,8 @@ class MapperTest(_fixtures.FixtureTest):
 
         mapper(Foo, users)
         mapper(Bar, addresses)
-        try:
-            Foo(x=5)
-            assert False
-        except TypeError:
-            assert True
-
-        try:
-            Bar(x=5)
-            assert False
-        except TypeError:
-            assert True
+        self.assertRaises(TypeError, Foo, x=5)
+        self.assertRaises(TypeError, Bar, x=5)
 
     @testing.resolve_artifact_names
     def test_props(self):
@@ -765,6 +752,104 @@ class MapperTest(_fixtures.FixtureTest):
             eq_(User.uc_name['key'], 'value')
             sess.rollback()
 
+    @testing.resolve_artifact_names
+    def test_reconstructor(self):
+        recon = []
+
+        class User(object):
+            @reconstructor
+            def reconstruct(self):
+                recon.append('go')
+
+        mapper(User, users)
+
+        User()
+        eq_(recon, [])
+        create_session().query(User).first()
+        eq_(recon, ['go'])
+
+    @testing.resolve_artifact_names
+    def test_reconstructor_inheritance(self):
+        recon = []
+        class A(object):
+            @reconstructor
+            def reconstruct(self):
+                recon.append('A')
+
+        class B(A):
+            @reconstructor
+            def reconstruct(self):
+                recon.append('B')
+
+        class C(A):
+            @reconstructor
+            def reconstruct(self):
+                recon.append('C')
+
+        mapper(A, users, polymorphic_on=users.c.name,
+               polymorphic_identity='jack')
+        mapper(B, inherits=A, polymorphic_identity='ed')
+        mapper(C, inherits=A, polymorphic_identity='chuck')
+
+        A()
+        B()
+        C()
+        eq_(recon, [])
+
+        sess = create_session()
+        sess.query(A).first()
+        sess.query(B).first()
+        sess.query(C).first()
+        eq_(recon, ['A', 'B', 'C'])
+
+    @testing.resolve_artifact_names
+    def test_unmapped_reconstructor_inheritance(self):
+        recon = []
+        class Base(object):
+            @reconstructor
+            def reconstruct(self):
+                recon.append('go')
+
+        class User(Base):
+            pass
+
+        mapper(User, users)
+
+        User()
+        eq_(recon, [])
+
+        create_session().query(User).first()
+        eq_(recon, ['go'])
+
+    @testing.resolve_artifact_names
+    def test_unmapped_error(self):
+        mapper(Address, addresses)
+        sa.orm.clear_mappers()
+
+        mapper(User, users, properties={
+            'addresses':relation(Address)
+        })
+
+        self.assertRaises(sa.orm.exc.UnmappedClassError, sa.orm.compile_mappers)
+
+    @testing.resolve_artifact_names
+    def test_oldstyle_mixin(self):
+        class OldStyle:
+            pass
+        class NewStyle(object):
+            pass
+
+        class A(NewStyle, OldStyle):
+            pass
+
+        mapper(A, users)
+
+        class B(OldStyle, NewStyle):
+            pass
+
+        mapper(B, users)
+
+
 class OptionsTest(_fixtures.FixtureTest):
 
     @testing.fails_on('maxdb')
@@ -1001,7 +1086,49 @@ class DeepOptionsTest(_fixtures.FixtureTest):
             x = u[0].orders[1].items[0].keywords[1]
         self.sql_count_(2, go)
 
+class ValidatorTest(_fixtures.FixtureTest):
+    @testing.resolve_artifact_names
+    def test_scalar(self):
+        class User(_base.ComparableEntity):
+            @validates('name')
+            def validate_name(self, key, name):
+                assert name != 'fred'
+                return name + ' modified'
+                
+        mapper(User, users)
+        sess = create_session()
+        u1 = User(name='ed')
+        eq_(u1.name, 'ed modified')
+        self.assertRaises(AssertionError, setattr, u1, "name", "fred")
+        eq_(u1.name, 'ed modified')
+        sess.add(u1)
+        sess.flush()
+        sess.clear()
+        eq_(sess.query(User).filter_by(name='ed modified').one(), User(name='ed'))
+        
 
+    @testing.resolve_artifact_names
+    def test_collection(self):
+        class User(_base.ComparableEntity):
+            @validates('addresses')
+            def validate_address(self, key, ad):
+                assert '@' in ad.email_address
+                return ad
+                
+        mapper(User, users, properties={'addresses':relation(Address)})
+        mapper(Address, addresses)
+        sess = create_session()
+        u1 = User(name='edward')
+        self.assertRaises(AssertionError, u1.addresses.append, Address(email_address='noemail'))
+        u1.addresses.append(Address(id=15, email_address='foo@bar.com'))
+        sess.add(u1)
+        sess.flush()
+        sess.clear()
+        eq_(
+            sess.query(User).filter_by(name='edward').one(), 
+            User(name='edward', addresses=[Address(email_address='foo@bar.com')])
+        )
+        
 class DeferredTest(_fixtures.FixtureTest):
 
     @testing.resolve_artifact_names
@@ -1044,6 +1171,17 @@ class DeferredTest(_fixtures.FixtureTest):
         def go():
             o.description = "some description"
         self.sql_count_(0, go)
+
+    @testing.resolve_artifact_names
+    def test_synonym_group_bug(self):
+        mapper(Order, orders, properties={
+            'isopen':synonym('_isopen', map_column=True),
+            'description':deferred(orders.c.description, group='foo')
+        })
+        
+        sess = create_session()
+        o1 = sess.query(Order).get(1)
+        eq_(o1.description, "order 1")
 
     @testing.resolve_artifact_names
     def test_unsaved_2(self):
@@ -1366,7 +1504,7 @@ class CompositeTypesTest(_base.MappedTest):
     def define_tables(self, metadata):
         Table('graphs', metadata,
             Column('id', Integer, primary_key=True),
-            Column('version_id', Integer, primary_key=True),
+            Column('version_id', Integer, primary_key=True, nullable=True),
             Column('name', String(30)))
 
         Table('edges', metadata,
@@ -1382,6 +1520,14 @@ class CompositeTypesTest(_base.MappedTest):
             ['graph_id', 'graph_version_id'],
             ['graphs.id', 'graphs.version_id']))
 
+        Table('foobars', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('x1', Integer, default=2),
+            Column('x2', Integer),
+            Column('x3', Integer, default=15),
+            Column('x4', Integer)
+        )
+        
     @testing.resolve_artifact_names
     def test_basic(self):
         class Point(object):
@@ -1465,7 +1611,6 @@ class CompositeTypesTest(_base.MappedTest):
                 self.id = id
                 self.version = version
             def __composite_values__(self):
-                # a tuple this time
                 return (self.id, self.version)
             def __eq__(self, other):
                 return other.id == self.id and other.version == self.version
@@ -1476,7 +1621,7 @@ class CompositeTypesTest(_base.MappedTest):
             def __init__(self, version):
                 self.version = version
 
-        mapper(Graph, graphs, properties={
+        mapper(Graph, graphs, allow_null_pks=True, properties={
             'version':sa.orm.composite(Version, graphs.c.id,
                                        graphs.c.version_id)})
 
@@ -1492,6 +1637,134 @@ class CompositeTypesTest(_base.MappedTest):
 
         g2 = sess.query(Graph).get(Version(1, 1))
         eq_(g.version, g2.version)
+        
+        # TODO: can't seem to get NULL in for a PK value
+        # in either mysql or postgres, autoincrement=False etc.
+        # notwithstanding
+        @testing.fails_on_everything_except("sqlite")
+        def go():
+            g = Graph(Version(2, None))
+            sess.save(g)
+            sess.flush()
+            sess.clear()
+            g2 = sess.query(Graph).filter_by(version=Version(2, None)).one()
+            eq_(g.version, g2.version)
+        go()
+        
+    @testing.resolve_artifact_names
+    def test_attributes_with_defaults(self):
+        class Foobar(object):
+            pass
+
+        class FBComposite(object):
+            def __init__(self, x1, x2, x3, x4):
+                self.x1 = x1
+                self.x2 = x2
+                self.x3 = x3
+                self.x4 = x4
+            def __composite_values__(self):
+                return self.x1, self.x2, self.x3, self.x4
+            def __eq__(self, other):
+                return other.x1 == self.x1 and other.x2 == self.x2 and other.x3 == self.x3 and other.x4 == self.x4
+            def __ne__(self, other):
+                return not self.__eq__(other)
+
+        mapper(Foobar, foobars, properties=dict(
+            foob=sa.orm.composite(FBComposite, foobars.c.x1, foobars.c.x2, foobars.c.x3, foobars.c.x4)
+        ))
+
+        sess = create_session()
+        f1 = Foobar()
+        f1.foob = FBComposite(None, 5, None, None)
+        sess.save(f1)
+        sess.flush()
+
+        assert f1.foob == FBComposite(2, 5, 15, None)
+    
+    @testing.resolve_artifact_names
+    def test_set_composite_values(self):
+        class Foobar(object):
+            pass
+        
+        class FBComposite(object):
+            def __init__(self, x1, x2, x3, x4):
+                self.x1val = x1
+                self.x2val = x2
+                self.x3 = x3
+                self.x4 = x4
+            def __composite_values__(self):
+                return self.x1val, self.x2val, self.x3, self.x4
+            def __set_composite_values__(self, x1, x2, x3, x4):
+                self.x1val = x1
+                self.x2val = x2
+                self.x3 = x3
+                self.x4 = x4
+            def __eq__(self, other):
+                return other.x1val == self.x1val and other.x2val == self.x2val and other.x3 == self.x3 and other.x4 == self.x4
+            def __ne__(self, other):
+                return not self.__eq__(other)
+        
+        mapper(Foobar, foobars, properties=dict(
+            foob=sa.orm.composite(FBComposite, foobars.c.x1, foobars.c.x2, foobars.c.x3, foobars.c.x4)
+        ))
+        
+        sess = create_session()
+        f1 = Foobar()
+        f1.foob = FBComposite(None, 5, None, None)
+        sess.save(f1)
+        sess.flush()
+        
+        assert f1.foob == FBComposite(2, 5, 15, None)
+    
+    @testing.resolve_artifact_names
+    def test_save_null(self):
+        """test saving a null composite value
+        
+        See google groups thread for more context:
+        http://groups.google.com/group/sqlalchemy/browse_thread/thread/0c6580a1761b2c29
+        
+        """
+        class Point(object):
+            def __init__(self, x, y):
+                self.x = x
+                self.y = y
+            def __composite_values__(self):
+                return [self.x, self.y]
+            def __eq__(self, other):
+                return other.x == self.x and other.y == self.y
+            def __ne__(self, other):
+                return not self.__eq__(other)
+
+        class Graph(object):
+            pass
+        class Edge(object):
+            def __init__(self, start, end):
+                self.start = start
+                self.end = end
+
+        mapper(Graph, graphs, properties={
+            'edges':relation(Edge)
+        })
+        mapper(Edge, edges, properties={
+            'start':sa.orm.composite(Point, edges.c.x1, edges.c.y1),
+            'end':sa.orm.composite(Point, edges.c.x2, edges.c.y2)
+        })
+
+        sess = create_session()
+        g = Graph()
+        g.id = 1
+        g.version_id=1
+        e = Edge(None, None)
+        g.edges.append(e)
+        
+        sess.save(g)
+        sess.flush()
+        
+        sess.clear()
+        
+        g2 = sess.query(Graph).get([1, 1])
+        assert g2.edges[-1].start.x is None
+        assert g2.edges[-1].start.y is None
 
 
 class NoLoadTest(_fixtures.FixtureTest):
@@ -1561,8 +1834,8 @@ class MapperExtensionTest(_fixtures.FixtureTest):
                 methods.append('create_instance')
                 return sa.orm.EXT_CONTINUE
 
-            def on_reconstitute(self, mapper, instance):
-                methods.append('on_reconstitute')
+            def reconstruct_instance(self, mapper, instance):
+                methods.append('reconstruct_instance')
                 return sa.orm.EXT_CONTINUE
 
             def append_result(self, mapper, selectcontext, row, instance, result, **flags):
@@ -1620,8 +1893,8 @@ class MapperExtensionTest(_fixtures.FixtureTest):
             ['instrument_class', 'init_instance', 'before_insert',
              'after_insert', 'translate_row', 'populate_instance',
              'append_result', 'translate_row', 'create_instance',
-             'populate_instance', 'on_reconstitute', 'append_result', 'before_update',
-             'after_update', 'before_delete', 'after_delete'])
+             'populate_instance', 'reconstruct_instance', 'append_result',
+             'before_update', 'after_update', 'before_delete', 'after_delete'])
 
     @testing.resolve_artifact_names
     def test_inheritance(self):
@@ -1648,8 +1921,9 @@ class MapperExtensionTest(_fixtures.FixtureTest):
             ['instrument_class', 'instrument_class', 'init_instance',
              'before_insert', 'after_insert', 'translate_row',
              'populate_instance', 'append_result', 'translate_row',
-             'create_instance', 'populate_instance', 'on_reconstitute', 'append_result',
-             'before_update', 'after_update', 'before_delete', 'after_delete'])
+             'create_instance', 'populate_instance', 'reconstruct_instance',
+             'append_result', 'before_update', 'after_update', 'before_delete',
+             'after_delete'])
 
     @testing.resolve_artifact_names
     def test_after_with_no_changes(self):
@@ -1705,8 +1979,9 @@ class MapperExtensionTest(_fixtures.FixtureTest):
             ['instrument_class', 'instrument_class', 'init_instance',
              'before_insert', 'after_insert', 'translate_row',
              'populate_instance', 'append_result', 'translate_row',
-             'create_instance', 'populate_instance', 'on_reconstitute', 'append_result',
-             'before_update', 'after_update', 'before_delete', 'after_delete'])
+             'create_instance', 'populate_instance', 'reconstruct_instance',
+             'append_result', 'before_update', 'after_update', 'before_delete',
+             'after_delete'])
 
 
 class RequirementsTest(_base.MappedTest):

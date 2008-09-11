@@ -455,6 +455,25 @@ def make_test(select_type):
                         join('paperwork', from_joinpoint=True, aliased=aliased).filter(Paperwork.description.like('%#%')).all(),
                     [c1, c2]
                 )
+        def test_explicit_polymorphic_join(self):
+            sess = create_session()
+
+            # join from Company to Engineer; join condition formulated by
+            # ORMJoin using regular table foreign key connections.  Engineer
+            # is expressed as "(select * people join engineers) as anon_1"
+            # so the join is contained.
+            self.assertEquals(
+                sess.query(Company).join(Engineer).filter(Engineer.engineer_name=='vlad').one(),
+                c2
+            )
+
+            # same, using explicit join condition.  Query.join() must adapt the on clause
+            # here to match the subquery wrapped around "people join engineers".
+            self.assertEquals(
+                sess.query(Company).join((Engineer, Company.company_id==Engineer.company_id)).filter(Engineer.engineer_name=='vlad').one(),
+                c2
+            )
+                
         
         def test_filter_on_baseclass(self):
             sess = create_session()
@@ -510,7 +529,6 @@ def make_test(select_type):
             
             self.assertEquals(sess.query(Person).filter(Person.person_id==subq).one(), e1)
             
-        
         def test_mixed_entities(self):
             sess = create_session()
 
@@ -537,6 +555,10 @@ def make_test(select_type):
                 [('pointy haired boss foo', ), ('dogbert foo',)]
             )
 
+            row = sess.query(Engineer.name, Engineer.primary_language).filter(Engineer.name=='dilbert').first()
+            assert row.name == 'dilbert'
+            assert row.primary_language == 'java'
+            
 
             self.assertEquals(
                 sess.query(Engineer.name, Engineer.primary_language).all(),

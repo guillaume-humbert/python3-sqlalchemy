@@ -208,7 +208,8 @@ class collection(object):
     # Bundled as a class solely for ease of use: packaging, doc strings,
     # importability.
 
-    def appender(cls, fn):
+    @staticmethod
+    def appender(fn):
         """Tag the method as the collection appender.
 
         The appender method is called with one positional argument: the value
@@ -250,9 +251,9 @@ class collection(object):
         """
         setattr(fn, '_sa_instrument_role', 'appender')
         return fn
-    appender = classmethod(appender)
 
-    def remover(cls, fn):
+    @staticmethod
+    def remover(fn):
         """Tag the method as the collection remover.
 
         The remover method is called with one positional argument: the value
@@ -277,9 +278,9 @@ class collection(object):
         """
         setattr(fn, '_sa_instrument_role', 'remover')
         return fn
-    remover = classmethod(remover)
 
-    def iterator(cls, fn):
+    @staticmethod
+    def iterator(fn):
         """Tag the method as the collection remover.
 
         The iterator method is called with no arguments.  It is expected to
@@ -291,9 +292,9 @@ class collection(object):
         """
         setattr(fn, '_sa_instrument_role', 'iterator')
         return fn
-    iterator = classmethod(iterator)
 
-    def internally_instrumented(cls, fn):
+    @staticmethod
+    def internally_instrumented(fn):
         """Tag the method as instrumented.
 
         This tag will prevent any decoration from being applied to the method.
@@ -311,9 +312,9 @@ class collection(object):
         """
         setattr(fn, '_sa_instrumented', True)
         return fn
-    internally_instrumented = classmethod(internally_instrumented)
 
-    def on_link(cls, fn):
+    @staticmethod
+    def on_link(fn):
         """Tag the method as a the "linked to attribute" event handler.
 
         This optional event handler will be called when the collection class
@@ -325,9 +326,9 @@ class collection(object):
         """
         setattr(fn, '_sa_instrument_role', 'on_link')
         return fn
-    on_link = classmethod(on_link)
 
-    def converter(cls, fn):
+    @staticmethod
+    def converter(fn):
         """Tag the method as the collection converter.
 
         This optional method will be called when a collection is being
@@ -358,9 +359,9 @@ class collection(object):
         """
         setattr(fn, '_sa_instrument_role', 'converter')
         return fn
-    converter = classmethod(converter)
 
-    def adds(cls, arg):
+    @staticmethod
+    def adds(arg):
         """Mark the method as adding an entity to the collection.
 
         Adds "add to collection" handling to the method.  The decorator
@@ -379,9 +380,9 @@ class collection(object):
             setattr(fn, '_sa_instrument_before', ('fire_append_event', arg))
             return fn
         return decorator
-    adds = classmethod(adds)
 
-    def replaces(cls, arg):
+    @staticmethod
+    def replaces(arg):
         """Mark the method as replacing an entity in the collection.
 
         Adds "add to collection" and "remove from collection" handling to
@@ -400,9 +401,9 @@ class collection(object):
             setattr(fn, '_sa_instrument_after', 'fire_remove_event')
             return fn
         return decorator
-    replaces = classmethod(replaces)
 
-    def removes(cls, arg):
+    @staticmethod
+    def removes(arg):
         """Mark the method as removing an entity in the collection.
 
         Adds "remove from collection" handling to the method.  The decorator
@@ -421,9 +422,9 @@ class collection(object):
             setattr(fn, '_sa_instrument_before', ('fire_remove_event', arg))
             return fn
         return decorator
-    removes = classmethod(removes)
 
-    def removes_return(cls):
+    @staticmethod
+    def removes_return():
         """Mark the method as removing an entity in the collection.
 
         Adds "remove from collection" handling to the method.  The return value
@@ -441,7 +442,6 @@ class collection(object):
             setattr(fn, '_sa_instrument_after', 'fire_remove_event')
             return fn
         return decorator
-    removes_return = classmethod(removes_return)
 
 
 # public instrumentation interface for 'internally instrumented'
@@ -584,7 +584,9 @@ class CollectionAdapter(object):
 
         """
         if initiator is not False and item is not None:
-            self.attr.fire_append_event(self.owner_state, item, initiator)
+            return self.attr.fire_append_event(self.owner_state, item, initiator)
+        else:
+            return item
 
     def fire_remove_event(self, item, initiator=None):
         """Notify that a entity has been removed from the collection.
@@ -881,11 +883,13 @@ def _instrument_membership_mutator(method, before, argument, after):
 
 def __set(collection, item, _sa_initiator=None):
     """Run set events, may eventually be inlined into decorators."""
+
     if _sa_initiator is not False and item is not None:
         executor = getattr(collection, '_sa_adapter', None)
         if executor:
-            getattr(executor, 'fire_append_event')(item, _sa_initiator)
-
+            item = getattr(executor, 'fire_append_event')(item, _sa_initiator)
+    return item
+    
 def __del(collection, item, _sa_initiator=None):
     """Run del events, may eventually be inlined into decorators."""
     if _sa_initiator is not False and item is not None:
@@ -908,7 +912,7 @@ def _list_decorators():
 
     def append(fn):
         def append(self, item, _sa_initiator=None):
-            __set(self, item, _sa_initiator)
+            item = __set(self, item, _sa_initiator)
             fn(self, item)
         _tidy(append)
         return append
@@ -924,7 +928,7 @@ def _list_decorators():
 
     def insert(fn):
         def insert(self, index, value):
-            __set(self, value)
+            value = __set(self, value)
             fn(self, index, value)
         _tidy(insert)
         return insert
@@ -935,7 +939,7 @@ def _list_decorators():
                 existing = self[index]
                 if existing is not None:
                     __del(self, existing)
-                __set(self, value)
+                value = __set(self, value)
                 fn(self, index, value)
             else:
                 # slice assignment requires __delitem__, insert, __len__
@@ -985,8 +989,7 @@ def _list_decorators():
         def __setslice__(self, start, end, values):
             for value in self[start:end]:
                 __del(self, value)
-            for value in values:
-                __set(self, value)
+            values = [__set(self, value) for value in values]
             fn(self, start, end, values)
         _tidy(__setslice__)
         return __setslice__
@@ -1047,7 +1050,7 @@ def _dict_decorators():
         def __setitem__(self, key, value, _sa_initiator=None):
             if key in self:
                 __del(self, self[key], _sa_initiator)
-            __set(self, value, _sa_initiator)
+            value = __set(self, value, _sa_initiator)
             fn(self, key, value)
         _tidy(__setitem__)
         return __setitem__
@@ -1154,7 +1157,7 @@ def _set_decorators():
     def add(fn):
         def add(self, value, _sa_initiator=None):
             if value not in self:
-                __set(self, value, _sa_initiator)
+                value = __set(self, value, _sa_initiator)
             # testlib.pragma exempt:__hash__
             fn(self, value)
         _tidy(add)

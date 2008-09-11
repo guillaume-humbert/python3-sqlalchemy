@@ -58,6 +58,21 @@ class UnicodeSchemaTest(QueryTest):
         mapper(User, uni_users)
         assert User(id=7) == create_session(bind=testing.db).query(User).get(7)
 
+class RowTupleTest(QueryTest):
+    keep_mappers = False
+
+    def setup_mappers(self):
+        pass
+
+    def test_custom_names(self):
+        mapper(User, users, properties={
+            'uname':users.c.name
+        })
+        
+        row  = create_session().query(User.id, User.uname).filter(User.id==7).first()
+        assert row.id == 7
+        assert row.uname == 'jack'
+
 class GetTest(QueryTest):
     def test_get(self):
         s = create_session()
@@ -77,6 +92,9 @@ class GetTest(QueryTest):
         q = s.query(User).join('addresses').filter(Address.user_id==8)
         self.assertRaises(sa_exc.InvalidRequestError, q.get, 7)
         self.assertRaises(sa_exc.InvalidRequestError, s.query(User).filter(User.id==7).get, 19)
+        
+        # order_by()/get() doesn't raise
+        s.query(User).order_by(User.id).get(8)
 
     def test_unique_param_names(self):
         class SomeUser(object):
@@ -208,6 +226,9 @@ class InvalidGenerationsTest(QueryTest):
         q = s.query(User).join('addresses')
         self.assertRaises(sa_exc.InvalidRequestError, q.select_from, users)
         
+        q = s.query(User).order_by(User.id)
+        self.assertRaises(sa_exc.InvalidRequestError, q.select_from, users)
+        
         # this is fine, however
         q.from_self()
     
@@ -335,7 +356,7 @@ class RawSelectTest(QueryTest, AssertsCompiledSQL):
         x = func.lala(users.c.id).label('foo')
         self.assert_compile(sess.query(x).filter(x==5).statement, 
             "SELECT lala(users.id) AS foo FROM users WHERE lala(users.id) = :param_1", dialect=default.DefaultDialect())
-        
+
 class CompileTest(QueryTest):
         
     def test_deferred(self):
@@ -547,6 +568,7 @@ class AggregateTest(QueryTest):
         sess = create_session()
         orders = sess.query(Order).filter(Order.id.in_([2, 3, 4]))
         self.assertEquals(orders.values(func.sum(Order.user_id * Order.address_id)).next(), (79,))
+        self.assertEquals(orders.value(func.sum(Order.user_id * Order.address_id)), 79)
 
     def test_apply(self):
         sess = create_session()
@@ -1191,6 +1213,36 @@ class MixedEntitiesTest(QueryTest):
         # whereas this uses users.c.xxx, is not aliased and creates a new join
         q2 = q.select_from(sel).filter(users.c.id==8).filter(users.c.id>sel.c.id).values(users.c.name, sel.c.name, User.name)
         self.assertEquals(list(q2), [(u'ed', u'jack', u'jack')])
+    
+    def test_scalar_subquery(self):
+        """test that a subquery constructed from ORM attributes doesn't leak out 
+        those entities to the outermost query.
+        
+        """
+        sess = create_session()
+        
+        subq = select([func.count()]).\
+            where(User.id==Address.user_id).\
+            correlate(users).\
+            label('count')
+
+        # we don't want Address to be outside of the subquery here
+        self.assertEquals(
+            list(sess.query(User, subq)[0:3]),
+            [(User(id=7,name=u'jack'), 1), (User(id=8,name=u'ed'), 3), (User(id=9,name=u'fred'), 1)]
+            )
+
+        # same thing without the correlate, as it should
+        # not be needed
+        subq = select([func.count()]).\
+            where(User.id==Address.user_id).\
+            label('count')
+
+        # we don't want Address to be outside of the subquery here
+        self.assertEquals(
+            list(sess.query(User, subq)[0:3]),
+            [(User(id=7,name=u'jack'), 1), (User(id=8,name=u'ed'), 3), (User(id=9,name=u'fred'), 1)]
+            )
     
     def test_tuple_labeling(self):
         sess = create_session()
@@ -2192,7 +2244,7 @@ class UpdateDeleteTest(_base.MappedTest):
     def test_delete_rollback(self):
         sess = sessionmaker()()
         john,jack,jill,jane = sess.query(User).order_by(User.id).all()
-        sess.query(User).filter(or_(User.name == 'john', User.name == 'jill')).delete()
+        sess.query(User).filter(or_(User.name == 'john', User.name == 'jill')).delete(synchronize_session='evaluate')
         assert john not in sess and jill not in sess
         sess.rollback()
         assert john in sess and jill in sess
@@ -2234,7 +2286,7 @@ class UpdateDeleteTest(_base.MappedTest):
         sess = create_session(bind=testing.db, autocommit=False)
         
         john,jack,jill,jane = sess.query(User).order_by(User.id).all()
-        sess.query(User).filter(User.name == select([func.max(User.name)])).delete()
+        sess.query(User).filter(User.name == select([func.max(User.name)])).delete(synchronize_session='evaluate')
         
         assert john not in sess
         
@@ -2245,7 +2297,7 @@ class UpdateDeleteTest(_base.MappedTest):
         sess = create_session(bind=testing.db, autocommit=False)
         
         john,jack,jill,jane = sess.query(User).order_by(User.id).all()
-        sess.query(User).filter(User.age > 29).update({'age': User.age - 10})
+        sess.query(User).filter(User.age > 29).update({'age': User.age - 10}, synchronize_session='evaluate')
         
         eq_([john.age, jack.age, jill.age, jane.age], [25,37,29,27])
         eq_(sess.query(User.age).order_by(User.id).all(), zip([25,37,29,27]))
@@ -2261,7 +2313,7 @@ class UpdateDeleteTest(_base.MappedTest):
         
         # autoflush is false.  therefore our '50' and '37' are getting blown away by this operation.
         
-        sess.query(User).filter(User.age > 29).update({'age': User.age - 10})
+        sess.query(User).filter(User.age > 29).update({'age': User.age - 10}, synchronize_session='evaluate')
 
         for x in (john, jack, jill, jane):
             assert not sess.is_modified(x)
@@ -2284,7 +2336,7 @@ class UpdateDeleteTest(_base.MappedTest):
         john.age = 50
         jack.age = 37
 
-        sess.query(User).filter(User.age > 29).update({'age': User.age - 10})
+        sess.query(User).filter(User.age > 29).update({'age': User.age - 10}, synchronize_session='evaluate')
 
         for x in (john, jack, jill, jane):
             assert not sess.is_modified(x)
@@ -2309,6 +2361,23 @@ class UpdateDeleteTest(_base.MappedTest):
         
         eq_([john.age, jack.age, jill.age, jane.age], [25,37,29,27])
         eq_(sess.query(User.age).order_by(User.id).all(), zip([25,37,29,27]))
+
+    @testing.resolve_artifact_names
+    def test_update_returns_rowcount(self):
+        sess = create_session(bind=testing.db, autocommit=False)
+
+        rowcount = sess.query(User).filter(User.age > 29).update({'age': User.age + 0})
+        self.assertEquals(rowcount, 2)
+
+        rowcount = sess.query(User).filter(User.age > 29).update({'age': User.age - 10})
+        self.assertEquals(rowcount, 2)
+
+    @testing.resolve_artifact_names
+    def test_delete_returns_rowcount(self):
+        sess = create_session(bind=testing.db, autocommit=False)
+
+        rowcount = sess.query(User).filter(User.age > 26).delete(synchronize_session=False)
+        self.assertEquals(rowcount, 3)
 
 if __name__ == '__main__':
     testenv.main()

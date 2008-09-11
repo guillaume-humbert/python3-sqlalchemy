@@ -2,6 +2,7 @@ CHANGES
 LICENSE
 MANIFEST.in
 README
+README.trunk
 README.unittests
 VERSION
 ez_setup.py
@@ -25,6 +26,7 @@ doc/scripts.js
 doc/session.html
 doc/sqlalchemy_databases_access.html
 doc/sqlalchemy_databases_firebird.html
+doc/sqlalchemy_databases_informix.html
 doc/sqlalchemy_databases_maxdb.html
 doc/sqlalchemy_databases_mssql.html
 doc/sqlalchemy_databases_mysql.html
@@ -95,11 +97,11 @@ doc/build/templates/pydoc.html
 doc/build/templates/toc.html
 examples/README
 examples/adjacencytree/basic_tree.py
-examples/adjacencytree/byroot_tree.py
 examples/association/basic_association.py
 examples/association/proxied_association.py
 examples/collections/large_collection.py
 examples/custom_attributes/custom_management.py
+examples/custom_attributes/listen_for_events.py
 examples/derived_attributes/attributes.py
 examples/dynamic_dict/dynamic_dict.py
 examples/elementtree/adjacency_list.py

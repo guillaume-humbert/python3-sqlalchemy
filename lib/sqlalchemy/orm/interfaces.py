@@ -76,10 +76,10 @@ class MapperExtension(object):
         """Perform pre-processing on the given result row and return a
         new row instance.
 
-        This is called when the mapper first receives a row, before 
+        This is called when the mapper first receives a row, before
         the object identity or the instance itself has been derived
         from that row.
-        
+
         """
         return EXT_CONTINUE
 
@@ -143,41 +143,40 @@ class MapperExtension(object):
     def populate_instance(self, mapper, selectcontext, row, instance, **flags):
         """Receive an instance before that instance has
         its attributes populated.
-        
+
         This usually corresponds to a newly loaded instance but may
         also correspond to an already-loaded instance which has
-        unloaded attributes to be populated.  The method may be 
-        called many times for a single instance, as multiple
-        result rows are used to populate eagerly loaded collections.
+        unloaded attributes to be populated.  The method may be called
+        many times for a single instance, as multiple result rows are
+        used to populate eagerly loaded collections.
 
-        If this method returns EXT_CONTINUE, instance
-        population will proceed normally.  If any other value or None
-        is returned, instance population will not proceed, giving this
-        extension an opportunity to populate the instance itself, if
-        desired.
-        
-        As of 0.5, most usages of this hook are obsolete.  
-        For a generic "object has been newly created from a row" hook, 
-        use ``on_reconstitute()``, or the @attributes.on_reconstitute 
+        If this method returns EXT_CONTINUE, instance population will
+        proceed normally.  If any other value or None is returned,
+        instance population will not proceed, giving this extension an
+        opportunity to populate the instance itself, if desired.
+
+        As of 0.5, most usages of this hook are obsolete.  For a
+        generic "object has been newly created from a row" hook, use
+        ``reconstruct_instance()``, or the ``@orm.reconstructor``
         decorator.
-        
+
         """
         return EXT_CONTINUE
 
-    def on_reconstitute(self, mapper, instance):
-        """Receive an object instance after it has been created via 
-        ``__new__()``, and after initial attribute population has
-        occurred.  
-        
-        This typicically occurs when the instance is created based 
-        on incoming result rows, and is only called once for that
+    def reconstruct_instance(self, mapper, instance):
+        """Receive an object instance after it has been created via
+        ``__new__``, and after initial attribute population has
+        occurred.
+
+        This typicically occurs when the instance is created based on
+        incoming result rows, and is only called once for that
         instance's lifetime.
-        
+
         Note that during a result-row load, this method is called upon
-        the first row received for this instance; therefore, if eager loaders
-        are to further populate collections on the instance, those will
-        *not* have been completely loaded as of yet.
-        
+        the first row received for this instance. If eager loaders are
+        set to further populate collections on the instance, those
+        will *not* yet be completely loaded.
+
         """
         return EXT_CONTINUE
 
@@ -188,11 +187,12 @@ class MapperExtension(object):
         This is a good place to set up primary key values and such
         that aren't handled otherwise.
 
-        Column-based attributes can be modified within this method which will
-        result in the new value being inserted.  However *no* changes to the overall
-        flush plan can be made; this means any collection modification or
-        save() operations which occur within this method will not take effect
-        until the next flush call.
+        Column-based attributes can be modified within this method
+        which will result in the new value being inserted.  However
+        *no* changes to the overall flush plan can be made; this means
+        any collection modification or save() operations which occur
+        within this method will not take effect until the next flush
+        call.
 
         """
 
@@ -432,57 +432,49 @@ class MapperProperty(object):
 
 class PropComparator(expression.ColumnOperators):
     """defines comparison operations for MapperProperty objects.
-    
+
     PropComparator instances should also define an accessor 'property'
     which returns the MapperProperty associated with this
     PropComparator.
     """
-    
+
     def __clause_element__(self):
         raise NotImplementedError("%r" % self)
-        
-    def contains_op(a, b):
-        return a.contains(b)
-    contains_op = staticmethod(contains_op)
 
+    @staticmethod
     def any_op(a, b, **kwargs):
         return a.any(b, **kwargs)
-    any_op = staticmethod(any_op)
 
+    @staticmethod
     def has_op(a, b, **kwargs):
         return a.has(b, **kwargs)
-    has_op = staticmethod(has_op)
 
     def __init__(self, prop, mapper):
         self.prop = self.property = prop
         self.mapper = mapper
-        
+
+    @staticmethod
     def of_type_op(a, class_):
         return a.of_type(class_)
-    of_type_op = staticmethod(of_type_op)
-    
+
     def of_type(self, class_):
         """Redefine this object in terms of a polymorphic subclass.
-        
+
         Returns a new PropComparator from which further criterion can be evaluated.
 
         e.g.::
-        
+
             query.join(Company.employees.of_type(Engineer)).\\
                filter(Engineer.name=='foo')
-              
+
         \class_
             a class or mapper indicating that criterion will be against
             this specific subclass.
 
-         
+
         """
-        
+
         return self.operate(PropComparator.of_type_op, class_)
-        
-    def contains(self, other):
-        """Return true if this collection contains other"""
-        return self.operate(PropComparator.contains_op, other)
 
     def any(self, criterion=None, **kwargs):
         """Return true if this collection contains any member that meets the given criterion.
@@ -531,18 +523,18 @@ class StrategizedProperty(MapperProperty):
                 return self.__init_strategy(cls)
         else:
             return self.strategy
-    
+
     def _get_strategy(self, cls):
         try:
             return self.__all_strategies[cls]
         except KeyError:
             return self.__init_strategy(cls)
-    
+
     def __init_strategy(self, cls):
         self.__all_strategies[cls] = strategy = cls(self)
         strategy.init()
         return strategy
-        
+
     def setup(self, context, entity, path, adapter, **kwargs):
         self.__get_context_strategy(context, path + (self.key,)).setup_query(context, entity, path, adapter, **kwargs)
 
@@ -623,18 +615,16 @@ class PropertyOption(MapperOption):
         self._process(query, False)
 
     def _process(self, query, raiseerr):
-        if self._should_log_debug:
-            self.logger.debug("applying option to Query, property key '%s'" % self.key)
         paths = self.__get_paths(query, raiseerr)
         if paths:
             self.process_query_property(query, paths)
 
     def process_query_property(self, query, paths):
         pass
-    
+
     def __find_entity(self, query, mapper, raiseerr):
         from sqlalchemy.orm.util import _class_to_mapper, _is_aliased_class
-        
+
         if _is_aliased_class(mapper):
             searchfor = mapper
         else:
@@ -648,19 +638,19 @@ class PropertyOption(MapperOption):
                 raise sa_exc.ArgumentError("Can't find entity %s in Query.  Current list: %r" % (searchfor, [str(m.path_entity) for m in query._entities]))
             else:
                 return None
-            
+
     def __get_paths(self, query, raiseerr):
         path = None
         entity = None
         l = []
-        
+
         current_path = list(query._current_path)
-        
+
         if self.mapper:
             entity = self.__find_entity(query, self.mapper, raiseerr)
             mapper = entity.mapper
             path_element = entity.path_entity
-            
+
         for key in util.to_list(self.key):
             if isinstance(key, basestring):
                 tokens = key.split('.')
@@ -684,11 +674,11 @@ class PropertyOption(MapperOption):
                     key = prop.key
                 else:
                     raise sa_exc.ArgumentError("mapper option expects string key or list of attributes")
-            
+
                 if current_path and key == current_path[1]:
                     current_path = current_path[2:]
                     continue
-                
+
                 if prop is None:
                     return []
 
@@ -700,25 +690,42 @@ class PropertyOption(MapperOption):
                     path_element = mapper = getattr(prop, 'mapper', None)
                 if path_element:
                     path_element = path_element.base_mapper
-            
+
         return l
 
-PropertyOption.logger = log.class_logger(PropertyOption)
-PropertyOption._should_log_debug = log.is_debug_enabled(PropertyOption.logger)
-
 class AttributeExtension(object):
-    """An abstract class which specifies `append`, `delete`, and `set`
-    event handlers to be attached to an object property.
+    """An event handler for individual attribute change events.
+    
+    AttributeExtension is assembled within the descriptors associated 
+    with a mapped class. 
+    
     """
 
-    def append(self, obj, child, initiator):
+    def append(self, state, value, initiator):
+        """Receive a collection append event.
+        
+        The returned value will be used as the actual value to be
+        appended.
+        
+        """
+        return value
+
+    def remove(self, state, value, initiator):
+        """Receive a remove event.
+        
+        No return value is defined.
+        
+        """
         pass
 
-    def remove(self, obj, child, initiator):
-        pass
-
-    def set(self, obj, child, oldchild, initiator):
-        pass
+    def set(self, state, value, oldvalue, initiator):
+        """Receive a set event.
+        
+        The returned value will be used as the actual value to be
+        set.
+        
+        """
+        return value
 
 
 class StrategizedOption(PropertyOption):

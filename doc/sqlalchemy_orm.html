@@ -31,8 +31,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta3</span>
-  Last Updated: 08/04/08 18:36:49
+  Version: <span class="versionnum">0.5.0rc1</span>
+  Last Updated: 09/11/08 17:04:35
 </div>
 
 
@@ -141,6 +141,9 @@
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_polymorphic_union">polymorphic_union()</a></li>
 
         
+        <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_reconstructor">reconstructor()</a></li>
+
+        
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_relation">relation()</a></li>
 
         
@@ -157,6 +160,9 @@
 
         
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_undefer_group">undefer_group()</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_validates">validates()</a></li>
 
     </ul>
 
@@ -175,6 +181,9 @@
 
         
         <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_Query">class Query(object)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_Validator">class Validator(AttributeExtension)</a></li>
 
     </ul>
 
@@ -272,6 +281,13 @@ by the mapper and are effectively &quot;read-only&quot; attributes.</p>
 it does not load immediately, and is instead loaded when the
 attribute is first accessed on an instance.  See also
 <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_deferred">deferred()</a>.</dd>
+<dt>extension</dt>
+<dd>an <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_AttributeExtension">AttributeExtension</a> instance,
+or list of extensions, which will be prepended to the list of
+attribute listeners for the resulting descriptor placed on the class.
+These listeners will receive append and set events before the
+operation proceeds, and may be used to halt (via exception throw)
+or change the value used in the operation.</dd>
 </dl>
 </blockquote>
 
@@ -351,11 +367,34 @@ class Point(object):
         self.x = x
         self.y = y
     def __composite_values__(self):
-        return (self.x, self.y)
+        return self.x, self.y
+    def __eq__(self, other):
+        return other is not None and self.x == other.x and self.y == other.y
 
 # and then in the mapping:
 ... composite(Point, mytable.c.x, mytable.c.y) ...
 </pre>
+<p>The composite object may have its attributes populated based on the names
+of the mapped columns.  To override the way internal state is set,
+additionally implement <tt class="docutils literal"><span class="pre">__set_composite_values__</span></tt>:</p>
+<blockquote>
+<dl class="docutils">
+<dt>class Point(object):</dt>
+<dd><dl class="first last docutils">
+<dt>def __init__(self, x, y):</dt>
+<dd>self.some_x = x
+self.some_y = y</dd>
+<dt>def __composite_values__(self):</dt>
+<dd>return self.some_x, self.some_y</dd>
+<dt>def __set_composite_values__(self, x, y):</dt>
+<dd>self.some_x = x
+self.some_y = y</dd>
+<dt>def __eq__(self, other):</dt>
+<dd>return other is not None and self.some_x == other.x and self.some_y == other.y</dd>
+</dl>
+</dd>
+</dl>
+</blockquote>
 <p>Arguments are:</p>
 <dl class="docutils">
 <dt>class_</dt>
@@ -371,6 +410,13 @@ accessed on an instance.  See also <a href="sqlalchemy_orm.html#docstrings_sqlal
 <dt>comparator</dt>
 <dd>An optional instance of <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_PropComparator">PropComparator</a> which provides
 SQL expression generation functions for this composite type.</dd>
+<dt>extension</dt>
+<dd>an <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_AttributeExtension">AttributeExtension</a> instance,
+or list of extensions, which will be prepended to the list of
+attribute listeners for the resulting descriptor placed on the class.
+These listeners will receive append and set events before the
+operation proceeds, and may be used to halt (via exception throw)
+or change the value used in the operation.</dd>
 </dl>
 
     </div>
@@ -726,6 +772,27 @@ this is used.</p>
                 
     <div class="darkcell">
     
+    <A name="docstrings_sqlalchemy.orm_modfunc_reconstructor"></a>
+    <b>def reconstructor(<i>fn</i>)</b>
+    <div class="docstring">
+    <p>Decorate a method as the 'reconstructor' hook.</p>
+<p>Designates a method as the &quot;reconstructor&quot;, an <tt class="docutils literal"><span class="pre">__init__</span></tt>-like
+method that will be called by the ORM after the instance has been
+loaded from the database or otherwise reconstituted.</p>
+<p>The reconstructor will be invoked with no arguments.  Scalar
+(non-collection) database-mapped attributes of the instance will
+be available for use within the function.  Eagerly-loaded
+collections are generally not yet available and will usually only
+contain the first element.  ORM state changes made to objects at
+this stage will not be recorded for the next flush() operation, so
+the activity within a reconstructor should be conservative.</p>
+
+    </div>
+    </div>
+
+                
+    <div class="darkcell">
+    
     <A name="docstrings_sqlalchemy.orm_modfunc_relation"></a>
     <b>def relation(<i>argument</i>, <i>secondary=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
@@ -776,6 +843,13 @@ present.</p>
 <dt>collection_class</dt>
 <dd>a class or function that returns a new list-holding object. will be
 used in place of a plain list for storing elements.</dd>
+<dt>extension</dt>
+<dd>an <a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_AttributeExtension">AttributeExtension</a> instance,
+or list of extensions, which will be prepended to the list of
+attribute listeners for the resulting descriptor placed on the class.
+These listeners will receive append and set events before the
+operation proceeds, and may be used to halt (via exception throw)
+or change the value used in the operation.</dd>
 <dt>foreign_keys</dt>
 <dd>a list of columns which are to be used as &quot;foreign key&quot; columns.
 this parameter should be used in conjunction with explicit
@@ -1049,11 +1123,11 @@ which should be used by the returned class.  This is the only argument
 that is local to the <tt class="docutils literal"><span class="pre">sessionmaker()</span></tt> function, and is not sent
 directly to the constructor for <tt class="docutils literal"><span class="pre">Session</span></tt>.</dd>
 <dt>echo_uow</dt>
-<dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, configure Python logging to dump all unit-of-work
-transactions. This is the equivalent of
+<dd>Deprecated.  Use
 <tt class="docutils literal"><span class="pre">logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG)</span></tt>.</dd>
 <dt>extension</dt>
-<dd>An optional <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_SessionExtension">SessionExtension</a> instance, which
+<dd>An optional <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_SessionExtension">SessionExtension</a> instance, or
+a list of such instances, which
 will receive pre- and post- commit and flush events, as well as a
 post-rollback event.  User- defined code may be placed within these
 hooks using a user-defined subclass of <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</dd>
@@ -1086,7 +1160,7 @@ present until they are removed using expunge(), clear(), or purge().</dd>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_synonym"></a>
-    <b>def synonym(<i>name</i>, <i>map_column=False</i>, <i>descriptor=None</i>, <i>proxy=False</i>)</b>
+    <b>def synonym(<i>name</i>, <i>map_column=False</i>, <i>descriptor=None</i>, <i>comparator_factory=None</i>, <i>proxy=False</i>)</b>
     <div class="docstring">
     <p>Set up <cite>name</cite> as a synonym to another mapped property.</p>
 <p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to  <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a>.</p>
@@ -1148,6 +1222,23 @@ given name into a non-deferred (regular column) load.</p>
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the given group of deferred
 column properties into a non-deferred (regular column) load.</p>
 <p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
+
+    </div>
+    </div>
+
+                
+    <div class="darkcell">
+    
+    <A name="docstrings_sqlalchemy.orm_modfunc_validates"></a>
+    <b>def validates(<i>*names</i>)</b>
+    <div class="docstring">
+    <p>Decorate a method as a 'validator' for one or more named properties.</p>
+<p>Designates a method as a validator, a method which receives the
+name of the attribute as well as a value to be assigned, or in the
+case of a collection to be added to the collection.  The function
+can then raise validation exceptions to halt the process from continuing,
+or can modify or replace the value before proceeding.   The function
+should otherwise return the given value.</p>
 
     </div>
     </div>
@@ -1481,11 +1572,12 @@ not take effect until the next flush call.</p>
 into its table.</p>
 <p>This is a good place to set up primary key values and such
 that aren't handled otherwise.</p>
-<p>Column-based attributes can be modified within this method which will
-result in the new value being inserted.  However <em>no</em> changes to the overall
-flush plan can be made; this means any collection modification or
-save() operations which occur within this method will not take effect
-until the next flush call.</p>
+<p>Column-based attributes can be modified within this method
+which will result in the new value being inserted.  However
+<em>no</em> changes to the overall flush plan can be made; this means
+any collection modification or save() operations which occur
+within this method will not take effect until the next flush
+call.</p>
 
     </div>
     </div>
@@ -1578,18 +1670,23 @@ EXT_CONTINUE to indicate normal object creation should take place.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def on_reconstitute(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
+    <b>def populate_instance(<i>self</i>, <i>mapper</i>, <i>selectcontext</i>, <i>row</i>, <i>instance</i>, <i>**flags</i>)</b>
     <div class="docstring">
-    <p>Receive an object instance after it has been created via
-<tt class="docutils literal"><span class="pre">__new__()</span></tt>, and after initial attribute population has
-occurred.</p>
-<p>This typicically occurs when the instance is created based
-on incoming result rows, and is only called once for that
-instance's lifetime.</p>
-<p>Note that during a result-row load, this method is called upon
-the first row received for this instance; therefore, if eager loaders
-are to further populate collections on the instance, those will
-<em>not</em> have been completely loaded as of yet.</p>
+    <p>Receive an instance before that instance has
+its attributes populated.</p>
+<p>This usually corresponds to a newly loaded instance but may
+also correspond to an already-loaded instance which has
+unloaded attributes to be populated.  The method may be called
+many times for a single instance, as multiple result rows are
+used to populate eagerly loaded collections.</p>
+<p>If this method returns EXT_CONTINUE, instance population will
+proceed normally.  If any other value or None is returned,
+instance population will not proceed, giving this extension an
+opportunity to populate the instance itself, if desired.</p>
+<p>As of 0.5, most usages of this hook are obsolete.  For a
+generic &quot;object has been newly created from a row&quot; hook, use
+<tt class="docutils literal"><span class="pre">reconstruct_instance()</span></tt>, or the <tt class="docutils literal"><span class="pre">&#64;orm.reconstructor</span></tt>
+decorator.</p>
 
     </div>
     </div>
@@ -1598,24 +1695,18 @@ are to further populate collections on the instance, those will
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def populate_instance(<i>self</i>, <i>mapper</i>, <i>selectcontext</i>, <i>row</i>, <i>instance</i>, <i>**flags</i>)</b>
+    <b>def reconstruct_instance(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>Receive an instance before that instance has
-its attributes populated.</p>
-<p>This usually corresponds to a newly loaded instance but may
-also correspond to an already-loaded instance which has
-unloaded attributes to be populated.  The method may be
-called many times for a single instance, as multiple
-result rows are used to populate eagerly loaded collections.</p>
-<p>If this method returns EXT_CONTINUE, instance
-population will proceed normally.  If any other value or None
-is returned, instance population will not proceed, giving this
-extension an opportunity to populate the instance itself, if
-desired.</p>
-<p>As of 0.5, most usages of this hook are obsolete.
-For a generic &quot;object has been newly created from a row&quot; hook,
-use <tt class="docutils literal"><span class="pre">on_reconstitute()</span></tt>, or the &#64;attributes.on_reconstitute
-decorator.</p>
+    <p>Receive an object instance after it has been created via
+<tt class="docutils literal"><span class="pre">__new__</span></tt>, and after initial attribute population has
+occurred.</p>
+<p>This typicically occurs when the instance is created based on
+incoming result rows, and is only called once for that
+instance's lifetime.</p>
+<p>Note that during a result-row load, this method is called upon
+the first row received for this instance. If eager loaders are
+set to further populate collections on the instance, those
+will <em>not</em> yet be completely loaded.</p>
 
     </div>
     </div>
@@ -1688,17 +1779,6 @@ or attributes.</dd>
 <dd>key/value pairs corresponding to member class attribute names which
 will be compared via equality to the corresponding values.</dd>
 </dl>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def contains(<i>self</i>, <i>other</i>)</b>
-    <div class="docstring">
-    <p>Return true if this collection contains other</p>
 
     </div>
     </div>
@@ -1863,9 +1943,32 @@ to disable autoflush for a specific Query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def delete(<i>self</i>, <i>synchronize_session='evaluate'</i>)</b>
+    <b>def delete(<i>self</i>, <i>synchronize_session='fetch'</i>)</b>
     <div class="docstring">
-    <p>EXPERIMENTAL</p>
+    <p>Perform a bulk delete query.</p>
+<p>Deletes rows matched by this query from the database. The synchronize_session
+parameter chooses the strategy for the removal of matched objects from the
+session. Valid values are:</p>
+<dl class="docutils">
+<dt>False</dt>
+<dd>don't synchronize the session. Use this when you don't need to use the
+session after the delete or you can be sure that none of the matched objects
+are in the session. The behavior of deleted objects still in the session is
+undefined.</dd>
+<dt>'fetch'</dt>
+<dd>performs a select query before the delete to find objects that are matched
+by the delete query and need to be removed from the session. Matched objects
+are removed from the session. 'fetch' is the default strategy.</dd>
+<dt>'evaluate'</dt>
+<dd><p class="first">experimental feature. Tries to evaluate the querys criteria in Python
+straight on the objects in the session. If evaluation of the criteria isn't
+implemented, the 'fetch' strategy will be used as a fallback.</p>
+<p class="last">The expression evaluator currently doesn't account for differing string
+collations between the database and Python.</p>
+</dd>
+</dl>
+<p>Returns the number of rows deleted, excluding any cascades.</p>
+<p>Warning - this currently doesn't account for any foreign key/relation cascades.</p>
 
     </div>
     </div>
@@ -2239,6 +2342,30 @@ the root.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def scalar(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Return the first element of the first result or None.</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; session.query(Item).scalar()
+&lt;Item&gt;
+&gt;&gt;&gt; session.query(Item.id).scalar()
+1
+&gt;&gt;&gt; session.query(Item.id, Item.name).scalar()
+1
+&gt;&gt;&gt; session.query(func.count(Parent.id)).scalar()
+20
+</pre>
+</blockquote>
+<p>This results in an execution of the underlying query.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def select_from(<i>self</i>, <i>from_obj</i>)</b>
     <div class="docstring">
     <p>Set the <cite>from_obj</cite> parameter of the query and return the newly
@@ -2265,7 +2392,7 @@ from with the given table.</p>
          <A name=""></a>
          <b>statement = property()</b>
          <div class="docstring">
-         <p>return the full SELECT statement represented by this Query.</p>
+         <p>The full SELECT statement represented by this Query.</p>
 
          </div> 
          </div>
@@ -2285,9 +2412,42 @@ from with the given table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def update(<i>self</i>, <i>values</i>, <i>synchronize_session='evaluate'</i>)</b>
+    <b>def update(<i>self</i>, <i>values</i>, <i>synchronize_session='expire'</i>)</b>
     <div class="docstring">
-    <p>EXPERIMENTAL</p>
+    <p>Perform a bulk update query.</p>
+<p>Updates rows matched by this query in the database. The values parameter takes
+a dictionary with object attributes as keys and literal values or sql expressions
+as values. The synchronize_session parameter chooses the strategy to update the
+attributes on objects in the session. Valid values are:</p>
+<dl class="docutils">
+<dt>False</dt>
+<dd>don't synchronize the session. Use this when you don't need to use the
+session after the update or you can be sure that none of the matched objects
+are in the session.</dd>
+<dt>'expire'</dt>
+<dd>performs a select query before the update to find objects that are matched
+by the update query. The updated attributes are expired on matched objects.</dd>
+<dt>'evaluate'</dt>
+<dd><p class="first">experimental feature. Tries to evaluate the querys criteria in Python
+straight on the objects in the session. If evaluation of the criteria isn't
+implemented, the 'expire' strategy will be used as a fallback.</p>
+<p class="last">The expression evaluator currently doesn't account for differing string
+collations between the database and Python.</p>
+</dd>
+</dl>
+<p>Returns the number of rows matched by the update.</p>
+<p>Warning - this currently doesn't account for any foreign key/relation cascades.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def value(<i>self</i>, <i>column</i>)</b>
+    <div class="docstring">
+    <p>Return a scalar result corresponding to the given column expression.</p>
 
     </div>
     </div>
@@ -2308,7 +2468,7 @@ from with the given table.</p>
          <A name=""></a>
          <b>whereclause = property()</b>
          <div class="docstring">
-         <p>return the WHERE criterion for this Query.</p>
+         <p>The WHERE criterion for this Query.</p>
 
          </div> 
          </div>
@@ -2320,12 +2480,13 @@ from with the given table.</p>
     <b>def with_labels(<i>self</i>)</b>
     <div class="docstring">
     <p>Apply column labels to the return value of Query.statement.</p>
-<p>Indicates that this Query's <cite>statement</cite> accessor should return a
-SELECT statement that applies labels to all columns in the form
-&lt;tablename&gt;_&lt;columnname&gt;; this is commonly used to disambiguate
-columns from multiple tables which have the same name.</p>
-<p>When the <cite>Query</cite> actually issues SQL to load rows, it always uses
-column labeling.</p>
+<p>Indicates that this Query's <cite>statement</cite> accessor should return
+a SELECT statement that applies labels to all columns in the
+form &lt;tablename&gt;_&lt;columnname&gt;; this is commonly used to
+disambiguate columns from multiple tables which have the same
+name.</p>
+<p>When the <cite>Query</cite> actually issues SQL to load rows, it always
+uses column labeling.</p>
 
     </div>
     </div>
@@ -2427,6 +2588,68 @@ subsequent result batch.</p>
     
     <A name=""></a>
     <b>def __iter__(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.orm_Validator"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class Validator(<a href="sqlalchemy_orm_interfaces.html#docstrings_sqlalchemy.orm.interfaces_AttributeExtension">AttributeExtension</a>)</h3>
+    
+    
+    <div class="darkcell"><p>Runs a validation method on an attribute value to be set or appended.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>key</i>, <i>validator</i>)</b>
+    <div class="docstring">
+    <p>Construct a new Validator.</p>
+<p>key - name of the attribute to be validated;
+will be passed as the second argument to
+the validation method (the first is the object instance itself).</p>
+<p>validator - an function or instance method which accepts
+three arguments; an instance (usually just 'self' for a method),
+the key name of the attribute, and the value.  The function should
+return the same value given, unless it wishes to modify it.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def append(<i>self</i>, <i>state</i>, <i>value</i>, <i>initiator</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def set(<i>self</i>, <i>state</i>, <i>value</i>, <i>oldvalue</i>, <i>initiator</i>)</b>
     <div class="docstring">
     
     </div>

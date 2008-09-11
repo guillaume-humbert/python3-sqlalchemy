@@ -94,7 +94,6 @@ except ImportError:
             return 'defaultdict(%s, %s)' % (self.default_factory,
                                             dict.__repr__(self))
 
-
 def to_list(x, default=None):
     if x is None:
         return default
@@ -102,6 +101,15 @@ def to_list(x, default=None):
         return [x]
     else:
         return x
+
+def to_set(x):
+    if x is None:
+        return set()
+    if not isinstance(x, set):
+        return set(to_list(x))
+    else:
+        return x
+
 
 try:
     from functools import update_wrapper
@@ -121,43 +129,31 @@ def accepts_a_list_as_starargs(list_deprecation=None):
         spec = inspect.getargspec(fn)
         assert spec[1], 'Decorated function does not accept *args'
 
-        meta = format_argspec_plus(spec)
-        meta['name'] = fn.func_name
-        meta['varg'] = spec[1]
-        scratch = list(spec)
-        scratch[1] = '(%s[0])' % scratch[1]
-        meta['unpacked_pos'] = format_argspec_plus(scratch)['apply_pos']
-
         def _deprecate():
             if list_deprecation:
                 if list_deprecation == 'pending':
                     warning_type = exc.SAPendingDeprecationWarning
                 else:
                     warning_type = exc.SADeprecationWarning
-                    msg = (
-                        "%s%s now accepts multiple %s arguments as a "
-                        "variable argument list.  Supplying %s as a single "
-                        "list is deprecated and support will be removed "
-                        "in a future release." % (
-                            fn.func_name,
-                            inspect.formatargspec(*spec),
-                            spec[1], spec[1]))
-                    warnings.warn(msg, warning_type, stacklevel=3)
+                msg = (
+                    "%s%s now accepts multiple %s arguments as a "
+                    "variable argument list.  Supplying %s as a single "
+                    "list is deprecated and support will be removed "
+                    "in a future release." % (
+                        fn.func_name,
+                        inspect.formatargspec(*spec),
+                        spec[1], spec[1]))
+                warnings.warn(msg, warning_type, stacklevel=3)
 
-        code = "\n".join((
-            "def %(name)s%(args)s:",
-            "    if len(%(varg)s) == 1 and isinstance(%(varg)s[0], list):",
-            "        _deprecate()",
-            "        return fn%(unpacked_pos)s",
-            "    else:",
-            "        return fn%(apply_pos)s")) % meta
+        def go(fn, *args, **kw): 
+            if isinstance(args[-1], list): 
+                _deprecate() 
+                return fn(*(list(args[0:-1]) + args[-1]), **kw)
+            else: 
+                return fn(*args, **kw) 
+         
+        return decorator(go)(fn)
 
-        env = locals().copy()
-        exec code in env
-        decorated = env[fn.func_name]
-        update_wrapper(decorated, fn)
-        decorated.generated_src = code
-        return decorated
     return decorate
 
 def unique_symbols(used, *bases):
@@ -188,26 +184,10 @@ def decorator(target):
         code = 'lambda %(args)s: %(target)s(%(fn)s, %(apply_kw)s)' % (
                 metadata)
         decorated = eval(code, {targ_name:target, fn_name:fn})
+        decorated.func_defaults = getattr(fn, 'im_func', fn).func_defaults
         return update_wrapper(decorated, fn)
     return update_wrapper(decorate, target)
 
-def to_set(x):
-    if x is None:
-        return set()
-    if not isinstance(x, set):
-        return set(to_list(x))
-    else:
-        return x
-
-def to_ascii(x):
-    """Convert Unicode or a string with unknown encoding into ASCII."""
-
-    if isinstance(x, str):
-        return x.encode('string_escape')
-    elif isinstance(x, unicode):
-        return x.encode('unicode_escape')
-    else:
-        raise TypeError
 
 if sys.version_info >= (2, 5):
     def decode_slice(slc):
@@ -378,6 +358,7 @@ def getargspec_init(method):
         else:
             return (['self'], 'args', 'kwargs', None)
 
+    
 def unbound_method_to_callable(func_or_cls):
     """Adjust the incoming callable such that a 'self' argument is not required."""
 
@@ -395,20 +376,42 @@ def class_hierarchy(cls):
     class_hierarchy(class A(object)) returns (A, object), not A plus every
     class systemwide that derives from object.
 
+    Old-style classes are discarded and hierarchies rooted on them
+    will not be descended.
+
     """
+    if isinstance(cls, types.ClassType):
+        return list()
     hier = set([cls])
     process = list(cls.__mro__)
     while process:
         c = process.pop()
-        for b in [_ for _ in c.__bases__ if _ not in hier]:
+        if isinstance(c, types.ClassType):
+            continue
+        for b in (_ for _ in c.__bases__
+                  if _ not in hier and not isinstance(_, types.ClassType)):
             process.append(b)
             hier.add(b)
-        if c.__module__ == '__builtin__':
+        if c.__module__ == '__builtin__' or not hasattr(c, '__subclasses__'):
             continue
         for s in [_ for _ in c.__subclasses__() if _ not in hier]:
             process.append(s)
             hier.add(s)
     return list(hier)
+
+def iterate_attributes(cls):
+    """iterate all the keys and attributes associated with a class, without using getattr().
+
+    Does not use getattr() so that class-sensitive descriptors (i.e. property.__get__())
+    are not called.
+
+    """
+    keys = dir(cls)
+    for key in keys:
+        for c in cls.__mro__:
+            if key in c.__dict__:
+                yield (key, c.__dict__[key])
+                break
 
 # from paste.deploy.converters
 def asbool(obj):
@@ -533,7 +536,14 @@ def monkeypatch_proxied_specials(into_cls, from_cls, skip=None, only=None,
                        not hasattr(into_cls, m) and m not in skip)]
     for method in dunders:
         try:
-            spec = inspect.getargspec(getattr(from_cls, method))
+            fn = getattr(from_cls, method)
+            if not hasattr(fn, '__call__'):
+                continue
+            fn = getattr(fn, 'im_func', fn)
+        except AttributeError:
+            continue
+        try:
+            spec = inspect.getargspec(fn)
             fn_args = inspect.formatargspec(spec[0])
             d_args = inspect.formatargspec(spec[0][1:])
         except TypeError:
@@ -545,45 +555,12 @@ def monkeypatch_proxied_specials(into_cls, from_cls, skip=None, only=None,
 
         env = from_instance is not None and {name: from_instance} or {}
         exec py in env
+        try:
+            env[method].func_defaults = fn.func_defaults
+        except AttributeError:
+            pass
         setattr(into_cls, method, env[method])
 
-
-class SimpleProperty(object):
-    """A *default* property accessor."""
-
-    def __init__(self, key):
-        self.key = key
-
-    def __set__(self, obj, value):
-        setattr(obj, self.key, value)
-
-    def __delete__(self, obj):
-        delattr(obj, self.key)
-
-    def __get__(self, obj, owner):
-        if obj is None:
-            return self
-        else:
-            return getattr(obj, self.key)
-
-
-class NotImplProperty(object):
-    """a property that raises ``NotImplementedError``."""
-
-    def __init__(self, doc):
-        self.__doc__ = doc
-
-    def __set__(self, obj, value):
-        raise NotImplementedError()
-
-    def __delete__(self, obj):
-        raise NotImplementedError()
-
-    def __get__(self, obj, owner):
-        if obj is None:
-            return self
-        else:
-            raise NotImplementedError()
 
 class OrderedProperties(object):
     """An object that maintains the order in which attributes are set upon it.
@@ -731,7 +708,6 @@ class OrderedDict(dict):
         item = dict.popitem(self)
         self._list.remove(item[0])
         return item
-
 
 class OrderedSet(set):
     def __init__(self, d=None):
@@ -1053,7 +1029,7 @@ class OrderedIdentitySet(IdentitySet):
 
 
 class UniqueAppender(object):
-    """Only adds items to a collection once.
+    """Appends items to a collection ensuring uniqueness.
 
     Additional appends() of the same object are ignored.  Membership is
     determined by identity (``is a``) not equality (``==``).
@@ -1087,41 +1063,63 @@ class ScopedRegistry(object):
       a callable that returns a new object to be placed in the registry
 
     scopefunc
-      a callable that will return a key to store/retrieve an object,
-      defaults to ``thread.get_ident`` for thread-local objects.  Use
-      a value like ``lambda: True`` for application scope.
-    """
+      a callable that will return a key to store/retrieve an object.
+      If None, ScopedRegistry uses a threading.local object instead.
 
-    def __init__(self, createfunc, scopefunc=None):
-        self.createfunc = createfunc
-        if scopefunc is None:
-            self.scopefunc = thread.get_ident
+    """
+    def __new__(cls, createfunc, scopefunc=None):
+        if not scopefunc:
+            return object.__new__(_TLocalRegistry)
         else:
-            self.scopefunc = scopefunc
+            return object.__new__(cls)
+
+    def __init__(self, createfunc, scopefunc):
+        self.createfunc = createfunc
+        self.scopefunc = scopefunc
         self.registry = {}
 
     def __call__(self):
-        key = self._get_key()
+        key = self.scopefunc()
         try:
             return self.registry[key]
         except KeyError:
             return self.registry.setdefault(key, self.createfunc())
 
     def has(self):
-        return self._get_key() in self.registry
+        return self.scopefunc() in self.registry
 
     def set(self, obj):
-        self.registry[self._get_key()] = obj
+        self.registry[self.scopefunc()] = obj
 
     def clear(self):
         try:
-            del self.registry[self._get_key()]
+            del self.registry[self.scopefunc()]
         except KeyError:
             pass
 
-    def _get_key(self):
-        return self.scopefunc()
+class _TLocalRegistry(ScopedRegistry):
+    def __init__(self, createfunc, scopefunc=None):
+        self.createfunc = createfunc
+        self.registry = threading.local()
 
+    def __call__(self):
+        try:
+            return self.registry.value
+        except AttributeError:
+            val = self.registry.value = self.createfunc()
+            return val
+
+    def has(self):
+        return hasattr(self.registry, "value")
+
+    def set(self, obj):
+        self.registry.value = obj
+
+    def clear(self):
+        try:
+            del self.registry.value
+        except AttributeError:
+            pass
 
 class WeakCompositeKey(object):
     """an weak-referencable, hashable collection which is strongly referenced
@@ -1288,21 +1286,20 @@ def function_named(fn, name):
                           fn.func_defaults, fn.func_closure)
     return fn
 
-def cache_decorator(func):
+@decorator
+def memoize(fn, self):
     """apply caching to the return value of a function."""
 
-    name = '_cached_' + func.__name__
+    name = '_cached_' + fn.__name__
 
-    def do_with_cache(self, *args, **kwargs):
-        try:
-            return getattr(self, name)
-        except AttributeError:
-            value = func(self, *args, **kwargs)
-            setattr(self, name, value)
-            return value
-    return do_with_cache
+    try:
+        return getattr(self, name)
+    except AttributeError:
+        value = fn(self)
+        setattr(self, name, value)
+        return value
 
-def reset_cached(instance, name):
+def reset_memoized(instance, name):
     try:
         delattr(instance, '_cached_' + name)
     except AttributeError:
@@ -1382,18 +1379,14 @@ class WeakIdentityMapping(weakref.WeakKeyDictionary):
             del self.by_id[key]
         except (KeyError, AttributeError):  # pragma: no cover
             pass                            # pragma: no cover
-    if sys.version_info < (2, 4):           # pragma: no cover
-        def _ref(self, object):
-            oid = id(object)
-            return weakref.ref(object, lambda wr: self._cleanup(wr, oid))
-    else:
-        class _keyed_weakref(weakref.ref):
-            def __init__(self, object, callback):
-                weakref.ref.__init__(self, object, callback)
-                self.key = id(object)
+            
+    class _keyed_weakref(weakref.ref):
+        def __init__(self, object, callback):
+            weakref.ref.__init__(self, object, callback)
+            self.key = id(object)
 
-        def _ref(self, object):
-            return self._keyed_weakref(object, self._cleanup)
+    def _ref(self, object):
+        return self._keyed_weakref(object, self._cleanup)
 
 
 def warn(msg):

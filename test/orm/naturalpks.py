@@ -62,7 +62,7 @@ class NaturalPKTest(_base.MappedTest):
         self.assertEquals(User(username='ed', fullname='jack'), u1)
 
     @testing.resolve_artifact_names
-    def test_expiry(self):
+    def test_load_after_expire(self):
         mapper(User, users)
 
         sess = create_session()
@@ -83,6 +83,23 @@ class NaturalPKTest(_base.MappedTest):
         sess.clear()
         assert sess.query(User).get('jack') is None
         assert sess.query(User).get('ed').fullname == 'jack'
+
+    @testing.resolve_artifact_names
+    def test_flush_new_pk_after_expire(self):
+        mapper(User, users)
+        sess = create_session()
+        u1 = User(username='jack', fullname='jack')
+
+        sess.add(u1)
+        sess.flush()
+        assert sess.query(User).get('jack') is u1
+
+        sess.expire(u1)
+        u1.username = 'ed'
+        sess.flush()
+        sess.clear()
+        assert sess.query(User).get('ed').fullname == 'jack'
+        
 
     @testing.fails_on('mysql')
     @testing.fails_on('sqlite')
@@ -134,6 +151,7 @@ class NaturalPKTest(_base.MappedTest):
         assert sess.query(Address).get('jack1').username is None
         u1 = sess.query(User).get('fred')
         self.assertEquals(User(username='fred', fullname='jack'), u1)
+        
 
     @testing.fails_on('sqlite')
     @testing.fails_on('mysql')
@@ -284,6 +302,15 @@ class NaturalPKTest(_base.MappedTest):
         self.assertEquals(['jack'], [u.username for u in r[0].users])
         self.assertEquals(Item(itemname='item2'), r[1])
         self.assertEquals(['ed', 'jack'], sorted([u.username for u in r[1].users]))
+        
+        sess.clear()
+        u2 = sess.query(User).get(u2.username)
+        u2.username='wendy'
+        sess.flush()
+        r = sess.query(Item).with_parent(u2).all()
+        self.assertEquals(Item(itemname='item2'), r[0])
+        
+        
 
 class SelfRefTest(_base.MappedTest):
     def define_tables(self, metadata):

@@ -24,6 +24,7 @@ class TypesTest(TestBase, AssertsExecutionResults):
             Column('num3', mysql.MSBigInteger()),
             Column('num4', mysql.MSDouble),
             Column('num5', mysql.MSDouble()),
+            Column('num6', mysql.MSMediumInteger),
             Column('enum1', mysql.MSEnum("'black'", "'white'")),
             Column('enum2', mysql.MSEnum("dog", "cat")),
             )
@@ -40,6 +41,7 @@ class TypesTest(TestBase, AssertsExecutionResults):
             assert isinstance(t2.c.num3.type, mysql.MSBigInteger)
             assert isinstance(t2.c.num4.type, mysql.MSDouble)
             assert isinstance(t2.c.num5.type, mysql.MSDouble)
+            assert isinstance(t2.c.num6.type, mysql.MSMediumInteger)
             assert isinstance(t2.c.enum1.type, mysql.MSEnum)
             assert isinstance(t2.c.enum2.type, mysql.MSEnum)
             t2.drop()
@@ -135,6 +137,17 @@ class TypesTest(TestBase, AssertsExecutionResults):
              'BIGINT(4) ZEROFILL'),
             (mysql.MSBigInteger, [4], {'zerofill':True, 'unsigned':True},
              'BIGINT(4) UNSIGNED ZEROFILL'),
+
+             (mysql.MSMediumInteger, [], {},
+              'MEDIUMINT'),
+             (mysql.MSMediumInteger, [4], {},
+              'MEDIUMINT(4)'),
+             (mysql.MSMediumInteger, [4], {'unsigned':True},
+              'MEDIUMINT(4) UNSIGNED'),
+             (mysql.MSMediumInteger, [4], {'zerofill':True},
+              'MEDIUMINT(4) ZEROFILL'),
+             (mysql.MSMediumInteger, [4], {'zerofill':True, 'unsigned':True},
+              'MEDIUMINT(4) UNSIGNED ZEROFILL'),
 
             (mysql.MSTinyInteger, [], {},
              'TINYINT'),
@@ -659,9 +672,11 @@ class TypesTest(TestBase, AssertsExecutionResults):
                  ( mysql.MSNChar(2), mysql.MSChar(2), ), # N is CREATE only
                  ( mysql.MSNVarChar(22), mysql.MSString(22), ),
                  ( SmallInteger(), mysql.MSSmallInteger(), ),
-                 ( SmallInteger(4), mysql.MSSmallInteger(4), ),
+                 ( SmallInteger(), mysql.MSSmallInteger(4), ),
                  ( mysql.MSSmallInteger(), ),
                  ( mysql.MSSmallInteger(4), mysql.MSSmallInteger(4), ),
+                 ( mysql.MSMediumInteger(), mysql.MSMediumInteger(), ),
+                 ( mysql.MSMediumInteger(8), mysql.MSMediumInteger(8), ),
                  ( Binary(3), mysql.MSBlob(3), ),
                  ( Binary(), mysql.MSBlob() ),
                  ( mysql.MSBinary(3), mysql.MSBinary(3), ),
@@ -849,6 +864,9 @@ class SQLTest(TestBase, AssertsCompiledSQL):
             "UPDATE t SET col1=%s WHERE t.col2 = %s LIMIT 1"
             )
 
+    def test_utc_timestamp(self):
+        self.assert_compile(func.utc_timestamp(), "UTC_TIMESTAMP")
+        
     def test_cast(self):
         t = sql.table('t', sql.column('col'))
         m = mysql

@@ -104,6 +104,21 @@ class UserDefinedExtensionTest(_base.ORMTest):
         clear_mappers()
         attributes._install_lookup_strategy(util.symbol('native'))
 
+    def test_instance_dict(self):
+        class User(MyClass):
+            pass
+            
+        attributes.register_class(User)
+        attributes.register_attribute(User, 'user_id', uselist = False, useobject=False)
+        attributes.register_attribute(User, 'user_name', uselist = False, useobject=False)
+        attributes.register_attribute(User, 'email_address', uselist = False, useobject=False)
+            
+        u = User()
+        u.user_id = 7
+        u.user_name = 'john'
+        u.email_address = 'lala@123.com'
+        self.assert_(u.__dict__ == {'_my_state':u._my_state, '_goofy_dict':{'user_id':7, 'user_name':'john', 'email_address':'lala@123.com'}})
+        
     def test_basic(self):
         for base in (object, MyBaseClass, MyClass):
             class User(base):
@@ -250,7 +265,7 @@ class UserDefinedExtensionTest(_base.ORMTest):
             f1 = Foo()
             f1.name = 'f1'
 
-            self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'name'), (['f1'], [], []))
+            self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'name'), (['f1'], (), ()))
 
             b1 = Bar()
             b1.name = 'b1'
@@ -260,14 +275,14 @@ class UserDefinedExtensionTest(_base.ORMTest):
             attributes.instance_state(f1).commit_all()
             attributes.instance_state(b1).commit_all()
 
-            self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'name'), ([], ['f1'], []))
-            self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'bars'), ([], [b1], []))
+            self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'name'), ((), ['f1'], ()))
+            self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'bars'), ((), [b1], ()))
 
             f1.name = 'f1mod'
             b2 = Bar()
             b2.name = 'b2'
             f1.bars.append(b2)
-            self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'name'), (['f1mod'], [], ['f1']))
+            self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'name'), (['f1mod'], (), ['f1']))
             self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'bars'), ([b2], [b1], []))
             f1.bars.remove(b1)
             self.assertEquals(attributes.get_history(attributes.instance_state(f1), 'bars'), ([b2], [], [b1]))
@@ -301,19 +316,6 @@ class UserDefinedExtensionTest(_base.ORMTest):
         self.assertRaises((AttributeError, KeyError),
                           attributes.instance_state, None)
 
-class ReconstituteTest(testing.TestBase):
-    def test_on_reconstitute(self):
-        recon = []
-        class MyClass(object):
-            @attributes.on_reconstitute
-            def recon(self):
-                recon.append('go')
-        
-        attributes.register_class(MyClass)
-        m = attributes.manager_of_class(MyClass).new_instance()
-        s = attributes.instance_state(m)
-        s._run_on_load(m)
-        assert recon == ['go']
 
 if __name__ == '__main__':
     testing.main()
