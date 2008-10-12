@@ -250,12 +250,30 @@ class InvalidGenerationsTest(QueryTest):
         q = s.query(User).order_by(User.name)
         self.assertRaises(sa_exc.InvalidRequestError, q.from_statement, "x")
         
-class OperatorTest(QueryTest):
+class OperatorTest(QueryTest, AssertsCompiledSQL):
     """test sql.Comparator implementation for MapperProperties"""
 
     def _test(self, clause, expected):
-        c = str(clause.compile(dialect = default.DefaultDialect()))
-        assert c == expected, "%s != %s" % (c, expected)
+        self.assert_compile(clause, expected, dialect=default.DefaultDialect())
+
+    def define_tables(self, metadata):
+        global nodes
+        nodes = Table('nodes', metadata,
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('parent_id', Integer, ForeignKey('nodes.id')),
+            Column('data', String(30)))
+        
+    def insert_data(self):
+        global Node
+
+        class Node(Base):
+            pass
+
+        mapper(Node, nodes, properties={
+            'children':relation(Node, 
+                backref=backref('parent', remote_side=[nodes.c.id])
+            )
+        })
 
     def test_arithmetic(self):
         create_session().query(User)
@@ -276,6 +294,8 @@ class OperatorTest(QueryTest):
 
     def test_comparison(self):
         create_session().query(User)
+        ualias = aliased(User)
+        
         for (py_op, fwd_op, rev_op) in ((operator.lt, '<', '>'),
                                         (operator.gt, '>', '<'),
                                         (operator.eq, '=', '='),
@@ -291,6 +311,10 @@ class OperatorTest(QueryTest):
                 (literal('a'), 'b', ':param_1', ':param_2'),
                 (literal('a'), User.id, ':param_1', 'users.id'),
                 (literal('a'), literal('b'), ':param_1', ':param_2'),
+                (ualias.id, literal('b'), 'users_1.id', ':param_1'),
+                (User.id, ualias.name, 'users.id', 'users_1.name'),
+                (User.name, ualias.name, 'users.name', 'users_1.name'),
+                (ualias.name, User.name, 'users_1.name', 'users.name'),
                 ):
 
                 # the compiled clause should match either (e.g.):
@@ -303,8 +327,108 @@ class OperatorTest(QueryTest):
                              "\n'" + compiled + "'\n does not match\n'" +
                              fwd_sql + "'\n or\n'" + rev_sql + "'")
 
+    def test_relation(self):
+        self._test(User.addresses.any(Address.id==17), 
+                        "EXISTS (SELECT 1 "
+                        "FROM addresses "
+                        "WHERE users.id = addresses.user_id AND addresses.id = :id_1)"
+                    )
+
+        self._test(Address.user == User(id=7), ":param_1 = addresses.user_id")
+
+    def test_selfref_relation(self):
+        nalias = aliased(Node)
+
+        # auto self-referential aliasing
+        self._test(
+            Node.children.any(Node.data=='n1'), 
+                "EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE "
+                "nodes.id = nodes_1.parent_id AND nodes_1.data = :data_1)"
+        )
+
+        # fails, needs autoaliasing
+        #self._test(
+        #    Node.children==None, 
+        #    "NOT (EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id))"
+        #)
+        
+        self._test(
+            Node.parent==None,
+            "nodes.parent_id IS NULL"
+        )
+
+        self._test(
+            nalias.parent==None,
+            "nodes_1.parent_id IS NULL"
+        )
+
+        # fails, needs autoaliasing
+        #self._test(
+        #    Node.children==[Node(id=1), Node(id=2)],
+        #    "(EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id AND nodes_1.id = :id_1)) "
+        #    "AND (EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id AND nodes_1.id = :id_2))"
+        #)
+
+        # fails, overaliases
+        #self._test(
+        #    nalias.children==[Node(id=1), Node(id=2)],
+        #    "(EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id AND nodes_1.id = :id_1)) "
+        #    "AND (EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id AND nodes_1.id = :id_2))"
+        #)
+        
+        # fails, overaliases
+        #self._test(
+        #    nalias.children==None, 
+        #    "NOT (EXISTS (SELECT 1 FROM nodes AS nodes WHERE nodes_1.id = nodes.parent_id))"
+        #)
+        
+        # fails
+        #self._test(
+        #        nalias.children.any(Node.data=='some data'), 
+        #        "EXISTS (SELECT 1 FROM nodes WHERE "
+        #        "nodes_1.id = nodes.parent_id AND nodes.data = :data_1)")
+        
+        # fails
+        #self._test(
+        #        Node.children.any(nalias.data=='some data'), 
+        #        "EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE "
+        #        "nodes.id = nodes_1.parent_id AND nodes_1.data = :data_1)"
+        #        )
+
+        # fails, overaliases
+        #self._test(
+        #    nalias.parent.has(Node.data=='some data'), 
+        #   "EXISTS (SELECT 1 FROM nodes WHERE nodes.id = nodes_1.parent_id AND nodes.data = :data_1)"
+        #)
+
+        self._test(
+            Node.parent.has(Node.data=='some data'), 
+           "EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes_1.id = nodes.parent_id AND nodes_1.data = :data_1)"
+        )
+        
+        self._test(
+            Node.parent == Node(id=7), 
+            ":param_1 = nodes.parent_id"
+        )
+
+        self._test(
+            nalias.parent == Node(id=7), 
+            ":param_1 = nodes_1.parent_id"
+        )
+
+        # fails
+        # (also why are we doing an EXISTS for this??)
+        #self._test(
+        #    nalias.parent != Node(id=7), 
+        #    'NOT (EXISTS (SELECT 1 FROM nodes WHERE nodes.id = nodes_1.parent_id AND nodes.id = :id_1))'
+        #)
+        
+        self._test(
+            nalias.children.contains(Node(id=7)), "nodes_1.id = :param_1"
+        )
+        
     def test_op(self):
-        assert str(User.name.op('ilike')('17').compile(dialect=default.DefaultDialect())) == "users.name ilike :name_1"
+        self._test(User.name.op('ilike')('17'), "users.name ilike :name_1")
 
     def test_in(self):
          self._test(User.id.in_(['a', 'b']),
@@ -313,6 +437,12 @@ class OperatorTest(QueryTest):
     def test_between(self):
         self._test(User.id.between('a', 'b'),
                    "users.id BETWEEN :id_1 AND :id_2")
+
+    def test_selfref_between(self):
+        ualias = aliased(User)
+        self._test(User.id.between(ualias.id, ualias.id), "users.id BETWEEN users_1.id AND users_1.id")
+        # fails:
+        # self._test(ualias.id.between(User.id, User.id), "users_1.id BETWEEN users.id AND users.id")
 
     def test_clauses(self):
         for (expr, compare) in (
@@ -324,6 +454,7 @@ class OperatorTest(QueryTest):
         ):
             c = expr.compile(dialect=default.DefaultDialect())
             assert str(c) == compare, "%s != %s" % (str(c), compare)
+
 
 class RawSelectTest(QueryTest, AssertsCompiledSQL):
     """compare a bunch of select() tests with the equivalent Query using straight table/columns.
@@ -366,13 +497,53 @@ class CompileTest(QueryTest):
         l = list(session.query(User).instances(s.execute(emailad = 'jack@bean.com')))
         assert [User(id=7)] == l
 
+# more slice tests are available in test/orm/generative.py
 class SliceTest(QueryTest):
     def test_first(self):
         assert  User(id=7) == create_session().query(User).first()
 
         assert create_session().query(User).filter(User.id==27).first() is None
 
-        # more slice tests are available in test/orm/generative.py
+    @testing.fails_on_everything_except('sqlite')
+    def test_limit_offset_applies(self):
+        """Test that the expected LIMIT/OFFSET is applied for slices.
+        
+        The LIMIT/OFFSET syntax differs slightly on all databases, and
+        query[x:y] executes immediately, so we are asserting against
+        SQL strings using sqlite's syntax.
+        
+        """
+        sess = create_session()
+        q = sess.query(User)
+        
+        self.assert_sql(testing.db, lambda: q[10:20], [
+            ("SELECT users.id AS users_id, users.name AS users_name FROM users  LIMIT 10 OFFSET 10", {})
+        ])
+
+        self.assert_sql(testing.db, lambda: q[:20], [
+            ("SELECT users.id AS users_id, users.name AS users_name FROM users  LIMIT 20 OFFSET 0", {})
+        ])
+
+        self.assert_sql(testing.db, lambda: q[5:], [
+            ("SELECT users.id AS users_id, users.name AS users_name FROM users  LIMIT -1 OFFSET 5", {})
+        ])
+
+        self.assert_sql(testing.db, lambda: q[2:2], [])
+
+        self.assert_sql(testing.db, lambda: q[-2:-5], [])
+
+        self.assert_sql(testing.db, lambda: q[-5:-2], [
+            ("SELECT users.id AS users_id, users.name AS users_name FROM users", {})
+        ])
+
+        self.assert_sql(testing.db, lambda: q[-5:], [
+            ("SELECT users.id AS users_id, users.name AS users_name FROM users", {})
+        ])
+
+        self.assert_sql(testing.db, lambda: q[:], [
+            ("SELECT users.id AS users_id, users.name AS users_name FROM users", {})
+        ])
+
 
 class TextTest(QueryTest):
     def test_fulltext(self):
@@ -1063,16 +1234,27 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
             assert fixtures.user_address_result == l
         self.assert_sql_count(testing.db, go, 1)
 
+        # same thing, but alias addresses, so that the adapter generated by select_from() is wrapped within
+        # the adapter created by contains_eager()
+        adalias = addresses.alias()
+        query = users.select(users.c.id==7).union(users.select(users.c.id>7)).alias('ulist').outerjoin(adalias).select(use_labels=True,order_by=['ulist.id', adalias.c.id])
+        def go():
+            l = sess.query(User).select_from(query).options(contains_eager('addresses', alias=adalias)).all()
+            assert fixtures.user_address_result == l
+        self.assert_sql_count(testing.db, go, 1)
+
     def test_contains_eager(self):
         sess = create_session()
 
         # test that contains_eager suppresses the normal outer join rendering
         q = sess.query(User).outerjoin(User.addresses).options(contains_eager(User.addresses)).order_by(User.id)
-        self.assert_compile(q.with_labels().statement, "SELECT users.id AS users_id, users.name AS users_name, "\
-                "addresses.id AS addresses_id, addresses.user_id AS addresses_user_id, "\
-                "addresses.email_address AS addresses_email_address FROM users LEFT OUTER JOIN addresses "\
-                "ON users.id = addresses.user_id ORDER BY users.id", dialect=default.DefaultDialect())
-
+        self.assert_compile(q.with_labels().statement, 
+            "SELECT addresses.id AS addresses_id, addresses.user_id AS addresses_user_id, "\
+            "addresses.email_address AS addresses_email_address, users.id AS users_id, "\
+            "users.name AS users_name FROM users LEFT OUTER JOIN addresses "\
+            "ON users.id = addresses.user_id ORDER BY users.id"
+            , dialect=default.DefaultDialect())
+                    
         def go():
             assert fixtures.user_address_result == q.all()
         self.assert_sql_count(testing.db, go, 1)
@@ -1094,7 +1276,6 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
 
         sess.clear()
-
 
         def go():
             l = list(q.options(contains_eager(User.addresses)).instances(selectquery.execute()))
@@ -1135,7 +1316,6 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
             assert fixtures.user_address_result == l.all()
         self.assert_sql_count(testing.db, go, 1)
         sess.clear()
-        
 
         oalias = orders.alias('o1')
         ialias = items.alias('i1')
@@ -1166,7 +1346,41 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
         sess.clear()
 
+    def test_mixed_eager_contains_with_limit(self):
+        sess = create_session()
+        
+        q = sess.query(User)
+        def go():
+            # outerjoin to User.orders, offset 1/limit 2 so we get user 7 + second two orders.
+            # then eagerload the addresses.  User + Order columns go into the subquery, address
+            # left outer joins to the subquery, eagerloader for User.orders applies context.adapter 
+            # to result rows.  This was [ticket:1180].
+            l = q.outerjoin(User.orders).options(eagerload(User.addresses), contains_eager(User.orders)).order_by(User.id, Order.id).offset(1).limit(2).all()
+            eq_(l, [User(id=7,
+            addresses=[Address(email_address=u'jack@bean.com',user_id=7,id=1)],
+            name=u'jack',
+            orders=[
+                Order(address_id=1,user_id=7,description=u'order 3',isopen=1,id=3), 
+                Order(address_id=None,user_id=7,description=u'order 5',isopen=0,id=5)
+            ])])
+        self.assert_sql_count(testing.db, go, 1)
+        sess.clear()
 
+        def go():
+            # same as above, except Order is aliased, so two adapters are applied by the
+            # eager loader
+            oalias = aliased(Order)
+            l = q.outerjoin((User.orders, oalias)).options(eagerload(User.addresses), contains_eager(User.orders, alias=oalias)).order_by(User.id, oalias.id).offset(1).limit(2).all()
+            eq_(l, [User(id=7,
+            addresses=[Address(email_address=u'jack@bean.com',user_id=7,id=1)],
+            name=u'jack',
+            orders=[
+                Order(address_id=1,user_id=7,description=u'order 3',isopen=1,id=3), 
+                Order(address_id=None,user_id=7,description=u'order 5',isopen=0,id=5)
+            ])])
+        self.assert_sql_count(testing.db, go, 1)
+        
+        
 class MixedEntitiesTest(QueryTest):
 
     def test_values(self):

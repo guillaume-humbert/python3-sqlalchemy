@@ -136,6 +136,30 @@ class-level expression construct::
     x.attr = "some value"
     session.query(MyClass).filter(MyClass.attr == 'some other value').all()
 
+The `synonym_for` decorator can accomplish the same task::
+
+    class MyClass(Base):
+        __tablename__ = 'sometable'
+        
+        _attr = Column('attr', String)
+
+        @synonym_for('_attr')
+        @property
+        def attr(self):
+            return self._some_attr
+
+Similarly, `comparable_using` is a front end for the `comparable_property` ORM function::
+
+    class MyClass(Base):
+        __tablename__ = 'sometable'
+
+        name = Column('name', String)
+
+        @comparable_using(MyUpperCaseComparator)
+        @property
+        def uc_name(self):
+            return self.name.upper()
+
 As an alternative to ``__tablename__``, a direct ``Table`` construct may be
 used.  The ``Column`` objects, which in this case require their names, will be
 added to the mapping just like a regular mapping to a table::
@@ -239,8 +263,7 @@ def _as_declarative(cls, classname, dict_):
         our_stuff[k] = prop
 
     # set up attributes in the order they were created
-    our_stuff.sort(lambda x, y: cmp(our_stuff[x]._creation_order,
-                                    our_stuff[y]._creation_order))
+    our_stuff.sort(key=lambda key: our_stuff[key]._creation_order)
 
     table = None
     if '__table__' not in cls.__dict__:

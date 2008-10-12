@@ -244,9 +244,9 @@ class SessionTransaction(object):
                 "The transaction is inactive due to a rollback in a "
                 "subtransaction.  Issue rollback() to cancel the transaction.")
 
-    def _assert_is_open(self):
+    def _assert_is_open(self, error_msg="The transaction is closed"):
         if self.session is None:
-            raise sa_exc.InvalidRequestError("The transaction is closed")
+            raise sa_exc.InvalidRequestError(error_msg)
 
     @property
     def _is_transaction_boundary(self):
@@ -428,6 +428,8 @@ class SessionTransaction(object):
                     connection.close()
                 else:
                     transaction.close()
+            if not self.session.autocommit:
+                self.session.begin()
         self._deactivate()
         self.session = None
         self._connections = None
@@ -436,6 +438,7 @@ class SessionTransaction(object):
         return self
 
     def __exit__(self, type, value, traceback):
+        self._assert_is_open("Cannot end transaction context. The transaction was closed from within the context")
         if self.session.transaction is None:
             return
         if type is None:
@@ -641,8 +644,6 @@ class Session(object):
             pass
         else:
             self.transaction.rollback()
-        if self.transaction is None and not self.autocommit:
-            self.begin()
 
     def commit(self):
         """Flush pending changes and commit the current transaction.
@@ -667,8 +668,6 @@ class Session(object):
                 raise sa_exc.InvalidRequestError("No transaction is begun.")
 
         self.transaction.commit()
-        if self.transaction is None and not self.autocommit:
-            self.begin()
 
     def prepare(self):
         """Prepare the current transaction in progress for two phase commit.
@@ -772,9 +771,6 @@ class Session(object):
         if self.transaction is not None:
             for transaction in self.transaction._iterate_parents():
                 transaction.close()
-        if not self.autocommit:
-            # note this doesnt use any connection resources
-            self.begin()
 
     def close_all(cls):
         """Close *all* sessions in memory."""
@@ -1030,22 +1026,20 @@ class Session(object):
 
     def _register_newly_persistent(self, state):
         mapper = _state_mapper(state)
-        instance_key = mapper._identity_key_from_state(state)
 
-        if state.key is None:
-            state.key = instance_key
-        elif state.key != instance_key:
-            # primary key switch
-            self.identity_map.remove(state)
-            state.key = instance_key
-
-        if hasattr(state, 'insert_order'):
-            delattr(state, 'insert_order')
-
-        obj = state.obj()
         # prevent against last minute dereferences of the object
-        # TODO: identify a code path where state.obj() is None
+        obj = state.obj()
         if obj is not None:
+
+            instance_key = mapper._identity_key_from_state(state)
+
+            if state.key is None:
+                state.key = instance_key
+            elif state.key != instance_key:
+                # primary key switch
+                self.identity_map.remove(state)
+                state.key = instance_key
+
             if state.key in self.identity_map and not self.identity_map.contains_state(state):
                 self.identity_map.remove_key(state.key)
             self.identity_map.add(state)
@@ -1442,7 +1436,7 @@ class Session(object):
         except:
             transaction.rollback()
             raise
-
+        
         flush_context.finalize_flush_changes()
 
         if not objects:
@@ -1538,18 +1532,7 @@ class Session(object):
 
         return util.IdentitySet(self._new.values())
 
-def _expire_state(state, attribute_names):
-    """Stand-alone expire instance function.
-
-    Installs a callable with the given instance's _state which will fire off
-    when any of the named attributes are accessed; their existing value is
-    removed.
-
-    If the list is None or blank, the entire instance is expired.
-
-    """
-    state.expire_attributes(attribute_names)
-
+_expire_state = attributes.InstanceState.expire_attributes
 register_attribute = unitofwork.register_attribute
 
 _sessions = weakref.WeakValueDictionary()
@@ -1594,6 +1577,7 @@ def _state_for_unknown_persistence_instance(instance):
 
 def object_session(instance):
     """Return the ``Session`` to which instance belongs, or None."""
+
     return _state_session(attributes.instance_state(instance))
 
 def _state_session(state):

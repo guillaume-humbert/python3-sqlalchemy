@@ -2,7 +2,7 @@ import testenv; testenv.configure_for_tests()
 from testlib import sa, testing
 from sqlalchemy.orm import scoped_session
 from testlib.sa import Table, Column, Integer, String, ForeignKey
-from testlib.sa.orm import mapper, relation
+from testlib.sa.orm import mapper, relation, query
 from testlib.testing import eq_
 from orm import _base
 
@@ -38,10 +38,14 @@ class ScopedSessionTest(_base.MappedTest):
     def test_basic(self):
         Session = scoped_session(sa.orm.sessionmaker())
 
+        class CustomQuery(query.Query):
+            pass
+
         class SomeObject(_base.ComparableEntity):
             query = Session.query_property()
         class SomeOtherObject(_base.ComparableEntity):
             query = Session.query_property()
+            custom_query = Session.query_property(query_cls=CustomQuery)
 
         mapper(SomeObject, table1, properties={
             'options':relation(SomeOtherObject)})
@@ -62,6 +66,9 @@ class ScopedSessionTest(_base.MappedTest):
         eq_(SomeOtherObject(someid=1),
             SomeOtherObject.query.filter(
                 SomeOtherObject.someid == sso.someid).one())
+        assert isinstance(SomeOtherObject.query, query.Query)
+        assert not isinstance(SomeOtherObject.query, CustomQuery)
+        assert isinstance(SomeOtherObject.custom_query, query.Query)
 
 
 class ScopedMapperTest(_ScopedTest):
@@ -123,6 +130,36 @@ class ScopedMapperTest(_ScopedTest):
             pass
         Session.mapper(Baz, table2, extension=ext)
         assert hasattr(Baz, 'query')
+
+    @testing.resolve_artifact_names
+    def test_default_constructor_state_not_shared(self):
+        scope = scoped_session(sa.orm.sessionmaker())
+
+        class A(object):
+            pass
+        class B(object):
+            def __init__(self):
+                pass
+
+        scope.mapper(A, table1)
+        scope.mapper(B, table2)
+
+        A(foo='bar')
+        self.assertRaises(TypeError, B, foo='bar')
+
+        scope = scoped_session(sa.orm.sessionmaker())
+
+        class C(object):
+            def __init__(self):
+                pass
+        class D(object):
+            pass
+
+        scope.mapper(C, table1)
+        scope.mapper(D, table2)
+
+        self.assertRaises(TypeError, C, foo='bar')
+        D(foo='bar')
 
     @testing.resolve_artifact_names
     def test_validating_constructor(self):

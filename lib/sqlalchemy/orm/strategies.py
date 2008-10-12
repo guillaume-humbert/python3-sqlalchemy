@@ -20,7 +20,8 @@ from sqlalchemy.orm import util as mapperutil
 
 
 class DefaultColumnLoader(LoaderStrategy):
-    def _register_attribute(self, compare_function, copy_function, mutable_scalars, comparator_factory, callable_=None, proxy_property=None, active_history=False):
+    def _register_attribute(self, compare_function, copy_function, mutable_scalars, 
+            comparator_factory, callable_=None, proxy_property=None, active_history=False):
         self.logger.info("%s register managed attribute" % self)
 
         attribute_ext = util.to_list(self.parent_property.extension) or []
@@ -221,23 +222,9 @@ log.class_logger(DeferredColumnLoader)
 class LoadDeferredColumns(object):
     """serializable loader object used by DeferredColumnLoader"""
     
-    def __init__(self, state, key, keys):
-        self.state = state
-        self.key = key
-        self.keys = keys
+    def __init__(self, *args):
+        self.state, self.key, self.keys = args
 
-    def __getstate__(self):
-        return {
-            'state':self.state, 
-            'key':self.key, 
-            'keys':self.keys
-        }
-    
-    def __setstate__(self, state):
-        self.state = state['state']
-        self.key = state['key']
-        self.keys = state['keys']
-        
     def __call__(self):
         state = self.state
         
@@ -501,25 +488,15 @@ log.class_logger(LazyLoader)
 class LoadLazyAttribute(object):
     """serializable loader object used by LazyLoader"""
 
-    def __init__(self, state, key, options, path):
-        self.state = state
-        self.key = key
-        self.options = options
-        self.path = path
+    def __init__(self, *args):
+        self.state, self.key, self.options, self.path = args
         
     def __getstate__(self):
-        return {
-            'state':self.state, 
-            'key':self.key, 
-            'options':self.options, 
-            'path':serialize_path(self.path)
-        }
+        return (self.state, self.key, self.options, serialize_path(self.path))
 
     def __setstate__(self, state):
-        self.state = state['state']
-        self.key = state['key']
-        self.options = state['options']
-        self.path = deserialize_path(state['path'])
+        self.state, self.key, self.options, path = state
+        self.path = deserialize_path(path)
         
     def __call__(self):
         state = self.state
@@ -594,24 +571,28 @@ class EagerLoader(AbstractRelationLoader):
         path = path + (self.key,)
 
         # check for user-defined eager alias
-        if ("eager_row_processor", path) in context.attributes:
-            clauses = context.attributes[("eager_row_processor", path)]
+        if ("user_defined_eager_row_processor", path) in context.attributes:
+            clauses = context.attributes[("user_defined_eager_row_processor", path)]
             
             adapter = entity._get_entity_clauses(context.query, context)
             if adapter and clauses:
-                context.attributes[("eager_row_processor", path)] = clauses = adapter.wrap(clauses)
+                context.attributes[("user_defined_eager_row_processor", path)] = clauses = clauses.wrap(adapter)
             elif adapter:
-                context.attributes[("eager_row_processor", path)] = clauses = adapter
-                
+                context.attributes[("user_defined_eager_row_processor", path)] = clauses = adapter
+            
+            add_to_collection = context.primary_columns
+            
         else:
             clauses = self._create_eager_join(context, entity, path, adapter, parentmapper)
             if not clauses:
                 return
 
             context.attributes[("eager_row_processor", path)] = clauses
+
+            add_to_collection = context.secondary_columns
             
         for value in self.mapper._iterate_polymorphic_properties():
-            value.setup(context, entity, path + (self.mapper.base_mapper,), clauses, parentmapper=self.mapper, column_collection=context.secondary_columns)
+            value.setup(context, entity, path + (self.mapper.base_mapper,), clauses, parentmapper=self.mapper, column_collection=add_to_collection)
     
     def _create_eager_join(self, context, entity, path, adapter, parentmapper):
         # check for join_depth or basic recursion,
@@ -690,7 +671,15 @@ class EagerLoader(AbstractRelationLoader):
         return clauses
         
     def _create_eager_adapter(self, context, row, adapter, path):
-        if ("eager_row_processor", path) in context.attributes:
+        if ("user_defined_eager_row_processor", path) in context.attributes:
+            decorator = context.attributes[("user_defined_eager_row_processor", path)]
+            # user defined eagerloads are part of the "primary" portion of the load.
+            # the adapters applied to the Query should be honored.
+            if context.adapter and decorator:
+                decorator = decorator.wrap(context.adapter)
+            elif context.adapter:
+                decorator = context.adapter
+        elif ("eager_row_processor", path) in context.attributes:
             decorator = context.attributes[("eager_row_processor", path)]
         else:
             if self._should_log_debug:
@@ -788,8 +777,8 @@ class LoadEagerFromAliasOption(PropertyOption):
 
                 prop = mapper.get_property(propname, resolve_synonyms=True)
                 self.alias = prop.target.alias(self.alias)
-            query._attributes[("eager_row_processor", paths[-1])] = sql_util.ColumnAdapter(self.alias)
+            query._attributes[("user_defined_eager_row_processor", paths[-1])] = sql_util.ColumnAdapter(self.alias)
         else:
-            query._attributes[("eager_row_processor", paths[-1])] = None
+            query._attributes[("user_defined_eager_row_processor", paths[-1])] = None
 
         

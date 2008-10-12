@@ -1166,13 +1166,13 @@ UNION SELECT mytable.myid FROM mytable"
 
         self.assert_compile(select([table1], table1.c.myid.in_(
             union(
-                  select([table1], table1.c.myid == 5),
-                  select([table1], table1.c.myid == 12),
+                  select([table1.c.myid], table1.c.myid == 5),
+                  select([table1.c.myid], table1.c.myid == 12),
             )
         )), "SELECT mytable.myid, mytable.name, mytable.description FROM mytable \
 WHERE mytable.myid IN (\
-SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :myid_1 \
-UNION SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :myid_2)")
+SELECT mytable.myid FROM mytable WHERE mytable.myid = :myid_1 \
+UNION SELECT mytable.myid FROM mytable WHERE mytable.myid = :myid_2)")
 
         # test that putting a select in an IN clause does not blow away its ORDER BY clause
         self.assert_compile(
@@ -1190,6 +1190,15 @@ UNION SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE 
         # test empty in clause
         self.assert_compile(select([table1], table1.c.myid.in_([])),
         "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE (CASE WHEN (mytable.myid IS NULL) THEN NULL ELSE 0 END = 1)")
+
+        self.assert_compile(
+            select([table1.c.myid.in_(select([table2.c.otherid]))]),
+            "SELECT mytable.myid IN (SELECT myothertable.otherid FROM myothertable) AS anon_1 FROM mytable"
+        )
+        self.assert_compile(
+            select([table1.c.myid.in_(select([table2.c.otherid]).as_scalar())]),
+            "SELECT mytable.myid IN (SELECT myothertable.otherid FROM myothertable) AS anon_1 FROM mytable"
+        )
 
     def test_cast(self):
         tbl = table('casttest',
@@ -1435,7 +1444,6 @@ class InlineDefaultTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(t.update(inline=True, values={'col3':'foo'}), "UPDATE test SET col1=foo(:foo_1), col2=(SELECT coalesce(max(foo.id)) AS coalesce_1 FROM foo), col3=:col3")
 
 class SchemaTest(TestBase, AssertsCompiledSQL):
-    @testing.fails_on('mssql')
     def test_select(self):
         # these tests will fail with the MS-SQL compiler since it will alias schema-qualified tables
         self.assert_compile(table4.select(), "SELECT remote_owner.remotetable.rem_id, remote_owner.remotetable.datatype_id, remote_owner.remotetable.value FROM remote_owner.remotetable")
