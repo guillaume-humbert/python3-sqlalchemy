@@ -359,20 +359,20 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
             except exceptions.InvalidRequestError, e:
                 assert str(e) == "Unicode type received non-unicode bind param value 'im not unicode'"
 
-            @testing.emits_warning('.*non-unicode bind')
             def warns():
                 # test that data still goes in if warning is emitted....
                 unicode_table.insert().execute(unicode_varchar='not unicode')
                 assert (select([unicode_table.c.unicode_varchar]).execute().fetchall() == [('not unicode', )])
+            warns = testing.emits_warning('.*non-unicode bind')(warns)
             warns()
 
         finally:
             unicode_engine.dispose()
 
-    @testing.fails_on('oracle')
     def testblanks(self):
         unicode_table.insert().execute(unicode_varchar=u'')
         assert select([unicode_table.c.unicode_varchar]).scalar() == u''
+    testblanks = testing.fails_on('oracle')(testblanks)
 
     def testengineparam(self):
         """tests engine-wide unicode conversion"""
@@ -398,11 +398,11 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
             testing.db.engine.dialect.convert_unicode = prev_unicode
             testing.db.engine.dialect.convert_unicode = prev_assert
 
-    @testing.unsupported('oracle')
     def testlength(self):
         """checks the database correctly understands the length of a unicode string"""
         teststr = u'aaa\x1234'
         self.assert_(testing.db.func.length(teststr).scalar() == len(teststr))
+    testlength = testing.unsupported('oracle')(testlength)
 
 class BinaryTest(TestBase, AssertsExecutionResults):
     def setUpAll(self):
@@ -549,19 +549,19 @@ class DateTest(TestBase, AssertsExecutionResults):
         if testing.against('oracle'):
             import sqlalchemy.databases.oracle as oracle
             insert_data =  [
-                    [7, 'jack',
+                    (7, 'jack',
                      datetime.datetime(2005, 11, 10, 0, 0),
                      datetime.date(2005,11,10),
-                     datetime.datetime(2005, 11, 10, 0, 0, 0, 29384)],
-                    [8, 'roy',
+                     datetime.datetime(2005, 11, 10, 0, 0, 0, 29384)),
+                    (8, 'roy',
                      datetime.datetime(2005, 11, 10, 11, 52, 35),
                      datetime.date(2005,10,10),
-                     datetime.datetime(2006, 5, 10, 15, 32, 47, 6754)],
-                    [9, 'foo',
+                     datetime.datetime(2006, 5, 10, 15, 32, 47, 6754)),
+                    (9, 'foo',
                      datetime.datetime(2006, 11, 10, 11, 52, 35),
                      datetime.date(1970,4,1),
-                     datetime.datetime(2004, 9, 18, 4, 0, 52, 1043)],
-                    [10, 'colber', None, None, None]
+                     datetime.datetime(2004, 9, 18, 4, 0, 52, 1043)),
+                    (10, 'colber', None, None, None),
              ]
             fnames = ['user_id', 'user_name', 'user_datetime',
                       'user_date', 'user_time']
@@ -583,20 +583,22 @@ class DateTest(TestBase, AssertsExecutionResults):
                 time_micro = 0
 
             insert_data =  [
-                [7, 'jack',
+                (7, 'jack',
                  datetime.datetime(2005, 11, 10, 0, 0),
                  datetime.date(2005, 11, 10),
-                 datetime.time(12, 20, 2)],
-                [8, 'roy',
+                 datetime.time(12, 20, 2)),
+                (8, 'roy',
                  datetime.datetime(2005, 11, 10, 11, 52, 35),
                  datetime.date(2005, 10, 10),
-                 datetime.time(0, 0, 0)],
-                [9, 'foo',
+                 datetime.time(0, 0, 0)),
+                (9, 'foo',
                  datetime.datetime(2005, 11, 10, 11, 52, 35, datetime_micro),
                  datetime.date(1970, 4, 1),
-                 datetime.time(23, 59, 59, time_micro)],
-                [10, 'colber', None, None, None]
+                 datetime.time(23, 59, 59, time_micro)),
+                (10, 'colber', None, None, None),
             ]
+            
+            
             fnames = ['user_id', 'user_name', 'user_datetime',
                       'user_date', 'user_time']
 
@@ -605,6 +607,14 @@ class DateTest(TestBase, AssertsExecutionResults):
                        Column('user_datetime', DateTime(timezone=False)),
                        Column('user_date', Date),
                        Column('user_time', Time)]
+
+        if testing.against('sqlite', 'postgres'):
+            insert_data.append(
+                (11, 'historic',
+                datetime.datetime(1850, 11, 10, 11, 52, 35, datetime_micro),
+                datetime.date(1727,4,1),
+                None),
+            )
 
         users_with_date = Table('query_users_with_date',
                                 MetaData(testing.db), *collist)
@@ -620,7 +630,7 @@ class DateTest(TestBase, AssertsExecutionResults):
     def testdate(self):
         global insert_data
 
-        l = map(list, users_with_date.select().execute().fetchall())
+        l = map(tuple, users_with_date.select().execute().fetchall())
         self.assert_(l == insert_data,
                      'DateTest mismatch: got:%s expected:%s' % (l, insert_data))
 
@@ -721,7 +731,6 @@ class NumericTest(TestBase, AssertsExecutionResults):
     def tearDown(self):
         numeric_table.delete().execute()
 
-    @testing.fails_if(_missing_decimal)
     def test_decimal(self):
         from decimal import Decimal
         numeric_table.insert().execute(
@@ -740,8 +749,8 @@ class NumericTest(TestBase, AssertsExecutionResults):
             (1, 3.5, 5.6, Decimal("12.4"), Decimal("15.75")),
             (2, 3.5, 5.6, Decimal("12.4"), Decimal("15.75")),
         ]
+    test_decimal = testing.fails_if(_missing_decimal)(test_decimal)
 
-    @testing.emits_warning('True Decimal types not available')
     def test_decimal_fallback(self):
         from sqlalchemy.util import Decimal  # could be Decimal or float
 
@@ -752,6 +761,7 @@ class NumericTest(TestBase, AssertsExecutionResults):
         for row in numeric_table.select().execute().fetchall():
             assert isinstance(row['ncasdec'], util.decimal_type)
             assert isinstance(row['fcasdec'], util.decimal_type)
+    test_decimal_fallback = testing.emits_warning('True Decimal types not available')(test_decimal_fallback)
 
 
 class IntervalTest(TestBase, AssertsExecutionResults):

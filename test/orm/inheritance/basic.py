@@ -275,7 +275,42 @@ class GetTest(ORMTest):
     test_get_polymorphic = create_test(True, 'test_get_polymorphic')
     test_get_nonpolymorphic = create_test(False, 'test_get_nonpolymorphic')
 
+class InheritConditionTest(ORMTest):
+    def define_tables(self, metadata):
+        global base, child
+        base = Table('base', metadata,
+            Column('id', Integer, primary_key = True),
+            Column('type', String(40)))
 
+        child = Table('child', metadata,
+            Column('base_id', Integer, ForeignKey(base.c.id), primary_key = True),
+            Column('title', String(64)),
+            Column('parent_id', Integer, ForeignKey('child.base_id'))
+        )
+    
+    def test_inherit_cond(self):
+        class Base(fixtures.Base):
+            pass
+        class Child(Base):
+            pass
+            
+        mapper(Base, base, polymorphic_on=base.c.type)
+        mapper(Child, child, inherits=Base, inherit_condition=child.c.base_id==base.c.id, polymorphic_identity='c')
+        
+        sess = create_session()
+        sess.save(Child(title='c1'))
+        sess.save(Child(title='c2'))
+        sess.flush()
+        sess.clear()
+
+        for inherit_cond in (child.c.base_id==base.c.id, base.c.id==child.c.base_id):
+            clear_mappers()
+            mapper(Base, base, polymorphic_on=base.c.type)
+            mapper(Child, child, inherits=Base, inherit_condition=inherit_cond, polymorphic_identity='c')
+            
+            assert sess.query(Base).order_by(Base.id).all() == [Child(title='c1'), Child(title='c2')]
+        
+        
 class ConstructionTest(ORMTest):
     def define_tables(self, metadata):
         global content_type, content, product
@@ -338,7 +373,6 @@ class EagerLazyTest(ORMTest):
                         Column('foo_id', Integer, ForeignKey('foo.id'))
         )
 
-    @testing.fails_on('maxdb')
     def testbasic(self):
         class Foo(object): pass
         class Bar(Foo): pass
@@ -364,6 +398,7 @@ class EagerLazyTest(ORMTest):
         q = sess.query(Bar)
         self.assert_(len(q.first().lazy) == 1)
         self.assert_(len(q.first().eager) == 1)
+    testbasic = testing.fails_on('maxdb')(testbasic)
 
 
 class FlushTest(ORMTest):
@@ -473,7 +508,6 @@ class VersioningTest(ORMTest):
             Column('parent', Integer, ForeignKey('base.id'))
             )
 
-    @engines.close_open_connections
     def test_save_update(self):
         class Base(fixtures.Base):
             pass
@@ -520,6 +554,7 @@ class VersioningTest(ORMTest):
         assert s2.subdata == 'sess1 subdata'
         s2.subdata = 'sess2 subdata'
         sess2.flush()
+    test_save_update = engines.close_open_connections(test_save_update)
 
     def test_delete(self):
         class Base(fixtures.Base):

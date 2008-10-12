@@ -1,6 +1,45 @@
 =======
 CHANGES
 =======
+0.4.8
+=====
+- orm
+    - Fixed bug regarding inherit_condition passed
+      with "A=B" versus "B=A" leading to errors
+      [ticket:1039]
+
+    - Changes made to new, dirty and deleted 
+      collections in
+      SessionExtension.before_flush() will take
+      effect for that flush.
+
+    - Added label() method to InstrumentedAttribute 
+      to establish forwards compatibility with 0.5.
+
+- sql
+    - column.in_(someselect) can now be used as 
+      a columns-clause expression without the subquery
+      bleeding into the FROM clause [ticket:1074]
+      
+- mysql
+    - Added MSMediumInteger type [ticket:1146].
+
+- sqlite
+    - Supplied a custom strftime() function which
+      handles dates before 1900.  [ticket:968]
+
+    - String's (and Unicode's, UnicodeText's, etc.) 
+      convert_unicode logic disabled in the sqlite dialect, 
+      to adjust for pysqlite 2.5.0's new requirement that 
+      only Python unicode objects are accepted;
+      http://itsystementwicklung.de/pipermail/list-pysqlite/2008-March/000018.html
+      
+- oracle
+    - has_sequence() now takes schema name into account
+      [ticket:1155]
+    - added BFILE to the list of reflected types
+      [ticket:1121]
+      
 0.4.7p1
 =====
 - orm 
