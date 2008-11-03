@@ -1,3 +1,10 @@
+sqlalchemy (0.5.0~rc2-2) UNRELEASED; urgency=low
+
+  * debian/control
+    - switch Vcs-Browser field to viewsvn
+
+ -- Sandro Tosi <morph@debian.org>  Mon, 03 Nov 2008 22:16:35 +0100
+
 sqlalchemy (0.5.0~rc2-1) experimental; urgency=low
 
   * New upstream release
