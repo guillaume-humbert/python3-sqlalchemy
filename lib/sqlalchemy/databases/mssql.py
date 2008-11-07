@@ -337,12 +337,6 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
                 self._last_inserted_ids = [int(row[0])] + self._last_inserted_ids[1:]
         super(MSSQLExecutionContext, self).post_exec()
 
-    _ms_is_select = re.compile(r'\s*(?:SELECT|sp_columns|EXEC)',
-                               re.I | re.UNICODE)
-
-    def returns_rows_text(self, statement):
-        return self._ms_is_select.match(statement) is not None
-
 
 class MSSQLExecutionContext_pyodbc (MSSQLExecutionContext):
     def pre_exec(self):
@@ -361,6 +355,8 @@ class MSSQLExecutionContext_pyodbc (MSSQLExecutionContext):
 
 class MSSQLDialect(default.DefaultDialect):
     name = 'mssql'
+    supports_default_values = True
+    supports_empty_insert = False
 
     colspecs = {
         sqltypes.Unicode : MSNVarchar,
@@ -443,6 +439,26 @@ class MSSQLDialect(default.DefaultDialect):
                 raise ImportError('No DBAPI module detected for MSSQL - please install pyodbc, pymssql, or adodbapi')
     dbapi = classmethod(dbapi)
 
+    def server_version_info(self, connection):
+        """A tuple of the database server version.
+
+        Formats the remote server version as a tuple of version values,
+        e.g. ``(9, 0, 1399)``.  If there are strings in the version number
+        they will be in the tuple too, so don't count on these all being
+        ``int`` values.
+
+        This is a fast check that does not require a round trip.  It is also
+        cached per-Connection.
+        """
+        return connection.dialect._server_version_info(connection.connection)
+    server_version_info = base.connection_memoize(
+        ('mssql', 'server_version_info'))(server_version_info)
+
+    def _server_version_info(self, dbapi_con):
+        """Return a tuple of the database's version number."""
+
+        raise NotImplementedError()
+    
     def create_connect_args(self, url):
         opts = url.translate_connect_args(username='user')
         opts.update(url.query)
@@ -772,18 +788,18 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
         if 'max_identifier_length' in keys:
             self.max_identifier_length = int(keys.pop('max_identifier_length'))
         if 'dsn' in keys:
-            connectors = ['dsn=%s' % keys['dsn']]
+            connectors = ['dsn=%s' % keys.pop('dsn')]
         else:
             connectors = ["DRIVER={%s}" % keys.pop('driver', 'SQL Server'),
-                          'Server=%s' % keys['host'],
-                          'Database=%s' % keys['database'] ]
+                          'Server=%s' % keys.pop('host', ''),
+                          'Database=%s' % keys.pop('database', '') ]
             if 'port' in keys:
-                connectors.append('Port=%d' % int(keys['port']))
+                connectors.append('Port=%d' % int(keys.pop('port')))
         
-        user = keys.get("user")
+        user = keys.pop("user", None)
         if user:
             connectors.append("UID=%s" % user)
-            connectors.append("PWD=%s" % keys.get("password", ""))
+            connectors.append("PWD=%s" % keys.pop('password', ''))
         else:
             connectors.append("TrustedConnection=Yes")
 
@@ -791,7 +807,7 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
         # textual data from your database encoding to your client encoding 
         # This should obviously be set to 'No' if you query a cp1253 encoded 
         # database from a latin1 client... 
-        if 'odbc_autotranslate' in keys: 
+        if 'odbc_autotranslate' in keys:
             connectors.append("AutoTranslate=%s" % keys.pop("odbc_autotranslate"))
 
         # Allow specification of partial ODBC connect string
@@ -800,7 +816,7 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
             if odbc_options[0]=="'" and odbc_options[-1]=="'":
                 odbc_options=odbc_options[1:-1]
             connectors.append(odbc_options)
-        
+        connectors.extend(['%s=%s' % (k,v) for k,v in keys.iteritems()])
         return [[";".join (connectors)], {}]
 
     def is_disconnect(self, e):
@@ -827,6 +843,18 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
                 except pyodbc.Error, e:
                     cursor.nextset()
             context._last_inserted_ids = [int(row[0])]
+
+    def _server_version_info(self, dbapi_con):
+        """Convert a pyodbc SQL_DBMS_VER string into a tuple."""
+
+        version = []
+        r = re.compile('[.\-]')
+        for n in r.split(dbapi_con.getinfo(self.dbapi.SQL_DBMS_VER)):
+            try:
+                version.append(int(n))
+            except ValueError:
+                version.append(n)
+        return tuple(version)
 
 class MSSQLDialect_adodbapi(MSSQLDialect):
     supports_sane_rowcount = True
@@ -975,7 +1003,8 @@ class MSSQLCompiler(compiler.DefaultCompiler):
 
     def visit_binary(self, binary, **kwargs):
         """Move bind parameters to the right-hand side of an operator, where possible."""
-        if isinstance(binary.left, expression._BindParamClause) and binary.operator == operator.eq:
+        if isinstance(binary.left, expression._BindParamClause) and binary.operator == operator.eq \
+            and not isinstance(binary.right, expression._BindParamClause):
             return self.process(expression._BinaryExpression(binary.right, binary.left, binary.operator), **kwargs)
         else:
             return super(MSSQLCompiler, self).visit_binary(binary, **kwargs)
@@ -994,7 +1023,7 @@ class MSSQLCompiler(compiler.DefaultCompiler):
         order_by = self.process(select._order_by_clause)
 
         # MSSQL only allows ORDER BY in subqueries if there is a LIMIT
-        if order_by and (not self.is_subquery(select) or select._limit):
+        if order_by and (not self.is_subquery() or select._limit):
             return " ORDER BY " + order_by
         else:
             return ""

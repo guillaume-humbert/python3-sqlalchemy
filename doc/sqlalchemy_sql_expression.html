@@ -31,8 +31,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum">0.5.0rc2</span>
-  Last Updated: 10/12/08 13:44:43
+  Version: <span class="versionnum">0.5.0rc3</span>
+  Last Updated: 11/07/08 13:55:35
 </div>
 
 
@@ -94,6 +94,9 @@
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_modfunc_cast">cast()</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_modfunc_cloned_traverse">cloned_traverse()</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_modfunc_collate">collate()</a></li>
@@ -204,7 +207,7 @@
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__Cast">class _Cast(ColumnElement)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ClauseElement">class ClauseElement(object)</a></li>
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ClauseElement">class ClauseElement(Visitable)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ClauseList">class ClauseList(ClauseElement)</a></li>
@@ -235,9 +238,6 @@
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__Exists">class _Exists(_UnaryExpression)</a></li>
-
-        
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__FigureVisitName">class _FigureVisitName(type)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_FromClause">class FromClause(Selectable)</a></li>
@@ -318,7 +318,13 @@
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__ValuesBase">class _ValuesBase(_UpdateBase)</a></li>
 
         
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Visitable">class Visitable(object)</a></li>
+
+        
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_attrgetter">class attrgetter(object)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__generated_label">class _generated_label(unicode)</a></li>
 
     </ul>
 
@@ -519,6 +525,16 @@ cast(table.c.unit_price * table.c.qty, Numeric(10,4))
 cast(table.c.timestamp, DATE)
 </pre>
 
+    </div>
+    </div>
+
+                
+    <div class="darkcell">
+    
+    <A name="docstrings_sqlalchemy.sql.expression_modfunc_cloned_traverse"></a>
+    <b>def cloned_traverse(<i>obj</i>, <i>opts</i>, <i>visitors</i>)</b>
+    <div class="docstring">
+    
     </div>
     </div>
 
@@ -1639,7 +1655,7 @@ operators.</p>
     
     <div class="sectionL3">
 
-    <h3>class ClauseElement(object)</h3>
+    <h3>class ClauseElement(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Visitable">Visitable</a>)</h3>
     
     
     <div class="darkcell"><p>Base class for elements of a programmatically constructed SQL expression.</p>
@@ -1955,21 +1971,12 @@ rules applied regardless of case sensitive settings.  the
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>text</i>, <i>selectable=None</i>, <i>type_=None</i>, <i>_is_oid=False</i>, <i>is_literal=False</i>)</b>
+    <b>def __init__(<i>self</i>, <i>text</i>, <i>selectable=None</i>, <i>type_=None</i>, <i>is_literal=False</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">_ColumnClause</span></tt>.</p>
 
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>description = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -2150,41 +2157,6 @@ objects using Python expressions.  See the <tt class="docutils literal"><span cl
 docstring for more details.</p>
 </div>
     
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>proxy_set = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>base_columns = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>anon_label = property()</b>
-         <div class="docstring">
-         <p>provides a constant 'anonymous label' for this ColumnElement.</p>
-<p>This is a label() expression which will be named at compile time.
-The same label() is returned each time anon_label is called so
-that expressions can reference anon_label multiple times, producing
-the same label name at compile time.</p>
-<p>the compiler uses this function automatically at compile time
-for expressions that are known to be 'unnamed' like binary
-expressions and function calls.</p>
-
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -2875,8 +2847,7 @@ generated function.</dd>
     <A name=""></a>
     <b>def where(<i>self</i>, <i>whereclause</i>)</b>
     <div class="docstring">
-    <p>return a new delete() construct with the given expression added to its WHERE clause, joined
-to the existing clause via AND, if any.</p>
+    <p>Add the given WHERE clause to a newly returned delete construct.</p>
 
     </div>
     </div>
@@ -2953,39 +2924,6 @@ to the existing clause via AND, if any.</p>
     <div class="docstring">
     <p>return a new exists() construct with the given expression added to its WHERE clause, joined
 to the existing clause via AND, if any.</p>
-
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
-    <A name="docstrings_sqlalchemy.sql.expression__FigureVisitName"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class _FigureVisitName(type)</h3>
-    
-    
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>cls</i>, <i>clsname</i>, <i>bases</i>, <i>dict</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">_FigureVisitName</span></tt>.</p>
 
     </div>
     </div>
@@ -3089,16 +3027,6 @@ of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</
     </div>
 
                     
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def default_order_by(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
          <div class="darkcell">
          <A name=""></a>
          <b>description = property()</b>
@@ -3106,15 +3034,6 @@ of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</
          <p>a brief description of this FromClause.</p>
 <p>Used primarily for error message formatting.</p>
 
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>foreign_keys = property()</b>
-         <div class="docstring">
-         
          </div> 
          </div>
 
@@ -3142,15 +3061,6 @@ of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</
     </div>
 
                     
-         <div class="darkcell">
-         <A name=""></a>
-         <b>oid_column = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -3165,6 +3075,15 @@ of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</
          <div class="darkcell">
          <A name=""></a>
          <b>primary_key = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>foreign_keys = property()</b>
          <div class="docstring">
          
          </div> 
@@ -3766,15 +3685,6 @@ function as well as the <tt class="docutils literal"><span class="pre">label()</
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>key = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
          <b>proxies = property()</b>
          <div class="docstring">
          
@@ -4221,7 +4131,7 @@ compiled.</p>
          <A name=""></a>
          <b>froms = property()</b>
          <div class="docstring">
-         <p>Return a list of all FromClause elements which will be applied to the FROM clause of the resulting statement.</p>
+         <p>Return the displayed list of FromClause elements.</p>
 
          </div> 
          </div>
@@ -4254,7 +4164,7 @@ to the existing clause via AND, if any.</p>
          <A name=""></a>
          <b>inner_columns = property()</b>
          <div class="docstring">
-         <p>an iteratorof all ColumnElement expressions which would
+         <p>an iterator of all ColumnElement expressions which would
 be rendered into the columns clause of the resulting SELECT statement.</p>
 
          </div> 
@@ -4648,15 +4558,6 @@ functionality.</p>
     </div>
 
                     
-         <div class="darkcell">
-         <A name=""></a>
-         <b>description = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -4955,6 +4856,17 @@ to the existing clause via AND, if any.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>table</i>, <i>values</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_ValuesBase</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def values(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>specify the VALUES clause for an INSERT statement, or the SET clause for an UPDATE.</p>
@@ -4981,6 +4893,28 @@ to the existing clause via AND, if any.</p>
 
     
     
+    <A name="docstrings_sqlalchemy.sql.expression_Visitable"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class Visitable(object)</h3>
+    
+    
+    
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
     <A name="docstrings_sqlalchemy.sql.expression_attrgetter"></a>
     
     <div class="sectionL3">
@@ -4992,6 +4926,30 @@ to the existing clause via AND, if any.</p>
 <p>Return a callable object that fetches the given attribute(s) from its operand.
 After, f=attrgetter('name'), the call f(r) returns r.name.
 After, g=attrgetter('name', 'date'), the call g(r) returns (r.name, r.date).</p>
+</div>
+    
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.sql.expression__generated_label"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class _generated_label(unicode)</h3>
+    
+    
+    <div class="darkcell"><p>A unicode subclass used to identify dynamically generated names.</p>
 </div>
     
 

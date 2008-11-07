@@ -288,7 +288,7 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
     def tearDown(self):
         unicode_table.delete().execute()
 
-    def testbasic(self):
+    def test_round_trip(self):
         assert unicode_table.c.unicode_varchar.type.length == 250
         rawdata = 'Alors vous imaginez ma surprise, au lever du jour, quand une dr\xc3\xb4le de petit voix m\xe2\x80\x99a r\xc3\xa9veill\xc3\xa9. Elle disait: \xc2\xab S\xe2\x80\x99il vous pla\xc3\xaet\xe2\x80\xa6 dessine-moi un mouton! \xc2\xbb\n'
         unicodedata = rawdata.decode('utf-8')
@@ -296,10 +296,6 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
                                        unicode_text=unicodedata,
                                        plain_varchar=rawdata)
         x = unicode_table.select().execute().fetchone()
-        print 0, repr(unicodedata)
-        print 1, repr(x['unicode_varchar'])
-        print 2, repr(x['unicode_text'])
-        print 3, repr(x['plain_varchar'])
         self.assert_(isinstance(x['unicode_varchar'], unicode) and x['unicode_varchar'] == unicodedata)
         self.assert_(isinstance(x['unicode_text'], unicode) and x['unicode_text'] == unicodedata)
         if isinstance(x['plain_varchar'], unicode):
@@ -310,7 +306,20 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
         else:
             self.assert_(not isinstance(x['plain_varchar'], unicode) and x['plain_varchar'] == rawdata)
 
-    def testassert(self):
+    def test_union(self):
+        """ensure compiler processing works for UNIONs"""
+
+        rawdata = 'Alors vous imaginez ma surprise, au lever du jour, quand une dr\xc3\xb4le de petit voix m\xe2\x80\x99a r\xc3\xa9veill\xc3\xa9. Elle disait: \xc2\xab S\xe2\x80\x99il vous pla\xc3\xaet\xe2\x80\xa6 dessine-moi un mouton! \xc2\xbb\n'
+        unicodedata = rawdata.decode('utf-8')
+        unicode_table.insert().execute(unicode_varchar=unicodedata,
+                                       unicode_text=unicodedata,
+                                       plain_varchar=rawdata)
+                                       
+        x = union(select([unicode_table.c.unicode_varchar]), select([unicode_table.c.unicode_varchar])).execute().fetchone()
+        self.assert_(isinstance(x['unicode_varchar'], unicode) and x['unicode_varchar'] == unicodedata)
+        
+
+    def test_assertions(self):
         try:
             unicode_table.insert().execute(unicode_varchar='not unicode')
             assert False
@@ -337,11 +346,11 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
             unicode_engine.dispose()
 
     @testing.fails_on('oracle')
-    def testblanks(self):
+    def test_blank_strings(self):
         unicode_table.insert().execute(unicode_varchar=u'')
         assert select([unicode_table.c.unicode_varchar]).scalar() == u''
 
-    def testengineparam(self):
+    def test_engine_parameter(self):
         """tests engine-wide unicode conversion"""
         prev_unicode = testing.db.engine.dialect.convert_unicode
         prev_assert = testing.db.engine.dialect.assert_unicode
@@ -367,7 +376,7 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
 
     @testing.crashes('oracle', 'FIXME: unknown, verify not fails_on')
     @testing.fails_on('firebird') # "Data type unknown" on the parameter
-    def testlength(self):
+    def test_length_function(self):
         """checks the database correctly understands the length of a unicode string"""
         teststr = u'aaa\x1234'
         self.assert_(testing.db.func.length(teststr).scalar() == len(teststr))
@@ -649,12 +658,8 @@ class DateTest(TestBase, AssertsExecutionResults):
             t.drop(checkfirst=True)
 
 class StringTest(TestBase, AssertsExecutionResults):
-    @testing.fails_on('mysql')
+    @testing.fails_on('mysql', 'oracle')
     def test_nolength_string(self):
-        # this tests what happens with String DDL with no length.  seems like
-        # we need to decide amongst "VARCHAR" (sqlite, postgres), "TEXT"
-        # (mysql) i.e. theres some inconsisency here.
-
         metadata = MetaData(testing.db)
         foo = Table('foo', metadata, Column('one', String))
 

@@ -43,6 +43,7 @@ doc/sqlalchemy_exc.html
 doc/sqlalchemy_ext_associationproxy.html
 doc/sqlalchemy_ext_declarative.html
 doc/sqlalchemy_ext_orderinglist.html
+doc/sqlalchemy_ext_serializer.html
 doc/sqlalchemy_ext_sqlsoup.html
 doc/sqlalchemy_interfaces.html
 doc/sqlalchemy_orm.html
@@ -119,6 +120,8 @@ examples/poly_assoc/poly_assoc_generic.py
 examples/polymorph/concrete.py
 examples/polymorph/polymorph.py
 examples/polymorph/single.py
+examples/query_caching/implicit.py
+examples/query_caching/per_session.py
 examples/query_caching/query_caching.py
 examples/sharding/attribute_shard.py
 examples/vertical/dictlike-polymorphic.py
@@ -162,6 +165,7 @@ lib/sqlalchemy/ext/__init__.py
 lib/sqlalchemy/ext/associationproxy.py
 lib/sqlalchemy/ext/declarative.py
 lib/sqlalchemy/ext/orderinglist.py
+lib/sqlalchemy/ext/serializer.py
 lib/sqlalchemy/ext/sqlsoup.py
 lib/sqlalchemy/orm/__init__.py
 lib/sqlalchemy/orm/attributes.py
@@ -231,6 +235,7 @@ test/ext/alltests.py
 test/ext/associationproxy.py
 test/ext/declarative.py
 test/ext/orderinglist.py
+test/ext/serializer.py
 test/orm/__init__.py
 test/orm/_base.py
 test/orm/_fixtures.py

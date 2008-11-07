@@ -195,11 +195,11 @@ class Query(object):
         if as_filter and self._filter_aliases:
             adapters.append(self._filter_aliases.replace)
 
-        if self._polymorphic_adapters:
-            adapters.append(self.__adapt_polymorphic_element)
-
         if self._from_obj_alias:
             adapters.append(self._from_obj_alias.replace)
+
+        if self._polymorphic_adapters:
+            adapters.append(self.__adapt_polymorphic_element)
 
         if not adapters:
             return clause
@@ -552,9 +552,11 @@ class Query(object):
 
     def value(self, column):
         """Return a scalar result corresponding to the given column expression."""
-        
-        return self.values(column).next()[0]
-        
+        try:
+            return self.values(column).next()[0]
+        except StopIteration:
+            return None
+
     @_generative()
     def add_column(self, column):
         """Add a SQL ColumnElement to the list of result columns to be returned."""
@@ -884,9 +886,15 @@ class Query(object):
                 if isinstance(onclause, sql.ClauseElement):
                     onclause = right_adapter.traverse(onclause)
 
-            if prop:
-                onclause = prop
-
+            # TODO: is this a little hacky ?
+            if not isinstance(onclause, attributes.QueryableAttribute) or not isinstance(onclause.parententity, AliasedClass):
+                if prop:
+                    # MapperProperty based onclause
+                    onclause = prop
+                else:
+                    # ClauseElement based onclause
+                    onclause = self._adapt_clause(onclause, False, True)
+                
             clause = orm_join(clause, right_entity, onclause, isouter=outerjoin)
             if alias_criterion:
                 self._filter_aliases = right_adapter
@@ -1054,6 +1062,8 @@ class Query(object):
           <Item>
           >>> session.query(Item.id).scalar()
           1
+          >>> session.query(Item.id).filter(Item.id < 0).scalar()
+          None
           >>> session.query(Item.id, Item.name).scalar()
           1
           >>> session.query(func.count(Parent.id)).scalar()
@@ -1062,10 +1072,10 @@ class Query(object):
         This results in an execution of the underlying query.
 
         """
-        ret = list(self)[0]
-        if not isinstance(ret, tuple):
-            return ret
         try:
+            ret = list(self)[0]
+            if not isinstance(ret, tuple):
+                return ret
             return ret[0]
         except IndexError:
             return None
@@ -1103,9 +1113,9 @@ class Query(object):
 
         if filtered:
             if single_entity:
-                filter = util.OrderedIdentitySet
+                filter = lambda x: util.unique_list(x, util.IdentitySet)
             else:
-                filter = util.OrderedSet
+                filter = util.unique_list
         else:
             filter = None
 
@@ -1200,7 +1210,8 @@ class Query(object):
                 try:
                     params[_get_params[primary_key].key] = ident[i]
                 except IndexError:
-                    raise sa_exc.InvalidRequestError("Could not find enough values to formulate primary key for query.get(); primary key columns are %s" % ', '.join("'%s'" % str(c) for c in q.mapper.primary_key))
+                    raise sa_exc.InvalidRequestError("Could not find enough values to formulate primary key for "
+                        "query.get(); primary key columns are %s" % ', '.join("'%s'" % c for c in q.mapper.primary_key))
             q._params = params
 
         if lockmode is not None:
@@ -1337,6 +1348,9 @@ class Query(object):
                 if identity_key in session.identity_map:
                     session._remove_newly_deleted(attributes.instance_state(session.identity_map[identity_key]))
 
+        for ext in session.extensions:
+            ext.after_bulk_delete(session, self, context, result)
+
         return result.rowcount
 
     def update(self, values, synchronize_session='expire'):
@@ -1431,6 +1445,9 @@ class Query(object):
                 if identity_key in session.identity_map:
                     session.expire(session.identity_map[identity_key], values.keys())
 
+        for ext in session.extensions:
+            ext.after_bulk_update(session, self, context, result)
+            
         return result.rowcount
 
     def _compile_context(self, labels=True):
@@ -1690,9 +1707,9 @@ class _MapperEntity(_QueryEntity):
         if context.order_by is False and self.mapper.order_by:
             context.order_by = self.mapper.order_by
 
-        if context.order_by and adapter:
-            context.order_by = adapter.adapt_list(util.to_list(context.order_by))
-
+            if adapter:
+                context.order_by = adapter.adapt_list(util.to_list(context.order_by))
+                    
         for value in self.mapper._iterate_polymorphic_properties(self._with_polymorphic):
             if query._only_load_props and value.key not in query._only_load_props:
                 continue

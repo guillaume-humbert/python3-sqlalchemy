@@ -207,6 +207,11 @@ class SessionTest(_fixtures.FixtureTest):
 
     @testing.resolve_artifact_names
     def test_autoflush_expressions(self):
+        """test that an expression which is dependent on object state is 
+        evaluated after the session autoflushes.   This is the lambda
+        inside of strategies.py lazy_clause.
+        
+        """
         mapper(User, users, properties={
             'addresses':relation(Address, backref="user")})
         mapper(Address, addresses)
@@ -216,6 +221,16 @@ class SessionTest(_fixtures.FixtureTest):
         sess.add(u)
         eq_(sess.query(Address).filter(Address.user==u).one(),
             Address(email_address='foo'))
+
+        # still works after "u" is garbage collected
+        sess.commit()
+        sess.close()
+        u = sess.query(User).get(u.id)
+        q = sess.query(Address).filter(Address.user==u)
+        del u
+        gc.collect()
+        eq_(q.one(), Address(email_address='foo'))
+
 
     @testing.crashes('mssql', 'test causes mssql to hang')
     @testing.requires.independent_connections
@@ -748,7 +763,7 @@ class SessionTest(_fixtures.FixtureTest):
         gc.collect()
         assert len(s.identity_map) == 1
         assert len(s.dirty) == 1
-
+        assert None not in s.dirty
         s.flush()
         gc.collect()
         assert not s.dirty
@@ -883,6 +898,10 @@ class SessionTest(_fixtures.FixtureTest):
                 log.append('after_begin')
             def after_attach(self, session, instance):
                 log.append('after_attach')
+            def after_bulk_update(self, session, query, query_context, result):
+                log.append('after_bulk_update')
+            def after_bulk_delete(self, session, query, query_context, result):
+                log.append('after_bulk_delete')
 
         sess = create_session(extension = MyExt())
         u = User(name='u1')
@@ -905,6 +924,14 @@ class SessionTest(_fixtures.FixtureTest):
         log = []
         sess.commit()
         assert log == ['before_commit', 'after_commit']
+
+        log = []
+        sess.query(User).delete()
+        assert log == ['after_begin', 'after_bulk_delete']
+
+        log = []
+        sess.query(User).update({'name': 'foo'})
+        assert log == ['after_bulk_update']
         
         log = []
         sess = create_session(autocommit=False, extension=MyExt(), bind=testing.db)

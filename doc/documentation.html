@@ -30,8 +30,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum">0.5.0rc2</span>
-  Last Updated: 10/12/08 13:44:43
+  Version: <span class="versionnum">0.5.0rc3</span>
+  Last Updated: 11/07/08 13:55:35
 </div>
 
 
@@ -860,7 +860,7 @@
         <li><a style="" href="#types_standard_float">Float</a></li>
 
         
-        <li><a style="" href="#types_standard_datetime/date/time">Datetime/Date/Time</a></li>
+        <li><a style="" href="#types_standard_datetime/date/time">DateTime/Date/Time</a></li>
 
         
         <li><a style="" href="#types_standard_interval">Interval</a></li>
@@ -936,6 +936,9 @@
 	        </li>
         
         <li><a style="" href="#plugins_orderinglist">orderinglist</a></li>
+
+        
+        <li><a style="" href="#plugins_serializer">serializer</a></li>
 
         
         <li><a style="" href="#plugins_sqlsoup">SqlSoup</a></li>
@@ -1160,7 +1163,13 @@
         <li><a style="" href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_InvalidRequestError">class InvalidRequestError(SQLAlchemyError)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_NoReferencedTableError">class NoReferencedTableError(InvalidRequestError)</a></li>
+        <li><a style="" href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_NoReferenceError">class NoReferenceError(InvalidRequestError)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_NoReferencedColumnError">class NoReferencedColumnError(NoReferenceError)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_NoReferencedTableError">class NoReferencedTableError(NoReferenceError)</a></li>
 
         
         <li><a style="" href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_NoSuchColumnError">class NoSuchColumnError(KeyError,InvalidRequestError)</a></li>
@@ -1304,7 +1313,7 @@
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">class PrimaryKeyConstraint(Constraint)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">class SchemaItem(object)</a></li>
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">class SchemaItem(Visitable)</a></li>
 
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaVisitor">class SchemaVisitor(ClauseVisitor)</a></li>
@@ -1380,6 +1389,9 @@
 
         
         <li><a style="" href="#docstrings_sqlalchemy.sql.expression_modfunc_cast">cast()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.sql.expression_modfunc_cloned_traverse">cloned_traverse()</a></li>
 
         
         <li><a style="" href="#docstrings_sqlalchemy.sql.expression_modfunc_collate">collate()</a></li>
@@ -1490,7 +1502,7 @@
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__Cast">class _Cast(ColumnElement)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ClauseElement">class ClauseElement(object)</a></li>
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ClauseElement">class ClauseElement(Visitable)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ClauseList">class ClauseList(ClauseElement)</a></li>
@@ -1521,9 +1533,6 @@
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__Exists">class _Exists(_UnaryExpression)</a></li>
-
-        
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__FigureVisitName">class _FigureVisitName(type)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_FromClause">class FromClause(Selectable)</a></li>
@@ -1604,7 +1613,13 @@
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__ValuesBase">class _ValuesBase(_UpdateBase)</a></li>
 
         
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Visitable">class Visitable(object)</a></li>
+
+        
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_attrgetter">class attrgetter(object)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__generated_label">class _generated_label(unicode)</a></li>
 
     </ul>
 
@@ -2224,6 +2239,36 @@
         
         <li><a style="" href="sqlalchemy_ext_orderinglist.html#docstrings_sqlalchemy.ext.orderinglist_OrderingList">class OrderingList(list)</a></li>
 
+    </ul>
+
+	        </li>
+        
+        <li><a style="" href="sqlalchemy_ext_serializer.html#docstrings_sqlalchemy.ext.serializer">module sqlalchemy.ext.serializer</a></li>
+
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="#docstrings_sqlalchemy.ext.serializer_modfunc">Module Functions</a></li>
+
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="#docstrings_sqlalchemy.ext.serializer_modfunc_Deserializer">Deserializer()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.ext.serializer_modfunc_Serializer">Serializer()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.ext.serializer_modfunc_dumps">dumps()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.ext.serializer_modfunc_loads">loads()</a></li>
+
+    </ul>
+
+	        </li>
     </ul>
 
 	        </li>
@@ -10058,6 +10103,8 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
 
 <p>Configurational arguments accepted by <code>sessionmaker()</code> and <code>create_session()</code> are the same as that of the <code>Session</code> class itself, and are described at <a href="#docstrings_sqlalchemy.orm_modfunc_sessionmaker">sessionmaker()</a>.
 </p>
+<p>Note that the defaults of <code>create_session()</code> are the opposite of that of <code>sessionmaker()</code>: autoflush and expire_on_commit are False, autocommit is True. It is recommended to use the <code>sessionmaker()</code> function instead of <code>create_session()</code>. <code>create_session()</code> is used to get a session with no automation turned on and is useful for testing.
+</p>
 
 
 
@@ -11538,6 +11585,12 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 </span>
 <span class="python_comment"># oracle will feed host/port/SID into cx_oracle.makedsn
 </span><span class="python_name">oracle_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'oracle://scott:tiger@127.0.0.1:1521/sidname'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># mssql
+</span><span class="python_name">mssql_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mssql://username:password@localhost/database'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># mssql via a DSN connection
+</span><span class="python_name">mssql_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mssql://username:password@/?dsn=mydsn'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
 <p>The <code>Engine</code> will ask the connection pool for a connection when the <code>connect()</code> or <code>execute()</code> methods are called.  The default connection pool, <code>QueuePool</code>, as well as the default connection pool used with SQLite, <code>SingletonThreadPool</code>, will open connections to the database on an as-needed basis.  As concurrent statements are executed, <code>QueuePool</code> will grow its pool of connections to a default size of five, and will allow a default "overflow" of ten.   Since the <code>Engine</code> is essentially "home base" for the connection pool, it follows that you should keep a single <code>Engine</code> per database established within an application, rather than creating a new one for each connection.
@@ -11649,6 +11702,10 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
  <li>
      <strong>encoding='utf-8'</strong> - the encoding to use for all Unicode translations, both by engine-wide unicode conversion as well as the <code>Unicode</code> type object.
+ </li>
+
+ <li>
+     <strong>label_length=None</strong> - optional integer value which limits the size of dynamically generated column labels to that many characters.  If less than 6, labels are generated as "_(counter)".  If <code>None</code>, the value of <code>dialect.max_identifier_length</code> is used instead.
  </li>
 
  <li>
@@ -13386,7 +13443,7 @@ CREATE TABLE test (
     
     <div class="sectionL3">
 
-    <h3>Datetime/Date/Time</h3>
+    <h3>DateTime/Date/Time</h3>
     
     
 
@@ -14343,7 +14400,7 @@ CREATE TABLE test (
 </span><span class="python_comment"># [&lt;__main__.Keyword object at 0xb791ea0c&gt;]
 </span><span class="python_keyword">print </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">kw</span><span class="python_enclosure">[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator">.</span><span class="python_name">keyword</span><span class="python_operator">
 </span><span class="python_comment"># 'cheese inspector'
-</span><span class="python_keyword">print </span><span class="python_enclosure">[</span><span class="python_name">keyword</span><span class="python_operator">.</span><span class="python_name">keyword </span><span class="python_keyword">for </span><span class="python_name">keyword </span><span class="python_keyword">in </span><span class="python_name">u</span><span class="python_operator">.</span><span class="python_name">_keywords</span><span class="python_enclosure">]</span><span class="python_operator">
+</span><span class="python_keyword">print </span><span class="python_enclosure">[</span><span class="python_name">keyword</span><span class="python_operator">.</span><span class="python_name">keyword </span><span class="python_keyword">for </span><span class="python_name">keyword </span><span class="python_keyword">in </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">kw</span><span class="python_enclosure">]</span><span class="python_operator">
 </span><span class="python_comment"># ['cheese inspector']
 </span><span class="python_operator"></span></pre>
     </div>
@@ -14442,7 +14499,11 @@ CREATE TABLE test (
 </span>
 <span class="python_comment"># users_table and keywords_table tables as above, then:
 </span>
-<span class="python_name">userkeywords_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'userkeywords'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
+<span class="python_keyword">def </span><span class="python_name">get_current_uid</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_literal">"""Return the uid of the current user."""</span><span class="python_operator">
+    </span><span class="python_keyword">return </span><span class="python_number">1  </span><span class="python_comment"># hardcoded for this example</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">userkeywords_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'userkeywords'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">"users.id"</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'keyword_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">"keywords.id"</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_comment"># add some auditing columns</span>
@@ -14470,12 +14531,10 @@ CREATE TABLE test (
         </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">user</span><span class="python_operator">
         </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">keyword </span><span class="python_operator">= </span><span class="python_name">keyword</span><span class="python_operator">
 </span>
-<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'user_keywords'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">UserKeyword</span><span class="python_enclosure">)</span>
-<span class="python_enclosure">})</span><span class="python_operator">
+<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">keywords_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">UserKeyword</span><span class="python_operator">, </span><span class="python_name">userkeywords_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'user'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_literal">'user'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">backref</span><span class="python_operator">=</span><span class="python_literal">'user_keywords'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_literal">'keyword'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 <span class="python_enclosure">})</span><span class="python_operator">
 </span>
@@ -14756,6 +14815,65 @@ documentation</a> for more
 
 
     
+    <A name="plugins_serializer"></a>
+    
+    <div class="sectionL2">
+
+    <h3>serializer</h3>
+    
+    
+
+<p><strong>Author:</strong> Mike Bayer
+</p>
+<p>Serializer/Deserializer objects for usage with SQLAlchemy structures.
+</p>
+<p>Any SQLAlchemy structure, including Tables, Columns, expressions, mappers,
+   Query objects etc. can be serialized in a minimally-sized format,
+   and deserialized when given a Metadata and optional ScopedSession object
+   to use as context on the way out.
+</p>
+<p>Usage is nearly the same as that of the standard Python pickle module:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">serializer </span><span class="python_keyword">import </span><span class="python_name">loads</span><span class="python_operator">, </span><span class="python_name">dumps</span><span class="python_operator">
+</span><span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">some_engine</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">scoped_session</span><span class="python_enclosure">(</span><span class="python_name">sessionmaker</span><span class="python_enclosure">())</span><span class="python_operator">
+</span>
+<span class="python_comment"># ... define mappers
+</span>
+<span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">.</span><span class="python_name">somedata</span><span class="python_operator">==</span><span class="python_literal">'foo'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">.</span><span class="python_name">sortkey</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># pickle the query
+</span><span class="python_name">serialized </span><span class="python_operator">= </span><span class="python_name">dumps</span><span class="python_enclosure">(</span><span class="python_name">query</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># unpickle.  Pass in metadata + scoped_session
+</span><span class="python_name">query2 </span><span class="python_operator">= </span><span class="python_name">loads</span><span class="python_enclosure">(</span><span class="python_name">serialized</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span><span class="python_name">Session</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">print </span><span class="python_name">query2</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Similar restrictions as when using raw pickle apply; mapped classes must be 
+   themselves be pickleable, meaning they are importable from a module-level
+   namespace.
+</p>
+<p>Note that instances of user-defined classes do not require this extension
+   in order to be pickled; these contain no references to engines, sessions
+   or expression constructs in the typical case and can be serialized directly.
+   This module is specifically for ORM and expression constructs.
+</p>
+
+
+
+            <a href="#plugins" class="totoc">back to section top</a>
+    </div>
+
+
+
+    
     <A name="plugins_sqlsoup"></a>
     
     <div class="sectionL2">
@@ -14896,6 +15014,10 @@ documentation</a> for more
     
     
     <A name="docstrings_sqlalchemy.ext.orderinglist"></a>
+
+    
+    
+    <A name="docstrings_sqlalchemy.ext.serializer"></a>
 
     
     

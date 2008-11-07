@@ -93,6 +93,12 @@ Available drivernames are `sqlite`, `mysql`, `postgres`, `oracle`, `mssql`, and 
     # oracle will feed host/port/SID into cx_oracle.makedsn
     oracle_db = create_engine('oracle://scott:tiger@127.0.0.1:1521/sidname')
 
+    # mssql
+    mssql_db = create_engine('mssql://username:password@localhost/database')
+
+    # mssql via a DSN connection
+    mssql_db = create_engine('mssql://username:password@/?dsn=mydsn') 
+
 The `Engine` will ask the connection pool for a connection when the `connect()` or `execute()` methods are called.  The default connection pool, `QueuePool`, as well as the default connection pool used with SQLite, `SingletonThreadPool`, will open connections to the database on an as-needed basis.  As concurrent statements are executed, `QueuePool` will grow its pool of connections to a default size of five, and will allow a default "overflow" of ten.   Since the `Engine` is essentially "home base" for the connection pool, it follows that you should keep a single `Engine` per database established within an application, rather than creating a new one for each connection.
 
 #### Custom DBAPI connect() arguments
@@ -133,6 +139,7 @@ A list of all standard options, as well as several that are used by particular d
 * **echo=False** - if True, the Engine will log all statements as well as a repr() of their parameter lists to the engines logger, which defaults to sys.stdout.  The `echo` attribute of `Engine` can be modified at any time to turn logging on and off.  If set to the string `"debug"`, result rows will be printed to the standard output as well.  This flag ultimately controls a Python logger; see [dbengine_logging](rel:dbengine_logging) at the end of this chapter for information on how to configure logging directly.
 * **echo_pool=False** - if True, the connection pool will log all checkouts/checkins to the logging stream, which defaults to sys.stdout.  This flag ultimately controls a Python logger; see [dbengine_logging](rel:dbengine_logging) for information on how to configure logging directly.
 * **encoding='utf-8'** - the encoding to use for all Unicode translations, both by engine-wide unicode conversion as well as the `Unicode` type object.
+* **label_length=None** - optional integer value which limits the size of dynamically generated column labels to that many characters.  If less than 6, labels are generated as "_(counter)".  If `None`, the value of `dialect.max_identifier_length` is used instead.
 * **module=None** - used by database implementations which support multiple DBAPI modules, this is a reference to a DBAPI2 module to be used instead of the engine's default module.  For Postgres, the default is psycopg2.  For Oracle, it's cx_Oracle.
 * **pool=None** - an already-constructed instance of `sqlalchemy.pool.Pool`, such as a `QueuePool` instance.  If non-None, this pool will be used directly as the underlying connection pool for the engine, bypassing whatever connection parameters are present in the URL argument.  For information on constructing connection pools manually, see [pooling](rel:pooling).
 * **poolclass=None** - a `sqlalchemy.pool.Pool` subclass, which will be used to create a connection pool instance using the connection parameters given in the URL.  Note this differs from `pool` in that you don't actually instantiate the pool in this case, you just indicate what type of pool to be used.

@@ -31,8 +31,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum">0.5.0rc2</span>
-  Last Updated: 10/12/08 13:44:43
+  Version: <span class="versionnum">0.5.0rc3</span>
+  Last Updated: 11/07/08 13:55:35
 </div>
 
 
@@ -56,7 +56,7 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_ext_orderinglist.html">module sqlalchemy.ext.orderinglist</a>
+            Previous: <a href="sqlalchemy_ext_serializer.html">module sqlalchemy.ext.serializer</a>
 
                |   
             Next: <a href="sqlalchemy_databases_access.html">module sqlalchemy.databases.access</a>
@@ -127,12 +127,12 @@ SqlSoup:</p>
 &gt;&gt;&gt; users = db.users.all()
 &gt;&gt;&gt; users.sort()
 &gt;&gt;&gt; users
-<b>64;example.edu',password='student',classname=None,admin=0), MappedUsers(name='Bhargan Basepair',email='basepair&#64;example.edu',password='basepair',classname=None,admin=1)</b>
+<b>64;example.edu',password=u'student',classname=None,admin=0), MappedUsers(name=u'Bhargan Basepair',email=u'basepair&#64;example.edu',password=u'basepair',classname=None,admin=1)</b>
 </pre>
 <p>Of course, letting the database do the sort is better:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; db.users.order_by(db.users.name).all()
-<b>64;example.edu',password='basepair',classname=None,admin=1), MappedUsers(name='Joe Student',email='student&#64;example.edu',password='student',classname=None,admin=0)</b>
+<b>64;example.edu',password=u'basepair',classname=None,admin=1), MappedUsers(name=u'Joe Student',email=u'student&#64;example.edu',password=u'student',classname=None,admin=0)</b>
 </pre>
 <p>Field access is intuitive:</p>
 <pre class="literal-block">
@@ -146,27 +146,27 @@ it:</p>
 &gt;&gt;&gt; from sqlalchemy import or_, and_, desc
 &gt;&gt;&gt; where = or_(db.users.name=='Bhargan Basepair', db.users.email=='student&#64;example.edu')
 &gt;&gt;&gt; db.users.filter(where).order_by(desc(db.users.name)).all()
-<b>64;example.edu',password='student',classname=None,admin=0), MappedUsers(name='Bhargan Basepair',email='basepair&#64;example.edu',password='basepair',classname=None,admin=1)</b>
+<b>64;example.edu',password=u'student',classname=None,admin=0), MappedUsers(name=u'Bhargan Basepair',email=u'basepair&#64;example.edu',password=u'basepair',classname=None,admin=1)</b>
 </pre>
 <p>You can also use .first() (to retrieve only the first object from a query) or
 .one() (like .first when you expect exactly one user -- it will raise an
 exception if more were returned):</p>
 <pre class="literal-block">
 &gt;&gt;&gt; db.users.filter(db.users.name=='Bhargan Basepair').one()
-MappedUsers(name='Bhargan Basepair',email='basepair&#64;example.edu',password='basepair',classname=None,admin=1)
+MappedUsers(name=u'Bhargan Basepair',email=u'basepair&#64;example.edu',password=u'basepair',classname=None,admin=1)
 </pre>
 <p>Since name is the primary key, this is equivalent to</p>
 <blockquote>
 <pre class="doctest-block">
 &gt;&gt;&gt; db.users.get('Bhargan Basepair')
-MappedUsers(name='Bhargan Basepair',email='basepair&#64;example.edu',password='basepair',classname=None,admin=1)
+MappedUsers(name=u'Bhargan Basepair',email=u'basepair&#64;example.edu',password=u'basepair',classname=None,admin=1)
 </pre>
 </blockquote>
 <p>This is also equivalent to</p>
 <blockquote>
 <pre class="doctest-block">
 &gt;&gt;&gt; db.users.filter_by(name='Bhargan Basepair').one()
-MappedUsers(name='Bhargan Basepair',email='basepair&#64;example.edu',password='basepair',classname=None,admin=1)
+MappedUsers(name=u'Bhargan Basepair',email=u'basepair&#64;example.edu',password=u'basepair',classname=None,admin=1)
 </pre>
 </blockquote>
 <p>filter_by is like filter, but takes kwargs instead of full clause expressions.
@@ -194,7 +194,7 @@ it:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; book_id = db.books.filter_by(title='Regional Variation in Moss').first().id
 &gt;&gt;&gt; db.loans.insert(book_id=book_id, user_name=user.name)
-MappedLoans(book_id=2,user_name='Bhargan Basepair',loan_date=None)
+MappedLoans(book_id=2,user_name=u'Bhargan Basepair',loan_date=None)
 &gt;&gt;&gt; db.flush()
 
 &gt;&gt;&gt; loan = db.loans.filter_by(book_id=2, user_name='Bhargan Basepair').one()
@@ -209,7 +209,7 @@ Mapper level.) The same where-clause construction rules apply here as
 to the select methods.</p>
 <pre class="literal-block">
 &gt;&gt;&gt; db.loans.insert(book_id=book_id, user_name=user.name)
-MappedLoans(book_id=2,user_name='Bhargan Basepair',loan_date=None)
+MappedLoans(book_id=2,user_name=u'Bhargan Basepair',loan_date=None)
 &gt;&gt;&gt; db.flush()
 &gt;&gt;&gt; db.loans.delete(db.loans.book_id==2)
 </pre>
@@ -218,7 +218,7 @@ book_id to 1 in all loans whose book_id is 2:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; db.loans.update(db.loans.book_id==2, book_id=1)
 &gt;&gt;&gt; db.loans.filter_by(book_id=1).all()
-[MappedLoans(book_id=1,user_name='Joe Student',loan_date=datetime.datetime(2006, 7, 12, 0, 0))]
+[MappedLoans(book_id=1,user_name=u'Joe Student',loan_date=datetime.datetime(2006, 7, 12, 0, 0))]
 </pre>
 </div>
 <div class="section">
@@ -232,7 +232,7 @@ uses that as the join condition automatically.</p>
 <pre class="literal-block">
 &gt;&gt;&gt; join1 = db.join(db.users, db.loans, isouter=True)
 &gt;&gt;&gt; join1.filter_by(name='Joe Student').all()
-<b>64;example.edu',password='student',classname=None,admin=0,book_id=1,user_name='Joe Student',loan_date=datetime.datetime(2006, 7, 12, 0, 0))</b>
+<b>64;example.edu',password=u'student',classname=None,admin=0,book_id=1,user_name=u'Joe Student',loan_date=datetime.datetime(2006, 7, 12, 0, 0))</b>
 </pre>
 <p>If you're unfortunate enough to be using MySQL with the default MyISAM
 storage engine, you'll have to specify the join condition manually,
@@ -248,7 +248,7 @@ books table:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; join2 = db.join(join1, db.books)
 &gt;&gt;&gt; join2.all()
-<b>64;example.edu',password='student',classname=None,admin=0,book_id=1,user_name='Joe Student',loan_date=datetime.datetime(2006, 7, 12, 0, 0),id=1,title='Mustards I Have Known',published_year='1989',authors='Jones')</b>
+<b>64;example.edu',password=u'student',classname=None,admin=0,book_id=1,user_name=u'Joe Student',loan_date=datetime.datetime(2006, 7, 12, 0, 0),id=1,title=u'Mustards I Have Known',published_year=u'1989',authors=u'Jones')</b>
 </pre>
 <p>If you join tables that have an identical column name, wrap your join
 with <cite>with_labels</cite>, to disambiguate columns with their table name
@@ -276,11 +276,11 @@ with <cite>with_labels</cite>, to disambiguate columns with their table name
 <blockquote>
 <pre class="doctest-block">
 &gt;&gt;&gt; db.users.get('Joe Student').loans
-[MappedLoans(book_id=1,user_name='Joe Student',loan_date=datetime.datetime(2006, 7, 12, 0, 0))]
+[MappedLoans(book_id=1,user_name=u'Joe Student',loan_date=datetime.datetime(2006, 7, 12, 0, 0))]
 </pre>
 <pre class="doctest-block">
 &gt;&gt;&gt; db.users.filter(~db.users.loans.any()).all()
-<b>64;example.edu',password='basepair',classname=None,admin=1)</b>
+<b>64;example.edu',password=u'basepair',classname=None,admin=1)</b>
 </pre>
 </blockquote>
 <p>relate can take any options that the relation function accepts in normal mapper definition:</p>
@@ -322,7 +322,7 @@ PK in the database.)</p>
 &gt;&gt;&gt; s = s.alias('years_with_count')
 &gt;&gt;&gt; years_with_count = db.map(s, primary_key=[s.c.published_year])
 &gt;&gt;&gt; years_with_count.filter_by(published_year='1989').all()
-[MappedBooks(published_year='1989',n=1)]
+[MappedBooks(published_year=u'1989',n=1)]
 </pre>
 <p>Obviously if we just wanted to get a list of counts associated with
 book years once, raw SQL is going to be less work. The advantage of
@@ -368,7 +368,7 @@ True
 <p>Boring tests here.  Nothing of real expository value.</p>
 <pre class="literal-block">
 &gt;&gt;&gt; db.users.filter_by(classname=None).order_by(db.users.name).all()
-<b>64;example.edu',password='basepair',classname=None,admin=1), MappedUsers(name='Joe Student',email='student&#64;example.edu',password='student',classname=None,admin=0)</b>
+<b>64;example.edu',password=u'basepair',classname=None,admin=1), MappedUsers(name=u'Joe Student',email=u'student&#64;example.edu',password=u'student',classname=None,admin=0)</b>
 
 &gt;&gt;&gt; db.nopk
 Traceback (most recent call last):
@@ -568,7 +568,7 @@ suitable for passing to <tt class="docutils literal"><span class="pre">create_en
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_ext_orderinglist.html">module sqlalchemy.ext.orderinglist</a>
+            Previous: <a href="sqlalchemy_ext_serializer.html">module sqlalchemy.ext.serializer</a>
 
                |   
             Next: <a href="sqlalchemy_databases_access.html">module sqlalchemy.databases.access</a>
