@@ -28,8 +28,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum">0.5.0rc3</span>
-  Last Updated: 11/07/08 13:55:35
+  Version: <span class="versionnum">0.5.0rc4</span>
+  Last Updated: 11/14/08 16:38:11
 </div>
 
 
@@ -593,7 +593,7 @@
  </li>
 
  <li>
-     Proxies are lazy, and won't triger a load of the backing relation until they are accessed.
+     Proxies are lazy, and won't trigger a load of the backing relation until they are accessed.
  </li>
 
  <li>
@@ -608,7 +608,7 @@
      A <code>creator</code> function can be used to create instances instead.
  </li>
 </ul>
-<p>Above, the <code>Keyword.__init__</code> takes a single argument <code>keyword</code>, which maps conveniently to the value being set through the proxy.  A <code>creator</code> function could have been used instead if more flexiblity was required.
+<p>Above, the <code>Keyword.__init__</code> takes a single argument <code>keyword</code>, which maps conveniently to the value being set through the proxy.  A <code>creator</code> function could have been used instead if more flexibility was required.
 </p>
 <p>Because the proxies are backed a regular relation collection, all of the usual hooks and patterns for using collections are still in effect.  The most convenient behavior is the automatic setting of "parent"-type relationships on assignment.  In the example above, nothing special had to be done to associate the Keyword to the User.  Simply adding it to the collection is sufficient.
 </p>

@@ -313,7 +313,7 @@ class PropertyLoader(StrategizedProperty):
         self.order_by = order_by
 
         if isinstance(backref, str):
-            # propigate explicitly sent primary/secondary join conditions to the BackRef object if
+            # propagate explicitly sent primary/secondary join conditions to the BackRef object if
             # just a string was sent
             if secondary is not None:
                 # reverse primary/secondary in case of a many-to-many
@@ -359,6 +359,10 @@ class PropertyLoader(StrategizedProperty):
         def of_type(self, cls):
             return PropertyLoader.Comparator(self.prop, self.mapper, cls)
 
+        def in_(self, other):
+            raise NotImplementedError("in_() not yet supported for relations.  For a "
+                    "simple many-to-one, use in_() against the set of foreign key values.")
+            
         def __eq__(self, other):
             if other is None:
                 if self.prop.direction in [ONETOMANY, MANYTOMANY]:
@@ -387,7 +391,7 @@ class PropertyLoader(StrategizedProperty):
                 self.prop._create_joins(dest_polymorphic=True, dest_selectable=to_selectable, source_selectable=source_selectable)
 
             for k in kwargs:
-                crit = self.prop.mapper.class_manager.get_inst(k) == kwargs[k]
+                crit = self.prop.mapper.class_manager[k] == kwargs[k]
                 if criterion is None:
                     criterion = crit
                 else:

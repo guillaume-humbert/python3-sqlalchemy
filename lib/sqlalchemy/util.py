@@ -4,7 +4,7 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import inspect, itertools, new, operator, sets, sys, warnings, weakref
+import inspect, itertools, new, operator, sys, warnings, weakref
 import __builtin__
 types = __import__('types')
 
@@ -18,8 +18,20 @@ except ImportError:
     import dummy_threading as threading
     from dummy_threading import local as ThreadLocal
 
-# TODO: 2.6 will whine about importing `sets`, but I think we still need it to
-# around to support older DB-API modules that return the 2.3 style set.
+if sys.version_info < (2, 6):
+    import sets
+else:
+    # 2.6 deprecates sets.Set, but we still need to be able to detect them
+    # in user code and as return values from DB-APIs
+    ignore = ('ignore', None, DeprecationWarning, None, 0)
+    try:
+        warnings.filters.insert(0, ignore)
+    except Exception:
+        import sets
+    else:
+        import sets
+        warnings.filters.remove(ignore)
+
 set_types = set, sets.Set
 
 EMPTY_SET = frozenset()
@@ -225,9 +237,10 @@ def get_cls_kwargs(cls):
     """Return the full set of inherited kwargs for the given `cls`.
 
     Probes a class's __init__ method, collecting all named arguments.  If the
-    __init__ defines a **kwargs catch-all, then the constructor is presumed to
+    __init__ defines a \**kwargs catch-all, then the constructor is presumed to
     pass along unrecognized keywords to it's base classes, and the collection
     process is repeated recursively on each of the bases.
+    
     """
 
     for c in cls.__mro__:
@@ -411,7 +424,7 @@ def asbool(obj):
     return bool(obj)
 
 def coerce_kw_type(kw, key, type_, flexi_bool=True):
-    """If 'key' is present in dict 'kw', coerce its value to type 'type_' if
+    """If 'key' is present in dict 'kw', coerce its value to type 'type\_' if
     necessary.  If 'flexi_bool' is True, the string '0' is considered false
     when coercing to boolean.
     """
@@ -1316,7 +1329,6 @@ class memoized_instancemethod(object):
         oneshot.__name__ = self.__name__
         oneshot.__doc__ = self.__doc__
         return oneshot
-
 
 def reset_memoized(instance, name):
     try:

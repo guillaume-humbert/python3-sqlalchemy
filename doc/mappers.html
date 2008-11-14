@@ -28,8 +28,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum">0.5.0rc3</span>
-  Last Updated: 11/07/08 13:55:35
+  Version: <span class="versionnum">0.5.0rc4</span>
+  Last Updated: 11/14/08 16:38:11
 </div>
 
 
@@ -638,12 +638,12 @@
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">address </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">EmailAddress</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">EmailAddress</span><span class="python_operator">.</span><span class="python_name">email </span><span class="python_operator">== </span><span class="python_literal">'some address'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator">
+<span class="python_name">address </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">EmailAddress</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">EmailAddress</span><span class="python_operator">.</span><span class="python_name">email </span><span class="python_operator">== </span><span class="python_literal">'some address'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">email </span><span class="python_operator">= </span><span class="python_literal">'some other address'</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
-<span class="python_name">q </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">EmailAddress</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'some other address'</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">q </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">EmailAddress</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'some other address'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
 <p>If the mapped class does not provide a property, the <code>synonym()</code> construct will create a default getter/setter object automatically.
@@ -733,11 +733,11 @@
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+<span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">v </span><span class="python_operator">= </span><span class="python_name">Vertex</span><span class="python_enclosure">(</span><span class="python_name">Point</span><span class="python_enclosure">(</span><span class="python_number">3</span><span class="python_operator">, </span><span class="python_number">4</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">Point</span><span class="python_enclosure">(</span><span class="python_number">5</span><span class="python_operator">, </span><span class="python_number">6</span><span class="python_enclosure">))</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">v</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">v</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">v2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Vertex</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Vertex</span><span class="python_operator">.</span><span class="python_name">start </span><span class="python_operator">== </span><span class="python_name">Point</span><span class="python_enclosure">(</span><span class="python_number">3</span><span class="python_operator">, </span><span class="python_number">4</span><span class="python_enclosure">))</span><span class="python_operator">
+<span class="python_name">v2 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Vertex</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Vertex</span><span class="python_operator">.</span><span class="python_name">start </span><span class="python_operator">== </span><span class="python_name">Point</span><span class="python_enclosure">(</span><span class="python_number">3</span><span class="python_operator">, </span><span class="python_number">4</span><span class="python_enclosure">))</span><span class="python_operator">
 </span></pre>
     </div>
 <p>The "equals" comparison operation by default produces an AND of all corresponding columns equated to one another.  If you'd like to override this, or define the behavior of other SQL operators for your new type, the <code>composite()</code> function accepts an extension object of type <code>sqlalchemy.orm.PropComparator</code>:
@@ -1000,7 +1000,7 @@
 <span class="python_enclosure">})</span><span class="python_operator">
 </span></pre>
     </div>
-<p>If we wanted to join from <code>Company</code> to not just <code>Employee</code> but specifically <code>Engineers</code>, using the <code>join()</code> method or <code>any()</code> or <code>has()</code> operators will by default create a join from <code>companies</code> to <code>employees</code>, without including <code>engineers</code> or <code>managers</code> in the mix.  If we wish to have criterion which is specifically against the <code>Engineer</code> class, we can tell those methods to join or subquery against the full set of tables representing the subclass using the <code>of_type()</code> opertator:
+<p>If we wanted to join from <code>Company</code> to not just <code>Employee</code> but specifically <code>Engineers</code>, using the <code>join()</code> method or <code>any()</code> or <code>has()</code> operators will by default create a join from <code>companies</code> to <code>employees</code>, without including <code>engineers</code> or <code>managers</code> in the mix.  If we wish to have criterion which is specifically against the <code>Engineer</code> class, we can tell those methods to join or subquery against the full set of tables representing the subclass using the <code>of_type()</code> operator:
 </p>
 
     
@@ -1539,18 +1539,24 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
 
 <p>The first mapper created for a certain class is known as that class's "primary mapper."  Other mappers can be created as well on the "load side" - these are called <strong>secondary mappers</strong>.   This is a mapper that must be constructed with the keyword argument <code>non_primary=True</code>, and represents a load-only mapper.  Objects that are loaded with a secondary mapper will have their save operation processed by the primary mapper.  It is also invalid to add new <code>relation()</code>s to a non-primary mapper. To use this mapper with the Session, specify it to the <code>query</code> method:
 </p>
-<pre><code>example:
+<p>example:
+</p>
 
-    {python}
-    # primary mapper
-    mapper(User, users_table)
+    
 
-    # make a secondary mapper to load User against a join
-    othermapper = mapper(User, users_table.join(someothertable), non_primary=True)
-
-    # select
-    result = session.query(othermapper).select()
-</code></pre><p>The "non primary mapper" is a rarely needed feature of SQLAlchemy; in most cases, the <code>Query</code> object can produce any kind of query that's desired.  It's recommended that a straight <code>Query</code> be used in place of a non-primary mapper unless the mapper approach is absolutely needed.  Current use cases for the "non primary mapper" are when you want to map the class to a particular select statement or view to which additional query criterion can be added, and for when the particular mapped select statement or view is to be placed in a <code>relation()</code> of a parent mapper.
+    <div class="sliding_code">
+        <pre>
+<span class="python_comment"># primary mapper
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># make a secondary mapper to load User against a join
+</span><span class="python_name">othermapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">someothertable</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">non_primary</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># select
+</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">othermapper</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The "non primary mapper" is a rarely needed feature of SQLAlchemy; in most cases, the <code>Query</code> object can produce any kind of query that's desired.  It's recommended that a straight <code>Query</code> be used in place of a non-primary mapper unless the mapper approach is absolutely needed.  Current use cases for the "non primary mapper" are when you want to map the class to a particular select statement or view to which additional query criterion can be added, and for when the particular mapped select statement or view is to be placed in a <code>relation()</code> of a parent mapper.
 </p>
 <p>Versions of SQLAlchemy previous to 0.5 included another mapper flag called "entity_name", as of version 0.5.0 this feature has been removed (it never worked very well).
 </p>
@@ -1628,7 +1634,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
    a trigger for the ORM, allowing mappers to be compiled automatically
    and will fire a <code>init_instance</code> event that <code>MapperExtension</code>s may
    listen for.  <code>MapperExtension</code>s can also listen for a
-   <code>reconstruct_instance</code> event, analagous to the <code>reconstructor</code>
+   <code>reconstruct_instance</code> event, analogous to the <code>reconstructor</code>
    decorator above.
 </p>
 
@@ -2105,7 +2111,7 @@ id       parent_id     data
     <h3>Self-Referential Query Strategies</h3>
     
     
-<p>Querying self-referential structures is done in the same way as any other query in SQLAlchemy, such as below, we query for any node whose <code>data</code> attrbibute stores the value <code>child2</code>:
+<p>Querying self-referential structures is done in the same way as any other query in SQLAlchemy, such as below, we query for any node whose <code>data</code> attribute stores the value <code>child2</code>:
 </p>
 
     
@@ -2113,7 +2119,7 @@ id       parent_id     data
     <div class="sliding_code">
         <pre>
 <span class="python_comment"># get all nodes named 'child2'
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'child2'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'child2'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
 <p>On the subject of joins, i.e. those described in <a href="ormtutorial.html#datamapping_joins">Querying with Joins</a>, self-referential structures require the usage of aliases so that the same table can be referenced multiple times within the FROM clause of the query.   Aliasing can be done either manually using the <code>nodes</code> <code>Table</code> object as a source of aliases:
@@ -2125,7 +2131,7 @@ id       parent_id     data
         <pre>
 <span class="python_comment"># get all nodes named 'subchild1' with a parent named 'child2'
 </span><span class="python_name">nodealias </span><span class="python_operator">= </span><span class="python_name">nodes</span><span class="python_operator">.</span><span class="python_name">alias</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'subchild1'</span><span class="python_enclosure">)</span><span class="python_operator">.\
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'subchild1'</span><span class="python_enclosure">)</span><span class="python_operator">.\
     </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">parent_id</span><span class="python_operator">==</span><span class="python_name">nodealias</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">, </span><span class="python_name">nodealias</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'child2'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_1_div" class="codepop" style="display:none;">SELECT treenodes.id AS treenodes_id, treenodes.parent_id AS treenodes_parent_id, treenodes.data AS treenodes_data<br/>
 FROM treenodes, treenodes AS treenodes_1<br/>
 WHERE treenodes.data = ? AND treenodes.parent_id = treenodes_1.id AND treenodes_1.data = ? ORDER BY treenodes.oid<br/>
@@ -2139,7 +2145,7 @@ WHERE treenodes.data = ? AND treenodes.parent_id = treenodes_1.id AND treenodes_
     <div class="code">
         <pre>
 <span class="python_comment"># get all nodes named 'subchild1' with a parent named 'child2'
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'subchild1'</span><span class="python_enclosure">)</span><span class="python_operator">.\
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'subchild1'</span><span class="python_enclosure">)</span><span class="python_operator">.\
     </span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'parent'</span><span class="python_operator">, </span><span class="python_name">aliased</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'child2'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">SELECT treenodes.id AS treenodes_id, treenodes.parent_id AS treenodes_parent_id, treenodes.data AS treenodes_data<br/>
 FROM treenodes JOIN treenodes AS treenodes_1 ON treenodes_1.id = treenodes.parent_id<br/>
 WHERE treenodes.data = ? AND treenodes_1.data = ? ORDER BY treenodes.oid<br/>
@@ -2153,7 +2159,7 @@ WHERE treenodes.data = ? AND treenodes_1.data = ? ORDER BY treenodes.oid<br/>
     <div class="code">
         <pre>
 <span class="python_comment"># get all nodes named 'subchild1' with a parent named 'child2' and a grandparent 'root'
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'subchild1'</span><span class="python_enclosure">)</span><span class="python_operator">.\
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'subchild1'</span><span class="python_enclosure">)</span><span class="python_operator">.\
     </span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'parent'</span><span class="python_operator">, </span><span class="python_name">aliased</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'child2'</span><span class="python_enclosure">)</span><span class="python_operator">.\
     </span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'parent'</span><span class="python_operator">, </span><span class="python_name">aliased</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">from_joinpoint</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Node</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">==</span><span class="python_literal">'root'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">SELECT treenodes.id AS treenodes_id, treenodes.parent_id AS treenodes_parent_id, treenodes.data AS treenodes_data<br/>
 FROM treenodes JOIN treenodes AS treenodes_1 ON treenodes_1.id = treenodes.parent_id JOIN treenodes AS treenodes_2 ON treenodes_2.id = treenodes_1.parent_id<br/>

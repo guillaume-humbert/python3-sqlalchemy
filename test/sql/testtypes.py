@@ -34,7 +34,7 @@ class AdaptTest(TestBase):
 
     def testmsnvarchar(self):
         dialect = mssql.MSSQLDialect()
-        # run the test twice to insure the caching step works too
+        # run the test twice to ensure the caching step works too
         for x in range(0, 1):
             col = Column('', Unicode(length=10))
             dialect_type = col.type.dialect_impl(dialect)
@@ -317,7 +317,6 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
                                        
         x = union(select([unicode_table.c.unicode_varchar]), select([unicode_table.c.unicode_varchar])).execute().fetchone()
         self.assert_(isinstance(x['unicode_varchar'], unicode) and x['unicode_varchar'] == unicodedata)
-        
 
     def test_assertions(self):
         try:
@@ -708,10 +707,10 @@ class NumericTest(TestBase, AssertsExecutionResults):
             (l[0][0], l[0][1], round(l[0][2], 5), l[0][3], l[0][4]),
             (l[1][0], l[1][1], round(l[1][2], 5), l[1][3], l[1][4]),
         ]
-        assert rounded == [
+        testing.eq_(rounded, [
             (1, 3.5, 5.6, Decimal("12.4"), Decimal("15.75")),
             (2, 3.5, 5.6, Decimal("12.4"), Decimal("15.75")),
-        ]
+        ])
 
     def test_decimal_fallback(self):
         from decimal import Decimal

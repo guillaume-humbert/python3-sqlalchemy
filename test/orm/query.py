@@ -191,7 +191,7 @@ class GetTest(QueryTest):
         assert u.addresses[0].email_address == 'jack@bean.com'
         assert u.orders[1].items[2].description == 'item 5'
 
-    @testing.fails_on_everything_except('sqlite')
+    @testing.fails_on_everything_except('sqlite', 'mssql')
     def test_query_str(self):
         s = create_session()
         q = s.query(User).filter(User.id==1)
@@ -236,6 +236,12 @@ class InvalidGenerationsTest(QueryTest):
         # this is fine, however
         q.from_self()
     
+    def test_mapper_zero(self):
+        s = create_session()
+        
+        q = s.query(User, Address)
+        self.assertRaises(sa_exc.InvalidRequestError, q.get, 5)
+        
     def test_from_statement(self):
         s = create_session()
         
@@ -428,6 +434,9 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
          self._test(User.id.in_(['a', 'b']),
                     "users.id IN (:id_1, :id_2)")
 
+    def test_in_on_relation_not_supported(self):
+        self.assertRaises(NotImplementedError, Address.user.in_, [User(id=5)])
+        
     def test_between(self):
         self._test(User.id.between('a', 'b'),
                    "users.id BETWEEN :id_1 AND :id_2")
@@ -583,14 +592,14 @@ class FilterTest(QueryTest):
 
     @testing.fails_on('maxdb')
     def test_limit(self):
-        assert [User(id=8), User(id=9)] == create_session().query(User).limit(2).offset(1).all()
+        assert [User(id=8), User(id=9)] == create_session().query(User).order_by(User.id).limit(2).offset(1).all()
 
-        assert [User(id=8), User(id=9)] == list(create_session().query(User)[1:3])
+        assert [User(id=8), User(id=9)] == list(create_session().query(User).order_by(User.id)[1:3])
 
-        assert User(id=8) == create_session().query(User)[1]
+        assert User(id=8) == create_session().query(User).order_by(User.id)[1]
     
-        assert [] == create_session().query(User)[3:3]
-        assert [] == create_session().query(User)[0:0]
+        assert [] == create_session().query(User).order_by(User.id)[3:3]
+        assert [] == create_session().query(User).order_by(User.id)[0:0]
         
         
     def test_one_filter(self):
@@ -721,8 +730,8 @@ class FromSelfTest(QueryTest):
 
         assert [User(id=8), User(id=9)] == create_session().query(User).filter(User.id.in_([8,9]))._from_self().all()
 
-        assert [User(id=8), User(id=9)] == create_session().query(User).slice(1,3)._from_self().all()
-        assert [User(id=8)] == list(create_session().query(User).filter(User.id.in_([8,9]))._from_self()[0:1])
+        assert [User(id=8), User(id=9)] == create_session().query(User).order_by(User.id).slice(1,3)._from_self().all()
+        assert [User(id=8)] == list(create_session().query(User).filter(User.id.in_([8,9]))._from_self().order_by(User.id)[0:1])
     
     def test_join(self):
         assert [
@@ -771,10 +780,53 @@ class AggregateTest(QueryTest):
 
 class CountTest(QueryTest):
     def test_basic(self):
-        assert 4 == create_session().query(User).count()
+        s = create_session()
+        
+        eq_(s.query(User).count(), 4)
 
-        assert 2 == create_session().query(User).filter(users.c.name.endswith('ed')).count()
+        eq_(s.query(User).filter(users.c.name.endswith('ed')).count(), 2)
 
+    def test_multiple_entity(self):
+        s = create_session()
+        q = s.query(User, Address)
+        eq_(q.count(), 20)  # cartesian product
+        
+        q = s.query(User, Address).join(User.addresses)
+        eq_(q.count(), 5)
+    
+    def test_nested(self):
+        s = create_session()
+        q = s.query(User, Address).limit(2)
+        eq_(q.count(), 2)
+
+        q = s.query(User, Address).limit(100)
+        eq_(q.count(), 20)
+
+        q = s.query(User, Address).join(User.addresses).limit(100)
+        eq_(q.count(), 5)
+    
+    def test_cols(self):
+        """test that column-based queries always nest."""
+        
+        s = create_session()
+        
+        q = s.query(func.count(distinct(User.name)))
+        eq_(q.count(), 1)
+
+        q = s.query(func.count(distinct(User.name))).distinct()
+        eq_(q.count(), 1)
+
+        q = s.query(User.name)
+        eq_(q.count(), 4)
+
+        q = s.query(User.name, Address)
+        eq_(q.count(), 20)
+
+        q = s.query(Address.user_id)
+        eq_(q.count(), 5)
+        eq_(q.distinct().count(), 3)
+        
+        
 class DistinctTest(QueryTest):
     def test_basic(self):
         assert [User(id=7), User(id=8), User(id=9),User(id=10)] == create_session().query(User).distinct().all()
@@ -998,7 +1050,7 @@ class JoinTest(QueryTest):
         # the onclause must be aliased against the query's custom
         # FROM object
         self.assertEquals(
-            sess.query(User).offset(2).from_self().join(
+            sess.query(User).order_by(User.id).offset(2).from_self().join(
                 (Order, User.id==Order.user_id)
             ).all(),
             [User(name='fred')]
@@ -1006,7 +1058,7 @@ class JoinTest(QueryTest):
 
         # same with an explicit select_from()
         self.assertEquals(
-            sess.query(User).select_from(select([users]).offset(2).alias()).join(
+            sess.query(User).select_from(select([users]).order_by(User.id).offset(2).alias()).join(
                 (Order, User.id==Order.user_id)
             ).all(),
             [User(name='fred')]
@@ -1443,9 +1495,6 @@ class MixedEntitiesTest(QueryTest):
         q2 = q.order_by(User.id).values(User.name, User.name + " " + cast(User.id, String))
         self.assertEquals(list(q2), [(u'jack', u'jack 7'), (u'ed', u'ed 8'), (u'fred', u'fred 9'), (u'chuck', u'chuck 10')])
         
-        q2 = q.group_by([User.name.like('%j%')]).order_by(desc(User.name.like('%j%'))).values(User.name.like('%j%'), func.count(User.name.like('%j%')))
-        self.assertEquals(list(q2), [(True, 1), (False, 3)])
-        
         q2 = q.join('addresses').filter(User.name.like('%e%')).order_by(User.id, Address.id).values(User.name, Address.email_address)
         self.assertEquals(list(q2), [(u'ed', u'ed@wood.com'), (u'ed', u'ed@bettyboop.com'), (u'ed', u'ed@lala.com'), (u'fred', u'fred@fred.com')])
         
@@ -1473,7 +1522,16 @@ class MixedEntitiesTest(QueryTest):
         # whereas this uses users.c.xxx, is not aliased and creates a new join
         q2 = q.select_from(sel).filter(users.c.id==8).filter(users.c.id>sel.c.id).values(users.c.name, sel.c.name, User.name)
         self.assertEquals(list(q2), [(u'ed', u'jack', u'jack')])
-    
+
+    @testing.fails_on('mssql')
+    def test_values_with_boolean_selects(self):
+        """Tests a values clause that works with select boolean evaluations"""
+        sess = create_session()
+
+        q = sess.query(User)
+        q2 = q.group_by([User.name.like('%j%')]).order_by(desc(User.name.like('%j%'))).values(User.name.like('%j%'), func.count(User.name.like('%j%')))
+        self.assertEquals(list(q2), [(True, 1), (False, 3)])
+
     def test_scalar_subquery(self):
         """test that a subquery constructed from ORM attributes doesn't leak out 
         those entities to the outermost query.

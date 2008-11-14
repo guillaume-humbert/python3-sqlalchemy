@@ -45,7 +45,7 @@ __all__ = [
     'between', 'bindparam', 'case', 'cast', 'column', 'delete',
     'desc', 'distinct', 'except_', 'except_all', 'exists', 'extract', 'func',
     'modifier', 'collate',
-    'insert', 'intersect', 'intersect_all', 'join', 'literal',
+    'insert', 'intersect', 'intersect_all', 'join', 'label', 'literal',
     'literal_column', 'not_', 'null', 'or_', 'outparam', 'outerjoin', 'select',
     'subquery', 'table', 'text', 'union', 'union_all', 'update', ]
 
@@ -896,8 +896,8 @@ def _compound_select(keyword, *selects, **kwargs):
 def _is_literal(element):
     return not isinstance(element, Visitable) and not hasattr(element, '__clause_element__')
 
-def _from_objects(*elements, **kwargs):
-    return itertools.chain(*[element._get_from_objects(**kwargs) for element in elements])
+def _from_objects(*elements):
+    return itertools.chain(*[element._from_objects for element in elements])
 
 def _labeled(element):
     if not hasattr(element, 'name'):
@@ -967,6 +967,7 @@ class ClauseElement(Visitable):
 
     _annotations = {}
     supports_execution = False
+    _from_objects = []
     
     def _clone(self):
         """Create a shallow copy of this ClauseElement.
@@ -1010,15 +1011,6 @@ class ClauseElement(Visitable):
         d.pop('_is_clone_of', None)
         return d
         
-    def _get_from_objects(self, **modifiers):
-        """Return objects represented in this ``ClauseElement`` that
-        should be added to the ``FROM`` list of a query, when this
-        ``ClauseElement`` is placed in the column clause of a
-        ``Select`` statement.
-        
-        """
-        raise NotImplementedError(repr(self))
-    
     def _annotate(self, values):
         """return a copy of this ClauseElement with the given annotations dictionary."""
 
@@ -1143,26 +1135,47 @@ class ClauseElement(Visitable):
 
     def compile(self, bind=None, column_keys=None, compiler=None, dialect=None, inline=False):
         """Compile this SQL expression.
+        
+        The return value is a [sqlalchemy.engine#Compiled] object.
+        Calling `str()` or `unicode()` on the returned value will yield 
+        a string representation of the result.   The ``Compiled``
+        object also can return a dictionary of bind parameter names and 
+        values using the `params` accessor.
 
-        Uses the given ``Compiler``, or the given ``AbstractDialect``
-        or ``Engine`` to create a ``Compiler``.  If no `compiler`
-        arguments are given, tries to use the underlying ``Engine``
-        this ``ClauseElement`` is bound to to create a ``Compiler``,
-        if any.
+        bind
+          An ``Engine`` or ``Connection`` from which a 
+          ``Compiled`` will be acquired.  This argument
+          takes precedence over this ``ClauseElement``'s
+          bound engine, if any.
 
-        Finally, if there is no bound ``Engine``, uses an
-        ``DefaultDialect`` to create a default ``Compiler``.
-
-        `parameters` is a dictionary representing the default bind
-        parameters to be used with the statement.  If `parameters` is
-        a list, it is assumed to be a list of dictionaries and the
-        first dictionary in the list is used with which to compile
-        against.
-
-        The bind parameters can in some cases determine the output of
-        the compilation, such as for ``UPDATE`` and ``INSERT``
-        statements the bind parameters that are present determine the
-        ``SET`` and ``VALUES`` clause of those statements.
+        column_keys
+          Used for INSERT and UPDATE statements, a list of
+          column names which should be present in the VALUES clause
+          of the compiled statement.  If ``None``, all columns
+          from the target table object are rendered.
+          
+        compiler
+          A ``Compiled`` instance which will be used to compile
+          this expression.  This argument takes precedence 
+          over the `bind` and `dialect` arguments as well as
+          this ``ClauseElement``'s bound engine, if 
+          any.
+          
+        dialect
+          A ``Dialect`` instance frmo which a ``Compiled``
+          will be acquired.  This argument takes precedence 
+          over the `bind` argument as well as this 
+          ``ClauseElement``'s bound engine, if any.
+          
+        inline
+          Used for INSERT statements, for a dialect which does
+          not support inline retrieval of newly generated 
+          primary key columns, will force the expression used 
+          to create the new primary key value to be rendered 
+          inline within the INSERT statement's VALUES clause.
+          This typically refers to Sequence execution but
+          may also refer to any server-side default generation
+          function associated with a primary key `Column`.
         
         """
         if compiler is None:
@@ -1172,13 +1185,12 @@ class ClauseElement(Visitable):
                 compiler = bind.statement_compiler(self, column_keys=column_keys, inline=inline)
             elif self.bind is not None:
                 compiler = self.bind.statement_compiler(self, column_keys=column_keys, inline=inline)
-
-        if compiler is None:
-            global DefaultDialect
-            if DefaultDialect is None:
-                from sqlalchemy.engine.default import DefaultDialect
-            dialect = DefaultDialect()
-            compiler = dialect.statement_compiler(dialect, self, column_keys=column_keys, inline=inline)
+            else:
+                global DefaultDialect
+                if DefaultDialect is None:
+                    from sqlalchemy.engine.default import DefaultDialect
+                dialect = DefaultDialect()
+                compiler = dialect.statement_compiler(dialect, self, column_keys=column_keys, inline=inline)
         compiler.compile()
         return compiler
 
@@ -1524,6 +1536,8 @@ class _CompareMixin(ColumnOperators):
             return other.__clause_element__()
         elif not isinstance(other, ClauseElement):
             return self._bind_param(other)
+        elif isinstance(other, _SelectBaseMixin):
+            return other.as_scalar()
         else:
             return other
 
@@ -1734,9 +1748,6 @@ class FromClause(Selectable):
     quote = None
     schema = None
 
-    def _get_from_objects(self, **modifiers):
-        return []
-
     def count(self, whereclause=None, **params):
         """return a SELECT COUNT generated against this ``FromClause``."""
 
@@ -1833,34 +1844,36 @@ class FromClause(Selectable):
         return getattr(self, 'name', self.__class__.__name__ + " object")
 
     def _reset_exported(self):
-        # delete all the "generated" collections of columns for a
-        # newly cloned FromClause, so that they will be re-derived
-        # from the item.  this is because FromClause subclasses, when
-        # cloned, need to reestablish new "proxied" columns that are
-        # linked to the new item
-        for attr in ('_columns', '_primary_key' '_foreign_keys', '_embedded_columns', '_all_froms'):
-            if hasattr(self, attr):
-                delattr(self, attr)
+        """delete memoized collections when a FromClause is cloned."""
 
-    def _expr_attr_func(name):
-        get = attrgetter(name)
-        def attr(self):
-            try:
-                return get(self)
-            except AttributeError:
-                self._export_columns()
-                return get(self)
-        return property(attr)
+        for attr in ('_columns', '_primary_key' '_foreign_keys', 'locate_all_froms'):
+            self.__dict__.pop(attr, None)
+
+    @util.memoized_property
+    def _columns(self):
+        self._export_columns()
+        return self._columns
     
-    columns = c = _select_iterable = _expr_attr_func('_columns')
-    primary_key = _expr_attr_func('_primary_key')
-    foreign_keys = _expr_attr_func('_foreign_keys')
+    @util.memoized_property
+    def _primary_key(self):
+        self._export_columns()
+        return self._primary_key
+    
+    @util.memoized_property
+    def _foreign_keys(self):
+        self._export_columns()
+        return self._foreign_keys
+        
+    columns = property(attrgetter('_columns'))
+    primary_key = property(attrgetter('_primary_key'))
+    foreign_keys = property(attrgetter('_foreign_keys'))
 
+    # synonyms for 'columns'
+    c = _select_iterable = property(attrgetter('columns'))
+    
     def _export_columns(self):
         """Initialize column collections."""
 
-        if hasattr(self, '_columns'):
-            return
         self._columns = ColumnCollection()
         self._primary_key = ColumnSet()
         self._foreign_keys = set()
@@ -1942,9 +1955,6 @@ class _BindParamClause(ColumnElement):
             self.unique = True
             self.key = _generated_label("%%(%d %s)s" % (id(self), self._orig_key or 'param'))
 
-    def _get_from_objects(self, **modifiers):
-        return []
-
     def bind_processor(self, dialect):
         return self.type.dialect_impl(dialect).bind_processor(dialect)
 
@@ -1989,8 +1999,6 @@ class _TypeClause(ClauseElement):
     def __init__(self, type):
         self.type = type
 
-    def _get_from_objects(self, **modifiers):
-        return []
 
 class _TextClause(ClauseElement):
     """Represent a literal SQL text fragment.
@@ -2044,8 +2052,6 @@ class _TextClause(ClauseElement):
     def get_children(self, **kwargs):
         return self.bindparams.values()
 
-    def _get_from_objects(self, **modifiers):
-        return []
     
 class _Null(ColumnElement):
     """Represent the NULL keyword in a SQL statement.
@@ -2055,11 +2061,8 @@ class _Null(ColumnElement):
     """
 
     def __init__(self):
-        ColumnElement.__init__(self)
         self.type = sqltypes.NULLTYPE
 
-    def _get_from_objects(self, **modifiers):
-        return []
 
 class ClauseList(ClauseElement):
     """Describe a list of clauses, separated by an operator.
@@ -2104,8 +2107,9 @@ class ClauseList(ClauseElement):
     def get_children(self, **kwargs):
         return self.clauses
 
-    def _get_from_objects(self, **modifiers):
-        return list(itertools.chain(*[c._get_from_objects(**modifiers) for c in self.clauses]))
+    @property
+    def _from_objects(self):
+        return list(itertools.chain(*[c._from_objects for c in self.clauses]))
 
     def self_group(self, against=None):
         if self.group and self.operator != against and operators.is_precedent(self.operator, against):
@@ -2148,7 +2152,6 @@ class _CalculatedClause(ColumnElement):
     __visit_name__ = 'calculatedclause'
 
     def __init__(self, name, *clauses, **kwargs):
-        ColumnElement.__init__(self)
         self.name = name
         self.type = sqltypes.to_instance(kwargs.get('type_', None))
         self._bind = kwargs.get('bind', None)
@@ -2179,8 +2182,9 @@ class _CalculatedClause(ColumnElement):
     def get_children(self, **kwargs):
         return self.clause_expr,
 
-    def _get_from_objects(self, **modifiers):
-        return self.clauses._get_from_objects(**modifiers)
+    @property
+    def _from_objects(self):
+        return self.clauses._from_objects
 
     def _bind_param(self, obj):
         return _BindParamClause(self.name, obj, type_=self.type, unique=True)
@@ -2232,7 +2236,6 @@ class _Function(_CalculatedClause, FromClause):
 class _Cast(ColumnElement):
 
     def __init__(self, clause, totype, **kwargs):
-        ColumnElement.__init__(self)
         self.type = sqltypes.to_instance(totype)
         self.clause = _literal_as_binds(clause, None)
         self.typeclause = _TypeClause(self.type)
@@ -2244,13 +2247,13 @@ class _Cast(ColumnElement):
     def get_children(self, **kwargs):
         return self.clause, self.typeclause
 
-    def _get_from_objects(self, **modifiers):
-        return self.clause._get_from_objects(**modifiers)
+    @property
+    def _from_objects(self):
+        return self.clause._from_objects
 
 
 class _UnaryExpression(ColumnElement):
     def __init__(self, element, operator=None, modifier=None, type_=None, negate=None):
-        ColumnElement.__init__(self)
         self.operator = operator
         self.modifier = modifier
 
@@ -2258,8 +2261,9 @@ class _UnaryExpression(ColumnElement):
         self.type = sqltypes.to_instance(type_)
         self.negate = negate
 
-    def _get_from_objects(self, **modifiers):
-        return self.element._get_from_objects(**modifiers)
+    @property
+    def _from_objects(self):
+        return self.element._from_objects
 
     def _copy_internals(self, clone=_clone):
         self.element = clone(self.element)
@@ -2299,7 +2303,6 @@ class _BinaryExpression(ColumnElement):
     """Represent an expression that is ``LEFT <operator> RIGHT``."""
 
     def __init__(self, left, right, operator, type_=None, negate=None, modifiers=None):
-        ColumnElement.__init__(self)
         self.left = _literal_as_text(left).self_group(against=operator)
         self.right = _literal_as_text(right).self_group(against=operator)
         self.operator = operator
@@ -2310,8 +2313,9 @@ class _BinaryExpression(ColumnElement):
         else:
             self.modifiers = modifiers
 
-    def _get_from_objects(self, **modifiers):
-        return self.left._get_from_objects(**modifiers) + self.right._get_from_objects(**modifiers)
+    @property
+    def _from_objects(self):
+        return self.left._from_objects + self.right._from_objects
 
     def _copy_internals(self, clone=_clone):
         self.left = clone(self.left)
@@ -2359,7 +2363,8 @@ class _BinaryExpression(ColumnElement):
 
 class _Exists(_UnaryExpression):
     __visit_name__ = _UnaryExpression.__visit_name__
-
+    _from_objects = []
+    
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], _SelectBaseMixin):
             s = args[0]
@@ -2377,9 +2382,6 @@ class _Exists(_UnaryExpression):
         e = self._clone()
         e.element = self.element.correlate(fromclause).self_group()
         return e
-
-    def _get_from_objects(self, **modifiers):
-        return []
 
     def select_from(self, clause):
         """return a new exists() construct with the given expression set as its FROM clause."""
@@ -2504,11 +2506,12 @@ class Join(FromClause):
     def _hide_froms(self):
         return itertools.chain(*[_from_objects(x.left, x.right) for x in self._cloned_set])
 
-    def _get_from_objects(self, **modifiers):
+    @property
+    def _from_objects(self):
         return [self] + \
-                self.onclause._get_from_objects(**modifiers) + \
-                self.left._get_from_objects(**modifiers) + \
-                self.right._get_from_objects(**modifiers)
+                self.onclause._from_objects + \
+                self.left._from_objects + \
+                self.right._from_objects
 
 class Alias(FromClause):
     """Represents an table or selectable alias (AS).
@@ -2531,6 +2534,8 @@ class Alias(FromClause):
             baseselectable = baseselectable.element
         self.original = baseselectable
         self.supports_execution = baseselectable.supports_execution
+        if self.supports_execution:
+            self._autocommit = baseselectable._autocommit
         self.element = selectable
         if alias is None:
             if self.original.named_with_column:
@@ -2566,7 +2571,8 @@ class Alias(FromClause):
         if aliased_selectables:
             yield self.element
 
-    def _get_from_objects(self, **modifiers):
+    @property
+    def _from_objects(self):
         return [self]
 
     @property
@@ -2577,7 +2583,6 @@ class _Grouping(ColumnElement):
     """Represent a grouping within a column expression"""
 
     def __init__(self, element):
-        ColumnElement.__init__(self)
         self.element = element
         self.type = getattr(element, 'type', None)
 
@@ -2595,8 +2600,9 @@ class _Grouping(ColumnElement):
     def get_children(self, **kwargs):
         return self.element,
 
-    def _get_from_objects(self, **modifiers):
-        return self.element._get_from_objects(**modifiers)
+    @property
+    def _from_objects(self):
+        return self.element._from_objects
 
     def __getattr__(self, attr):
         return getattr(self.element, attr)
@@ -2618,7 +2624,6 @@ class _FromGrouping(FromClause):
     @property
     def columns(self):
         return self.element.columns
-    c = columns
 
     @property
     def _hide_froms(self):
@@ -2630,8 +2635,9 @@ class _FromGrouping(FromClause):
     def _copy_internals(self, clone=_clone):
         self.element = clone(self.element)
 
-    def _get_from_objects(self, **modifiers):
-        return self.element._get_from_objects(**modifiers)
+    @property
+    def _from_objects(self):
+        return self.element._from_objects
 
     def __getattr__(self, attr):
         return getattr(self.element, attr)
@@ -2658,7 +2664,7 @@ class _Label(ColumnElement):
     
     @util.memoized_property
     def type(self):
-        return sqltypes.to_instance(self._type or getattr(element, 'type', None))
+        return sqltypes.to_instance(self._type or getattr(self._element, 'type', None))
         
     @util.memoized_property
     def element(self):
@@ -2682,8 +2688,9 @@ class _Label(ColumnElement):
     def _copy_internals(self, clone=_clone):
         self.element = clone(self.element)
 
-    def _get_from_objects(self, **modifiers):
-        return self.element._get_from_objects(**modifiers)
+    @property
+    def _from_objects(self):
+        return self.element._from_objects
 
     def _make_proxy(self, selectable, name = None):
         if isinstance(self.element, (Selectable, ColumnElement)):
@@ -2721,7 +2728,6 @@ class _ColumnClause(_Immutable, ColumnElement):
       
     """
     def __init__(self, text, selectable=None, type_=None, is_literal=False):
-        ColumnElement.__init__(self)
         self.key = self.name = text
         self.table = selectable
         self.type = sqltypes.to_instance(type_)
@@ -2761,7 +2767,8 @@ class _ColumnClause(_Immutable, ColumnElement):
         else:
             return super(_ColumnClause, self).label(name)
 
-    def _get_from_objects(self, **modifiers):
+    @property
+    def _from_objects(self):
         if self.table:
             return [self.table]
         else:
@@ -2771,7 +2778,7 @@ class _ColumnClause(_Immutable, ColumnElement):
         return _BindParamClause(self.name, obj, type_=self.type, unique=True)
 
     def _make_proxy(self, selectable, name=None, attach=True):
-        # propigate the "is_literal" flag only if we are keeping our name,
+        # propagate the "is_literal" flag only if we are keeping our name,
         # otherwise its considered to be a label
         is_literal = self.is_literal and (name is None or name == self.name)
         c = _ColumnClause(name or self.name, selectable=selectable, type_=self.type, is_literal=is_literal)
@@ -2836,7 +2843,8 @@ class TableClause(_Immutable, FromClause):
     def delete(self, whereclause=None, **kwargs):
         return delete(self, whereclause, **kwargs)
 
-    def _get_from_objects(self, **modifiers):
+    @property
+    def _from_objects(self):
         return [self]
 
 @util.decorator
@@ -2972,15 +2980,15 @@ class _SelectBaseMixin(object):
                 clauses = list(self._group_by_clause) + list(clauses)
             self._group_by_clause = ClauseList(*clauses)
 
-    def _get_from_objects(self, is_where=False, **modifiers):
-        if is_where:
-            return []
-        else:
-            return [self]
+    @property
+    def _from_objects(self):
+        return [self]
 
+        
 class _ScalarSelect(_Grouping):
     __visit_name__ = 'grouping'
-
+    _from_objects = []
+    
     def __init__(self, element):
         self.element = element
         cols = list(element.c)
@@ -2993,16 +3001,13 @@ class _ScalarSelect(_Grouping):
     def columns(self):
         raise exc.InvalidRequestError("Scalar Select expression has no columns; "
                     "use this object directly within a column-level expression.")
-    c = columns
-
+    c  = columns
+    
     def self_group(self, **kwargs):
         return self
 
     def _make_proxy(self, selectable, name):
         return list(self.inner_columns)[0]._make_proxy(selectable, name)
-
-    def _get_from_objects(self, **modifiers):
-        return []
 
 class CompoundSelect(_SelectBaseMixin, FromClause):
     def __init__(self, keyword, *selects, **kwargs):
@@ -3103,7 +3108,7 @@ class Select(_SelectBaseMixin, FromClause):
 
         if whereclause:
             self._whereclause = _literal_as_text(whereclause)
-            self._froms.update(_from_objects(self._whereclause, is_where=True))
+            self._froms.update(_from_objects(self._whereclause))
         else:
             self._whereclause = None
 
@@ -3165,7 +3170,8 @@ class Select(_SelectBaseMixin, FromClause):
         raise exc.InvalidRequestError("Select objects don't have a type.  "
                     "Call as_scalar() on this Select object "
                     "to return a 'scalar' version of this Select.")
-
+    
+    @util.memoized_instancemethod
     def locate_all_froms(self):
         """return a Set of all FromClause elements referenced by this Select.
 
@@ -3173,10 +3179,7 @@ class Select(_SelectBaseMixin, FromClause):
         is specifically for those FromClause elements that would actually be rendered.
         
         """
-        if not hasattr(self, '_all_froms'):
-            self._all_froms = self._froms.union(_from_objects(*list(self._froms)))
-
-        return self._all_froms
+        return self._froms.union(_from_objects(*list(self._froms)))
 
     @property
     def inner_columns(self):
@@ -3326,7 +3329,7 @@ class Select(_SelectBaseMixin, FromClause):
 
         """
         whereclause = _literal_as_text(whereclause)
-        self._froms = self._froms.union(_from_objects(whereclause, is_where=True))
+        self._froms = self._froms.union(_from_objects(whereclause))
         
         if self._whereclause is not None:
             self._whereclause = and_(self._whereclause, whereclause)
@@ -3433,7 +3436,8 @@ class _UpdateBase(ClauseElement):
     """Form the base for ``INSERT``, ``UPDATE``, and ``DELETE`` statements."""
 
     supports_execution = True
-
+    _autocommit = True
+    
     def _generate(self):
         s = self.__class__.__new__(self.__class__)
         s.__dict__ = self.__dict__.copy()
@@ -3586,6 +3590,7 @@ class Delete(_UpdateBase):
 
 class _IdentifiedClause(ClauseElement):
     supports_execution = True
+    _autocommit = False
     quote = None
     
     def __init__(self, ident):
