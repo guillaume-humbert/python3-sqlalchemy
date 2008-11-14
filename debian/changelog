@@ -1,3 +1,9 @@
+sqlalchemy (0.5.0~rc4-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Fri, 14 Nov 2008 23:07:55 +0100
+
 sqlalchemy (0.5.0~rc3-1) experimental; urgency=low
 
   [ Sandro Tosi ]
