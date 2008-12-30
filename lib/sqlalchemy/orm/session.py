@@ -28,7 +28,7 @@ __all__ = ['Session', 'SessionTransaction', 'SessionExtension']
 
 def sessionmaker(bind=None, class_=None, autoflush=True, autocommit=False,
                  expire_on_commit=True, **kwargs):
-    """Generate a custom-configured [sqlalchemy.orm.session#Session] class.
+    """Generate a custom-configured :class:`~sqlalchemy.orm.session.Session` class.
 
     The returned object is a subclass of ``Session``, which, when instantiated
     with no arguments, uses the keyword arguments configured here as its
@@ -83,18 +83,6 @@ def sessionmaker(bind=None, class_=None, autoflush=True, autocommit=False,
       by any of these methods, the ``Session`` is ready for the next usage,
       which will again acquire and maintain a new connection/transaction.
 
-    expire_on_commit
-      Defaults to ``True``. When ``True``, all instances will be fully expired after
-      each ``commit()``, so that all attribute/object access subsequent to a completed
-      transaction will load from the most recent database state.
-
-    _enable_transaction_accounting
-      Defaults to ``True``.  A legacy-only flag which when ``False``
-      disables *all* 0.5-style object accounting on transaction boundaries,
-      including auto-expiry of instances on rollback and commit, maintenance of
-      the "new" and "deleted" lists upon rollback, and autoflush
-      of pending changes upon begin(), all of which are interdependent.
-
     autoflush
       When ``True``, all query operations will issue a ``flush()`` call to
       this ``Session`` before proceeding. This is a convenience feature so
@@ -138,24 +126,36 @@ def sessionmaker(bind=None, class_=None, autoflush=True, autocommit=False,
       Deprecated.  Use
       ``logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG)``.
 
+    _enable_transaction_accounting
+      Defaults to ``True``.  A legacy-only flag which when ``False``
+      disables *all* 0.5-style object accounting on transaction boundaries,
+      including auto-expiry of instances on rollback and commit, maintenance of
+      the "new" and "deleted" lists upon rollback, and autoflush
+      of pending changes upon begin(), all of which are interdependent.
+
+    expire_on_commit
+      Defaults to ``True``. When ``True``, all instances will be fully expired after
+      each ``commit()``, so that all attribute/object access subsequent to a completed
+      transaction will load from the most recent database state.
+
     extension
-      An optional [sqlalchemy.orm.session#SessionExtension] instance, or
+      An optional :class:`~sqlalchemy.orm.session.SessionExtension` instance, or
       a list of such instances, which
       will receive pre- and post- commit and flush events, as well as a
       post-rollback event.  User- defined code may be placed within these
       hooks using a user-defined subclass of ``SessionExtension``.
 
+    query_cls
+      Class which should be used to create new Query objects, as returned
+      by the ``query()`` method.  Defaults to :class:`~sqlalchemy.orm.query.Query`.
+
     twophase
       When ``True``, all transactions will be started using
-      [sqlalchemy.engine_TwoPhaseTransaction]. During a ``commit()``, after
+      :mod:~sqlalchemy.engine_TwoPhaseTransaction. During a ``commit()``, after
       ``flush()`` has been issued for all attached databases, the
       ``prepare()`` method on each database's ``TwoPhaseTransaction`` will be
       called. This allows each database to roll back the entire transaction,
       before each transaction is committed.
-
-    query_cls
-      Class which should be used to create new Query objects, as returned
-      by the ``query()`` method.  Defaults to [sqlalchemy.orm.query#Query].
 
     weak_identity_map
       When set to the default value of ``False``, a weak-referencing map is
@@ -207,14 +207,17 @@ def sessionmaker(bind=None, class_=None, autoflush=True, autocommit=False,
 class SessionTransaction(object):
     """A Session-level transaction.
 
-    This corresponds to one or more [sqlalchemy.engine#Transaction]
+    This corresponds to one or more :class:`~sqlalchemy.engine.Transaction`
     instances behind the scenes, with one ``Transaction`` per ``Engine`` in
     use.
 
     Direct usage of ``SessionTransaction`` is not necessary as of SQLAlchemy
     0.4; use the ``begin()`` and ``commit()`` methods on ``Session`` itself.
 
-    The ``SessionTransaction`` object is **not** threadsafe.
+    The ``SessionTransaction`` object is **not** thread-safe.
+
+    .. index::
+      single: thread safety; SessionTransaction
 
     """
 
@@ -515,7 +518,7 @@ class Session(object):
     is either to use mutexes to limit concurrent access to one thread at a
     time, or more commonly to establish a unique session for every thread,
     using a threadlocal variable.  SQLAlchemy provides a thread-managed
-    Session adapter, provided by the [sqlalchemy.orm#scoped_session()]
+    Session adapter, provided by the :func:`~sqlalchemy.orm.scoped_session`
     function.
 
     """
@@ -523,7 +526,7 @@ class Session(object):
     public_methods = (
         '__contains__', '__iter__', 'add', 'add_all', 'begin', 'begin_nested',
         'clear', 'close', 'commit', 'connection', 'delete', 'execute', 'expire',
-        'expire_all', 'expunge', 'flush', 'get_bind', 'is_modified',
+        'expire_all', 'expunge', 'flush', 'get_bind', 'is_modified', 
         'merge', 'query', 'refresh', 'rollback', 'save',
         'save_or_update', 'scalar', 'update')
 
@@ -534,7 +537,7 @@ class Session(object):
         """Construct a new Session.
 
         Arguments to ``Session`` are described using the
-        [sqlalchemy.orm#sessionmaker()] function.
+        :func:`~sqlalchemy.orm.sessionmaker` function.
 
         """
         
@@ -687,7 +690,7 @@ class Session(object):
 
         self.transaction.prepare()
 
-    def connection(self, mapper=None, clause=None, _state=None):
+    def connection(self, mapper=None, clause=None):
         """Return the active Connection.
 
         Retrieves the ``Connection`` managing the current transaction.  Any
@@ -709,7 +712,7 @@ class Session(object):
           Optional, any ``ClauseElement``
 
         """
-        return self.__connection(self.get_bind(mapper, clause, _state))
+        return self.__connection(self.get_bind(mapper, clause))
 
     def __connection(self, engine, **kwargs):
         if self.transaction is not None:
@@ -717,7 +720,7 @@ class Session(object):
         else:
             return engine.contextual_connect(**kwargs)
 
-    def execute(self, clause, params=None, mapper=None, _state=None):
+    def execute(self, clause, params=None, mapper=None, **kw):
         """Execute a clause within the current transaction.
 
         Returns a ``ResultProxy`` of execution results.  `autocommit` Sessions
@@ -738,21 +741,23 @@ class Session(object):
         mapper
           Optional, a ``mapper`` or mapped class
 
-        _state
-          Optional, an instance of a mapped class
-
+        \**kw
+          Additional keyword arguments are sent to :meth:`get_bind()`
+          which locates a connectable to use for the execution.
+          Subclasses of :class:`Session` may override this.
+          
         """
         clause = expression._literal_as_text(clause)
 
-        engine = self.get_bind(mapper, clause=clause, _state=_state)
+        engine = self.get_bind(mapper, clause=clause, **kw)
 
         return self.__connection(engine, close_with_result=True).execute(
             clause, params or {})
 
-    def scalar(self, clause, params=None, mapper=None, _state=None):
+    def scalar(self, clause, params=None, mapper=None):
         """Like execute() but return a scalar result."""
 
-        engine = self.get_bind(mapper, clause=clause, _state=_state)
+        engine = self.get_bind(mapper, clause=clause)
 
         return self.__connection(engine, close_with_result=True).scalar(
             clause, params or {})
@@ -835,7 +840,7 @@ class Session(object):
         """
         self.__binds[table] = bind
 
-    def get_bind(self, mapper, clause=None, _state=None):
+    def get_bind(self, mapper, clause=None):
         """Return an engine corresponding to the given arguments.
 
         All arguments are optional.
@@ -846,11 +851,8 @@ class Session(object):
         clause
           Optional, A ClauseElement (i.e. select(), text(), etc.)
 
-        _state
-          Optional, SA internal representation of a mapped instance
-
         """
-        if mapper is clause is _state is None:
+        if mapper is clause is None:
             if self.bind:
                 return self.bind
             else:
@@ -859,16 +861,10 @@ class Session(object):
                     "Connection, and no context was provided to locate "
                     "a binding.")
 
-        s_mapper = _state is not None and _state_mapper(_state) or None
         c_mapper = mapper is not None and _class_to_mapper(mapper) or None
 
         # manually bound?
         if self.__binds:
-            if s_mapper:
-                if s_mapper.base_mapper in self.__binds:
-                    return self.__binds[s_mapper.base_mapper]
-                elif s_mapper.mapped_table in self.__binds:
-                    return self.__binds[s_mapper.mapped_table]
             if c_mapper:
                 if c_mapper.base_mapper in self.__binds:
                     return self.__binds[c_mapper.base_mapper]
@@ -885,8 +881,6 @@ class Session(object):
         if isinstance(clause, sql.expression.ClauseElement) and clause.bind:
             return clause.bind
 
-        if s_mapper and s_mapper.mapped_table.bind:
-            return s_mapper.mapped_table.bind
         if c_mapper and c_mapper.mapped_table.bind:
             return c_mapper.mapped_table.bind
 
@@ -895,8 +889,6 @@ class Session(object):
             context.append('mapper %s' % c_mapper)
         if clause is not None:
             context.append('SQL expression')
-        if _state is not None:
-            context.append('state %r' % _state)
 
         raise sa_exc.UnboundExecutionError(
             "Could not locate a bind configured on %s or this Session" % (
@@ -1091,13 +1083,13 @@ class Session(object):
         self._cascade_save_or_update(state)
 
     def add(self, instance):
-        """Add the given instance into this ``Session``.
+        """Place an object in the ``Session``.
 
-        TODO: rephrase the below in user terms; possibly tie into future
-        function that downgrades persistent to transient. [ticket:1052]
+        Its state will be persisted to the database on the next flush
+        operation.
 
-        The non-None state `key` on the instance's state determines whether
-        to ``save()`` or ``update()`` the instance.
+        Repeated calls to ``add()`` will be ignored. The opposite of ``add()``
+        is ``expunge()``.
 
         """
         state = _state_for_unknown_persistence_instance(instance)
@@ -1172,6 +1164,9 @@ class Session(object):
             # TODO: this should be an IdentityDict for instances, but will
             # need a separate dict for PropertyLoader tuples
             _recursive = {}
+            # Autoflush only on the topmost call
+            self._autoflush()
+
         mapper = _object_mapper(instance)
         if instance in _recursive:
             return _recursive[instance]
@@ -1204,7 +1199,7 @@ class Session(object):
                 self._update_impl(merged_state)
                 new_instance = True
             else:
-                merged = self.query(mapper.class_).get(key[1])
+                merged = self.query(mapper.class_).autoflush(False).get(key[1])
 
         if merged is None:
             merged = mapper.class_manager.new_instance()
@@ -1464,7 +1459,7 @@ class Session(object):
         for attr in state.manager.attributes:
             if not include_collections and hasattr(attr.impl, 'get_collection'):
                 continue
-            (added, unchanged, deleted) = attr.get_history(instance)
+            (added, unchanged, deleted) = attr.get_history(instance, passive=passive)
             if added or deleted:
                 return True
         return False

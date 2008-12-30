@@ -12,8 +12,8 @@ Copyright:
 
  This is the MIT license: http://www.opensource.org/licenses/mit-license.php
 
- Copyright (c) 2005, 2006, 2007 Michael Bayer and contributors. SQLAlchemy is a
- trademark of Michael Bayer.
+ Copyright (c) 2005, 2006, 2007, 2008 Michael Bayer and contributors.
+ SQLAlchemy is a trademark of Michael Bayer.
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -35,10 +35,50 @@ Copyright:
 
 -----------------------------------------------------------
 
-test/coverage.py file (only in source package):
+lib/sqlalchemy/databases/access.py file:
+
+ Copyright (C) 2007 Paul Johnston, paj@pajhome.org.uk
+ Portions derived from jet2sql.py by Matt Keranen, mksql@yahoo.com
+
+ This module is part of SQLAlchemy and is released under
+ the MIT License: http://www.opensource.org/licenses/mit-license.php
+
+-----------------------------------------------------------
+
+lib/sqlalchemy/interfaces.py file:
+
+ Copyright (C) 2007 Jason Kirtland jek@discorporate.us
+
+ This module is part of SQLAlchemy and is released under
+ the MIT License: http://www.opensource.org/licenses/mit-license.php
+
+-----------------------------------------------------------
+
+lib/sqlalchemy/databases/sybase.py and
+lib/sqlalchemy/databases/mxODBC.py files:
+
+ Copyright (C) 2007 Fisch Asset Management AG http://www.fam.ch
+ Coding: Alexander Houben alexander.houben@thor-solutions.ch
+
+ This module is part of SQLAlchemy and is released under
+ the MIT License: http://www.opensource.org/licenses/mit-license.php
+
+-----------------------------------------------------------
+
+lib/sqlalchemy/databases/access.py file:
+
+ Copyright (C) 2007 Paul Johnston, paj@pajhome.org.uk
+ Portions derived from jet2sql.py by Matt Keranen, mksql@yahoo.com
+
+ This module is part of SQLAlchemy and is released under
+ the MIT License: http://www.opensource.org/licenses/mit-license.php
+
+-----------------------------------------------------------
+
+test/testlib/coverage.py file (only in source package):
 
  Copyright 2001 Gareth Rees.  All rights reserved.
- Copyright 2004-2006 Ned Batchelder.  All rights reserved.
+ Copyright 2004-2007 Ned Batchelder.  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are
@@ -67,26 +107,35 @@ test/coverage.py file (only in source package):
 
 -----------------------------------------------------------
 
-lib/sqlalchemy/databases/access.py file:
+test/testlib/sa_unittest.py file (only in source package):
+ 
+ Copyright (c) 1999-2003 Steve Purcell
+ This module is free software, and you may redistribute it and/or modify
+ it under the same terms as Python itself, so long as this copyright message
+ and disclaimer are retained in their original form.
 
- Copyright (C) 2007 Paul Johnston, paj@pajhome.org.uk
- Portions derived from jet2sql.py by Matt Keranen, mksql@yahoo.com
+ IN NO EVENT SHALL THE AUTHOR BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
+ SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OF
+ THIS CODE, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ DAMAGE.
 
- This module is part of SQLAlchemy and is released under
- the MIT License: http://www.opensource.org/licenses/mit-license.php
+ THE AUTHOR SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ PARTICULAR PURPOSE.  THE CODE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS,
+ AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
+ SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 -----------------------------------------------------------
 
-lib/sqlalchemy/interfaces.py file:
-
- Copyright (C) 2007 Jason Kirtland jek@discorporate.us
-
- This module is part of SQLAlchemy and is released under
- the MIT License: http://www.opensource.org/licenses/mit-license.php
+doc/_static/jquery.js file:
+ 
+ Copyright (c) 2008 John Resig (jquery.com)
+ Dual licensed under the MIT (MIT-LICENSE.txt)
+ and GPL (GPL-LICENSE.txt) licenses.
 
 -----------------------------------------------------------
 
-The Debian packaging is (C) 2006-2007 Tommi Virtanen <tv@debian.org> and Piotr
+The Debian packaging is © 2006-2009 Tommi Virtanen <tv@debian.org> and Piotr
 Ożarowski <piotr@debian.org> - it is licensed under the GPL.
 
 On Debian systems, the complete text of the GNU General Public License

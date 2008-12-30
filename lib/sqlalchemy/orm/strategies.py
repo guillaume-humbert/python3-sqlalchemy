@@ -392,10 +392,12 @@ class LazyLoader(AbstractRelationLoader):
                 binary.left = binary.right
                 binary.right = expression.null()
                 binary.operator = operators.is_
+                binary.negate = operators.isnot
             elif isinstance(binary.right, expression._BindParamClause) and binary.right.key in bind_to_col:
                 binary.right = expression.null()
                 binary.operator = operators.is_
-        
+                binary.negate = operators.isnot
+
         criterion = visitors.cloned_traverse(criterion, {}, {'binary':visit_binary})
         if adapt_source:
             criterion = adapt_source(criterion)
@@ -449,9 +451,9 @@ class LazyLoader(AbstractRelationLoader):
             return (new_execute, None)
 
     def _create_lazy_clause(cls, prop, reverse_direction=False):
-        binds = {}
-        lookup = {}
-        equated_columns = {}
+        binds = util.column_dict()
+        lookup = util.column_dict()
+        equated_columns = util.column_dict()
 
         if reverse_direction and not prop.secondaryjoin:
             for l, r in prop.local_remote_pairs:

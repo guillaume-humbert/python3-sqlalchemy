@@ -1,7 +1,6 @@
 """tests basic polymorphic mapper loading/saving, minimal relations"""
 
 import testenv; testenv.configure_for_tests()
-import sets
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm import exc as orm_exc
@@ -64,7 +63,7 @@ class InsertOrderTest(PolymorphTest):
                 'person':people.select(people.c.type=='person'),
             }, None, 'pjoin')
 
-        person_mapper = mapper(Person, people, select_table=person_join, polymorphic_on=person_join.c.type, polymorphic_identity='person')
+        person_mapper = mapper(Person, people, with_polymorphic=('*', person_join), polymorphic_on=person_join.c.type, polymorphic_identity='person')
 
         mapper(Engineer, engineers, inherits=person_mapper, polymorphic_identity='engineer')
         mapper(Manager, managers, inherits=person_mapper, polymorphic_identity='manager')
