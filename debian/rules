@@ -6,23 +6,32 @@ m_name=SQLAlchemy
 
 PYVERS=$(shell pyversions -vr)
 
-include /usr/share/quilt/quilt.make
 
-
-clean: unpatch
+clean:
 	dh_testdir
 	dh_testroot
-	-rm -rf $(CURDIR)/lib/${m_name}.egg-info $(CURDIR)/build/
+	rm -rf $(CURDIR)/lib/${m_name}.egg-info $(CURDIR)/build/
 	find . -name '*\.py[co]' -delete
-	dh_clean build-*
+	dh_clean build-* $(PYVERS:%=install-python%)
 
-build: patch
+build: build-docs
 
-install: $(PYVERS:%=install-python%)
+build-docs:
+	dh_testdir
+	dh_installdirs
+	PYTHONPATH=. sphinx-build -N -q -E -b html doc/build/ \
+	 $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/docs/
+	rm -rf $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/docs/.doctrees
+	dh_link /usr/share/javascript/jquery/jquery.js \
+		/usr/share/doc/${p_name}-doc/docs/_static/jquery.js
+	touch $@
+
+install: build $(PYVERS:%=install-python%)
 install-python%:
 	python$* setup.py install \
 		--single-version-externally-managed \
 		--root $(CURDIR)/debian/${p_name}
+	touch $@
 
 binary-indep: build install
 	dh_testdir -i
@@ -44,4 +53,15 @@ binary-arch:
 
 binary: binary-indep binary-arch
 
-.PHONY: build clean binary-indep binary-arch binary install
+get-orig-source:
+	REV=$(shell dpkg-parsechangelog | sed -rne 's,^Version: .*svn([^-]+).*,\1,p'); \
+	VER=$(shell dpkg-parsechangelog | sed -rne 's,^Version: ([^-]+).*,\1,p'); \
+	if [ x$$REV = x ]; then \
+	 uscan --force-download --rename --download-version=$$VER --destdir=.; \
+	else \
+	 svn -q export -r $$REV http://svn.sqlalchemy.org/sqlalchemy/trunk sqlalchemy-r$$REV && \
+         tar -zcf ./sqlalchemy_$$VER.orig.tar.gz sqlalchemy-r$$REV; \
+	 rm -rf sqlalchemy-r$$REV; \
+	fi
+
+.PHONY: build clean binary-indep binary-arch binary install get-orig-source
