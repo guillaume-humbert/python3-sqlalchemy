@@ -127,6 +127,14 @@ test/testlib/sa_unittest.py file (only in source package):
 
 -----------------------------------------------------------
 
+doc/_static/jquery.js file:
+ 
+ Copyright (c) 2008 John Resig (jquery.com)
+ Dual licensed under the MIT (MIT-LICENSE.txt)
+ and GPL (GPL-LICENSE.txt) licenses.
+
+-----------------------------------------------------------
+
 The Debian packaging is © 2006-2009 Tommi Virtanen <tv@debian.org> and Piotr
 Ożarowski <piotr@debian.org> - it is licensed under the GPL.
 
