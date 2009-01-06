@@ -12,21 +12,41 @@ clean:
 	dh_testroot
 	rm -rf $(CURDIR)/lib/${m_name}.egg-info $(CURDIR)/build/
 	find . -name '*\.py[co]' -delete
-	dh_clean build-* $(PYVERS:%=install-python%)
+	dh_clean build-* $(PYVERS:%=install-python%) install-docs
 
-build: build-docs
+#build: build-docs
+build:
 
 build-docs:
 	dh_testdir
 	dh_installdirs
 	PYTHONPATH=. sphinx-build -N -q -E -b html doc/build/ \
-	 $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/docs/
-	rm -rf $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/docs/.doctrees
-	dh_link /usr/share/javascript/jquery/jquery.js \
-		/usr/share/doc/${p_name}-doc/docs/_static/jquery.js
+	 $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/
+	rm -rf $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/.doctrees
 	touch $@
 
-install: build $(PYVERS:%=install-python%)
+#install-docs: build-docs
+install-docs:
+	dh_testdir
+	dh_installdirs
+	
+	# TODO: use build-docs rule instead (once Sphinx 0.6 will be released):
+	dh_install -p${p_name}-doc doc/* \
+		--exclude=doc/build --exclude=doc/_sources \
+		/usr/share/doc/${p_name}-doc/html/
+	
+	dh_install -p${p_name}-doc doc/_sources/* \
+	       	/usr/share/doc/${p_name}-doc/rst
+	dh_link -p${p_name}-doc /usr/share/javascript/jquery/jquery.js \
+		/usr/share/doc/${p_name}-doc/html/_static/jquery.js
+	# link docs in python-sqlalchemy's dir
+	dh_link -p${p_name}-doc /usr/share/doc/${p_name}-doc/html \
+		/usr/share/doc/${p_name}/html
+	dh_link -p${p_name}-doc /usr/share/doc/${p_name}-doc/rst \
+		/usr/share/doc/${p_name}/rst
+	touch $@
+
+install: build install-docs $(PYVERS:%=install-python%)
 install-python%:
 	python$* setup.py install \
 		--single-version-externally-managed \

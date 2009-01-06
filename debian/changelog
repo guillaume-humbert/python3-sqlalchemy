@@ -1,8 +1,11 @@
-sqlalchemy (0.5.0~rc4+svn5557-1) UNRELEASED; urgency=low
+sqlalchemy (0.5.0-1) experimental; urgency=low
 
-  * New upstream snapshot
+  * New upstream release
     + disable_ez_setup patch removed (no longer needed)
     + generate documentation using Sphinx
+      (disable build-docs rule untill Sphinx 0.6 will be released
+  * HTML documentation moved to /usr/share/doc/python-sqlalchemy/html,
+    RST sources are available in /usr/share/doc/python-sqlalchemy/rst
   * Add get-orig-source rule
 
  -- Piotr Ożarowski <piotr@debian.org>  Tue, 30 Dec 2008 17:12:10 +0100
