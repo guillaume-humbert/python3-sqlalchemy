@@ -86,7 +86,7 @@ lib/sqlalchemy/interfaces.py file:
 
 -----------------------------------------------------------
 
-The Debian packaging is (C) 2006-2007 Tommi Virtanen <tv@debian.org> and Piotr
+The Debian packaging is © 2006-2007 Tommi Virtanen <tv@debian.org> and Piotr
 Ożarowski <piotr@debian.org> - it is licensed under the GPL.
 
 On Debian systems, the complete text of the GNU General Public License
