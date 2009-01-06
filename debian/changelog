@@ -3,7 +3,8 @@ sqlalchemy (0.5.0-1) experimental; urgency=low
   * New upstream release
     + disable_ez_setup patch removed (no longer needed)
     + generate documentation using Sphinx
-      (disable build-docs rule untill Sphinx 0.6 will be released
+      (disable build-docs rule untill Sphinx 0.6 will be released)
+    + upload to experimental as rev. dependencies are not ready for 0.5
   * HTML documentation moved to /usr/share/doc/python-sqlalchemy/html,
     RST sources are available in /usr/share/doc/python-sqlalchemy/rst
   * Add get-orig-source rule
