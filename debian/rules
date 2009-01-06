@@ -62,7 +62,7 @@ binary-indep: build install
 	rm -rf debian/${p_name}-doc/usr/share/doc/${p_name}-doc/doc/build \
 	       debian/${p_name}-doc/usr/share/doc/${p_name}-doc/examples/README
 	dh_pysupport -i
-	dh_compress -i -X.py
+	dh_compress -i -X.py -X.js -X.html
 	dh_fixperms -i
 	dh_installdeb -i
 	dh_gencontrol -i
