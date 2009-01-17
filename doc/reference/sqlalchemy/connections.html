@@ -7,7 +7,7 @@
         
         <title>
     Connections
- &mdash; SQLAlchemy 0.5.0 Documentation</title>
+ &mdash; SQLAlchemy 0.5.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.0',
+          VERSION:     '0.5.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Connection Pooling" href="pooling.html" />
         <link rel="prev" title="sqlalchemy" href="index.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.0 Documentation</h1>
+        <h1>SQLAlchemy 0.5.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.0</span> Last Updated: 01/06/2009 13:41:02
+            Version: <span class="versionnum">0.5.1</span> Last Updated: 01/17/2009 16:46:53
         </div>
         <div class="clearboth"></div>
 
@@ -1017,16 +1017,10 @@ make this job easy.</p>
 do_commit_twophase().  Its format is unspecified.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.defaultrunner">
-<!--[sqlalchemy.engine.default.DefaultDialect.defaultrunner]--><tt class="descname">defaultrunner</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.defaultrunner" title="Permalink to this definition">¶</a></dt>
-<dd><p>A visitor which accepts ColumnDefault objects, produces the
-dialect-specific SQL corresponding to their execution, and
-executes the SQL, returning the result value.</p>
-<p>DefaultRunners are used internally by Engines and Dialects.
-Specific database modules should provide their own subclasses of
-DefaultRunner to allow database-specific behavior.</p>
-</dd></dl>
+<!--[sqlalchemy.engine.default.DefaultDialect.defaultrunner]--><tt class="descname">defaultrunner</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.defaultrunner" title="Permalink to this definition">¶</a></dt>
+<dd>alias of <a title="sqlalchemy.engine.base.DefaultRunner" class="reference internal" href="#sqlalchemy.engine.base.DefaultRunner"><tt class="xref docutils literal"><span class="pre">DefaultRunner</span></tt></a></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.do_begin">
@@ -1046,18 +1040,15 @@ autocommit on/off, etc.</dd></dl>
 <dd>Implementations might want to put logic here for turning
 autocommit on/off, etc.</dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.preparer">
-<!--[sqlalchemy.engine.default.DefaultDialect.preparer]--><tt class="descname">preparer</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.preparer" title="Permalink to this definition">¶</a></dt>
-<dd>Handle quoting and case-folding of identifiers based on options.</dd></dl>
+<!--[sqlalchemy.engine.default.DefaultDialect.preparer]--><tt class="descname">preparer</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.preparer" title="Permalink to this definition">¶</a></dt>
+<dd>alias of <tt class="xref docutils literal"><span class="pre">IdentifierPreparer</span></tt></dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.statement_compiler">
-<!--[sqlalchemy.engine.default.DefaultDialect.statement_compiler]--><tt class="descname">statement_compiler</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.statement_compiler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default implementation of Compiled.</p>
-<p>Compiles ClauseElements into SQL strings.   Uses a similar visit
-paradigm as visitors.ClauseVisitor but implements its own traversal.</p>
-</dd></dl>
+<!--[sqlalchemy.engine.default.DefaultDialect.statement_compiler]--><tt class="descname">statement_compiler</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.statement_compiler" title="Permalink to this definition">¶</a></dt>
+<dd>alias of <tt class="xref docutils literal"><span class="pre">DefaultCompiler</span></tt></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.type_descriptor">
@@ -1268,7 +1259,7 @@ initialized after this statement is complete.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2008, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
                 </div>
             </div>

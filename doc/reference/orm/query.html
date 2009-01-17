@@ -7,7 +7,7 @@
         
         <title>
     Querying
- &mdash; SQLAlchemy 0.5.0 Documentation</title>
+ &mdash; SQLAlchemy 0.5.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.0',
+          VERSION:     '0.5.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Sessions" href="sessions.html" />
         <link rel="prev" title="Class Mapping" href="mapping.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.0 Documentation</h1>
+        <h1>SQLAlchemy 0.5.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.0</span> Last Updated: 01/06/2009 13:41:02
+            Version: <span class="versionnum">0.5.1</span> Last Updated: 01/17/2009 16:46:53
         </div>
         <div class="clearboth"></div>
 
@@ -169,29 +169,44 @@ WHERE criterion&#8221; is issued.</p>
 <dt id="sqlalchemy.orm.query.Query.delete">
 <!--[sqlalchemy.orm.query.Query.delete]--><tt class="descname">delete</tt><big>(</big><em>synchronize_session='fetch'</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a bulk delete query.</p>
-<p>Deletes rows matched by this query from the database. The synchronize_session
-parameter chooses the strategy for the removal of matched objects from the
-session. Valid values are:</p>
+<p>Deletes rows matched by this query from the database.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>synchronize_session</em> &#8211; <p>chooses the strategy for the removal of matched 
+objects from the session. Valid values are:</p>
 <dl class="docutils">
 <dt>False</dt>
-<dd>don&#8217;t synchronize the session. Use this when you don&#8217;t need to use the
-session after the delete or you can be sure that none of the matched objects
-are in the session. The behavior of deleted objects still in the session is
-undefined.</dd>
+<dd>don&#8217;t synchronize the session. This option is the most efficient and is reliable
+once the session is expired, which typically occurs after a commit().   Before
+the expiration, objects may still remain in the session which were in fact deleted
+which can lead to confusing results if they are accessed via get() or already
+loaded collections.</dd>
 <dt>&#8216;fetch&#8217;</dt>
 <dd>performs a select query before the delete to find objects that are matched
 by the delete query and need to be removed from the session. Matched objects
 are removed from the session. &#8216;fetch&#8217; is the default strategy.</dd>
 <dt>&#8216;evaluate&#8217;</dt>
-<dd><p class="first">experimental feature. Tries to evaluate the querys criteria in Python
+<dd>experimental feature. Tries to evaluate the querys criteria in Python
 straight on the objects in the session. If evaluation of the criteria isn&#8217;t
-implemented, the &#8216;fetch&#8217; strategy will be used as a fallback.</p>
-<p class="last">The expression evaluator currently doesn&#8217;t account for differing string
+implemented, the &#8216;fetch&#8217; strategy will be used as a fallback.<p class="last">The expression evaluator currently doesn&#8217;t account for differing string
 collations between the database and Python.</p>
 </dd>
 </dl>
+</td>
+</tr>
+</tbody>
+</table>
 <p>Returns the number of rows deleted, excluding any cascades.</p>
-<p>Warning - this currently doesn&#8217;t account for any foreign key/relation cascades.</p>
+<p>The method does <em>not</em> offer in-Python cascading of relations - it is assumed that
+ON DELETE CASCADE is configured for any foreign key references which require it.
+The Session needs to be expired (occurs automatically after commit(), or call expire_all())
+in order for the state of dependent objects subject to delete or delete-orphan cascade to be 
+correctly represented.</p>
+<p>Also, the <tt class="docutils literal"><span class="pre">before_delete()</span></tt> and <tt class="docutils literal"><span class="pre">after_delete()</span></tt> <a title="sqlalchemy.orm.interfaces.MapperExtension" class="reference external" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref docutils literal"><span class="pre">MapperExtension</span></tt></a> 
+methods are not called from this method.  For a delete hook here, use the
+<tt class="docutils literal"><span class="pre">after_bulk_delete()</span></tt> <a title="sqlalchemy.orm.interfaces.MapperExtension" class="reference external" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref docutils literal"><span class="pre">MapperExtension</span></tt></a> method.</p>
 </dd></dl>
 
 <dl class="method">
@@ -199,6 +214,34 @@ collations between the database and Python.</p>
 <!--[sqlalchemy.orm.query.Query.distinct]--><tt class="descname">distinct</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.distinct" title="Permalink to this definition">¶</a></dt>
 <dd>Apply a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> to the query and return the newly resulting
 <tt class="docutils literal"><span class="pre">Query</span></tt>.</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.enable_eagerloads">
+<!--[sqlalchemy.orm.query.Query.enable_eagerloads]--><tt class="descname">enable_eagerloads</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.enable_eagerloads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Control whether or not eager joins are rendered.</p>
+<p>When set to False, the returned Query will not render 
+eager joins regardless of eagerload() options
+or mapper-level lazy=False configurations.</p>
+<p>This is used primarily when nesting the Query&#8217;s
+statement into a subquery or other
+selectable.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.except_">
+<!--[sqlalchemy.orm.query.Query.except_]--><tt class="descname">except_</tt><big>(</big><em>*q</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.except_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce an EXCEPT of this Query against one or more queries.</p>
+<p>Works the same way as <a title="sqlalchemy.orm.query.Query.union" class="reference internal" href="#sqlalchemy.orm.query.Query.union"><tt class="xref docutils literal"><span class="pre">union()</span></tt></a>.  See that
+method for usage examples.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.except_all">
+<!--[sqlalchemy.orm.query.Query.except_all]--><tt class="descname">except_all</tt><big>(</big><em>*q</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.except_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce an EXCEPT ALL of this Query against one or more queries.</p>
+<p>Works the same way as <a title="sqlalchemy.orm.query.Query.union" class="reference internal" href="#sqlalchemy.orm.query.Query.union"><tt class="xref docutils literal"><span class="pre">union()</span></tt></a>.  See that
+method for usage examples.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.filter">
@@ -266,6 +309,22 @@ in the order of the table def&#8217;s primary key columns.</p>
 <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">instances</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
     <span class="k">print</span> <span class="n">u</span></pre></div>
 </div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.intersect">
+<!--[sqlalchemy.orm.query.Query.intersect]--><tt class="descname">intersect</tt><big>(</big><em>*q</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.intersect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce an INTERSECT of this Query against one or more queries.</p>
+<p>Works the same way as <a title="sqlalchemy.orm.query.Query.union" class="reference internal" href="#sqlalchemy.orm.query.Query.union"><tt class="xref docutils literal"><span class="pre">union()</span></tt></a>.  See that
+method for usage examples.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.intersect_all">
+<!--[sqlalchemy.orm.query.Query.intersect_all]--><tt class="descname">intersect_all</tt><big>(</big><em>*q</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.intersect_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce an INTERSECT ALL of this Query against one or more queries.</p>
+<p>Works the same way as <a title="sqlalchemy.orm.query.Query.union" class="reference internal" href="#sqlalchemy.orm.query.Query.union"><tt class="xref docutils literal"><span class="pre">union()</span></tt></a>.  See that
+method for usage examples.</p>
 </dd></dl>
 
 <dl class="method">
@@ -405,9 +464,10 @@ session will be reset and the entities will all be marked &#8220;clean&#8221;.</
 fully using session.expire_all().</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="classmethod">
 <dt id="sqlalchemy.orm.query.Query.query_from_parent">
-<!--[sqlalchemy.orm.query.Query.query_from_parent]--><tt class="descname">query_from_parent</tt><a class="headerlink" href="#sqlalchemy.orm.query.Query.query_from_parent" title="Permalink to this definition">¶</a></dt>
+<!--[sqlalchemy.orm.query.Query.query_from_parent]--><em class="property">
+classmethod </em><tt class="descname">query_from_parent</tt><big>(</big><em>instance</em>, <em>property</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.query_from_parent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new Query with criterion corresponding to a parent instance.</p>
 <p>Deprecated.  Use sqlalchemy.orm.with_parent in conjunction with filter().</p>
 <p>Return a newly constructed Query object, with criterion corresponding
@@ -479,15 +539,56 @@ from with the given table.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.subquery">
 <!--[sqlalchemy.orm.query.Query.subquery]--><tt class="descname">subquery</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.subquery" title="Permalink to this definition">¶</a></dt>
-<dd>return the full SELECT statement represented by this Query, embedded within an Alias.</dd></dl>
+<dd><p>return the full SELECT statement represented by this Query, embedded within an Alias.</p>
+<p>Eager JOIN generation within the query is disabled.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.union">
+<!--[sqlalchemy.orm.query.Query.union]--><tt class="descname">union</tt><big>(</big><em>*q</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.union" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a UNION of this Query against one or more queries.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">q1</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SomeClass</span><span class="o">.</span><span class="n">foo</span><span class="o">==</span><span class="s">&#39;bar&#39;</span><span class="p">)</span>
+<span class="n">q2</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SomeClass</span><span class="o">.</span><span class="n">bar</span><span class="o">==</span><span class="s">&#39;foo&#39;</span><span class="p">)</span>
+
+<span class="n">q3</span> <span class="o">=</span> <span class="n">q1</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span></pre></div>
+</div>
+<p>The method accepts multiple Query objects so as to control
+the level of nesting.  A series of <tt class="docutils literal"><span class="pre">union()</span></tt> calls such as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">x</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
+</div>
+<p>will nest on each <tt class="docutils literal"><span class="pre">union()</span></tt>, and produces:</p>
+<div class="highlight-python"><pre>SELECT * FROM (SELECT * FROM (SELECT * FROM X UNION SELECT * FROM y) UNION SELECT * FROM Z)</pre>
+</div>
+<p>Whereas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">x</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
+</div>
+<p>produces:</p>
+<div class="highlight-python"><pre>SELECT * FROM (SELECT * FROM X UNION SELECT * FROM y UNION SELECT * FROM Z)</pre>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.union_all">
+<!--[sqlalchemy.orm.query.Query.union_all]--><tt class="descname">union_all</tt><big>(</big><em>*q</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.union_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a UNION ALL of this Query against one or more queries.</p>
+<p>Works the same way as <a title="sqlalchemy.orm.query.Query.union" class="reference internal" href="#sqlalchemy.orm.query.Query.union"><tt class="xref docutils literal"><span class="pre">union()</span></tt></a>.  See that
+method for usage examples.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.update">
 <!--[sqlalchemy.orm.query.Query.update]--><tt class="descname">update</tt><big>(</big><em>values</em>, <em>synchronize_session='expire'</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a bulk update query.</p>
-<p>Updates rows matched by this query in the database. The values parameter takes
-a dictionary with object attributes as keys and literal values or sql expressions
-as values. The synchronize_session parameter chooses the strategy to update the
+<p>Updates rows matched by this query in the database.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>values</em> &#8211; a dictionary with attributes names as keys and literal values or sql expressions
+as values.</li>
+<li><em>synchronize_session</em> &#8211; <p>chooses the strategy to update the
 attributes on objects in the session. Valid values are:</p>
 <dl class="docutils">
 <dt>False</dt>
@@ -498,15 +599,27 @@ are in the session.</dd>
 <dd>performs a select query before the update to find objects that are matched
 by the update query. The updated attributes are expired on matched objects.</dd>
 <dt>&#8216;evaluate&#8217;</dt>
-<dd><p class="first">experimental feature. Tries to evaluate the querys criteria in Python
+<dd>experimental feature. Tries to evaluate the querys criteria in Python
 straight on the objects in the session. If evaluation of the criteria isn&#8217;t
-implemented, the &#8216;expire&#8217; strategy will be used as a fallback.</p>
-<p class="last">The expression evaluator currently doesn&#8217;t account for differing string
+implemented, the &#8216;expire&#8217; strategy will be used as a fallback.<p class="last">The expression evaluator currently doesn&#8217;t account for differing string
 collations between the database and Python.</p>
 </dd>
 </dl>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <p>Returns the number of rows matched by the update.</p>
-<p>Warning - this currently doesn&#8217;t account for any foreign key/relation cascades.</p>
+<p>The method does <em>not</em> offer in-Python cascading of relations - it is assumed that
+ON UPDATE CASCADE is configured for any foreign key references which require it.
+The Session needs to be expired (occurs automatically after commit(), or call expire_all())
+in order for the state of dependent objects subject foreign key cascade to be 
+correctly represented.</p>
+<p>Also, the <tt class="docutils literal"><span class="pre">before_update()</span></tt> and <tt class="docutils literal"><span class="pre">after_update()</span></tt> <a title="sqlalchemy.orm.interfaces.MapperExtension" class="reference external" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref docutils literal"><span class="pre">MapperExtension</span></tt></a> 
+methods are not called from this method.  For an update hook here, use the
+<tt class="docutils literal"><span class="pre">after_bulk_update()</span></tt> <a title="sqlalchemy.orm.interfaces.MapperExtension" class="reference external" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref docutils literal"><span class="pre">MapperExtension</span></tt></a>  method.</p>
 </dd></dl>
 
 <dl class="method">
@@ -743,7 +856,7 @@ given name into a non-deferred (regular column) load.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2008, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
                 </div>
             </div>

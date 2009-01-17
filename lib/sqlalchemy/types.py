@@ -1,5 +1,5 @@
 # types.py
-# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -485,8 +485,6 @@ class Text(String):
     params (and the reverse for result sets.)
 
     """
-    def dialect_impl(self, dialect, **kwargs):
-        return TypeEngine.dialect_impl(self, dialect, **kwargs)
 
 class Unicode(String):
     """A variable length Unicode string.
