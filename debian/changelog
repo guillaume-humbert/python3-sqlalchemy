@@ -1,3 +1,10 @@
+sqlalchemy (0.5.2-1) experimental; urgency=low
+
+  * New upstream release
+    + upload to experimental as rev. dependencies are not ready for 0.5
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sat, 24 Jan 2009 22:59:56 +0100
+
 sqlalchemy (0.5.1-1) experimental; urgency=low
 
   * New upstream release
