@@ -50,6 +50,7 @@ install: build install-docs $(PYVERS:%=install-python%)
 install-python%:
 	python$* setup.py install \
 		--single-version-externally-managed \
+		--install-layout=deb \
 		--root $(CURDIR)/debian/${p_name}
 	touch $@
 

@@ -1,3 +1,13 @@
+sqlalchemy (0.5.3-1) unstable; urgency=low
+
+  * New upstream release
+  * Add --install-layout=deb to setup.py call (prepare for dist-packages in
+    python2.6)
+    + python-all minimum required version bumped to 2.5.4-1~
+  * Standards-Version bumped to 3.8.0 (no changes needed)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Wed, 25 Mar 2009 19:25:33 +0100
+
 sqlalchemy (0.5.2-2) unstable; urgency=low
 
   * Upload to unstable
