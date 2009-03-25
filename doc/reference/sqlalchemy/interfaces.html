@@ -7,7 +7,7 @@
         
         <title>
     Interfaces
- &mdash; SQLAlchemy 0.5.2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.2',
+          VERSION:     '0.5.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="sqlalchemy.orm" href="../orm/index.html" />
         <link rel="prev" title="Column and Data Types" href="types.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
+            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
         </div>
         <div class="clearboth"></div>
 
@@ -97,7 +97,8 @@
 <p>Interfaces and abstract types.</p>
 <dl class="class">
 <dt id="sqlalchemy.interfaces.ConnectionProxy">
-<!--[sqlalchemy.interfaces.ConnectionProxy]-->class <tt class="descclassname">sqlalchemy.interfaces.</tt><tt class="descname">ConnectionProxy</tt><a class="headerlink" href="#sqlalchemy.interfaces.ConnectionProxy" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.interfaces.</tt><tt class="descname">ConnectionProxy</tt><a class="headerlink" href="#sqlalchemy.interfaces.ConnectionProxy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Allows interception of statement execution by Connections.</p>
 <p>Either or both of the <tt class="docutils literal"><span class="pre">execute()</span></tt> and <tt class="docutils literal"><span class="pre">cursor_execute()</span></tt>
 may be implemented to intercept compiled statement and
@@ -120,19 +121,20 @@ the <tt class="docutils literal"><span class="pre">proxy</span></tt> argument:</
 </div>
 <dl class="method">
 <dt id="sqlalchemy.interfaces.ConnectionProxy.cursor_execute">
-<!--[sqlalchemy.interfaces.ConnectionProxy.cursor_execute]--><tt class="descname">cursor_execute</tt><big>(</big><em>execute</em>, <em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em>, <em>executemany</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.ConnectionProxy.cursor_execute" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">cursor_execute</tt><big>(</big><em>execute</em>, <em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em>, <em>executemany</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.ConnectionProxy.cursor_execute" title="Permalink to this definition">¶</a></dt>
 <dd>Intercept low-level cursor execute() events.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.interfaces.ConnectionProxy.execute">
-<!--[sqlalchemy.interfaces.ConnectionProxy.execute]--><tt class="descname">execute</tt><big>(</big><em>conn</em>, <em>execute</em>, <em>clauseelement</em>, <em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.ConnectionProxy.execute" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">execute</tt><big>(</big><em>conn</em>, <em>execute</em>, <em>clauseelement</em>, <em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.ConnectionProxy.execute" title="Permalink to this definition">¶</a></dt>
 <dd>Intercept high level execute() events.</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.interfaces.PoolListener">
-<!--[sqlalchemy.interfaces.PoolListener]-->class <tt class="descclassname">sqlalchemy.interfaces.</tt><tt class="descname">PoolListener</tt><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.interfaces.</tt><tt class="descname">PoolListener</tt><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hooks into the lifecycle of connections in a <tt class="docutils literal"><span class="pre">Pool</span></tt>.</p>
 <p>Usage:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyListener</span><span class="p">(</span><span class="n">PoolListener</span><span class="p">):</span>
@@ -177,7 +179,7 @@ efficiency and function call overhead, you&#8217;re much better off only
 providing implementations for the hooks you&#8217;ll be using.</p>
 <dl class="method">
 <dt id="sqlalchemy.interfaces.PoolListener.checkin">
-<!--[sqlalchemy.interfaces.PoolListener.checkin]--><tt class="descname">checkin</tt><big>(</big><em>dbapi_con</em>, <em>con_record</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener.checkin" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">checkin</tt><big>(</big><em>dbapi_con</em>, <em>con_record</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener.checkin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when a connection returns to the pool.</p>
 <p>Note that the connection may be closed, and may be None if the
 connection has been invalidated.  <tt class="docutils literal"><span class="pre">checkin</span></tt> will not be called
@@ -192,7 +194,7 @@ for detached connections.  (They do not return to the pool.)</p>
 
 <dl class="method">
 <dt id="sqlalchemy.interfaces.PoolListener.checkout">
-<!--[sqlalchemy.interfaces.PoolListener.checkout]--><tt class="descname">checkout</tt><big>(</big><em>dbapi_con</em>, <em>con_record</em>, <em>con_proxy</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener.checkout" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">checkout</tt><big>(</big><em>dbapi_con</em>, <em>con_record</em>, <em>con_proxy</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener.checkout" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when a connection is retrieved from the Pool.</p>
 <dl class="docutils">
 <dt>dbapi_con</dt>
@@ -211,7 +213,7 @@ using the new connection.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.interfaces.PoolListener.connect">
-<!--[sqlalchemy.interfaces.PoolListener.connect]--><tt class="descname">connect</tt><big>(</big><em>dbapi_con</em>, <em>con_record</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener.connect" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">connect</tt><big>(</big><em>dbapi_con</em>, <em>con_record</em><big>)</big><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener.connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called once for each new DB-API connection or Pool&#8217;s <tt class="docutils literal"><span class="pre">creator()</span></tt>.</p>
 <dl class="docutils">
 <dt>dbapi_con</dt>
@@ -242,7 +244,7 @@ using the new connection.</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
                 </div>
             </div>
         

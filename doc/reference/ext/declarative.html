@@ -7,7 +7,7 @@
         
         <title>
     declarative
- &mdash; SQLAlchemy 0.5.2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.2',
+          VERSION:     '0.5.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="associationproxy" href="associationproxy.html" />
         <link rel="prev" title="sqlalchemy.ext" href="index.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
+            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
         </div>
         <div class="clearboth"></div>
 
@@ -475,7 +475,7 @@ like:</p>
 <p>Mapped instances then make usage of <a title="sqlalchemy.orm.session.Session" class="reference external" href="../orm/sessions.html#sqlalchemy.orm.session.Session"><tt class="xref docutils literal"><span class="pre">Session</span></tt></a> in the usual way.</p>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<!--[sqlalchemy.ext.declarative.declarative_base]--><tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x4e1a9b0&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em>, <em>engine=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x51adbb0&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em>, <em>engine=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that invokes
 <a title="sqlalchemy.ext.declarative.instrument_declarative" class="reference internal" href="#sqlalchemy.ext.declarative.instrument_declarative"><tt class="xref docutils literal"><span class="pre">instrument_declarative()</span></tt></a> upon each subclass definition, and routes
@@ -519,7 +519,7 @@ declarative base class.</li>
 
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.synonym_for">
-<!--[sqlalchemy.ext.declarative.synonym_for]--><tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">synonym_for</tt><big>(</big><em>name</em>, <em>map_column=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.synonym_for" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">synonym_for</tt><big>(</big><em>name</em>, <em>map_column=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.synonym_for" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decorator, make a Python &#64;property a query synonym for a column.</p>
 <p>A decorator version of <a title="sqlalchemy.orm.synonym" class="reference external" href="../orm/mapping.html#sqlalchemy.orm.synonym"><tt class="xref docutils literal"><span class="pre">synonym()</span></tt></a>.  The function being
 decorated is the &#8216;descriptor&#8217;, otherwise passes its arguments through
@@ -537,7 +537,7 @@ and may be convenient for read/write properties:</p>
 
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.comparable_using">
-<!--[sqlalchemy.ext.declarative.comparable_using]--><tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">comparable_using</tt><big>(</big><em>comparator_factory</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.comparable_using" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">comparable_using</tt><big>(</big><em>comparator_factory</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.comparable_using" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decorator, allow a Python &#64;property to be used in query criteria.</p>
 <p>A decorator front end to <a title="sqlalchemy.orm.comparable_property" class="reference external" href="../orm/mapping.html#sqlalchemy.orm.comparable_property"><tt class="xref docutils literal"><span class="pre">comparable_property()</span></tt></a>, passes
 through the comparator_factory and the function being decorated:</p>
@@ -554,7 +554,7 @@ declarative setting and may be convenient for read/write properties:</p>
 
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.instrument_declarative">
-<!--[sqlalchemy.ext.declarative.instrument_declarative]--><tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">instrument_declarative</tt><big>(</big><em>cls</em>, <em>registry</em>, <em>metadata</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.instrument_declarative" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">instrument_declarative</tt><big>(</big><em>cls</em>, <em>registry</em>, <em>metadata</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.instrument_declarative" title="Permalink to this definition">¶</a></dt>
 <dd>Given a class, configure the class declaratively,
 using the given registry (any dictionary) and MetaData object.
 This operation does not assume any kind of class hierarchy.</dd></dl>
@@ -578,7 +578,7 @@ This operation does not assume any kind of class hierarchy.</dd></dl>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
                 </div>
             </div>
         

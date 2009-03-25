@@ -121,7 +121,7 @@ class ColumnProperty(StrategizedProperty):
             if self.adapter:
                 return self.adapter(self.prop.columns[0])
             else:
-                return self.prop.columns[0]._annotate({"parententity": self.mapper})
+                return self.prop.columns[0]._annotate({"parententity": self.mapper, "parentmapper":self.mapper})
                 
         def operate(self, op, *other, **kwargs):
             return op(self.__clause_element__(), *other, **kwargs)
@@ -417,7 +417,7 @@ class RelationProperty(StrategizedProperty):
             if backref:
                 raise sa_exc.ArgumentError("backref and back_populates keyword arguments are mutually exclusive")
             self.backref = None
-        elif isinstance(backref, str):
+        elif isinstance(backref, basestring):
             # propagate explicitly sent primary/secondary join conditions to the BackRef object if
             # just a string was sent
             if secondary is not None:
@@ -472,7 +472,7 @@ class RelationProperty(StrategizedProperty):
             return op(self, *other, **kwargs)
 
         def of_type(self, cls):
-            return RelationProperty.Comparator(self.property, self.mapper, cls)
+            return RelationProperty.Comparator(self.property, self.mapper, cls, adapter=self.adapter)
 
         def in_(self, other):
             raise NotImplementedError("in_() not yet supported for relations.  For a "
@@ -485,11 +485,11 @@ class RelationProperty(StrategizedProperty):
                 if self.property.direction in [ONETOMANY, MANYTOMANY]:
                     return ~self._criterion_exists()
                 else:
-                    return self.property._optimized_compare(None, adapt_source=self.adapter)
+                    return _orm_annotate(self.property._optimized_compare(None, adapt_source=self.adapter))
             elif self.property.uselist:
                 raise sa_exc.InvalidRequestError("Can't compare a collection to an object or collection; use contains() to test for membership.")
             else:
-                return self.property._optimized_compare(other, adapt_source=self.adapter)
+                return _orm_annotate(self.property._optimized_compare(other, adapt_source=self.adapter))
 
         def _criterion_exists(self, criterion=None, **kwargs):
             if getattr(self, '_of_type', None):
@@ -511,7 +511,7 @@ class RelationProperty(StrategizedProperty):
                 source_selectable = self.__clause_element__()
             else:
                 source_selectable = None
-                
+            
             pj, sj, source, dest, secondary, target_adapter = \
                 self.property._create_joins(dest_polymorphic=True, dest_selectable=to_selectable, source_selectable=source_selectable)
 
@@ -703,6 +703,10 @@ class RelationProperty(StrategizedProperty):
             raise sa_exc.ArgumentError("reverse_property %r on relation %s references "
                     "relation %s, which does not reference mapper %s" % (key, self, other, self.parent))
         
+        if self.direction in (ONETOMANY, MANYTOONE) and self.direction == other.direction:
+            raise sa_exc.ArgumentError("%s and back-reference %s are both of the same direction %r."
+                "  Did you mean to set remote_side on the many-to-one side ?" % (self, other, self.direction))
+        
     def do_init(self):
         self._get_target()
         self._process_dependent_arguments()
@@ -889,29 +893,45 @@ class RelationProperty(StrategizedProperty):
                 self.direction = MANYTOONE
 
         else:
-            for mappedtable, parenttable in [(self.mapper.mapped_table, self.parent.mapped_table), (self.mapper.local_table, self.parent.local_table)]:
-                onetomany = [c for c in self._foreign_keys if mappedtable.c.contains_column(c)]
-                manytoone = [c for c in self._foreign_keys if parenttable.c.contains_column(c)]
+            foreign_keys = [f for c, f in self.synchronize_pairs]
 
-                if not onetomany and not manytoone:
-                    raise sa_exc.ArgumentError(
-                        "Can't determine relation direction for relationship '%s' "
-                        "- foreign key columns are present in neither the "
-                        "parent nor the child's mapped tables" %(str(self)))
-                elif onetomany and manytoone:
-                    continue
-                elif onetomany:
+            parentcols = util.column_set(self.parent.mapped_table.c)
+            targetcols = util.column_set(self.mapper.mapped_table.c)
+
+            # fk collection which suggests ONETOMANY.
+            onetomany_fk = targetcols.intersection(foreign_keys)
+
+            # fk collection which suggests MANYTOONE.
+            manytoone_fk = parentcols.intersection(foreign_keys)
+            
+            if not onetomany_fk and not manytoone_fk:
+                raise sa_exc.ArgumentError(
+                    "Can't determine relation direction for relationship '%s' "
+                    "- foreign key columns are present in neither the "
+                    "parent nor the child's mapped tables" % self )
+
+            elif onetomany_fk and manytoone_fk: 
+                # fks on both sides.  do the same
+                # test only based on the local side.
+                referents = [c for c, f in self.synchronize_pairs]
+                onetomany_local = parentcols.intersection(referents)
+                manytoone_local = targetcols.intersection(referents)
+
+                if onetomany_local and not manytoone_local:
                     self.direction = ONETOMANY
-                    break
-                elif manytoone:
+                elif manytoone_local and not onetomany_local:
                     self.direction = MANYTOONE
-                    break
-            else:
+            elif onetomany_fk:
+                self.direction = ONETOMANY
+            elif manytoone_fk:
+                self.direction = MANYTOONE
+                
+            if not self.direction:
                 raise sa_exc.ArgumentError(
                     "Can't determine relation direction for relationship '%s' "
                     "- foreign key columns are present in both the parent and "
                     "the child's mapped tables.  Specify 'foreign_keys' "
-                    "argument." % (str(self)))
+                    "argument." % self)
         
         if self.cascade.delete_orphan and not self.single_parent and \
             (self.direction is MANYTOMANY or self.direction is MANYTOONE):
@@ -1001,7 +1021,7 @@ class RelationProperty(StrategizedProperty):
         
 
     def _refers_to_parent_table(self):
-        return self.parent.mapped_table is self.target or self.parent.mapped_table is self.target
+        return self.parent.mapped_table is self.target
 
     def _is_self_referential(self):
         return self.mapper.common_parent(self.parent)

@@ -7,7 +7,7 @@
         
         <title>
     Column and Data Types
- &mdash; SQLAlchemy 0.5.2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.2',
+          VERSION:     '0.5.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Database Schema" href="schema.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
+            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
         </div>
         <div class="clearboth"></div>
 
@@ -131,7 +131,8 @@ type is emitted in <tt class="docutils literal"><span class="pre">CREATE</span> 
 Standard Types</a> and the other sections of this chapter.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.String">
-<!--[sqlalchemy.types.String]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">String</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.String" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">String</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.String" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Concatenable" class="reference internal" href="#sqlalchemy.types.Concatenable"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Concatenable</span></tt></a>, <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>The base for all string and character types.</p>
 <p>In SQL, corresponds to VARCHAR.  Can also take Python unicode objects
@@ -144,7 +145,8 @@ on most databases.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.types.Unicode">
-<!--[sqlalchemy.types.Unicode]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Unicode</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Unicode" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Unicode</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Unicode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>A variable length Unicode string.</p>
 <p>The <tt class="docutils literal"><span class="pre">Unicode</span></tt> type is a <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">String</span></tt></a> which converts Python
@@ -171,7 +173,8 @@ to <cite>utf-8</cite>.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.types.Text">
-<!--[sqlalchemy.types.Text]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Text</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Text" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Text</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Text" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>A variably sized string type.</p>
 <p>In SQL, usually corresponds to CLOB or TEXT. Can also take Python
@@ -181,21 +184,24 @@ params (and the reverse for result sets.)</p>
 
 <dl class="class">
 <dt id="sqlalchemy.types.UnicodeText">
-<!--[sqlalchemy.types.UnicodeText]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">UnicodeText</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UnicodeText" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">UnicodeText</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UnicodeText" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Text" class="reference internal" href="#sqlalchemy.types.Text"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <p>A synonym for Text(convert_unicode=True, assert_unicode=&#8217;warn&#8217;).</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.Integer">
-<!--[sqlalchemy.types.Integer]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Integer</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Integer" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Integer</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Integer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">int</span></tt> integers.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.SmallInteger">
-<!--[sqlalchemy.types.SmallInteger]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">SmallInteger</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SmallInteger" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">SmallInteger</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SmallInteger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Integer" class="reference internal" href="#sqlalchemy.types.Integer"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
 <p>A type for smaller <tt class="docutils literal"><span class="pre">int</span></tt> integers.</p>
 <p>Typically generates a <tt class="docutils literal"><span class="pre">SMALLINT</span></tt> in DDL, and otherwise acts like
@@ -204,7 +210,8 @@ a normal <a title="sqlalchemy.types.Integer" class="reference internal" href="#s
 
 <dl class="class">
 <dt id="sqlalchemy.types.Numeric">
-<!--[sqlalchemy.types.Numeric]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Numeric</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Numeric" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Numeric</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Numeric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for fixed precision numbers.</p>
 <p>Typically generates DECIMAL or NUMERIC.  Returns
@@ -213,14 +220,16 @@ a normal <a title="sqlalchemy.types.Integer" class="reference internal" href="#s
 
 <dl class="class">
 <dt id="sqlalchemy.types.Float">
-<!--[sqlalchemy.types.Float]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Float</tt><big>(</big><em>precision=10</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Float" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Float</tt><big>(</big><em>precision=10</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Float" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Numeric" class="reference internal" href="#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">float</span></tt> numbers.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.DateTime">
-<!--[sqlalchemy.types.DateTime]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DateTime</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DateTime" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DateTime</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DateTime" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">datetime.datetime()</span></tt> objects.</p>
 <p>Date and time types return objects from the Python <tt class="docutils literal"><span class="pre">datetime</span></tt>
@@ -232,21 +241,24 @@ converted back to datetime objects when rows are returned.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.types.Date">
-<!--[sqlalchemy.types.Date]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Date</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Date" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Date</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Date" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">datetime.date()</span></tt> objects.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.Time">
-<!--[sqlalchemy.types.Time]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Time</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Time" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Time</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">datetime.time()</span></tt> objects.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.Interval">
-<!--[sqlalchemy.types.Interval]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Interval</tt><a class="headerlink" href="#sqlalchemy.types.Interval" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Interval</tt><a class="headerlink" href="#sqlalchemy.types.Interval" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeDecorator" class="reference internal" href="#sqlalchemy.types.TypeDecorator"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">datetime.timedelta()</span></tt> objects.</p>
 <p>The Interval type deals with <tt class="docutils literal"><span class="pre">datetime.timedelta</span></tt> objects.  In
@@ -257,7 +269,8 @@ value is stored as a date which is relative to the &#8220;epoch&#8221;
 
 <dl class="class">
 <dt id="sqlalchemy.types.Boolean">
-<!--[sqlalchemy.types.Boolean]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Boolean</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Boolean" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Boolean</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Boolean" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A bool datatype.</p>
 <p>Boolean typically uses BOOLEAN or SMALLINT on the DDL side, and on
@@ -266,7 +279,8 @@ the Python side deals in <tt class="xref docutils literal"><span class="pre">Tru
 
 <dl class="class">
 <dt id="sqlalchemy.types.Binary">
-<!--[sqlalchemy.types.Binary]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Binary</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Binary" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Binary</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Binary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for binary byte data.</p>
 <p>The Binary type generates BLOB or BYTEA when tables are created,
@@ -276,7 +290,8 @@ provided by each DB-API.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.types.PickleType">
-<!--[sqlalchemy.types.PickleType]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">PickleType</tt><big>(</big><em>protocol=2</em>, <em>pickler=None</em>, <em>mutable=True</em>, <em>comparator=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.PickleType" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">PickleType</tt><big>(</big><em>protocol=2</em>, <em>pickler=None</em>, <em>mutable=True</em>, <em>comparator=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.PickleType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.MutableType</span></tt></a>, <a title="sqlalchemy.types.TypeDecorator" class="reference internal" href="#sqlalchemy.types.TypeDecorator"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></a></p>
 <p>Holds Python objects.</p>
 <p>PickleType builds upon the Binary type to apply Python&#8217;s
@@ -293,122 +308,130 @@ name when <tt class="docutils literal"><span class="pre">CREATE</span> <span cla
 on all databases.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.INT">
-<!--[sqlalchemy.types.INT]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">INT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.INT" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">INT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.INT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Integer" class="reference internal" href="#sqlalchemy.types.Integer"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
 <p>The SQL INT or INTEGER type.</p>
 </dd></dl>
 
-<dl class="class">
+<dl class="attribute">
 <dt id="sqlalchemy.types.INTEGER">
-<!--[sqlalchemy.types.INTEGER]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">INTEGER</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.INTEGER" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Integer" class="reference internal" href="#sqlalchemy.types.Integer"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
-<p>The SQL INT or INTEGER type.</p>
-</dd></dl>
+<tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">INTEGER</tt><a class="headerlink" href="#sqlalchemy.types.INTEGER" title="Permalink to this definition">¶</a></dt>
+<dd>alias of <a title="sqlalchemy.types.INT" class="reference internal" href="#sqlalchemy.types.INT"><tt class="xref docutils literal"><span class="pre">INT</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.CHAR">
-<!--[sqlalchemy.types.CHAR]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">CHAR</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.CHAR" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">CHAR</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.CHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>The SQL CHAR type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.VARCHAR">
-<!--[sqlalchemy.types.VARCHAR]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">VARCHAR</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.VARCHAR" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">VARCHAR</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.VARCHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>The SQL VARCHAR type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.NCHAR">
-<!--[sqlalchemy.types.NCHAR]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NCHAR" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NCHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Unicode" class="reference internal" href="#sqlalchemy.types.Unicode"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Unicode</span></tt></a></p>
 <p>The SQL NCHAR type.</p>
 </dd></dl>
 
-<dl class="class">
+<dl class="attribute">
 <dt id="sqlalchemy.types.TEXT">
-<!--[sqlalchemy.types.TEXT]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TEXT</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TEXT" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
-<p>A variably sized string type.</p>
-<p>In SQL, usually corresponds to CLOB or TEXT. Can also take Python
-unicode objects and encode to the database&#8217;s encoding in bind
-params (and the reverse for result sets.)</p>
-</dd></dl>
+<tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TEXT</tt><a class="headerlink" href="#sqlalchemy.types.TEXT" title="Permalink to this definition">¶</a></dt>
+<dd>alias of <a title="sqlalchemy.types.Text" class="reference internal" href="#sqlalchemy.types.Text"><tt class="xref docutils literal"><span class="pre">Text</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.FLOAT">
-<!--[sqlalchemy.types.FLOAT]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">FLOAT</tt><big>(</big><em>precision=10</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.FLOAT" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">FLOAT</tt><big>(</big><em>precision=10</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.FLOAT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Float" class="reference internal" href="#sqlalchemy.types.Float"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
 <p>The SQL FLOAT type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.NUMERIC">
-<!--[sqlalchemy.types.NUMERIC]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NUMERIC</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NUMERIC</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NUMERIC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Numeric" class="reference internal" href="#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
 <p>The SQL NUMERIC type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.DECIMAL">
-<!--[sqlalchemy.types.DECIMAL]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DECIMAL</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DECIMAL" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DECIMAL</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DECIMAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Numeric" class="reference internal" href="#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
 <p>The SQL DECIMAL type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.TIMESTAMP">
-<!--[sqlalchemy.types.TIMESTAMP]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.DateTime" class="reference internal" href="#sqlalchemy.types.DateTime"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
 <p>The SQL TIMESTAMP type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.DATETIME">
-<!--[sqlalchemy.types.DATETIME]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DATETIME" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DATETIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.DateTime" class="reference internal" href="#sqlalchemy.types.DateTime"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
 <p>The SQL DATETIME type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.CLOB">
-<!--[sqlalchemy.types.CLOB]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">CLOB</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.CLOB" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">CLOB</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.CLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Text" class="reference internal" href="#sqlalchemy.types.Text"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <p>The SQL CLOB type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.BLOB">
-<!--[sqlalchemy.types.BLOB]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BLOB" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Binary" class="reference internal" href="#sqlalchemy.types.Binary"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Binary</span></tt></a></p>
 <p>The SQL BLOB type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.BOOLEAN">
-<!--[sqlalchemy.types.BOOLEAN]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BOOLEAN</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BOOLEAN" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BOOLEAN</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BOOLEAN" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Boolean" class="reference internal" href="#sqlalchemy.types.Boolean"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Boolean</span></tt></a></p>
 <p>The SQL BOOLEAN type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.SMALLINT">
-<!--[sqlalchemy.types.SMALLINT]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">SMALLINT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SMALLINT" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">SMALLINT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SMALLINT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.SmallInteger" class="reference internal" href="#sqlalchemy.types.SmallInteger"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.SmallInteger</span></tt></a></p>
 <p>The SQL SMALLINT type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.DATE">
-<!--[sqlalchemy.types.DATE]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DATE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DATE" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DATE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DATE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Date" class="reference internal" href="#sqlalchemy.types.Date"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Date</span></tt></a></p>
 <p>The SQL DATE type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.TIME">
-<!--[sqlalchemy.types.TIME]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TIME" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Time" class="reference internal" href="#sqlalchemy.types.Time"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Time</span></tt></a></p>
 <p>The SQL TIME type.</p>
 </dd></dl>
@@ -448,7 +471,8 @@ processing capabilities of one of the built in types.</p>
 <p>To build a type object from scratch, subclass <cite>:class:TypeEngine</cite>.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.TypeDecorator">
-<!--[sqlalchemy.types.TypeDecorator]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TypeDecorator</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TypeDecorator</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.AbstractType" class="reference internal" href="#sqlalchemy.types.AbstractType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.AbstractType</span></tt></a></p>
 <p>Allows the creation of types which add additional functionality
 to an existing type.</p>
@@ -485,12 +509,12 @@ between user-defined <tt class="docutils literal"><span class="pre">process_</sp
 dialect-specific type in use.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.__init__">
-<!--[sqlalchemy.types.TypeDecorator.__init__]--><tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.adapt_operator">
-<!--[sqlalchemy.types.TypeDecorator.adapt_operator]--><tt class="descname">adapt_operator</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.adapt_operator" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">adapt_operator</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.adapt_operator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given an operator from the sqlalchemy.sql.operators package,
 translate it to a new operator based on the semantics of this type.</p>
 <p>By default, returns the operator unchanged.</p>
@@ -498,47 +522,47 @@ translate it to a new operator based on the semantics of this type.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.bind_processor">
-<!--[sqlalchemy.types.TypeDecorator.bind_processor]--><tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_processor" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_processor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.compare_values">
-<!--[sqlalchemy.types.TypeDecorator.compare_values]--><tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.compare_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.compare_values" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.copy">
-<!--[sqlalchemy.types.TypeDecorator.copy]--><tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.copy_value">
-<!--[sqlalchemy.types.TypeDecorator.copy_value]--><tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy_value" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy_value" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.dialect_impl">
-<!--[sqlalchemy.types.TypeDecorator.dialect_impl]--><tt class="descname">dialect_impl</tt><big>(</big><em>dialect</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.dialect_impl" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dialect_impl</tt><big>(</big><em>dialect</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.dialect_impl" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.get_col_spec">
-<!--[sqlalchemy.types.TypeDecorator.get_col_spec]--><tt class="descname">get_col_spec</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.get_col_spec" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_col_spec</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.get_col_spec" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.get_dbapi_type">
-<!--[sqlalchemy.types.TypeDecorator.get_dbapi_type]--><tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.is_mutable">
-<!--[sqlalchemy.types.TypeDecorator.is_mutable]--><tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.is_mutable" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.is_mutable" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.load_dialect_impl">
-<!--[sqlalchemy.types.TypeDecorator.load_dialect_impl]--><tt class="descname">load_dialect_impl</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">load_dialect_impl</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the dialect-specific implementation of this type.</p>
 <p>by default calls dialect.type_descriptor(self.impl), but
 can be overridden to provide different behavior.</p>
@@ -546,24 +570,25 @@ can be overridden to provide different behavior.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.process_bind_param">
-<!--[sqlalchemy.types.TypeDecorator.process_bind_param]--><tt class="descname">process_bind_param</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">process_bind_param</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.process_result_value">
-<!--[sqlalchemy.types.TypeDecorator.process_result_value]--><tt class="descname">process_result_value</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">process_result_value</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.result_processor">
-<!--[sqlalchemy.types.TypeDecorator.result_processor]--><tt class="descname">result_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.result_processor" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">result_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.result_processor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.TypeEngine">
-<!--[sqlalchemy.types.TypeEngine]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TypeEngine</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TypeEngine</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.AbstractType" class="reference internal" href="#sqlalchemy.types.AbstractType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.AbstractType</span></tt></a></p>
 <p>Base for built-in types.</p>
 <p>May be sub-classed to create entirely new types.  Example:</p>
@@ -594,17 +619,17 @@ can be overridden to provide different behavior.</p>
 </div>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.__init__">
-<!--[sqlalchemy.types.TypeEngine.__init__]--><tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.adapt">
-<!--[sqlalchemy.types.TypeEngine.adapt]--><tt class="descname">adapt</tt><big>(</big><em>cls</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.adapt" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">adapt</tt><big>(</big><em>cls</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.adapt" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.adapt_operator">
-<!--[sqlalchemy.types.TypeEngine.adapt_operator]--><tt class="descname">adapt_operator</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.adapt_operator" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">adapt_operator</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.adapt_operator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given an operator from the sqlalchemy.sql.operators package,
 translate it to a new operator based on the semantics of this type.</p>
 <p>By default, returns the operator unchanged.</p>
@@ -612,7 +637,7 @@ translate it to a new operator based on the semantics of this type.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.bind_processor">
-<!--[sqlalchemy.types.TypeEngine.bind_processor]--><tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.bind_processor" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.bind_processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a conversion function for processing bind values.</p>
 <p>Returns a callable which will receive a bind parameter value
 as the sole positional argument and will return a value to
@@ -622,40 +647,40 @@ send to the DB-API.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.compare_values">
-<!--[sqlalchemy.types.TypeEngine.compare_values]--><tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.compare_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.compare_values" title="Permalink to this definition">¶</a></dt>
 <dd>Compare two values for equality.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.copy_value">
-<!--[sqlalchemy.types.TypeEngine.copy_value]--><tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.copy_value" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.copy_value" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.dialect_impl">
-<!--[sqlalchemy.types.TypeEngine.dialect_impl]--><tt class="descname">dialect_impl</tt><big>(</big><em>dialect</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.dialect_impl" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dialect_impl</tt><big>(</big><em>dialect</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.dialect_impl" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.get_col_spec">
-<!--[sqlalchemy.types.TypeEngine.get_col_spec]--><tt class="descname">get_col_spec</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.get_col_spec" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_col_spec</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.get_col_spec" title="Permalink to this definition">¶</a></dt>
 <dd>Return the DDL representation for this type.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.get_dbapi_type">
-<!--[sqlalchemy.types.TypeEngine.get_dbapi_type]--><tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the corresponding type object from the underlying DB-API, if any.</p>
 <p>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.get_search_list">
-<!--[sqlalchemy.types.TypeEngine.get_search_list]--><tt class="descname">get_search_list</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.get_search_list" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_search_list</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.get_search_list" title="Permalink to this definition">¶</a></dt>
 <dd>return a list of classes to test for a match
 when adapting this type to a dialect-specific type.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.is_mutable">
-<!--[sqlalchemy.types.TypeEngine.is_mutable]--><tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.is_mutable" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.is_mutable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if the target Python type is &#8216;mutable&#8217;.</p>
 <p>This allows systems like the ORM to know if a column value can
 be considered &#8216;not changed&#8217; by comparing the identity of
@@ -667,7 +692,7 @@ return True in custom types that hold mutable values such as
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.result_processor">
-<!--[sqlalchemy.types.TypeEngine.result_processor]--><tt class="descname">result_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.result_processor" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">result_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.result_processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a conversion function for processing result row values.</p>
 <p>Returns a callable which will receive a result row column
 value as the sole positional argument and will return a value
@@ -679,16 +704,17 @@ to return to the user.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.types.AbstractType">
-<!--[sqlalchemy.types.AbstractType]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">AbstractType</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">AbstractType</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.__init__">
-<!--[sqlalchemy.types.AbstractType.__init__]--><tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.adapt_operator">
-<!--[sqlalchemy.types.AbstractType.adapt_operator]--><tt class="descname">adapt_operator</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.adapt_operator" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">adapt_operator</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.adapt_operator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given an operator from the sqlalchemy.sql.operators package,
 translate it to a new operator based on the semantics of this type.</p>
 <p>By default, returns the operator unchanged.</p>
@@ -696,29 +722,29 @@ translate it to a new operator based on the semantics of this type.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.bind_processor">
-<!--[sqlalchemy.types.AbstractType.bind_processor]--><tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.bind_processor" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.bind_processor" title="Permalink to this definition">¶</a></dt>
 <dd>Defines a bind parameter processing function.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.compare_values">
-<!--[sqlalchemy.types.AbstractType.compare_values]--><tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.compare_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.compare_values" title="Permalink to this definition">¶</a></dt>
 <dd>Compare two values for equality.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.copy_value">
-<!--[sqlalchemy.types.AbstractType.copy_value]--><tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.copy_value" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.copy_value" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.get_dbapi_type">
-<!--[sqlalchemy.types.AbstractType.get_dbapi_type]--><tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the corresponding type object from the underlying DB-API, if any.</p>
 <p>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.is_mutable">
-<!--[sqlalchemy.types.AbstractType.is_mutable]--><tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.is_mutable" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.is_mutable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if the target Python type is &#8216;mutable&#8217;.</p>
 <p>This allows systems like the ORM to know if a column value can
 be considered &#8216;not changed&#8217; by comparing the identity of
@@ -730,60 +756,63 @@ return True in custom types that hold mutable values such as
 
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.result_processor">
-<!--[sqlalchemy.types.AbstractType.result_processor]--><tt class="descname">result_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.result_processor" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">result_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.result_processor" title="Permalink to this definition">¶</a></dt>
 <dd>Defines a result-column processing function.</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.MutableType">
-<!--[sqlalchemy.types.MutableType]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">MutableType</tt><a class="headerlink" href="#sqlalchemy.types.MutableType" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">MutableType</tt><a class="headerlink" href="#sqlalchemy.types.MutableType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
 <p>A mixin that marks a Type as holding a mutable object.</p>
 <p><a title="sqlalchemy.types.MutableType.copy_value" class="reference internal" href="#sqlalchemy.types.MutableType.copy_value"><tt class="xref docutils literal"><span class="pre">copy_value()</span></tt></a> and <a title="sqlalchemy.types.MutableType.compare_values" class="reference internal" href="#sqlalchemy.types.MutableType.compare_values"><tt class="xref docutils literal"><span class="pre">compare_values()</span></tt></a> should be customized
 as needed to match the needs of the object.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.MutableType.__init__">
-<!--[sqlalchemy.types.MutableType.__init__]--><tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.__init__" title="Permalink to this definition">¶</a></dt>
 <dd>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.MutableType.compare_values">
-<!--[sqlalchemy.types.MutableType.compare_values]--><tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.compare_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.compare_values" title="Permalink to this definition">¶</a></dt>
 <dd>Compare <em>x</em> == <em>y</em>.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.MutableType.copy_value">
-<!--[sqlalchemy.types.MutableType.copy_value]--><tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.copy_value" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.copy_value" title="Permalink to this definition">¶</a></dt>
 <dd>Unimplemented.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.MutableType.is_mutable">
-<!--[sqlalchemy.types.MutableType.is_mutable]--><tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.is_mutable" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.is_mutable" title="Permalink to this definition">¶</a></dt>
 <dd>Return True, mutable.</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.Concatenable">
-<!--[sqlalchemy.types.Concatenable]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Concatenable</tt><a class="headerlink" href="#sqlalchemy.types.Concatenable" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Concatenable</tt><a class="headerlink" href="#sqlalchemy.types.Concatenable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
 <p>A mixin that marks a type as supporting &#8216;concatenation&#8217;, typically strings.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.Concatenable.__init__">
-<!--[sqlalchemy.types.Concatenable.__init__]--><tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.Concatenable.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.Concatenable.__init__" title="Permalink to this definition">¶</a></dt>
 <dd>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.Concatenable.adapt_operator">
-<!--[sqlalchemy.types.Concatenable.adapt_operator]--><tt class="descname">adapt_operator</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Concatenable.adapt_operator" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">adapt_operator</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Concatenable.adapt_operator" title="Permalink to this definition">¶</a></dt>
 <dd>Converts an add operator to concat.</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.NullType">
-<!--[sqlalchemy.types.NullType]-->class <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NullType</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NullType" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NullType</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NullType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>An unknown type.</p>
 <p>NullTypes will stand in if <tt class="xref docutils literal"><span class="pre">Table</span></tt> reflection
@@ -814,7 +843,7 @@ encountered during a <tt class="xref docutils literal"><span class="pre">create(
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
                 </div>
             </div>
         

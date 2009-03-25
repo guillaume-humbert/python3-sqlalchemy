@@ -286,6 +286,9 @@ You can load a table whose name is specified at runtime with the entity() method
     >>> db.entity(tablename) == db.loans
     True
 
+entity() also takes an optional schema argument.  If none is specified, the
+default schema is used.
+
 
 Extra tests
 ===========
@@ -397,7 +400,7 @@ class SelectableClassType(type):
     def update(cls, whereclause=None, values=None, **kwargs):
         _ddl_error(cls)
 
-    def __selectable__(cls):
+    def __clause_element__(cls):
         return cls._table
 
     def __getattr__(cls, attr):
@@ -442,7 +445,7 @@ def _selectable_name(selectable):
         return x
 
 def class_for_table(selectable, **mapper_kwargs):
-    selectable = expression._selectable(selectable)
+    selectable = expression._clause_element_as_expr(selectable)
     mapname = 'Mapped' + _selectable_name(selectable)
     if isinstance(mapname, unicode): 
         engine_encoding = selectable.metadata.bind.dialect.encoding 
@@ -531,17 +534,17 @@ class SqlSoup:
 
     def with_labels(self, item):
         # TODO give meaningful aliases
-        return self.map(expression._selectable(item).select(use_labels=True).alias('foo'))
+        return self.map(expression._clause_element_as_expr(item).select(use_labels=True).alias('foo'))
 
     def join(self, *args, **kwargs):
         j = join(*args, **kwargs)
         return self.map(j)
 
-    def entity(self, attr):
+    def entity(self, attr, schema=None):
         try:
             t = self._cache[attr]
         except KeyError:
-            table = Table(attr, self._metadata, autoload=True, schema=self.schema)
+            table = Table(attr, self._metadata, autoload=True, schema=schema or self.schema)
             if not table.primary_key.columns:
                 raise PKNotFoundError('table %r does not have a primary key defined [columns: %s]' % (attr, ','.join(table.c.keys())))
             if table.columns:
