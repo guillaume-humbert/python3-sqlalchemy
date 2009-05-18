@@ -20,20 +20,14 @@ build:
 build-docs:
 	dh_testdir
 	dh_installdirs
-	PYTHONPATH=. sphinx-build -N -q -E -b html doc/build/ \
+	cd doc/build && sphinx-build -N -q -E -b html . \
 	 $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/
 	rm -rf $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/.doctrees
 	touch $@
 
-#install-docs: build-docs
-install-docs:
+install-docs: build-docs
 	dh_testdir
 	dh_installdirs
-	
-	# TODO: use build-docs rule instead (once Sphinx 0.6 will be released):
-	dh_install -p${p_name}-doc doc/* \
-		--exclude=doc/build --exclude=doc/_sources \
-		/usr/share/doc/${p_name}-doc/html/
 	
 	dh_install -p${p_name}-doc doc/_sources/* \
 	       	/usr/share/doc/${p_name}-doc/rst
