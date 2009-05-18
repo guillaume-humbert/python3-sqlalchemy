@@ -7,7 +7,7 @@
         
         <title>
     serializer
- &mdash; SQLAlchemy 0.5.3 Documentation</title>
+ &mdash; SQLAlchemy 0.5.4p1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.3',
+          VERSION:     '0.5.4p1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.4p1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="SqlSoup" href="sqlsoup.html" />
         <link rel="prev" title="orderinglist" href="orderinglist.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.3 Documentation</h1>
+        <h1>SQLAlchemy 0.5.4p1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
+            Version: <span class="versionnum">0.5.4p1</span> Last Updated: 05/18/2009 12:31:20
         </div>
         <div class="clearboth"></div>
 
@@ -102,35 +102,6 @@
 </tr>
 </tbody>
 </table>
-<p>Serializer/Deserializer objects for usage with SQLAlchemy structures.</p>
-<p>Any SQLAlchemy structure, including Tables, Columns, expressions, mappers,
-Query objects etc. can be serialized in a minimally-sized format,
-and deserialized when given a Metadata and optional ScopedSession object
-to use as context on the way out.</p>
-<p>Usage is nearly the same as that of the standard Python pickle module:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.serializer</span> <span class="kn">import</span> <span class="n">loads</span><span class="p">,</span> <span class="n">dumps</span>
-<span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">some_engine</span><span class="p">)</span>
-<span class="n">Session</span> <span class="o">=</span> <span class="n">scoped_session</span><span class="p">(</span><span class="n">sessionmaker</span><span class="p">())</span>
-
-<span class="c"># ... define mappers</span>
-
-<span class="n">query</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">somedata</span><span class="o">==</span><span class="s">&#39;foo&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">sortkey</span><span class="p">)</span>
-
-<span class="c"># pickle the query</span>
-<span class="n">serialized</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-
-<span class="c"># unpickle.  Pass in metadata + scoped_session</span>
-<span class="n">query2</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">serialized</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">Session</span><span class="p">)</span>
-
-<span class="k">print</span> <span class="n">query2</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
-</div>
-<p>Similar restrictions as when using raw pickle apply; mapped classes must be
-themselves be pickleable, meaning they are importable from a module-level
-namespace.</p>
-<p>Note that instances of user-defined classes do not require this extension
-in order to be pickled; these contain no references to engines, sessions
-or expression constructs in the typical case and can be serialized directly.
-This module is specifically for ORM and expression constructs.</p>
 <p>Serializer/Deserializer objects for usage with SQLAlchemy structures.</p>
 <p>Any SQLAlchemy structure, including Tables, Columns, expressions, mappers,
 Query objects etc. can be serialized in a minimally-sized format,
@@ -198,7 +169,7 @@ This module is specifically for ORM and expression constructs.</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

@@ -484,8 +484,7 @@ def cast(clause, totype, **kwargs):
 def extract(field, expr):
     """Return the clause ``extract(field FROM expr)``."""
 
-    expr = _BinaryExpression(text(field), expr, operators.from_)
-    return func.extract(expr)
+    return _Extract(field, expr)
 
 def collate(expression, collation):
     """Return the clause ``expression COLLATE collation``."""
@@ -1588,7 +1587,7 @@ class ColumnElement(ClauseElement, _CompareMixin):
     def shares_lineage(self, othercolumn):
         """Return True if the given ``ColumnElement`` has a common ancestor to this ``ColumnElement``."""
 
-        return len(self.proxy_set.intersection(othercolumn.proxy_set)) > 0
+        return bool(self.proxy_set.intersection(othercolumn.proxy_set))
 
     def _make_proxy(self, selectable, name=None):
         """Create a new ``ColumnElement`` representing this
@@ -2013,7 +2012,7 @@ class _BindParamClause(ColumnElement):
         the same type.
 
         """
-        return isinstance(other, _BindParamClause) and other.type.__class__ == self.type.__class__
+        return isinstance(other, _BindParamClause) and other.type.__class__ == self.type.__class__ and self.value == other.value
 
     def __getstate__(self):
         """execute a deferred value for serialization purposes."""
@@ -2205,13 +2204,17 @@ class _Case(ColumnElement):
             whenlist = [(_literal_as_binds(c).self_group(), _literal_as_binds(r)) for (c, r) in whens]
         else:
             whenlist = [(_no_literals(c).self_group(), _literal_as_binds(r)) for (c, r) in whens]
-            
+
         if whenlist:
             type_ = list(whenlist[-1])[-1].type
         else:
             type_ = None
-            
-        self.value = value
+
+        if value is None:
+            self.value = None
+        else:
+            self.value = _literal_as_binds(value)
+
         self.type = type_
         self.whens = whenlist
         if else_ is not None:
@@ -2237,7 +2240,7 @@ class _Case(ColumnElement):
 
     @property
     def _from_objects(self):
-        return itertools.chain(*[x._from_objects for x in self.get_children()])
+        return list(itertools.chain(*[x._from_objects for x in self.get_children()]))
 
 class Function(ColumnElement, FromClause):
     """Describe a SQL function."""
@@ -2311,6 +2314,27 @@ class _Cast(ColumnElement):
     @property
     def _from_objects(self):
         return self.clause._from_objects
+
+
+class _Extract(ColumnElement):
+
+    __visit_name__ = 'extract'
+
+    def __init__(self, field, expr, **kwargs):
+        self.type = sqltypes.Integer()
+        self.field = field
+        self.expr = _literal_as_binds(expr, None)
+
+    def _copy_internals(self, clone=_clone):
+        self.field = clone(self.field)
+        self.expr = clone(self.expr)
+
+    def get_children(self, **kwargs):
+        return self.field, self.expr
+
+    @property
+    def _from_objects(self):
+        return self.expr._from_objects
 
 
 class _UnaryExpression(ColumnElement):

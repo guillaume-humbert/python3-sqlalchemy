@@ -7,7 +7,7 @@
         
         <title>
     SQL Expression Language Tutorial
- &mdash; SQLAlchemy 0.5.3 Documentation</title>
+ &mdash; SQLAlchemy 0.5.4p1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.3',
+          VERSION:     '0.5.4p1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.4p1 Documentation" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mappers.html" />
         <link rel="prev" title="Object Relational Tutorial" href="ormtutorial.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.3 Documentation</h1>
+        <h1>SQLAlchemy 0.5.4p1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
+            Version: <span class="versionnum">0.5.4p1</span> Last Updated: 05/18/2009 12:31:20
         </div>
         <div class="clearboth"></div>
 
@@ -307,7 +307,7 @@ FROM users
 <p>Integer indexes work as well:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">row</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&quot;name:&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="mf">1</span><span class="p">],</span> <span class="s">&quot;; fullname:&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="mf">2</span><span class="p">]</span>
-<span class="go">name: jack ; fullname: Jack Jones</span></pre></div>
+<span class="go">name: wendy ; fullname: Wendy Williams</span></pre></div>
 </div>
 <p>But another way, whose usefulness will become apparent later on, is to use the <tt class="docutils literal"><span class="pre">Column</span></tt> objects directly as keys:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
@@ -897,7 +897,7 @@ COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x
 
                 <div class="doc_copyright">
                     &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

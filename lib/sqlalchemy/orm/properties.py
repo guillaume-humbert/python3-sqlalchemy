@@ -96,13 +96,13 @@ class ColumnProperty(StrategizedProperty):
         return ColumnProperty(deferred=self.deferred, group=self.group, *self.columns)
 
     def getattr(self, state, column):
-        return state.get_impl(self.key).get(state)
+        return state.get_impl(self.key).get(state, state.dict)
 
     def getcommitted(self, state, column, passive=False):
-        return state.get_impl(self.key).get_committed_value(state, passive=passive)
+        return state.get_impl(self.key).get_committed_value(state, state.dict, passive=passive)
 
     def setattr(self, state, value, column):
-        state.get_impl(self.key).set(state, value, None)
+        state.get_impl(self.key).set(state, state.dict, value, None)
 
     def merge(self, session, source, dest, dont_load, _recursive):
         value = attributes.instance_state(source).value_as_iterable(
@@ -159,7 +159,7 @@ class CompositeProperty(ColumnProperty):
         super(ColumnProperty, self).do_init()
 
     def getattr(self, state, column):
-        obj = state.get_impl(self.key).get(state)
+        obj = state.get_impl(self.key).get(state, state.dict)
         return self.get_col_value(column, obj)
 
     def getcommitted(self, state, column, passive=False):
@@ -168,7 +168,7 @@ class CompositeProperty(ColumnProperty):
 
     def setattr(self, state, value, column):
 
-        obj = state.get_impl(self.key).get(state)
+        obj = state.get_impl(self.key).get(state, state.dict)
         if obj is None:
             obj = self.composite_class(*[None for c in self.columns])
             state.get_impl(self.key).set(state, obj, None)
@@ -635,7 +635,7 @@ class RelationProperty(StrategizedProperty):
                     return
 
         source_state = attributes.instance_state(source)
-        dest_state = attributes.instance_state(dest)
+        dest_state, dest_dict = attributes.instance_state(dest), attributes.instance_dict(dest)
 
         if not "merge" in self.cascade:
             dest_state.expire_attributes([self.key])
@@ -650,7 +650,7 @@ class RelationProperty(StrategizedProperty):
             dest_list = []
             for current in instances:
                 _recursive[(current, self)] = True
-                obj = session.merge(current, dont_load=dont_load, _recursive=_recursive)
+                obj = session._merge(current, dont_load=dont_load, _recursive=_recursive)
                 if obj is not None:
                     dest_list.append(obj)
             if dont_load:
@@ -658,12 +658,12 @@ class RelationProperty(StrategizedProperty):
                 for c in dest_list:
                     coll.append_without_event(c)
             else:
-                getattr(dest.__class__, self.key).impl._set_iterable(dest_state, dest_list)
+                getattr(dest.__class__, self.key).impl._set_iterable(dest_state, dest_dict, dest_list)
         else:
             current = instances[0]
             if current is not None:
                 _recursive[(current, self)] = True
-                obj = session.merge(current, dont_load=dont_load, _recursive=_recursive)
+                obj = session._merge(current, dont_load=dont_load, _recursive=_recursive)
                 if obj is not None:
                     if dont_load:
                         dest_state.dict[self.key] = obj
@@ -839,8 +839,8 @@ class RelationProperty(StrategizedProperty):
                     if self._foreign_keys:
                         raise sa_exc.ArgumentError("Could not determine relation direction for "
                             "primaryjoin condition '%s', on relation %s. "
-                            "Are the columns in 'foreign_keys' present within the given "
-                            "join condition ?" % (self.primaryjoin, self))
+                            "Do the columns in 'foreign_keys' represent only the 'foreign' columns "
+                            "in this join condition ?" % (self.primaryjoin, self))
                     else:
                         raise sa_exc.ArgumentError("Could not determine relation direction for "
                             "primaryjoin condition '%s', on relation %s. "
@@ -1021,7 +1021,11 @@ class RelationProperty(StrategizedProperty):
         
 
     def _refers_to_parent_table(self):
-        return self.parent.mapped_table is self.target
+        for c, f in self.synchronize_pairs:
+            if c.table is f.table:
+                return True
+        else:
+            return False
 
     def _is_self_referential(self):
         return self.mapper.common_parent(self.parent)
@@ -1114,6 +1118,10 @@ class RelationProperty(StrategizedProperty):
     def register_dependencies(self, uowcommit):
         if not self.viewonly:
             self._dependency_processor.register_dependencies(uowcommit)
+
+    def register_processors(self, uowcommit):
+        if not self.viewonly:
+            self._dependency_processor.register_processors(uowcommit)
 
 PropertyLoader = RelationProperty
 log.class_logger(RelationProperty)

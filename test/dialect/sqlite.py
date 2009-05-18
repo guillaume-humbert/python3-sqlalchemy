@@ -3,13 +3,35 @@
 import testenv; testenv.configure_for_tests()
 import datetime
 from sqlalchemy import *
-from sqlalchemy import exc
+from sqlalchemy import exc, sql
 from sqlalchemy.databases import sqlite
 from testlib import *
 
 
 class TestTypes(TestBase, AssertsExecutionResults):
     __only_on__ = 'sqlite'
+
+    def test_boolean(self):
+        """Test that the boolean only treats 1 as True
+
+        """
+
+        meta = MetaData(testing.db)
+        t = Table('bool_table', meta,
+                  Column('id', Integer, primary_key=True),
+                  Column('boo', sqlite.SLBoolean))
+
+        try:
+            meta.create_all()
+            testing.db.execute("INSERT INTO bool_table (id, boo) VALUES (1, 'false');")
+            testing.db.execute("INSERT INTO bool_table (id, boo) VALUES (2, 'true');")
+            testing.db.execute("INSERT INTO bool_table (id, boo) VALUES (3, '1');")
+            testing.db.execute("INSERT INTO bool_table (id, boo) VALUES (4, '0');")
+            testing.db.execute("INSERT INTO bool_table (id, boo) VALUES (5, 1);")
+            testing.db.execute("INSERT INTO bool_table (id, boo) VALUES (6, 0);")
+            assert t.select(t.c.boo).order_by(t.c.id).execute().fetchall() == [(3, True,), (5, True,)]
+        finally:
+            meta.drop_all()
 
     def test_string_dates_raise(self):
         self.assertRaises(TypeError, testing.db.execute, select([1]).where(bindparam("date", type_=Date)), date=str(datetime.date(2007, 10, 30)))
@@ -73,7 +95,7 @@ class TestTypes(TestBase, AssertsExecutionResults):
                  ( Numeric(10, 2), sqlite.SLNumeric(10, 2), ),
                  ( DECIMAL, sqlite.SLNumeric(), ),
                  ( DECIMAL(10, 2), sqlite.SLNumeric(10, 2), ),
-                 ( Float, sqlite.SLNumeric(), ),
+                 ( Float, sqlite.SLFloat(), ),
                  ( sqlite.SLNumeric(), ),
                  ( INT, sqlite.SLInteger(), ),
                  ( Integer, sqlite.SLInteger(), ),
@@ -282,6 +304,36 @@ class DialectTest(TestBase, AssertsExecutionResults):
             except exc.DBAPIError:
                 pass
             raise
+
+
+class SQLTest(TestBase, AssertsCompiledSQL):
+    """Tests SQLite-dialect specific compilation."""
+
+    __dialect__ = sqlite.dialect()
+
+
+    def test_extract(self):
+        t = sql.table('t', sql.column('col1'))
+
+        mapping = {
+            'month': '%m',
+            'day': '%d',
+            'year': '%Y',
+            'second': '%S',
+            'hour': '%H',
+            'doy': '%j',
+            'minute': '%M',
+            'epoch': '%s',
+            'dow': '%w',
+            'week': '%W',
+            }
+
+        for field, subst in mapping.items():
+            self.assert_compile(
+                select([extract(field, t.c.col1)]),
+                "SELECT CAST(STRFTIME('%s', t.col1) AS INTEGER) AS anon_1 "
+                "FROM t" % subst)
+
 
 class InsertTest(TestBase, AssertsExecutionResults):
     """Tests inserts and autoincrement."""

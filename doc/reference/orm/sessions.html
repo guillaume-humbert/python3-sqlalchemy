@@ -7,7 +7,7 @@
         
         <title>
     Sessions
- &mdash; SQLAlchemy 0.5.3 Documentation</title>
+ &mdash; SQLAlchemy 0.5.4p1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.3',
+          VERSION:     '0.5.4p1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.4p1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.3 Documentation</h1>
+        <h1>SQLAlchemy 0.5.4p1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
+            Version: <span class="versionnum">0.5.4p1</span> Last Updated: 05/18/2009 12:31:20
         </div>
         <div class="clearboth"></div>
 
@@ -287,13 +287,13 @@ by the <tt class="docutils literal"><span class="pre">query()</span></tt> method
 called. This allows each database to roll back the entire transaction,
 before each transaction is committed.</dd>
 <dt>weak_identity_map</dt>
-<dd>When set to the default value of <tt class="xref docutils literal"><span class="pre">False</span></tt>, a weak-referencing map is
+<dd>When set to the default value of <tt class="xref docutils literal"><span class="pre">True</span></tt>, a weak-referencing map is
 used; instances which are not externally referenced will be garbage
 collected immediately. For dereferenced instances which have pending
 changes present, the attribute management system will create a temporary
 strong-reference to the object which lasts until the changes are flushed
 to the database, at which point it&#8217;s again dereferenced. Alternatively,
-when using the value <tt class="xref docutils literal"><span class="pre">True</span></tt>, the identity map uses a regular Python
+when using the value <tt class="xref docutils literal"><span class="pre">False</span></tt>, the identity map uses a regular Python
 dictionary to store instances. The session will maintain all instances
 present until they are removed using expunge(), clear(), or purge().</dd>
 </dl>
@@ -655,7 +655,7 @@ should not be loaded in the course of performing this test.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.session.Session.merge">
-<tt class="descname">merge</tt><big>(</big><em>instance</em>, <em>dont_load=False</em>, <em>_recursive=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.merge" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">merge</tt><big>(</big><em>instance</em>, <em>dont_load=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.merge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy the state an instance onto the persistent instance with the same identifier.</p>
 <p>If there is no persistent instance currently associated with the
 session, it will be loaded.  Return the persistent instance. If the
@@ -843,7 +843,7 @@ a class.</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

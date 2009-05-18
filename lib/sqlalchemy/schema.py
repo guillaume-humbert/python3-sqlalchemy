@@ -842,8 +842,13 @@ class ForeignKey(SchemaItem):
             return schema + "." + self.column.table.name + "." + self.column.key
         elif isinstance(self._colspec, basestring):
             return self._colspec
+        elif hasattr(self._colspec, '__clause_element__'):
+            _column = self._colspec.__clause_element__()
         else:
-            return "%s.%s" % (self._colspec.table.fullname, self._colspec.key)
+            _column = self._colspec
+            
+        return "%s.%s" % (_column.table.fullname, _column.key)
+
     target_fullname = property(_get_colspec)
 
     def references(self, table):
@@ -876,17 +881,33 @@ class ForeignKey(SchemaItem):
                 raise exc.ArgumentError(
                     "Parent column '%s' does not descend from a "
                     "table-attached Column" % str(self.parent))
-            m = re.match(r"^(.+?)(?:\.(.+?))?(?:\.(.+?))?$", self._colspec,
-                         re.UNICODE)
+
+            m = self._colspec.split('.')
+
             if m is None:
                 raise exc.ArgumentError(
                     "Invalid foreign key column specification: %s" %
                     self._colspec)
-            if m.group(3) is None:
-                (tname, colname) = m.group(1, 2)
-                schema = None
+
+            # A FK between column 'bar' and table 'foo' can be
+            # specified as 'foo', 'foo.bar', 'dbo.foo.bar',
+            # 'otherdb.dbo.foo.bar'. Once we have the column name and
+            # the table name, treat everything else as the schema
+            # name. Some databases (e.g. Sybase) support
+            # inter-database foreign keys. See tickets#1341 and --
+            # indirectly related -- Ticket #594. This assumes that '.'
+            # will never appear *within* any component of the FK.
+
+            (schema, tname, colname) = (None, None, None)
+            if (len(m) == 1):
+                tname   = m.pop()
             else:
-                (schema, tname, colname) = m.group(1, 2, 3)
+                colname = m.pop()
+                tname   = m.pop()
+
+            if (len(m) > 0):
+                schema = '.'.join(m)
+
             if _get_table_key(tname, schema) not in parenttable.metadata:
                 raise exc.NoReferencedTableError(
                     "Could not find table '%s' with which to generate a "

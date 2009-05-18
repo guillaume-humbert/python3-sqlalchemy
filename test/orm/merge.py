@@ -221,6 +221,15 @@ class MergeTest(_fixtures.FixtureTest):
         eq_(on_load.called, 6)
 
     @testing.resolve_artifact_names
+    def test_merge_empty_attributes(self):
+        mapper(User, dingalings)
+        u1 = User(id=1)
+        sess = create_session()
+        sess.merge(u1)
+        sess.flush()
+        assert u1.address_id is u1.data is None
+        
+    @testing.resolve_artifact_names
     def test_attribute_cascade(self):
         """Merge of a persistent entity with two child persistent entities."""
 
@@ -693,6 +702,35 @@ class MergeTest(_fixtures.FixtureTest):
         assert merged_user in sess.new
         sess.flush()
         assert merged_user not in sess.new
+
+    @testing.resolve_artifact_names
+    def test_cascades_dont_autoflush_2(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address,
+                        backref='user',
+                                 cascade="all, delete-orphan")
+        })
+        mapper(Address, addresses)
+
+        u = User(id=7, name='fred', addresses=[
+            Address(id=1, email_address='fred1'),
+        ])
+        sess = create_session(autoflush=True, autocommit=False)
+        sess.add(u)
+        sess.commit()
+
+        sess.expunge_all()
+
+        u = User(id=7, name='fred', addresses=[
+            Address(id=1, email_address='fred1'),
+            Address(id=2, email_address='fred2'),
+        ])
+        sess.merge(u)
+        assert sess.autoflush
+        sess.commit()
+
+
+
 
 if __name__ == "__main__":
     testenv.main()
