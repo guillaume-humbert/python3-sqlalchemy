@@ -1,3 +1,10 @@
+sqlalchemy (0.5.4p2-2) UNRELEASED; urgency=low
+
+  * Add python-pymssql to Suggests (and add a note about Microsoft SQL Server
+    in README.Debian)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 05 Jul 2009 20:28:40 +0200
+
 sqlalchemy (0.5.4p2-1) unstable; urgency=low
 
   * New upstream release
