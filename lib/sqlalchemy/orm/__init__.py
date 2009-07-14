@@ -81,11 +81,13 @@ __all__ = (
     'eagerload',
     'eagerload_all',
     'extension',
+    'join',
     'lazyload',
     'mapper',
     'noload',
     'object_mapper',
     'object_session',
+    'outerjoin',
     'polymorphic_union',
     'reconstructor',
     'relation',
@@ -336,7 +338,7 @@ def relation(argument, secondary=None, **kwargs):
       the foreign key in the database, and that the database will
       handle propagation of an UPDATE from a source column to
       dependent rows.  Note that with databases which enforce
-      referential integrity (i.e. Postgres, MySQL with InnoDB tables),
+      referential integrity (i.e. PostgreSQL, MySQL with InnoDB tables),
       ON UPDATE CASCADE is required for this operation.  The
       relation() will update the value of the attribute on related
       items which are locally present in the session during a flush.
@@ -934,7 +936,7 @@ def contains_eager(*keys, **kwargs):
     if kwargs:
         raise exceptions.ArgumentError("Invalid kwargs for contains_eager: %r" % kwargs.keys())
 
-    return (strategies.EagerLazyOption(keys, lazy=False), strategies.LoadEagerFromAliasOption(keys, alias=alias))
+    return (strategies.EagerLazyOption(keys, lazy=False, _only_on_lead=True), strategies.LoadEagerFromAliasOption(keys, alias=alias))
 
 @sa_util.accepts_a_list_as_starargs(list_deprecation='pending')
 def defer(*keys):

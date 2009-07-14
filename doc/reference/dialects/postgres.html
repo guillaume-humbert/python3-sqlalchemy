@@ -7,7 +7,7 @@
         
         <title>
     PostgreSQL
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.databases" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -117,7 +117,7 @@ with this module.</p>
 <div class="section" id="connecting">
 <h2>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h2>
 <p>URLs are of the form <cite>postgres://user:password&#64;host:port/dbname[?key=value&amp;key=value...]</cite>.</p>
-<p>Postgres-specific keyword arguments which are accepted by <a title="sqlalchemy.create_engine" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
+<p>PostgreSQL-specific keyword arguments which are accepted by <a title="sqlalchemy.create_engine" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
 <ul class="simple">
 <li><em>server_side_cursors</em> - Enable the usage of &#8220;server side cursors&#8221; for SQL statements which support
 this feature.  What this essentially means from a psycopg2 point of view is that the cursor is 
@@ -130,7 +130,7 @@ at a time are fetched over the wire to reduce conversational overhead.</li>
 </div>
 <div class="section" id="sequences-serial">
 <h2>Sequences/SERIAL<a class="headerlink" href="#sequences-serial" title="Permalink to this headline">¶</a></h2>
-<p>Postgres supports sequences, and SQLAlchemy uses these as the default means of creating
+<p>PostgreSQL supports sequences, and SQLAlchemy uses these as the default means of creating
 new primary key values for integer-based primary key columns.   When creating tables, 
 SQLAlchemy will issue the <tt class="docutils literal"><span class="pre">SERIAL</span></tt> datatype for integer-based primary key columns, 
 which generates a sequence corresponding to the column and associated with it based on
@@ -147,7 +147,7 @@ beforehand and the new value is retrieved, to be used in the subsequent insert. 
 that when an <a title="sqlalchemy.sql.expression.insert" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.insert"><tt class="xref docutils literal"><span class="pre">insert()</span></tt></a> construct is executed using 
 &#8220;executemany&#8221; semantics, the sequence is not pre-executed and normal PG SERIAL behavior
 is used.</p>
-<p>Postgres 8.3 supports an <tt class="docutils literal"><span class="pre">INSERT...RETURNING</span></tt> syntax which SQLAlchemy supports 
+<p>PostgreSQL 8.3 supports an <tt class="docutils literal"><span class="pre">INSERT...RETURNING</span></tt> syntax which SQLAlchemy supports 
 as well.  A future release of SQLA will use this feature by default in lieu of 
 sequence pre-execution in order to retrieve new primary key values, when available.</p>
 </div>
@@ -175,7 +175,7 @@ option to the Index constructor:</p>
 </div>
 <div class="section" id="transactions">
 <h2>Transactions<a class="headerlink" href="#transactions" title="Permalink to this headline">¶</a></h2>
-<p>The Postgres dialect fully supports SAVEPOINT and two-phase commit operations.</p>
+<p>The PostgreSQL dialect fully supports SAVEPOINT and two-phase commit operations.</p>
 </div>
 </div>
 

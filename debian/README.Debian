@@ -19,6 +19,8 @@ For MySQL:
 For Firebird:
 	python-kinterbasdb
 
+For Microsoft SQL Server:
+    python-pymssql
 
 Documentation and examples can be found in the python-sqlalchemy-doc package
 in /usr/share/doc/python-sqlalchemy-doc.

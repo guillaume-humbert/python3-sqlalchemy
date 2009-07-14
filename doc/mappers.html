@@ -7,7 +7,7 @@
         
         <title>
     Mapper Configuration
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="index.html" />
         <link rel="next" title="Using the Session" href="session.html" />
         <link rel="prev" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -135,7 +135,8 @@
 <li><a class="reference external" href="#multiple-relations-against-the-same-parent-child">Multiple Relations against the Same Parent/Child</a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#alternate-collection-implementations">Alternate Collection Implementations</a><ul>
+<li><a class="reference external" href="#rows-that-point-to-themselves-mutually-dependent-rows">Rows that point to themselves / Mutually Dependent Rows</a></li>
+<li><a class="reference external" href="#advdatamapping-entitycollections">Alternate Collection Implementations</a><ul>
 <li><a class="reference external" href="#custom-collection-implementations">Custom Collection Implementations</a></li>
 <li><a class="reference external" href="#annotating-custom-collections-via-decorators">Annotating Custom Collections via Decorators</a></li>
 <li><a class="reference external" href="#dictionary-based-collections">Dictionary-Based Collections</a></li>
@@ -1118,7 +1119,23 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 </div>
 <div class="section" id="specifying-alternate-join-conditions-to-relation">
 <h3>Specifying Alternate Join Conditions to relation()<a class="headerlink" href="#specifying-alternate-join-conditions-to-relation" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="docutils literal"><span class="pre">relation()</span></tt> function uses the foreign key relationship between the parent and child tables to formulate the <strong>primary join condition</strong> between parent and child; in the case of a many-to-many relationship it also formulates the <strong>secondary join condition</strong>.  If you are working with a <tt class="docutils literal"><span class="pre">Table</span></tt> which has no <tt class="docutils literal"><span class="pre">ForeignKey</span></tt> objects on it (which can be the case when using reflected tables with MySQL), or if the join condition cannot be expressed by a simple foreign key relationship, use the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> and possibly <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> conditions to create the appropriate relationship.</p>
+<p>The <tt class="docutils literal"><span class="pre">relation()</span></tt> function uses the foreign key relationship between the parent and child tables to formulate the <strong>primary join condition</strong> between parent and child; in the case of a many-to-many relationship it also formulates the <strong>secondary join condition</strong>:</p>
+<div class="highlight-python"><pre>one to many/many to one:
+------------------------
+
+parent_table --&gt;  parent_table.c.id == child_table.c.parent_id --&gt;  child_table
+                               primaryjoin
+
+many to many:
+-------------
+
+parent_table --&gt;  parent_table.c.id == secondary_table.c.parent_id --&gt;
+                               primaryjoin
+
+                  secondary_table.c.child_id == child_table.c.id --&gt; child_table
+                              secondaryjoin</pre>
+</div>
+<p>If you are working with a <tt class="docutils literal"><span class="pre">Table</span></tt> which has no <tt class="docutils literal"><span class="pre">ForeignKey</span></tt> objects on it (which can be the case when using reflected tables with MySQL), or if the join condition cannot be expressed by a simple foreign key relationship, use the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> and possibly <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> conditions to create the appropriate relationship.</p>
 <p>In this example we create a relation <tt class="docutils literal"><span class="pre">boston_addresses</span></tt> which will only load the user addresses with a city of &#8220;Boston&#8221;:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">pass</span>
@@ -1179,8 +1196,39 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 </div>
 </div>
 </div>
-<div class="section" id="alternate-collection-implementations">
-<span id="id4"></span><h3>Alternate Collection Implementations<a class="headerlink" href="#alternate-collection-implementations" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="rows-that-point-to-themselves-mutually-dependent-rows">
+<span id="alternate-collection-implementations"></span><h3>Rows that point to themselves / Mutually Dependent Rows<a class="headerlink" href="#rows-that-point-to-themselves-mutually-dependent-rows" title="Permalink to this headline">¶</a></h3>
+<p>This is a very specific case where relation() must perform an INSERT and a second UPDATE in order to properly populate a row (and vice versa an UPDATE and DELETE in order to delete without violating foreign key constraints).   The two use cases are:</p>
+<blockquote>
+<ul class="simple">
+<li>A table contains a foreign key to itself, and a single row will have a foreign key value pointing to its own primary key.</li>
+<li>Two tables each contain a foreign key referencing the other table, with a row in each table referencing the other.</li>
+</ul>
+</blockquote>
+<p>For example:</p>
+<div class="highlight-python"><pre>          user
+---------------------------------
+user_id    name   related_user_id
+   1       'ed'          1</pre>
+</div>
+<p>Or:</p>
+<div class="highlight-python"><pre>             widget                                                  entry
+-------------------------------------------             ---------------------------------
+widget_id     name        favorite_entry_id             entry_id      name      widget_id
+   1       'somewidget'          5                         5       'someentry'     1</pre>
+</div>
+<p>In the first case, a row points to itself.  Technically, a database that uses sequences such as PostgreSQL or Oracle can INSERT the row at once using a previously generated value, but databases which rely upon autoincrement-style primary key identifiers cannot.  The <tt class="docutils literal"><span class="pre">relation()</span></tt> always assumes a &#8220;parent/child&#8221; model of row population during flush, so unless you are populating the primary key/foreign key columns directly, <tt class="docutils literal"><span class="pre">relation()</span></tt> needs to use two statements.</p>
+<p>In the second case, the &#8220;widget&#8221; row must be inserted before any referring &#8220;entry&#8221; rows, but then the &#8220;favorite_entry_id&#8221; column of that &#8220;widget&#8221; row cannot be set until the &#8220;entry&#8221; rows have been generated.  In this case, it&#8217;s typically impossible to insert the &#8220;widget&#8221; and &#8220;entry&#8221; rows using just two INSERT statements; an UPDATE must be performed in order to keep foreign key constraints fulfilled.   The exception is if the foreign keys are configured as &#8220;deferred until commit&#8221; (a feature some databases support) and if the identifiers were populated manually (again essentially bypassing <tt class="docutils literal"><span class="pre">relation()</span></tt>).</p>
+<p>To enable the UPDATE after INSERT / UPDATE before DELETE behavior on <tt class="docutils literal"><span class="pre">relation()</span></tt>, use the <tt class="docutils literal"><span class="pre">post_update</span></tt> flag on <em>one</em> of the relations, preferably the many-to-one side:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Widget</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+    <span class="s">&#39;entries&#39;</span><span class="p">:</span><span class="n">relation</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span><span class="n">widget</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">widget_id</span><span class="o">==</span><span class="n">entry</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">widget_id</span><span class="p">),</span>
+    <span class="s">&#39;favorite_entry&#39;</span><span class="p">:</span><span class="n">relation</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span><span class="n">widget</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">favorite_entry_id</span><span class="o">==</span><span class="n">entry</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">entry_id</span><span class="p">,</span> <span class="n">post_update</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="p">})</span></pre></div>
+</div>
+<p>When a structure using the above mapping is flushed, the &#8220;widget&#8221; row will be INSERTed minus the &#8220;favorite_entry_id&#8221; value, then all the &#8220;entry&#8221; rows will be INSERTed referencing the parent &#8220;widget&#8221; row, and then an UPDATE statement will populate the &#8220;favorite_entry_id&#8221; column of the &#8220;widget&#8221; table (it&#8217;s one row at a time for the time being).</p>
+</div>
+<div class="section" id="advdatamapping-entitycollections">
+<span id="id4"></span><h3>Alternate Collection Implementations<a class="headerlink" href="#advdatamapping-entitycollections" title="Permalink to this headline">¶</a></h3>
 <p>Mapping a one-to-many or many-to-many relationship results in a collection of values accessible through an attribute on the parent instance.  By default, this collection is a <tt class="docutils literal"><span class="pre">list</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="n">children</span> <span class="o">=</span> <span class="n">relation</span><span class="p">(</span><span class="n">Child</span><span class="p">)</span>
@@ -1190,7 +1238,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 <span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Child</span><span class="p">())</span>
 <span class="k">print</span> <span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span></pre></div>
 </div>
-<p>Collections are not limited to lists.  Sets, mutable sequences and almost any other Python object that can act as a container can be used in place of the default list.</p>
+<p>Collections are not limited to lists.  Sets, mutable sequences and almost any other Python object that can act as a container can be used in place of the default list, by specifying the <tt class="docutils literal"><span class="pre">collection_class</span></tt> option on <tt class="docutils literal"><span class="pre">relation()</span></tt>.</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># use a set</span>
 <span class="n">mapper</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="n">children</span> <span class="o">=</span> <span class="n">relation</span><span class="p">(</span><span class="n">Child</span><span class="p">,</span> <span class="n">collection_class</span><span class="o">=</span><span class="n">set</span><span class="p">)</span>
@@ -1202,7 +1250,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 <span class="k">assert</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">parent</span><span class="o">.</span><span class="n">children</span></pre></div>
 </div>
 <div class="section" id="custom-collection-implementations">
-<span id="advdatamapping-entitycollections"></span><h4>Custom Collection Implementations<a class="headerlink" href="#custom-collection-implementations" title="Permalink to this headline">¶</a></h4>
+<h4>Custom Collection Implementations<a class="headerlink" href="#custom-collection-implementations" title="Permalink to this headline">¶</a></h4>
 <p>You can use your own types for collections as well.  For most cases, simply inherit from <tt class="docutils literal"><span class="pre">list</span></tt> or <tt class="docutils literal"><span class="pre">set</span></tt> and add the custom behavior.</p>
 <p>Collections in SQLAlchemy are transparently <em>instrumented</em>.  Instrumentation means that normal operations on the collection are tracked and result in changes being written to the database at flush time.  Additionally, collection operations can fire <em>events</em> which indicate some secondary operation must take place.  Examples of a secondary operation include saving the child item in the parent&#8217;s <tt class="docutils literal"><span class="pre">Session</span></tt> (i.e. the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade), as well as synchronizing the state of a bi-directional relationship (i.e. a <tt class="docutils literal"><span class="pre">backref</span></tt>).</p>
 <p>The collections package understands the basic interface of lists, sets and dicts and will automatically apply instrumentation to those built-in types and their subclasses.  Object-derived types that implement a basic collection interface are detected and instrumented via duck-typing:</p>
@@ -1320,7 +1368,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 </div>
 <div class="section" id="configuring-loader-strategies-lazy-loading-eager-loading">
 <h3>Configuring Loader Strategies: Lazy Loading, Eager Loading<a class="headerlink" href="#configuring-loader-strategies-lazy-loading-eager-loading" title="Permalink to this headline">¶</a></h3>
-<p>In the <cite>datamapping</cite>, we introduced the concept of <strong>Eager Loading</strong>.  We used an <tt class="docutils literal"><span class="pre">option</span></tt> in conjunction with the <tt class="docutils literal"><span class="pre">Query</span></tt> object in order to indicate that a relation should be loaded at the same time as the parent, within a single SQL query:</p>
+<p>In the <a class="reference external" href="ormtutorial.html"><em>Object Relational Tutorial</em></a>, we introduced the concept of <strong>Eager Loading</strong>.  We used an <tt class="docutils literal"><span class="pre">option</span></tt> in conjunction with the <tt class="docutils literal"><span class="pre">Query</span></tt> object in order to indicate that a relation should be loaded at the same time as the parent, within a single SQL query:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT addresses_1.id AS addresses_1_id, addresses_1.email_address AS addresses_1_email_address,
 addresses_1.user_id AS addresses_1_user_id, users.id AS users_id, users.name AS users_name,
@@ -1329,7 +1377,7 @@ FROM users LEFT OUTER JOIN addresses AS addresses_1 ON users.id = addresses_1.us
 WHERE users.name = ?
 ['jack']</div></pre></div>
 </div>
-<p>By default, all relations are <strong>lazy loading</strong>.  The scalar or collection attribute associated with a <tt class="docutils literal"><span class="pre">relation()</span></tt> contains a trigger which fires the first time the attribute is accessed, which issues a SQL call at that point:</p>
+<p>By default, all inter-object relationships are <strong>lazy loading</strong>.  The scalar or collection attribute associated with a <tt class="docutils literal"><span class="pre">relation()</span></tt> contains a trigger which fires the first time the attribute is accessed, which issues a SQL call at that point:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span>
 <div class='popup_sql'>SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id
 FROM addresses

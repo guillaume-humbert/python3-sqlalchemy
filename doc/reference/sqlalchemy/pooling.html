@@ -7,7 +7,7 @@
         
         <title>
     Connection Pooling
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="SQL Statements and Expressions" href="expressions.html" />
         <link rel="prev" title="Connections" href="connections.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -533,7 +533,7 @@ The <tt class="docutils literal"><span class="pre">close()</span></tt> method wi
 <tt class="docutils literal"><span class="pre">cursor()</span></tt> method will return a proxied cursor object.  Both the
 connection proxy and the cursor proxy will also return the underlying
 connection to the pool after they have both been garbage collected,
-which is detected via the <tt class="docutils literal"><span class="pre">__del__()</span></tt> method.</p>
+which is detected via weakref callbacks  (<tt class="docutils literal"><span class="pre">__del__</span></tt> is not used).</p>
 <p>Additionally, when connections are returned to the pool, a
 <tt class="docutils literal"><span class="pre">rollback()</span></tt> is issued on the connection unconditionally.  This is
 to release any locks still held by the connection that may have

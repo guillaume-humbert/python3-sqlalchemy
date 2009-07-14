@@ -1,3 +1,12 @@
+sqlalchemy (0.5.5-1) unstable; urgency=low
+
+  * New upstream release
+  * Add python-pymssql to Suggests (and add a note about Microsoft SQL Server
+    in README.Debian)
+  * Standards-Version bumped to 3.8.2 (no changes needed)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Tue, 14 Jul 2009 19:50:44 +0200
+
 sqlalchemy (0.5.4p2-1) unstable; urgency=low
 
   * New upstream release
