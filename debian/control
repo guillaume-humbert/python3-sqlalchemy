@@ -6,7 +6,7 @@ Uploaders: Debian Python Modules Team <python-modules-team@lists.alioth.debian.o
 Build-Depends: debhelper (>= 5.0.38)
 Build-Depends-Indep: python-all (>= 2.5.4-1~), python-support (>= 0.6.4),
  python-setuptools (>= 0.6b3-1~), python-sphinx (>= 0.6), python-mako
-Standards-Version: 3.8.1
+Standards-Version: 3.8.2
 Homepage: http://www.sqlalchemy.org/
 Vcs-Svn: svn://svn.debian.org/python-modules/packages/sqlalchemy/trunk
 Vcs-Browser: http://svn.debian.org/viewsvn/python-modules/packages/sqlalchemy/trunk/
@@ -29,7 +29,7 @@ Description: SQL toolkit and Object Relational Mapper for Python
     and Pythonic domain language.
   * extremely easy to use for all the basic tasks, such as: accessing pooled
     connections, constructing SQL from Python expressions, finding object
-    instances, and commiting object modifications back to the database.
+    instances, and committing object modifications back to the database.
   * powerful enough for complicated tasks, such as: eager load a graph of
     objects and their dependencies via joins; map recursive adjacency
     structures automatically; map objects to not just tables but to any
@@ -51,7 +51,7 @@ Section: doc
 Architecture: all
 Recommends: python-sqlalchemy
 Conflicts: python-sqlalchemy (<= 0.3.0-1)
-Description: Documentation for the SQLAlchemy Python library
+Description: documentation for the SQLAlchemy Python library
  SQLAlchemy is an SQL database abstraction library for Python.
  .
  This package contains the documentation for SQLAlchemy in HTML format.
