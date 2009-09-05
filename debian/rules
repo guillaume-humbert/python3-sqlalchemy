@@ -5,7 +5,7 @@ p_name=python-sqlalchemy
 m_name=SQLAlchemy
 
 PYVERS=$(shell pyversions -vr)
-
+-include /usr/share/python/python.mk # for py_setup_install_args (ignore if not available yet)
 
 clean:
 	dh_testdir
@@ -44,8 +44,8 @@ install: build install-docs $(PYVERS:%=install-python%)
 install-python%:
 	python$* setup.py install \
 		--single-version-externally-managed \
-		--install-layout=deb \
-		--root $(CURDIR)/debian/${p_name}
+		--root $(CURDIR)/debian/${p_name} \
+		$(py_setup_install_args)
 	touch $@
 
 binary-indep: build install
