@@ -1,10 +1,13 @@
-sqlalchemy (0.5.5-2) UNRELEASED; urgency=low
+sqlalchemy (0.5.6-1) unstable; urgency=low
 
+  * New upstream release
   * pass --install-layout=deb via $(py_setup_install_args)
     (taken from /usr/share/python/python.mk, if available)
     + python-all minimum required version changed back to 2.3.5-11
+  * update debian/watch to use PyPi instead of sourceforge.net
+  * Standards-Version bumped to 3.8.3 (no changes needed)
 
- -- Piotr Ożarowski <piotr@debian.org>  Sat, 05 Sep 2009 22:45:28 +0200
+ -- Piotr Ożarowski <piotr@debian.org>  Wed, 16 Sep 2009 14:32:53 +0200
 
 sqlalchemy (0.5.5-1) unstable; urgency=low
 
