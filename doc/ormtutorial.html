@@ -7,7 +7,7 @@
         
         <title>
     Object Relational Tutorial
- &mdash; SQLAlchemy 0.5.5 Documentation</title>
+ &mdash; SQLAlchemy 0.5.6 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.5',
+          VERSION:     '0.5.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.6 Documentation" href="index.html" />
         <link rel="next" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
         <link rel="prev" title="Overview / Installation" href="intro.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.5 Documentation</h1>
+        <h1>SQLAlchemy 0.5.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
+            Version: <span class="versionnum">0.5.6</span> Last Updated: 09/13/2009 10:45:11
         </div>
         <div class="clearboth"></div>
 
@@ -98,6 +98,7 @@
 <li><a class="reference external" href="#common-filter-operators">Common Filter Operators</a></li>
 <li><a class="reference external" href="#returning-lists-and-scalars">Returning Lists and Scalars</a></li>
 <li><a class="reference external" href="#using-literal-sql">Using Literal SQL</a></li>
+<li><a class="reference external" href="#counting">Counting</a></li>
 </ul>
 </li>
 <li><a class="reference external" href="#building-a-relation">Building a Relation</a></li>
@@ -555,6 +556,38 @@ LIMIT 2 OFFSET 0
 ['ed']</div><span class="p">[</span><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;ed&#39;</span><span class="p">,</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="s">&#39;f8s7ccs&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
 </div>
+<div class="section" id="counting">
+<h3>Counting<a class="headerlink" href="#counting" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">Query</span></tt> includes a convenience method for counting called <tt class="docutils literal"><span class="pre">count()</span></tt>:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%e</span><span class="s">d&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<div class='popup_sql'>SELECT count(1) AS count_1
+FROM users
+WHERE users.name LIKE ?
+['%ed']</div><span class="mf">2</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">count()</span></tt> method is used to determine how many rows the SQL statement would return, and is mainly intended to return a simple count of a single type of entity, in this case <tt class="docutils literal"><span class="pre">User</span></tt>.   For more complicated sets of columns or entities where the &#8220;thing to be counted&#8221; needs to be indicated more specifically, <tt class="docutils literal"><span class="pre">count()</span></tt> is probably not what you want.  Below, a query for individual columns does return the expected result:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%e</span><span class="s">d&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<div class='popup_sql'>SELECT count(1) AS count_1
+FROM (SELECT users.id AS users_id, users.name AS users_name
+FROM users
+WHERE users.name LIKE ?) AS anon_1
+['%ed']</div><span class="mf">2</span></pre></div>
+</div>
+<p>...but if you look at the generated SQL, SQLAlchemy saw that we were placing individual column expressions and decided to wrap whatever it was we were doing in a subquery, so as to be assured that it returns the &#8220;number of rows&#8221;.   This defensive behavior is not really needed here and in other cases is not what we want at all, such as if we wanted a grouping of counts per name:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<div class='popup_sql'>SELECT count(1) AS count_1
+FROM (SELECT users.name AS users_name
+FROM users GROUP BY users.name) AS anon_1
+[]</div><span class="mf">4</span></pre></div>
+</div>
+<p>We don&#8217;t want the number <tt class="docutils literal"><span class="pre">4</span></tt>, we wanted some rows back.   So for detailed queries where you need to count something specific, use the <tt class="docutils literal"><span class="pre">func.count()</span></tt> function as a column expression:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span>
+<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<div class='popup_sql'>SELECT count(users.name) AS count_1, users.name AS users_name
+FROM users GROUP BY users.name</div><span class="p">[]</span>
+<span class="p">[(</span><span class="mf">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">)]</span></pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="building-a-relation">
 <h2>Building a Relation<a class="headerlink" href="#building-a-relation" title="Permalink to this headline">¶</a></h2>
@@ -741,7 +774,7 @@ WHERE addresses_1.email_address = ? AND addresses_2.email_address = ?
     (SELECT user_id, count(*) AS address_count FROM addresses GROUP BY user_id) AS adr_count
     ON users.id=adr_count.user_id</pre>
 </div>
-<p>Using the <tt class="docutils literal"><span class="pre">Query</span></tt>, we build a statement like this from the inside out.  The <tt class="docutils literal"><span class="pre">statement</span></tt> accessor returns a SQL expression representing the statement generated by a particular <tt class="docutils literal"><span class="pre">Query</span></tt> - this is an instance of a <tt class="docutils literal"><span class="pre">select()</span></tt> construct, which are described in <em class="xref">sql</em>:</p>
+<p>Using the <tt class="docutils literal"><span class="pre">Query</span></tt>, we build a statement like this from the inside out.  The <tt class="docutils literal"><span class="pre">statement</span></tt> accessor returns a SQL expression representing the statement generated by a particular <tt class="docutils literal"><span class="pre">Query</span></tt> - this is an instance of a <tt class="docutils literal"><span class="pre">select()</span></tt> construct, which are described in <a class="reference external" href="sqlexpression.html"><em>SQL Expression Language Tutorial</em></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">func</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stmt</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;address_count&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span></pre></div>
 </div>
@@ -1114,7 +1147,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 
                 <div class="doc_copyright">
                     &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
                 </div>
             </div>
         

@@ -7,7 +7,7 @@
         
         <title>
     declarative
- &mdash; SQLAlchemy 0.5.5 Documentation</title>
+ &mdash; SQLAlchemy 0.5.6 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.5',
+          VERSION:     '0.5.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.6 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="associationproxy" href="associationproxy.html" />
         <link rel="prev" title="sqlalchemy.ext" href="index.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.5 Documentation</h1>
+        <h1>SQLAlchemy 0.5.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
+            Version: <span class="versionnum">0.5.6</span> Last Updated: 09/13/2009 10:45:11
         </div>
         <div class="clearboth"></div>
 
@@ -308,26 +308,35 @@ ORM function:</p>
 </div>
 <div class="section" id="table-configuration">
 <h2>Table Configuration<a class="headerlink" href="#table-configuration" title="Permalink to this headline">¶</a></h2>
-<p>As an alternative to <tt class="docutils literal"><span class="pre">__tablename__</span></tt>, a direct <a title="sqlalchemy.schema.Table" class="reference external" href="../sqlalchemy/schema.html#sqlalchemy.schema.Table"><tt class="xref docutils literal"><span class="pre">Table</span></tt></a> construct may be
-used.  The <a title="sqlalchemy.schema.Column" class="reference external" href="../sqlalchemy/schema.html#sqlalchemy.schema.Column"><tt class="xref docutils literal"><span class="pre">Column</span></tt></a> objects, which in this case require their names, will be
+<p>Table arguments other than the name, metadata, and mapped Column arguments 
+are specified using the <tt class="docutils literal"><span class="pre">__table_args__</span></tt> class attribute.   This attribute
+accommodates both positional as well as keyword arguments that are normally 
+sent to the <a title="sqlalchemy.schema.Table" class="reference external" href="../sqlalchemy/schema.html#sqlalchemy.schema.Table"><tt class="xref docutils literal"><span class="pre">Table</span></tt></a> constructor.   The attribute can be specified
+in one of two forms.  One is as a dictionary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;sometable&#39;</span>
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;mysql_engine&#39;</span><span class="p">:</span><span class="s">&#39;InnoDB&#39;</span><span class="p">}</span></pre></div>
+</div>
+<p>The other, a tuple of the form <tt class="docutils literal"><span class="pre">(arg1,</span> <span class="pre">arg2,</span> <span class="pre">...,</span> <span class="pre">{kwarg1:value,</span> <span class="pre">...})</span></tt>, which 
+allows positional arguments to be specified as well (usually constraints):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;sometable&#39;</span>
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ForeignKeyConstraint</span><span class="p">([</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;remote_table.id&#39;</span><span class="p">]),</span>
+            <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s">&#39;autoload&#39;</span><span class="p">:</span><span class="bp">True</span><span class="p">}</span>
+            <span class="p">)</span></pre></div>
+</div>
+<p>Note that the dictionary is required in the tuple form even if empty.</p>
+<p>As an alternative to <tt class="docutils literal"><span class="pre">__tablename__</span></tt>, a direct <a title="sqlalchemy.schema.Table" class="reference external" href="../sqlalchemy/schema.html#sqlalchemy.schema.Table"><tt class="xref docutils literal"><span class="pre">Table</span></tt></a> 
+construct may be used.  The <a title="sqlalchemy.schema.Column" class="reference external" href="../sqlalchemy/schema.html#sqlalchemy.schema.Column"><tt class="xref docutils literal"><span class="pre">Column</span></tt></a> objects, which 
+in this case require their names, will be
 added to the mapping just like a regular mapping to a table:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__table__</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;my_table&#39;</span><span class="p">,</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
         <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
         <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">50</span><span class="p">))</span>
     <span class="p">)</span></pre></div>
-</div>
-<p>Other table-based attributes include <tt class="docutils literal"><span class="pre">__table_args__</span></tt>, which is
-either a dictionary as in:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;sometable&#39;</span>
-    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;mysql_engine&#39;</span><span class="p">:</span><span class="s">&#39;InnoDB&#39;</span><span class="p">}</span></pre></div>
-</div>
-<p>or a dictionary-containing tuple in the form 
-<tt class="docutils literal"><span class="pre">(arg1,</span> <span class="pre">arg2,</span> <span class="pre">...,</span> <span class="pre">{kwarg1:value,</span> <span class="pre">...})</span></tt>, as in:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;sometable&#39;</span>
-    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span><span class="n">ForeignKeyConstraint</span><span class="p">([</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;remote_table.id&#39;</span><span class="p">]),</span> <span class="p">{</span><span class="s">&#39;autoload&#39;</span><span class="p">:</span><span class="bp">True</span><span class="p">})</span></pre></div>
 </div>
 </div>
 <div class="section" id="mapper-configuration">
@@ -475,7 +484,7 @@ like:</p>
 <p>Mapped instances then make usage of <a title="sqlalchemy.orm.session.Session" class="reference external" href="../orm/sessions.html#sqlalchemy.orm.session.Session"><tt class="xref docutils literal"><span class="pre">Session</span></tt></a> in the usual way.</p>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x558f3b0&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em>, <em>engine=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x5f775f0&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em>, <em>engine=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that invokes
 <a title="sqlalchemy.ext.declarative.instrument_declarative" class="reference internal" href="#sqlalchemy.ext.declarative.instrument_declarative"><tt class="xref docutils literal"><span class="pre">instrument_declarative()</span></tt></a> upon each subclass definition, and routes
@@ -578,7 +587,7 @@ This operation does not assume any kind of class hierarchy.</dd></dl>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
                 </div>
             </div>
         

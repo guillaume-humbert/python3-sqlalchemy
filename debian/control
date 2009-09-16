@@ -4,9 +4,9 @@ Priority: optional
 Maintainer: Piotr Ożarowski <piotr@debian.org>
 Uploaders: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
 Build-Depends: debhelper (>= 5.0.38)
-Build-Depends-Indep: python-all (>= 2.5.4-1~), python-support (>= 0.6.4),
+Build-Depends-Indep: python-all (>= 2.3.5-11), python-support (>= 0.6.4),
  python-setuptools (>= 0.6b3-1~), python-sphinx (>= 0.6), python-mako
-Standards-Version: 3.8.2
+Standards-Version: 3.8.3
 Homepage: http://www.sqlalchemy.org/
 Vcs-Svn: svn://svn.debian.org/python-modules/packages/sqlalchemy/trunk
 Vcs-Browser: http://svn.debian.org/viewsvn/python-modules/packages/sqlalchemy/trunk/

@@ -160,6 +160,12 @@ class MapperTest(_fixtures.FixtureTest):
         eq_(a.email_address, 'jack@bean.com')
 
     @testing.resolve_artifact_names
+    def test_column_not_present(self):
+        assert_raises_message(sa.exc.ArgumentError, "not represented in mapper's table", mapper, User, users, properties={
+            'foo':addresses.c.user_id
+        })
+        
+    @testing.resolve_artifact_names
     def test_bad_constructor(self):
         """If the construction of a mapped class fails, the instance does not get placed in the session"""
         class Foo(object):
@@ -2219,6 +2225,64 @@ class NoLoadTest(_fixtures.FixtureTest):
             )
 
 
+class AttributeExtensionTest(_base.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('t1', 
+            metadata,
+            Column('id', Integer, primary_key=True),
+            Column('type', String(40)),
+            Column('data', String(50))
+            
+        )
+
+    @testing.resolve_artifact_names
+    def test_cascading_extensions(self):
+        ext_msg = []
+        
+        class Ex1(sa.orm.AttributeExtension):
+            def set(self, state, value, oldvalue, initiator):
+                ext_msg.append("Ex1 %r" % value)
+                return "ex1" + value
+                
+        class Ex2(sa.orm.AttributeExtension):
+            def set(self, state, value, oldvalue, initiator):
+                ext_msg.append("Ex2 %r" % value)
+                return "ex2" + value
+        
+        class A(_base.BasicEntity):
+            pass
+        class B(A):
+            pass
+        class C(B):
+            pass
+            
+        mapper(A, t1, polymorphic_on=t1.c.type, polymorphic_identity='a', properties={
+            'data':column_property(t1.c.data, extension=Ex1())
+        })
+        mapper(B, polymorphic_identity='b', inherits=A)
+        mc = mapper(C, polymorphic_identity='c', inherits=B, properties={
+            'data':column_property(t1.c.data, extension=Ex2())
+        })
+        
+        a1 = A(data='a1')
+        b1 = B(data='b1')
+        c1 = C(data='c1')
+        
+        eq_(a1.data, 'ex1a1')
+        eq_(b1.data, 'ex1b1')
+        eq_(c1.data, 'ex2c1')
+        
+        a1.data = 'a2'
+        b1.data='b2'
+        c1.data = 'c2'
+        eq_(a1.data, 'ex1a2')
+        eq_(b1.data, 'ex1b2')
+        eq_(c1.data, 'ex2c2')
+        
+        eq_(ext_msg, ["Ex1 'a1'", "Ex1 'b1'", "Ex2 'c1'", "Ex1 'a2'", "Ex1 'b2'", "Ex2 'c2'"])
+        
+    
 class MapperExtensionTest(_fixtures.FixtureTest):
     run_inserts = None
     
@@ -2554,7 +2618,35 @@ class RequirementsTest(_base.MappedTest):
                                   sa.orm.eagerload_all('h3s.h1s')).all()
         eq_(len(h1s), 5)
 
+    @testing.resolve_artifact_names
+    def test_nonzero_len_recursion(self):
+        class H1(object):
+            def __len__(self):
+                return len(self.get_value())
+            
+            def get_value(self):
+                self.value = "foobar"
+                return self.value
 
+        class H2(object):
+            def __nonzero__(self):
+                return bool(self.get_value())
+
+            def get_value(self):
+                self.value = "foobar"
+                return self.value
+                
+        mapper(H1, ht1)
+        mapper(H2, ht1)
+        
+        h1 = H1()
+        h1.value = "Asdf"
+        h1.value = "asdf asdf" # ding
+
+        h2 = H2()
+        h2.value = "Asdf"
+        h2.value = "asdf asdf" # ding
+        
 class MagicNamesTest(_base.MappedTest):
 
     @classmethod

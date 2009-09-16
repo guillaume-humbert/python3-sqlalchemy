@@ -176,7 +176,31 @@ class DeclarativeTest(DeclarativeTestBase):
         compile_mappers()
         eq_(str(User.addresses.property.primaryjoin), str(Address.user.property.primaryjoin))
         
+    def test_string_dependency_resolution_tables(self):
+        class User(Base, ComparableEntity):
+            __tablename__ = 'users'
+            id = Column(Integer, primary_key=True)
+            name = Column(String(50))
+            
+            props = relation("Prop", 
+                        secondary="user_to_prop", 
+                        primaryjoin="User.id==user_to_prop.c.user_id", 
+                        secondaryjoin="user_to_prop.c.prop_id==Prop.id", 
+                    backref="users")
+
+        class Prop(Base, ComparableEntity):
+            __tablename__ = 'props'
+            id = Column(Integer, primary_key=True)
+            name = Column(String(50))
         
+        user_to_prop = Table('user_to_prop', Base.metadata, 
+            Column('user_id', Integer, ForeignKey('users.id')),
+            Column('prop_id', Integer, ForeignKey('props.id')),
+        )
+
+        compile_mappers()
+        assert class_mapper(User).get_property("props").secondary is user_to_prop
+
     def test_uncompiled_attributes_in_relation(self):
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
@@ -450,6 +474,15 @@ class DeclarativeTest(DeclarativeTestBase):
             define)
         
     def test_table_args(self):
+        
+        def err():
+            class Foo(Base):
+                __tablename__ = 'foo'
+                __table_args__ = (ForeignKeyConstraint(['id'], ['foo.id']),)
+                id = Column('id', Integer, primary_key=True)
+                
+        assert_raises_message(sa.exc.ArgumentError, "Tuple form of __table_args__ is ", err)
+        
         class Foo(Base):
             __tablename__ = 'foo'
             __table_args__ = {'mysql_engine':'InnoDB'}
@@ -853,7 +886,34 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         def go():
             assert sess.query(Person).filter(Manager.name=='dogbert').one().id
         self.assert_sql_count(testing.db, go, 1)
+    
+    def test_add_subcol_after_the_fact(self):
+        class Person(Base, ComparableEntity):
+            __tablename__ = 'people'
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
+            name = Column('name', String(50))
+            discriminator = Column('type', String(50))
+            __mapper_args__ = {'polymorphic_on':discriminator}
 
+        class Engineer(Person):
+            __tablename__ = 'engineers'
+            __mapper_args__ = {'polymorphic_identity':'engineer'}
+            id = Column('id', Integer, ForeignKey('people.id'), primary_key=True)
+        
+        Engineer.primary_language = Column('primary_language', String(50))
+        
+        Base.metadata.create_all()
+
+        sess = create_session()
+        e1 = Engineer(primary_language='java', name='dilbert')
+        sess.add(e1)
+        sess.flush()
+        sess.expunge_all()
+
+        eq_(sess.query(Person).first(),
+            Engineer(primary_language='java', name='dilbert')
+        )
+        
     def test_subclass_mixin(self):
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'

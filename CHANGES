@@ -3,7 +3,152 @@
 =======
 CHANGES
 =======
+0.5.6
+=====
+- orm
+    - Fixed bug whereby inheritance discriminator part of a
+      composite primary key would fail on updates.
+      Continuation of [ticket:1300].
 
+    - Fixed bug which disallowed one side of a many-to-many 
+      bidirectional reference to declare itself as "viewonly"
+      [ticket:1507]
+    
+    - Added an assertion that prevents a @validates function
+      or other AttributeExtension from loading an unloaded
+      collection such that internal state may be corrupted.
+      [ticket:1526]
+      
+    - Fixed bug which prevented two entities from mutually
+      replacing each other's primary key values within a single
+      flush() for some orderings of operations.  [ticket:1519]
+      
+    - Fixed an obscure issue whereby a joined-table subclass
+      with a self-referential eager load on the base class
+      would populate the related object's "subclass" table with
+      data from the "subclass" table of the parent.
+      [ticket:1485]
+      
+    - relations() now have greater ability to be "overridden",
+      meaning a subclass that explicitly specifies a relation()
+      overriding that of the parent class will be honored
+      during a flush.  This is currently to support 
+      many-to-many relations from concrete inheritance setups.
+      Outside of that use case, YMMV.  [ticket:1477]
+    
+    - Squeezed a few more unnecessary "lazy loads" out of 
+      relation().  When a collection is mutated, many-to-one
+      backrefs on the other side will not fire off to load
+      the "old" value, unless "single_parent=True" is set.  
+      A direct assignment of a many-to-one still loads 
+      the "old" value in order to update backref collections 
+      on that value, which may be present in the session 
+      already, thus maintaining the 0.5 behavioral contract.
+      [ticket:1483]
+      
+    - Fixed bug whereby a load/refresh of joined table
+      inheritance attributes which were based on 
+      column_property() or similar would fail to evaluate.
+      [ticket:1480]
+    
+    - Improved support for MapperProperty objects overriding
+      that of an inherited mapper for non-concrete 
+      inheritance setups - attribute extensions won't randomly
+      collide with each other.  [ticket:1488]
+    
+    - UPDATE and DELETE do not support ORDER BY, LIMIT, OFFSET,
+      etc. in standard SQL.  Query.update() and Query.delete()
+      now raise an exception if any of limit(), offset(),
+      order_by(), group_by(), or distinct() have been
+      called. [ticket:1487]
+      
+    - Added AttributeExtension to sqlalchemy.orm.__all__
+      
+    - Improved error message when query() is called with
+      a non-SQL /entity expression. [ticket:1476]
+    
+    - Using False or 0 as a polymorphic discriminator now
+      works on the base class as well as a subclass.
+      [ticket:1440]
+
+    - Added enable_assertions(False) to Query which disables
+      the usual assertions for expected state - used
+      by Query subclasses to engineer custom state.
+      [ticket:1424].  See
+      http://www.sqlalchemy.org/trac/wiki/UsageRecipes/PreFilteredQuery
+      for an example.
+
+    - Fixed recursion issue which occured if a mapped object's
+      `__len__()` or `__nonzero__()` method resulted in state
+      changes.  [ticket:1501]
+
+    - Fixed incorrect exception raise in 
+      Weak/StrongIdentityMap.add() 
+      [ticket:1506]
+
+    - Fixed the error message for "could not find a FROM clause"
+      in query.join() which would fail to issue correctly
+      if the query was against a pure SQL construct.
+      [ticket:1522]
+    
+    - Fixed a somewhat hypothetical issue which would result
+      in the wrong primary key being calculated for a mapper
+      using the old polymorphic_union function - but this
+      is old stuff.  [ticket:1486]
+      
+- sql
+    - Fixed column.copy() to copy defaults and onupdates.
+      [ticket:1373]
+
+    - Fixed a bug in extract() introduced in 0.5.4 whereby
+      the string "field" argument was getting treated as a 
+      ClauseElement, causing various errors within more 
+      complex SQL transformations.
+      
+    - Unary expressions such as DISTINCT propagate their 
+      type handling to result sets, allowing conversions like
+      unicode and such to take place.  [ticket:1420]
+    
+    - Fixed bug in Table and Column whereby passing empty
+      dict for "info" argument would raise an exception.
+      [ticket:1482]
+
+- postgresql
+    - The driver can be specified as "postgresql://" in URLs,
+      allowing forwards-compatibility with 0.6.
+      
+- oracle
+    - Backported 0.6 fix for Oracle alias names not getting
+      truncated.  [ticket:1309]
+      
+- ext
+   - The collection proxies produced by associationproxy are now
+     pickleable.  A user-defined proxy_factory however
+     is still not pickleable unless it defines __getstate__
+     and __setstate__. [ticket:1446]
+
+   - Declarative will raise an informative exception if 
+     __table_args__ is passed as a tuple with no dict argument.
+     Improved documentation.  [ticket:1468]
+
+   - Table objects declared in the MetaData can now be used
+     in string expressions sent to primaryjoin/secondaryjoin/
+     secondary - the name is pulled from the MetaData of the
+     declarative base.  [ticket:1527]
+     
+   - A column can be added to a joined-table subclass after
+     the class has been constructed (i.e. via class-level
+     attribute assignment).  The column is added to the underlying
+     Table as always, but now the mapper will rebuild its
+     "join" to include the new column, instead of raising
+     an error about "no such column, use column_property()
+     instead".  [ticket:1523]
+     
+- test
+   - Added examples into the test suite so they get exercised
+     regularly and cleaned up a couple deprecation warnings.
+
+     
 0.5.5
 =======
 - general

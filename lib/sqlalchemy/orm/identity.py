@@ -43,17 +43,18 @@ class IdentityMap(dict):
         del state._instance_dict
         self._mutable_attrs.discard(state)
         self._modified.discard(state)
-    
+
     def _dirty_states(self):
-        return self._modified.union(s for s in self._mutable_attrs if s.modified)
-        
+        return self._modified.union(s for s in list(self._mutable_attrs)
+                                    if s.modified)
+
     def check_modified(self):
         """return True if any InstanceStates present have been marked as 'modified'."""
         
         if self._modified:
             return True
         else:
-            for state in self._mutable_attrs:
+            for state in list(self._mutable_attrs):
                 if state.modified:
                     return True
         return False
@@ -120,7 +121,7 @@ class WeakInstanceDict(IdentityMap):
     def add(self, state):
         if state.key in self:
             if dict.__getitem__(self, state.key) is not state:
-                raise AssertionError("A conflicting state is already present in the identity map for key %r" % state.key)
+                raise AssertionError("A conflicting state is already present in the identity map for key %r" % (state.key, ))
         else:
             dict.__setitem__(self, state.key, state)
             self._manage_incoming_state(state)
@@ -187,11 +188,15 @@ class StrongInstanceDict(IdentityMap):
 
         dict.__setitem__(self, state.key, state.obj())
         self._manage_incoming_state(state)
-        
+
     def add(self, state):
-        dict.__setitem__(self, state.key, state.obj())
-        self._manage_incoming_state(state)
-    
+        if state.key in self:
+            if attributes.instance_state(dict.__getitem__(self, state.key)) is not state:
+                raise AssertionError("A conflicting state is already present in the identity map for key %r" % (state.key, ))
+        else:
+            dict.__setitem__(self, state.key, state.obj())
+            self._manage_incoming_state(state)
+        
     def remove(self, state):
         if attributes.instance_state(dict.pop(self, state.key)) is not state:
             raise AssertionError("State %s is not present in this identity map" % state)
