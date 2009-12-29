@@ -19,7 +19,7 @@ from sqlalchemy.orm.util import class_mapper as _class_mapper
 from sqlalchemy.orm.util import (
     _class_to_mapper, _state_has_identity, _state_mapper,
     )
-from sqlalchemy.orm.mapper import Mapper
+from sqlalchemy.orm.mapper import Mapper, _none_set
 from sqlalchemy.orm.unitofwork import UOWTransaction
 from sqlalchemy.orm import identity
 
@@ -570,13 +570,11 @@ class Session(object):
         self._mapper_flush_opts = {}
 
         if binds is not None:
-            for mapperortable, value in binds.iteritems():
-                if isinstance(mapperortable, type):
-                    mapperortable = _class_mapper(mapperortable).base_mapper
-                self.__binds[mapperortable] = value
-                if isinstance(mapperortable, Mapper):
-                    for t in mapperortable._all_tables:
-                        self.__binds[t] = value
+            for mapperortable, bind in binds.iteritems():
+                if isinstance(mapperortable, (type, Mapper)):
+                    self.bind_mapper(mapperortable, bind)
+                else:
+                    self.bind_table(mapperortable, bind)
 
         if not self.autocommit:
             self.begin()
@@ -857,7 +855,7 @@ class Session(object):
                     "a binding.")
 
         c_mapper = mapper is not None and _class_to_mapper(mapper) or None
-
+        
         # manually bound?
         if self.__binds:
             if c_mapper:
@@ -866,7 +864,7 @@ class Session(object):
                 elif c_mapper.mapped_table in self.__binds:
                     return self.__binds[c_mapper.mapped_table]
             if clause:
-                for t in sql_util.find_tables(clause):
+                for t in sql_util.find_tables(clause, include_crud=True):
                     if t in self.__binds:
                         return self.__binds[t]
 
@@ -1173,7 +1171,7 @@ class Session(object):
         new_instance = False
         state = attributes.instance_state(instance)
         key = state.key
-
+        
         if key is None:
             if dont_load:
                 raise sa_exc.InvalidRequestError(
@@ -1183,24 +1181,24 @@ class Session(object):
                     "dont_load=True.")
             key = mapper._identity_key_from_state(state)
 
-        merged = None
-        if key:
-            if key in self.identity_map:
-                merged = self.identity_map[key]
-            elif dont_load:
-                if state.modified:
-                    raise sa_exc.InvalidRequestError(
-                        "merge() with dont_load=True option does not support "
-                        "objects marked as 'dirty'.  flush() all changes on "
-                        "mapped instances before merging with dont_load=True.")
-                merged = mapper.class_manager.new_instance()
-                merged_state = attributes.instance_state(merged)
-                merged_state.key = key
-                self._update_impl(merged_state)
-                new_instance = True
-            else:
-                merged = self.query(mapper.class_).get(key[1])
-
+        if key in self.identity_map:
+            merged = self.identity_map[key]
+        elif dont_load:
+            if state.modified:
+                raise sa_exc.InvalidRequestError(
+                    "merge() with dont_load=True option does not support "
+                    "objects marked as 'dirty'.  flush() all changes on "
+                    "mapped instances before merging with dont_load=True.")
+            merged = mapper.class_manager.new_instance()
+            merged_state = attributes.instance_state(merged)
+            merged_state.key = key
+            self._update_impl(merged_state)
+            new_instance = True
+        elif not _none_set.issuperset(key[1]):
+            merged = self.query(mapper.class_).get(key[1])
+        else:
+            merged = None
+            
         if merged is None:
             merged = mapper.class_manager.new_instance()
             merged_state = attributes.instance_state(merged)

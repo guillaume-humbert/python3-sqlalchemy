@@ -29,7 +29,7 @@ install-docs: build-docs
 	dh_testdir
 	dh_installdirs
 	
-	dh_install -p${p_name}-doc doc/_sources/* \
+	dh_link -p${p_name}-doc /usr/share/doc/${p_name}-doc/html/_sources \
 	       	/usr/share/doc/${p_name}-doc/rst
 	dh_link -p${p_name}-doc /usr/share/javascript/jquery/jquery.js \
 		/usr/share/doc/${p_name}-doc/html/_static/jquery.js

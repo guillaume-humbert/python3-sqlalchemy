@@ -200,6 +200,10 @@ class PGBit(sqltypes.TypeEngine):
 class PGUuid(sqltypes.TypeEngine):
     def get_col_spec(self):
         return "UUID"
+
+class PGDoublePrecision(sqltypes.Float):
+    def get_col_spec(self):
+        return "DOUBLE PRECISION"
     
 class PGArray(sqltypes.MutableType, sqltypes.Concatenable, sqltypes.TypeEngine):
     def __init__(self, item_type, mutable=True):
@@ -267,6 +271,7 @@ colspecs = {
     sqltypes.Smallinteger : PGSmallInteger,
     sqltypes.Numeric : PGNumeric,
     sqltypes.Float : PGFloat,
+    PGDoublePrecision : PGDoublePrecision,
     sqltypes.DateTime : PGDateTime,
     sqltypes.Date : PGDate,
     sqltypes.Time : PGTime,
@@ -294,7 +299,7 @@ ischema_names = {
     'uuid':PGUuid,
     'bit':PGBit,
     'macaddr': PGMacAddr,
-    'double precision' : PGFloat,
+    'double precision' : PGDoublePrecision,
     'timestamp' : PGDateTime,
     'timestamp with time zone' : PGDateTime,
     'timestamp without time zone' : PGDateTime,
@@ -305,6 +310,8 @@ ischema_names = {
     'bytea' : PGBinary,
     'boolean' : PGBoolean,
     'interval':PGInterval,
+    'interval year to month':PGInterval,
+    'interval day to second':PGInterval,
 }
 
 # TODO: filter out 'FOR UPDATE' statements
@@ -421,11 +428,32 @@ class PGDialect(default.DefaultDialect):
             cursor = connection.execute("""select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname=current_schema() and lower(relname)=%(name)s""", {'name':table_name.lower().encode(self.encoding)});
         else:
             cursor = connection.execute("""select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname=%(schema)s and lower(relname)=%(name)s""", {'name':table_name.lower().encode(self.encoding), 'schema':schema});
-        return bool( not not cursor.rowcount )
+        try:
+            return bool(cursor.fetchone())
+        finally:
+            cursor.close()
 
-    def has_sequence(self, connection, sequence_name):
-        cursor = connection.execute('''SELECT relname FROM pg_class WHERE relkind = 'S' AND relnamespace IN ( SELECT oid FROM pg_namespace WHERE nspname NOT LIKE 'pg_%%' AND nspname != 'information_schema' AND relname = %(seqname)s);''', {'seqname': sequence_name.encode(self.encoding)})
-        return bool(not not cursor.rowcount)
+    def has_sequence(self, connection, sequence_name, schema=None):
+        if schema is None:
+            cursor = connection.execute(
+                        sql.text("SELECT relname FROM pg_class c join pg_namespace n on "
+                            "n.oid=c.relnamespace where relkind='S' and n.nspname=current_schema() and lower(relname)=:name",
+                            bindparams=[sql.bindparam('name', unicode(sequence_name.lower()), type_=sqltypes.Unicode)] 
+                        )
+                    )
+        else:
+            cursor = connection.execute(
+                        sql.text("SELECT relname FROM pg_class c join pg_namespace n on "
+                            "n.oid=c.relnamespace where relkind='S' and n.nspname=:schema and lower(relname)=:name",
+                            bindparams=[sql.bindparam('name', unicode(sequence_name.lower()), type_=sqltypes.Unicode),
+                                sql.bindparam('schema', unicode(schema), type_=sqltypes.Unicode)] 
+                        )
+                    )
+        
+        try:
+            return bool(cursor.fetchone())
+        finally:
+            cursor.close()
 
     def is_disconnect(self, e):
         if isinstance(e, self.dbapi.OperationalError):
@@ -517,10 +545,10 @@ class PGDialect(default.DefaultDialect):
                 else:
                     numericprec, numericscale = charlen.split(',')
                 charlen = False
-            if attype == 'double precision':
-                numericprec, numericscale = (53, False)
+            elif attype == 'double precision':
+                numericprec, numericscale = (True, False)
                 charlen = False
-            if attype == 'integer':
+            elif attype == 'integer':
                 numericprec, numericscale = (32, 0)
                 charlen = False
 
@@ -793,8 +821,8 @@ class PGCompiler(compiler.DefaultCompiler):
 
     def visit_extract(self, extract, **kwargs):
         field = self.extract_map.get(extract.field, extract.field)
-        return "EXTRACT(%s FROM %s::timestamp)" % (
-            field, self.process(extract.expr))
+        return "EXTRACT(%s FROM %s)" % (
+            field, self.process(extract.expr.op('::')(sql.literal_column('timestamp'))))
 
 
 class PGSchemaGenerator(compiler.SchemaGenerator):
@@ -816,7 +844,7 @@ class PGSchemaGenerator(compiler.SchemaGenerator):
         return colspec
 
     def visit_sequence(self, sequence):
-        if not sequence.optional and (not self.checkfirst or not self.dialect.has_sequence(self.connection, sequence.name)):
+        if not sequence.optional and (not self.checkfirst or not self.dialect.has_sequence(self.connection, sequence.name, schema=sequence.schema)):
             self.append("CREATE SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
 
@@ -840,7 +868,7 @@ class PGSchemaGenerator(compiler.SchemaGenerator):
 
 class PGSchemaDropper(compiler.SchemaDropper):
     def visit_sequence(self, sequence):
-        if not sequence.optional and (not self.checkfirst or self.dialect.has_sequence(self.connection, sequence.name)):
+        if not sequence.optional and (not self.checkfirst or self.dialect.has_sequence(self.connection, sequence.name, schema=sequence.schema)):
             self.append("DROP SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
 

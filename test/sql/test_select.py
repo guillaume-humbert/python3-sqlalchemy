@@ -152,8 +152,80 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
             select([cast("data", sqlite.SLInteger)], use_labels=True),      # this will work with plain Integer in 0.6
             "SELECT CAST(:param_1 AS INTEGER) AS anon_1"
         )
+    
+    def test_paramstyles(self):
         
+        stmt = text("select :foo, :bar, :bat from sometable")
         
+        self.assert_compile(
+            stmt,
+            "select ?, ?, ? from sometable"
+            , dialect=default.DefaultDialect(paramstyle='qmark')
+        )
+        self.assert_compile(
+            stmt,
+            "select :foo, :bar, :bat from sometable"
+            , dialect=default.DefaultDialect(paramstyle='named')
+        )
+        self.assert_compile(
+            stmt,
+            "select %s, %s, %s from sometable"
+            , dialect=default.DefaultDialect(paramstyle='format')
+        )
+        self.assert_compile(
+            stmt,
+            "select :1, :2, :3 from sometable"
+            , dialect=default.DefaultDialect(paramstyle='numeric')
+        )
+        self.assert_compile(
+            stmt,
+            "select %(foo)s, %(bar)s, %(bat)s from sometable"
+            , dialect=default.DefaultDialect(paramstyle='pyformat')
+        )
+        
+    def test_dupe_columns(self):
+        """test that deduping is performed against clause element identity, not rendered result."""
+        
+        self.assert_compile(
+            select([column('a'), column('a'), column('a')]),
+            "SELECT a, a, a"
+            , dialect=default.DefaultDialect()
+        )
+
+        c = column('a')
+        self.assert_compile(
+            select([c, c, c]),
+            "SELECT a"
+            , dialect=default.DefaultDialect()
+        )
+
+        a, b = column('a'), column('b')
+        self.assert_compile(
+            select([a, b, b, b, a, a]),
+            "SELECT a, b"
+            , dialect=default.DefaultDialect()
+        )
+        
+        self.assert_compile(
+            select([bindparam('a'), bindparam('b'), bindparam('c')]),
+            "SELECT :a, :b, :c"
+            , dialect=default.DefaultDialect(paramstyle='named')
+        )
+
+        self.assert_compile(
+            select([bindparam('a'), bindparam('b'), bindparam('c')]),
+            "SELECT ?, ?, ?"
+            , dialect=default.DefaultDialect(paramstyle='qmark'),
+        )
+
+        self.assert_compile(
+            select(["a", "a", "a"]),
+            "SELECT a, a, a"
+        )
+        
+        s = select([bindparam('a'), bindparam('b'), bindparam('c')])
+        s = s.compile(dialect=default.DefaultDialect(paramstyle='qmark'))
+        eq_(s.positiontup, ['a', 'b', 'c'])
         
     def test_nested_uselabels(self):
         """test nested anonymous label generation.  this

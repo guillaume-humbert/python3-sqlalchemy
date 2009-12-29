@@ -7,7 +7,7 @@
         
         <title>
     Using the Session
- &mdash; SQLAlchemy 0.5.6 Documentation</title>
+ &mdash; SQLAlchemy 0.5.7 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.6',
+          VERSION:     '0.5.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.6 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.7 Documentation" href="index.html" />
         <link rel="next" title="Database Engines" href="dbengine.html" />
         <link rel="prev" title="Mapper Configuration" href="mappers.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.6 Documentation</h1>
+        <h1>SQLAlchemy 0.5.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.6</span> Last Updated: 09/13/2009 10:45:11
+            Version: <span class="versionnum">0.5.7</span> Last Updated: 12/26/2009 18:22:23
         </div>
         <div class="clearboth"></div>
 
@@ -249,7 +249,7 @@
 <li><p class="first">When do I make a <tt class="docutils literal"><span class="pre">Session</span></tt> ?</p>
 <blockquote>
 <p>You typically invoke <tt class="docutils literal"><span class="pre">Session()</span></tt> when you first need to talk to your database, and want to save some objects or load some existing ones.  Then, you work with it, save your changes, and then dispose of it....or at the very least <tt class="docutils literal"><span class="pre">close()</span></tt> it.  It&#8217;s not a &#8220;global&#8221; kind of object, and should be handled more like a &#8220;local variable&#8221;, as it&#8217;s generally <strong>not</strong> safe to use with concurrent threads.  Sessions are very inexpensive to make, and don&#8217;t use any resources whatsoever until they are first used...so create some !</p>
-<p>There is also a pattern whereby you&#8217;re using a <strong>contextual session</strong>, this is described later in <cite>unitofwork_contextual</cite>.  In this pattern, a helper object is maintaining a <tt class="docutils literal"><span class="pre">Session</span></tt> for you, most commonly one that is local to the current thread (and sometimes also local to an application instance).  SQLAlchemy has worked this pattern out such that it still <em>looks</em> like you&#8217;re creating a new session as you need one...so in that case, it&#8217;s still a guaranteed win to just say <tt class="docutils literal"><span class="pre">Session()</span></tt> whenever you want a session.</p>
+<p>There is also a pattern whereby you&#8217;re using a <strong>contextual session</strong>, this is described later in <a class="reference internal" href="#unitofwork-contextual"><em>Contextual/Thread-local Sessions</em></a>.  In this pattern, a helper object is maintaining a <tt class="docutils literal"><span class="pre">Session</span></tt> for you, most commonly one that is local to the current thread (and sometimes also local to an application instance).  SQLAlchemy has worked this pattern out such that it still <em>looks</em> like you&#8217;re creating a new session as you need one...so in that case, it&#8217;s still a guaranteed win to just say <tt class="docutils literal"><span class="pre">Session()</span></tt> whenever you want a session.</p>
 </blockquote>
 </li>
 <li><p class="first">Is the Session a cache ?</p>
@@ -307,7 +307,7 @@
 <p>To add a list of items to the session at once, use <tt class="docutils literal"><span class="pre">add_all()</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">([</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">,</span> <span class="n">item3</span><span class="p">])</span></pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">add()</span></tt> operation <strong>cascades</strong> along the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade.  For more details see the section <cite>unitofwork_cascades</cite>.</p>
+<p>The <tt class="docutils literal"><span class="pre">add()</span></tt> operation <strong>cascades</strong> along the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade.  For more details see the section <a class="reference internal" href="#unitofwork-cascades"><em>Cascades</em></a>.</p>
 </div>
 <div class="section" id="merging">
 <h3>Merging<a class="headerlink" href="#merging" title="Permalink to this headline">¶</a></h3>
@@ -457,7 +457,7 @@
 </div>
 </div>
 <div class="section" id="cascades">
-<h2>Cascades<a class="headerlink" href="#cascades" title="Permalink to this headline">¶</a></h2>
+<span id="unitofwork-cascades"></span><h2>Cascades<a class="headerlink" href="#cascades" title="Permalink to this headline">¶</a></h2>
 <p>Mappers support the concept of configurable <em>cascade</em> behavior on <a title="sqlalchemy.orm.relation" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> constructs.  This behavior controls how the Session should treat the instances that have a parent-child relationship with another instance that is operated upon by the Session.  Cascade is indicated as a comma-separated list of string keywords, with the possible values <tt class="docutils literal"><span class="pre">all</span></tt>, <tt class="docutils literal"><span class="pre">delete</span></tt>, <tt class="docutils literal"><span class="pre">save-update</span></tt>, <tt class="docutils literal"><span class="pre">refresh-expire</span></tt>, <tt class="docutils literal"><span class="pre">merge</span></tt>, <tt class="docutils literal"><span class="pre">expunge</span></tt>, and <tt class="docutils literal"><span class="pre">delete-orphan</span></tt>.</p>
 <p>Cascading is configured by setting the <tt class="docutils literal"><span class="pre">cascade</span></tt> keyword argument on a <tt class="docutils literal"><span class="pre">relation()</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Order</span><span class="p">,</span> <span class="n">order_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
@@ -471,7 +471,7 @@
 <p>The default value for <tt class="docutils literal"><span class="pre">cascade</span></tt> on <a title="sqlalchemy.orm.relation" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> is <tt class="docutils literal"><span class="pre">save-update,</span> <span class="pre">merge</span></tt>.</p>
 </div>
 <div class="section" id="managing-transactions">
-<h2>Managing Transactions<a class="headerlink" href="#managing-transactions" title="Permalink to this headline">¶</a></h2>
+<span id="unitofwork-transaction"></span><h2>Managing Transactions<a class="headerlink" href="#managing-transactions" title="Permalink to this headline">¶</a></h2>
 <p>The <tt class="docutils literal"><span class="pre">Session</span></tt> manages transactions across all engines associated with it.  As the <tt class="docutils literal"><span class="pre">Session</span></tt> receives requests to execute SQL statements using a particular <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>, it adds each individual <tt class="docutils literal"><span class="pre">Engine</span></tt> encountered to its transactional state and maintains an open connection for each one (note that a simple application normally has just one <tt class="docutils literal"><span class="pre">Engine</span></tt>).  At commit time, all unflushed data is flushed, and each individual transaction is committed.  If the underlying databases support two-phase semantics, this may be used by the Session as well if two-phase transactions are enabled.</p>
 <p>Normal operation ends the transactional state using the <tt class="docutils literal"><span class="pre">rollback()</span></tt> or <tt class="docutils literal"><span class="pre">commit()</span></tt> methods.  After either is called, the <tt class="docutils literal"><span class="pre">Session</span></tt> starts a new transaction:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">()</span>
@@ -625,7 +625,7 @@
 </div>
 </div>
 <div class="section" id="contextual-thread-local-sessions">
-<h2>Contextual/Thread-local Sessions<a class="headerlink" href="#contextual-thread-local-sessions" title="Permalink to this headline">¶</a></h2>
+<span id="unitofwork-contextual"></span><h2>Contextual/Thread-local Sessions<a class="headerlink" href="#contextual-thread-local-sessions" title="Permalink to this headline">¶</a></h2>
 <p>A common need in applications, particularly those built around web frameworks, is the ability to &#8220;share&#8221; a <tt class="docutils literal"><span class="pre">Session</span></tt> object among disparate parts of an application, without needing to pass the object explicitly to all method and function calls.  What you&#8217;re really looking for is some kind of &#8220;global&#8221; session object, or at least &#8220;global&#8221; to all the parts of an application which are tasked with servicing the current request.  For this pattern, SQLAlchemy provides the ability to enhance the <tt class="docutils literal"><span class="pre">Session</span></tt> class generated by <tt class="docutils literal"><span class="pre">sessionmaker()</span></tt> to provide auto-contextualizing support.  This means that whenever you create a <tt class="docutils literal"><span class="pre">Session</span></tt> instance with its constructor, you get an <em>existing</em> <tt class="docutils literal"><span class="pre">Session</span></tt> object which is bound to some &#8220;context&#8221;.  By default, this context is the current thread.  This feature is what previously was accomplished using the <tt class="docutils literal"><span class="pre">sessioncontext</span></tt> SQLAlchemy extension.</p>
 <div class="section" id="creating-a-thread-local-context">
 <h3>Creating a Thread-local Context<a class="headerlink" href="#creating-a-thread-local-context" title="Permalink to this headline">¶</a></h3>
