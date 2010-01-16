@@ -4,6 +4,43 @@
 CHANGES
 =======
 
+0.5.8
+=====
+- sql
+    - The copy() method on Column now supports uninitialized,
+      unnamed Column objects. This allows easy creation of 
+      declarative helpers which place common columns on multiple 
+      subclasses.
+    
+    - Default generators like Sequence() translate correctly
+      across a copy() operation.
+      
+    - Sequence() and other DefaultGenerator objects are accepted 
+      as the value for the "default" and "onupdate" keyword
+      arguments of Column, in addition to being accepted
+      positionally.  
+      
+    - Fixed a column arithmetic bug that affected column
+      correspondence for cloned selectables which contain
+      free-standing column expressions.   This bug is
+      generally only noticeable when exercising newer 
+      ORM behavior only availble in 0.6 via [ticket:1568], 
+      but is more correct at the SQL expression level 
+      as well. [ticket:1617]
+    
+- postgresql
+    - The extract() function, which was slightly improved in
+      0.5.7, needed a lot more work to generate the correct
+      typecast (the typecasts appear to be necessary in PG's
+      EXTRACT quite a lot of the time).  The typecast is 
+      now generated using a rule dictionary based 
+      on PG's documentation for date/time/interval arithmetic.
+      It also accepts text() constructs again, which was broken
+      in 0.5.7. [ticket:1647]
+
+- firebird
+    - Recognize more errors as disconnections. [ticket:1646]
+
 0.5.7
 =====
 - orm

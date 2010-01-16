@@ -93,7 +93,7 @@ import decimal, random, re, string
 
 from sqlalchemy import sql, schema, exc, util
 from sqlalchemy.engine import base, default
-from sqlalchemy.sql import compiler, expression
+from sqlalchemy.sql import compiler, expression, util as sql_util
 from sqlalchemy.sql import operators as sql_operators
 from sqlalchemy import types as sqltypes
 
@@ -166,7 +166,11 @@ class PGTime(sqltypes.Time):
 class PGInterval(sqltypes.TypeEngine):
     def get_col_spec(self):
         return "INTERVAL"
-
+    
+    @property
+    def _type_affinity(self):
+        return sqltypes.Interval
+        
 class PGText(sqltypes.Text):
     def get_col_spec(self):
         return "TEXT"
@@ -821,8 +825,16 @@ class PGCompiler(compiler.DefaultCompiler):
 
     def visit_extract(self, extract, **kwargs):
         field = self.extract_map.get(extract.field, extract.field)
+        affinity = sql_util.determine_date_affinity(extract.expr)
+        
+        casts = {sqltypes.Date:'date', sqltypes.DateTime:'timestamp', sqltypes.Interval:'interval', sqltypes.Time:'time'}
+        cast = casts.get(affinity, None)
+        if isinstance(extract.expr, sql.ColumnElement) and cast is not None:
+            expr = extract.expr.op('::')(sql.literal_column(cast))
+        else:
+            expr = extract.expr
         return "EXTRACT(%s FROM %s)" % (
-            field, self.process(extract.expr.op('::')(sql.literal_column('timestamp'))))
+            field, self.process(expr))
 
 
 class PGSchemaGenerator(compiler.SchemaGenerator):

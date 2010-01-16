@@ -7,7 +7,7 @@
         
         <title>
     compiler
- &mdash; SQLAlchemy 0.5.7 Documentation</title>
+ &mdash; SQLAlchemy 0.5.8 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.7',
+          VERSION:     '0.5.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.7 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="prev" title="SqlSoup" href="sqlsoup.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.7 Documentation</h1>
+        <h1>SQLAlchemy 0.5.8 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.7</span> Last Updated: 12/26/2009 18:22:23
+            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
         </div>
         <div class="clearboth"></div>
 
@@ -86,6 +86,9 @@
                 <ul>
 <li><a class="reference external" href="">compiler</a><ul>
 <li><a class="reference external" href="#synopsis">Synopsis</a></li>
+<li><a class="reference external" href="#dialect-specific-compilation-rules">Dialect-specific compilation rules</a></li>
+<li><a class="reference external" href="#compiling-sub-elements-of-a-custom-expression-construct">Compiling sub-elements of a custom expression construct</a></li>
+<li><a class="reference external" href="#changing-the-default-compilation-of-existing-constructs">Changing the default compilation of existing constructs</a></li>
 </ul>
 </li>
 </ul>
@@ -125,6 +128,9 @@ is compiled to a string:</p>
 <p>Produces:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">SELECT</span> <span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="p">[</span><span class="n">y</span><span class="p">]</span></pre></div>
 </div>
+</div>
+<div class="section" id="dialect-specific-compilation-rules">
+<h2>Dialect-specific compilation rules<a class="headerlink" href="#dialect-specific-compilation-rules" title="Permalink to this headline">¶</a></h2>
 <p>Compilers can also be made dialect-specific.  The appropriate compiler will be invoked
 for the dialect in use:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">DDLElement</span>  <span class="c"># this is a SQLA 0.6 construct</span>
@@ -144,6 +150,9 @@ for the dialect in use:</p>
     <span class="k">return</span> <span class="s">&quot;ALTER TABLE </span><span class="si">%s</span><span class="s"> ALTER COLUMN </span><span class="si">%s</span><span class="s"> ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></pre></div>
 </div>
 <p>The second <tt class="docutils literal"><span class="pre">visit_alter_table</span></tt> will be invoked when any <tt class="docutils literal"><span class="pre">postgres</span></tt> dialect is used.</p>
+</div>
+<div class="section" id="compiling-sub-elements-of-a-custom-expression-construct">
+<h2>Compiling sub-elements of a custom expression construct<a class="headerlink" href="#compiling-sub-elements-of-a-custom-expression-construct" title="Permalink to this headline">¶</a></h2>
 <p>The <tt class="docutils literal"><span class="pre">compiler</span></tt> argument is the <tt class="xref docutils literal"><span class="pre">Compiled</span></tt> object
 in use.  This object can be inspected for any information about the in-progress 
 compilation, including <tt class="docutils literal"><span class="pre">compiler.dialect</span></tt>, <tt class="docutils literal"><span class="pre">compiler.statement</span></tt> etc.
@@ -167,6 +176,22 @@ both include a <tt class="docutils literal"><span class="pre">process()</span></
 <p>Produces:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;INSERT INTO mytable (SELECT mytable.x, mytable.y, mytable.z FROM mytable WHERE mytable.x &gt; :x_1)&quot;</span></pre></div>
 </div>
+</div>
+<div class="section" id="changing-the-default-compilation-of-existing-constructs">
+<h2>Changing the default compilation of existing constructs<a class="headerlink" href="#changing-the-default-compilation-of-existing-constructs" title="Permalink to this headline">¶</a></h2>
+<p>The compiler extension applies just as well to the existing constructs.  When overriding
+the compilation of a built in SQL construct, the &#64;compiles decorator is invoked upon
+the appropriate class (be sure to use the class, i.e. <tt class="docutils literal"><span class="pre">Insert</span></tt> or <tt class="docutils literal"><span class="pre">Select</span></tt>, instead of the creation function such as <tt class="docutils literal"><span class="pre">insert()</span></tt> or <tt class="docutils literal"><span class="pre">select()</span></tt>).</p>
+<p>Within the new compilation function, to get at the &#8220;original&#8221; compilation routine,
+use the appropriate visit_XXX method - this because compiler.process() will call upon the 
+overriding routine and cause an endless loop.   Such as, to add &#8220;prefix&#8221; to all insert statements:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">Insert</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">Insert</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">prefix_inserts</span><span class="p">(</span><span class="n">insert</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">compiler</span><span class="o">.</span><span class="n">visit_insert</span><span class="p">(</span><span class="n">insert</span><span class="o">.</span><span class="n">prefix_with</span><span class="p">(</span><span class="s">&quot;some prefix&quot;</span><span class="p">),</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span></pre></div>
+</div>
+<p>The above compiler will prefix all INSERT statements with &#8220;some prefix&#8221; when compiled.</p>
 </div>
 </div>
 
