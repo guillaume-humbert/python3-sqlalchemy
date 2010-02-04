@@ -1,3 +1,10 @@
+sqlalchemy (0.6~beta1-1) experimental; urgency=low
+
+  * New upstream release
+  * Standards-Version bumped to 3.8.4 (no changes needed)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Thu, 04 Feb 2010 21:59:24 +0100
+
 sqlalchemy (0.5.8-1) unstable; urgency=low
 
   * New upstream release

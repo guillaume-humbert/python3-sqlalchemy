@@ -1,3 +1,10 @@
+python-sqlalchemy (0.6~beta1-1) experimental; urgency=low
+
+  SQLAlchemy 0.5 -> 0.6 migration notes can be found on the wiki page:
+  http://www.sqlalchemy.org/trac/wiki/06Migration
+
+ -- Piotr Ożarowski <piotr@debian.org>  Thu, 04 Feb 2010 22:08:09 +0100
+
 python-sqlalchemy (0.5.0~beta1-1) experimental; urgency=low
 
   SQLAlchemy 0.4 -> 0.5 migration notes can be found on the wiki page:
