@@ -1,9 +1,10 @@
 from sqlalchemy.util import EMPTY_SET
 import weakref
 from sqlalchemy import util
-from sqlalchemy.orm.attributes import PASSIVE_NORESULT, PASSIVE_OFF, NEVER_SET, NO_VALUE, manager_of_class, ATTR_WAS_SET
-from sqlalchemy.orm import attributes
-from sqlalchemy.orm import interfaces
+from sqlalchemy.orm.attributes import PASSIVE_NO_RESULT, PASSIVE_OFF, \
+                                        NEVER_SET, NO_VALUE, manager_of_class, \
+                                        ATTR_WAS_SET
+from sqlalchemy.orm import attributes, exc as orm_exc, interfaces
 
 class InstanceState(object):
     """tracks state information at the instance level."""
@@ -31,17 +32,26 @@ class InstanceState(object):
         
     def detach(self):
         if self.session_id:
-            del self.session_id
+            try:
+                del self.session_id
+            except AttributeError:
+                pass
 
     def dispose(self):
         if self.session_id:
-            del self.session_id
+            try:
+                del self.session_id
+            except AttributeError:
+                pass
         del self.obj
     
     def _cleanup(self, ref):
         instance_dict = self._instance_dict()
         if instance_dict:
-            instance_dict.remove(self)
+            try:
+                instance_dict.remove(self)
+            except AssertionError:
+                pass
         self.dispose()
     
     def obj(self):
@@ -58,10 +68,6 @@ class InstanceState(object):
     @property
     def sort_key(self):
         return self.key and self.key[1] or (self.insert_order, )
-
-    def check_modified(self):
-        # TODO: deprecate
-        return self.modified
 
     def initialize_instance(*mixed, **kwargs):
         self, instance, args = mixed[0], mixed[1], mixed[2:]
@@ -102,13 +108,13 @@ class InstanceState(object):
         attribute.
 
         returns None if passive is not PASSIVE_OFF and the getter returns
-        PASSIVE_NORESULT.
+        PASSIVE_NO_RESULT.
         """
 
         impl = self.get_impl(key)
         dict_ = self.dict
         x = impl.get(self, dict_, passive=passive)
-        if x is PASSIVE_NORESULT:
+        if x is PASSIVE_NO_RESULT:
             return None
         elif hasattr(impl, 'get_collection'):
             return impl.get_collection(self, dict_, x, passive=passive)
@@ -142,8 +148,16 @@ class InstanceState(object):
     def __setstate__(self, state):
         self.obj = weakref.ref(state['instance'], self._cleanup)
         self.class_ = state['instance'].__class__
-        self.manager = manager_of_class(self.class_)
-
+        self.manager = manager = manager_of_class(self.class_)
+        if manager is None:
+            raise orm_exc.UnmappedInstanceError(
+                        state['instance'],
+                        "Cannot deserialize object of type %r - no mapper() has"
+                        " been configured for this class within the current Python process!" %
+                        self.class_)
+        elif manager.mapper and not manager.mapper.compiled:
+            manager.mapper.compile()
+            
         self.committed_state = state.get('committed_state', {})
         self.pending = state.get('pending', {})
         self.parents = state.get('parents', {})
@@ -154,11 +168,11 @@ class InstanceState(object):
         if self.modified:
             self._strong_obj = state['instance']
             
-        self.__dict__.update(
+        self.__dict__.update([
             (k, state[k]) for k in (
                 'key', 'load_options', 'expired_attributes', 'mutable_dict'
             ) if k in state 
-        )
+        ])
 
         if 'load_path' in state:
             self.load_path = interfaces.deserialize_path(state['load_path'])
@@ -170,12 +184,16 @@ class InstanceState(object):
         self.dict.pop(key, None)
         self.callables[key] = callable_
 
-    def __call__(self):
+    def __call__(self, **kw):
         """__call__ allows the InstanceState to act as a deferred
         callable for loading expired attributes, which is also
         serializable (picklable).
 
         """
+
+        if kw.get('passive') is attributes.PASSIVE_NO_FETCH:
+            return attributes.PASSIVE_NO_RESULT
+        
         unmodified = self.unmodified
         class_manager = self.manager
         class_manager.deferred_scalar_loader(self, [
@@ -230,7 +248,7 @@ class InstanceState(object):
         for key in attribute_names:
             impl = self.manager[key].impl
             if not filter_deferred or \
-                not impl.dont_expire_missing or \
+                impl.expire_missing or \
                 key in dict_:
                 self.expired_attributes.add(key)
                 if impl.accepts_scalar_loader:
@@ -339,6 +357,13 @@ class InstanceState(object):
         self._strong_obj = None
 
 class MutableAttrInstanceState(InstanceState):
+    """InstanceState implementation for objects that reference 'mutable' 
+    attributes.
+    
+    Has a more involved "cleanup" handler that checks mutable attributes
+    for changes upon dereference, resurrecting if needed.
+    
+    """
     def __init__(self, obj, manager):
         self.mutable_dict = {}
         InstanceState.__init__(self, obj, manager)
@@ -408,7 +433,10 @@ class MutableAttrInstanceState(InstanceState):
         else:
             instance_dict = self._instance_dict()
             if instance_dict:
-                instance_dict.remove(self)
+                try:
+                    instance_dict.remove(self)
+                except AssertionError:
+                    pass
             self.dispose()
             
     def __resurrect(self):

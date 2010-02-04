@@ -54,7 +54,7 @@ In our previous example regarding ``sessionmaker()``, we specified a ``bind`` fo
     Session = sessionmaker()
 
     # later, we create the engine
-    engine = create_engine('postgres://...')
+    engine = create_engine('postgresql://...')
     
     # associate it with our custom Session class
     Session.configure(bind=engine)
@@ -74,7 +74,7 @@ The ``Session`` can also be explicitly bound to an individual database ``Connect
     # global application scope.  create Session class, engine
     Session = sessionmaker()
 
-    engine = create_engine('postgres://...')
+    engine = create_engine('postgresql://...')
     
     ...
     
@@ -179,7 +179,7 @@ The ``query()`` function takes one or more *entities* and returns a new ``Query`
     user_mapper = class_mapper(User)
     session.query(user_mapper)
 
-When ``Query`` returns results, each object instantiated is stored within the identity map.   When a row matches an object which is already present, the same object is returned.  In the latter case, whether or not the row is populated onto an existing object depends upon whether the attributes of the instance have been *expired* or not.  As of 0.5, a default-configured ``Session`` automatically expires all instances along transaction boundaries, so that with a normally isolated transaction, there shouldn't be any issue of instances representing data which is stale with regards to the current transaction.
+When ``Query`` returns results, each object instantiated is stored within the identity map.   When a row matches an object which is already present, the same object is returned.  In the latter case, whether or not the row is populated onto an existing object depends upon whether the attributes of the instance have been *expired* or not.  A default-configured ``Session`` automatically expires all instances along transaction boundaries, so that with a normally isolated transaction, there shouldn't be any issue of instances representing data which is stale with regards to the current transaction.
 
 Adding New or Existing Items
 ----------------------------
@@ -219,7 +219,7 @@ With ``merge()``, the given instance is not placed within the session, and can b
   * An application which reads an object structure from a file and wishes to save it to the database might parse the file, build up the structure, and then use ``merge()`` to save it to the database, ensuring that the data within the file is used to formulate the primary key of each element of the structure.  Later, when the file has changed, the same process can be re-run, producing a slightly different object structure, which can then be ``merged()`` in again, and the ``Session`` will automatically update the database to reflect those changes.
   * A web application stores mapped entities within an HTTP session object.  When each request starts up, the serialized data can be merged into the session, so that the original entity may be safely shared among requests and threads.
 
-``merge()`` is frequently used by applications which implement their own second level caches.  This refers to an application which uses an in memory dictionary, or an tool like Memcached to store objects over long running spans of time.  When such an object needs to exist within a ``Session``, ``merge()`` is a good choice since it leaves the original cached object untouched.  For this use case, merge provides a keyword option called ``dont_load=True``.  When this boolean flag is set to ``True``, ``merge()`` will not issue any SQL to reconcile the given object against the current state of the database, thereby reducing query overhead.   The limitation is that the given object and all of its children may not contain any pending changes, and it's also of course possible that newer information in the database will not be present on the merged object, since no load is issued.
+``merge()`` is frequently used by applications which implement their own second level caches.  This refers to an application which uses an in memory dictionary, or an tool like Memcached to store objects over long running spans of time.  When such an object needs to exist within a ``Session``, ``merge()`` is a good choice since it leaves the original cached object untouched.  For this use case, merge provides a keyword option called ``load=False``.  When this boolean flag is set to ``False``, ``merge()`` will not issue any SQL to reconcile the given object against the current state of the database, thereby reducing query overhead.   The limitation is that the given object and all of its children may not contain any pending changes, and it's also of course possible that newer information in the database will not be present on the merged object, since no load is issued.
 
 Deleting
 --------
@@ -248,6 +248,17 @@ The solution is to use proper cascading::
     })
     del user.addresses[1]
     session.flush()
+
+Deleting based on Filter Criterion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The caveat with ``Session.delete()`` is that you need to have an object handy already in order to delete.   The Query includes a ``delete()`` method which deletes based on filtering criteria::
+
+    session.query(User).filter(User.id==7).delete()
+    
+The ``Query.delete()`` method includes functionality to "expire" objects already in the session which 
+match the criteria.   However it does have some caveats, including that "delete" and "delete-orphan" 
+cascades won't be fully expressed for collections which are already loaded.  See the API docs for :meth:`~sqlalchemy.orm.query.Query.delete` for more details.
 
 Flushing
 --------
@@ -290,7 +301,7 @@ Rolling Back
   * Objects which were marked as *deleted* within the lifespan of the transaction are promoted back to the *persistent* state, corresponding to their DELETE statement being rolled back.  Note that if those objects were first *pending* within the transaction, that operation takes precedence instead.
   * All objects not expunged are fully expired.  
 
-With that state understood, the ``Session`` may safely continue usage after a rollback occurs (note that this is a new feature as of version 0.5).
+With that state understood, the ``Session`` may safely continue usage after a rollback occurs.
 
 When a ``flush()`` fails, typically for reasons like primary key, foreign key, or "not nullable" constraint violations, a ``rollback()`` is issued automatically (it's currently not possible for a flush to continue after a partial failure).  However, the flush process always uses its own transactional demarcator called a *subtransaction*, which is described more fully in the docstrings for ``Session``.  What it means here is that even though the database transaction has been rolled back, the end user must still issue ``rollback()`` to fully reset the state of the ``Session``.
 
@@ -384,7 +395,7 @@ Cascading is configured by setting the ``cascade`` keyword argument on a ``relat
 
 The above mapper specifies two relations, ``items`` and ``customer``.  The ``items`` relationship specifies "all, delete-orphan" as its ``cascade`` value, indicating that all  ``add``, ``merge``, ``expunge``, ``refresh`` ``delete`` and ``expire`` operations performed on a parent ``Order`` instance should also be performed on the child ``Item`` instances attached to it.  The ``delete-orphan`` cascade value additionally indicates that if an ``Item`` instance is no longer associated with an ``Order``, it should also be deleted.  The "all, delete-orphan" cascade argument allows a so-called *lifecycle* relationship between an ``Order`` and an ``Item`` object.
 
-The ``customer`` relationship specifies only the "save-update" cascade value, indicating most operations will not be cascaded from a parent ``Order`` instance to a child ``User`` instance except for the ``add()`` operation.  "save-update" cascade indicates that an ``add()`` on the parent will cascade to all child items, and also that items added to a parent which is already present in the session will also be added.
+The ``customer`` relationship specifies only the "save-update" cascade value, indicating most operations will not be cascaded from a parent ``Order`` instance to a child ``User`` instance except for the ``add()`` operation.  "save-update" cascade indicates that an ``add()`` on the parent will cascade to all child items, and also that items added to a parent which is already present in the session will also be added.  "save-update" cascade also cascades the *pending history* of a relation()-based attribute, meaning that objects which were removed from a scalar or collection attribute whose changes have not yet been flushed are also placed into the new session - this so that foreign key clear operations and deletions will take place (new in 0.6).
 
 Note that the ``delete-orphan`` cascade only functions for relationships where the target object can have a single parent at a time, meaning it is only appropriate for one-to-one or one-to-many relationships.  For a :func:`~sqlalchemy.orm.relation` which establishes one-to-one via a local foreign key, i.e. a many-to-one that stores only a single parent, or one-to-one/one-to-many via a "secondary" (association) table, a warning will be issued if ``delete-orphan`` is configured.  To disable this warning, also specify the ``single_parent=True`` flag on the relationship, which constrains objects to allow attachment to only one parent at a time.
 
@@ -463,8 +474,8 @@ Enabling Two-Phase Commit
 
 Finally, for MySQL, PostgreSQL, and soon Oracle as well, the session can be instructed to use two-phase commit semantics. This will coordinate the committing of transactions across databases so that the transaction is either committed or rolled back in all databases. You can also ``prepare()`` the session for interacting with transactions not managed by SQLAlchemy. To use two phase transactions set the flag ``twophase=True`` on the session::
 
-    engine1 = create_engine('postgres://db1')
-    engine2 = create_engine('postgres://db2')
+    engine1 = create_engine('postgresql://db1')
+    engine2 = create_engine('postgresql://db2')
     
     Session = sessionmaker(twophase=True)
 
@@ -553,7 +564,7 @@ Note that above, we issue a ``commit()`` both on the ``Session`` as well as the 
 
 When using the ``threadlocal`` engine context, the process above is simplified; the ``Session`` uses the same connection/transaction as everyone else in the current thread, whether or not you explicitly bind it::
 
-    engine = create_engine('postgres://mydb', strategy="threadlocal")
+    engine = create_engine('postgresql://mydb', strategy="threadlocal")
     engine.begin()
     
     session = Session()  # session takes place in the transaction like everyone else
@@ -612,6 +623,8 @@ The contextual session may be disposed of by calling ``Session.remove()``::
 
 After ``remove()`` is called, the next operation with the contextual session will start a new ``Session`` for the current thread.
 
+.. _session_lifespan:
+
 Lifespan of a Contextual Session 
 --------------------------------
 
@@ -638,7 +651,7 @@ A (really, really) common question is when does the contextual session get creat
                         Session.remove() <-
     web response   <-  
 
-The above example illustrates an explicit call to ``Session.remove()``.  This has the effect such that each web request starts fresh with a brand new session.   When integrating with a web framework, there's actually many options on how to proceed for this step, particularly as of version 0.5:
+The above example illustrates an explicit call to ``Session.remove()``.  This has the effect such that each web request starts fresh with a brand new session.   When integrating with a web framework, there's actually many options on how to proceed for this step:
 
 * Session.remove() - this is the most cut and dry approach; the ``Session`` is thrown away, all of its transactional/connection resources are closed out, everything within it is explicitly gone.  A new ``Session`` will be used on the next request.
 * Session.close() - Similar to calling ``remove()``, in that all objects are explicitly expunged and all transactional/connection resources closed, except the actual ``Session`` object hangs around.  It doesn't make too much difference here unless the start of the web request would like to pass specific options to the initial construction of ``Session()``, such as a specific ``Engine`` to bind to.
@@ -658,8 +671,8 @@ Vertical Partitioning
 
 Vertical partitioning places different kinds of objects, or different tables, across multiple databases::
 
-    engine1 = create_engine('postgres://db1')
-    engine2 = create_engine('postgres://db2')
+    engine1 = create_engine('postgresql://db1')
+    engine2 = create_engine('postgresql://db2')
 
     Session = sessionmaker(twophase=True)
 

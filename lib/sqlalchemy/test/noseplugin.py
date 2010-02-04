@@ -6,16 +6,16 @@ import time
 import warnings
 import ConfigParser
 import StringIO
-from config import db, db_label, db_url, file_config, base_config, \
-                           post_configure, \
-                           _list_dbs, _server_side_cursors, _engine_strategy, \
-                           _engine_uri, _require, _engine_pool, \
-                           _create_testing_engine, _prep_testing_database, \
-                           _set_table_options, _reverse_topological, _log
-from sqlalchemy.test import testing, config, requires
-from nose.plugins import Plugin
-from nose.util import tolist
+
 import nose.case
+from nose.plugins import Plugin
+
+from sqlalchemy import util, log as sqla_log
+from sqlalchemy.test import testing, config, requires
+from sqlalchemy.test.config import (
+    _create_testing_engine, _engine_pool, _engine_strategy, _engine_uri, _list_dbs, _log,
+    _prep_testing_database, _require, _reverse_topological, _server_side_cursors,
+    _set_table_options, base_config, db, db_label, db_url, file_config, post_configure)
 
 log = logging.getLogger('nose.plugins.sqlalchemy')
 
@@ -30,9 +30,6 @@ class NoseSQLAlchemy(Plugin):
     def options(self, parser, env=os.environ):
         Plugin.options(self, parser, env)
         opt = parser.add_option
-        #opt("--verbose", action="store_true", dest="verbose",
-            #help="enable stdout echoing/printing")
-        #opt("--quiet", action="store_true", dest="quiet", help="suppress output")
         opt("--log-info", action="callback", type="string", callback=_log,
             help="turn on info logging for <LOG> (multiple OK)")
         opt("--log-debug", action="callback", type="string", callback=_log,
@@ -46,7 +43,8 @@ class NoseSQLAlchemy(Plugin):
         opt("--dburi", action="store", dest="dburi",
             help="Database uri (overrides --db)")
         opt("--dropfirst", action="store_true", dest="dropfirst",
-            help="Drop all tables in the target database first (use with caution on Oracle, MS-SQL)")
+            help="Drop all tables in the target database first (use with caution on Oracle, "
+            "MS-SQL)")
         opt("--mockpool", action="store_true", dest="mockpool",
             help="Use mock pool (asserts only one connection used)")
         opt("--enginestrategy", action="callback", type="string",
@@ -77,14 +75,17 @@ class NoseSQLAlchemy(Plugin):
         
     def configure(self, options, conf):
         Plugin.configure(self, options, conf)
-
-        import testing, requires
+        self.options = options
+        
+    def begin(self):
         testing.db = db
         testing.requires = requires
 
         # Lazy setup of other options (post coverage)
         for fn in post_configure:
-            fn(options, file_config)
+            fn(self.options, file_config)
+        
+        sqla_log._refresh_class_loggers()
         
     def describeTest(self, test):
         return ""
@@ -103,8 +104,7 @@ class NoseSQLAlchemy(Plugin):
         if not issubclass(cls, testing.TestBase):
             return False
         else:
-            if (hasattr(cls, '__whitelist__') and
-                testing.db.name in cls.__whitelist__):
+            if (hasattr(cls, '__whitelist__') and testing.db.name in cls.__whitelist__):
                 return True
             else:
                 return not self.__should_skip_for(cls)
@@ -117,16 +117,21 @@ class NoseSQLAlchemy(Plugin):
                 if check(test_suite)() != 'ok':
                     # The requirement will perform messaging.
                     return True
-        if (hasattr(cls, '__unsupported_on__') and
-            testing.db.name in cls.__unsupported_on__):
-            print "'%s' unsupported on DB implementation '%s'" % (
-                cls.__class__.__name__, testing.db.name)
-            return True
-        if (getattr(cls, '__only_on__', None) not in (None, testing.db.name)):
-            print "'%s' unsupported on DB implementation '%s'" % (
-                cls.__class__.__name__, testing.db.name)
-            return True
-        if (getattr(cls, '__skip_if__', False)):
+
+        if cls.__unsupported_on__:
+            spec = testing.db_spec(*cls.__unsupported_on__)
+            if spec(testing.db):
+                print "'%s' unsupported on DB implementation '%s'" % (
+                     cls.__class__.__name__, testing.db.name)
+                return True
+        if getattr(cls, '__only_on__', None):
+            spec = testing.db_spec(*util.to_list(cls.__only_on__))
+            if not spec(testing.db):
+                print "'%s' unsupported on DB implementation '%s'" % (
+                     cls.__class__.__name__, testing.db.name)
+                return True                    
+
+        if getattr(cls, '__skip_if__', False):
             for c in getattr(cls, '__skip_if__'):
                 if c():
                     print "'%s' skipped by %s" % (
@@ -140,14 +145,14 @@ class NoseSQLAlchemy(Plugin):
                 return True
         return False
 
-    #def begin(self):
-        #pass
-
     def beforeTest(self, test):
         testing.resetwarnings()
 
     def afterTest(self, test):
         testing.resetwarnings()
+        
+    def afterContext(self):
+        testing.global_cleanup_assertions()
         
     #def handleError(self, test, err):
         #pass

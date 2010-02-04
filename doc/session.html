@@ -7,7 +7,7 @@
         
         <title>
     Using the Session
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="index.html" />
         <link rel="next" title="Database Engines" href="dbengine.html" />
         <link rel="prev" title="Mapper Configuration" href="mappers.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -100,7 +100,10 @@
 <li><a class="reference external" href="#querying">Querying</a></li>
 <li><a class="reference external" href="#adding-new-or-existing-items">Adding New or Existing Items</a></li>
 <li><a class="reference external" href="#merging">Merging</a></li>
-<li><a class="reference external" href="#deleting">Deleting</a></li>
+<li><a class="reference external" href="#deleting">Deleting</a><ul>
+<li><a class="reference external" href="#deleting-based-on-filter-criterion">Deleting based on Filter Criterion</a></li>
+</ul>
+</li>
 <li><a class="reference external" href="#flushing">Flushing</a></li>
 <li><a class="reference external" href="#committing">Committing</a></li>
 <li><a class="reference external" href="#rolling-back">Rolling Back</a></li>
@@ -180,7 +183,7 @@
 <span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">()</span>
 
 <span class="c"># later, we create the engine</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://...&#39;</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://...&#39;</span><span class="p">)</span>
 
 <span class="c"># associate it with our custom Session class</span>
 <span class="n">Session</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
@@ -188,7 +191,7 @@
 <span class="c"># work with the session</span>
 <span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span></pre></div>
 </div>
-<p>It&#8217;s actually entirely optional to bind a Session to an engine.  If the underlying mapped <tt class="docutils literal"><span class="pre">Table</span></tt> objects use &#8220;bound&#8221; metadata, the <tt class="docutils literal"><span class="pre">Session</span></tt> will make use of the bound engine instead (or will even use multiple engines if multiple binds are present within the mapped tables).  &#8220;Bound&#8221; metadata is described at <a class="reference external" href="metadata.html#metadata-binding"><em>Binding MetaData to an Engine or Connection</em></a>.</p>
+<p>It&#8217;s actually entirely optional to bind a Session to an engine.  If the underlying mapped <tt class="docutils literal"><span class="pre">Table</span></tt> objects use &#8220;bound&#8221; metadata, the <tt class="docutils literal"><span class="pre">Session</span></tt> will make use of the bound engine instead (or will even use multiple engines if multiple binds are present within the mapped tables).  &#8220;Bound&#8221; metadata is described at <a class="reference external" href="metadata.html#metadata-binding"><em>Creating and Dropping Database Tables</em></a>.</p>
 <p>The <tt class="docutils literal"><span class="pre">Session</span></tt> also has the ability to be bound to multiple engines explicitly.   Descriptions of these scenarios are described in <a class="reference internal" href="#session-partitioning"><em>Partitioning Strategies</em></a>.</p>
 </div>
 <div class="section" id="binding-session-to-a-connection">
@@ -197,7 +200,7 @@
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># global application scope.  create Session class, engine</span>
 <span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">()</span>
 
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://...&#39;</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://...&#39;</span><span class="p">)</span>
 
 <span class="o">...</span>
 
@@ -292,7 +295,7 @@
 <span class="n">user_mapper</span> <span class="o">=</span> <span class="n">class_mapper</span><span class="p">(</span><span class="n">User</span><span class="p">)</span>
 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">user_mapper</span><span class="p">)</span></pre></div>
 </div>
-<p>When <tt class="docutils literal"><span class="pre">Query</span></tt> returns results, each object instantiated is stored within the identity map.   When a row matches an object which is already present, the same object is returned.  In the latter case, whether or not the row is populated onto an existing object depends upon whether the attributes of the instance have been <em>expired</em> or not.  As of 0.5, a default-configured <tt class="docutils literal"><span class="pre">Session</span></tt> automatically expires all instances along transaction boundaries, so that with a normally isolated transaction, there shouldn&#8217;t be any issue of instances representing data which is stale with regards to the current transaction.</p>
+<p>When <tt class="docutils literal"><span class="pre">Query</span></tt> returns results, each object instantiated is stored within the identity map.   When a row matches an object which is already present, the same object is returned.  In the latter case, whether or not the row is populated onto an existing object depends upon whether the attributes of the instance have been <em>expired</em> or not.  A default-configured <tt class="docutils literal"><span class="pre">Session</span></tt> automatically expires all instances along transaction boundaries, so that with a normally isolated transaction, there shouldn&#8217;t be any issue of instances representing data which is stale with regards to the current transaction.</p>
 </div>
 <div class="section" id="adding-new-or-existing-items">
 <h3>Adding New or Existing Items<a class="headerlink" href="#adding-new-or-existing-items" title="Permalink to this headline">¶</a></h3>
@@ -331,7 +334,7 @@
 <li>A web application stores mapped entities within an HTTP session object.  When each request starts up, the serialized data can be merged into the session, so that the original entity may be safely shared among requests and threads.</li>
 </ul>
 </blockquote>
-<p><tt class="docutils literal"><span class="pre">merge()</span></tt> is frequently used by applications which implement their own second level caches.  This refers to an application which uses an in memory dictionary, or an tool like Memcached to store objects over long running spans of time.  When such an object needs to exist within a <tt class="docutils literal"><span class="pre">Session</span></tt>, <tt class="docutils literal"><span class="pre">merge()</span></tt> is a good choice since it leaves the original cached object untouched.  For this use case, merge provides a keyword option called <tt class="docutils literal"><span class="pre">dont_load=True</span></tt>.  When this boolean flag is set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, <tt class="docutils literal"><span class="pre">merge()</span></tt> will not issue any SQL to reconcile the given object against the current state of the database, thereby reducing query overhead.   The limitation is that the given object and all of its children may not contain any pending changes, and it&#8217;s also of course possible that newer information in the database will not be present on the merged object, since no load is issued.</p>
+<p><tt class="docutils literal"><span class="pre">merge()</span></tt> is frequently used by applications which implement their own second level caches.  This refers to an application which uses an in memory dictionary, or an tool like Memcached to store objects over long running spans of time.  When such an object needs to exist within a <tt class="docutils literal"><span class="pre">Session</span></tt>, <tt class="docutils literal"><span class="pre">merge()</span></tt> is a good choice since it leaves the original cached object untouched.  For this use case, merge provides a keyword option called <tt class="docutils literal"><span class="pre">load=False</span></tt>.  When this boolean flag is set to <tt class="xref docutils literal"><span class="pre">False</span></tt>, <tt class="docutils literal"><span class="pre">merge()</span></tt> will not issue any SQL to reconcile the given object against the current state of the database, thereby reducing query overhead.   The limitation is that the given object and all of its children may not contain any pending changes, and it&#8217;s also of course possible that newer information in the database will not be present on the merged object, since no load is issued.</p>
 </div>
 <div class="section" id="deleting">
 <h3>Deleting<a class="headerlink" href="#deleting" title="Permalink to this headline">¶</a></h3>
@@ -356,6 +359,15 @@
 <span class="p">})</span>
 <span class="k">del</span> <span class="n">user</span><span class="o">.</span><span class="n">addresses</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span>
 <span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></pre></div>
+</div>
+<div class="section" id="deleting-based-on-filter-criterion">
+<h4>Deleting based on Filter Criterion<a class="headerlink" href="#deleting-based-on-filter-criterion" title="Permalink to this headline">¶</a></h4>
+<p>The caveat with <tt class="docutils literal"><span class="pre">Session.delete()</span></tt> is that you need to have an object handy already in order to delete.   The Query includes a <tt class="docutils literal"><span class="pre">delete()</span></tt> method which deletes based on filtering criteria:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="mf">7</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">Query.delete()</span></tt> method includes functionality to &#8220;expire&#8221; objects already in the session which
+match the criteria.   However it does have some caveats, including that &#8220;delete&#8221; and &#8220;delete-orphan&#8221;
+cascades won&#8217;t be fully expressed for collections which are already loaded.  See the API docs for <a title="sqlalchemy.orm.query.Query.delete" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.query.Query.delete"><tt class="xref docutils literal"><span class="pre">delete()</span></tt></a> for more details.</p>
 </div>
 </div>
 <div class="section" id="flushing">
@@ -391,7 +403,7 @@
 <li>All objects not expunged are fully expired.</li>
 </ul>
 </blockquote>
-<p>With that state understood, the <tt class="docutils literal"><span class="pre">Session</span></tt> may safely continue usage after a rollback occurs (note that this is a new feature as of version 0.5).</p>
+<p>With that state understood, the <tt class="docutils literal"><span class="pre">Session</span></tt> may safely continue usage after a rollback occurs.</p>
 <p>When a <tt class="docutils literal"><span class="pre">flush()</span></tt> fails, typically for reasons like primary key, foreign key, or &#8220;not nullable&#8221; constraint violations, a <tt class="docutils literal"><span class="pre">rollback()</span></tt> is issued automatically (it&#8217;s currently not possible for a flush to continue after a partial failure).  However, the flush process always uses its own transactional demarcator called a <em>subtransaction</em>, which is described more fully in the docstrings for <tt class="docutils literal"><span class="pre">Session</span></tt>.  What it means here is that even though the database transaction has been rolled back, the end user must still issue <tt class="docutils literal"><span class="pre">rollback()</span></tt> to fully reset the state of the <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
 </div>
 <div class="section" id="expunging">
@@ -466,7 +478,7 @@
 <span class="p">})</span></pre></div>
 </div>
 <p>The above mapper specifies two relations, <tt class="docutils literal"><span class="pre">items</span></tt> and <tt class="docutils literal"><span class="pre">customer</span></tt>.  The <tt class="docutils literal"><span class="pre">items</span></tt> relationship specifies &#8220;all, delete-orphan&#8221; as its <tt class="docutils literal"><span class="pre">cascade</span></tt> value, indicating that all  <tt class="docutils literal"><span class="pre">add</span></tt>, <tt class="docutils literal"><span class="pre">merge</span></tt>, <tt class="docutils literal"><span class="pre">expunge</span></tt>, <tt class="docutils literal"><span class="pre">refresh</span></tt> <tt class="docutils literal"><span class="pre">delete</span></tt> and <tt class="docutils literal"><span class="pre">expire</span></tt> operations performed on a parent <tt class="docutils literal"><span class="pre">Order</span></tt> instance should also be performed on the child <tt class="docutils literal"><span class="pre">Item</span></tt> instances attached to it.  The <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade value additionally indicates that if an <tt class="docutils literal"><span class="pre">Item</span></tt> instance is no longer associated with an <tt class="docutils literal"><span class="pre">Order</span></tt>, it should also be deleted.  The &#8220;all, delete-orphan&#8221; cascade argument allows a so-called <em>lifecycle</em> relationship between an <tt class="docutils literal"><span class="pre">Order</span></tt> and an <tt class="docutils literal"><span class="pre">Item</span></tt> object.</p>
-<p>The <tt class="docutils literal"><span class="pre">customer</span></tt> relationship specifies only the &#8220;save-update&#8221; cascade value, indicating most operations will not be cascaded from a parent <tt class="docutils literal"><span class="pre">Order</span></tt> instance to a child <tt class="docutils literal"><span class="pre">User</span></tt> instance except for the <tt class="docutils literal"><span class="pre">add()</span></tt> operation.  &#8220;save-update&#8221; cascade indicates that an <tt class="docutils literal"><span class="pre">add()</span></tt> on the parent will cascade to all child items, and also that items added to a parent which is already present in the session will also be added.</p>
+<p>The <tt class="docutils literal"><span class="pre">customer</span></tt> relationship specifies only the &#8220;save-update&#8221; cascade value, indicating most operations will not be cascaded from a parent <tt class="docutils literal"><span class="pre">Order</span></tt> instance to a child <tt class="docutils literal"><span class="pre">User</span></tt> instance except for the <tt class="docutils literal"><span class="pre">add()</span></tt> operation.  &#8220;save-update&#8221; cascade indicates that an <tt class="docutils literal"><span class="pre">add()</span></tt> on the parent will cascade to all child items, and also that items added to a parent which is already present in the session will also be added.  &#8220;save-update&#8221; cascade also cascades the <em>pending history</em> of a relation()-based attribute, meaning that objects which were removed from a scalar or collection attribute whose changes have not yet been flushed are also placed into the new session - this so that foreign key clear operations and deletions will take place (new in 0.6).</p>
 <p>Note that the <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade only functions for relationships where the target object can have a single parent at a time, meaning it is only appropriate for one-to-one or one-to-many relationships.  For a <a title="sqlalchemy.orm.relation" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> which establishes one-to-one via a local foreign key, i.e. a many-to-one that stores only a single parent, or one-to-one/one-to-many via a &#8220;secondary&#8221; (association) table, a warning will be issued if <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> is configured.  To disable this warning, also specify the <tt class="docutils literal"><span class="pre">single_parent=True</span></tt> flag on the relationship, which constrains objects to allow attachment to only one parent at a time.</p>
 <p>The default value for <tt class="docutils literal"><span class="pre">cascade</span></tt> on <a title="sqlalchemy.orm.relation" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> is <tt class="docutils literal"><span class="pre">save-update,</span> <span class="pre">merge</span></tt>.</p>
 </div>
@@ -531,8 +543,8 @@
 <div class="section" id="enabling-two-phase-commit">
 <h3>Enabling Two-Phase Commit<a class="headerlink" href="#enabling-two-phase-commit" title="Permalink to this headline">¶</a></h3>
 <p>Finally, for MySQL, PostgreSQL, and soon Oracle as well, the session can be instructed to use two-phase commit semantics. This will coordinate the committing of transactions across databases so that the transaction is either committed or rolled back in all databases. You can also <tt class="docutils literal"><span class="pre">prepare()</span></tt> the session for interacting with transactions not managed by SQLAlchemy. To use two phase transactions set the flag <tt class="docutils literal"><span class="pre">twophase=True</span></tt> on the session:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine1</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://db1&#39;</span><span class="p">)</span>
-<span class="n">engine2</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://db2&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine1</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://db1&#39;</span><span class="p">)</span>
+<span class="n">engine2</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://db2&#39;</span><span class="p">)</span>
 
 <span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">twophase</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
@@ -614,7 +626,7 @@
 </div>
 <p>Note that above, we issue a <tt class="docutils literal"><span class="pre">commit()</span></tt> both on the <tt class="docutils literal"><span class="pre">Session</span></tt> as well as the <tt class="docutils literal"><span class="pre">Transaction</span></tt>.  This is an example of where we take advantage of <tt class="docutils literal"><span class="pre">Connection</span></tt>&#8216;s ability to maintain <em>subtransactions</em>, or nested begin/commit pairs.  The <tt class="docutils literal"><span class="pre">Session</span></tt> is used exactly as though it were managing the transaction on its own; its <tt class="docutils literal"><span class="pre">commit()</span></tt> method issues its <tt class="docutils literal"><span class="pre">flush()</span></tt>, and commits the subtransaction.   The subsequent transaction the <tt class="docutils literal"><span class="pre">Session</span></tt> starts after commit will not begin until it&#8217;s next used.  Above we issue a <tt class="docutils literal"><span class="pre">close()</span></tt> to prevent this from occurring.  Finally, the actual transaction is committed using <tt class="docutils literal"><span class="pre">Transaction.commit()</span></tt>.</p>
 <p>When using the <tt class="docutils literal"><span class="pre">threadlocal</span></tt> engine context, the process above is simplified; the <tt class="docutils literal"><span class="pre">Session</span></tt> uses the same connection/transaction as everyone else in the current thread, whether or not you explicitly bind it:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://mydb&#39;</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s">&quot;threadlocal&quot;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://mydb&#39;</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s">&quot;threadlocal&quot;</span><span class="p">)</span>
 <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
 <span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>  <span class="c"># session takes place in the transaction like everyone else</span>
@@ -666,7 +678,7 @@
 <p>After <tt class="docutils literal"><span class="pre">remove()</span></tt> is called, the next operation with the contextual session will start a new <tt class="docutils literal"><span class="pre">Session</span></tt> for the current thread.</p>
 </div>
 <div class="section" id="lifespan-of-a-contextual-session">
-<h3>Lifespan of a Contextual Session<a class="headerlink" href="#lifespan-of-a-contextual-session" title="Permalink to this headline">¶</a></h3>
+<span id="session-lifespan"></span><h3>Lifespan of a Contextual Session<a class="headerlink" href="#lifespan-of-a-contextual-session" title="Permalink to this headline">¶</a></h3>
 <p>A (really, really) common question is when does the contextual session get created, when does it get disposed ?  We&#8217;ll consider a typical lifespan as used in a web application:</p>
 <div class="highlight-python"><pre>Web Server          Web Framework        User-defined Controller Call
 --------------      --------------       ------------------------------
@@ -689,7 +701,7 @@ web request    -&gt;
                     Session.remove() &lt;-
 web response   &lt;-</pre>
 </div>
-<p>The above example illustrates an explicit call to <tt class="docutils literal"><span class="pre">Session.remove()</span></tt>.  This has the effect such that each web request starts fresh with a brand new session.   When integrating with a web framework, there&#8217;s actually many options on how to proceed for this step, particularly as of version 0.5:</p>
+<p>The above example illustrates an explicit call to <tt class="docutils literal"><span class="pre">Session.remove()</span></tt>.  This has the effect such that each web request starts fresh with a brand new session.   When integrating with a web framework, there&#8217;s actually many options on how to proceed for this step:</p>
 <ul class="simple">
 <li>Session.remove() - this is the most cut and dry approach; the <tt class="docutils literal"><span class="pre">Session</span></tt> is thrown away, all of its transactional/connection resources are closed out, everything within it is explicitly gone.  A new <tt class="docutils literal"><span class="pre">Session</span></tt> will be used on the next request.</li>
 <li>Session.close() - Similar to calling <tt class="docutils literal"><span class="pre">remove()</span></tt>, in that all objects are explicitly expunged and all transactional/connection resources closed, except the actual <tt class="docutils literal"><span class="pre">Session</span></tt> object hangs around.  It doesn&#8217;t make too much difference here unless the start of the web request would like to pass specific options to the initial construction of <tt class="docutils literal"><span class="pre">Session()</span></tt>, such as a specific <tt class="docutils literal"><span class="pre">Engine</span></tt> to bind to.</li>
@@ -705,8 +717,8 @@ web response   &lt;-</pre>
 <div class="section" id="vertical-partitioning">
 <h3>Vertical Partitioning<a class="headerlink" href="#vertical-partitioning" title="Permalink to this headline">¶</a></h3>
 <p>Vertical partitioning places different kinds of objects, or different tables, across multiple databases:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine1</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://db1&#39;</span><span class="p">)</span>
-<span class="n">engine2</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://db2&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine1</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://db1&#39;</span><span class="p">)</span>
+<span class="n">engine2</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://db2&#39;</span><span class="p">)</span>
 
 <span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">twophase</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
@@ -754,8 +766,8 @@ web response   &lt;-</pre>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

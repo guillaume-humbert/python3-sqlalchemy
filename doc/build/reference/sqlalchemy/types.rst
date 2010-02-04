@@ -38,51 +38,61 @@ database column type available on the target database when issuing a
 type is emitted in ``CREATE TABLE``, such as ``VARCHAR`` see `SQL
 Standard Types`_ and the other sections of this chapter.
 
-.. autoclass:: String
+.. autoclass:: Boolean
+  :show-inheritance:
+
+.. autoclass:: Date
+ :show-inheritance:
+
+.. autoclass:: DateTime
    :show-inheritance:
 
-.. autoclass:: Unicode
+.. autoclass:: Enum
+  :show-inheritance:
+  :members:
+
+.. autoclass:: Float
+  :show-inheritance:
+  :members:
+
+.. autoclass:: Integer
+  :show-inheritance:
+
+.. autoclass:: Interval
+ :show-inheritance:
+
+.. autoclass:: LargeBinary
+ :show-inheritance:
+
+.. autoclass:: Numeric
+  :show-inheritance:
+  :members:
+
+.. autoclass:: PickleType
+ :show-inheritance:
+
+.. autoclass:: SchemaType
+  :show-inheritance:
+  :members:
+  :undoc-members:
+
+.. autoclass:: SmallInteger
+ :show-inheritance:
+
+.. autoclass:: String
    :show-inheritance:
 
 .. autoclass:: Text
    :show-inheritance:
 
+.. autoclass:: Time
+  :show-inheritance:
+
+.. autoclass:: Unicode
+  :show-inheritance:
+
 .. autoclass:: UnicodeText
    :show-inheritance:
-
-.. autoclass:: Integer
-   :show-inheritance:
-
-.. autoclass:: SmallInteger
-   :show-inheritance:
-
-.. autoclass:: Numeric
-   :show-inheritance:
-
-.. autoclass:: Float
-   :show-inheritance:
-
-.. autoclass:: DateTime
-   :show-inheritance:
-
-.. autoclass:: Date
-   :show-inheritance:
-
-.. autoclass:: Time
-   :show-inheritance:
-
-.. autoclass:: Interval
-   :show-inheritance:
-
-.. autoclass:: Boolean
-   :show-inheritance:
-
-.. autoclass:: Binary
-   :show-inheritance:
-
-.. autoclass:: PickleType
-   :show-inheritance:
-
 
 SQL Standard Types
 ------------------
@@ -91,84 +101,117 @@ The SQL standard types always create database column types of the same
 name when ``CREATE TABLE`` is issued.  Some types may not be supported
 on all databases.
 
-.. autoclass:: INT
-   :show-inheritance:
-
-.. autoclass:: sqlalchemy.types.INTEGER
-   :show-inheritance:
-
-.. autoclass:: CHAR
-   :show-inheritance:
-
-.. autoclass:: VARCHAR
-   :show-inheritance:
-
-.. autoclass:: NCHAR
-   :show-inheritance:
-
-.. autoclass:: TEXT
-   :show-inheritance:
-
-.. autoclass:: FLOAT
-   :show-inheritance:
-
-.. autoclass:: NUMERIC
-   :show-inheritance:
-
-.. autoclass:: DECIMAL
-   :show-inheritance:
-
-.. autoclass:: TIMESTAMP
-   :show-inheritance:
-
-.. autoclass:: DATETIME
-   :show-inheritance:
-
-.. autoclass:: CLOB
-   :show-inheritance:
+.. autoclass:: BINARY
+  :show-inheritance:
 
 .. autoclass:: BLOB
-   :show-inheritance:
+  :show-inheritance:
 
 .. autoclass:: BOOLEAN
-   :show-inheritance:
+  :show-inheritance:
 
-.. autoclass:: SMALLINT
-   :show-inheritance:
+.. autoclass:: CHAR
+  :show-inheritance:
+
+.. autoclass:: CLOB
+  :show-inheritance:
 
 .. autoclass:: DATE
-   :show-inheritance:
+  :show-inheritance:
+
+.. autoclass:: DATETIME
+  :show-inheritance:
+
+.. autoclass:: DECIMAL
+  :show-inheritance:
+
+.. autoclass:: FLOAT
+  :show-inheritance:
+
+.. autoclass:: INT
+  :show-inheritance:
+
+.. autoclass:: sqlalchemy.types.INTEGER
+  :show-inheritance:
+
+.. autoclass:: NCHAR
+  :show-inheritance:
+
+.. autoclass:: NUMERIC
+  :show-inheritance:
+
+.. autoclass:: SMALLINT
+  :show-inheritance:
+
+.. autoclass:: TEXT
+  :show-inheritance:
 
 .. autoclass:: TIME
-   :show-inheritance:
+  :show-inheritance:
+
+.. autoclass:: TIMESTAMP
+  :show-inheritance:
+
+.. autoclass:: VARBINARY
+  :show-inheritance:
+
+.. autoclass:: VARCHAR
+  :show-inheritance:
 
 
 Vendor-Specific Types
 ---------------------
 
 Database-specific types are also available for import from each
-database's dialect module. See the :ref:`sqlalchemy.databases`
+database's dialect module. See the :ref:`sqlalchemy.dialects`
 reference for the database you're interested in.
 
 For example, MySQL has a ``BIGINTEGER`` type and PostgreSQL has an
 ``INET`` type.  To use these, import them from the module explicitly::
 
-    from sqlalchemy.databases.mysql import MSBigInteger, MSEnum
+    from sqlalchemy.dialects import mysql
 
     table = Table('foo', meta,
-        Column('id', MSBigInteger),
-        Column('enumerates', MSEnum('a', 'b', 'c'))
+        Column('id', mysql.BIGINTEGER),
+        Column('enumerates', mysql.ENUM('a', 'b', 'c'))
     )
 
 Or some PostgreSQL types::
 
-    from sqlalchemy.databases.postgres import PGInet, PGArray
+    from sqlalchemy.dialects import postgresql
 
     table = Table('foo', meta,
-        Column('ipaddress', PGInet),
-        Column('elements', PGArray(str))
+        Column('ipaddress', postgresql.INET),
+        Column('elements', postgresql.ARRAY(str))
         )
 
+Each dialect provides the full set of typenames supported by
+that backend within its `__all__` collection, so that a simple
+`import *` or similar will import all supported types as 
+implemented for that backend::
+
+    from sqlalchemy.dialects.postgresql import *
+
+    t = Table('mytable', metadata,
+               Column('id', INTEGER, primary_key=True),
+               Column('name', VARCHAR(300)),
+               Column('inetaddr', INET)
+    )
+
+Where above, the INTEGER and VARCHAR types are ultimately from 
+sqlalchemy.types, and INET is specific to the Postgresql dialect.
+
+Some dialect level types have the same name as the SQL standard type,
+but also provide additional arguments.  For example, MySQL implements
+the full range of character and string types including additional arguments
+such as `collation` and `charset`::
+
+    from sqlalchemy.dialects.mysql import VARCHAR, TEXT
+
+    table = Table('foo', meta,
+        Column('col1', VARCHAR(200, collation='binary')),
+        Column('col2', TEXT(charset='latin1'))
+    )
 
 Custom Types
 ------------
@@ -181,9 +224,15 @@ The simplest method is implementing a :class:`TypeDecorator`, a helper
 class that makes it easy to augment the bind parameter and result
 processing capabilities of one of the built in types.
 
-To build a type object from scratch, subclass `:class:TypeEngine`.
+To build a type object from scratch, subclass `:class:UserDefinedType`.
 
 .. autoclass:: TypeDecorator
+   :members:
+   :undoc-members:
+   :inherited-members:
+   :show-inheritance:
+
+.. autoclass:: UserDefinedType
    :members:
    :undoc-members:
    :inherited-members:

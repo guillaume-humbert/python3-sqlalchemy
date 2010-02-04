@@ -1,6 +1,7 @@
 from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy import *
 from sqlalchemy.orm import *
+from sqlalchemy.orm import interfaces
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.engine import default
@@ -8,6 +9,7 @@ from sqlalchemy.engine import default
 from sqlalchemy.test import AssertsCompiledSQL, testing
 from test.orm import _base, _fixtures
 from sqlalchemy.test.testing import eq_
+from sqlalchemy.test.schema import Table, Column
 
 class Company(_fixtures.Base):
     pass
@@ -38,11 +40,11 @@ def _produce_test(select_type):
             global companies, people, engineers, managers, boss, paperwork, machines
 
             companies = Table('companies', metadata,
-               Column('company_id', Integer, Sequence('company_id_seq', optional=True), primary_key=True),
+               Column('company_id', Integer, primary_key=True, test_needs_autoincrement=True),
                Column('name', String(50)))
 
             people = Table('people', metadata,
-               Column('person_id', Integer, Sequence('person_id_seq', optional=True), primary_key=True),
+               Column('person_id', Integer, primary_key=True, test_needs_autoincrement=True),
                Column('company_id', Integer, ForeignKey('companies.company_id')),
                Column('name', String(50)),
                Column('type', String(30)))
@@ -55,7 +57,7 @@ def _produce_test(select_type):
               )
          
             machines = Table('machines', metadata,
-                Column('machine_id', Integer, primary_key=True),
+                Column('machine_id', Integer, primary_key=True, test_needs_autoincrement=True),
                 Column('name', String(50)),
                 Column('engineer_id', Integer, ForeignKey('engineers.person_id')))
             
@@ -71,7 +73,7 @@ def _produce_test(select_type):
                 )
 
             paperwork = Table('paperwork', metadata,
-                Column('paperwork_id', Integer, primary_key=True),
+                Column('paperwork_id', Integer, primary_key=True, test_needs_autoincrement=True),
                 Column('description', String(50)),
                 Column('person_id', Integer, ForeignKey('people.person_id')))
 
@@ -366,7 +368,10 @@ def _produce_test(select_type):
             )
             
             eq_(
-                sess.query(Manager.name, Paperwork.description).join((Paperwork, Manager.person_id==Paperwork.person_id)).all(),
+                sess.query(Manager.name, Paperwork.description).
+                    join((Paperwork, Manager.person_id==Paperwork.person_id)).
+                    order_by(Paperwork.paperwork_id).
+                    all(),
                 [(u'pointy haired boss', u'review #1'), (u'dogbert', u'review #2'), (u'dogbert', u'review #3')]
             )
             
@@ -375,6 +380,31 @@ def _produce_test(select_type):
                 sess.query(malias.name).join((paperwork, malias.person_id==paperwork.c.person_id)).all(),
                 [(u'pointy haired boss',), (u'dogbert',), (u'dogbert',)]
             )
+        
+        def test_polymorphic_option(self):
+            """test that polymorphic loading sets state.load_path with its actual mapper
+            on a subclass, and not the superclass mapper.
+            
+            """
+            paths = []
+            class MyOption(interfaces.MapperOption):
+                propagate_to_loaders = True
+                def process_query_conditionally(self, query):
+                    paths.append(query._current_path)
+            
+            sess = create_session()
+            dilbert, boss = sess.query(Person).\
+                            options(MyOption()).\
+                            filter(Person.name.in_(['dilbert', 'pointy haired boss'])).\
+                            order_by(Person.name).\
+                            all()
+                            
+            dilbert.machines
+            boss.paperwork
+            eq_(paths, 
+                [(class_mapper(Engineer), 'machines'), 
+                (class_mapper(Boss), 'paperwork')])
+            
             
         def test_expire(self):
             """test that individual column refresh doesn't get tripped up by the select_table mapper"""
@@ -458,7 +488,7 @@ def _produce_test(select_type):
             def go():
                 # currently, it doesn't matter if we say Company.employees, or Company.employees.of_type(Engineer).  eagerloader doesn't
                 # pick up on the "of_type()" as of yet.
-                eq_(sess.query(Company).options(eagerload_all([Company.employees.of_type(Engineer), Engineer.machines])).all(), assert_result)
+                eq_(sess.query(Company).options(eagerload_all(Company.employees.of_type(Engineer), Engineer.machines)).all(), assert_result)
             
             # in the case of select_type='', the eagerload doesn't take in this case; 
             # it eagerloads company->people, then a load for each of 5 rows, then lazyload of "machines"            
@@ -468,10 +498,16 @@ def _produce_test(select_type):
             sess = create_session()
             def go():
                 # test load People with eagerload to engineers + machines
-                eq_(sess.query(Person).with_polymorphic('*').options(eagerload([Engineer.machines])).filter(Person.name=='dilbert').all(), 
+                eq_(sess.query(Person).with_polymorphic('*').options(eagerload(Engineer.machines)).filter(Person.name=='dilbert').all(), 
                 [Engineer(name="dilbert", engineer_name="dilbert", primary_language="java", status="regular engineer", machines=[Machine(name="IBM ThinkPad"), Machine(name="IPhone")])]
                 )
             self.assert_sql_count(testing.db, go, 1)
+
+            
+        def test_query_subclass_join_to_base_relation(self):
+            sess = create_session()
+            # non-polymorphic
+            eq_(sess.query(Engineer).join(Person.paperwork).all(), [e1, e2, e3])
 
         def test_join_to_subclass(self):
             sess = create_session()
@@ -486,15 +522,15 @@ def _produce_test(select_type):
 
                 eq_(sess.query(Person).select_from(people.join(engineers)).join(Engineer.machines).all(), [e1, e2, e3])
                 eq_(sess.query(Person).select_from(people.join(engineers)).join(Engineer.machines).filter(Machine.name.ilike("%ibm%")).all(), [e1, e3])
-                eq_(sess.query(Company).join([('employees', people.join(engineers)), Engineer.machines]).all(), [c1, c2])
-                eq_(sess.query(Company).join([('employees', people.join(engineers)), Engineer.machines]).filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
+                eq_(sess.query(Company).join(('employees', people.join(engineers)), Engineer.machines).all(), [c1, c2])
+                eq_(sess.query(Company).join(('employees', people.join(engineers)), Engineer.machines).filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
             else:
                 eq_(sess.query(Company).select_from(companies.join(people).join(engineers)).filter(Engineer.primary_language=='java').all(), [c1])
-                eq_(sess.query(Company).join(['employees']).filter(Engineer.primary_language=='java').all(), [c1])
+                eq_(sess.query(Company).join('employees').filter(Engineer.primary_language=='java').all(), [c1])
                 eq_(sess.query(Person).join(Engineer.machines).all(), [e1, e2, e3])
                 eq_(sess.query(Person).join(Engineer.machines).filter(Machine.name.ilike("%ibm%")).all(), [e1, e3])
-                eq_(sess.query(Company).join(['employees', Engineer.machines]).all(), [c1, c2])
-                eq_(sess.query(Company).join(['employees', Engineer.machines]).filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
+                eq_(sess.query(Company).join('employees', Engineer.machines).all(), [c1, c2])
+                eq_(sess.query(Company).join('employees', Engineer.machines).filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
             
             # non-polymorphic
             eq_(sess.query(Engineer).join(Engineer.machines).all(), [e1, e2, e3])
@@ -502,7 +538,7 @@ def _produce_test(select_type):
 
             # here's the new way
             eq_(sess.query(Company).join(Company.employees.of_type(Engineer)).filter(Engineer.primary_language=='java').all(), [c1])
-            eq_(sess.query(Company).join([Company.employees.of_type(Engineer), 'machines']).filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
+            eq_(sess.query(Company).join(Company.employees.of_type(Engineer), 'machines').filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
 
         def test_join_through_polymorphic(self):
 
@@ -511,25 +547,25 @@ def _produce_test(select_type):
             for aliased in (True, False):
                 eq_(
                     sess.query(Company).\
-                        join(['employees', 'paperwork'], aliased=aliased).filter(Paperwork.description.like('%#2%')).all(),
+                        join('employees', 'paperwork', aliased=aliased).filter(Paperwork.description.like('%#2%')).all(),
                     [c1]
                 )
 
                 eq_(
                     sess.query(Company).\
-                        join(['employees', 'paperwork'], aliased=aliased).filter(Paperwork.description.like('%#%')).all(),
+                        join('employees', 'paperwork', aliased=aliased).filter(Paperwork.description.like('%#%')).all(),
                     [c1, c2]
                 )
 
                 eq_(
                     sess.query(Company).\
-                        join(['employees', 'paperwork'], aliased=aliased).filter(Person.name.in_(['dilbert', 'vlad'])).filter(Paperwork.description.like('%#2%')).all(),
+                        join('employees', 'paperwork', aliased=aliased).filter(Person.name.in_(['dilbert', 'vlad'])).filter(Paperwork.description.like('%#2%')).all(),
                     [c1]
                 )
         
                 eq_(
                     sess.query(Company).\
-                        join(['employees', 'paperwork'], aliased=aliased).filter(Person.name.in_(['dilbert', 'vlad'])).filter(Paperwork.description.like('%#%')).all(),
+                        join('employees', 'paperwork', aliased=aliased).filter(Person.name.in_(['dilbert', 'vlad'])).filter(Paperwork.description.like('%#%')).all(),
                     [c1, c2]
                 )
 
@@ -771,7 +807,7 @@ class SelfReferentialTestJoinedToBase(_base.MappedTest):
     def define_tables(cls, metadata):
         global people, engineers
         people = Table('people', metadata,
-           Column('person_id', Integer, Sequence('person_id_seq', optional=True), primary_key=True),
+           Column('person_id', Integer, primary_key=True, test_needs_autoincrement=True),
            Column('name', String(50)),
            Column('type', String(30)))
 
@@ -831,7 +867,7 @@ class SelfReferentialJ2JTest(_base.MappedTest):
     def define_tables(cls, metadata):
         global people, engineers, managers
         people = Table('people', metadata,
-           Column('person_id', Integer, Sequence('person_id_seq', optional=True), primary_key=True),
+           Column('person_id', Integer, primary_key=True, test_needs_autoincrement=True),
            Column('name', String(50)),
            Column('type', String(30)))
 
@@ -947,7 +983,7 @@ class M2MFilterTest(_base.MappedTest):
         global people, engineers, organizations, engineers_to_org
         
         organizations = Table('organizations', metadata,
-            Column('id', Integer, Sequence('org_id_seq', optional=True), primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('name', String(50)),
             )
         engineers_to_org = Table('engineers_org', metadata,
@@ -956,7 +992,7 @@ class M2MFilterTest(_base.MappedTest):
         )
         
         people = Table('people', metadata,
-           Column('person_id', Integer, Sequence('person_id_seq', optional=True), primary_key=True),
+           Column('person_id', Integer, primary_key=True, test_needs_autoincrement=True),
            Column('name', String(50)),
            Column('type', String(30)))
 
@@ -1023,7 +1059,7 @@ class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
 
         class Parent(Base):
            __tablename__ = 'parent'
-           id = Column(Integer, primary_key=True)
+           id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
            cls = Column(String(50))
            __mapper_args__ = dict(polymorphic_on = cls )
 
@@ -1122,12 +1158,12 @@ class EagerToSubclassTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('parent', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('data', String(10)),
         )
 
         Table('base', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('type', String(10)),
         )
 
@@ -1186,7 +1222,8 @@ class EagerToSubclassTest(_base.MappedTest):
         sess = create_session()
         def go():
             eq_(
-                sess.query(Parent).join(Parent.children).options(contains_eager(Parent.children)).all(), 
+                sess.query(Parent).join(Parent.children).options(contains_eager(Parent.children)).\
+                                order_by(Parent.data, Sub.data).all(), 
                 [
                     Parent(data='p1', children=[Sub(data='s1'), Sub(data='s2'), Sub(data='s3')]),
                     Parent(data='p2', children=[Sub(data='s4'), Sub(data='s5')])
@@ -1205,7 +1242,7 @@ class SubClassEagerToSubclassTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('parent', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('type', String(10)),
         )
 
@@ -1215,7 +1252,7 @@ class SubClassEagerToSubclassTest(_base.MappedTest):
         )
 
         Table('base', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('type', String(10)),
         )
 

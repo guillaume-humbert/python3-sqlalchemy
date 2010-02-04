@@ -5,8 +5,7 @@ from sqlalchemy import exc
 import sqlalchemy as sa
 from sqlalchemy.test import testing
 from sqlalchemy import MetaData, Integer, String, ForeignKey, ForeignKeyConstraint, asc, Index
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from sqlalchemy.test.schema import Table, Column
 from sqlalchemy.orm import relation, create_session, class_mapper, eagerload, compile_mappers, backref, clear_mappers, polymorphic_union, deferred
 from sqlalchemy.test.testing import eq_
 
@@ -27,14 +26,14 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             addresses = relation("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
 
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column(String(50), key='_email')
             user_id = Column('user_id', Integer, ForeignKey('users.id'),
                              key='_user_id')
@@ -127,7 +126,7 @@ class DeclarativeTest(DeclarativeTestBase):
         
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column(String(50))
             addresses = relation("Address", order_by="desc(Address.email)", 
                 primaryjoin="User.id==Address.user_id", foreign_keys="[Address.user_id]",
@@ -136,7 +135,7 @@ class DeclarativeTest(DeclarativeTestBase):
         
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column(String(50))
             user_id = Column(Integer)  # note no foreign key
         
@@ -157,6 +156,25 @@ class DeclarativeTest(DeclarativeTestBase):
             rel = relation("User", primaryjoin="User.addresses==Foo.id")
         assert_raises_message(exc.InvalidRequestError, "'addresses' is not an instance of ColumnProperty", compile_mappers)
 
+    def test_string_dependency_resolution_no_magic(self):
+        """test that full tinkery expressions work as written"""
+        
+        class User(Base, ComparableEntity):
+            __tablename__ = 'users'
+            id = Column(Integer, primary_key=True)
+            addresses = relation("Address", 
+                primaryjoin="User.id==Address.user_id.prop.columns[0]")
+        
+        class Address(Base, ComparableEntity):
+            __tablename__ = 'addresses'
+            id = Column(Integer, primary_key=True)
+            user_id = Column(Integer, ForeignKey('users.id'))
+        
+        compile_mappers()
+        eq_(
+            str(User.addresses.prop.primaryjoin), "users.id = addresses.user_id"
+        )
+        
     def test_string_dependency_resolution_in_backref(self):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
@@ -204,13 +222,13 @@ class DeclarativeTest(DeclarativeTestBase):
     def test_uncompiled_attributes_in_relation(self):
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column(String(50))
             user_id = Column(Integer, ForeignKey('users.id'))
 
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column(String(50))
             addresses = relation("Address", order_by=Address.email, 
                 foreign_keys=Address.user_id, 
@@ -271,6 +289,37 @@ class DeclarativeTest(DeclarativeTestBase):
         Base = decl.declarative_base(cls=MyBase)
         assert hasattr(Base, 'metadata')
         assert Base().foobar() == "foobar"
+    
+    def test_uses_get_on_class_col_fk(self):
+        # test [ticket:1492]
+        
+        class Master(Base): 
+            __tablename__ = 'master' 
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True) 
+
+        class Detail(Base): 
+            __tablename__ = 'detail' 
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True) 
+            master_id = Column(None, ForeignKey(Master.id)) 
+            master = relation(Master) 
+
+        Base.metadata.create_all()
+        
+        compile_mappers()
+        assert class_mapper(Detail).get_property('master').strategy.use_get
+        
+        m1 = Master()
+        d1 = Detail(master=m1)
+        sess = create_session()
+        sess.add(d1)
+        sess.flush()
+        sess.expunge_all()
+
+        d1 = sess.query(Detail).first()
+        m1 = sess.query(Master).first()
+        def go():
+            assert d1.master
+        self.assert_sql_count(testing.db, go, 0)
         
     def test_index_doesnt_compile(self):
         class User(Base):
@@ -296,14 +345,14 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
         User.name = Column('name', String(50))
         User.addresses = relation("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
 
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
         Address.email = Column(String(50), key='_email')
         Address.user_id = Column('user_id', Integer, ForeignKey('users.id'),
                              key='_user_id')
@@ -336,14 +385,14 @@ class DeclarativeTest(DeclarativeTestBase):
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column('email', String(50))
             user_id = Column('user_id', Integer, ForeignKey('users.id'))
 
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             addresses = relation("Address", order_by=Address.email)
 
@@ -365,14 +414,14 @@ class DeclarativeTest(DeclarativeTestBase):
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column('email', String(50))
             user_id = Column('user_id', Integer, ForeignKey('users.id'))
 
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             addresses = relation("Address", order_by=(Address.email, Address.id))
 
@@ -392,14 +441,14 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             addresses = relation("Address", backref="user")
 
         class Address(ComparableEntity):
             __tablename__ = 'addresses'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column('email', String(50))
             user_id = Column('user_id', Integer, ForeignKey('users.id'))
         
@@ -502,14 +551,14 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             addresses = relation("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column('email', String(50))
             user_id = Column('user_id', Integer, ForeignKey('users.id'))
 
@@ -537,7 +586,7 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
 
         User.a = Column('a', String(10))
@@ -559,14 +608,14 @@ class DeclarativeTest(DeclarativeTestBase):
     def test_column_properties(self):
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column(String(50))
             user_id = Column(Integer, ForeignKey('users.id'))
 
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             adr_count = sa.orm.column_property(
                 sa.select([sa.func.count(Address.id)], Address.user_id == id).
@@ -612,7 +661,7 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             name = sa.orm.deferred(Column(String(50)))
 
         Base.metadata.create_all()
@@ -631,7 +680,7 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             _name = Column('name', String(50))
             def _set_name(self, name):
                 self._name = "SOMENAME " + name
@@ -660,7 +709,7 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             _name = Column('name', String(50))
             name = sa.orm.synonym('_name', comparator_factory=CustomCompare)
         
@@ -676,7 +725,7 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             _name = Column('name', String(50))
             def _set_name(self, name):
                 self._name = "SOMENAME " + name
@@ -698,14 +747,14 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             addresses = relation("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column('email', String(50))
             user_id = Column('user_id', Integer, ForeignKey(User.id))
 
@@ -735,14 +784,14 @@ class DeclarativeTest(DeclarativeTestBase):
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             email = Column('email', String(50))
             user_id = Column('user_id', Integer, ForeignKey('users.id'))
 
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             addresses = relation("Address", backref="user",
                                  primaryjoin=id == Address.user_id)
@@ -787,7 +836,7 @@ class DeclarativeTest(DeclarativeTestBase):
     def test_with_explicit_autoloaded(self):
         meta = MetaData(testing.db)
         t1 = Table('t1', meta,
-                   Column('id', String(50), primary_key=True),
+                   Column('id', String(50), primary_key=True, test_needs_autoincrement=True),
                    Column('data', String(50)))
         meta.create_all()
         try:
@@ -802,6 +851,70 @@ class DeclarativeTest(DeclarativeTestBase):
             eq_(t1.select().execute().fetchall(), [('someid', 'somedata')])
         finally:
             meta.drop_all()
+
+    def test_synonym_for(self):
+        class User(Base, ComparableEntity):
+            __tablename__ = 'users'
+
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
+            name = Column('name', String(50))
+
+            @decl.synonym_for('name')
+            @property
+            def namesyn(self):
+                return self.name
+
+        Base.metadata.create_all()
+
+        sess = create_session()
+        u1 = User(name='someuser')
+        eq_(u1.name, "someuser")
+        eq_(u1.namesyn, 'someuser')
+        sess.add(u1)
+        sess.flush()
+
+        rt = sess.query(User).filter(User.namesyn == 'someuser').one()
+        eq_(rt, u1)
+
+    def test_comparable_using(self):
+        class NameComparator(sa.orm.PropComparator):
+            @property
+            def upperself(self):
+                cls = self.prop.parent.class_
+                col = getattr(cls, 'name')
+                return sa.func.upper(col)
+
+            def operate(self, op, other, **kw):
+                return op(self.upperself, other, **kw)
+
+        class User(Base, ComparableEntity):
+            __tablename__ = 'users'
+
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
+            name = Column('name', String(50))
+
+            @decl.comparable_using(NameComparator)
+            @property
+            def uc_name(self):
+                return self.name is not None and self.name.upper() or None
+
+        Base.metadata.create_all()
+
+        sess = create_session()
+        u1 = User(name='someuser')
+        eq_(u1.name, "someuser", u1.name)
+        eq_(u1.uc_name, 'SOMEUSER', u1.uc_name)
+        sess.add(u1)
+        sess.flush()
+        sess.expunge_all()
+
+        rt = sess.query(User).filter(User.uc_name == 'SOMEUSER').one()
+        eq_(rt, u1)
+        sess.expunge_all()
+
+        rt = sess.query(User).filter(User.uc_name.startswith('SOMEUSE')).one()
+        eq_(rt, u1)
+
 
 class DeclarativeInheritanceTest(DeclarativeTestBase):
     def test_custom_join_condition(self):
@@ -821,13 +934,13 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
     def test_joined(self):
         class Company(Base, ComparableEntity):
             __tablename__ = 'companies'
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             employees = relation("Person")
 
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             company_id = Column('company_id', Integer,
                                 ForeignKey('companies.id'))
             name = Column('name', String(50))
@@ -1022,13 +1135,13 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         
         class Company(Base, ComparableEntity):
             __tablename__ = 'companies'
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             employees = relation("Person")
 
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             company_id = Column('company_id', Integer,
                                 ForeignKey('companies.id'))
             name = Column('name', String(50))
@@ -1078,13 +1191,13 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
 
         class Company(Base, ComparableEntity):
             __tablename__ = 'companies'
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             employees = relation("Person")
 
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             company_id = Column(Integer,
                                 ForeignKey('companies.id'))
             name = Column(String(50))
@@ -1106,11 +1219,11 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         # the exclude_properties collection so that sibling classes
         # don't cross-pollinate.
 
-        assert Person.__table__.c.company_id
-        assert Person.__table__.c.golf_swing
-        assert Person.__table__.c.primary_language
-        assert Engineer.primary_language
-        assert Manager.golf_swing
+        assert Person.__table__.c.company_id is not None
+        assert Person.__table__.c.golf_swing is not None
+        assert Person.__table__.c.primary_language is not None
+        assert Engineer.primary_language is not None
+        assert Manager.golf_swing is not None
         assert not hasattr(Person, 'primary_language')
         assert not hasattr(Person, 'golf_swing')
         assert not hasattr(Engineer, 'golf_swing')
@@ -1148,13 +1261,13 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
     def test_joined_from_single(self):
         class Company(Base, ComparableEntity):
             __tablename__ = 'companies'
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
             employees = relation("Person")
         
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             company_id = Column(Integer, ForeignKey('companies.id'))
             name = Column(String(50))
             discriminator = Column('type', String(50))
@@ -1170,11 +1283,11 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             id = Column(Integer, ForeignKey('people.id'), primary_key=True)
             primary_language = Column(String(50))
 
-        assert Person.__table__.c.golf_swing
+        assert Person.__table__.c.golf_swing is not None
         assert not Person.__table__.c.has_key('primary_language')
-        assert Engineer.__table__.c.primary_language
-        assert Engineer.primary_language
-        assert Manager.golf_swing
+        assert Engineer.__table__.c.primary_language is not None
+        assert Engineer.primary_language is not None
+        assert Manager.golf_swing is not None
         assert not hasattr(Person, 'primary_language')
         assert not hasattr(Person, 'golf_swing')
         assert not hasattr(Engineer, 'golf_swing')
@@ -1211,7 +1324,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
     def test_add_deferred(self):
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
-            id = Column('id', Integer, primary_key=True)
+            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
 
         Person.name = deferred(Column(String(10)))
 
@@ -1228,6 +1341,8 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
                 Person(name='ratbert')
             ]
         )
+        sess.expunge_all()
+
         person = sess.query(Person).filter(Person.name == 'ratbert').one()
         assert 'name' not in person.__dict__
 
@@ -1238,7 +1353,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
 
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column(String(50))
             discriminator = Column('type', String(50))
             __mapper_args__ = {'polymorphic_on':discriminator}
@@ -1250,7 +1365,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             
         class Language(Base, ComparableEntity):
             __tablename__ = 'languages'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column(String(50))
 
         assert not hasattr(Person, 'primary_language_id')
@@ -1347,12 +1462,12 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         
     def test_concrete(self):
         engineers = Table('engineers', Base.metadata,
-                        Column('id', Integer, primary_key=True),
+                        Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
                         Column('name', String(50)),
                         Column('primary_language', String(50))
                     )
         managers = Table('managers', Base.metadata,
-                        Column('id', Integer, primary_key=True),
+                        Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
                         Column('name', String(50)),
                         Column('golf_swing', String(50))
                     )
@@ -1392,6 +1507,53 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
                 Engineer(name='vlad'), Engineer(name='wally')
             ]
         )
+    
+    def test_concrete_inline_non_polymorphic(self):
+        """test the example from the declarative docs."""
+        
+        class Person(Base, ComparableEntity):
+            __tablename__ = 'people'
+            id = Column(Integer, primary_key=True)
+            name = Column(String(50))
+
+        class Engineer(Person):
+            __tablename__ = 'engineers'
+            __mapper_args__ = {'concrete':True}
+            id = Column(Integer, primary_key=True)
+            primary_language = Column(String(50))
+            name = Column(String(50))
+
+        class Manager(Person):
+            __tablename__ = 'manager'
+            __mapper_args__ = {'concrete':True}
+            id = Column(Integer, primary_key=True)
+            golf_swing = Column(String(50))
+            name = Column(String(50))
+
+        Base.metadata.create_all()
+        sess = create_session()
+
+        e1 = Engineer(name="dilbert", primary_language="java")
+        e2 = Engineer(name="wally", primary_language="c++")
+        m1 = Manager(name="dogbert", golf_swing="fore!")
+        e3 = Engineer(name="vlad", primary_language="cobol") 
+
+        sess.add_all([e1, e2, m1, e3])
+        sess.flush()
+        sess.expunge_all()
+        eq_(
+            sess.query(Engineer).order_by(Engineer.name).all(),
+            [
+                Engineer(name='dilbert'), 
+                Engineer(name='vlad'), Engineer(name='wally')
+            ]
+        )
+        eq_(
+            sess.query(Manager).all(),
+            [
+                Manager(name='dogbert'), 
+            ]
+        )
         
         
 def _produce_test(inline, stringbased):
@@ -1404,12 +1566,12 @@ def _produce_test(inline, stringbased):
 
             class User(Base, ComparableEntity):
                 __tablename__ = 'users'
-                id = Column(Integer, primary_key=True)
+                id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
                 name = Column(String(50))
             
             class Address(Base, ComparableEntity):
                 __tablename__ = 'addresses'
-                id = Column(Integer, primary_key=True)
+                id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
                 email = Column(String(50))
                 user_id = Column(Integer, ForeignKey('users.id'))
                 if inline:
@@ -1474,16 +1636,16 @@ class DeclarativeReflectionTest(testing.TestBase):
         reflection_metadata = MetaData(testing.db)
 
         Table('users', reflection_metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('name', String(50)),
               test_needs_fk=True)
         Table('addresses', reflection_metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('email', String(50)),
               Column('user_id', Integer, ForeignKey('users.id')),
               test_needs_fk=True)
         Table('imhandles', reflection_metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('user_id', Integer),
               Column('network', String(50)),
               Column('handle', String(50)),
@@ -1509,12 +1671,17 @@ class DeclarativeReflectionTest(testing.TestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
             __autoload__ = True
+            if testing.against('oracle', 'firebird'):
+                id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             addresses = relation("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
             __autoload__ = True
 
+            if testing.against('oracle', 'firebird'):
+                id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
+        
         u1 = User(name='u1', addresses=[
             Address(email='one'),
             Address(email='two'),
@@ -1539,12 +1706,16 @@ class DeclarativeReflectionTest(testing.TestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
             __autoload__ = True
+            if testing.against('oracle', 'firebird'):
+                id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             nom = Column('name', String(50), key='nom')
             addresses = relation("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
             __autoload__ = True
+            if testing.against('oracle', 'firebird'):
+                id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
 
         u1 = User(nom='u1', addresses=[
             Address(email='one'),
@@ -1572,12 +1743,16 @@ class DeclarativeReflectionTest(testing.TestBase):
         class IMHandle(Base, ComparableEntity):
             __tablename__ = 'imhandles'
             __autoload__ = True
+            if testing.against('oracle', 'firebird'):
+                id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
 
             user_id = Column('user_id', Integer,
                              ForeignKey('users.id'))
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
             __autoload__ = True
+            if testing.against('oracle', 'firebird'):
+                id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             handles = relation("IMHandle", backref="user")
 
         u1 = User(name='u1', handles=[
@@ -1598,69 +1773,3 @@ class DeclarativeReflectionTest(testing.TestBase):
         eq_(a1, IMHandle(network='lol', handle='zomg'))
         eq_(a1.user, User(name='u1'))
 
-    def test_synonym_for(self):
-        class User(Base, ComparableEntity):
-            __tablename__ = 'users'
-
-            id = Column('id', Integer, primary_key=True)
-            name = Column('name', String(50))
-
-            @decl.synonym_for('name')
-            @property
-            def namesyn(self):
-                return self.name
-
-        Base.metadata.create_all()
-
-        sess = create_session()
-        u1 = User(name='someuser')
-        eq_(u1.name, "someuser")
-        eq_(u1.namesyn, 'someuser')
-        sess.add(u1)
-        sess.flush()
-
-        rt = sess.query(User).filter(User.namesyn == 'someuser').one()
-        eq_(rt, u1)
-
-    def test_comparable_using(self):
-        class NameComparator(sa.orm.PropComparator):
-            @property
-            def upperself(self):
-                cls = self.prop.parent.class_
-                col = getattr(cls, 'name')
-                return sa.func.upper(col)
-
-            def operate(self, op, other, **kw):
-                return op(self.upperself, other, **kw)
-
-        class User(Base, ComparableEntity):
-            __tablename__ = 'users'
-
-            id = Column('id', Integer, primary_key=True)
-            name = Column('name', String(50))
-
-            @decl.comparable_using(NameComparator)
-            @property
-            def uc_name(self):
-                return self.name is not None and self.name.upper() or None
-
-        Base.metadata.create_all()
-
-        sess = create_session()
-        u1 = User(name='someuser')
-        eq_(u1.name, "someuser", u1.name)
-        eq_(u1.uc_name, 'SOMEUSER', u1.uc_name)
-        sess.add(u1)
-        sess.flush()
-        sess.expunge_all()
-
-        rt = sess.query(User).filter(User.uc_name == 'SOMEUSER').one()
-        eq_(rt, u1)
-        sess.expunge_all()
-
-        rt = sess.query(User).filter(User.uc_name.startswith('SOMEUSE')).one()
-        eq_(rt, u1)
-
-
-if __name__ == '__main__':
-    testing.main()

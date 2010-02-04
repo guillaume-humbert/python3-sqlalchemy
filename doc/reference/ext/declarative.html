@@ -7,7 +7,7 @@
         
         <title>
     declarative
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="associationproxy" href="associationproxy.html" />
         <link rel="prev" title="sqlalchemy.ext" href="index.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -475,7 +475,7 @@ named attributes:</p>
 only intended as an optional syntax for the regular usage of mappers and Table
 objects.  A typical application setup using <a title="sqlalchemy.orm.scoped_session" class="reference external" href="../orm/sessions.html#sqlalchemy.orm.scoped_session"><tt class="xref docutils literal"><span class="pre">scoped_session()</span></tt></a> might look
 like:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://scott:tiger@localhost/test&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost/test&#39;</span><span class="p">)</span>
 <span class="n">Session</span> <span class="o">=</span> <span class="n">scoped_session</span><span class="p">(</span><span class="n">sessionmaker</span><span class="p">(</span><span class="n">autocommit</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                                       <span class="n">autoflush</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                                       <span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">))</span>
@@ -484,7 +484,7 @@ like:</p>
 <p>Mapped instances then make usage of <a title="sqlalchemy.orm.session.Session" class="reference external" href="../orm/sessions.html#sqlalchemy.orm.session.Session"><tt class="xref docutils literal"><span class="pre">Session</span></tt></a> in the usual way.</p>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x5cc19b0&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em>, <em>engine=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x5da89f0&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that invokes
 <a title="sqlalchemy.ext.declarative.instrument_declarative" class="reference internal" href="#sqlalchemy.ext.declarative.instrument_declarative"><tt class="xref docutils literal"><span class="pre">instrument_declarative()</span></tt></a> upon each subclass definition, and routes
@@ -496,8 +496,7 @@ into Table and Mapper assignments.</p>
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><em>bind</em> &#8211; An optional <a title="sqlalchemy.engine.base.Connectable" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.engine.base.Connectable"><tt class="xref docutils literal"><span class="pre">Connectable</span></tt></a>, will be assigned 
-the <tt class="docutils literal"><span class="pre">bind</span></tt> attribute on the <tt class="xref docutils literal"><span class="pre">MetaData</span></tt> instance.
-The <cite>engine</cite> keyword argument is a deprecated synonym for <cite>bind</cite>.</li>
+the <tt class="docutils literal"><span class="pre">bind</span></tt> attribute on the <tt class="xref docutils literal"><span class="pre">MetaData</span></tt> instance.</li>
 <li><em>metadata</em> &#8211; An optional <tt class="xref docutils literal"><span class="pre">MetaData</span></tt> instance.  All <a title="sqlalchemy.schema.Table" class="reference external" href="../sqlalchemy/schema.html#sqlalchemy.schema.Table"><tt class="xref docutils literal"><span class="pre">Table</span></tt></a> 
 objects implicitly declared by
 subclasses of the base will share this MetaData.  A MetaData instance
@@ -586,8 +585,8 @@ This operation does not assume any kind of class hierarchy.</dd></dl>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

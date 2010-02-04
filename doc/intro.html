@@ -7,7 +7,7 @@
         
         <title>
     Overview / Installation
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="index.html" />
         <link rel="next" title="Object Relational Tutorial" href="ormtutorial.html" />
         <link rel="prev" title="Table of Contents" href="index.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -92,7 +92,7 @@
 <li><a class="reference external" href="#installing-sqlalchemy">Installing SQLAlchemy</a></li>
 <li><a class="reference external" href="#installing-a-database-api">Installing a Database API</a></li>
 <li><a class="reference external" href="#checking-the-installed-sqlalchemy-version">Checking the Installed SQLAlchemy Version</a></li>
-<li><a class="reference external" href="#to-0-5-migration">0.4 to 0.5 Migration</a></li>
+<li><a class="reference external" href="#to-0-6-migration">0.5 to 0.6 Migration</a></li>
 </ul>
 </li>
 </ul>
@@ -109,7 +109,7 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The SQLAlchemy SQL Toolkit and Object Relational Mapper is a comprehensive set of tools for working with databases and Python.  It has several distinct areas of functionality which can be used individually or combined together.  Its major components are illustrated below.  The arrows represent the general dependencies of components:</p>
 <img alt="_images/sqla_arch_small.jpg" src="_images/sqla_arch_small.jpg" />
-<p>Above, the two most significant front-facing portions of SQLAlchemy are the <strong>Object Relational Mapper</strong> and the <strong>SQL Expression Language</strong>.  These are two separate toolkits, one building off the other.  SQL Expressions can be used independently of the ORM.  When using the ORM, the SQL Expression language is used to establish object-relational configurations as well as in querying.</p>
+<p>Above, the two most significant front-facing portions of SQLAlchemy are the <strong>Object Relational Mapper</strong> and the <strong>SQL Expression Language</strong>.  SQL Expressions can be used independently of the ORM.  When using the ORM, the SQL Expression language remains part of the public facing API as it is used within object-relational configurations and queries.</p>
 </div>
 <div class="section" id="tutorials">
 <h2>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h2>
@@ -155,15 +155,15 @@
 </div>
 <div class="section" id="checking-the-installed-sqlalchemy-version">
 <h2>Checking the Installed SQLAlchemy Version<a class="headerlink" href="#checking-the-installed-sqlalchemy-version" title="Permalink to this headline">¶</a></h2>
-<p>This documentation covers SQLAlchemy version 0.5.  If you&#8217;re working on a system that already has SQLAlchemy installed, check the version from your Python prompt like this:</p>
+<p>This documentation covers SQLAlchemy version 0.6.  If you&#8217;re working on a system that already has SQLAlchemy installed, check the version from your Python prompt like this:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sqlalchemy</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">__version__</span> 
-<span class="mf">0.5</span><span class="o">.</span><span class="mf">0</span></pre></div>
+<span class="mf">0.6</span><span class="o">.</span><span class="mf">0</span></pre></div>
 </div>
 </div>
-<div class="section" id="to-0-5-migration">
-<h2>0.4 to 0.5 Migration<a class="headerlink" href="#to-0-5-migration" title="Permalink to this headline">¶</a></h2>
-<p>Notes on what&#8217;s changed from 0.4 to 0.5 is available on the SQLAlchemy wiki at <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/05Migration">05Migration</a>.</p>
+<div class="section" id="to-0-6-migration">
+<h2>0.5 to 0.6 Migration<a class="headerlink" href="#to-0-6-migration" title="Permalink to this headline">¶</a></h2>
+<p>Notes on what&#8217;s changed from 0.5 to 0.6 is available on the SQLAlchemy wiki at <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/06Migration">06Migration</a>.</p>
 </div>
 </div>
 
@@ -182,8 +182,8 @@
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

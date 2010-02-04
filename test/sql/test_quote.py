@@ -1,8 +1,7 @@
 from sqlalchemy import *
-from sqlalchemy import sql
+from sqlalchemy import sql, schema
 from sqlalchemy.sql import compiler
 from sqlalchemy.test import *
-
 
 class QuoteTest(TestBase, AssertsCompiledSQL):
     @classmethod
@@ -49,6 +48,14 @@ class QuoteTest(TestBase, AssertsCompiledSQL):
         print res2
         assert(res2==[(1,2,3),(2,2,3),(4,3,2)])
 
+    def test_numeric(self):
+        metadata = MetaData()
+        t1 = Table('35table', metadata,
+            Column('25column', Integer))
+        self.assert_compile(schema.CreateTable(t1), 'CREATE TABLE "35table" ('
+            '"25column" INTEGER'
+            ')'
+        )
     def testreflect(self):
         meta2 = MetaData(testing.db)
         t2 = Table('WorstCase2', meta2, autoload=True, quote=True)
@@ -129,7 +136,7 @@ class QuoteTest(TestBase, AssertsCompiledSQL):
     def testlabels(self):
         """test the quoting of labels.
 
-        if labels arent quoted, a query in postgres in particular will fail since it produces:
+        if labels arent quoted, a query in postgresql in particular will fail since it produces:
 
         SELECT LaLa.lowercase, LaLa."UPPERCASE", LaLa."MixedCase", LaLa."ASC"
         FROM (SELECT DISTINCT "WorstCase1".lowercase AS lowercase, "WorstCase1"."UPPERCASE" AS UPPERCASE, "WorstCase1"."MixedCase" AS MixedCase, "WorstCase1"."ASC" AS ASC \nFROM "WorstCase1") AS LaLa

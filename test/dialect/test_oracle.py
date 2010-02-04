@@ -2,17 +2,21 @@
 
 from sqlalchemy.test.testing import eq_
 from sqlalchemy import *
+from sqlalchemy import types as sqltypes, exc
 from sqlalchemy.sql import table, column
-from sqlalchemy.databases import oracle
 from sqlalchemy.test import *
-from sqlalchemy.test.testing import eq_
+from sqlalchemy.test.testing import eq_, assert_raises
 from sqlalchemy.test.engines import testing_engine
+from sqlalchemy.dialects.oracle import cx_oracle, base as oracle
 from sqlalchemy.engine import default
+from sqlalchemy.util import jython
+from decimal import Decimal
+import datetime
 import os
 
 
 class OutParamTest(TestBase, AssertsExecutionResults):
-    __only_on__ = 'oracle'
+    __only_on__ = 'oracle+cx_oracle'
 
     @classmethod
     def setup_class(cls):
@@ -28,8 +32,10 @@ create or replace procedure foo(x_in IN number, x_out OUT number, y_out OUT numb
         """)
 
     def test_out_params(self):
-        result = testing.db.execute(text("begin foo(:x_in, :x_out, :y_out, :z_out); end;", bindparams=[bindparam('x_in', Numeric), outparam('x_out', Numeric), outparam('y_out', Numeric), outparam('z_out', String)]), x_in=5)
+        result = testing.db.execute(text("begin foo(:x_in, :x_out, :y_out, :z_out); end;", 
+                bindparams=[bindparam('x_in', Numeric), outparam('x_out', Integer), outparam('y_out', Numeric), outparam('z_out', String)]), x_in=5)
         assert result.out_parameters == {'x_out':10, 'y_out':75, 'z_out':None}, result.out_parameters
+        assert isinstance(result.out_parameters['x_out'], int)
 
     @classmethod
     def teardown_class(cls):
@@ -43,10 +49,10 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         meta  = MetaData()
         parent = Table('parent', meta, Column('id', Integer, primary_key=True), 
            Column('name', String(50)),
-           owner='ed')
+           schema='ed')
         child = Table('child', meta, Column('id', Integer, primary_key=True),
            Column('parent_id', Integer, ForeignKey('ed.parent.id')),
-           owner = 'ed')
+           schema = 'ed')
 
         self.assert_compile(parent.join(child), "ed.parent JOIN ed.child ON ed.parent.id = ed.child.parent_id")
 
@@ -197,6 +203,24 @@ AND mytable.myid = myothertable.otherid(+)",
             "mytable.myid = myothertable.otherid ORDER BY mytable.name) WHERE "
             "ROWNUM <= :ROWNUM_1) WHERE ora_rn > :ora_rn_1", dialect=oracle.dialect(use_ansi=False))
 
+        subq = select([table1]).\
+                    select_from(table1.outerjoin(table2, table1.c.myid==table2.c.otherid)).alias()
+        q = select([table3]).select_from(table3.outerjoin(subq, table3.c.userid==subq.c.myid))
+
+        self.assert_compile(q, "SELECT thirdtable.userid, thirdtable.otherstuff "
+                        "FROM thirdtable LEFT OUTER JOIN (SELECT mytable.myid AS myid, mytable.name"
+                        " AS name, mytable.description AS description "
+                        "FROM mytable LEFT OUTER JOIN myothertable ON mytable.myid = "           
+                        "myothertable.otherid) anon_1 ON thirdtable.userid = anon_1.myid",
+                                dialect=oracle.dialect(use_ansi=True))
+    
+        self.assert_compile(q, "SELECT thirdtable.userid, thirdtable.otherstuff "
+                            "FROM thirdtable, (SELECT mytable.myid AS myid, mytable.name AS name, "
+                            "mytable.description AS description FROM mytable, myothertable "
+                            "WHERE mytable.myid = myothertable.otherid(+)) anon_1 "
+                            "WHERE thirdtable.userid = anon_1.myid(+)", 
+                            dialect=oracle.dialect(use_ansi=False))
+        
     def test_alias_outer_join(self):
         address_types = table('address_types',
                     column('id'),
@@ -220,25 +244,50 @@ AND mytable.myid = myothertable.otherid(+)",
             "address_types.id")
 
 class MultiSchemaTest(TestBase, AssertsCompiledSQL):
-    """instructions:
-
-       1. create a user 'ed' in the oracle database.
-       2. in 'ed', issue the following statements:
-           create table parent(id integer primary key, data varchar2(50));
-           create table child(id integer primary key, data varchar2(50), parent_id integer references parent(id));
-           create synonym ptable for parent;
-           create synonym ctable for child;
-           grant all on parent to scott;  (or to whoever you run the oracle tests as)
-           grant all on child to scott;  (same)
-           grant all on ptable to scott;
-           grant all on ctable to scott;
-
-    """
-
     __only_on__ = 'oracle'
+    
+    @classmethod
+    def setup_class(cls):
+        # currently assuming full DBA privs for the user.
+        # don't really know how else to go here unless
+        # we connect as the other user.
+        
+        for stmt in """
+create table test_schema.parent(
+    id integer primary key, 
+    data varchar2(50)
+);
+                
+create table test_schema.child(
+    id integer primary key,
+    data varchar2(50), 
+    parent_id integer references test_schema.parent(id)
+);
 
+create synonym test_schema.ptable for test_schema.parent;
+create synonym test_schema.ctable for test_schema.child;
+
+-- can't make a ref from local schema to the remote schema's table without this, 
+-- *and* cant give yourself a grant !  so we give it to public.  ideas welcome. 
+grant references on test_schema.parent to public;
+grant references on test_schema.child to public;
+""".split(";"):
+            if stmt.strip():
+                testing.db.execute(stmt)
+        
+    @classmethod
+    def teardown_class(cls):
+        for stmt in """
+drop table test_schema.child;
+drop table test_schema.parent;
+drop synonym test_schema.ctable;
+drop synonym test_schema.ptable;
+""".split(";"):
+            if stmt.strip():
+                testing.db.execute(stmt)
+        
     def test_create_same_names_explicit_schema(self):
-        schema = testing.db.dialect.get_default_schema_name(testing.db.connect())
+        schema = testing.db.dialect.default_schema_name
         meta = MetaData(testing.db)
         parent = Table('parent', meta, 
             Column('pid', Integer, primary_key=True),
@@ -246,7 +295,7 @@ class MultiSchemaTest(TestBase, AssertsCompiledSQL):
         )
         child = Table('child', meta, 
             Column('cid', Integer, primary_key=True),
-            Column('pid', Integer, ForeignKey('scott.parent.pid')),
+            Column('pid', Integer, ForeignKey('%s.parent.pid' % schema)),
             schema=schema
         )
         meta.create_all()
@@ -277,52 +326,84 @@ class MultiSchemaTest(TestBase, AssertsCompiledSQL):
 
     def test_reflect_alt_owner_explicit(self):
         meta = MetaData(testing.db)
-        parent = Table('parent', meta, autoload=True, schema='ed')
-        child = Table('child', meta, autoload=True, schema='ed')
+        parent = Table('parent', meta, autoload=True, schema='test_schema')
+        child = Table('child', meta, autoload=True, schema='test_schema')
 
-        self.assert_compile(parent.join(child), "ed.parent JOIN ed.child ON ed.parent.id = ed.child.parent_id")
+        self.assert_compile(parent.join(child), "test_schema.parent JOIN test_schema.child ON test_schema.parent.id = test_schema.child.parent_id")
         select([parent, child]).select_from(parent.join(child)).execute().fetchall()
 
     def test_reflect_local_to_remote(self):
-        testing.db.execute("CREATE TABLE localtable (id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES ed.parent(id))")
+        testing.db.execute("CREATE TABLE localtable "
+                            "(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES"
+                            " test_schema.parent(id))")
         try:
             meta = MetaData(testing.db)
             lcl = Table('localtable', meta, autoload=True)
-            parent = meta.tables['ed.parent']
-            self.assert_compile(parent.join(lcl), "ed.parent JOIN localtable ON ed.parent.id = localtable.parent_id")
+            parent = meta.tables['test_schema.parent']
+            self.assert_compile(parent.join(lcl), "test_schema.parent JOIN localtable ON test_schema.parent.id = localtable.parent_id")
             select([parent, lcl]).select_from(parent.join(lcl)).execute().fetchall()
         finally:
             testing.db.execute("DROP TABLE localtable")
 
     def test_reflect_alt_owner_implicit(self):
         meta = MetaData(testing.db)
-        parent = Table('parent', meta, autoload=True, schema='ed')
-        child = Table('child', meta, autoload=True, schema='ed')
+        parent = Table('parent', meta, autoload=True, schema='test_schema')
+        child = Table('child', meta, autoload=True, schema='test_schema')
 
-        self.assert_compile(parent.join(child), "ed.parent JOIN ed.child ON ed.parent.id = ed.child.parent_id")
+        self.assert_compile(parent.join(child), "test_schema.parent JOIN test_schema.child ON test_schema.parent.id = test_schema.child.parent_id")
         select([parent, child]).select_from(parent.join(child)).execute().fetchall()
       
     def test_reflect_alt_owner_synonyms(self):
-        testing.db.execute("CREATE TABLE localtable (id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES ed.ptable(id))")
+        testing.db.execute("CREATE TABLE localtable "
+                            "(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES"
+                            " test_schema.ptable(id))")
         try:
             meta = MetaData(testing.db)
             lcl = Table('localtable', meta, autoload=True, oracle_resolve_synonyms=True)
-            parent = meta.tables['ed.ptable']
-            self.assert_compile(parent.join(lcl), "ed.ptable JOIN localtable ON ed.ptable.id = localtable.parent_id")
+            parent = meta.tables['test_schema.ptable']
+            self.assert_compile(parent.join(lcl), "test_schema.ptable JOIN localtable ON test_schema.ptable.id = localtable.parent_id")
             select([parent, lcl]).select_from(parent.join(lcl)).execute().fetchall()
         finally:
             testing.db.execute("DROP TABLE localtable")
  
     def test_reflect_remote_synonyms(self):
         meta = MetaData(testing.db)
-        parent = Table('ptable', meta, autoload=True, schema='ed', oracle_resolve_synonyms=True)
-        child = Table('ctable', meta, autoload=True, schema='ed', oracle_resolve_synonyms=True)
-        self.assert_compile(parent.join(child), "ed.ptable JOIN ed.ctable ON ed.ptable.id = ed.ctable.parent_id")
+        parent = Table('ptable', meta, autoload=True, schema='test_schema', oracle_resolve_synonyms=True)
+        child = Table('ctable', meta, autoload=True, schema='test_schema', oracle_resolve_synonyms=True)
+        self.assert_compile(parent.join(child), "test_schema.ptable JOIN test_schema.ctable ON test_schema.ptable.id = test_schema.ctable.parent_id")
         select([parent, child]).select_from(parent.join(child)).execute().fetchall()
 
- 
+class ConstraintTest(TestBase):
+    __only_on__ = 'oracle'
+    
+    def test_oracle_has_no_on_update_cascade(self):
+        m = MetaData(testing.db)
+        
+        foo = Table('foo', m,
+                Column('id', Integer, primary_key=True),
+        )
+        foo.create(checkfirst=True)
+        try:
+            bar = Table('bar', m,
+                    Column('id', Integer, primary_key=True),
+                    Column('foo_id', Integer, ForeignKey('foo.id', onupdate="CASCADE"))
+            )
+            assert_raises(exc.SAWarning, bar.create)
+
+            bat = Table('bat', m,
+                    Column('id', Integer, primary_key=True),
+                    Column('foo_id', Integer),
+                    ForeignKeyConstraint(['foo_id'], ['foo.id'], onupdate="CASCADE")
+            )
+            assert_raises(exc.SAWarning, bat.create)
+            
+        finally:
+            m.drop_all()
+        
+        
 class TypesTest(TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
+    __dialect__ = oracle.OracleDialect()
 
     def test_no_clobs_for_string_params(self):
         """test that simple string params get a DBAPI type of VARCHAR, not CLOB.
@@ -341,7 +422,145 @@ class TypesTest(TestBase, AssertsCompiledSQL):
 
         b = bindparam("foo", u"hello world!")
         assert b.type.dialect_impl(dialect).get_dbapi_type(dbapi) == 'STRING'
+    
+    def test_fixed_char(self):
+        m = MetaData(testing.db)
+        t = Table('t1', m, 
+            Column('id', Integer, primary_key=True),
+            Column('data', CHAR(30), nullable=False)
+        )
+        
+        t.create()
+        try:
+            t.insert().execute(
+                dict(id=1, data="value 1"),
+                dict(id=2, data="value 2"),
+                dict(id=3, data="value 3")
+            )
 
+            eq_(t.select().where(t.c.data=='value 2').execute().fetchall(), 
+                [(2, 'value 2                       ')]
+                )
+                
+            m2 = MetaData(testing.db)
+            t2 = Table('t1', m2, autoload=True)
+            assert type(t2.c.data.type) is CHAR
+            eq_(t2.select().where(t2.c.data=='value 2').execute().fetchall(), 
+                [(2, 'value 2                       ')]
+                )
+            
+        finally:
+            t.drop()
+        
+    def test_type_adapt(self):
+        dialect = cx_oracle.dialect()
+
+        for start, test in [
+            (Date(), cx_oracle._OracleDate),
+            (oracle.OracleRaw(), cx_oracle._OracleRaw),
+            (String(), String),
+            (VARCHAR(), VARCHAR),
+            (String(50), String),
+            (Unicode(), Unicode),
+            (Text(), cx_oracle._OracleText),
+            (UnicodeText(), cx_oracle._OracleUnicodeText),
+            (NCHAR(), cx_oracle._OracleNVarChar),
+            (oracle.RAW(50), cx_oracle._OracleRaw),
+        ]:
+            assert isinstance(start.dialect_impl(dialect), test), "wanted %r got %r" % (test, start.dialect_impl(dialect))
+
+    @testing.requires.returning
+    def test_int_not_float(self):
+        m = MetaData(testing.db)
+        t1 = Table('t1', m, Column('foo', Integer))
+        t1.create()
+        try:
+            r = t1.insert().values(foo=5).returning(t1.c.foo).execute()
+            x = r.scalar()
+            assert x == 5
+            assert isinstance(x, int)
+
+            x = t1.select().scalar()
+            assert x == 5
+            assert isinstance(x, int)
+        finally:
+            t1.drop()
+    
+    def test_interval(self):
+
+        for type_, expected in [
+            (oracle.INTERVAL(), "INTERVAL DAY TO SECOND"),
+            (oracle.INTERVAL(day_precision=3), "INTERVAL DAY(3) TO SECOND"),
+            (oracle.INTERVAL(second_precision=5), "INTERVAL DAY TO SECOND(5)"),
+            (oracle.INTERVAL(day_precision=2, second_precision=5), "INTERVAL DAY(2) TO SECOND(5)"),
+        ]:
+            self.assert_compile(type_, expected)
+        
+        metadata = MetaData(testing.db)
+        interval_table = Table("intervaltable", metadata,
+            Column("id", Integer, primary_key=True, test_needs_autoincrement=True),
+            Column("day_interval", oracle.INTERVAL(day_precision=3)),
+            )
+        metadata.create_all()
+        try:
+            interval_table.insert().execute(
+                day_interval=datetime.timedelta(days=35, seconds=5743),
+            )
+            row = interval_table.select().execute().first()
+            eq_(row['day_interval'], datetime.timedelta(days=35, seconds=5743))
+        finally:
+            metadata.drop_all()
+        
+    def test_numerics(self):
+        m = MetaData(testing.db)
+        t1 = Table('t1', m, 
+            Column('intcol', Integer),
+            Column('numericcol', Numeric(precision=9, scale=2)),
+            Column('floatcol1', Float()),
+            Column('floatcol2', FLOAT()),
+            Column('doubleprec', oracle.DOUBLE_PRECISION),
+            Column('numbercol1', oracle.NUMBER(9)),
+            Column('numbercol2', oracle.NUMBER(9, 3)),
+            Column('numbercol3', oracle.NUMBER),
+            
+        )
+        t1.create()
+        try:
+            t1.insert().execute(
+                intcol=1, 
+                numericcol=5.2, 
+                floatcol1=6.5, 
+                floatcol2 = 8.5,
+                doubleprec = 9.5, 
+                numbercol1=12,
+                numbercol2=14.85,
+                numbercol3=15.76
+                )
+            
+            m2 = MetaData(testing.db)
+            t2 = Table('t1', m2, autoload=True)
+
+            for row in (
+                t1.select().execute().first(),
+                t2.select().execute().first() 
+            ):
+                for i, (val, type_) in enumerate((
+                    (1, int),
+                    (Decimal("5.2"), Decimal),
+                    (6.5, float),
+                    (8.5, float),
+                    (9.5, float),
+                    (12, int),
+                    (Decimal("14.85"), Decimal),
+                    (15.76, float),
+                )):
+                    eq_(row[i], val)
+                    assert isinstance(row[i], type_)
+
+        finally:
+            t1.drop()
+    
+    
     def test_reflect_raw(self):
         types_table = Table(
         'all_types', MetaData(testing.db),
@@ -354,16 +573,26 @@ class TypesTest(TestBase, AssertsCompiledSQL):
     def test_reflect_nvarchar(self):
         metadata = MetaData(testing.db)
         t = Table('t', metadata,
-            Column('data', oracle.OracleNVarchar(255))
+            Column('data', sqltypes.NVARCHAR(255))
         )
         metadata.create_all()
         try:
             m2 = MetaData(testing.db)
             t2 = Table('t', m2, autoload=True)
-            assert isinstance(t2.c.data.type, oracle.OracleNVarchar)
+            assert isinstance(t2.c.data.type, sqltypes.NVARCHAR)
+
+            # nvarchar returns unicode natively.  cx_oracle
+            # _OracleNVarChar type should be at play
+            # here.
+            assert isinstance(
+                        t2.c.data.type.dialect_impl(testing.db.dialect), 
+                        cx_oracle._OracleNVarChar)
+
             data = u'm’a réveillé.'
             t2.insert().execute(data=data)
-            eq_(t2.select().execute().fetchone()['data'], data)
+            res = t2.select().execute().first()['data']
+            eq_(res, data)
+            assert isinstance(res, unicode)
         finally:
             metadata.drop_all()
         
@@ -383,25 +612,27 @@ class TypesTest(TestBase, AssertsCompiledSQL):
         finally:
             testing.db.execute("DROP TABLE Z_TEST")
 
+    @testing.fails_on('+zxjdbc', 'auto_convert_lobs not applicable')
     def test_raw_lobs(self):
         engine = testing_engine(options=dict(auto_convert_lobs=False))
         metadata = MetaData()
         t = Table("z_test", metadata, Column('id', Integer, primary_key=True), 
-                 Column('data', Text), Column('bindata', Binary))
+                 Column('data', Text), Column('bindata', LargeBinary))
         t.create(engine)
         try:
             engine.execute(t.insert(), id=1, data='this is text', bindata='this is binary')
-            row = engine.execute(t.select()).fetchone()
+            row = engine.execute(t.select()).first()
             eq_(row['data'].read(), 'this is text')
             eq_(row['bindata'].read(), 'this is binary')
         finally:
             t.drop(engine)
             
+            
 class DontReflectIOTTest(TestBase):
     """test that index overflow tables aren't included in table_names."""
-   
-    __only_on__ = 'oracle'
- 
+
+    __only_on__ = 'oracle' 
+
     def setup(self):
         testing.db.execute("""
         CREATE TABLE admin_docindex(
@@ -436,10 +667,9 @@ class BufferedColumnTest(TestBase, AssertsCompiledSQL):
         meta = MetaData(testing.db)
         binary_table = Table('binary_table', meta, 
            Column('id', Integer, primary_key=True),
-           Column('data', Binary)
+           Column('data', LargeBinary)
         )
         meta.create_all()
-        
         stream = os.path.join(os.path.dirname(__file__), "..", 'binary_data_one.dat')
         stream = file(stream).read(12000)
 
@@ -451,18 +681,33 @@ class BufferedColumnTest(TestBase, AssertsCompiledSQL):
         meta.drop_all()
 
     def test_fetch(self):
-        eq_(
-            binary_table.select().execute().fetchall() ,
-            [(i, stream) for i in range(1, 11)], 
-        )
+        result = binary_table.select().execute().fetchall()
+        eq_(result, [(i, stream) for i in range(1, 11)])
 
+    @testing.fails_on('+zxjdbc', 'FIXME: zxjdbc should support this')
     def test_fetch_single_arraysize(self):
         eng = testing_engine(options={'arraysize':1})
-        eq_(
-            eng.execute(binary_table.select()).fetchall(),
-            [(i, stream) for i in range(1, 11)], 
-        )
+        result = eng.execute(binary_table.select()).fetchall()
+        eq_(result, [(i, stream) for i in range(1, 11)])
 
+class UnsupportedIndexReflectTest(TestBase):
+    __only_on__ = 'oracle'
+    
+    def setup(self):
+        global metadata
+        metadata = MetaData(testing.db)
+        t1 = Table('test_index_reflect', metadata, Column('data', String(20), primary_key=True))
+        metadata.create_all()
+    
+    def teardown(self):
+        metadata.drop_all()
+        
+    def test_reflect_functional_index(self):
+        testing.db.execute("CREATE INDEX DATA_IDX ON TEST_INDEX_REFLECT (UPPER(DATA))")
+        m2 = MetaData(testing.db)
+        t2 = Table('test_index_reflect', m2, autoload=True)
+        
+        
 class SequenceTest(TestBase, AssertsCompiledSQL):
     def test_basic(self):
         seq = Sequence("my_seq_no_schema")
@@ -478,5 +723,8 @@ class SequenceTest(TestBase, AssertsCompiledSQL):
 class ExecuteTest(TestBase):
     __only_on__ = 'oracle'
     def test_basic(self):
-        assert testing.db.execute("/*+ this is a comment */ SELECT 1 FROM DUAL").fetchall() == [(1,)]
+        eq_(
+            testing.db.execute("/*+ this is a comment */ SELECT 1 FROM DUAL").fetchall(),
+            [(1,)]
+        )
 

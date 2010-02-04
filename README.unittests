@@ -10,9 +10,18 @@ downloads for nose are available at:
 
 http://somethingaboutorange.com/mrl/projects/nose/0.11.1/index.html
 
-
 SQLAlchemy implements a nose plugin that must be present when tests are run.
 This plugin is available when SQLAlchemy is installed via setuptools.
+
+INSTANT TEST RUNNER
+-------------------
+
+A plain vanilla run of all tests using sqlite can be run via setup.py:
+
+    $ python setup.py test
+    
+Setuptools will take care of the rest !   To run nose directly and have
+its full set of options available, read on...
 
 SETUP
 -----
@@ -41,6 +50,11 @@ intersesting:
 
 RUNNING INDIVIDUAL TESTS
 -------------------------
+Any directory of test modules can be run at once by specifying the directory
+path:
+
+    $ nosetest test/dialect
+
 Any test module can be run directly by specifying its module name:
 
     $ nosetests test.orm.test_mapper
@@ -67,11 +81,61 @@ DATABASE TARGETS
 Tests will target an in-memory SQLite database by default.  To test against
 another database, use the --dburi option with any standard SQLAlchemy URL:
 
-    --dburi=postgres://user:password@localhost/test
+    --dburi=postgresql://user:password@localhost/test
 
-Use an empty database and a database user with general DBA privileges.  The
-test suite will be creating and dropping many tables and other DDL, and
-preexisting tables will interfere with the tests
+Use an empty database and a database user with general DBA privileges.  
+The test suite will be creating and dropping many tables and other DDL, and
+preexisting tables will interfere with the tests.
+
+Several tests require alternate schemas to be present.   This requirement
+applies to all backends except SQLite and Firebird.   These schemas are:
+
+    test_schema
+    test_schema_2
+
+Please refer to your vendor documentation for the proper syntax to create 
+these schemas - the database user must have permission to create and drop
+tables within these schemas.  Its perfectly fine to run the test suite
+without these schemas present, it only means that a handful of tests which
+expect them to be present will fail.
+
+Additional steps specific to individual databases are as follows:
+
+    ORACLE: the test_schema and test_schema_2 schemas are created as
+    users, as the "owner" in Oracle is considered like a "schema" in
+    SQLAlchemy.
+    
+     The primary database user needs to be able to create and drop tables,
+    synonyms, and constraints in these schemas. Unfortunately, many hours of
+    googling and experimentation cannot find a GRANT option that allows the
+    primary user the "REFERENCES" role in a remote schema for tables not yet
+    defined (REFERENCES is per-table) - the only thing that works is to put
+    the user in the "DBA" role:
+    
+     grant dba to scott;
+    
+     Any ideas on what specific privileges within "DBA" allow an open-ended
+    REFERENCES grant would be appreciated, or if in fact "DBA" has some kind
+    of "magic" flag not accessible otherwise. So, running SQLA tests on oracle
+    requires access to a completely open Oracle database - Oracle XE is
+    obviously a terrific choice since its just a local engine. As always,
+    leaving the schemas out means those few dozen tests will fail and is
+    otherwise harmless. 
+    
+
+    MSSQL: Tests that involve multiple connections require Snapshot Isolation
+    ability implented on the test database in order to prevent deadlocks that
+    will occur with record locking isolation. This feature is only available
+    with MSSQL 2005 and greater. You must enable snapshot isolation at the
+    database level and set the default cursor isolation with two SQL commands:
+    
+     ALTER DATABASE MyDatabase SET ALLOW_SNAPSHOT_ISOLATION ON
+    
+     ALTER DATABASE MyDatabase SET READ_COMMITTED_SNAPSHOT ON
+
+    MSSQL+zxJDBC: Trying to run the unit tests on Windows against SQL Server
+    requires using a test.cfg configuration file as the cmd.exe shell won't
+    properly pass the URL arguments into the nose test runner.
 
 If you'll be running the tests frequently, database aliases can save a lot of
 typing.  The --dbs option lists the built-in aliases and their matching URLs:
@@ -80,23 +144,22 @@ typing.  The --dbs option lists the built-in aliases and their matching URLs:
     Available --db options (use --dburi to override)
                mysql    mysql://scott:tiger@127.0.0.1:3306/test
               oracle    oracle://scott:tiger@127.0.0.1:1521
-            postgres    postgres://scott:tiger@127.0.0.1:5432/test
+            postgresql    postgresql://scott:tiger@127.0.0.1:5432/test
     [...]
 
 To run tests against an aliased database:
 
-    $ nosetests --db=postgres
+    $ nosetests --db=postgresql
 
 To customize the URLs with your own users or hostnames, make a simple .ini
 file called `test.cfg` at the top level of the SQLAlchemy source distribution
 or a `.satest.cfg` in your home directory:
 
     [db]
-    postgres=postgres://myuser:mypass@localhost/mydb
+    postgresql=postgresql://myuser:mypass@localhost/mydb
 
 Your custom entries will override the defaults and you'll see them reflected
 in the output of --dbs.
-
 
 CONFIGURING LOGGING
 -------------------
@@ -157,23 +220,3 @@ always possible.  If you hit a wall, join us on the mailing list or, better,
 IRC!
 
 
-TIPS
-----
-PostgreSQL: The tests require an 'alt_schema' and 'alt_schema_2' to be present in
-the testing database.
-
-PostgreSQL: When running the tests on postgres, postgres can get slower and
-slower each time you run the tests.  This seems to be related to the constant
-creation/dropping of tables.  Running a "VACUUM FULL" on the database will
-speed it up again.
-
-MSSQL: Tests that involve multiple connections require Snapshot Isolation
-ability implented on the test database in order to prevent deadlocks that will
-occur with record locking isolation. This feature is only available with
-MSSQL 2005 and greater. For example::
-
-    ALTER DATABASE MyDatabase
-    SET ALLOW_SNAPSHOT_ISOLATION ON
-    
-    ALTER DATABASE MyDatabase
-    SET READ_COMMITTED_SNAPSHOT ON

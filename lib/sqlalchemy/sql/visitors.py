@@ -34,12 +34,9 @@ class VisitableType(type):
     """
     
     def __init__(cls, clsname, bases, clsdict):
-        if cls.__name__ == 'Visitable':
+        if cls.__name__ == 'Visitable' or not hasattr(cls, '__visit_name__'):
             super(VisitableType, cls).__init__(clsname, bases, clsdict)
             return
-        
-        assert hasattr(cls, '__visit_name__'), "`Visitable` descendants " \
-                                               "should define `__visit_name__`"
         
         # set up an optimized visit dispatch function
         # for use by the compiler
@@ -153,7 +150,7 @@ class ReplacingCloningVisitor(CloningVisitor):
         def replace(elem):
             for v in self._visitor_iterator:
                 e = v.replace(elem)
-                if e:
+                if e is not None:
                     return e
         return replacement_traverse(obj, self.__traverse_options__, replace)
 
@@ -239,7 +236,7 @@ def replacement_traverse(obj, opts, replace):
 
     def clone(element):
         newelem = replace(element)
-        if newelem:
+        if newelem is not None:
             stop_on.add(newelem)
             return newelem
 

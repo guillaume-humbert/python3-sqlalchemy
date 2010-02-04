@@ -5,7 +5,7 @@ from sqlalchemy.test import *
 from sqlalchemy.sql.visitors import *
 from sqlalchemy import util
 from sqlalchemy.sql import util as sql_util
-
+from sqlalchemy.test.testing import eq_
 
 class TraversalTest(TestBase, AssertsExecutionResults):
     """test ClauseVisitor's traversal, particularly its ability to copy and modify
@@ -178,7 +178,7 @@ class ClauseTest(TestBase, AssertsCompiledSQL):
 
     def test_binary(self):
         clause = t1.c.col2 == t2.c.col2
-        assert str(clause) == CloningVisitor().traverse(clause)
+        eq_(str(clause), str(CloningVisitor().traverse(clause)))
 
     def test_binary_anon_label_quirk(self):
         t = table('t1', column('col1'))
@@ -785,6 +785,29 @@ class SelectTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(select_copy, "SELECT FOOBER table1.col1, table1.col2, table1.col3 FROM table1")
         self.assert_compile(s, "SELECT table1.col1, table1.col2, table1.col3 FROM table1")
 
+    def test_execution_options(self):
+        s = select().execution_options(foo='bar')
+        s2 = s.execution_options(bar='baz')
+        s3 = s.execution_options(foo='not bar')
+        # The original select should not be modified.
+        assert s._execution_options == dict(foo='bar')
+        # s2 should have its execution_options based on s, though.
+        assert s2._execution_options == dict(foo='bar', bar='baz')
+        assert s3._execution_options == dict(foo='not bar')
+
+    # this feature not available yet
+    def _NOTYET_test_execution_options_in_kwargs(self):
+        s = select(execution_options=dict(foo='bar'))
+        s2 = s.execution_options(bar='baz')
+        # The original select should not be modified.
+        assert s._execution_options == dict(foo='bar')
+        # s2 should have its execution_options based on s, though.
+        assert s2._execution_options == dict(foo='bar', bar='baz')
+    
+    # this feature not available yet
+    def _NOTYET_test_execution_options_in_text(self):
+        s = text('select 42', execution_options=dict(foo='bar'))
+        assert s._execution_options == dict(foo='bar')
 
 class InsertTest(TestBase, AssertsCompiledSQL):
     """Tests the generative capability of Insert"""

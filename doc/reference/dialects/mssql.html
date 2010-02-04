@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    SQL Server
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+    Microsoft SQL Server
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,10 +26,10 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="../../index.html" />
-        <link rel="up" title="sqlalchemy.databases" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+        <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="MySQL" href="mysql.html" />
-        <link rel="prev" title="MaxDB" href="maxdb.html" />
+        <link rel="prev" title="Firebird" href="firebird.html" />
     
 
     </head>
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -67,27 +67,27 @@
             <div class="navbanner">
                 <a class="totoc" href="../../index.html">Table of Contents</a>
                         » <a href="../index.html" title="API Reference">API Reference</a>
-                        » <a href="index.html" title="sqlalchemy.databases">sqlalchemy.databases</a>
+                        » <a href="index.html" title="sqlalchemy.dialects">sqlalchemy.dialects</a>
                 » 
-    SQL Server
+    Microsoft SQL Server
  
                 
                 
 <div class="prevnext">
         Previous:
-        <a href="maxdb.html" title="previous chapter">MaxDB</a>
+        <a href="firebird.html" title="previous chapter">Firebird</a>
         Next:
         <a href="mysql.html" title="next chapter">MySQL</a>
 </div>
 
                 <h2>
                     
-    SQL Server
+    Microsoft SQL Server
  
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">SQL Server</a><ul>
+<li><a class="reference external" href="">Microsoft SQL Server</a><ul>
 <li><a class="reference external" href="#driver">Driver</a></li>
 <li><a class="reference external" href="#connecting">Connecting</a></li>
 <li><a class="reference external" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
@@ -97,6 +97,14 @@
 <li><a class="reference external" href="#date-time-handling">Date / Time Handling</a></li>
 <li><a class="reference external" href="#compatibility-levels">Compatibility Levels</a></li>
 <li><a class="reference external" href="#known-issues">Known Issues</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.zxjdbc">zxjdbc Notes</a><ul>
+<li><a class="reference external" href="#jdbc-driver">JDBC Driver</a></li>
+<li><a class="reference external" href="#id1">Connecting</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -107,8 +115,8 @@
         <div class="document">
             <div class="body">
                 
-<div class="section" id="module-sqlalchemy.databases.mssql">
-<h1>SQL Server<a class="headerlink" href="#module-sqlalchemy.databases.mssql" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-sqlalchemy.dialects.mssql.base">
+<h1>Microsoft SQL Server<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the Microsoft SQL Server database.</p>
 <div class="section" id="driver">
 <h2>Driver<a class="headerlink" href="#driver" title="Permalink to this headline">¶</a></h2>
@@ -122,7 +130,7 @@ driver.</li>
 <p>Drivers are loaded in the order listed above based on availability.</p>
 <p>If you need to load a specific driver pass <tt class="docutils literal"><span class="pre">module_name</span></tt> when
 creating the engine:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql://dsn&#39;</span><span class="p">,</span> <span class="n">module_name</span><span class="o">=</span><span class="s">&#39;pymssql&#39;</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+module_name://dsn&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">module_name</span></tt> currently accepts: <tt class="docutils literal"><span class="pre">pyodbc</span></tt>, <tt class="docutils literal"><span class="pre">pymssql</span></tt>, and
 <tt class="docutils literal"><span class="pre">adodbapi</span></tt>.</p>
@@ -138,18 +146,18 @@ connection string with the specified values. If the database is not
 present, then the host token is taken directly as the DSN name.</p>
 <p>Examples of pyodbc connection string URLs:</p>
 <ul>
-<li><p class="first"><em>mssql://mydsn</em> - connects using the specified DSN named <tt class="docutils literal"><span class="pre">mydsn</span></tt>.
+<li><p class="first"><em>mssql+pyodbc://mydsn</em> - connects using the specified DSN named <tt class="docutils literal"><span class="pre">mydsn</span></tt>.
 The connection string that is created will appear like:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">dsn</span><span class="o">=</span><span class="n">mydsn</span><span class="p">;</span><span class="n">Trusted_Connection</span><span class="o">=</span><span class="n">Yes</span></pre></div>
 </div>
 </li>
-<li><p class="first"><em>mssql://user:pass&#64;mydsn</em> - connects using the DSN named
+<li><p class="first"><em>mssql+pyodbc://user:pass&#64;mydsn</em> - connects using the DSN named
 <tt class="docutils literal"><span class="pre">mydsn</span></tt> passing in the <tt class="docutils literal"><span class="pre">UID</span></tt> and <tt class="docutils literal"><span class="pre">PWD</span></tt> information. The
 connection string that is created will appear like:</p>
 <div class="highlight-python"><pre>dsn=mydsn;UID=user;PWD=pass</pre>
 </div>
 </li>
-<li><p class="first"><em>mssql://user:pass&#64;mydsn/?LANGUAGE=us_english</em> - connects
+<li><p class="first"><em>mssql+pyodbc://user:pass&#64;mydsn/?LANGUAGE=us_english</em> - connects
 using the DSN named <tt class="docutils literal"><span class="pre">mydsn</span></tt> passing in the <tt class="docutils literal"><span class="pre">UID</span></tt> and <tt class="docutils literal"><span class="pre">PWD</span></tt>
 information, plus the additional connection configuration option
 <tt class="docutils literal"><span class="pre">LANGUAGE</span></tt>. The connection string that is created will appear
@@ -157,12 +165,12 @@ like:</p>
 <div class="highlight-python"><pre>dsn=mydsn;UID=user;PWD=pass;LANGUAGE=us_english</pre>
 </div>
 </li>
-<li><p class="first"><em>mssql://user:pass&#64;host/db</em> - connects using a connection string
+<li><p class="first"><em>mssql+pyodbc://user:pass&#64;host/db</em> - connects using a connection string
 dynamically created that would appear like:</p>
 <div class="highlight-python"><pre>DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass</pre>
 </div>
 </li>
-<li><p class="first"><em>mssql://user:pass&#64;host:123/db</em> - connects using a connection
+<li><p class="first"><em>mssql+pyodbc://user:pass&#64;host:123/db</em> - connects using a connection
 string that is dynamically created, which also includes the port
 information using the comma syntax. If your connection string
 requires the port information to be passed as a <tt class="docutils literal"><span class="pre">port</span></tt> keyword
@@ -171,7 +179,7 @@ string:</p>
 <div class="highlight-python"><pre>DRIVER={SQL Server};Server=host,123;Database=db;UID=user;PWD=pass</pre>
 </div>
 </li>
-<li><p class="first"><em>mssql://user:pass&#64;host/db?port=123</em> - connects using a connection
+<li><p class="first"><em>mssql+pyodbc://user:pass&#64;host/db?port=123</em> - connects using a connection
 string that is dynamically created that includes the port
 information as a separate <tt class="docutils literal"><span class="pre">port</span></tt> keyword. This will create the
 following connection string:</p>
@@ -184,7 +192,7 @@ presented above, use the <tt class="docutils literal"><span class="pre">odbc_con
 urlencoded connection string. What gets passed in will be urldecoded
 and passed directly.</p>
 <p>For example:</p>
-<div class="highlight-python"><pre>mssql:///?odbc_connect=dsn%3Dmydsn%3BDatabase%3Ddb</pre>
+<div class="highlight-python"><pre>mssql+pyodbc:///?odbc_connect=dsn%3Dmydsn%3BDatabase%3Ddb</pre>
 </div>
 <p>would create the following connection string:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">dsn</span><span class="o">=</span><span class="n">mydsn</span><span class="p">;</span><span class="n">Database</span><span class="o">=</span><span class="n">db</span></pre></div>
@@ -199,24 +207,11 @@ the python shell. For example:</p>
 arguments on the URL, or as keyword argument to
 <a title="sqlalchemy.create_engine" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
 <ul class="simple">
-<li><em>auto_identity_insert</em> - enables support for IDENTITY inserts by
-automatically turning IDENTITY INSERT ON and OFF as required.
-Defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>.</li>
 <li><em>query_timeout</em> - allows you to override the default query timeout.
 Defaults to <tt class="xref docutils literal"><span class="pre">None</span></tt>. This is only supported on pymssql.</li>
-<li><em>text_as_varchar</em> - if enabled this will treat all TEXT column
-types as their equivalent VARCHAR(max) type. This is often used if
-you need to compare a VARCHAR to a TEXT field, which is not
-supported directly on MSSQL. Defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.</li>
 <li><em>use_scope_identity</em> - allows you to specify that SCOPE_IDENTITY
 should be used in place of the non-scoped version &#64;&#64;IDENTITY.
-Defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>. On pymssql this defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>, and on
-pyodbc this defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt> if the version of pyodbc being
-used supports it.</li>
-<li><em>has_window_funcs</em> - indicates whether or not window functions
-(LIMIT and OFFSET) are supported on the version of MSSQL being
-used. If you&#8217;re running MSSQL 2005 or later turn this on to get
-OFFSET support. Defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.</li>
+Defaults to True.</li>
 <li><em>max_identifier_length</em> - allows you to se the maximum length of
 identfiers supported by the database. Defaults to 128. For pymssql
 the default is 30.</li>
@@ -241,6 +236,8 @@ the default is 30.</li>
 </div>
 <p>Note that the <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">increment</span></tt> values for sequences are
 optional and will default to 1,1.</p>
+<p>Implicit <tt class="docutils literal"><span class="pre">autoincrement</span></tt> behavior works the same in MSSQL as it
+does in other dialects and results in an <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> column.</p>
 <ul class="simple">
 <li>Support for <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">IDENTITY_INSERT</span> <span class="pre">ON</span></tt> mode (automagic on / off for
 <tt class="docutils literal"><span class="pre">INSERT</span></tt> s)</li>
@@ -270,10 +267,9 @@ supported directly through the <tt class="docutils literal"><span class="pre">TO
 <p>will yield:</p>
 <div class="highlight-python"><pre>SELECT TOP n</pre>
 </div>
-<p>If the <tt class="docutils literal"><span class="pre">has_window_funcs</span></tt> flag is set then LIMIT with OFFSET
-support is available through the <tt class="docutils literal"><span class="pre">ROW_NUMBER</span> <span class="pre">OVER</span></tt> construct. This
-construct requires an <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> to be specified as well and is
-only available on MSSQL 2005 and later.</p>
+<p>If using SQL Server 2005 or above, LIMIT with OFFSET
+support is available through the <tt class="docutils literal"><span class="pre">ROW_NUMBER</span> <span class="pre">OVER</span></tt> construct. 
+For versions below 2005, LIMIT with OFFSET usage will fail.</p>
 </div>
 <div class="section" id="nullability">
 <h2>Nullability<a class="headerlink" href="#nullability" title="Permalink to this headline">¶</a></h2>
@@ -292,13 +288,12 @@ render:</p>
 </div>
 <div class="section" id="date-time-handling">
 <h2>Date / Time Handling<a class="headerlink" href="#date-time-handling" title="Permalink to this headline">¶</a></h2>
-<p>For MSSQL versions that support the <tt class="docutils literal"><span class="pre">DATE</span></tt> and <tt class="docutils literal"><span class="pre">TIME</span></tt> types
-(MSSQL 2008+) the data type is used. For versions that do not
-support the <tt class="docutils literal"><span class="pre">DATE</span></tt> and <tt class="docutils literal"><span class="pre">TIME</span></tt> types a <tt class="docutils literal"><span class="pre">DATETIME</span></tt> type is used
-instead and the MSSQL dialect handles converting the results
-properly. This means <tt class="docutils literal"><span class="pre">Date()</span></tt> and <tt class="docutils literal"><span class="pre">Time()</span></tt> are fully supported
-on all versions of MSSQL. If you do not desire this behavior then
-do not use the <tt class="docutils literal"><span class="pre">Date()</span></tt> or <tt class="docutils literal"><span class="pre">Time()</span></tt> types.</p>
+<p>DATE and TIME are supported.   Bind parameters are converted
+to datetime.datetime() objects as required by most MSSQL drivers,
+and results are processed from strings if needed.
+The DATE and TIME types are not available for MSSQL 2005 and
+previous - if a server version below 2008 is detected, DDL
+for these types will be issued as DATETIME.</p>
 </div>
 <div class="section" id="compatibility-levels">
 <h2>Compatibility Levels<a class="headerlink" href="#compatibility-levels" title="Permalink to this headline">¶</a></h2>
@@ -319,6 +314,33 @@ statements that are unable to be parsed by the database server.</p>
 does <strong>not</strong> work around</li>
 </ul>
 </div>
+<div class="section" id="module-sqlalchemy.dialects.mssql.pyodbc">
+<h2>PyODBC<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.pyodbc" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-sqlalchemy.dialects.mssql.adodbapi">
+<h2>AdoDBAPI<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.adodbapi" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-sqlalchemy.dialects.mssql.pymssql">
+<h2>pymssql<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.pymssql" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-sqlalchemy.dialects.mssql.zxjdbc">
+<h2>zxjdbc Notes<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.zxjdbc" title="Permalink to this headline">¶</a></h2>
+<p>Support for the Microsoft SQL Server database via the zxjdbc JDBC
+connector.</p>
+<div class="section" id="jdbc-driver">
+<h3>JDBC Driver<a class="headerlink" href="#jdbc-driver" title="Permalink to this headline">¶</a></h3>
+<p>Requires the jTDS driver, available from: <a class="reference external" href="http://jtds.sourceforge.net/">http://jtds.sourceforge.net/</a></p>
+</div>
+<div class="section" id="id1">
+<h3>Connecting<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>URLs are of the standard form of
+<tt class="docutils literal"><span class="pre">mssql+zxjdbc://user:pass&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.</p>
+<p>Additional arguments which may be specified either as query string
+arguments on the URL, or as keyword arguments to
+<a title="sqlalchemy.create_engine" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> will be passed as Connection
+properties to the underlying JDBC driver.</p>
+</div>
+</div>
 </div>
 
             </div>
@@ -330,14 +352,14 @@ does <strong>not</strong> work around</li>
                 
 <div class="prevnext">
         Previous:
-        <a href="maxdb.html" title="previous chapter">MaxDB</a>
+        <a href="firebird.html" title="previous chapter">Firebird</a>
         Next:
         <a href="mysql.html" title="next chapter">MySQL</a>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

@@ -7,7 +7,7 @@
         
         <title>
     Sessions
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -245,9 +245,9 @@ in order to locate an connectable to use. The full resolution is
 described in the <tt class="docutils literal"><span class="pre">get_bind()</span></tt> method of <tt class="docutils literal"><span class="pre">Session</span></tt>. Usage looks
 like:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">sess</span> <span class="o">=</span> <span class="n">Session</span><span class="p">(</span><span class="n">binds</span><span class="o">=</span><span class="p">{</span>
-    <span class="n">SomeMappedClass</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://engine1&#39;</span><span class="p">),</span>
-    <span class="n">somemapper</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://engine2&#39;</span><span class="p">),</span>
-    <span class="n">some_table</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://engine3&#39;</span><span class="p">),</span>
+    <span class="n">SomeMappedClass</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://engine1&#39;</span><span class="p">),</span>
+    <span class="n">somemapper</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://engine2&#39;</span><span class="p">),</span>
+    <span class="n">some_table</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://engine3&#39;</span><span class="p">),</span>
     <span class="p">})</span></pre></div>
 </div>
 <p class="last">Also see the <tt class="docutils literal"><span class="pre">bind_mapper()</span></tt> and <tt class="docutils literal"><span class="pre">bind_table()</span></tt> methods.</p>
@@ -257,9 +257,6 @@ like:</p>
 which should be used by the returned class.  This is the only argument
 that is local to the <tt class="docutils literal"><span class="pre">sessionmaker()</span></tt> function, and is not sent
 directly to the constructor for <tt class="docutils literal"><span class="pre">Session</span></tt>.</dd>
-<dt>echo_uow</dt>
-<dd>Deprecated.  Use
-<tt class="docutils literal"><span class="pre">logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG)</span></tt>.</dd>
 <dt>_enable_transaction_accounting</dt>
 <dd>Defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>.  A legacy-only flag which when <tt class="xref docutils literal"><span class="pre">False</span></tt>
 disables <em>all</em> 0.5-style object accounting on transaction boundaries,
@@ -302,7 +299,7 @@ present until they are removed using expunge(), clear(), or purge().</dd>
 <dl class="class">
 <dt id="sqlalchemy.orm.session.Session">
 <em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.session.</tt><tt class="descname">Session</tt><big>(</big><em>bind=None</em>, <em>autoflush=True</em>, <em>expire_on_commit=True</em>, <em>_enable_transaction_accounting=True</em>, <em>autocommit=False</em>, <em>twophase=False</em>, <em>echo_uow=None</em>, <em>weak_identity_map=True</em>, <em>binds=None</em>, <em>extension=None</em>, <em>query_cls=&lt;class 'sqlalchemy.orm.query.Query'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session" title="Permalink to this definition">¶</a></dt>
+class </em><tt class="descclassname">sqlalchemy.orm.session.</tt><tt class="descname">Session</tt><big>(</big><em>bind=None</em>, <em>autoflush=True</em>, <em>expire_on_commit=True</em>, <em>_enable_transaction_accounting=True</em>, <em>autocommit=False</em>, <em>twophase=False</em>, <em>weak_identity_map=True</em>, <em>binds=None</em>, <em>extension=None</em>, <em>query_cls=&lt;class 'sqlalchemy.orm.query.Query'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Manages persistence operations for ORM-mapped objects.</p>
 <p>The Session is the front end to SQLAlchemy&#8217;s <strong>Unit of Work</strong>
 implementation.  The concept behind Unit of Work is to track modifications
@@ -361,7 +358,7 @@ Session adapter, provided by the <a title="sqlalchemy.orm.scoped_session" class=
 function.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.session.Session.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>bind=None</em>, <em>autoflush=True</em>, <em>expire_on_commit=True</em>, <em>_enable_transaction_accounting=True</em>, <em>autocommit=False</em>, <em>twophase=False</em>, <em>echo_uow=None</em>, <em>weak_identity_map=True</em>, <em>binds=None</em>, <em>extension=None</em>, <em>query_cls=&lt;class 'sqlalchemy.orm.query.Query'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>bind=None</em>, <em>autoflush=True</em>, <em>expire_on_commit=True</em>, <em>_enable_transaction_accounting=True</em>, <em>autocommit=False</em>, <em>twophase=False</em>, <em>weak_identity_map=True</em>, <em>binds=None</em>, <em>extension=None</em>, <em>query_cls=&lt;class 'sqlalchemy.orm.query.Query'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new Session.</p>
 <p>Arguments to <tt class="docutils literal"><span class="pre">Session</span></tt> are described using the
 <a title="sqlalchemy.orm.sessionmaker" class="reference internal" href="#sqlalchemy.orm.sessionmaker"><tt class="xref docutils literal"><span class="pre">sessionmaker()</span></tt></a> function.</p>
@@ -441,15 +438,6 @@ transaction.</p>
 </dl>
 <p>All subsequent operations involving this <tt class="docutils literal"><span class="pre">Table</span></tt> will use the
 given <cite>bind</cite>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.session.Session.clear">
-<tt class="descname">clear</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.clear" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove all object instances from this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
-<p>Use session.expunge_all()</p>
-<p>This is equivalent to calling <tt class="docutils literal"><span class="pre">expunge(obj)</span></tt> on all objects in this
-<tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -655,7 +643,7 @@ should not be loaded in the course of performing this test.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.session.Session.merge">
-<tt class="descname">merge</tt><big>(</big><em>instance</em>, <em>dont_load=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.merge" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">merge</tt><big>(</big><em>instance</em>, <em>load=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.merge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy the state an instance onto the persistent instance with the same identifier.</p>
 <p>If there is no persistent instance currently associated with the
 session, it will be loaded.  Return the persistent instance. If the
@@ -730,41 +718,9 @@ begin() is called multiple times.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.orm.session.Session.save">
-<tt class="descname">save</tt><big>(</big><em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a transient (unsaved) instance to this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
-<p>Use session.add()</p>
-<p>This operation cascades the <cite>save_or_update</cite> method to associated
-instances if the relation is mapped with <tt class="docutils literal"><span class="pre">cascade=&quot;save-update&quot;</span></tt>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.session.Session.save_or_update">
-<tt class="descname">save_or_update</tt><big>(</big><em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.save_or_update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Place an object in the <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
-<p>Use session.add()</p>
-<p>Its state will be persisted to the database on the next flush
-operation.</p>
-<p>Repeated calls to <tt class="docutils literal"><span class="pre">add()</span></tt> will be ignored. The opposite of <tt class="docutils literal"><span class="pre">add()</span></tt>
-is <tt class="docutils literal"><span class="pre">expunge()</span></tt>.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="sqlalchemy.orm.session.Session.scalar">
 <tt class="descname">scalar</tt><big>(</big><em>clause</em>, <em>params=None</em>, <em>mapper=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.scalar" title="Permalink to this definition">¶</a></dt>
 <dd>Like execute() but return a scalar result.</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.session.Session.update">
-<tt class="descname">update</tt><big>(</big><em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bring a detached (saved) instance into this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
-<p>Use session.add()</p>
-<p>If there is a persistent instance with the same instance key, but
-different identity already associated with this <tt class="docutils literal"><span class="pre">Session</span></tt>, an
-InvalidRequestError exception is thrown.</p>
-<p>This operation cascades the <cite>save_or_update</cite> method to associated
-instances if the relation is mapped with <tt class="docutils literal"><span class="pre">cascade=&quot;save-update&quot;</span></tt>.</p>
-</dd></dl>
 
 </dd></dl>
 
@@ -840,8 +796,8 @@ a class.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

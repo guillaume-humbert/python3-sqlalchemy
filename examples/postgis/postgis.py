@@ -1,39 +1,3 @@
-"""A naive example illustrating techniques to help 
-embed PostGIS functionality.
-
-The techniques here could be used by a capable developer 
-as the basis for a comprehensive PostGIS SQLAlchemy extension.
-Please note this is an entirely incomplete proof of concept
-only, and PostGIS support is *not* a supported feature 
-of SQLAlchemy.
-
-Includes:
-
- * a DDL extension which allows CREATE/DROP to work in 
-   conjunction with AddGeometryColumn/DropGeometryColumn
-   
- * a Geometry type, as well as a few subtypes, which
-   convert result row values to a GIS-aware object,
-   and also integrates with the DDL extension.
-
- * a GIS-aware object which stores a raw geometry value
-   and provides a factory for functions such as AsText().
-   
- * an ORM comparator which can override standard column
-   methods on mapped objects to produce GIS operators.
-   
- * an attribute event listener that intercepts strings
-   and converts to GeomFromText().
-   
- * a standalone operator example.
-
-The implementation is limited to only public, well known
-and simple to use extension points. Future SQLAlchemy
-expansion points may allow more seamless integration of
-some features.
-
-"""
-
 from sqlalchemy.orm.interfaces import AttributeExtension
 from sqlalchemy.orm.properties import ColumnProperty
 from sqlalchemy.types import TypeEngine
@@ -101,7 +65,7 @@ class Geometry(TypeEngine):
                 return value
         return process
         
-    def result_processor(self, dialect):
+    def result_processor(self, dialect, coltype):
         def process(value):
             if value is not None:
                 return PersistentGisElement(value)
@@ -231,7 +195,7 @@ if __name__ == '__main__':
     from sqlalchemy.orm import sessionmaker, column_property
     from sqlalchemy.ext.declarative import declarative_base
 
-    engine = create_engine('postgres://scott:tiger@localhost/gistest', echo=True)
+    engine = create_engine('postgresql://scott:tiger@localhost/gistest', echo=True)
     metadata = MetaData(engine)
     Base = declarative_base(metadata=metadata)
 

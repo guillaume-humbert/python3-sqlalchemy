@@ -1,5 +1,5 @@
 # mapper/util.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -7,9 +7,11 @@
 import sqlalchemy.exceptions as sa_exc
 from sqlalchemy import sql, util
 from sqlalchemy.sql import expression, util as sql_util, operators
-from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE, PropComparator, MapperProperty, AttributeExtension
+from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE, PropComparator, \
+                                        MapperProperty, AttributeExtension
 from sqlalchemy.orm import attributes, exc
 
+mapperlib = None
 
 all_cascades = frozenset(("delete", "delete-orphan", "all", "merge",
                           "expunge", "save-update", "refresh-expire",
@@ -288,7 +290,8 @@ class AliasedClass(object):
     def __init__(self, cls, alias=None, name=None):
         self.__mapper = _class_to_mapper(cls)
         self.__target = self.__mapper.class_
-        alias = alias or self.__mapper._with_polymorphic_selectable.alias()
+        if alias is None:
+            alias = self.__mapper._with_polymorphic_selectable.alias()
         self.__adapter = sql_util.ClauseAdapter(alias, equivalents=self.__mapper._equivalent_columns)
         self.__alias = alias
         # used to assign a name to the RowTuple object
@@ -390,7 +393,7 @@ class _ORMJoin(expression.Join):
             if isinstance(onclause, basestring):
                 prop = left_mapper.get_property(onclause)
             elif isinstance(onclause, attributes.QueryableAttribute):
-                if not adapt_from:
+                if adapt_from is None:
                     adapt_from = onclause.__clause_element__()
                 prop = onclause.property
             elif isinstance(onclause, MapperProperty):
@@ -406,7 +409,7 @@ class _ORMJoin(expression.Join):
                                 dest_polymorphic=True,
                                 of_type=right_mapper)
 
-                if sj:
+                if sj is not None:
                     left = sql.join(left, secondary, pj, isouter)
                     onclause = sj
                 else:
@@ -487,17 +490,27 @@ def _entity_info(entity, compile=True):
     """
     if isinstance(entity, AliasedClass):
         return entity._AliasedClass__mapper, entity._AliasedClass__alias, True
-    elif _is_mapped_class(entity):
-        if isinstance(entity, type):
-            mapper = class_mapper(entity, compile)
-        else:
-            if compile:
-                mapper = entity.compile()
-            else:
-                mapper = entity
-        return mapper, mapper._with_polymorphic_selectable, False
+
+    global mapperlib
+    if mapperlib is None:
+        from sqlalchemy.orm import mapperlib
+    
+    if isinstance(entity, mapperlib.Mapper):
+        mapper = entity
+        
+    elif isinstance(entity, type):
+        class_manager = attributes.manager_of_class(entity)
+        
+        if class_manager is None:
+            return None, entity, False
+            
+        mapper = class_manager.mapper
     else:
         return None, entity, False
+        
+    if compile:
+        mapper = mapper.compile()
+    return mapper, mapper._with_polymorphic_selectable, False
 
 def _entity_descriptor(entity, key):
     """Return attribute/property information given an entity and string name.
@@ -506,14 +519,25 @@ def _entity_descriptor(entity, key):
 
     """
     if isinstance(entity, AliasedClass):
-        desc = getattr(entity, key)
-        return desc, desc.property
+        try:
+            desc = getattr(entity, key)
+            return desc, desc.property
+        except AttributeError:
+            raise sa_exc.InvalidRequestError("Entity '%s' has no property '%s'" % (entity, key))
+            
     elif isinstance(entity, type):
-        desc = attributes.manager_of_class(entity)[key]
-        return desc, desc.property
+        try:
+            desc = attributes.manager_of_class(entity)[key]
+            return desc, desc.property
+        except KeyError:
+            raise sa_exc.InvalidRequestError("Entity '%s' has no property '%s'" % (entity, key))
+            
     else:
-        desc = entity.class_manager[key]
-        return desc, desc.property
+        try:
+            desc = entity.class_manager[key]
+            return desc, desc.property
+        except KeyError:
+            raise sa_exc.InvalidRequestError("Entity '%s' has no property '%s'" % (entity, key))
 
 def _orm_columns(entity):
     mapper, selectable, is_aliased_class = _entity_info(entity)
@@ -588,8 +612,10 @@ def _state_has_identity(state):
     return bool(state.key)
 
 def _is_mapped_class(cls):
-    from sqlalchemy.orm import mapperlib as mapper
-    if isinstance(cls, (AliasedClass, mapper.Mapper)):
+    global mapperlib
+    if mapperlib is None:
+        from sqlalchemy.orm import mapperlib
+    if isinstance(cls, (AliasedClass, mapperlib.Mapper)):
         return True
     if isinstance(cls, expression.ClauseElement):
         return False

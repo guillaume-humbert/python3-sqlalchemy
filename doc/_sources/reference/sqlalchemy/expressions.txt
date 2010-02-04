@@ -99,6 +99,8 @@ The expression package uses functions to construct SQL expressions.  The return 
 
 .. autofunction:: text
 
+.. autofunction:: tuple_
+
 .. autofunction:: union
 
 .. autofunction:: union_all
@@ -109,6 +111,10 @@ Classes
 -------
 
 .. autoclass:: Alias
+   :members:
+   :show-inheritance:
+
+.. autoclass:: _BindParamClause
    :members:
    :show-inheritance:
 
@@ -146,6 +152,14 @@ Classes
    :members: where
    :show-inheritance:
 
+.. autoclass:: FunctionElement
+   :members:
+   :show-inheritance:
+
+.. autoclass:: Function
+   :members:
+   :show-inheritance:
+   
 .. autoclass:: FromClause
    :members:
    :show-inheritance:
@@ -163,6 +177,10 @@ Classes
    :show-inheritance:
 
 .. autoclass:: Selectable
+   :members:
+   :show-inheritance:
+
+.. autoclass:: _SelectBaseMixin
    :members:
    :show-inheritance:
 

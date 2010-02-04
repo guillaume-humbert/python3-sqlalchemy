@@ -1,5 +1,5 @@
 # orm/unitofwork.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -99,7 +99,7 @@ class UOWTransaction(object):
         self.attributes = {}
         
         self.processors = set()
-        
+    
     def get_attribute_history(self, state, key, passive=True):
         hashkey = ("history", state, key)
 
@@ -127,13 +127,13 @@ class UOWTransaction(object):
         # if object is not in the overall session, do nothing
         if not self.session._contains_state(state):
             if self._should_log_debug:
-                self.logger.debug("object %s not part of session, not registering for flush" % 
-                                        (mapperutil.state_str(state)))
+                self.logger.debug("object %s not part of session, not registering for flush",
+                                        mapperutil.state_str(state))
             return
 
         if self._should_log_debug:
-            self.logger.debug("register object for flush: %s isdelete=%s listonly=%s postupdate=%s"
-                                    % (mapperutil.state_str(state), isdelete, listonly, postupdate))
+            self.logger.debug("register object for flush: %s isdelete=%s listonly=%s postupdate=%s",
+                                    mapperutil.state_str(state), isdelete, listonly, postupdate)
 
         mapper = _state_mapper(state)
 
@@ -257,7 +257,7 @@ class UOWTransaction(object):
 
         tasks = self._sort_dependencies()
         if self._should_log_info:
-            self.logger.info("Task dump:\n" + self._dump(tasks))
+            self.logger.info("Task dump:\n%s", self._dump(tasks))
         UOWExecutor().execute(self, tasks)
         if self._should_log_info:
             self.logger.info("Execute Complete")
@@ -305,7 +305,7 @@ class UOWTransaction(object):
             self.logger.debug("Dependent tuples:\n" + "\n".join(
                     "(%s->%s)" % (d[0].class_.__name__, d[1].class_.__name__)
                     for d in self.dependencies))
-            self.logger.debug("Dependency sort:\n"+ str(ret))
+            self.logger.debug("Dependency sort:\n%s", ret)
         return ret
 
 log.class_logger(UOWTransaction)
@@ -531,7 +531,7 @@ class UOWTask(object):
                     if subtask not in deps_by_targettask:
                         continue
                     for dep in deps_by_targettask[subtask]:
-                        if dep.processor.no_dependencies or not dependency_in_cycles(dep):
+                        if not dep.processor.has_dependencies or not dependency_in_cycles(dep):
                             continue
                         (processor, targettask) = (dep.processor, dep.targettask)
                         isdelete = taskelement.isdelete

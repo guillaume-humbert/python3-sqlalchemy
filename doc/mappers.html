@@ -7,7 +7,7 @@
         
         <title>
     Mapper Configuration
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="index.html" />
         <link rel="next" title="Using the Session" href="session.html" />
         <link rel="prev" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -423,7 +423,7 @@
 </div>
 <div class="section" id="controlling-ordering">
 <h3>Controlling Ordering<a class="headerlink" href="#controlling-ordering" title="Permalink to this headline">¶</a></h3>
-<p>As of version 0.5, the ORM does not generate ordering for any query unless explicitly configured.</p>
+<p>The ORM does not generate ordering for any query unless explicitly configured.</p>
 <p>The &#8220;default&#8221; ordering for a collection, which applies to list-based collections, can be configured using the <tt class="docutils literal"><span class="pre">order_by</span></tt> keyword argument on <tt class="docutils literal"><span class="pre">relation()</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">addresses_table</span><span class="p">)</span>
 
@@ -445,7 +445,7 @@
 <p>Above, a <tt class="docutils literal"><span class="pre">Query</span></tt> issued for the <tt class="docutils literal"><span class="pre">User</span></tt> class will use the value of the mapper&#8217;s <tt class="docutils literal"><span class="pre">order_by</span></tt> setting if the <tt class="docutils literal"><span class="pre">Query</span></tt> itself has no ordering specified.</p>
 </div>
 <div class="section" id="mapping-class-inheritance-hierarchies">
-<h3>Mapping Class Inheritance Hierarchies<a class="headerlink" href="#mapping-class-inheritance-hierarchies" title="Permalink to this headline">¶</a></h3>
+<span id="datamapping-inheritance"></span><h3>Mapping Class Inheritance Hierarchies<a class="headerlink" href="#mapping-class-inheritance-hierarchies" title="Permalink to this headline">¶</a></h3>
 <p>SQLAlchemy supports three forms of inheritance:  <em>single table inheritance</em>, where several types of classes are stored in one table, <em>concrete table inheritance</em>, where each type of class is stored in its own table, and <em>joined table inheritance</em>, where the parent/child classes are stored in their own tables that are joined together in a select.  Whereas support for single and joined table inheritance is strong, concrete table inheritance is a less common scenario with some particular problems so is not quite as flexible.</p>
 <p>When mappers are configured in an inheritance relationship, SQLAlchemy has the ability to load elements &#8220;polymorphically&#8221;, meaning that a single query can return objects of multiple types.</p>
 <p>For the following sections, assume this class relationship:</p>
@@ -822,7 +822,6 @@ UNION ALL
 <span class="n">result</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">othermapper</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">()</span></pre></div>
 </div>
 <p>The &#8220;non primary mapper&#8221; is a rarely needed feature of SQLAlchemy; in most cases, the <tt class="docutils literal"><span class="pre">Query</span></tt> object can produce any kind of query that&#8217;s desired.  It&#8217;s recommended that a straight <tt class="docutils literal"><span class="pre">Query</span></tt> be used in place of a non-primary mapper unless the mapper approach is absolutely needed.  Current use cases for the &#8220;non primary mapper&#8221; are when you want to map the class to a particular select statement or view to which additional query criterion can be added, and for when the particular mapped select statement or view is to be placed in a <tt class="docutils literal"><span class="pre">relation()</span></tt> of a parent mapper.</p>
-<p>Versions of SQLAlchemy previous to 0.5 included another mapper flag called &#8220;entity_name&#8221;, as of version 0.5.0 this feature has been removed (it never worked very well).</p>
 </div>
 <div class="section" id="constructors-and-object-initialization">
 <h3>Constructors and Object Initialization<a class="headerlink" href="#constructors-and-object-initialization" title="Permalink to this headline">¶</a></h3>
@@ -1548,7 +1547,7 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
 </div>
 <div class="section" id="mutable-primary-keys-update-cascades">
 <h3>Mutable Primary Keys / Update Cascades<a class="headerlink" href="#mutable-primary-keys-update-cascades" title="Permalink to this headline">¶</a></h3>
-<p>As of SQLAlchemy 0.4.2, the primary key attributes of an instance can be changed freely, and will be persisted upon flush.  When the primary key of an entity changes, related items which reference the primary key must also be updated as well.  For databases which enforce referential integrity, it&#8217;s required to use the database&#8217;s ON UPDATE CASCADE functionality in order to propagate primary key changes.  For those which don&#8217;t, the <tt class="docutils literal"><span class="pre">passive_cascades</span></tt> flag can be set to <tt class="xref docutils literal"><span class="pre">False</span></tt> which instructs SQLAlchemy to issue UPDATE statements individually.  The <tt class="docutils literal"><span class="pre">passive_cascades</span></tt> flag can also be <tt class="xref docutils literal"><span class="pre">False</span></tt> in conjunction with ON UPDATE CASCADE functionality, although in that case it issues UPDATE statements unnecessarily.</p>
+<p>When the primary key of an entity changes, related items which reference the primary key must also be updated as well.  For databases which enforce referential integrity, it&#8217;s required to use the database&#8217;s ON UPDATE CASCADE functionality in order to propagate primary key changes.  For those which don&#8217;t, the <tt class="docutils literal"><span class="pre">passive_updates</span></tt> flag can be set to <tt class="xref docutils literal"><span class="pre">False</span></tt> which instructs SQLAlchemy to issue UPDATE statements individually.  The <tt class="docutils literal"><span class="pre">passive_updates</span></tt> flag can also be <tt class="xref docutils literal"><span class="pre">False</span></tt> in conjunction with ON UPDATE CASCADE functionality, although in that case it issues UPDATE statements unnecessarily.</p>
 <p>A typical mutable primary key setup might look like:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">users</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">50</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
@@ -1588,8 +1587,8 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

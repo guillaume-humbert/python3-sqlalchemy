@@ -1,5 +1,5 @@
 # mapper/sync.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -10,7 +10,8 @@ based on join conditions.
 
 from sqlalchemy.orm import exc, util as mapperutil
 
-def populate(source, source_mapper, dest, dest_mapper, synchronize_pairs):
+def populate(source, source_mapper, dest, dest_mapper, 
+                        synchronize_pairs, uowcommit, passive_updates):
     for l, r in synchronize_pairs:
         try:
             value = source_mapper._get_state_attr_by_column(source, l)
@@ -21,6 +22,15 @@ def populate(source, source_mapper, dest, dest_mapper, synchronize_pairs):
             dest_mapper._set_state_attr_by_column(dest, r, value)
         except exc.UnmappedColumnError:
             _raise_col_to_prop(True, source_mapper, l, dest_mapper, r)
+        
+        # techically the "r.primary_key" check isn't
+        # needed here, but we check for this condition to limit
+        # how often this logic is invoked for memory/performance
+        # reasons, since we only need this info for a primary key
+        # destination.
+        if l.primary_key and r.primary_key and \
+                    r.references(l) and passive_updates:
+            uowcommit.attributes[("pk_cascaded", dest, r)] = True
 
 def clear(dest, dest_mapper, synchronize_pairs):
     for l, r in synchronize_pairs:

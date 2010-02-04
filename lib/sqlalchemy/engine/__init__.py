@@ -1,5 +1,5 @@
 # engine/__init__.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -50,7 +50,9 @@ url.py
     within a URL.
 """
 
-import sqlalchemy.databases
+# not sure what this was used for
+#import sqlalchemy.databases  
+
 from sqlalchemy.engine.base import (
     BufferedColumnResultProxy,
     BufferedColumnRow,
@@ -58,7 +60,6 @@ from sqlalchemy.engine.base import (
     Compiled,
     Connectable,
     Connection,
-    DefaultRunner,
     Dialect,
     Engine,
     ExecutionContext,
@@ -66,9 +67,9 @@ from sqlalchemy.engine.base import (
     ResultProxy,
     RootTransaction,
     RowProxy,
-    SchemaIterator,
     Transaction,
-    TwoPhaseTransaction
+    TwoPhaseTransaction,
+    TypeCompiler
     )
 from sqlalchemy.engine import strategies
 from sqlalchemy import util
@@ -81,7 +82,6 @@ __all__ = (
     'Compiled',
     'Connectable',
     'Connection',
-    'DefaultRunner',
     'Dialect',
     'Engine',
     'ExecutionContext',
@@ -89,9 +89,9 @@ __all__ = (
     'ResultProxy',
     'RootTransaction',
     'RowProxy',
-    'SchemaIterator',
     'Transaction',
     'TwoPhaseTransaction',
+    'TypeCompiler',
     'create_engine',
     'engine_from_config',
     )
@@ -108,7 +108,7 @@ def create_engine(*args, **kwargs):
 
     The URL is a string in the form
     ``dialect://user:password@host/dbname[?key=value..]``, where
-    ``dialect`` is a name such as ``mysql``, ``oracle``, ``postgres``,
+    ``dialect`` is a name such as ``mysql``, ``oracle``, ``postgresql``,
     etc.  Alternatively, the URL can be an instance of
     :class:`~sqlalchemy.engine.url.URL`.
 

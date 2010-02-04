@@ -8,11 +8,11 @@ In this tutorial we will cover a basic SQLAlchemy object-relational mapping scen
 Version Check
 =============
 
-A quick check to verify that we are on at least **version 0.5** of SQLAlchemy::
+A quick check to verify that we are on at least **version 0.6** of SQLAlchemy::
 
     >>> import sqlalchemy
     >>> sqlalchemy.__version__ # doctest:+SKIP
-    0.5.0
+    0.6.0
 
 Connecting
 ==========
@@ -316,6 +316,8 @@ issuing a SELECT illustrates the changes made to the database:
     ['ed', 'fakeuser']
     {stop}[<User('ed','Ed Jones', 'f8s7ccs')>]
 
+.. _ormtutorial_querying:
+
 Querying
 ========
 
@@ -372,7 +374,7 @@ You can control the names using the ``label()`` construct for scalar attributes 
     ...    print row.user_alias, row.name_label
     SELECT users_1.id AS users_1_id, users_1.name AS users_1_name, users_1.fullname AS users_1_fullname, users_1.password AS users_1_password, users_1.name AS name_label
     FROM users AS users_1
-    []
+    []{stop}
     <User('ed','Ed Jones', 'f8s7ccs')> ed
     <User('wendy','Wendy Williams', 'foobar')> wendy
     <User('mary','Mary Contrary', 'xxg527')> mary
@@ -387,8 +389,8 @@ Basic operations with ``Query`` include issuing LIMIT and OFFSET, most convenien
     SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
     FROM users ORDER BY users.id
     LIMIT 2 OFFSET 1
-    []
-    {stop}<User('wendy','Wendy Williams', 'foobar')>
+    []{stop}
+    <User('wendy','Wendy Williams', 'foobar')>
     <User('mary','Mary Contrary', 'xxg527')>
 
 and filtering results, which is accomplished either with ``filter_by()``, which uses keyword arguments:
@@ -578,6 +580,15 @@ To use an entirely string-based statement, using ``from_statement()``; just ensu
     SELECT * FROM users where name=?
     ['ed']
     {stop}[<User('ed','Ed Jones', 'f8s7ccs')>]
+
+You can use ``from_statement()`` to go completely "raw", using string names to identify desired columns:
+
+.. sourcecode:: python+sql
+
+    {sql}>>> session.query("id", "name", "thenumber12").from_statement("SELECT id, name, 12 as thenumber12 FROM users where name=:name").params(name='ed').all()
+    SELECT id, name, 12 as thenumber12 FROM users where name=?
+    ['ed']
+    {stop}[(1, u'ed', 12)]
 
 Counting
 --------

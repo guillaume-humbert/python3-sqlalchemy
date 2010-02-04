@@ -7,7 +7,7 @@
         
         <title>
     Interfaces
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Utilities" href="utilities.html" />
         <link rel="prev" title="Sessions" href="sessions.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -234,29 +234,50 @@ and may change slightly with new releases.</p>
 <dt id="sqlalchemy.orm.interfaces.MapperExtension">
 <em class="property">
 class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">MapperExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base implementation for customizing Mapper behavior.</p>
-<p>For each method in MapperExtension, returning a result of EXT_CONTINUE
-will allow processing to continue to the next MapperExtension in line or
-use the default functionality if there are no other extensions.</p>
-<p>Returning EXT_STOP will halt processing of further extensions handling
-that method.  Some methods such as <tt class="docutils literal"><span class="pre">load</span></tt> have other return
-requirements, see the individual documentation for details.  Other than
-these exception cases, any return value other than EXT_CONTINUE or
-EXT_STOP will be interpreted as equivalent to EXT_STOP.</p>
+<dd><p>Base implementation for customizing <tt class="docutils literal"><span class="pre">Mapper</span></tt> behavior.</p>
+<p>New extension classes subclass <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> and are specified
+using the <tt class="docutils literal"><span class="pre">extension</span></tt> mapper() argument, which is a single
+<tt class="docutils literal"><span class="pre">MapperExtension</span></tt> or a list of such.   A single mapper
+can maintain a chain of <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> objects.  When a
+particular mapping event occurs, the corresponding method 
+on each <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> is invoked serially, and each method
+has the ability to halt the chain from proceeding further.</p>
+<p>Each <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> method returns the symbol
+EXT_CONTINUE by default.   This symbol generally means &#8220;move
+to the next <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> for processing&#8221;.  For methods
+that return objects like translated rows or new object
+instances, EXT_CONTINUE means the result of the method
+should be ignored.   In some cases it&#8217;s required for a 
+default mapper activity to be performed, such as adding a 
+new instance to a result list.</p>
+<p>The symbol EXT_STOP has significance within a chain
+of <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> objects that the chain will be stopped
+when this symbol is returned.  Like EXT_CONTINUE, it also
+has additional significance in some cases that a default
+mapper activity will not be performed.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.after_delete">
 <tt class="descname">after_delete</tt><big>(</big><em>mapper</em>, <em>connection</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.after_delete" title="Permalink to this definition">¶</a></dt>
-<dd>Receive an object instance after that instance is DELETEed.</dd></dl>
+<dd><p>Receive an object instance after that instance is deleted.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.after_insert">
 <tt class="descname">after_insert</tt><big>(</big><em>mapper</em>, <em>connection</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.after_insert" title="Permalink to this definition">¶</a></dt>
-<dd>Receive an object instance after that instance is INSERTed.</dd></dl>
+<dd><p>Receive an object instance after that instance is inserted.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.after_update">
 <tt class="descname">after_update</tt><big>(</big><em>mapper</em>, <em>connection</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.after_update" title="Permalink to this definition">¶</a></dt>
-<dd>Receive an object instance after that instance is UPDATEed.</dd></dl>
+<dd><p>Receive an object instance after that instance is updated.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.append_result">
@@ -272,7 +293,7 @@ desired.</p>
 <dt>mapper</dt>
 <dd>The mapper doing the operation.</dd>
 <dt>selectcontext</dt>
-<dd>SelectionContext corresponding to the instances() call.</dd>
+<dd>The QueryContext generated from the Query.</dd>
 <dt>row</dt>
 <dd>The result row from the database.</dd>
 <dt>instance</dt>
@@ -288,32 +309,36 @@ desired.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.before_delete">
 <tt class="descname">before_delete</tt><big>(</big><em>mapper</em>, <em>connection</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.before_delete" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive an object instance before that instance is DELETEed.</p>
-<p>Note that <em>no</em> changes to the overall
-flush plan can be made here; this means any collection modification,
-save() or delete() operations which occur within this method will
-not take effect until the next flush call.</p>
+<dd><p>Receive an object instance before that instance is deleted.</p>
+<p>Note that <em>no</em> changes to the overall flush plan can be made
+here; and manipulation of the <tt class="docutils literal"><span class="pre">Session</span></tt> will not have the
+desired effect. To manipulate the <tt class="docutils literal"><span class="pre">Session</span></tt> within an
+extension, use <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.before_insert">
 <tt class="descname">before_insert</tt><big>(</big><em>mapper</em>, <em>connection</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.before_insert" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive an object instance before that instance is INSERTed
+<dd><p>Receive an object instance before that instance is inserted
 into its table.</p>
 <p>This is a good place to set up primary key values and such
 that aren&#8217;t handled otherwise.</p>
 <p>Column-based attributes can be modified within this method
 which will result in the new value being inserted.  However
-<em>no</em> changes to the overall flush plan can be made; this means
-any collection modification or save() operations which occur
-within this method will not take effect until the next flush
-call.</p>
+<em>no</em> changes to the overall flush plan can be made, and 
+manipulation of the <tt class="docutils literal"><span class="pre">Session</span></tt> will not have the desired effect.
+To manipulate the <tt class="docutils literal"><span class="pre">Session</span></tt> within an extension, use 
+<tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.before_update">
 <tt class="descname">before_update</tt><big>(</big><em>mapper</em>, <em>connection</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.before_update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive an object instance before that instance is UPDATEed.</p>
+<dd><p>Receive an object instance before that instance is updated.</p>
 <p>Note that this method is called for all instances that are marked as
 &#8220;dirty&#8221;, even those which have no net changes to their column-based
 attributes.  An object is marked as dirty when any of its column-based
@@ -326,11 +351,14 @@ here).</p>
 <p>To detect if the column-based attributes on the object have net changes,
 and will therefore generate an UPDATE statement, use
 <tt class="docutils literal"><span class="pre">object_session(instance).is_modified(instance,</span> <span class="pre">include_collections=False)</span></tt>.</p>
-<p>Column-based attributes can be modified within this method which will
-result in their being updated.  However <em>no</em> changes to the overall
-flush plan can be made; this means any collection modification or
-save() operations which occur within this method will not take effect
-until the next flush call.</p>
+<p>Column-based attributes can be modified within this method
+which will result in the new value being updated.  However
+<em>no</em> changes to the overall flush plan can be made, and 
+manipulation of the <tt class="docutils literal"><span class="pre">Session</span></tt> will not have the desired effect.
+To manipulate the <tt class="docutils literal"><span class="pre">Session</span></tt> within an extension, use 
+<tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
 <dl class="method">
@@ -344,7 +372,7 @@ EXT_CONTINUE to indicate normal object creation should take place.</p>
 <dt>mapper</dt>
 <dd>The mapper doing the operation</dd>
 <dt>selectcontext</dt>
-<dd>SelectionContext corresponding to the instances() call</dd>
+<dd>The QueryContext generated from the Query.</dd>
 <dt>row</dt>
 <dd>The result row from the database</dd>
 <dt>class_</dt>
@@ -357,17 +385,34 @@ EXT_CONTINUE to indicate normal object creation should take place.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.init_failed">
 <tt class="descname">init_failed</tt><big>(</big><em>mapper</em>, <em>class_</em>, <em>oldinit</em>, <em>instance</em>, <em>args</em>, <em>kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.init_failed" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Receive an instance when it&#8217;s constructor has been called, 
+and raised an exception.</p>
+<p>This method is only called during a userland construction of 
+an object.  It is not called when an object is loaded from the
+database.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.init_instance">
 <tt class="descname">init_instance</tt><big>(</big><em>mapper</em>, <em>class_</em>, <em>oldinit</em>, <em>instance</em>, <em>args</em>, <em>kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.init_instance" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Receive an instance when it&#8217;s constructor is called.</p>
+<p>This method is only called during a userland construction of 
+an object.  It is not called when an object is loaded from the
+database.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.instrument_class">
 <tt class="descname">instrument_class</tt><big>(</big><em>mapper</em>, <em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.instrument_class" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Receive a class when the mapper is first constructed, and has
+applied instrumentation to the mapped class.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.populate_instance">
@@ -399,9 +444,11 @@ occurred.</p>
 incoming result rows, and is only called once for that
 instance&#8217;s lifetime.</p>
 <p>Note that during a result-row load, this method is called upon
-the first row received for this instance. If eager loaders are
-set to further populate collections on the instance, those
-will <em>not</em> yet be completely loaded.</p>
+the first row received for this instance.  Note that some 
+attributes and collections may or may not be loaded or even 
+initialized, depending on what&#8217;s present in the result rows.</p>
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
 <dl class="method">
@@ -411,7 +458,13 @@ will <em>not</em> yet be completely loaded.</p>
 new row instance.</p>
 <p>This is called when the mapper first receives a row, before
 the object identity or the instance itself has been derived
-from that row.</p>
+from that row.   The given row may or may not be a 
+<tt class="docutils literal"><span class="pre">RowProxy</span></tt> object - it will always be a dictionary-like
+object which contains mapped columns as keys.  The 
+returned object should also be a dictionary-like object
+which recognizes mapped columns as keys.</p>
+<p>If the ultimate return value is EXT_CONTINUE, the row
+is not translated.</p>
 </dd></dl>
 
 </dd></dl>
@@ -606,8 +659,8 @@ method.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

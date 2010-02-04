@@ -7,7 +7,7 @@
         
         <title>
     Connection Pooling
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="SQL Statements and Expressions" href="expressions.html" />
         <link rel="prev" title="Connections" href="connections.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -126,7 +126,7 @@ You&#8217;re already done.</p>
 directly to <a title="sqlalchemy.create_engine" class="reference external" href="connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> as keyword arguments:
 <tt class="docutils literal"><span class="pre">pool_size</span></tt>, <tt class="docutils literal"><span class="pre">max_overflow</span></tt>, <tt class="docutils literal"><span class="pre">pool_recycle</span></tt> and
 <tt class="docutils literal"><span class="pre">pool_timeout</span></tt>.  For example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://me@localhost/mydb&#39;</span><span class="p">,</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://me@localhost/mydb&#39;</span><span class="p">,</span>
                        <span class="n">pool_size</span><span class="o">=</span><span class="mf">20</span><span class="p">,</span> <span class="n">max_overflow</span><span class="o">=</span><span class="mf">0</span><span class="p">)</span></pre></div>
 </div>
 <p>In the case of SQLite, a <a title="sqlalchemy.pool.SingletonThreadPool" class="reference internal" href="#sqlalchemy.pool.SingletonThreadPool"><tt class="xref docutils literal"><span class="pre">SingletonThreadPool</span></tt></a> is provided instead,
@@ -166,7 +166,7 @@ connection that automatically executes some initialization commands:</p>
 <dl class="class">
 <dt id="sqlalchemy.pool.AssertionPool">
 <em class="property">
-class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">AssertionPool</tt><big>(</big><em>creator</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.AssertionPool" title="Permalink to this definition">¶</a></dt>
+class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">AssertionPool</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.AssertionPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.pool.Pool" class="reference internal" href="#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">sqlalchemy.pool.Pool</span></tt></a></p>
 <p>A Pool that allows at most one checked out connection at any given time.</p>
 <p>This will raise an exception if more than one connection is checked out
@@ -174,48 +174,8 @@ at a time.  Useful for debugging code that is using more connections
 than desired.</p>
 <dl class="method">
 <dt id="sqlalchemy.pool.AssertionPool.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>creator</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.AssertionPool.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct an AssertionPool.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>creator</em> &#8211; a callable function that returns a DB-API
-connection object.  The function will be called with
-parameters.</li>
-<li><em>recycle</em> &#8211; If set to non -1, number of seconds between
-connection recycling, which means upon checkout, if this
-timeout is surpassed the connection will be closed and
-replaced with a newly opened connection. Defaults to -1.</li>
-<li><em>echo</em> &#8211; If True, connections being pulled and retrieved
-from the pool will be logged to the standard output, as well
-as pool sizing information.  Echoing can also be achieved by
-enabling logging for the &#8220;sqlalchemy.pool&#8221;
-namespace. Defaults to False.</li>
-<li><em>use_threadlocal</em> &#8211; If set to True, repeated calls to
-<tt class="xref docutils literal"><span class="pre">connect()</span></tt> within the same application thread will be
-guaranteed to return the same connection object, if one has
-already been retrieved from the pool and has not been
-returned yet.  Offers a slight performance advantage at the
-cost of individual transactions by default.  The
-<tt class="xref docutils literal"><span class="pre">unique_connection()</span></tt> method is provided to bypass the
-threadlocal behavior installed into <tt class="xref docutils literal"><span class="pre">connect()</span></tt>.</li>
-<li><em>reset_on_return</em> &#8211; If true, reset the database state of
-connections returned to the pool.  This is typically a
-ROLLBACK to release locks and transaction resources.
-Disable at your own peril.  Defaults to True.</li>
-<li><em>listeners</em> &#8211; A list of
-<a title="sqlalchemy.interfaces.PoolListener" class="reference external" href="interfaces.html#sqlalchemy.interfaces.PoolListener"><tt class="xref docutils literal"><span class="pre">PoolListener</span></tt></a>-like objects or
-dictionaries of callables that receive events when DB-API
-connections are created, checked out and checked in to the
-pool.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.AssertionPool.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -325,11 +285,6 @@ recreate() method.</p>
 <dl class="method">
 <dt id="sqlalchemy.pool.Pool.get">
 <tt class="descname">get</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool.get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.pool.Pool.log">
-<tt class="descname">log</tt><big>(</big><em>msg</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool.log" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -592,8 +547,8 @@ pooling.  Defaults to <a title="sqlalchemy.pool.QueuePool" class="reference inte
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

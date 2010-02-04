@@ -164,9 +164,20 @@ class LazyTest(_fixtures.FixtureTest):
         # use a union all to get a lot of rows to join against
         u2 = users.alias('u2')
         s = sa.union_all(u2.select(use_labels=True), u2.select(use_labels=True), u2.select(use_labels=True)).alias('u')
-        print [key for key in s.c.keys()]
-        l = q.filter(s.c.u2_id==User.id).distinct().order_by(User.id).all()
+        l = q.filter(s.c.u2_id==User.id).order_by(User.id).distinct().all()
         eq_(self.static.user_all_result, l)
+
+    @testing.resolve_artifact_names 
+    def test_uselist_false_warning(self):
+        """test that multiple rows received by a uselist=False raises a warning."""
+
+        mapper(User, users, properties={
+            'order':relation(Order, uselist=False)
+        })
+        mapper(Order, orders)
+        s = create_session()
+        u1 = s.query(User).filter(User.id==7).one()
+        assert_raises(sa.exc.SAWarning, getattr, u1, 'order')
 
     @testing.resolve_artifact_names
     def test_one_to_many_scalar(self):

@@ -72,7 +72,7 @@ get-orig-source:
 	REV=$(shell dpkg-parsechangelog | sed -rne 's,^Version: .*svn([^-]+).*,\1,p'); \
 	VER=$(shell dpkg-parsechangelog | sed -rne 's,^Version: ([^-]+).*,\1,p'); \
 	if [ x$$REV = x ]; then \
-	 uscan --force-download --rename --download-version=$$VER --destdir=.; \
+	 uscan --noconf --force-download --rename --download-version=$$VER --destdir=.; \
 	else \
 	 svn -q export -r $$REV http://svn.sqlalchemy.org/sqlalchemy/trunk sqlalchemy-r$$REV && \
          tar -zcf ./sqlalchemy_$$VER.orig.tar.gz sqlalchemy-r$$REV; \

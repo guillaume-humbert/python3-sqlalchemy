@@ -3,8 +3,7 @@ from sqlalchemy.test.testing import assert_raises, assert_raises_message
 import sqlalchemy as sa
 from sqlalchemy.test import testing
 from sqlalchemy import String, Integer, select
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from sqlalchemy.test.schema import Table, Column
 from sqlalchemy.orm import mapper, create_session
 from sqlalchemy.test.testing import eq_
 from test.orm import _base
@@ -16,7 +15,7 @@ class SelectableNoFromsTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('common', metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('data', Integer),
               Column('extra', String(45)))
 
@@ -28,15 +27,19 @@ class SelectableNoFromsTest(_base.MappedTest):
     @testing.resolve_artifact_names
     def test_no_tables(self):
 
-        selectable = select(["x", "y", "z"])
+        selectable = select(["x", "y", "z"]).alias()
         assert_raises_message(sa.exc.InvalidRequestError,
                                  "Could not find any Table objects",
                                  mapper, Subset, selectable)
 
-    @testing.emits_warning('.*creating an Alias.*')
+    @testing.resolve_artifact_names
+    def test_no_selects(self):
+        subset_select = select([common.c.id, common.c.data])
+        assert_raises(sa.exc.InvalidRequestError, mapper, Subset, subset_select)
+        
     @testing.resolve_artifact_names
     def test_basic(self):
-        subset_select = select([common.c.id, common.c.data])
+        subset_select = select([common.c.id, common.c.data]).alias()
         subset_mapper = mapper(Subset, subset_select)
 
         sess = create_session(bind=testing.db)

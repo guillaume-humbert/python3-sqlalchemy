@@ -1,6 +1,7 @@
 from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
 import sys, time, threading
-from sqlalchemy import create_engine, MetaData, INT, VARCHAR, Sequence, select, Integer, String, func, text
+from sqlalchemy import create_engine, MetaData, INT, VARCHAR, Sequence, \
+                            select, Integer, String, func, text, exc
 from sqlalchemy.test.schema import Table
 from sqlalchemy.test.schema import Column
 from sqlalchemy.test import TestBase, testing
@@ -20,7 +21,8 @@ class TransactionTest(TestBase):
         users.create(testing.db)
 
     def teardown(self):
-        testing.db.connect().execute(users.delete())
+        testing.db.execute(users.delete()).close()
+
     @classmethod
     def teardown_class(cls):
         users.drop(testing.db)
@@ -40,6 +42,7 @@ class TransactionTest(TestBase):
         result = connection.execute("select * from query_users")
         assert len(result.fetchall()) == 3
         transaction.commit()
+        connection.close()
 
     def test_rollback(self):
         """test a basic rollback"""
@@ -71,7 +74,24 @@ class TransactionTest(TestBase):
         result = connection.execute("select * from query_users")
         assert len(result.fetchall()) == 0
         connection.close()
-
+    
+    def test_transaction_container(self):
+        
+        def go(conn, table, data):
+            for d in data:
+                conn.execute(table.insert(), d)
+            
+        testing.db.transaction(go, users, [dict(user_id=1, user_name='user1')])
+        eq_(testing.db.execute(users.select()).fetchall(), [(1, 'user1')])
+        
+        assert_raises(exc.DBAPIError, 
+            testing.db.transaction, go, users, [
+                {'user_id':2, 'user_name':'user2'},
+                {'user_id':1, 'user_name':'user3'},
+            ]
+        )
+        eq_(testing.db.execute(users.select()).fetchall(), [(1, 'user1')])
+        
     def test_nested_rollback(self):
         connection = testing.db.connect()
 
@@ -176,6 +196,7 @@ class TransactionTest(TestBase):
         connection.close()
 
     @testing.requires.savepoints
+    @testing.crashes('oracle+zxjdbc', 'Errors out and causes subsequent tests to deadlock')
     def test_nested_subtransaction_commit(self):
         connection = testing.db.connect()
         transaction = connection.begin()
@@ -219,7 +240,6 @@ class TransactionTest(TestBase):
         connection.execute(users.insert(), user_id=1, user_name='user1')
         transaction.prepare()
         transaction.commit()
-        transaction.close()
 
         transaction = connection.begin_twophase()
         connection.execute(users.insert(), user_id=2, user_name='user2')
@@ -277,6 +297,8 @@ class TransactionTest(TestBase):
         connection.close()
 
     @testing.requires.two_phase_transactions
+    @testing.crashes('mysql+oursql', 'Times out in full test runs only, causing subsequent tests to fail')
+    @testing.crashes('mysql+zxjdbc', 'Deadlocks, causing subsequent tests to fail')
     @testing.fails_on('mysql', 'FIXME: unknown')
     def test_two_phase_recover(self):
         # MySQL recovery doesn't currently seem to work correctly
@@ -365,25 +387,28 @@ class AutoRollbackTest(TestBase):
         users.drop(conn2)
         conn2.close()
 
-foo = None
 class ExplicitAutoCommitTest(TestBase):
     """test the 'autocommit' flag on select() and text() objects.
 
     Requires PostgreSQL so that we may define a custom function which modifies the database.
     """
 
-    __only_on__ = 'postgres'
+    __only_on__ = 'postgresql'
 
     @classmethod
     def setup_class(cls):
         global metadata, foo
         metadata = MetaData(testing.db)
-        foo = Table('foo', metadata, Column('id', Integer, primary_key=True), Column('data', String(100)))
+        foo = Table('foo', metadata, 
+                        Column('id', Integer, primary_key=True), 
+                        Column('data', String(100))
+                    )
         metadata.create_all()
-        testing.db.execute("create function insert_foo(varchar) returns integer as 'insert into foo(data) values ($1);select 1;' language sql")
+        testing.db.execute("create function insert_foo(varchar) returns integer "
+                            "as 'insert into foo(data) values ($1);select 1;' language sql")
 
     def teardown(self):
-        foo.delete().execute()
+        foo.delete().execute().close()
 
     @classmethod
     def teardown_class(cls):
@@ -413,6 +438,67 @@ class ExplicitAutoCommitTest(TestBase):
         conn1 = testing.db.connect()
         conn2 = testing.db.connect()
 
+        conn1.execute(select([func.insert_foo('data1')]).execution_options(autocommit=True))
+        assert conn2.execute(select([foo.c.data])).fetchall() == [('data1',)]
+
+        conn1.close()
+        conn2.close()
+
+    def test_explicit_connection(self):
+        conn1 = testing.db.connect()
+        conn2 = testing.db.connect()
+
+        conn1.execution_options(autocommit=True).\
+                        execute(select([func.insert_foo('data1')]))
+        eq_(
+            conn2.execute(select([foo.c.data])).fetchall(),
+            [('data1',), ]
+        )
+
+        # connection supercedes statement
+        conn1.execution_options(autocommit=False).\
+                        execute(
+                            select([func.insert_foo('data2')]).
+                                execution_options(autocommit=True)
+                        )
+        eq_(
+            conn2.execute(select([foo.c.data])).fetchall(),
+            [('data1',), ]
+        )
+        
+        # ditto
+        conn1.execution_options(autocommit=True).\
+                        execute(
+                            select([func.insert_foo('data3')]).
+                                execution_options(autocommit=False)
+                        )
+        eq_(
+            conn2.execute(select([foo.c.data])).fetchall(),
+            [('data1',), ('data2', ), ('data3',)] 
+        )
+
+        conn1.close()
+        conn2.close()
+
+    def test_explicit_text(self):
+        conn1 = testing.db.connect()
+        conn2 = testing.db.connect()
+
+        conn1.execute(
+                    text("select insert_foo('moredata')").
+                    execution_options(autocommit=True)
+                )
+        assert conn2.execute(select([foo.c.data])).fetchall() == [('moredata',)]
+
+        conn1.close()
+        conn2.close()
+
+    @testing.uses_deprecated(r'autocommit on select\(\) is deprecated',
+                            r'autocommit\(\) is deprecated')
+    def test_explicit_compiled_deprecated(self):
+        conn1 = testing.db.connect()
+        conn2 = testing.db.connect()
+
         conn1.execute(select([func.insert_foo('data1')], autocommit=True))
         assert conn2.execute(select([foo.c.data])).fetchall() == [('data1',)]
 
@@ -422,7 +508,8 @@ class ExplicitAutoCommitTest(TestBase):
         conn1.close()
         conn2.close()
 
-    def test_explicit_text(self):
+    @testing.uses_deprecated(r'autocommit on text\(\) is deprecated')
+    def test_explicit_text_deprecated(self):
         conn1 = testing.db.connect()
         conn2 = testing.db.connect()
 
@@ -456,29 +543,28 @@ class TLTransactionTest(TestBase):
             test_needs_acid=True,
         )
         users.create(tlengine)
+
     def teardown(self):
-        tlengine.execute(users.delete())
+        tlengine.execute(users.delete()).close()
+
     @classmethod
     def teardown_class(cls):
         users.drop(tlengine)
         tlengine.dispose()
-
-    def test_nested_unsupported(self):
-        assert_raises(NotImplementedError, tlengine.contextual_connect().begin_nested)
-        assert_raises(NotImplementedError, tlengine.begin_nested)
+    
+    def setup(self):
+        # ensure tests start with engine closed
+        tlengine.close()
         
     def test_connection_close(self):
-        """test that when connections are closed for real, transactions are rolled back and disposed."""
+        """test that when connections are closed for real, 
+        transactions are rolled back and disposed."""
 
         c = tlengine.contextual_connect()
         c.begin()
-        assert tlengine.session.in_transaction()
-        assert hasattr(tlengine.session, '_TLSession__transaction')
-        assert hasattr(tlengine.session, '_TLSession__trans')
+        assert c.in_transaction()
         c.close()
-        assert not tlengine.session.in_transaction()
-        assert not hasattr(tlengine.session, '_TLSession__transaction')
-        assert not hasattr(tlengine.session, '_TLSession__trans')
+        assert not c.in_transaction()
 
     def test_transaction_close(self):
         c = tlengine.contextual_connect()
@@ -500,6 +586,7 @@ class TLTransactionTest(TestBase):
         try:
             assert len(result.fetchall()) == 0
         finally:
+            c.close()
             external_connection.close()
 
     def test_rollback(self):
@@ -533,7 +620,9 @@ class TLTransactionTest(TestBase):
             external_connection.close()
 
     def test_commits(self):
-        assert tlengine.connect().execute("select count(1) from query_users").scalar() == 0
+        connection = tlengine.connect()
+        assert connection.execute("select count(1) from query_users").scalar() == 0
+        connection.close()
 
         connection = tlengine.contextual_connect()
         transaction = connection.begin()
@@ -550,6 +639,7 @@ class TLTransactionTest(TestBase):
         l = result.fetchall()
         assert len(l) == 3, "expected 3 got %d" % len(l)
         transaction.commit()
+        connection.close()
 
     def test_rollback_off_conn(self):
         # test that a TLTransaction opened off a TLConnection allows that
@@ -566,6 +656,7 @@ class TLTransactionTest(TestBase):
         try:
             assert len(result.fetchall()) == 0
         finally:
+            conn.close()
             external_connection.close()
 
     def test_morerollback_off_conn(self):
@@ -584,6 +675,8 @@ class TLTransactionTest(TestBase):
         try:
             assert len(result.fetchall()) == 0
         finally:
+            conn.close()
+            conn2.close()
             external_connection.close()
 
     def test_commit_off_connection(self):
@@ -599,10 +692,12 @@ class TLTransactionTest(TestBase):
         try:
             assert len(result.fetchall()) == 3
         finally:
+            conn.close()
             external_connection.close()
 
-    def test_nesting(self):
-        """tests nesting of transactions"""
+    def test_nesting_rollback(self):
+        """tests nesting of transactions, rollback at the end"""
+        
         external_connection = tlengine.connect()
         self.assert_(external_connection.connection is not tlengine.contextual_connect().connection)
         tlengine.begin()
@@ -616,6 +711,25 @@ class TLTransactionTest(TestBase):
         tlengine.rollback()
         try:
             self.assert_(external_connection.scalar("select count(1) from query_users") == 0)
+        finally:
+            external_connection.close()
+
+    def test_nesting_commit(self):
+        """tests nesting of transactions, commit at the end."""
+        
+        external_connection = tlengine.connect()
+        self.assert_(external_connection.connection is not tlengine.contextual_connect().connection)
+        tlengine.begin()
+        tlengine.execute(users.insert(), user_id=1, user_name='user1')
+        tlengine.execute(users.insert(), user_id=2, user_name='user2')
+        tlengine.execute(users.insert(), user_id=3, user_name='user3')
+        tlengine.begin()
+        tlengine.execute(users.insert(), user_id=4, user_name='user4')
+        tlengine.execute(users.insert(), user_id=5, user_name='user5')
+        tlengine.commit()
+        tlengine.commit()
+        try:
+            self.assert_(external_connection.scalar("select count(1) from query_users") == 5)
         finally:
             external_connection.close()
 
@@ -670,14 +784,107 @@ class TLTransactionTest(TestBase):
         finally:
             external_connection.close()
 
+    @testing.requires.savepoints
+    def test_nested_subtransaction_rollback(self):
+        
+        tlengine.begin()
+        tlengine.execute(users.insert(), user_id=1, user_name='user1')
+        tlengine.begin_nested()
+        tlengine.execute(users.insert(), user_id=2, user_name='user2')
+        tlengine.rollback()
+        tlengine.execute(users.insert(), user_id=3, user_name='user3')
+        tlengine.commit()
+        tlengine.close()
+
+        eq_(
+            tlengine.execute(select([users.c.user_id]).order_by(users.c.user_id)).fetchall(),
+            [(1,),(3,)]
+        )
+        tlengine.close()
+
+    @testing.requires.savepoints
+    @testing.crashes('oracle+zxjdbc', 'Errors out and causes subsequent tests to deadlock')
+    def test_nested_subtransaction_commit(self):
+        tlengine.begin()
+        tlengine.execute(users.insert(), user_id=1, user_name='user1')
+        tlengine.begin_nested()
+        tlengine.execute(users.insert(), user_id=2, user_name='user2')
+        tlengine.commit()
+        tlengine.execute(users.insert(), user_id=3, user_name='user3')
+        tlengine.commit()
+
+        tlengine.close()
+        eq_(
+            tlengine.execute(select([users.c.user_id]).order_by(users.c.user_id)).fetchall(),
+            [(1,),(2,),(3,)]
+        )
+        tlengine.close()
+
+    @testing.requires.savepoints
+    def test_rollback_to_subtransaction(self):
+        tlengine.begin()
+        tlengine.execute(users.insert(), user_id=1, user_name='user1')
+        tlengine.begin_nested()
+        tlengine.execute(users.insert(), user_id=2, user_name='user2')
+        tlengine.begin()
+        tlengine.execute(users.insert(), user_id=3, user_name='user3')
+        tlengine.rollback()
+        
+        # TODO: removing this line, the test still tends to pass in most
+        # cases, except sporadically on PG.  this should be nailed down
+        # in TLEngine - removing this line should be guaranteed fail.
+        tlengine.rollback()
+        
+        tlengine.execute(users.insert(), user_id=4, user_name='user4')
+        tlengine.commit()
+        tlengine.close()
+
+        eq_(
+            tlengine.execute(select([users.c.user_id]).order_by(users.c.user_id)).fetchall(),
+            [(1,),(4,)]
+        )
+        tlengine.close()
+
     def test_connections(self):
         """tests that contextual_connect is threadlocal"""
         c1 = tlengine.contextual_connect()
         c2 = tlengine.contextual_connect()
         assert c1.connection is c2.connection
         c2.close()
-        assert c1.connection.connection is not None
+        assert not c1.closed
+        assert not tlengine.closed
+        
+    def test_result_closing(self):
+        """tests that contextual_connect is threadlocal"""
+        
+        r1 = tlengine.execute(select([1]))
+        r2 = tlengine.execute(select([1]))
+        row1 = r1.fetchone()
+        row2 = r2.fetchone()
+        r1.close()
+        assert r2.connection is r1.connection
+        assert not r2.connection.closed
+        assert not tlengine.closed
+        
+        # close again, nothing happens
+        # since resultproxy calls close() only
+        # once
+        r1.close()
+        assert r2.connection is r1.connection
+        assert not r2.connection.closed
+        assert not tlengine.closed
 
+        r2.close()
+        assert r2.connection.closed
+        assert tlengine.closed
+    
+    def test_dispose(self):
+        eng = create_engine(testing.db.url, strategy='threadlocal')
+        result = eng.execute(select([1]))
+        eng.dispose()
+        eng.execute(select([1]))
+        
+        
     @testing.requires.two_phase_transactions
     def test_two_phase_transaction(self):
         tlengine.begin_twophase()
@@ -715,8 +922,10 @@ class ForUpdateTest(TestBase):
             test_needs_acid=True,
         )
         counters.create(testing.db)
+
     def teardown(self):
-        testing.db.connect().execute(counters.delete())
+        testing.db.execute(counters.delete()).close()
+
     @classmethod
     def teardown_class(cls):
         counters.drop(testing.db)
@@ -729,7 +938,7 @@ class ForUpdateTest(TestBase):
         for i in xrange(count):
             trans = con.begin()
             try:
-                existing = con.execute(sel).fetchone()
+                existing = con.execute(sel).first()
                 incr = existing['counter_value'] + 1
 
                 time.sleep(delay)
@@ -737,7 +946,7 @@ class ForUpdateTest(TestBase):
                                             values={'counter_value':incr}))
                 time.sleep(delay)
 
-                readback = con.execute(sel).fetchone()
+                readback = con.execute(sel).first()
                 if (readback['counter_value'] != incr):
                     raise AssertionError("Got %s post-update, expected %s" %
                                          (readback['counter_value'], incr))
@@ -766,14 +975,14 @@ class ForUpdateTest(TestBase):
         iterations, thread_count = 10, 5
         threads, errors = [], []
         for i in xrange(thread_count):
-            thread = threading.Thread(target=self.increment,
+            thrd = threading.Thread(target=self.increment,
                                       args=(iterations,),
                                       kwargs={'errors': errors,
                                               'update_style': True})
-            thread.start()
-            threads.append(thread)
-        for thread in threads:
-            thread.join()
+            thrd.start()
+            threads.append(thrd)
+        for thrd in threads:
+            thrd.join()
 
         for e in errors:
             sys.stdout.write("Failure: %s\n" % e)
@@ -781,7 +990,7 @@ class ForUpdateTest(TestBase):
         self.assert_(len(errors) == 0)
 
         sel = counters.select(whereclause=counters.c.counter_id==1)
-        final = db.execute(sel).fetchone()
+        final = db.execute(sel).first()
         self.assert_(final['counter_value'] == iterations * thread_count)
 
     def overlap(self, ids, errors, update_style):
@@ -805,12 +1014,12 @@ class ForUpdateTest(TestBase):
 
         errors, threads = [], []
         for i in xrange(thread_count):
-            thread = threading.Thread(target=self.overlap,
+            thrd = threading.Thread(target=self.overlap,
                                       args=(groups.pop(0), errors, update_style))
-            thread.start()
-            threads.append(thread)
-        for thread in threads:
-            thread.join()
+            thrd.start()
+            threads.append(thrd)
+        for thrd in threads:
+            thrd.join()
 
         return errors
 

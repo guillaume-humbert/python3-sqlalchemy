@@ -7,7 +7,7 @@
         
         <title>
     SQL Expression Language Tutorial
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mappers.html" />
         <link rel="prev" title="Object Relational Tutorial" href="ormtutorial.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -129,10 +129,10 @@
 <p>This tutorial will cover SQLAlchemy SQL Expressions, which are Python constructs that represent SQL statements.  The tutorial is in doctest format, meaning each <tt class="docutils literal"><span class="pre">&gt;&gt;&gt;</span></tt> line represents something you can type at a Python command prompt, and the following text represents the expected return value.  The tutorial has no prerequisites.</p>
 <div class="section" id="version-check">
 <h2>Version Check<a class="headerlink" href="#version-check" title="Permalink to this headline">¶</a></h2>
-<p>A quick check to verify that we are on at least <strong>version 0.5</strong> of SQLAlchemy:</p>
+<p>A quick check to verify that we are on at least <strong>version 0.6</strong> of SQLAlchemy:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sqlalchemy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sqlalchemy</span><span class="o">.</span><span class="n">__version__</span> 
-<span class="go">0.5.0</span></pre></div>
+<span class="go">0.6.0</span></pre></div>
 </div>
 </div>
 <div class="section" id="connecting">
@@ -165,25 +165,25 @@
 <p>Next, to tell the <tt class="docutils literal"><span class="pre">MetaData</span></tt> we&#8217;d actually like to create our selection of tables for real inside the SQLite database, we use <tt class="docutils literal"><span class="pre">create_all()</span></tt>, passing it the <tt class="docutils literal"><span class="pre">engine</span></tt> instance which points to our database.  This will check for the presence of each table first before creating, so it&#8217;s safe to call multiple times:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span> 
 <div class='popup_sql'>PRAGMA table_info("users")
-{}
+()
 PRAGMA table_info("addresses")
-{}
+()
 CREATE TABLE users (
     id INTEGER NOT NULL,
     name VARCHAR,
     fullname VARCHAR,
     PRIMARY KEY (id)
 )
-{}
+()
 COMMIT
 CREATE TABLE addresses (
     id INTEGER NOT NULL,
     user_id INTEGER,
     email_address VARCHAR NOT NULL,
     PRIMARY KEY (id),
-     FOREIGN KEY(user_id) REFERENCES users (id)
+    FOREIGN KEY(user_id) REFERENCES users (id)
 )
-{}
+()
 COMMIT</div></pre></div>
 </div>
 <p>Users familiar with the syntax of CREATE TABLE may notice that the VARCHAR columns were generated without a length; on SQLite, this is a valid datatype, but on most databases it&#8217;s not allowed.  So if running this tutorial on a database such as PostgreSQL or MySQL, and you wish to use SQLAlchemy to generate the tables, a &#8220;length&#8221; may be provided to the <tt class="docutils literal"><span class="pre">String</span></tt> type as below:</p>
@@ -229,10 +229,10 @@ COMMIT</div></pre></div>
 <span class="go">&#39;INSERT INTO users (name, fullname) VALUES (?, ?)&#39;</span></pre></div>
 </div>
 <p>What about the <tt class="docutils literal"><span class="pre">result</span></tt> variable we got when we called <tt class="docutils literal"><span class="pre">execute()</span></tt> ?  As the SQLAlchemy <tt class="docutils literal"><span class="pre">Connection</span></tt> object references a DBAPI connection, the result, known as a <tt class="docutils literal"><span class="pre">ResultProxy</span></tt> object, is analogous to the DBAPI cursor object.  In the case of an INSERT, we can get important information from it, such as the primary key values which were generated from our statement:</p>
-<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">last_inserted_ids</span><span class="p">()</span>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">inserted_primary_key</span>
 <span class="go">[1]</span></pre></div>
 </div>
-<p>The value of <tt class="docutils literal"><span class="pre">1</span></tt> was automatically generated by SQLite, but only because we did not specify the <tt class="docutils literal"><span class="pre">id</span></tt> column in our <tt class="docutils literal"><span class="pre">Insert</span></tt> statement; otherwise, our explicit value would have been used.   In either case, SQLAlchemy always knows how to get at a newly generated primary key value, even though the method of generating them is different across different databases; each databases&#8217; <tt class="docutils literal"><span class="pre">Dialect</span></tt> knows the specific steps needed to determine the correct value (or values; note that <tt class="docutils literal"><span class="pre">last_inserted_ids()</span></tt> returns a list so that it supports composite primary keys).</p>
+<p>The value of <tt class="docutils literal"><span class="pre">1</span></tt> was automatically generated by SQLite, but only because we did not specify the <tt class="docutils literal"><span class="pre">id</span></tt> column in our <tt class="docutils literal"><span class="pre">Insert</span></tt> statement; otherwise, our explicit value would have been used.   In either case, SQLAlchemy always knows how to get at a newly generated primary key value, even though the method of generating them is different across different databases; each databases&#8217; <tt class="docutils literal"><span class="pre">Dialect</span></tt> knows the specific steps needed to determine the correct value (or values; note that <tt class="docutils literal"><span class="pre">inserted_primary_key</span></tt> returns a list so that it supports composite primary keys).</p>
 </div>
 <div class="section" id="executing-multiple-statements">
 <h2>Executing Multiple Statements<a class="headerlink" href="#executing-multiple-statements" title="Permalink to this headline">¶</a></h2>
@@ -467,7 +467,7 @@ WHERE users.id = addresses.user_id
 <p>Once again, SQLAlchemy figured out the FROM clause for our statement.  In fact it will determine the FROM clause based on all of its other bits; the columns clause, the where clause, and also some other elements which we haven&#8217;t covered yet, which include ORDER BY, GROUP BY, and HAVING.</p>
 </div>
 <div class="section" id="using-text">
-<h2>Using Text<a class="headerlink" href="#using-text" title="Permalink to this headline">¶</a></h2>
+<span id="sqlexpression-text"></span><h2>Using Text<a class="headerlink" href="#using-text" title="Permalink to this headline">¶</a></h2>
 <p>Our last example really became a handful to type.  Going from what one understands to be a textual SQL expression into a Python construct which groups components together in a programmatic style can be hard.  That&#8217;s why SQLAlchemy lets you just use strings too.  The <tt class="docutils literal"><span class="pre">text()</span></tt> construct represents any textual statement.  To use bind parameters with <tt class="docutils literal"><span class="pre">text()</span></tt>, always use the named colon format.  Such as below, we create a <tt class="docutils literal"><span class="pre">text()</span></tt> and execute it, feeding in the bind parameters to the <tt class="docutils literal"><span class="pre">execute()</span></tt> method:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">text</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT users.fullname || &#39;, &#39; || addresses.email_address AS title</span>
@@ -571,7 +571,7 @@ FROM users JOIN addresses ON addresses.email_address LIKE users.name || ?
 <span class="go">FROM users LEFT OUTER JOIN addresses ON users.id = addresses.user_id</span></pre></div>
 </div>
 <p>That&#8217;s the output <tt class="docutils literal"><span class="pre">outerjoin()</span></tt> produces, unless, of course, you&#8217;re stuck in a gig using Oracle prior to version 9, and you&#8217;ve set up your engine (which would be using <tt class="docutils literal"><span class="pre">OracleDialect</span></tt>) to use Oracle-specific SQL:</p>
-<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.databases.oracle</span> <span class="kn">import</span> <span class="n">OracleDialect</span>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.oracle</span> <span class="kn">import</span> <span class="n">dialect</span> <span class="k">as</span> <span class="n">OracleDialect</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">dialect</span><span class="o">=</span><span class="n">OracleDialect</span><span class="p">(</span><span class="n">use_ansi</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
 <span class="go">SELECT users.fullname</span>
 <span class="go">FROM users, addresses</span>
@@ -681,7 +681,7 @@ WHERE users.name LIKE ? || '%' OR addresses.email_address LIKE ? || '@%'
 <span class="go">concat(:param_1, :param_2)</span></pre></div>
 </div>
 <p>By &#8220;generates&#8221;, we mean that <strong>any</strong> SQL function is created based on the word you choose:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">xyz_my_goofy_function</span><span class="p">()</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">xyz_my_goofy_function</span><span class="p">()</span> 
 <span class="go">xyz_my_goofy_function()</span></pre></div>
 </div>
 <p>Certain function names are known by SQLAlchemy, allowing special behavioral rules to be applied.   Some for example are &#8220;ANSI&#8221; functions, which mean they don&#8217;t get the parenthesis added after them, such as CURRENT_TIMESTAMP:</p>
@@ -755,6 +755,28 @@ WHERE addresses.email_address LIKE ? EXCEPT SELECT addresses.id, addresses.user_
 FROM addresses
 WHERE addresses.email_address LIKE ?
 ['%@%.com', '%@msn.com']</div><span class="go">[(1, 1, u&#39;jack@yahoo.com&#39;), (4, 2, u&#39;wendy@aol.com&#39;)]</span></pre></div>
+</div>
+<p>A common issue with so-called &#8220;compound&#8221; selectables arises due to the fact that they nest with parenthesis.  SQLite in particular doesn&#8217;t like a statement that starts with parenthesis.  So when nesting a &#8220;compound&#8221; inside a &#8220;compound&#8221;, it&#8217;s often necessary to apply
+<tt class="docutils literal"><span class="pre">.alias().select()</span></tt> to the first element of the outermost compound, if that element is also a compound.  For example, to nest a &#8220;union&#8221; and a &#8220;select&#8221; inside of &#8220;except_&#8221;, SQLite will want
+the &#8220;union&#8221; to be stated as a subquery:</p>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">except_</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">union</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">addresses</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">email_address</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;%@yahoo.com&#39;</span><span class="p">)),</span>
+<span class="gp">... </span>        <span class="n">addresses</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">email_address</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;%@msn.com&#39;</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span><span class="o">.</span><span class="n">select</span><span class="p">(),</span>   <span class="c"># apply subquery here</span>
+<span class="gp">... </span>   <span class="n">addresses</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">email_address</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;%@msn.com&#39;</span><span class="p">))</span>
+<span class="gp">... </span><span class="p">)</span>
+<a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>   
+<div class='popup_sql'>SELECT anon_1.id, anon_1.user_id, anon_1.email_address
+FROM (SELECT addresses.id AS id, addresses.user_id AS user_id,
+addresses.email_address AS email_address FROM addresses
+WHERE addresses.email_address LIKE ? UNION SELECT addresses.id AS id,
+addresses.user_id AS user_id, addresses.email_address AS email_address
+FROM addresses WHERE addresses.email_address LIKE ?) AS anon_1 EXCEPT
+SELECT addresses.id, addresses.user_id, addresses.email_address
+FROM addresses
+WHERE addresses.email_address LIKE ?
+['%@yahoo.com', '%@msn.com', '%@msn.com']</div><span class="go">[(1, 1, u&#39;jack@yahoo.com&#39;)]</span></pre></div>
 </div>
 </div>
 <div class="section" id="scalar-selects">
@@ -904,8 +926,8 @@ COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

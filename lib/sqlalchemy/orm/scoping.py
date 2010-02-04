@@ -61,9 +61,9 @@ class ScopedSession(object):
         "for information on how to replicate its behavior.")
     def mapper(self, *args, **kwargs):
         """return a mapper() function which associates this ScopedSession with the Mapper.
-        
+
         DEPRECATED.
-        
+
         """
 
         from sqlalchemy.orm import mapper
@@ -135,7 +135,7 @@ def makeprop(name):
     def get(self):
         return getattr(self.registry(), name)
     return property(get, set)
-for prop in ('bind', 'dirty', 'deleted', 'new', 'identity_map', 'is_active'):
+for prop in ('bind', 'dirty', 'deleted', 'new', 'identity_map', 'is_active', 'autoflush'):
     setattr(ScopedSession, prop, makeprop(prop))
 
 def clslevel(name):
@@ -175,7 +175,7 @@ class _ScopedExt(MapperExtension):
 
     def _default__init__(ext, mapper):
         def __init__(self, **kwargs):
-            for key, value in kwargs.items():
+            for key, value in kwargs.iteritems():
                 if ext.validate:
                     if not mapper.get_property(key, resolve_synonyms=False,
                                                raiseerr=False):
@@ -199,10 +199,5 @@ class _ScopedExt(MapperExtension):
         return EXT_CONTINUE
 
     def dispose_class(self, mapper, class_):
-        if hasattr(class_, '__init__') and hasattr(class_.__init__, '_oldinit'):
-            if class_.__init__._oldinit is not None:
-                class_.__init__ = class_.__init__._oldinit
-            else:
-                delattr(class_, '__init__')
         if hasattr(class_, 'query'):
             delattr(class_, 'query')

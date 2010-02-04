@@ -1,5 +1,5 @@
 # topological.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -79,7 +79,7 @@ class _Node(object):
             ''.join(str(n) for n in self.children)
 
     def __repr__(self):
-        return "%s" % (str(self.item))
+        return str(self.item)
 
     def all_deps(self):
         """Return a set of dependencies for this node and all its cycles."""
@@ -161,20 +161,21 @@ def _sort(tuples, allitems, allow_cycles=False, ignore_self_cycles=False):
     edges = _EdgeCollection()
 
     for item in list(allitems) + [t[0] for t in tuples] + [t[1] for t in tuples]:
-        if id(item) not in nodes:
-            node = _Node(item)
-            nodes[item] = node
+        item_id = id(item)
+        if item_id not in nodes:
+            nodes[item_id] = _Node(item)
 
     for t in tuples:
+        id0, id1 = id(t[0]), id(t[1])
         if t[0] is t[1]:
             if allow_cycles:
-                n = nodes[t[0]]
+                n = nodes[id0]
                 n.cycles = set([n])
             elif not ignore_self_cycles:
                 raise CircularDependencyError("Self-referential dependency detected " + repr(t))
             continue
-        childnode = nodes[t[1]]
-        parentnode = nodes[t[0]]
+        childnode = nodes[id1]
+        parentnode = nodes[id0]
         edges.add((parentnode, childnode))
 
     queue = []
@@ -210,7 +211,7 @@ def _sort(tuples, allitems, allow_cycles=False, ignore_self_cycles=False):
         node = queue.pop()
         if not hasattr(node, '_cyclical'):
             output.append(node)
-        del nodes[node.item]
+        del nodes[id(node.item)]
         for childnode in edges.pop_node(node):
             queue.append(childnode)
     return output
@@ -293,8 +294,8 @@ def _find_cycles(edges):
     for parent in edges.get_parents():
         traverse(parent)
 
-    # sets are not hashable, so uniquify with id
-    unique_cycles = dict((id(s), s) for s in cycles.values()).values()
+    unique_cycles = set(tuple(s) for s in cycles.values())
+    
     for cycle in unique_cycles:
         edgecollection = [edge for edge in edges
                           if edge[0] in cycle and edge[1] in cycle]
