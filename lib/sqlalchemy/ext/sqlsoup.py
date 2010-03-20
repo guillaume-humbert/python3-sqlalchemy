@@ -170,10 +170,10 @@ You can also join directly to a labeled object::
     [u'name', u'email', u'password', u'classname', u'admin', u'loans_book_id', u'loans_user_name', u'loans_loan_date']
 
 
-Relations
-=========
+Relationships
+=============
 
-You can define relations on SqlSoup classes:
+You can define relationships on SqlSoup classes:
 
     >>> db.users.relate('loans', db.loans)
 
@@ -186,7 +186,7 @@ These can then be used like a normal SA property:
     [MappedUsers(name=u'Bhargan Basepair',email='basepair+nospam@example.edu',password=u'basepair',classname=None,admin=1)]
 
 
-relate can take any options that the relation function accepts in normal mapper definition:
+relate can take any options that the relationship function accepts in normal mapper definition:
 
     >>> del db._cache['users']
     >>> db.users.relate('loans', db.loans, order_by=db.loans.loan_date, cascade='all, delete-orphan')
@@ -308,7 +308,7 @@ from sqlalchemy import Table, MetaData, join
 from sqlalchemy import schema, sql
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import scoped_session, sessionmaker, mapper, \
-                            class_mapper, relation, session,\
+                            class_mapper, relationship, session,\
                             object_session
 from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE
 from sqlalchemy.exceptions import SQLAlchemyError, InvalidRequestError, ArgumentError
@@ -373,7 +373,7 @@ class TableClassType(SelectableClassType):
         return o
 
     def relate(cls, propname, *args, **kwargs):
-        class_mapper(cls)._configure_property(propname, relation(*args, **kwargs))
+        class_mapper(cls)._configure_property(propname, relationship(*args, **kwargs))
 
 def _is_outer_join(selectable):
     if not isinstance(selectable, sql.Join):
@@ -408,23 +408,34 @@ def _class_for_table(session, engine, selectable, **mapper_kwargs):
         klass = TableClassType(mapname, (object,), {})
     else:
         klass = SelectableClassType(mapname, (object,), {})
-    
-    def __cmp__(self, o):
-        L = self.__class__.c.keys()
+
+    def _compare(self, o):
+        L = list(self.__class__.c.keys())
         L.sort()
         t1 = [getattr(self, k) for k in L]
         try:
             t2 = [getattr(o, k) for k in L]
         except AttributeError:
             raise TypeError('unable to compare with %s' % o.__class__)
-        return cmp(t1, t2)
+        return t1, t2
+    
+    # python2/python3 compatible system of 
+    # __cmp__ - __lt__ + __eq__
+    
+    def __lt__(self, o):
+        t1, t2 = _compare(self, o)
+        return t1 < t2
 
+    def __eq__(self, o):
+        t1, t2 = _compare(self, o)
+        return t1 == t2
+    
     def __repr__(self):
         L = ["%s=%r" % (key, getattr(self, key, ''))
              for key in self.__class__.c.keys()]
         return '%s(%s)' % (self.__class__.__name__, ','.join(L))
         
-    for m in ['__cmp__', '__repr__']:
+    for m in ['__eq__', '__repr__', '__lt__']:
         setattr(klass, m, eval(m))
     klass._table = selectable
     klass.c = expression.ColumnCollection()

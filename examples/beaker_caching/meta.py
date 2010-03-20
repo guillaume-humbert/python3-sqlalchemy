@@ -9,6 +9,8 @@ The three new concepts introduced here are:
    retrieves results in/from Beaker.
  * FromCache - a query option that establishes caching
    parameters on a Query
+ * RelationshipCache - a variant of FromCache which is specific
+   to a query invoked during a lazy load.
  * _params_from_query - extracts value parameters from 
    a Query.
 
@@ -50,53 +52,23 @@ class CachingQuery(Query):
     session using Session.merge(load=False), which is a fast performing
     method to ensure state is present.
 
-    The FromCache mapper option below represents the "public" method of 
-    configuring the "cache_region" and "cache_namespace" attributes,
-    and includes the ability to be invoked upon lazy loaders embedded
+    The FromCache and RelationshipCache mapper options below represent
+    the "public" method of 
+    configuring the "cache_region" and "cache_namespace" attributes.
+    RelationshipCache has the ability to be invoked upon lazy loaders embedded
     in an object graph.
     
     """
     
-    def _get_cache_plus_key(self):
-        """For a query with cache_region and cache_namespace configured,
-        return the correspoinding Cache instance and cache key, based
-        on this query's current criterion and parameter values.
-        
-        """
-        if not hasattr(self, 'cache_region'):
-            raise ValueError("This Query does not have caching parameters configured.")
-            
-        # cache namespace - the token handed in by the 
-        # option + class we're querying against
-        namespace = " ".join([self.cache_namespace] + [str(x) for x in self._entities])
-        
-        # memcached wants this
-        namespace = namespace.replace(' ', '_')
-        
-        if hasattr(self, 'cache_key'):
-            # if a hardcoded cache_key was attached, use that
-            cache_key = self.cache_key
-        else:
-            # cache key - the value arguments from this query's parameters.
-            args = _params_from_query(self)
-            cache_key = " ".join([str(x) for x in args])
-        
-        # get cache
-        cache = cache_manager.get_cache_region(namespace, self.cache_region)
-        
-        # optional - hash the cache_key too for consistent length
-        # import uuid
-        # cache_key= str(uuid.uuid5(uuid.NAMESPACE_DNS, cache_key))
-        
-        return cache, cache_key
-        
     def __iter__(self):
         """override __iter__ to pull results from Beaker
            if particular attributes have been configured.
         """
-        if hasattr(self, 'cache_region'):
-            cache, cache_key = self._get_cache_plus_key()
+        if hasattr(self, '_cache_parameters'):
+            cache, cache_key = _get_cache_parameters(self)
             ret = cache.get_value(cache_key, createfunc=lambda: list(Query.__iter__(self)))
+            
+            # merge the result in.  
             return self.merge_result(ret, load=False)
         else:
             return Query.__iter__(self)
@@ -104,24 +76,63 @@ class CachingQuery(Query):
     def invalidate(self):
         """Invalidate the cache represented in this Query."""
 
-        cache, cache_key = self._get_cache_plus_key()
+        cache, cache_key = _get_cache_parameters(self)
         cache.remove(cache_key)
 
     def set_value(self, value):
         """Set the value in the cache for this query."""
 
-        cache, cache_key = self._get_cache_plus_key()
+        cache, cache_key = _get_cache_parameters(self)
         cache.put(cache_key, value)        
 
-class FromCache(MapperOption):
-    """A MapperOption which configures a Query to use a particular 
-    cache namespace and region.
-    
-    Can optionally be configured to be invoked for a specific 
-    lazy loader.
-    
+def _get_cache_parameters(query):
+    """For a query with cache_region and cache_namespace configured,
+    return the correspoinding Cache instance and cache key, based
+    on this query's current criterion and parameter values.
+
     """
-    def __init__(self, region, namespace, key=None, cache_key=None):
+    if not hasattr(query, '_cache_parameters'):
+        raise ValueError("This Query does not have caching parameters configured.")
+
+    region, namespace, cache_key = query._cache_parameters
+
+    # cache namespace - the token handed in by the 
+    # option + class we're querying against
+    namespace = " ".join([namespace] + [str(x) for x in query._entities])
+
+    # memcached wants this
+    namespace = namespace.replace(' ', '_')
+
+    if cache_key is None:
+        # cache key - the value arguments from this query's parameters.
+        args = _params_from_query(query)
+        cache_key = " ".join([str(x) for x in args])
+
+    # get cache
+    cache = cache_manager.get_cache_region(namespace, region)
+
+    # optional - hash the cache_key too for consistent length
+    # import uuid
+    # cache_key= str(uuid.uuid5(uuid.NAMESPACE_DNS, cache_key))
+
+    return cache, cache_key
+
+def _set_cache_parameters(query, region, namespace, cache_key):
+    
+    if hasattr(query, '_cache_parameters'):
+        region, namespace, cache_key = query._cache_parameters
+        raise ValueError("This query is already configured "
+                        "for region %r namespace %r" % 
+                        (region, namespace)
+                    )
+    query._cache_parameters = region, namespace, cache_key
+    
+class FromCache(MapperOption):
+    """Specifies that a Query should load results from a cache."""
+
+    propagate_to_loaders = False
+
+    def __init__(self, region, namespace, cache_key=None):
         """Construct a new FromCache.
         
         :param region: the cache region.  Should be a
@@ -130,10 +141,6 @@ class FromCache(MapperOption):
         :param namespace: the cache namespace.  Should
         be a name uniquely describing the target Query's
         lexical structure.
-        
-        :param key: optional.  A Class.attrname which
-        indicates a particular class relation() whose
-        lazy loader should be pulled from the cache.
         
         :param cache_key: optional.  A string cache key 
         that will serve as the key to the query.   Use this
@@ -145,44 +152,69 @@ class FromCache(MapperOption):
         self.region = region
         self.namespace = namespace
         self.cache_key = cache_key
-        if key:
-            self.cls_ = key.property.parent.class_
-            self.propname = key.property.key
-            self.propagate_to_loaders = True
-        else:
-            self.cls_ = self.propname = None
-            self.propagate_to_loaders = False
     
-    def _set_query_cache(self, query):
-        """Configure this FromCache's region and namespace on a query."""
-        
-        if hasattr(query, 'cache_region'):
-            raise ValueError("This query is already configured "
-                            "for region %r namespace %r" % 
-                            (query.cache_region, query.cache_namespace)
-                        )
-        query.cache_region = self.region
-        query.cache_namespace = self.namespace
-        if self.cache_key:
-            query.cache_key = self.cache_key
-        
-    def process_query_conditionally(self, query):
-        """Process a Query that is used within a lazy loader.
-        
-        (the process_query_conditionally() method is a SQLAlchemy
-        hook invoked only within lazyload.)
-        
-        """
-        if self.cls_ is not None and query._current_path:
-            mapper, key = query._current_path[-2:]
-            if issubclass(mapper.class_, self.cls_) and key == self.propname:
-                self._set_query_cache(query)
-
     def process_query(self, query):
         """Process a Query during normal loading operation."""
         
-        if self.cls_ is None:
-            self._set_query_cache(query)
+        _set_cache_parameters(query, self.region, self.namespace, self.cache_key)
+
+class RelationshipCache(MapperOption):
+    """Specifies that a Query as called within a "lazy load" 
+       should load results from a cache."""
+
+    propagate_to_loaders = True
+
+    def __init__(self, region, namespace, attribute):
+        """Construct a new RelationshipCache.
+        
+        :param region: the cache region.  Should be a
+        region configured in the Beaker CacheManager.
+        
+        :param namespace: the cache namespace.  Should
+        be a name uniquely describing the target Query's
+        lexical structure.
+        
+        :param attribute: A Class.attribute which
+        indicates a particular class relationship() whose
+        lazy loader should be pulled from the cache.
+        
+        """
+        self.region = region
+        self.namespace = namespace
+        self._relationship_options = {
+            ( attribute.property.parent.class_, attribute.property.key ) : self
+        }
+
+    def process_query_conditionally(self, query):
+        """Process a Query that is used within a lazy loader.
+
+        (the process_query_conditionally() method is a SQLAlchemy
+        hook invoked only within lazyload.)
+
+        """
+        if query._current_path:
+            mapper, key = query._current_path[-2:]
+
+            for cls in mapper.class_.__mro__:
+                if (cls, key) in self._relationship_options:
+                    relationship_option = self._relationship_options[(cls, key)]
+                    _set_cache_parameters(
+                            query, 
+                            relationship_option.region, 
+                            relationship_option.namespace, 
+                            None)
+
+    def and_(self, option):
+        """Chain another RelationshipCache option to this one.
+        
+        While many RelationshipCache objects can be specified on a single
+        Query separately, chaining them together allows for a more efficient
+        lookup during load.
+        
+        """
+        self._relationship_options.update(option._relationship_options)
+        return self
+
 
 def _params_from_query(query):
     """Pull the bind parameter values from a query.

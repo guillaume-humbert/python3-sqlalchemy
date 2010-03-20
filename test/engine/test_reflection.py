@@ -804,12 +804,13 @@ class UnicodeReflectionTest(TestBase):
             metadata = MetaData(bind)
 
             if testing.against('sybase', 'maxdb', 'oracle', 'mssql'):
-                names = set(['plain'])
+                names = set([u'plain'])
             else:
                 names = set([u'plain', u'Unit\u00e9ble', u'\u6e2c\u8a66'])
 
             for name in names:
-                Table(name, metadata, Column('id', sa.Integer, sa.Sequence(name + "_id_seq"), primary_key=True))
+                Table(name, metadata, Column('id', sa.Integer, sa.Sequence(name + "_id_seq"),
+                                        primary_key=True))
             metadata.create_all()
 
             reflected = set(bind.table_names())
@@ -1203,7 +1204,6 @@ class ComponentReflectionTest(TestBase):
             # so there may be more indexes than expected.
             insp = Inspector(meta.bind)
             indexes = insp.get_indexes('users', schema=schema)
-            indexes.sort()
             expected_indexes = [
                 {'unique': False,
                  'column_names': ['test1', 'test2'],

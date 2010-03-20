@@ -4,7 +4,7 @@ from sqlalchemy.test import testing
 from sqlalchemy import Integer, String, ForeignKey, MetaData, func
 from sqlalchemy.test.schema import Table
 from sqlalchemy.test.schema import Column
-from sqlalchemy.orm import mapper, relation, create_session
+from sqlalchemy.orm import mapper, relationship, create_session
 from sqlalchemy.test.testing import eq_
 from test.orm import _base, _fixtures
 
@@ -93,7 +93,7 @@ class GenerativeQueryTest(_base.MappedTest):
     def test_aggregate_2(self):
         query = create_session().query(func.avg(foo.c.bar))
         avg = query.filter(foo.c.bar < 30).one()[0]
-        eq_(round(avg, 1), 14.5)
+        eq_(float(round(avg, 1)), 14.5)
 
     @testing.fails_on('mssql', 'AVG produces an average as the original column type on mssql.')
     @testing.resolve_artifact_names
@@ -105,14 +105,14 @@ class GenerativeQueryTest(_base.MappedTest):
         # Py2K
         avg_f = query.filter(foo.c.bar<30).values(sa.func.avg(foo.c.bar)).next()[0]
         # end Py2K
-        assert round(avg_f, 1) == 14.5
+        assert float(round(avg_f, 1)) == 14.5
 
         # Py3K
         #avg_o = query.filter(foo.c.bar<30).values(sa.func.avg(foo.c.bar)).__next__()[0]
         # Py2K
         avg_o = query.filter(foo.c.bar<30).values(sa.func.avg(foo.c.bar)).next()[0]
         # end Py2K
-        assert round(avg_o, 1) == 14.5
+        assert float(round(avg_o, 1)) == 14.5
 
     @testing.resolve_artifact_names
     def test_filter(self):
@@ -199,7 +199,7 @@ class GenerativeTest2(_base.MappedTest):
         eq_(res.count(), 1)
 
 
-class RelationsTest(_fixtures.FixtureTest):
+class RelationshipsTest(_fixtures.FixtureTest):
     run_setup_mappers = 'once'
     run_inserts = 'once'
     run_deletes = None
@@ -208,8 +208,8 @@ class RelationsTest(_fixtures.FixtureTest):
     @testing.resolve_artifact_names
     def setup_mappers(cls):
         mapper(User, users, properties={
-            'orders':relation(mapper(Order, orders, properties={
-                'addresses':relation(mapper(Address, addresses))}))})
+            'orders':relationship(mapper(Order, orders, properties={
+                'addresses':relationship(mapper(Address, addresses))}))})
 
 
     @testing.resolve_artifact_names

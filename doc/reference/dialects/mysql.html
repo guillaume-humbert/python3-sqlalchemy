@@ -7,7 +7,7 @@
         
         <title>
     MySQL
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="Oracle" href="oracle.html" />
         <link rel="prev" title="Microsoft SQL Server" href="mssql.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,7 +87,7 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">MySQL</a><ul>
+<li><a class="reference external" href="#">MySQL</a><ul>
 <li><a class="reference external" href="#overview">Overview</a></li>
 <li><a class="reference external" href="#supported-versions-and-features">Supported Versions and Features</a></li>
 <li><a class="reference external" href="#storage-engines">Storage Engines</a></li>
@@ -309,8 +309,7 @@ timely information affecting MySQL in SQLAlchemy.</p>
 <h2>MySQL Column Types<a class="headerlink" href="#mysql-column-types" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.NUMERIC">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">NUMERIC</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">NUMERIC</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.NUMERIC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._NumericType</span></tt>, <a title="sqlalchemy.types.NUMERIC" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.NUMERIC"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.NUMERIC</span></tt></a></p>
 <p>MySQL NUMERIC type.</p>
 <dl class="method">
@@ -341,8 +340,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.DECIMAL">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">DECIMAL</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.DECIMAL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">DECIMAL</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.DECIMAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._NumericType</span></tt>, <a title="sqlalchemy.types.DECIMAL" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.DECIMAL"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.DECIMAL</span></tt></a></p>
 <p>MySQL DECIMAL type.</p>
 <dl class="method">
@@ -373,8 +371,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.DOUBLE">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">DOUBLE</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.DOUBLE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">DOUBLE</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.DOUBLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._FloatType</span></tt></p>
 <p>MySQL DOUBLE type.</p>
 <dl class="method">
@@ -405,8 +402,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.REAL">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.REAL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.REAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._FloatType</span></tt></p>
 <p>MySQL REAL type.</p>
 <dl class="method">
@@ -437,8 +433,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.FLOAT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">FLOAT</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.FLOAT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">FLOAT</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.FLOAT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._FloatType</span></tt>, <a title="sqlalchemy.types.FLOAT" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.FLOAT"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.FLOAT</span></tt></a></p>
 <p>MySQL FLOAT type.</p>
 <dl class="method">
@@ -469,8 +464,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.INTEGER">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">INTEGER</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.INTEGER" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">INTEGER</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.INTEGER" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._IntegerType</span></tt>, <a title="sqlalchemy.types.INTEGER" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.INTEGER"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.INTEGER</span></tt></a></p>
 <p>MySQL INTEGER type.</p>
 <dl class="method">
@@ -499,8 +493,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.BIGINT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BIGINT</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BIGINT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BIGINT</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BIGINT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._IntegerType</span></tt>, <tt class="xref docutils literal"><span class="pre">sqlalchemy.types.BIGINT</span></tt></p>
 <p>MySQL BIGINTEGER type.</p>
 <dl class="method">
@@ -529,8 +522,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.MEDIUMINT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">MEDIUMINT</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.MEDIUMINT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">MEDIUMINT</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.MEDIUMINT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._IntegerType</span></tt></p>
 <p>MySQL MEDIUMINTEGER type.</p>
 <dl class="method">
@@ -559,8 +551,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.TINYINT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TINYINT</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TINYINT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TINYINT</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TINYINT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._IntegerType</span></tt></p>
 <p>MySQL TINYINT type.</p>
 <dl class="method">
@@ -592,8 +583,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.SMALLINT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">SMALLINT</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.SMALLINT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">SMALLINT</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.SMALLINT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._IntegerType</span></tt>, <a title="sqlalchemy.types.SMALLINT" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.SMALLINT"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.SMALLINT</span></tt></a></p>
 <p>MySQL SMALLINTEGER type.</p>
 <dl class="method">
@@ -622,8 +612,7 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.BIT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BIT</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BIT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BIT</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BIT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>MySQL BIT type.</p>
 <p>This type is for MySQL 5.0.3 or greater for MyISAM, and 5.0.5 or greater for
@@ -647,8 +636,7 @@ type.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.DATETIME">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">DATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.DATETIME" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">DATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.DATETIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.DateTime" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.DateTime"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
 <p>The SQL DATETIME type.</p>
 <dl class="method">
@@ -660,8 +648,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.DATE">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">DATE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.DATE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">DATE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.DATE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Date" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Date"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Date</span></tt></a></p>
 <p>The SQL DATE type.</p>
 <dl class="method">
@@ -673,8 +660,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.TIME">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TIME" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Time" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Time"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Time</span></tt></a></p>
 <p>The SQL TIME type.</p>
 <dl class="method">
@@ -686,8 +672,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.TIMESTAMP">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TIMESTAMP" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TIMESTAMP"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TIMESTAMP</span></tt></a></p>
 <p>MySQL TIMESTAMP type.</p>
 <dl class="method">
@@ -699,8 +684,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.YEAR">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">YEAR</tt><big>(</big><em>display_width=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.YEAR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">YEAR</tt><big>(</big><em>display_width=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.YEAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>MySQL YEAR type, for single byte storage of years 1901-2155.</p>
 <dl class="method">
@@ -712,8 +696,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.TEXT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TEXT</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TEXT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TEXT</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TEXT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt>, <a title="sqlalchemy.types.TEXT" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TEXT"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TEXT</span></tt></a></p>
 <p>MySQL TEXT type, for text up to 2^16 characters.</p>
 <dl class="method">
@@ -753,8 +736,7 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.TINYTEXT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TINYTEXT</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TINYTEXT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TINYTEXT</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TINYTEXT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt></p>
 <p>MySQL TINYTEXT type, for text up to 2^8 characters.</p>
 <dl class="method">
@@ -791,8 +773,7 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.MEDIUMTEXT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">MEDIUMTEXT</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.MEDIUMTEXT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">MEDIUMTEXT</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.MEDIUMTEXT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt></p>
 <p>MySQL MEDIUMTEXT type, for text up to 2^24 characters.</p>
 <dl class="method">
@@ -829,8 +810,7 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.LONGTEXT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">LONGTEXT</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.LONGTEXT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">LONGTEXT</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.LONGTEXT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt></p>
 <p>MySQL LONGTEXT type, for text up to 2^32 characters.</p>
 <dl class="method">
@@ -867,8 +847,7 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.VARCHAR">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">VARCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.VARCHAR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">VARCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.VARCHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt>, <a title="sqlalchemy.types.VARCHAR" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.VARCHAR"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.VARCHAR</span></tt></a></p>
 <p>MySQL VARCHAR type, for variable-length character data.</p>
 <dl class="method">
@@ -905,8 +884,7 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.CHAR">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">CHAR</tt><big>(</big><em>length</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.CHAR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">CHAR</tt><big>(</big><em>length</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.CHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt>, <a title="sqlalchemy.types.CHAR" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.CHAR"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.CHAR</span></tt></a></p>
 <p>MySQL CHAR type, for fixed-length character data.</p>
 <dl class="method">
@@ -935,8 +913,7 @@ compatible with the national character set.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.NVARCHAR">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">NVARCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.NVARCHAR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">NVARCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.NVARCHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt>, <tt class="xref docutils literal"><span class="pre">sqlalchemy.types.NVARCHAR</span></tt></p>
 <p>MySQL NVARCHAR type.</p>
 <p>For variable-length character data in the server&#8217;s configured national
@@ -967,8 +944,7 @@ compatible with the national character set.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.NCHAR">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">NCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.NCHAR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">NCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.NCHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt>, <a title="sqlalchemy.types.NCHAR" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.NCHAR"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.NCHAR</span></tt></a></p>
 <p>MySQL NCHAR type.</p>
 <p>For fixed-length character data in the server&#8217;s configured national
@@ -999,8 +975,7 @@ compatible with the national character set.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.VARBINARY">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">VARBINARY</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.VARBINARY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">VARBINARY</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.VARBINARY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>The SQL VARBINARY type.</p>
 <dl class="method">
@@ -1012,8 +987,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.BINARY">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BINARY</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BINARY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BINARY</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BINARY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>The SQL BINARY type.</p>
 <dl class="method">
@@ -1025,8 +999,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.BLOB">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BLOB" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.LargeBinary" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.LargeBinary"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
 <p>The SQL BLOB type.</p>
 <dl class="method">
@@ -1054,8 +1027,7 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.TINYBLOB">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TINYBLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TINYBLOB" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">TINYBLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.TINYBLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>MySQL TINYBLOB type, for binary data up to 2^8 bytes.</p>
 <dl class="method">
@@ -1067,8 +1039,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.MEDIUMBLOB">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">MEDIUMBLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.MEDIUMBLOB" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">MEDIUMBLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.MEDIUMBLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>MySQL MEDIUMBLOB type, for binary data up to 2^24 bytes.</p>
 <dl class="method">
@@ -1080,8 +1051,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.LONGBLOB">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">LONGBLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.LONGBLOB" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">LONGBLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.LONGBLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>MySQL LONGBLOB type, for binary data up to 2^32 bytes.</p>
 <dl class="method">
@@ -1093,8 +1063,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt cla
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.ENUM">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">ENUM</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.ENUM" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">ENUM</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.ENUM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Enum" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Enum"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Enum</span></tt></a>, <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt></p>
 <p>MySQL ENUM type.</p>
 <dl class="method">
@@ -1152,8 +1121,7 @@ literals for you.  This is a transitional option.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.SET">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">SET</tt><big>(</big><em>*values</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.SET" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">SET</tt><big>(</big><em>*values</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.SET" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt></p>
 <p>MySQL SET type.</p>
 <dl class="method">
@@ -1197,8 +1165,7 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.base.BOOLEAN">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BOOLEAN</tt><big>(</big><em>create_constraint=True</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BOOLEAN" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.base.</tt><tt class="descname">BOOLEAN</tt><big>(</big><em>create_constraint=True</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.base.BOOLEAN" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Boolean" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Boolean"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Boolean</span></tt></a></p>
 <p>The SQL BOOLEAN type.</p>
 <dl class="method">
@@ -1252,14 +1219,14 @@ strings, also pass <tt class="docutils literal"><span class="pre">use_unicode=0<
 <p>Support for the MySQL database via the oursql adapter.</p>
 <div class="section" id="id1">
 <h3>Character Sets<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>oursql defaults to using <tt class="docutils literal"><span class="pre">utf8</span></tt> as the connection charset, but other 
-encodings may be used instead. Like the MySQL-Python driver, unicode support 
+<p>oursql defaults to using <tt class="docutils literal"><span class="pre">utf8</span></tt> as the connection charset, but other
+encodings may be used instead. Like the MySQL-Python driver, unicode support
 can be completely disabled:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># oursql sets the connection charset to utf8 automatically; all strings come </span>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># oursql sets the connection charset to utf8 automatically; all strings come</span>
 <span class="c"># back as utf8 str</span>
 <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+oursql:///mydb?use_unicode=0&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>To not automatically use <tt class="docutils literal"><span class="pre">utf8</span></tt> and instead use whatever the connection 
+<p>To not automatically use <tt class="docutils literal"><span class="pre">utf8</span></tt> and instead use whatever the connection
 defaults to, there is a separate parameter:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># use the default connection charset; all strings come back as unicode</span>
 <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+oursql:///mydb?default_charset=1&#39;</span><span class="p">)</span>
@@ -1313,7 +1280,7 @@ overriden via a <tt class="docutils literal"><span class="pre">create_engine</sp
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

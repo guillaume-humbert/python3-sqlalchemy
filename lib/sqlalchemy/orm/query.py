@@ -114,7 +114,8 @@ class Query(object):
                     mapper, selectable, is_aliased_class = _entity_info(entity)
                     if not is_aliased_class and mapper.with_polymorphic:
                         with_polymorphic = mapper._with_polymorphic_mappers
-                        self.__mapper_loads_polymorphically_with(mapper, 
+                        if mapper.mapped_table not in self._polymorphic_adapters:
+                            self.__mapper_loads_polymorphically_with(mapper, 
                                 sql_util.ColumnAdapter(selectable, mapper._equivalent_columns))
                         adapter = None
                     elif is_aliased_class:
@@ -281,13 +282,19 @@ class Query(object):
             equivs.update(ent.mapper._equivalent_columns)
         return equivs
 
+    def _get_condition(self):
+        self._order_by = self._distinct = False
+        return self._no_criterion_condition("get")
+        
     def _no_criterion_condition(self, meth):
         if not self._enable_assertions:
             return
         if self._criterion is not None or self._statement is not None or self._from_obj or \
                 self._limit is not None or self._offset is not None or \
-                self._group_by:
-            raise sa_exc.InvalidRequestError("Query.%s() being called on a Query with existing criterion. " % meth)
+                self._group_by or self._order_by or self._distinct:
+            raise sa_exc.InvalidRequestError(
+                                "Query.%s() being called on a "
+                                "Query with existing criterion. " % meth)
 
         self._from_obj = ()
         self._statement = self._criterion = None
@@ -297,7 +304,9 @@ class Query(object):
         if not self._enable_assertions:
             return
         if self._order_by:
-            raise sa_exc.InvalidRequestError("Query.%s() being called on a Query with existing criterion. " % meth)
+            raise sa_exc.InvalidRequestError(
+                                "Query.%s() being called on a "
+                                "Query with existing criterion. " % meth)
         self._no_criterion_condition(meth)
 
     def _no_statement_condition(self, meth):
@@ -355,7 +364,13 @@ class Query(object):
 
     @property
     def statement(self):
-        """The full SELECT statement represented by this Query."""
+        """The full SELECT statement represented by this Query.
+        
+        The statement by default will not have disambiguating labels
+        applied to the construct unless with_labels(True) is called
+        first.
+        
+        """
 
         return self._compile_context(labels=self._with_labels).\
                         statement._annotate({'_halt_adapt': True})
@@ -365,11 +380,15 @@ class Query(object):
 
         Eager JOIN generation within the query is disabled.
 
+        The statement by default will not have disambiguating labels
+        applied to the construct unless with_labels(True) is called
+        first.
+
         """
         return self.enable_eagerloads(False).statement.alias()
 
     def __clause_element__(self):
-        return self.enable_eagerloads(False).statement
+        return self.enable_eagerloads(False).with_labels().statement
 
     @_generative()
     def enable_eagerloads(self, value):
@@ -677,14 +696,14 @@ class Query(object):
 
     @_generative()
     def execution_options(self, **kwargs):
-        """ Set non-SQL options for the resulting statement, 
-        such as dialect-specific options.
+        """ Set non-SQL options which take effect during execution.
         
-        The only option currently understood is ``stream_results=True``, 
-        only used by Psycopg2 to enable "server side cursors".  This option
-        only has a useful effect if used in conjunction with
-        :meth:`~sqlalchemy.orm.query.Query.yield_per()`,
-        which currently sets ``stream_results`` to ``True`` automatically.
+        The options are the same as those accepted by 
+        :meth:`sqlalchemy.sql.expression.Executable.execution_options`.
+        
+        Note that the ``stream_results`` execution option is enabled
+        automatically if the :meth:`~sqlalchemy.orm.query.Query.yield_per()`
+        method is used.
 
         """
         _execution_options = self._execution_options.copy()
@@ -886,11 +905,11 @@ class Query(object):
         Each element in \*props may be:
 
           * a string property name, i.e. "rooms".  This will join along the
-            relation of the same name from this Query's "primary" mapper, if
+            relationship of the same name from this Query's "primary" mapper, if
             one is present.
 
           * a class-mapped attribute, i.e. Houses.rooms.  This will create a
-            join from "Houses" table to that of the "rooms" relation.
+            join from "Houses" table to that of the "rooms" relationship.
 
           * a 2-tuple containing a target class or selectable, and an "ON"
             clause.  The ON clause can be the property name/ attribute like
@@ -903,13 +922,13 @@ class Query(object):
             session.query(Company).join('employees', 'tasks')
 
             # join the Person entity to an alias of itself,
-            # along the "friends" relation
+            # along the "friends" relationship
             PAlias = aliased(Person)
             session.query(Person).join((Palias, Person.friends))
 
             # join from Houses to the "rooms" attribute on the
             # "Colonials" subclass of Houses, then join to the
-            # "closets" relation on Room
+            # "closets" relationship on Room
             session.query(Houses).join(Colonials.rooms, Room.closets)
 
             # join from Company entities to the "employees" collection,
@@ -918,7 +937,7 @@ class Query(object):
             session.query(Company).join((people.join(engineers), 'employees'), Engineer.computers)
 
             # join from Articles to Keywords, using the "keywords" attribute.
-            # assume this is a many-to-many relation.
+            # assume this is a many-to-many relationship.
             session.query(Article).join(Article.keywords)
 
             # same thing, but spelled out entirely explicitly
@@ -943,7 +962,9 @@ class Query(object):
         aliased, from_joinpoint = kwargs.pop('aliased', False), kwargs.pop('from_joinpoint', False)
         if kwargs:
             raise TypeError("unknown arguments: %s" % ','.join(kwargs.iterkeys()))
-        return self._join(props, outerjoin=False, create_aliases=aliased, from_joinpoint=from_joinpoint)
+        return self._join(props, 
+                            outerjoin=False, create_aliases=aliased, 
+                            from_joinpoint=from_joinpoint)
 
     @util.accepts_a_list_as_starargs(list_deprecation='deprecated')
     def outerjoin(self, *props, **kwargs):
@@ -956,7 +977,9 @@ class Query(object):
         aliased, from_joinpoint = kwargs.pop('aliased', False), kwargs.pop('from_joinpoint', False)
         if kwargs:
             raise TypeError("unknown arguments: %s" % ','.join(kwargs.iterkeys()))
-        return self._join(props, outerjoin=True, create_aliases=aliased, from_joinpoint=from_joinpoint)
+        return self._join(props, 
+                            outerjoin=True, create_aliases=aliased, 
+                            from_joinpoint=from_joinpoint)
 
     @_generative(_no_statement_condition, _no_limit_offset)
     def _join(self, keys, outerjoin, create_aliases, from_joinpoint):
@@ -1018,7 +1041,10 @@ class Query(object):
                 # TODO: no coverage here
                 raise NotImplementedError("query.join(a==b) not supported.")
             
-            self._join_left_to_right(left_entity, right_entity, onclause, outerjoin, create_aliases, prop)
+            self._join_left_to_right(
+                                left_entity, 
+                                right_entity, onclause, 
+                                outerjoin, create_aliases, prop)
 
     def _join_left_to_right(self, left, right, onclause, outerjoin, create_aliases, prop):
         """append a JOIN to the query's from clause."""
@@ -1031,7 +1057,8 @@ class Query(object):
 
         if right_mapper and prop and not right_mapper.common_parent(prop.mapper):
             raise sa_exc.InvalidRequestError(
-                "Join target %s does not correspond to the right side of join condition %s" % (right, onclause)
+                    "Join target %s does not correspond to "
+                    "the right side of join condition %s" % (right, onclause)
             )
 
         if not right_mapper and prop:
@@ -1112,17 +1139,22 @@ class Query(object):
                                 )
                             )
         
-        join_to_left = not is_aliased_class
+        join_to_left = not is_aliased_class and not left_is_aliased
 
         if self._from_obj:
-            replace_clause_index, clause = sql_util.find_join_source(self._from_obj, left_selectable)
+            replace_clause_index, clause = sql_util.find_join_source(
+                                                    self._from_obj, 
+                                                    left_selectable)
             if clause is not None:
                 # the entire query's FROM clause is an alias of itself (i.e. from_self(), similar).
                 # if the left clause is that one, ensure it aliases to the left side.
                 if self._from_obj_alias and clause is self._from_obj[0]:
                     join_to_left = True
 
-                clause = orm_join(clause, right, onclause, isouter=outerjoin, join_to_left=join_to_left)
+                clause = orm_join(clause, 
+                                    right, 
+                                    onclause, isouter=outerjoin, 
+                                    join_to_left=join_to_left)
 
                 self._from_obj = \
                         self._from_obj[:replace_clause_index] + \
@@ -1209,7 +1241,9 @@ class Query(object):
 
     @_generative(_no_statement_condition)
     def slice(self, start, stop):
-        """apply LIMIT/OFFSET to the ``Query`` based on a range and return the newly resulting ``Query``."""
+        """apply LIMIT/OFFSET to the ``Query`` based on a "
+        "range and return the newly resulting ``Query``."""
+        
         if start is not None and stop is not None:
             self._offset = (self._offset or 0) + start
             self._limit = stop - start
@@ -1274,9 +1308,15 @@ class Query(object):
         self._statement = statement
 
     def first(self):
-        """Return the first result of this ``Query`` or None if the result doesn't contain any row.
+        """Return the first result of this ``Query`` or 
+        None if the result doesn't contain any row.
+           
+        first() applies a limit of one within the generated SQL, so that
+        only one primary entity row is generated on the server side 
+        (note this may consist of multiple result rows if eagerly loaded
+        collections are present).
 
-        This results in an execution of the underlying query.
+        Calling ``first()`` results in an execution of the underlying query.
 
         """
         if self._statement is not None:
@@ -1291,30 +1331,38 @@ class Query(object):
     def one(self):
         """Return exactly one result or raise an exception.
 
-        Raises ``sqlalchemy.orm.exc.NoResultFound`` if the query selects no rows.
-        Raises ``sqlalchemy.orm.exc.MultipleResultsFound`` if multiple rows are
-        selected.
+        Raises ``sqlalchemy.orm.exc.NoResultFound`` if the query selects 
+        no rows.  Raises ``sqlalchemy.orm.exc.MultipleResultsFound`` 
+        if multiple object identities are returned, or if multiple
+        rows are returned for a query that does not return object
+        identities.
+        
+        Note that an entity query, that is, one which selects one or
+        more mapped classes as opposed to individual column attributes,
+        may ultimately represent many rows but only one row of 
+        unique entity or entities - this is a successful result for one().
 
-        This results in an execution of the underlying query.
+        Calling ``one()`` results in an execution of the underlying query.
+        As of 0.6, ``one()`` fully fetches all results instead of applying 
+        any kind of limit, so that the "unique"-ing of entities does not 
+        conceal multiple object identities.
 
         """
-        if self._statement:
-            raise sa_exc.InvalidRequestError(
-                "one() not available when from_statement() is used; "
-                "use `first()` instead.")
-
-        ret = list(self[0:2])
-
-        if len(ret) == 1:
+        ret = list(self)
+        
+        l = len(ret)
+        if l == 1:
             return ret[0]
-        elif len(ret) == 0:
+        elif l == 0:
             raise orm_exc.NoResultFound("No row was found for one()")
         else:
             raise orm_exc.MultipleResultsFound(
                 "Multiple rows were found for one()")
 
     def scalar(self):
-        """Return the first element of the first result or None.
+        """Return the first element of the first result or None
+        if no rows present.  If multiple rows are returned,
+        raises MultipleResultsFound.
 
           >>> session.query(Item).scalar()
           <Item>
@@ -1331,11 +1379,11 @@ class Query(object):
 
         """
         try:
-            ret = list(self)[0]
+            ret = self.one()
             if not isinstance(ret, tuple):
                 return ret
             return ret[0]
-        except IndexError:
+        except orm_exc.NoResultFound:
             return None
 
     def __iter__(self):
@@ -1353,7 +1401,7 @@ class Query(object):
 
     def instances(self, cursor, __context=None):
         """Given a ResultProxy cursor as returned by connection.execute(),
-          return an ORM result as an iterator.
+        return an ORM result as an iterator.
 
         e.g.::
 
@@ -1490,15 +1538,23 @@ class Query(object):
                                         only_load_props=None, passive=None):
         lockmode = lockmode or self._lockmode
         
-        if not self._populate_existing and not refresh_state and \
-                not self._mapper_zero().always_refresh and lockmode is None:
+        mapper = self._mapper_zero()
+        if not self._populate_existing and \
+                not refresh_state and \
+                not mapper.always_refresh and \
+                lockmode is None:
             instance = self.session.identity_map.get(key)
             if instance:
+                # item present in identity map with a different class
+                if not issubclass(instance.__class__, mapper.class_):
+                    return None
+                    
                 state = attributes.instance_state(instance)
+                
+                # expired - ensure it still exists
                 if state.expired:
                     if passive is attributes.PASSIVE_NO_FETCH:
                         return attributes.PASSIVE_NO_RESULT
-                    
                     try:
                         state()
                     except orm_exc.ObjectDeletedError:
@@ -1516,13 +1572,11 @@ class Query(object):
 
         if refresh_state is None:
             q = self._clone()
-            q._no_criterion_condition("get")
+            q._get_condition()
         else:
             q = self._clone()
 
         if ident is not None:
-            mapper = q._mapper_zero()
-            params = {}
             (_get_clause, _get_params) = mapper._get_clause
             
             # None present in ident - turn those comparisons
@@ -1538,14 +1592,16 @@ class Query(object):
             _get_clause = q._adapt_clause(_get_clause, True, False)
             q._criterion = _get_clause
 
-            for i, primary_key in enumerate(mapper.primary_key):
-                try:
-                    params[_get_params[primary_key].key] = ident[i]
-                except IndexError:
-                    raise sa_exc.InvalidRequestError(
-                        "Could not find enough values to formulate primary "
-                        "key for query.get(); primary key columns are %s" %
-                        ','.join("'%s'" % c for c in mapper.primary_key))
+            params = dict([
+                (_get_params[primary_key].key, id_val)
+                for id_val, primary_key in zip(ident, mapper.primary_key)
+            ])
+
+            if len(params) != len(mapper.primary_key):
+                raise sa_exc.InvalidRequestError(
+                    "Incorrect number of values in identifier to formulate primary "
+                    "key for query.get(); primary key columns are %s" %
+                    ','.join("'%s'" % c for c in mapper.primary_key))
                         
             q._params = params
 
@@ -1557,10 +1613,10 @@ class Query(object):
             only_load_props=only_load_props,
             refresh_state=refresh_state)
         q._order_by = None
+
         try:
-            # call using all() to avoid LIMIT compilation complexity
-            return q.all()[0]
-        except IndexError:
+            return q.one()
+        except orm_exc.NoResultFound:
             return None
 
     @property
@@ -1672,14 +1728,15 @@ class Query(object):
 
             'evaluate' - Evaluate the query's criteria in Python straight on
             the objects in the session. If evaluation of the criteria isn't
-            implemented, the 'fetch' strategy will be used as a fallback.
+            implemented, an error is raised.  In that case you probably 
+            want to use the 'fetch' strategy as a fallback.
           
             The expression evaluator currently doesn't account for differing
             string collations between the database and Python.
 
         Returns the number of rows deleted, excluding any cascades.
 
-        The method does *not* offer in-Python cascading of relations - it is
+        The method does *not* offer in-Python cascading of relationships - it is
         assumed that ON DELETE CASCADE is configured for any foreign key
         references which require it. The Session needs to be expired (occurs
         automatically after commit(), or call expire_all()) in order for the
@@ -1697,14 +1754,17 @@ class Query(object):
         #TODO: cascades need handling.
 
         if synchronize_session not in [False, 'evaluate', 'fetch']:
-            raise sa_exc.ArgumentError("Valid strategies for session synchronization are False, 'evaluate' and 'fetch'")
+            raise sa_exc.ArgumentError("Valid strategies for session "
+                                    "synchronization are False, 'evaluate' and 'fetch'")
         self._no_select_modifiers("delete")
 
         self = self.enable_eagerloads(False)
 
         context = self._compile_context()
-        if len(context.statement.froms) != 1 or not isinstance(context.statement.froms[0], schema.Table):
-            raise sa_exc.ArgumentError("Only deletion via a single table query is currently supported")
+        if len(context.statement.froms) != 1 or \
+                    not isinstance(context.statement.froms[0], schema.Table):
+            raise sa_exc.ArgumentError("Only deletion via a single table "
+                                        "query is currently supported")
         primary_table = context.statement.froms[0]
 
         session = self.session
@@ -1784,7 +1844,7 @@ class Query(object):
 
         Returns the number of rows matched by the update.
 
-        The method does *not* offer in-Python cascading of relations - it is assumed that
+        The method does *not* offer in-Python cascading of relationships - it is assumed that
         ON UPDATE CASCADE is configured for any foreign key references which require it.
 
         The Session needs to be expired (occurs automatically after commit(), or call expire_all())
@@ -1798,7 +1858,7 @@ class Query(object):
         """
 
         #TODO: value keys need to be mapped to corresponding sql cols and instr.attr.s to string keys
-        #TODO: updates of manytoone relations need to be converted to fk assignments
+        #TODO: updates of manytoone relationships need to be converted to fk assignments
         #TODO: cascades need handling.
 
         if synchronize_session == 'expire':
@@ -1863,8 +1923,9 @@ class Query(object):
 
                     state.commit(dict_, list(to_evaluate))
 
-                    # expire attributes with pending changes (there was no autoflush, so they are overwritten)
-                    state.expire_attributes(set(evaluated_keys).difference(to_evaluate))
+                    # expire attributes with pending changes 
+                    # (there was no autoflush, so they are overwritten)
+                    state.expire_attributes(dict_, set(evaluated_keys).difference(to_evaluate))
 
         elif synchronize_session == 'fetch':
             target_mapper = self._mapper_zero()
@@ -1872,7 +1933,10 @@ class Query(object):
             for primary_key in matched_rows:
                 identity_key = target_mapper.identity_key_from_primary_key(list(primary_key))
                 if identity_key in session.identity_map:
-                    session.expire(session.identity_map[identity_key], [expression._column_as_key(k) for k in values])
+                    session.expire(
+                                session.identity_map[identity_key], 
+                                [expression._column_as_key(k) for k in values]
+                                )
 
         for ext in session.extensions:
             ext.after_bulk_update(session, self, context, result)
@@ -1892,7 +1956,7 @@ class Query(object):
                               'update_nowait': 'nowait',
                               None: False}[self._lockmode]
             except KeyError:
-                raise sa_exc.ArgumentError("Unknown lockmode '%s'" % self._lockmode)
+                raise sa_exc.ArgumentError("Unknown lockmode %r" % self._lockmode)
         else:
             for_update = False
 
@@ -1916,17 +1980,25 @@ class Query(object):
 
         if not context.primary_columns:
             if self._only_load_props:
-                raise sa_exc.InvalidRequestError("No column-based properties specified for refresh operation."
-                " Use session.expire() to reload collections and related items.")
+                raise sa_exc.InvalidRequestError(
+                                "No column-based properties specified for refresh operation."
+                                " Use session.expire() to reload collections and related items.")
             else:
-                raise sa_exc.InvalidRequestError("Query contains no columns with which to SELECT from.")
+                raise sa_exc.InvalidRequestError(
+                                "Query contains no columns with which to SELECT from.")
 
         if context.multi_row_eager_loaders and self._should_nest_selectable:
-            # for eager joins present and LIMIT/OFFSET/DISTINCT, wrap the query inside a select,
+            # for eager joins present and LIMIT/OFFSET/DISTINCT, 
+            # wrap the query inside a select,
             # then append eager joins onto that
 
             if context.order_by:
-                order_by_col_expr = list(chain(*[sql_util.find_columns(o) for o in context.order_by]))
+                order_by_col_expr = list(
+                                        chain(*[
+                                            sql_util.find_columns(o) 
+                                            for o in context.order_by
+                                        ])
+                                    )
             else:
                 context.order_by = None
                 order_by_col_expr = []
@@ -1950,7 +2022,11 @@ class Query(object):
 
             context.adapter = sql_util.ColumnAdapter(inner, equivs)
 
-            statement = sql.select([inner] + context.secondary_columns, for_update=for_update, use_labels=labels)
+            statement = sql.select(
+                                [inner] + context.secondary_columns, 
+                                for_update=for_update, 
+                                use_labels=labels)
+                                
             if self._execution_options:
                 statement = statement.execution_options(**self._execution_options)
 
@@ -1971,7 +2047,12 @@ class Query(object):
                 context.order_by = None
 
             if self._distinct and context.order_by:
-                order_by_col_expr = list(chain(*[sql_util.find_columns(o) for o in context.order_by]))
+                order_by_col_expr = list(
+                                        chain(*[
+                                            sql_util.find_columns(o) 
+                                            for o in context.order_by
+                                        ])
+                                    )
                 context.primary_columns += order_by_col_expr
 
             froms += tuple(context.eager_joins.values())

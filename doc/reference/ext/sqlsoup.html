@@ -7,7 +7,7 @@
         
         <title>
     SqlSoup
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="compiler" href="compiler.html" />
         <link rel="prev" title="serializer" href="serializer.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,7 +87,7 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">SqlSoup</a><ul>
+<li><a class="reference external" href="#">SqlSoup</a><ul>
 <li><a class="reference external" href="#introduction">Introduction</a></li>
 <li><a class="reference external" href="#loading-objects">Loading objects</a><ul>
 <li><a class="reference external" href="#full-query-documentation">Full query documentation</a></li>
@@ -95,7 +95,7 @@
 </li>
 <li><a class="reference external" href="#modifying-objects">Modifying objects</a></li>
 <li><a class="reference external" href="#joins">Joins</a></li>
-<li><a class="reference external" href="#relations">Relations</a></li>
+<li><a class="reference external" href="#relationships">Relationships</a></li>
 <li><a class="reference external" href="#advanced-use">Advanced Use</a><ul>
 <li><a class="reference external" href="#sessions-transations-and-application-integration">Sessions, Transations and Application Integration</a></li>
 <li><a class="reference external" href="#mapping-arbitrary-selectables">Mapping arbitrary Selectables</a></li>
@@ -256,9 +256,9 @@ with <cite>with_labels</cite>, to disambiguate columns with their table name
 <span class="go">[u&#39;name&#39;, u&#39;email&#39;, u&#39;password&#39;, u&#39;classname&#39;, u&#39;admin&#39;, u&#39;loans_book_id&#39;, u&#39;loans_user_name&#39;, u&#39;loans_loan_date&#39;]</span></pre></div>
 </div>
 </div>
-<div class="section" id="relations">
-<h2>Relations<a class="headerlink" href="#relations" title="Permalink to this headline">¶</a></h2>
-<p>You can define relations on SqlSoup classes:</p>
+<div class="section" id="relationships">
+<h2>Relationships<a class="headerlink" href="#relationships" title="Permalink to this headline">¶</a></h2>
+<p>You can define relationships on SqlSoup classes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">relate</span><span class="p">(</span><span class="s">&#39;loans&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="p">)</span></pre></div>
 </div>
 <p>These can then be used like a normal SA property:</p>
@@ -270,7 +270,7 @@ with <cite>with_labels</cite>, to disambiguate columns with their table name
 <span class="go">[MappedUsers(name=u&#39;Bhargan Basepair&#39;,email=&#39;basepair+nospam@example.edu&#39;,password=u&#39;basepair&#39;,classname=None,admin=1)]</span></pre></div>
 </div>
 </blockquote>
-<p>relate can take any options that the relation function accepts in normal mapper definition:</p>
+<p>relate can take any options that the relationship function accepts in normal mapper definition:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">db</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s">&#39;users&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">relate</span><span class="p">(</span><span class="s">&#39;loans&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">loan_date</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s">&#39;all, delete-orphan&#39;</span><span class="p">)</span></pre></div>
 </div>
@@ -383,7 +383,7 @@ default schema is used.</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

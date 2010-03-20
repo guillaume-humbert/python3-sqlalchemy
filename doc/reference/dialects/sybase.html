@@ -7,7 +7,7 @@
         
         <title>
     Sybase
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="sqlalchemy.ext" href="../ext/index.html" />
         <link rel="prev" title="MaxDB" href="maxdb.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -86,6 +86,21 @@
  
                 </h2>
             </div>
+                <ul>
+<li><a class="reference external" href="#">Sybase</a><ul>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.sybase.pysybase">python-sybase notes</a><ul>
+<li><a class="reference external" href="#unicode-support">Unicode Support</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.sybase.pyodbc">pyodbc notes</a><ul>
+<li><a class="reference external" href="#id1">Unicode Support</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.sybase.mxodbc">mxodbc notes</a></li>
+</ul>
+</li>
+</ul>
+
             <div class="clearboth"></div>
         </div>
         
@@ -94,33 +109,52 @@
                 
 <div class="section" id="module-sqlalchemy.dialects.sybase.base">
 <h1>Sybase<a class="headerlink" href="#module-sqlalchemy.dialects.sybase.base" title="Permalink to this headline">¶</a></h1>
-<p>Support for the Sybase iAnywhere database.</p>
-<p>This is not (yet) a full backend for Sybase ASE.</p>
-<p>This dialect is <em>not</em> ported to SQLAlchemy 0.6.</p>
-<p>This dialect is <em>not</em> tested on SQLAlchemy 0.6.</p>
-<p>Known issues / TODO:</p>
-<blockquote>
-<ul>
-<li><p class="first">Uses the mx.ODBC driver from egenix (version 2.1.0)</p>
-</li>
-<li><p class="first">The current version of sqlalchemy.databases.sybase only supports
-mx.ODBC.Windows (other platforms such as mx.ODBC.unixODBC still need
-some development)</p>
-</li>
-<li><p class="first">Support for pyodbc has been built in but is not yet complete (needs
-further development)</p>
-</li>
-<li><dl class="first docutils">
-<dt>Results of running tests/alltests.py:</dt>
-<dd><p class="first last">Ran 934 tests in 287.032s
-FAILED (failures=3, errors=1)</p>
-</dd>
-</dl>
-</li>
-<li><p class="first">Tested on &#8216;Adaptive Server Anywhere 9&#8217; (version 9.0.1.1751)</p>
-</li>
-</ul>
-</blockquote>
+<p>Support for Sybase Adaptive Server Enterprise (ASE).</p>
+<p>Note that this dialect is no longer specific to Sybase iAnywhere.
+ASE is the primary support platform.</p>
+<div class="section" id="module-sqlalchemy.dialects.sybase.pysybase">
+<h2>python-sybase notes<a class="headerlink" href="#module-sqlalchemy.dialects.sybase.pysybase" title="Permalink to this headline">¶</a></h2>
+<p>Support for Sybase via the python-sybase driver.</p>
+<p><a class="reference external" href="http://python-sybase.sourceforge.net/">http://python-sybase.sourceforge.net/</a></p>
+<p>Connect strings are of the form:</p>
+<div class="highlight-python"><pre>sybase+pysybase://&lt;username&gt;:&lt;password&gt;@&lt;dsn&gt;/[database name]</pre>
+</div>
+<div class="section" id="unicode-support">
+<h3>Unicode Support<a class="headerlink" href="#unicode-support" title="Permalink to this headline">¶</a></h3>
+<p>The python-sybase driver does not appear to support non-ASCII strings of any
+kind at this time.</p>
+</div>
+</div>
+<div class="section" id="module-sqlalchemy.dialects.sybase.pyodbc">
+<h2>pyodbc notes<a class="headerlink" href="#module-sqlalchemy.dialects.sybase.pyodbc" title="Permalink to this headline">¶</a></h2>
+<p>Support for Sybase via pyodbc.</p>
+<p><a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></p>
+<p>Connect strings are of the form:</p>
+<div class="highlight-python"><pre>sybase+pyodbc://&lt;username&gt;:&lt;password&gt;@&lt;dsn&gt;/
+sybase+pyodbc://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;database&gt;</pre>
+</div>
+<div class="section" id="id1">
+<h3>Unicode Support<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>The pyodbc driver currently supports usage of these Sybase types with 
+Unicode or multibyte strings:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">CHAR</span>
+<span class="n">NCHAR</span>
+<span class="n">NVARCHAR</span>
+<span class="n">TEXT</span>
+<span class="n">VARCHAR</span></pre></div>
+</div>
+<p>Currently <em>not</em> supported are:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">UNICHAR</span>
+<span class="n">UNITEXT</span>
+<span class="n">UNIVARCHAR</span></pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="module-sqlalchemy.dialects.sybase.mxodbc">
+<h2>mxodbc notes<a class="headerlink" href="#module-sqlalchemy.dialects.sybase.mxodbc" title="Permalink to this headline">¶</a></h2>
+<p>Support for Sybase via mxodbc.</p>
+<p>This dialect is a stub only and is likely non functional at this time.</p>
+</div>
 </div>
 
             </div>
@@ -139,7 +173,7 @@ FAILED (failures=3, errors=1)</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

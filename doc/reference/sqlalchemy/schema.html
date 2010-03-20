@@ -7,7 +7,7 @@
         
         <title>
     Database Schema
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Column and Data Types" href="types.html" />
         <link rel="prev" title="SQL Statements and Expressions" href="expressions.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,7 +87,7 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">Database Schema</a><ul>
+<li><a class="reference external" href="#">Database Schema</a><ul>
 <li><a class="reference external" href="#tables-and-columns">Tables and Columns</a></li>
 <li><a class="reference external" href="#constraints">Constraints</a></li>
 <li><a class="reference external" href="#default-generators-and-markers">Default Generators and Markers</a></li>
@@ -110,8 +110,7 @@
 <h2>Tables and Columns<a class="headerlink" href="#tables-and-columns" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.schema.Column">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Column</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Column" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Column</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Column" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.SchemaItem" class="reference internal" href="#sqlalchemy.schema.SchemaItem"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a>, <a title="sqlalchemy.sql.expression.ColumnClause" class="reference external" href="expressions.html#sqlalchemy.sql.expression.ColumnClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnClause</span></tt></a></p>
 <p>Represents a column in a database table.</p>
 <dl class="method">
@@ -310,8 +309,7 @@ an explicit name, use the <a title="sqlalchemy.schema.UniqueConstraint" class="r
 
 <dl class="class">
 <dt id="sqlalchemy.schema.MetaData">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">MetaData</tt><big>(</big><em>bind=None</em>, <em>reflect=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">MetaData</tt><big>(</big><em>bind=None</em>, <em>reflect=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.SchemaItem" class="reference internal" href="#sqlalchemy.schema.SchemaItem"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>A collection of Tables and their associated schema constructs.</p>
 <p>Holds a collection of Tables and an optional binding to an <tt class="docutils literal"><span class="pre">Engine</span></tt> or
@@ -485,8 +483,7 @@ dependency.</dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.Table">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Table</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Table" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Table</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.SchemaItem" class="reference internal" href="#sqlalchemy.schema.SchemaItem"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a>, <a title="sqlalchemy.sql.expression.TableClause" class="reference external" href="expressions.html#sqlalchemy.sql.expression.TableClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.TableClause</span></tt></a></p>
 <p>Represent a table in a database.</p>
 <p>e.g.:</p>
@@ -651,15 +648,14 @@ the event itself.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.schema.Table.tometadata">
-<tt class="descname">tometadata</tt><big>(</big><em>metadata</em>, <em>schema=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Table.tometadata" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">tometadata</tt><big>(</big><em>metadata</em>, <em>schema=&lt;symbol 'retain_schema&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Table.tometadata" title="Permalink to this definition">¶</a></dt>
 <dd>Return a copy of this <tt class="docutils literal"><span class="pre">Table</span></tt> associated with a different <tt class="docutils literal"><span class="pre">MetaData</span></tt>.</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.ThreadLocalMetaData">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ThreadLocalMetaData</tt><a class="headerlink" href="#sqlalchemy.schema.ThreadLocalMetaData" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ThreadLocalMetaData</tt><a class="headerlink" href="#sqlalchemy.schema.ThreadLocalMetaData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.MetaData" class="reference internal" href="#sqlalchemy.schema.MetaData"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.MetaData</span></tt></a></p>
 <p>A MetaData variant that presents a different <tt class="docutils literal"><span class="pre">bind</span></tt> in every thread.</p>
 <p>Makes the <tt class="docutils literal"><span class="pre">bind</span></tt> property of the MetaData a thread-local value, allowing
@@ -700,8 +696,7 @@ with <tt class="docutils literal"><span class="pre">create_engine()</span></tt>.
 <h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.schema.CheckConstraint">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CheckConstraint</tt><big>(</big><em>sqltext</em>, <em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>table=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CheckConstraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CheckConstraint</tt><big>(</big><em>sqltext</em>, <em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>table=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CheckConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.Constraint" class="reference internal" href="#sqlalchemy.schema.Constraint"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.Constraint</span></tt></a></p>
 <p>A table- or column-level CHECK constraint.</p>
 <p>Can be included in the definition of a Table or Column.</p>
@@ -733,8 +728,7 @@ for this constraint.</dd>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.Constraint">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Constraint</tt><big>(</big><em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Constraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Constraint</tt><big>(</big><em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Constraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.SchemaItem" class="reference internal" href="#sqlalchemy.schema.SchemaItem"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>A table-level SQL constraint.</p>
 <dl class="method">
@@ -782,8 +776,7 @@ Currently, its call signature is subject to change at any time.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.ForeignKey">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKey</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKey</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.SchemaItem" class="reference internal" href="#sqlalchemy.schema.SchemaItem"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>Defines a dependency between two columns.</p>
 <p><tt class="docutils literal"><span class="pre">ForeignKey</span></tt> is specified as an argument to a <a title="sqlalchemy.schema.Column" class="reference internal" href="#sqlalchemy.schema.Column"><tt class="xref docutils literal"><span class="pre">Column</span></tt></a> object,
@@ -883,8 +876,7 @@ statement. See that classes&#8217; constructor for details.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.ForeignKeyConstraint">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKeyConstraint</tt><big>(</big><em>columns</em>, <em>refcolumns</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>use_alter=False</em>, <em>link_to_name=False</em>, <em>table=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKeyConstraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKeyConstraint</tt><big>(</big><em>columns</em>, <em>refcolumns</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>use_alter=False</em>, <em>link_to_name=False</em>, <em>table=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKeyConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.Constraint" class="reference internal" href="#sqlalchemy.schema.Constraint"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.Constraint</span></tt></a></p>
 <p>A table-level FOREIGN KEY constraint.</p>
 <p>Defines a single column or composite FOREIGN KEY ... REFERENCES
@@ -956,8 +948,7 @@ are mutually dependent on each other.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.Index">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Index</tt><big>(</big><em>name</em>, <em>*columns</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Index</tt><big>(</big><em>name</em>, <em>*columns</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.SchemaItem" class="reference internal" href="#sqlalchemy.schema.SchemaItem"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>A table-level INDEX.</p>
 <p>Defines a composite (one or more column) INDEX. For a no-frills, single
@@ -1005,8 +996,7 @@ table.</dd>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.PrimaryKeyConstraint">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">PrimaryKeyConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">PrimaryKeyConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionConstraint</span></tt></p>
 <p>A table-level PRIMARY KEY constraint.</p>
 <p>Defines a single column or composite PRIMARY KEY constraint. For a
@@ -1017,8 +1007,7 @@ multiple-column PrimaryKeyConstraint.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.UniqueConstraint">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">UniqueConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.UniqueConstraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">UniqueConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.UniqueConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionConstraint</span></tt></p>
 <p>A table-level UNIQUE constraint.</p>
 <p>Defines a single column or composite UNIQUE constraint. For a no-frills,
@@ -1032,8 +1021,7 @@ UniqueConstraint.</p>
 <h2>Default Generators and Markers<a class="headerlink" href="#default-generators-and-markers" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.schema.ColumnDefault">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ColumnDefault</tt><big>(</big><em>arg</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ColumnDefault" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ColumnDefault</tt><big>(</big><em>arg</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ColumnDefault" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.DefaultGenerator" class="reference internal" href="#sqlalchemy.schema.DefaultGenerator"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.DefaultGenerator</span></tt></a></p>
 <p>A plain default value on a column.</p>
 <p>This could correspond to a constant, a callable function, or a SQL clause.</p>
@@ -1046,16 +1034,14 @@ class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname"
 
 <dl class="class">
 <dt id="sqlalchemy.schema.DefaultClause">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DefaultClause</tt><big>(</big><em>arg</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DefaultClause" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DefaultClause</tt><big>(</big><em>arg</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DefaultClause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.FetchedValue" class="reference internal" href="#sqlalchemy.schema.FetchedValue"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.FetchedValue</span></tt></a></p>
 <p>A DDL-specified DEFAULT column value.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.DefaultGenerator">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DefaultGenerator</tt><big>(</big><em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DefaultGenerator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DefaultGenerator</tt><big>(</big><em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DefaultGenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.SchemaItem" class="reference internal" href="#sqlalchemy.schema.SchemaItem"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>Base class for column <em>default</em> values.</p>
 <dl class="method">
@@ -1077,8 +1063,7 @@ class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname"
 
 <dl class="class">
 <dt id="sqlalchemy.schema.FetchedValue">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">FetchedValue</tt><big>(</big><em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.FetchedValue" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">FetchedValue</tt><big>(</big><em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.FetchedValue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
 <p>A default that takes effect on the database side.</p>
 <dl class="method">
@@ -1090,8 +1075,7 @@ class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname"
 
 <dl class="class">
 <dt id="sqlalchemy.schema.PassiveDefault">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">PassiveDefault</tt><big>(</big><em>*arg</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.PassiveDefault" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">PassiveDefault</tt><big>(</big><em>*arg</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.PassiveDefault" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.DefaultClause" class="reference internal" href="#sqlalchemy.schema.DefaultClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.DefaultClause</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.schema.PassiveDefault.__init__">
@@ -1102,8 +1086,7 @@ class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname"
 
 <dl class="class">
 <dt id="sqlalchemy.schema.Sequence">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Sequence</tt><big>(</big><em>name</em>, <em>start=None</em>, <em>increment=None</em>, <em>schema=None</em>, <em>optional=False</em>, <em>quote=None</em>, <em>metadata=None</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Sequence</tt><big>(</big><em>name</em>, <em>start=None</em>, <em>increment=None</em>, <em>schema=None</em>, <em>optional=False</em>, <em>quote=None</em>, <em>metadata=None</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.DefaultGenerator" class="reference internal" href="#sqlalchemy.schema.DefaultGenerator"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.DefaultGenerator</span></tt></a></p>
 <p>Represents a named database sequence.</p>
 <dl class="method">
@@ -1133,9 +1116,8 @@ class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname"
 <span id="schema-api-ddl"></span><h2>DDL Generation<a class="headerlink" href="#ddl-generation" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.schema.DDLElement">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DDLElement</tt><a class="headerlink" href="#sqlalchemy.schema.DDLElement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._Executable</span></tt>, <a title="sqlalchemy.sql.expression.ClauseElement" class="reference external" href="expressions.html#sqlalchemy.sql.expression.ClauseElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a></p>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DDLElement</tt><a class="headerlink" href="#sqlalchemy.schema.DDLElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="sqlalchemy.sql.expression.Executable" class="reference external" href="expressions.html#sqlalchemy.sql.expression.Executable"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable</span></tt></a>, <a title="sqlalchemy.sql.expression.ClauseElement" class="reference external" href="expressions.html#sqlalchemy.sql.expression.ClauseElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a></p>
 <p>Base class for DDL expression constructs.</p>
 <dl class="method">
 <dt id="sqlalchemy.schema.DDLElement.against">
@@ -1196,8 +1178,7 @@ in a future release.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.DDL">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DDL</tt><big>(</big><em>statement</em>, <em>on=None</em>, <em>context=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DDL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DDL</tt><big>(</big><em>statement</em>, <em>on=None</em>, <em>context=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DDL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.schema.DDLElement" class="reference internal" href="#sqlalchemy.schema.DDLElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.schema.DDLElement</span></tt></a></p>
 <p>A literal DDL statement.</p>
 <p>Specifies literal SQL DDL to be executed by the database.  DDL objects can
@@ -1285,61 +1266,49 @@ is invoked without a bind argument.</dd>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.CreateTable">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CreateTable</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CreateTable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CreateTable</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CreateTable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
 <p>Represent a CREATE TABLE statement.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.DropTable">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DropTable</tt><big>(</big><em>element</em>, <em>cascade=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropTable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DropTable</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropTable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
 <p>Represent a DROP TABLE statement.</p>
-<dl class="method">
-<dt id="sqlalchemy.schema.DropTable.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>element</em>, <em>cascade=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropTable.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.CreateSequence">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CreateSequence</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CreateSequence" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CreateSequence</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CreateSequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
 <p>Represent a CREATE SEQUENCE statement.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.DropSequence">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DropSequence</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropSequence" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DropSequence</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropSequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
 <p>Represent a DROP SEQUENCE statement.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.CreateIndex">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CreateIndex</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CreateIndex" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CreateIndex</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CreateIndex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
 <p>Represent a CREATE INDEX statement.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.DropIndex">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DropIndex</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropIndex" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DropIndex</tt><big>(</big><em>element</em>, <em>on=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropIndex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
 <p>Represent a DROP INDEX statement.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.AddConstraint">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">AddConstraint</tt><big>(</big><em>element</em>, <em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.AddConstraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">AddConstraint</tt><big>(</big><em>element</em>, <em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.AddConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
 <p>Represent an ALTER TABLE ADD CONSTRAINT statement.</p>
 <dl class="method">
@@ -1351,8 +1320,7 @@ class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname"
 
 <dl class="class">
 <dt id="sqlalchemy.schema.DropConstraint">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DropConstraint</tt><big>(</big><em>element</em>, <em>cascade=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropConstraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DropConstraint</tt><big>(</big><em>element</em>, <em>cascade=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
 <p>Represent an ALTER TABLE DROP CONSTRAINT statement.</p>
 <dl class="method">
@@ -1367,8 +1335,7 @@ class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname"
 <h2>Internals<a class="headerlink" href="#internals" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.schema.SchemaItem">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">SchemaItem</tt><a class="headerlink" href="#sqlalchemy.schema.SchemaItem" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">SchemaItem</tt><a class="headerlink" href="#sqlalchemy.schema.SchemaItem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.visitors.Visitable</span></tt></p>
 <p>Base class for items that define a database schema.</p>
 <dl class="method">
@@ -1380,8 +1347,7 @@ class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname"
 
 <dl class="class">
 <dt id="sqlalchemy.schema.SchemaVisitor">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">SchemaVisitor</tt><a class="headerlink" href="#sqlalchemy.schema.SchemaVisitor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">SchemaVisitor</tt><a class="headerlink" href="#sqlalchemy.schema.SchemaVisitor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.visitors.ClauseVisitor</span></tt></p>
 <p>Define the visiting for <tt class="docutils literal"><span class="pre">SchemaItem</span></tt> objects.</p>
 </dd></dl>
@@ -1405,7 +1371,7 @@ class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname"
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

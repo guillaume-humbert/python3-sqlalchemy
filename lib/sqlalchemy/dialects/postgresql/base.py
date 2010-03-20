@@ -349,9 +349,16 @@ class PGCompiler(compiler.SQLCompiler):
 
     def visit_extract(self, extract, **kwargs):
         field = self.extract_map.get(extract.field, extract.field)
-        affinity = sql_util.determine_date_affinity(extract.expr)
-
-        casts = {sqltypes.Date:'date', sqltypes.DateTime:'timestamp', sqltypes.Interval:'interval', sqltypes.Time:'time'}
+        if extract.expr.type:
+            affinity = extract.expr.type._type_affinity
+        else:
+            affinity = None
+        
+        casts = {
+                    sqltypes.Date:'date', 
+                    sqltypes.DateTime:'timestamp', 
+                    sqltypes.Interval:'interval', sqltypes.Time:'time'
+                }
         cast = casts.get(affinity, None)
         if isinstance(extract.expr, sql.ColumnElement) and cast is not None:
             expr = extract.expr.op('::')(sql.literal_column(cast))
@@ -593,21 +600,19 @@ class PGDialect(default.DefaultDialect):
         if not self.supports_native_enum:
             self.colspecs = self.colspecs.copy()
             del self.colspecs[ENUM]
-            
-    def visit_pool(self, pool):
+
+    def on_connect(self):
         if self.isolation_level is not None:
-            class SetIsolationLevel(object):
-                def __init__(self, isolation_level):
-                    self.isolation_level = isolation_level
-
-                def connect(self, conn, rec):
-                    cursor = conn.cursor()
-                    cursor.execute("SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL %s"
-                                   % self.isolation_level)
-                    cursor.execute("COMMIT")
-                    cursor.close()
-            pool.add_listener(SetIsolationLevel(self.isolation_level))
-
+            def connect(conn):
+                cursor = conn.cursor()
+                cursor.execute("SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL %s"
+                               % self.isolation_level)
+                cursor.execute("COMMIT")
+                cursor.close()
+            return connect
+        else:
+            return None
+            
     def do_begin_twophase(self, connection, xid):
         self.do_begin(connection.connection)
 
@@ -720,17 +725,6 @@ class PGDialect(default.DefaultDialect):
         cursor = connection.execute(sql.text(query, bindparams=bindparams))
         return bool(cursor.scalar())
 
-    def table_names(self, connection, schema):
-        result = connection.execute(
-            sql.text(u"SELECT relname FROM pg_class c "
-                "WHERE relkind = 'r' "
-                "AND '%s' = (select nspname from pg_namespace n where n.oid = c.relnamespace) " %
-                 schema,
-                typemap = {'relname':sqltypes.Unicode}
-            )
-        )
-        return [row[0] for row in result]
-
     def _get_server_version_info(self, connection):
         v = connection.execute("select version()").scalar()
         m = re.match('PostgreSQL (\d+)\.(\d+)(?:\.(\d+))?(?:devel)?', v)
@@ -800,8 +794,17 @@ class PGDialect(default.DefaultDialect):
             current_schema = schema
         else:
             current_schema = self.default_schema_name
-        table_names = self.table_names(connection, current_schema)
-        return table_names
+
+        result = connection.execute(
+            sql.text(u"SELECT relname FROM pg_class c "
+                "WHERE relkind = 'r' "
+                "AND '%s' = (select nspname from pg_namespace n where n.oid = c.relnamespace) " %
+                current_schema,
+                typemap = {'relname':sqltypes.Unicode}
+            )
+        )
+        return [row[0] for row in result]
+
 
     @reflection.cache
     def get_view_names(self, connection, schema=None, **kw):

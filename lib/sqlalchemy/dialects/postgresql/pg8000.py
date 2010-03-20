@@ -19,31 +19,20 @@ Interval
 Passing data from/to the Interval type is not supported as of yet.
 
 """
-from sqlalchemy.engine import default
 import decimal
+
+from sqlalchemy.engine import default
 from sqlalchemy import util, exc
+from sqlalchemy import processors
 from sqlalchemy import types as sqltypes
 from sqlalchemy.dialects.postgresql.base import PGDialect, \
                 PGCompiler, PGIdentifierPreparer, PGExecutionContext
 
 class _PGNumeric(sqltypes.Numeric):
-    def bind_processor(self, dialect):
-        def process(value):
-            if value is not None:
-                return float(value)
-            else:
-                return value
-        return process
-    
     def result_processor(self, dialect, coltype):
         if self.asdecimal:
             if coltype in (700, 701):
-                def process(value):
-                    if value is not None:
-                        return decimal.Decimal(str(value))
-                    else:
-                        return value
-                return process
+                return processors.to_decimal_processor_factory(decimal.Decimal)
             elif coltype == 1700:
                 # pg8000 returns Decimal natively for 1700
                 return None
@@ -54,20 +43,15 @@ class _PGNumeric(sqltypes.Numeric):
                 # pg8000 returns float natively for 701
                 return None
             elif coltype == 1700:
-                def process(value):
-                    if value is not None:
-                        return float(value)
-                    else:
-                        return value
-                return process
+                return processors.to_float
             else:
                 raise exc.InvalidRequestError("Unknown PG numeric type: %d" % coltype)
 
-class PostgreSQL_pg8000ExecutionContext(PGExecutionContext):
+class PGExecutionContext_pg8000(PGExecutionContext):
     pass
 
 
-class PostgreSQL_pg8000Compiler(PGCompiler):
+class PGCompiler_pg8000(PGCompiler):
     def visit_mod(self, binary, **kw):
         return self.process(binary.left) + " %% " + self.process(binary.right)
 
@@ -78,13 +62,13 @@ class PostgreSQL_pg8000Compiler(PGCompiler):
         return text.replace('%', '%%')
 
 
-class PostgreSQL_pg8000IdentifierPreparer(PGIdentifierPreparer):
+class PGIdentifierPreparer_pg8000(PGIdentifierPreparer):
     def _escape_identifier(self, value):
         value = value.replace(self.escape_quote, self.escape_to_quote)
         return value.replace('%', '%%')
 
     
-class PostgreSQL_pg8000(PGDialect):
+class PGDialect_pg8000(PGDialect):
     driver = 'pg8000'
 
     supports_unicode_statements = True
@@ -93,9 +77,9 @@ class PostgreSQL_pg8000(PGDialect):
     
     default_paramstyle = 'format'
     supports_sane_multi_rowcount = False
-    execution_ctx_cls = PostgreSQL_pg8000ExecutionContext
-    statement_compiler = PostgreSQL_pg8000Compiler
-    preparer = PostgreSQL_pg8000IdentifierPreparer
+    execution_ctx_cls = PGExecutionContext_pg8000
+    statement_compiler = PGCompiler_pg8000
+    preparer = PGIdentifierPreparer_pg8000
     
     colspecs = util.update_copy(
         PGDialect.colspecs,
@@ -118,4 +102,4 @@ class PostgreSQL_pg8000(PGDialect):
     def is_disconnect(self, e):
         return "connection is closed" in str(e)
 
-dialect = PostgreSQL_pg8000
+dialect = PGDialect_pg8000

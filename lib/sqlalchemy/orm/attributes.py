@@ -129,7 +129,8 @@ class QueryableAttribute(interfaces.PropComparator):
         try:
             return getattr(self.comparator, key)
         except AttributeError:
-            raise AttributeError('Neither %r object nor %r object has an attribute %r' % (
+            raise AttributeError(
+                    'Neither %r object nor %r object has an attribute %r' % (
                     type(self).__name__, 
                     type(self.comparator).__name__, 
                     key)
@@ -212,7 +213,8 @@ def proxied_attribute_factory(descriptor):
                 try:
                     return getattr(self._comparator, attribute)
                 except AttributeError:
-                    raise AttributeError('Neither %r object nor %r object has an attribute %r' % (
+                    raise AttributeError(
+                            'Neither %r object nor %r object has an attribute %r' % (
                             type(descriptor).__name__, 
                             type(self._comparator).__name__, 
                             attribute)
@@ -230,8 +232,8 @@ class AttributeImpl(object):
 
     def __init__(self, class_, key,
                     callable_, trackparent=False, extension=None,
-                    compare_function=None, active_history=False, parent_token=None, 
-                    expire_missing=True,
+                    compare_function=None, active_history=False, 
+                    parent_token=None, expire_missing=True,
                     **kwargs):
         """Construct an AttributeImpl.
 
@@ -293,7 +295,8 @@ class AttributeImpl(object):
         self.expire_missing = expire_missing
         
     def hasparent(self, state, optimistic=False):
-        """Return the boolean value of a `hasparent` flag attached to the given item.
+        """Return the boolean value of a `hasparent` flag attached to 
+        the given state.
 
         The `optimistic` flag determines what the default return value
         should be if no `hasparent` flag can be located.
@@ -332,10 +335,7 @@ class AttributeImpl(object):
         ``InstrumentedAttribute`` constructor.
 
         """
-        if callable_ is None:
-            self.initialize(state)
-        else:
-            state.callables[self.key] = callable_
+        state.callables[self.key] = callable_
 
     def get_history(self, state, dict_, passive=PASSIVE_OFF):
         raise NotImplementedError()
@@ -349,7 +349,7 @@ class AttributeImpl(object):
             return None
 
     def initialize(self, state, dict_):
-        """Initialize this attribute on the given object instance with an empty value."""
+        """Initialize the given state's attribute with an empty value."""
 
         dict_[self.key] = None
         return None
@@ -478,11 +478,16 @@ class MutableScalarAttributeImpl(ScalarAttributeImpl):
     def __init__(self, class_, key, callable_,
                     class_manager, copy_function=None,
                     compare_function=None, **kwargs):
-        super(ScalarAttributeImpl, self).__init__(class_, key, callable_,
-                                compare_function=compare_function, **kwargs)
+        super(ScalarAttributeImpl, self).__init__(
+                                            class_, 
+                                            key, 
+                                            callable_,
+                                            compare_function=compare_function, 
+                                            **kwargs)
         class_manager.mutable_attributes.add(key)
         if copy_function is None:
-            raise sa_exc.ArgumentError("MutableScalarAttributeImpl requires a copy function")
+            raise sa_exc.ArgumentError(
+                        "MutableScalarAttributeImpl requires a copy function")
         self.copy = copy_function
 
     def get_history(self, state, dict_, passive=PASSIVE_OFF):
@@ -494,11 +499,10 @@ class MutableScalarAttributeImpl(ScalarAttributeImpl):
         return History.from_attribute(
             self, state, v)
 
-    def commit_to_state(self, state, dict_, dest):
-        dest[self.key] = self.copy(dict_[self.key])
-
     def check_mutable_modified(self, state, dict_):
-        (added, unchanged, deleted) = self.get_history(state, dict_, passive=PASSIVE_NO_INITIALIZE)
+        added, \
+        unchanged, \
+        deleted = self.get_history(state, dict_, passive=PASSIVE_NO_INITIALIZE)
         return bool(added or deleted)
 
     def get(self, state, dict_, passive=PASSIVE_OFF):
@@ -528,9 +532,11 @@ class MutableScalarAttributeImpl(ScalarAttributeImpl):
 
 
 class ScalarObjectAttributeImpl(ScalarAttributeImpl):
-    """represents a scalar-holding InstrumentedAttribute, where the target object is also instrumented.
+    """represents a scalar-holding InstrumentedAttribute, 
+       where the target object is also instrumented.
 
-    Adds events to delete/set operations.
+       Adds events to delete/set operations.
+       
     """
 
     accepts_scalar_loader = False
@@ -539,9 +545,14 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
     def __init__(self, class_, key, callable_, 
                     trackparent=False, extension=None, copy_function=None,
                     compare_function=None, **kwargs):
-        super(ScalarObjectAttributeImpl, self).__init__(class_, key,
-          callable_, trackparent=trackparent, extension=extension,
-          compare_function=compare_function, **kwargs)
+        super(ScalarObjectAttributeImpl, self).__init__(
+                                                class_, 
+                                                key,
+                                                callable_, 
+                                                trackparent=trackparent, 
+                                                extension=extension,
+                                                compare_function=compare_function, 
+                                                **kwargs)
         if compare_function is None:
             self.is_equal = identity_equal
 
@@ -570,7 +581,7 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
         """
         if initiator is self:
             return
-        
+
         if self.active_history:
             old = self.get(state, dict_)
         else:
@@ -590,7 +601,9 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
 
     def fire_replace_event(self, state, dict_, value, previous, initiator):
         if self.trackparent:
-            if previous is not value and previous not in (None, PASSIVE_NO_RESULT):
+            if (previous is not value and
+                previous is not None and
+                previous is not PASSIVE_NO_RESULT):
                 self.sethasparent(instance_state(previous), False)
 
         for ext in self.extensions:
@@ -622,17 +635,19 @@ class CollectionAttributeImpl(AttributeImpl):
     def __init__(self, class_, key, callable_, 
                     typecallable=None, trackparent=False, extension=None,
                     copy_function=None, compare_function=None, **kwargs):
-        super(CollectionAttributeImpl, self).__init__(class_, key, callable_, trackparent=trackparent,
-          extension=extension, compare_function=compare_function, **kwargs)
+        super(CollectionAttributeImpl, self).__init__(
+                                                class_, 
+                                                key, 
+                                                callable_, 
+                                                trackparent=trackparent,
+                                                extension=extension,
+                                                compare_function=compare_function, 
+                                                **kwargs)
 
         if copy_function is None:
             copy_function = self.__copy
         self.copy = copy_function
-
         self.collection_factory = typecallable
-        # may be removed in 0.5:
-        self.collection_interface = \
-          util.duck_type_collection(self.collection_factory())
 
     def __copy(self, item):
         return [y for y in list(collections.collection_adapter(item))]
@@ -823,42 +838,61 @@ class GenericBackrefExtension(interfaces.AttributeExtension):
     def set(self, state, child, oldchild, initiator):
         if oldchild is child:
             return child
-        if oldchild not in (None, PASSIVE_NO_RESULT):
+            
+        if oldchild is not None and oldchild is not PASSIVE_NO_RESULT:
             # With lazy=None, there's no guarantee that the full collection is
             # present when updating via a backref.
             old_state, old_dict = instance_state(oldchild), instance_dict(oldchild)
             impl = old_state.get_impl(self.key)
             try:
-                impl.remove(old_state, old_dict, state.obj(), initiator, passive=PASSIVE_NO_FETCH)
+                impl.remove(old_state, 
+                            old_dict, 
+                            state.obj(), 
+                            initiator, passive=PASSIVE_NO_FETCH)
             except (ValueError, KeyError, IndexError):
                 pass
+                
         if child is not None:
-            new_state,  new_dict = instance_state(child), instance_dict(child)
-            new_state.get_impl(self.key).append(new_state, new_dict, state.obj(), initiator, passive=PASSIVE_NO_FETCH)
+            child_state, child_dict = instance_state(child), instance_dict(child)
+            child_state.get_impl(self.key).append(
+                                            child_state, 
+                                            child_dict, 
+                                            state.obj(), 
+                                            initiator, passive=PASSIVE_NO_FETCH)
         return child
 
     def append(self, state, child, initiator):
         child_state, child_dict = instance_state(child), instance_dict(child)
-        child_state.get_impl(self.key).append(child_state, child_dict, state.obj(), initiator, passive=PASSIVE_NO_FETCH)
+        child_state.get_impl(self.key).append(
+                                            child_state, 
+                                            child_dict, 
+                                            state.obj(), 
+                                            initiator, passive=PASSIVE_NO_FETCH)
         return child
 
     def remove(self, state, child, initiator):
         if child is not None:
             child_state, child_dict = instance_state(child), instance_dict(child)
-            child_state.get_impl(self.key).remove(child_state, child_dict, state.obj(), initiator, passive=PASSIVE_NO_FETCH)
+            child_state.get_impl(self.key).remove(
+                                            child_state, 
+                                            child_dict, 
+                                            state.obj(), 
+                                            initiator, passive=PASSIVE_NO_FETCH)
 
 
 class Events(object):
     def __init__(self):
         self.original_init = object.__init__
+        # Initialize to tuples instead of lists to minimize the memory 
+        # footprint
         self.on_init = ()
         self.on_init_failure = ()
         self.on_load = ()
         self.on_resurrect = ()
 
-    def run(self, event, *args, **kwargs):
+    def run(self, event, *args):
         for fn in getattr(self, event):
-            fn(*args, **kwargs)
+            fn(*args)
 
     def add_listener(self, event, listener):
         # not thread safe... problem?  mb: nope
@@ -953,9 +987,6 @@ class ClassManager(dict):
             self.new_init = None
     
     def _create_instance_state(self, instance):
-        global state
-        if state is None:
-            from sqlalchemy.orm import state
         if self.mutable_attributes:
             return state.MutableAttrInstanceState(instance, self)
         else:
@@ -1244,10 +1275,16 @@ class History(tuple):
         
     def as_state(self):
         return History(
-            [c not in (None, PASSIVE_NO_RESULT) and instance_state(c) or None for c in self.added],
-            [c not in (None, PASSIVE_NO_RESULT) and instance_state(c) or None for c in self.unchanged],
-            [c not in (None, PASSIVE_NO_RESULT) and instance_state(c) or None for c in self.deleted],
-        )
+            [(c is not None and c is not PASSIVE_NO_RESULT)
+             and instance_state(c) or None
+             for c in self.added],
+            [(c is not None and c is not PASSIVE_NO_RESULT)
+             and instance_state(c) or None
+             for c in self.unchanged],
+            [(c is not None and c is not PASSIVE_NO_RESULT)
+             and instance_state(c) or None
+             for c in self.deleted],
+            )
     
     @classmethod
     def from_attribute(cls, attribute, state, current):
@@ -1271,7 +1308,9 @@ class History(tuple):
                 )
         else:
             if current is NO_VALUE:
-                if original not in [None, NEVER_SET, NO_VALUE]:
+                if (original is not None and
+                    original is not NEVER_SET and
+                    original is not NO_VALUE):
                     deleted = [original]
                 else:
                     deleted = ()
@@ -1291,13 +1330,6 @@ class History(tuple):
 
 HISTORY_BLANK = History(None, None, None)
 
-def _conditional_instance_state(obj):
-    if not isinstance(obj, state.InstanceState):
-        obj = instance_state(obj)
-    else:
-        util.warn_deprecated("Passing an InstanceState to get_history() or init_collection() is deprecated.")
-    return obj
-        
 def get_history(obj, key, **kwargs):
     """Return a History record for the given object and attribute key.
     
@@ -1306,7 +1338,7 @@ def get_history(obj, key, **kwargs):
     this usage is deprecated.
     
     """
-    return get_state_history(_conditional_instance_state(obj), key, **kwargs)
+    return get_state_history(instance_state(obj), key, **kwargs)
 
 def get_state_history(state, key, **kwargs):
     return state.get_history(key, **kwargs)
@@ -1404,7 +1436,7 @@ def init_collection(obj, key):
     this usage is deprecated.
     
     """
-    state = _conditional_instance_state(obj)
+    state = instance_state(obj)
     dict_ = state.dict
     return init_state_collection(state, dict_, key)
     

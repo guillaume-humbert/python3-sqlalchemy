@@ -281,13 +281,18 @@ class _StringType(sqltypes.String):
     """Base for MySQL string types."""
 
     def __init__(self, charset=None, collation=None,
-                 ascii=False, unicode=False, binary=False,
+                 ascii=False, binary=False,
                  national=False, **kw):
         self.charset = charset
         # allow collate= or collation=
         self.collation = kw.pop('collate', collation)
         self.ascii = ascii
-        self.unicode = unicode
+        # We have to munge the 'unicode' param strictly as a dict
+        # otherwise 2to3 will turn it into str.
+        self.__dict__['unicode'] = kw.get('unicode', False)
+        # sqltypes.String does not accept the 'unicode' arg at all.
+        if 'unicode' in kw:
+            del kw['unicode']
         self.binary = binary
         self.national = national
         super(_StringType, self).__init__(**kw)
@@ -351,7 +356,8 @@ class DECIMAL(_NumericType, sqltypes.DECIMAL):
           numeric.
 
         """
-        super(DECIMAL, self).__init__(precision=precision, scale=scale, asdecimal=asdecimal, **kw)
+        super(DECIMAL, self).__init__(precision=precision, scale=scale,
+                                      asdecimal=asdecimal, **kw)
 
     
 class DOUBLE(_FloatType):
@@ -375,7 +381,8 @@ class DOUBLE(_FloatType):
           numeric.
 
         """
-        super(DOUBLE, self).__init__(precision=precision, scale=scale, asdecimal=asdecimal, **kw)
+        super(DOUBLE, self).__init__(precision=precision, scale=scale,
+                                     asdecimal=asdecimal, **kw)
 
 class REAL(_FloatType):
     """MySQL REAL type."""
@@ -398,7 +405,8 @@ class REAL(_FloatType):
           numeric.
 
         """
-        super(REAL, self).__init__(precision=precision, scale=scale, asdecimal=asdecimal, **kw)
+        super(REAL, self).__init__(precision=precision, scale=scale,
+                                   asdecimal=asdecimal, **kw)
 
 class FLOAT(_FloatType, sqltypes.FLOAT):
     """MySQL FLOAT type."""
@@ -421,7 +429,8 @@ class FLOAT(_FloatType, sqltypes.FLOAT):
           numeric.
 
         """
-        super(FLOAT, self).__init__(precision=precision, scale=scale, asdecimal=asdecimal, **kw)
+        super(FLOAT, self).__init__(precision=precision, scale=scale,
+                                    asdecimal=asdecimal, **kw)
 
     def bind_processor(self, dialect):
         return None
@@ -550,7 +559,13 @@ class BIT(sqltypes.TypeEngine):
         self.length = length
 
     def result_processor(self, dialect, coltype):
-        """Convert a MySQL's 64 bit, variable length binary string to a long."""
+        """Convert a MySQL's 64 bit, variable length binary string to a long.
+        
+        TODO: this is MySQL-db, pyodbc specific.  OurSQL and mysqlconnector
+        already do this, so this logic should be moved to those dialects.
+        
+        """
+        
         def process(value):
             if value is not None:
                 v = 0L
@@ -1084,7 +1099,7 @@ ischema_names = {
     'binary': BINARY,
     'bit': BIT,
     'blob': BLOB,
-    'boolean':BOOLEAN,
+    'boolean': BOOLEAN,
     'char': CHAR,
     'date': DATE,
     'datetime': DATETIME,
@@ -1117,15 +1132,6 @@ ischema_names = {
 }
 
 class MySQLExecutionContext(default.DefaultExecutionContext):
-    def post_exec(self):
-        # TODO: i think this 'charset' in the info thing 
-        # is out
-        
-        if (not self.isupdate and not self.should_autocommit and
-              self.statement and SET_RE.match(self.statement)):
-            # This misses if a user forces autocommit on text('SET NAMES'),
-            # which is probably a programming error anyhow.
-            self.connection.info.pop(('mysql', 'charset'), None)
 
     def should_autocommit_text(self, statement):
         return AUTOCOMMIT_RE.match(statement)
@@ -1259,6 +1265,26 @@ class MySQLCompiler(compiler.SQLCompiler):
 #       creation of foreign key constraints fails."
 
 class MySQLDDLCompiler(compiler.DDLCompiler):
+    def create_table_constraints(self, table):
+        """Get table constraints."""
+        constraint_string = super(MySQLDDLCompiler, self).create_table_constraints(table)
+        
+        is_innodb = table.kwargs.has_key('mysql_engine') and \
+                    table.kwargs['mysql_engine'].lower() == 'innodb'
+
+        auto_inc_column = table._autoincrement_column
+
+        if is_innodb and \
+                auto_inc_column is not None and \
+                auto_inc_column is not list(table.primary_key)[0]:
+            if constraint_string:
+                constraint_string += ", \n\t"
+            constraint_string += "KEY `idx_autoinc_%s`(`%s`)" % (auto_inc_column.name, \
+                            self.preparer.format_column(auto_inc_column))
+        
+        return constraint_string
+
+
     def get_column_specification(self, column, **kw):
         """Builds column DDL."""
 
@@ -1297,12 +1323,22 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
         for k in table.kwargs:
             if k.startswith('mysql_'):
                 opt = k[6:].upper()
+
+                arg = table.kwargs[k]
+                if opt in _options_of_type_string:
+                    arg = "'%s'" % arg.replace("\\", "\\\\").replace("'", "''")
+
+                if opt in ('DATA_DIRECTORY', 'INDEX_DIRECTORY',
+                           'DEFAULT_CHARACTER_SET', 'CHARACTER_SET', 'DEFAULT_CHARSET',
+                           'DEFAULT_COLLATE'):
+                    opt = opt.replace('_', ' ')
+
                 joiner = '='
                 if opt in ('TABLESPACE', 'DEFAULT CHARACTER SET',
                            'CHARACTER SET', 'COLLATE'):
                     joiner = ' '
 
-                table_opts.append(joiner.join((opt, table.kwargs[k])))
+                table_opts.append(joiner.join((opt, arg)))
         return ' '.join(table_opts)
 
     def visit_drop_index(self, drop):
@@ -1680,13 +1716,6 @@ class MySQLDialect(default.DefaultDialect):
     def _get_default_schema_name(self, connection):
         return connection.execute('SELECT DATABASE()').scalar()
 
-    def table_names(self, connection, schema):
-        """Return a Unicode SHOW TABLES from a given schema."""
-
-        charset = self._connection_charset
-        rp = connection.execute("SHOW TABLES FROM %s" %
-            self.identifier_preparer.quote_identifier(schema))
-        return [row[0] for row in self._compat_fetchall(rp, charset=charset)]
 
     def has_table(self, connection, table_name, schema=None):
         # SHOW TABLE STATUS LIKE and SHOW TABLES LIKE do not function properly
@@ -1737,17 +1766,24 @@ class MySQLDialect(default.DefaultDialect):
 
     @reflection.cache
     def get_table_names(self, connection, schema=None, **kw):
-        if schema is None:
-            schema = self.default_schema_name
-        if self.server_version_info < (5, 0, 2):
-            return self.table_names(connection, schema)
-        charset = self._connection_charset
-        rp = connection.execute("SHOW FULL TABLES FROM %s" %
-                self.identifier_preparer.quote_identifier(schema))
-        
-        return [row[0] for row in self._compat_fetchall(rp, charset=charset)\
-                                                    if row[1] == 'BASE TABLE']
+        """Return a Unicode SHOW TABLES from a given schema."""
+        if schema is not None:
+            current_schema = schema
+        else:
+            current_schema = self.default_schema_name
 
+        charset = self._connection_charset
+        if self.server_version_info < (5, 0, 2):
+            rp = connection.execute("SHOW TABLES FROM %s" %
+                self.identifier_preparer.quote_identifier(current_schema))
+            return [row[0] for row in self._compat_fetchall(rp, charset=charset)]
+        else:
+            rp = connection.execute("SHOW FULL TABLES FROM %s" %
+                    self.identifier_preparer.quote_identifier(current_schema))
+
+            return [row[0] for row in self._compat_fetchall(rp, charset=charset)\
+                                                        if row[1] == 'BASE TABLE']
+            
     @reflection.cache
     def get_view_names(self, connection, schema=None, **kw):
         charset = self._connection_charset
@@ -1756,7 +1792,7 @@ class MySQLDialect(default.DefaultDialect):
         if schema is None:
             schema = self.default_schema_name
         if self.server_version_info < (5, 0, 2):
-            return self.table_names(connection, schema)
+            return self.get_table_names(connection, schema)
         charset = self._connection_charset
         rp = connection.execute("SHOW FULL TABLES FROM %s" %
                 self.identifier_preparer.quote_identifier(schema))
@@ -1906,7 +1942,7 @@ class MySQLDialect(default.DefaultDialect):
         # For winxx database hosts.  TODO: is this really needed?
         if casing == 1 and table.name != table.name.lower():
             table.name = table.name.lower()
-            lc_alias = schema._get_table_key(table.name, table.schema)
+            lc_alias = sa_schema._get_table_key(table.name, table.schema)
             table.metadata.tables[lc_alias] = table
 
     def _detect_charset(self, connection):
@@ -2069,8 +2105,7 @@ class MySQLTableDefinitionParser(object):
     def _parse_constraints(self, line):
         """Parse a KEY or CONSTRAINT line.
 
-        line
-          A line of SHOW CREATE TABLE output
+        :param line: A line of SHOW CREATE TABLE output
         """
 
         # KEY
@@ -2105,8 +2140,7 @@ class MySQLTableDefinitionParser(object):
     def _parse_table_name(self, line, state):
         """Extract the table name.
 
-        line
-          The first line of SHOW CREATE TABLE
+        :param line: The first line of SHOW CREATE TABLE
         """
 
         regex, cleanup = self._pr_name
@@ -2117,8 +2151,7 @@ class MySQLTableDefinitionParser(object):
     def _parse_table_options(self, line, state):
         """Build a dictionary of all reflected table-level options.
 
-        line
-          The final line of SHOW CREATE TABLE output.
+        :param line: The final line of SHOW CREATE TABLE output.
         """
 
         options = {}
@@ -2127,19 +2160,18 @@ class MySQLTableDefinitionParser(object):
             pass
 
         else:
-            r_eq_trim = self._re_options_util['=']
-
+            rest_of_line = line[:]
             for regex, cleanup in self._pr_options:
-                m = regex.search(line)
+                m = regex.search(rest_of_line)
                 if not m:
                     continue
                 directive, value = m.group('directive'), m.group('val')
-                directive = r_eq_trim.sub('', directive).lower()
                 if cleanup:
                     value = cleanup(value)
-                options[directive] = value
+                options[directive.lower()] = value
+                rest_of_line = regex.sub('', rest_of_line)
 
-        for nope in ('auto_increment', 'data_directory', 'index_directory'):
+        for nope in ('auto_increment', 'data directory', 'index directory'):
             options.pop(nope, None)
 
         for opt, val in options.items():
@@ -2150,11 +2182,9 @@ class MySQLTableDefinitionParser(object):
 
         Falls back to a 'minimal support' variant if full parse fails.
 
-        line
-          Any column-bearing line from SHOW CREATE TABLE
+        :param line: Any column-bearing line from SHOW CREATE TABLE
         """
 
-        charset = state.charset
         spec = None
         m = self._re_column.match(line)
         if m:
@@ -2178,6 +2208,8 @@ class MySQLTableDefinitionParser(object):
         if type_ == 'tinyint' and args == '1':
             type_ = 'boolean'
             args = None
+            spec['unsigned'] = None
+            spec['zerofill'] = None
 
         try:
             col_type = self.dialect.ischema_names[type_]
@@ -2239,9 +2271,9 @@ class MySQLTableDefinitionParser(object):
         reflecting views for runtime use.  This method formats DDL
         for columns only- keys are omitted.
 
-        `columns` is a sequence of DESCRIBE or SHOW COLUMNS 6-tuples.
-        SHOW FULL COLUMNS FROM rows must be rearranged for use with
-        this function.
+        :param columns: A sequence of DESCRIBE or SHOW COLUMNS 6-tuples.
+          SHOW FULL COLUMNS FROM rows must be rearranged for use with
+          this function.
         """
 
         buffer = []
@@ -2287,7 +2319,6 @@ class MySQLTableDefinitionParser(object):
 
         self._re_columns = []
         self._pr_options = []
-        self._re_options_util = {}
 
         _final = self.preparer.final_quote
 
@@ -2331,8 +2362,8 @@ class MySQLTableDefinitionParser(object):
               r'(?:\x27(?:\x27\x27|[^\x27])*\x27,?)+))\))?'
             r'(?: +(?P<unsigned>UNSIGNED))?'
             r'(?: +(?P<zerofill>ZEROFILL))?'
-            r'(?: +CHARACTER SET +(?P<charset>\w+))?'
-            r'(?: +COLLATE +(P<collate>\w+))?'
+            r'(?: +CHARACTER SET +(?P<charset>[\w_]+))?'
+            r'(?: +COLLATE +(?P<collate>[\w_]+))?'
             r'(?: +(?P<notnull>NOT NULL))?'
             r'(?: +DEFAULT +(?P<default>'
               r'(?:NULL|\x27(?:\x27\x27|[^\x27])*\x27|\w+)'
@@ -2403,6 +2434,10 @@ class MySQLTableDefinitionParser(object):
             r'(?:SUB)?PARTITION')
 
         # Table-level options (COLLATE, ENGINE, etc.)
+        # Do the string options first, since they have quoted strings we need to get rid of.
+        for option in _options_of_type_string:
+            self._add_option_string(option)
+
         for option in ('ENGINE', 'TYPE', 'AUTO_INCREMENT',
                        'AVG_ROW_LENGTH', 'CHARACTER SET',
                        'DEFAULT CHARSET', 'CHECKSUM',
@@ -2411,32 +2446,34 @@ class MySQLTableDefinitionParser(object):
                        'KEY_BLOCK_SIZE'):
             self._add_option_word(option)
 
-        for option in (('COMMENT', 'DATA_DIRECTORY', 'INDEX_DIRECTORY',
-                        'PASSWORD', 'CONNECTION')):
-            self._add_option_string(option)
-
         self._add_option_regex('UNION', r'\([^\)]+\)')
         self._add_option_regex('TABLESPACE', r'.*? STORAGE DISK')
         self._add_option_regex('RAID_TYPE',
           r'\w+\s+RAID_CHUNKS\s*\=\s*\w+RAID_CHUNKSIZE\s*=\s*\w+')
-        self._re_options_util['='] = _re_compile(r'\s*=\s*$')
+
+    _optional_equals = r'(?:\s*(?:=\s*)|\s+)'
 
     def _add_option_string(self, directive):
-        regex = (r'(?P<directive>%s\s*(?:=\s*)?)'
-                 r'(?:\x27.(?P<val>.*?)\x27(?!\x27)\x27)' %
-                 re.escape(directive))
+        regex = (r'(?P<directive>%s)%s'
+                 r"'(?P<val>(?:[^']|'')*?)'(?!')" %
+                 (re.escape(directive), self._optional_equals))
         self._pr_options.append(
-            _pr_compile(regex, lambda v: v.replace("''", "'")))
+            _pr_compile(regex, lambda v: v.replace("\\\\","\\").replace("''", "'")))
 
     def _add_option_word(self, directive):
-        regex = (r'(?P<directive>%s\s*(?:=\s*)?)'
-                 r'(?P<val>\w+)' % re.escape(directive))
+        regex = (r'(?P<directive>%s)%s'
+                 r'(?P<val>\w+)' %
+                 (re.escape(directive), self._optional_equals))
         self._pr_options.append(_pr_compile(regex))
 
     def _add_option_regex(self, directive, regex):
-        regex = (r'(?P<directive>%s\s*(?:=\s*)?)'
-                 r'(?P<val>%s)' % (re.escape(directive), regex))
+        regex = (r'(?P<directive>%s)%s'
+                 r'(?P<val>%s)' %
+                 (re.escape(directive), self._optional_equals, regex))
         self._pr_options.append(_pr_compile(regex))
+
+_options_of_type_string = ('COMMENT', 'DATA DIRECTORY', 'INDEX DIRECTORY',
+                           'PASSWORD', 'CONNECTION')
 
 log.class_logger(MySQLTableDefinitionParser)
 log.class_logger(MySQLDialect)
@@ -2458,19 +2495,29 @@ class _DecodingRowProxy(object):
     def __init__(self, rowproxy, charset):
         self.rowproxy = rowproxy
         self.charset = charset
+
     def __getitem__(self, index):
         item = self.rowproxy[index]
         if isinstance(item, _array):
             item = item.tostring()
+        # Py2K
         if self.charset and isinstance(item, str):
+        # end Py2K
+        # Py3K
+        #if self.charset and isinstance(item, bytes):
             return item.decode(self.charset)
         else:
             return item
+
     def __getattr__(self, attr):
         item = getattr(self.rowproxy, attr)
         if isinstance(item, _array):
             item = item.tostring()
+        # Py2K
         if self.charset and isinstance(item, str):
+        # end Py2K
+        # Py3K
+        #if self.charset and isinstance(item, bytes):
             return item.decode(self.charset)
         else:
             return item

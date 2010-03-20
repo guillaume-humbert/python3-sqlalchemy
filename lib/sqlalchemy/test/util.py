@@ -22,3 +22,32 @@ else:
         pass
 
 
+
+def picklers():
+    picklers = set()
+    # Py2K
+    try:
+        import cPickle
+        picklers.add(cPickle)
+    except ImportError:
+        pass
+    # end Py2K
+    import pickle
+    picklers.add(pickle)
+    
+    # yes, this thing needs this much testing
+    for pickle in picklers:
+        for protocol in -1, 0, 1, 2:
+            yield pickle.loads, lambda d:pickle.dumps(d, protocol)
+    
+    
+def round_decimal(value, prec):
+    if isinstance(value, float):
+        return round(value, prec)
+    
+    import decimal
+
+    # can also use shift() here but that is 2.6 only
+    return (value * decimal.Decimal("1" + "0" * prec)).to_integral(decimal.ROUND_FLOOR) / \
+                        pow(10, prec)
+    

@@ -7,7 +7,7 @@
         
         <title>
     Microsoft SQL Server
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="MySQL" href="mysql.html" />
         <link rel="prev" title="Firebird" href="firebird.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,8 +87,7 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">Microsoft SQL Server</a><ul>
-<li><a class="reference external" href="#driver">Driver</a></li>
+<li><a class="reference external" href="#">Microsoft SQL Server</a><ul>
 <li><a class="reference external" href="#connecting">Connecting</a></li>
 <li><a class="reference external" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
 <li><a class="reference external" href="#collation-support">Collation Support</a></li>
@@ -98,13 +97,13 @@
 <li><a class="reference external" href="#compatibility-levels">Compatibility Levels</a></li>
 <li><a class="reference external" href="#known-issues">Known Issues</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a></li>
-<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.zxjdbc">zxjdbc Notes</a><ul>
 <li><a class="reference external" href="#jdbc-driver">JDBC Driver</a></li>
 <li><a class="reference external" href="#id1">Connecting</a></li>
 </ul>
 </li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a></li>
 </ul>
 </li>
 </ul>
@@ -118,105 +117,9 @@
 <div class="section" id="module-sqlalchemy.dialects.mssql.base">
 <h1>Microsoft SQL Server<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the Microsoft SQL Server database.</p>
-<div class="section" id="driver">
-<h2>Driver<a class="headerlink" href="#driver" title="Permalink to this headline">¶</a></h2>
-<p>The MSSQL dialect will work with three different available drivers:</p>
-<ul class="simple">
-<li><em>pyodbc</em> - <a class="reference external" href="http://pyodbc.sourceforge.net/">http://pyodbc.sourceforge.net/</a>. This is the recommeded
-driver.</li>
-<li><em>pymssql</em> - <a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></li>
-<li><em>adodbapi</em> - <a class="reference external" href="http://adodbapi.sourceforge.net/">http://adodbapi.sourceforge.net/</a></li>
-</ul>
-<p>Drivers are loaded in the order listed above based on availability.</p>
-<p>If you need to load a specific driver pass <tt class="docutils literal"><span class="pre">module_name</span></tt> when
-creating the engine:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+module_name://dsn&#39;</span><span class="p">)</span></pre></div>
-</div>
-<p><tt class="docutils literal"><span class="pre">module_name</span></tt> currently accepts: <tt class="docutils literal"><span class="pre">pyodbc</span></tt>, <tt class="docutils literal"><span class="pre">pymssql</span></tt>, and
-<tt class="docutils literal"><span class="pre">adodbapi</span></tt>.</p>
-<p>Currently the pyodbc driver offers the greatest level of
-compatibility.</p>
-</div>
 <div class="section" id="connecting">
 <h2>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h2>
-<p>Connecting with create_engine() uses the standard URL approach of
-<tt class="docutils literal"><span class="pre">mssql://user:pass&#64;host/dbname[?key=value&amp;key=value...]</span></tt>.</p>
-<p>If the database name is present, the tokens are converted to a
-connection string with the specified values. If the database is not
-present, then the host token is taken directly as the DSN name.</p>
-<p>Examples of pyodbc connection string URLs:</p>
-<ul>
-<li><p class="first"><em>mssql+pyodbc://mydsn</em> - connects using the specified DSN named <tt class="docutils literal"><span class="pre">mydsn</span></tt>.
-The connection string that is created will appear like:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">dsn</span><span class="o">=</span><span class="n">mydsn</span><span class="p">;</span><span class="n">Trusted_Connection</span><span class="o">=</span><span class="n">Yes</span></pre></div>
-</div>
-</li>
-<li><p class="first"><em>mssql+pyodbc://user:pass&#64;mydsn</em> - connects using the DSN named
-<tt class="docutils literal"><span class="pre">mydsn</span></tt> passing in the <tt class="docutils literal"><span class="pre">UID</span></tt> and <tt class="docutils literal"><span class="pre">PWD</span></tt> information. The
-connection string that is created will appear like:</p>
-<div class="highlight-python"><pre>dsn=mydsn;UID=user;PWD=pass</pre>
-</div>
-</li>
-<li><p class="first"><em>mssql+pyodbc://user:pass&#64;mydsn/?LANGUAGE=us_english</em> - connects
-using the DSN named <tt class="docutils literal"><span class="pre">mydsn</span></tt> passing in the <tt class="docutils literal"><span class="pre">UID</span></tt> and <tt class="docutils literal"><span class="pre">PWD</span></tt>
-information, plus the additional connection configuration option
-<tt class="docutils literal"><span class="pre">LANGUAGE</span></tt>. The connection string that is created will appear
-like:</p>
-<div class="highlight-python"><pre>dsn=mydsn;UID=user;PWD=pass;LANGUAGE=us_english</pre>
-</div>
-</li>
-<li><p class="first"><em>mssql+pyodbc://user:pass&#64;host/db</em> - connects using a connection string
-dynamically created that would appear like:</p>
-<div class="highlight-python"><pre>DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass</pre>
-</div>
-</li>
-<li><p class="first"><em>mssql+pyodbc://user:pass&#64;host:123/db</em> - connects using a connection
-string that is dynamically created, which also includes the port
-information using the comma syntax. If your connection string
-requires the port information to be passed as a <tt class="docutils literal"><span class="pre">port</span></tt> keyword
-see the next example. This will create the following connection
-string:</p>
-<div class="highlight-python"><pre>DRIVER={SQL Server};Server=host,123;Database=db;UID=user;PWD=pass</pre>
-</div>
-</li>
-<li><p class="first"><em>mssql+pyodbc://user:pass&#64;host/db?port=123</em> - connects using a connection
-string that is dynamically created that includes the port
-information as a separate <tt class="docutils literal"><span class="pre">port</span></tt> keyword. This will create the
-following connection string:</p>
-<div class="highlight-python"><pre>DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass;port=123</pre>
-</div>
-</li>
-</ul>
-<p>If you require a connection string that is outside the options
-presented above, use the <tt class="docutils literal"><span class="pre">odbc_connect</span></tt> keyword to pass in a
-urlencoded connection string. What gets passed in will be urldecoded
-and passed directly.</p>
-<p>For example:</p>
-<div class="highlight-python"><pre>mssql+pyodbc:///?odbc_connect=dsn%3Dmydsn%3BDatabase%3Ddb</pre>
-</div>
-<p>would create the following connection string:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">dsn</span><span class="o">=</span><span class="n">mydsn</span><span class="p">;</span><span class="n">Database</span><span class="o">=</span><span class="n">db</span></pre></div>
-</div>
-<p>Encoding your connection string can be easily accomplished through
-the python shell. For example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">urllib</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">urllib</span><span class="o">.</span><span class="n">quote_plus</span><span class="p">(</span><span class="s">&#39;dsn=mydsn;Database=db&#39;</span><span class="p">)</span>
-<span class="go">&#39;dsn%3Dmydsn%3BDatabase%3Ddb&#39;</span></pre></div>
-</div>
-<p>Additional arguments which may be specified either as query string
-arguments on the URL, or as keyword argument to
-<a title="sqlalchemy.create_engine" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
-<ul class="simple">
-<li><em>query_timeout</em> - allows you to override the default query timeout.
-Defaults to <tt class="xref docutils literal"><span class="pre">None</span></tt>. This is only supported on pymssql.</li>
-<li><em>use_scope_identity</em> - allows you to specify that SCOPE_IDENTITY
-should be used in place of the non-scoped version &#64;&#64;IDENTITY.
-Defaults to True.</li>
-<li><em>max_identifier_length</em> - allows you to se the maximum length of
-identfiers supported by the database. Defaults to 128. For pymssql
-the default is 30.</li>
-<li><em>schema_name</em> - use to set the schema name. Defaults to <tt class="docutils literal"><span class="pre">dbo</span></tt>.</li>
-</ul>
+<p>See the individual driver sections below for details on connecting.</p>
 </div>
 <div class="section" id="auto-increment-behavior">
 <h2>Auto Increment Behavior<a class="headerlink" href="#auto-increment-behavior" title="Permalink to this headline">¶</a></h2>
@@ -310,18 +213,96 @@ statements that are unable to be parsed by the database server.</p>
 <h2>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>No support for more than one <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> column per table</li>
-<li>pymssql has problems with binary and unicode data that this module
-does <strong>not</strong> work around</li>
 </ul>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.pyodbc">
 <h2>PyODBC<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.pyodbc" title="Permalink to this headline">¶</a></h2>
+<p>Support for MS-SQL via pyodbc.</p>
+<p>pyodbc is available at:</p>
+<blockquote>
+<a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></blockquote>
+<p>Examples of pyodbc connection string URLs:</p>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://mydsn</span></tt> - connects using the specified DSN named <tt class="docutils literal"><span class="pre">mydsn</span></tt>.
+The connection string that is created will appear like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dsn</span><span class="o">=</span><span class="n">mydsn</span><span class="p">;</span><span class="n">Trusted_Connection</span><span class="o">=</span><span class="n">Yes</span></pre></div>
 </div>
-<div class="section" id="module-sqlalchemy.dialects.mssql.adodbapi">
-<h2>AdoDBAPI<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.adodbapi" title="Permalink to this headline">¶</a></h2>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;mydsn</span></tt> - connects using the DSN named
+<tt class="docutils literal"><span class="pre">mydsn</span></tt> passing in the <tt class="docutils literal"><span class="pre">UID</span></tt> and <tt class="docutils literal"><span class="pre">PWD</span></tt> information. The
+connection string that is created will appear like:</p>
+<div class="highlight-python"><pre>dsn=mydsn;UID=user;PWD=pass</pre>
+</div>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;mydsn/?LANGUAGE=us_english</span></tt> - connects
+using the DSN named <tt class="docutils literal"><span class="pre">mydsn</span></tt> passing in the <tt class="docutils literal"><span class="pre">UID</span></tt> and <tt class="docutils literal"><span class="pre">PWD</span></tt>
+information, plus the additional connection configuration option
+<tt class="docutils literal"><span class="pre">LANGUAGE</span></tt>. The connection string that is created will appear
+like:</p>
+<div class="highlight-python"><pre>dsn=mydsn;UID=user;PWD=pass;LANGUAGE=us_english</pre>
+</div>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db</span></tt> - connects using a connection string
+dynamically created that would appear like:</p>
+<div class="highlight-python"><pre>DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass</pre>
+</div>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host:123/db</span></tt> - connects using a connection
+string that is dynamically created, which also includes the port
+information using the comma syntax. If your connection string
+requires the port information to be passed as a <tt class="docutils literal"><span class="pre">port</span></tt> keyword
+see the next example. This will create the following connection
+string:</p>
+<div class="highlight-python"><pre>DRIVER={SQL Server};Server=host,123;Database=db;UID=user;PWD=pass</pre>
+</div>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db?port=123</span></tt> - connects using a connection
+string that is dynamically created that includes the port
+information as a separate <tt class="docutils literal"><span class="pre">port</span></tt> keyword. This will create the
+following connection string:</p>
+<div class="highlight-python"><pre>DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass;port=123</pre>
+</div>
+</li>
+</ul>
+<p>If you require a connection string that is outside the options
+presented above, use the <tt class="docutils literal"><span class="pre">odbc_connect</span></tt> keyword to pass in a
+urlencoded connection string. What gets passed in will be urldecoded
+and passed directly.</p>
+<p>For example:</p>
+<div class="highlight-python"><pre>mssql+pyodbc:///?odbc_connect=dsn%3Dmydsn%3BDatabase%3Ddb</pre>
+</div>
+<p>would create the following connection string:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dsn</span><span class="o">=</span><span class="n">mydsn</span><span class="p">;</span><span class="n">Database</span><span class="o">=</span><span class="n">db</span></pre></div>
+</div>
+<p>Encoding your connection string can be easily accomplished through
+the python shell. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">urllib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urllib</span><span class="o">.</span><span class="n">quote_plus</span><span class="p">(</span><span class="s">&#39;dsn=mydsn;Database=db&#39;</span><span class="p">)</span>
+<span class="go">&#39;dsn%3Dmydsn%3BDatabase%3Ddb&#39;</span></pre></div>
+</div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.pymssql">
 <h2>pymssql<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.pymssql" title="Permalink to this headline">¶</a></h2>
+<p>Support for the pymssql dialect.</p>
+<p>This dialect supports pymssql 1.0 and greater.</p>
+<p>pymssql is available at:</p>
+<blockquote>
+<a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></blockquote>
+<p>Connect string:</p>
+<div class="highlight-python"><pre>mssql+pymssql://&lt;username&gt;:&lt;password&gt;@&lt;freetds_name&gt;</pre>
+</div>
+<p>Adding &#8220;?charset=utf8&#8221; or similar will cause pymssql to return
+strings as Python unicode objects.   This can potentially improve 
+performance in some scenarios as decoding of strings is 
+handled natively.</p>
+<p>pymssql inherits a lot of limitations from FreeTDS, including:</p>
+<ul class="simple">
+<li>no support for multibyte schema identifiers</li>
+<li>poor support for large decimals</li>
+<li>poor support for binary fields</li>
+<li>poor support for VARCHAR/CHAR fields over 255 characters</li>
+</ul>
+<p>Please consult the pymssql documentation for further information.</p>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.zxjdbc">
 <h2>zxjdbc Notes<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.zxjdbc" title="Permalink to this headline">¶</a></h2>
@@ -341,6 +322,10 @@ arguments on the URL, or as keyword arguments to
 properties to the underlying JDBC driver.</p>
 </div>
 </div>
+<div class="section" id="module-sqlalchemy.dialects.mssql.adodbapi">
+<h2>AdoDBAPI<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.adodbapi" title="Permalink to this headline">¶</a></h2>
+<p>The adodbapi dialect is not implemented for 0.6 at this time.</p>
+</div>
 </div>
 
             </div>
@@ -359,7 +344,7 @@ properties to the underlying JDBC driver.</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

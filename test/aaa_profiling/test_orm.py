@@ -1,6 +1,6 @@
 from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy import exc as sa_exc, util, Integer, String, ForeignKey
-from sqlalchemy.orm import exc as orm_exc, mapper, relation, sessionmaker
+from sqlalchemy.orm import exc as orm_exc, mapper, relationship, sessionmaker
 
 from sqlalchemy.test import testing, profiling
 from test.orm import _base
@@ -33,7 +33,7 @@ class MergeTest(_base.MappedTest):
     @testing.resolve_artifact_names
     def setup_mappers(cls):
         mapper(Parent, parent, properties={
-            'children':relation(Child, backref='parent')
+            'children':relationship(Child, backref='parent')
         })
         mapper(Child, child)
 
@@ -58,7 +58,7 @@ class MergeTest(_base.MappedTest):
         # down from 185 on this
         # this is a small slice of a usually bigger
         # operation so using a small variance
-        @profiling.function_call_count(87, variance=0.001)
+        @profiling.function_call_count(95, variance=0.001, versions={'2.4':67, '3':96})
         def go():
             return sess2.merge(p1, load=False)
             
@@ -66,13 +66,13 @@ class MergeTest(_base.MappedTest):
 
         # third call, merge object already present.
         # almost no calls.
-        @profiling.function_call_count(10, variance=0.001)
+        @profiling.function_call_count(12, variance=0.001, versions={'2.4':8, '3':13})
         def go():
             return sess2.merge(p2, load=False)
             
         p3 = go()
 
-    @testing.fails_on_everything_except('sqlite')
+    @testing.only_on('sqlite', 'Call counts tailored to pysqlite')
     @testing.resolve_artifact_names
     def test_merge_load(self):
         sess = sessionmaker()()
@@ -83,7 +83,8 @@ class MergeTest(_base.MappedTest):
 
         # preloading of collection took this down from 1728
         # to 1192 using sqlite3
-        @profiling.function_call_count(1192)
+        # the C extension took it back up to approx. 1257 (py2.6)
+        @profiling.function_call_count(1257, versions={'2.4':807})
         def go():
             p2 = sess2.merge(p1)
         go()

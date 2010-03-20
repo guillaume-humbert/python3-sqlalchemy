@@ -56,6 +56,7 @@ class QuoteTest(TestBase, AssertsCompiledSQL):
             '"25column" INTEGER'
             ')'
         )
+
     def testreflect(self):
         meta2 = MetaData(testing.db)
         t2 = Table('WorstCase2', meta2, autoload=True, quote=True)

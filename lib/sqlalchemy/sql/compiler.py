@@ -26,6 +26,7 @@ import re
 from sqlalchemy import schema, engine, util, exc
 from sqlalchemy.sql import operators, functions, util as sql_util, visitors
 from sqlalchemy.sql import expression as sql
+import decimal
 
 RESERVED_WORDS = set([
     'all', 'analyse', 'analyze', 'and', 'any', 'array',
@@ -73,6 +74,7 @@ OPERATORS =  {
     # end Py2K
     operators.mod : ' % ',
     operators.truediv : ' / ',
+    operators.neg : '-',
     operators.lt : ' < ',
     operators.le : ' <= ',
     operators.ne : ' != ',
@@ -133,6 +135,15 @@ EXTRACT_MAP = {
     'timezone_minute': 'timezone_minute'
 }
 
+COMPOUND_KEYWORDS = {
+    sql.CompoundSelect.UNION : 'UNION',
+    sql.CompoundSelect.UNION_ALL : 'UNION ALL',
+    sql.CompoundSelect.EXCEPT : 'EXCEPT',
+    sql.CompoundSelect.EXCEPT_ALL : 'EXCEPT ALL',
+    sql.CompoundSelect.INTERSECT : 'INTERSECT',
+    sql.CompoundSelect.INTERSECT_ALL : 'INTERSECT ALL'
+}
+
 class _CompileLabel(visitors.Visitable):
     """lightweight label object which acts as an expression._Label."""
 
@@ -157,6 +168,8 @@ class SQLCompiler(engine.Compiled):
 
     extract_map = EXTRACT_MAP
 
+    compound_keywords = COMPOUND_KEYWORDS
+    
     # class-level defaults which can be set at the instance
     # level to define if this Compiled instance represents
     # INSERT/UPDATE/DELETE
@@ -171,6 +184,12 @@ class SQLCompiler(engine.Compiled):
     # clauses before the VALUES or WHERE clause (i.e. MSSQL)
     returning_precedes_values = False
     
+    # SQL 92 doesn't allow bind parameters to be used
+    # in the columns clause of a SELECT, nor does it allow
+    # ambiguous expressions like "? = ?".  A compiler
+    # subclass can set this flag to False if the target
+    # driver/DB enforces this
+    ansi_bind_rules = False
     
     def __init__(self, dialect, statement, column_keys=None, inline=False, **kwargs):
         """Construct a new ``DefaultCompiler`` object.
@@ -231,6 +250,10 @@ class SQLCompiler(engine.Compiled):
     def is_subquery(self):
         return len(self.stack) > 1
 
+    @property
+    def sql_compiler(self):
+        return self
+        
     def construct_params(self, params=None, _group_number=None):
         """return a dictionary of bind parameter keys and values"""
 
@@ -244,9 +267,14 @@ class SQLCompiler(engine.Compiled):
                 else:
                     if bindparam.required:
                         if _group_number:
-                            raise exc.InvalidRequestError("A value is required for bind parameter %r, in parameter group %d" % (bindparam.key, _group_number))
+                            raise exc.InvalidRequestError(
+                                            "A value is required for bind parameter %r, "
+                                            "in parameter group %d" % 
+                                            (bindparam.key, _group_number))
                         else:
-                            raise exc.InvalidRequestError("A value is required for bind parameter %r" % bindparam.key)
+                            raise exc.InvalidRequestError(
+                                            "A value is required for bind parameter %r" 
+                                            % bindparam.key)
                     elif util.callable(bindparam.value):
                         pd[name] = bindparam.value()
                     else:
@@ -274,10 +302,10 @@ class SQLCompiler(engine.Compiled):
         """
         return ""
 
-    def visit_grouping(self, grouping, **kwargs):
-        return "(" + self.process(grouping.element) + ")"
+    def visit_grouping(self, grouping, asfrom=False, **kwargs):
+        return "(" + self.process(grouping.element, **kwargs) + ")"
 
-    def visit_label(self, label, result_map=None, within_columns_clause=False):
+    def visit_label(self, label, result_map=None, within_columns_clause=False, **kw):
         # only render labels within the columns clause
         # or ORDER BY clause of a select.  dialect-specific compilers
         # can modify this behavior.
@@ -289,11 +317,15 @@ class SQLCompiler(engine.Compiled):
                 result_map[labelname.lower()] = \
                         (label.name, (label, label.element, labelname), label.element.type)
 
-            return self.process(label.element) + \
+            return self.process(label.element, 
+                                    within_columns_clause=within_columns_clause, 
+                                    **kw) + \
                         OPERATORS[operators.as_] + \
                         self.preparer.format_label(label, labelname)
         else:
-            return self.process(label.element)
+            return self.process(label.element, 
+                                    within_columns_clause=within_columns_clause, 
+                                    **kw)
             
     def visit_column(self, column, result_map=None, **kwargs):
         name = column.name
@@ -368,27 +400,28 @@ class SQLCompiler(engine.Compiled):
             sep = " "
         else:
             sep = OPERATORS[clauselist.operator]
-        return sep.join(s for s in (self.process(c) for c in clauselist.clauses)
+        return sep.join(s for s in (self.process(c, **kwargs) for c in clauselist.clauses)
                         if s is not None)
 
     def visit_case(self, clause, **kwargs):
         x = "CASE "
         if clause.value is not None:
-            x += self.process(clause.value) + " "
+            x += self.process(clause.value, **kwargs) + " "
         for cond, result in clause.whens:
-            x += "WHEN " + self.process(cond) + " THEN " + self.process(result) + " "
+            x += "WHEN " + self.process(cond, **kwargs) + \
+                            " THEN " + self.process(result, **kwargs) + " "
         if clause.else_ is not None:
-            x += "ELSE " + self.process(clause.else_) + " "
+            x += "ELSE " + self.process(clause.else_, **kwargs) + " "
         x += "END"
         return x
 
     def visit_cast(self, cast, **kwargs):
         return "CAST(%s AS %s)" % \
-                    (self.process(cast.clause), self.process(cast.typeclause))
+                    (self.process(cast.clause, **kwargs), self.process(cast.typeclause, **kwargs))
 
     def visit_extract(self, extract, **kwargs):
         field = self.extract_map.get(extract.field, extract.field)
-        return "EXTRACT(%s FROM %s)" % (field, self.process(extract.expr))
+        return "EXTRACT(%s FROM %s)" % (field, self.process(extract.expr, **kwargs))
 
     def visit_function(self, func, result_map=None, **kwargs):
         if result_map is not None:
@@ -405,20 +438,23 @@ class SQLCompiler(engine.Compiled):
     def function_argspec(self, func, **kwargs):
         return self.process(func.clause_expr, **kwargs)
 
-    def visit_compound_select(self, cs, asfrom=False, parens=True, **kwargs):
+    def visit_compound_select(self, cs, asfrom=False, parens=True, compound_index=1, **kwargs):
         entry = self.stack and self.stack[-1] or {}
         self.stack.append({'from':entry.get('from', None), 'iswrapper':True})
 
-        text = (" " + cs.keyword + " ").join(
-                            (self.process(c, asfrom=asfrom, parens=False, compound_index=i)
+        keyword = self.compound_keywords.get(cs.keyword)
+        
+        text = (" " + keyword + " ").join(
+                            (self.process(c, asfrom=asfrom, parens=False, 
+                                            compound_index=i, **kwargs)
                             for i, c in enumerate(cs.selects))
                         )
                         
-        group_by = self.process(cs._group_by_clause, asfrom=asfrom)
+        group_by = self.process(cs._group_by_clause, asfrom=asfrom, **kwargs)
         if group_by:
             text += " GROUP BY " + group_by
 
-        text += self.order_by_clause(cs)
+        text += self.order_by_clause(cs, **kwargs)
         text += (cs._limit is not None or cs._offset is not None) and self.limit_clause(cs) or ""
 
         self.stack.pop(-1)
@@ -435,32 +471,47 @@ class SQLCompiler(engine.Compiled):
             s = s + OPERATORS[unary.modifier]
         return s
 
-    def visit_binary(self, binary, **kwargs):
-        
+    def visit_binary(self, binary, **kw):
+        # don't allow "? = ?" to render
+        if self.ansi_bind_rules and \
+            isinstance(binary.left, sql._BindParamClause) and \
+            isinstance(binary.right, sql._BindParamClause):
+            kw['literal_binds'] = True
+            
         return self._operator_dispatch(binary.operator,
                     binary,
-                    lambda opstr: self.process(binary.left) + opstr + self.process(binary.right),
-                    **kwargs
+                    lambda opstr: self.process(binary.left, **kw) + 
+                                        opstr + 
+                                    self.process(binary.right, **kw),
+                    **kw
         )
 
     def visit_like_op(self, binary, **kw):
         escape = binary.modifiers.get("escape", None)
-        return '%s LIKE %s' % (self.process(binary.left), self.process(binary.right)) \
+        return '%s LIKE %s' % (
+                                    self.process(binary.left, **kw), 
+                                    self.process(binary.right, **kw)) \
             + (escape and ' ESCAPE \'%s\'' % escape or '')
 
     def visit_notlike_op(self, binary, **kw):
         escape = binary.modifiers.get("escape", None)
-        return '%s NOT LIKE %s' % (self.process(binary.left), self.process(binary.right)) \
+        return '%s NOT LIKE %s' % (
+                                    self.process(binary.left, **kw), 
+                                    self.process(binary.right, **kw)) \
             + (escape and ' ESCAPE \'%s\'' % escape or '')
         
     def visit_ilike_op(self, binary, **kw):
         escape = binary.modifiers.get("escape", None)
-        return 'lower(%s) LIKE lower(%s)' % (self.process(binary.left), self.process(binary.right)) \
+        return 'lower(%s) LIKE lower(%s)' % (
+                                            self.process(binary.left, **kw), 
+                                            self.process(binary.right, **kw)) \
             + (escape and ' ESCAPE \'%s\'' % escape or '')
     
     def visit_notilike_op(self, binary, **kw):
         escape = binary.modifiers.get("escape", None)
-        return 'lower(%s) NOT LIKE lower(%s)' % (self.process(binary.left), self.process(binary.right)) \
+        return 'lower(%s) NOT LIKE lower(%s)' % (
+                                            self.process(binary.left, **kw), 
+                                            self.process(binary.right, **kw)) \
             + (escape and ' ESCAPE \'%s\'' % escape or '')
         
     def _operator_dispatch(self, operator, element, fn, **kw):
@@ -473,17 +524,64 @@ class SQLCompiler(engine.Compiled):
         else:
             return fn(" " + operator + " ")
         
-    def visit_bindparam(self, bindparam, **kwargs):
+    def visit_bindparam(self, bindparam, within_columns_clause=False, 
+                                            literal_binds=False, **kwargs):
+        if literal_binds or \
+            (within_columns_clause and \
+                self.ansi_bind_rules):
+            if bindparam.value is None:
+                raise exc.CompileError("Bind parameter without a "
+                                        "renderable value not allowed here.")
+            return self.render_literal_bindparam(bindparam, within_columns_clause=True, **kwargs)
+            
         name = self._truncate_bindparam(bindparam)
         if name in self.binds:
             existing = self.binds[name]
-            if existing is not bindparam and (existing.unique or bindparam.unique):
-                raise exc.CompileError(
-                        "Bind parameter '%s' conflicts with unique bind parameter of the same name" % bindparam.key
-                    )
+            if existing is not bindparam:
+                if existing.unique or bindparam.unique:
+                    raise exc.CompileError(
+                            "Bind parameter '%s' conflicts with "
+                            "unique bind parameter of the same name" % bindparam.key
+                        )
+                elif getattr(existing, '_is_crud', False):
+                    raise exc.CompileError(
+                            "Bind parameter name '%s' is reserved "
+                            "for the VALUES or SET clause of this insert/update statement." 
+                            % bindparam.key
+                        )
+                    
         self.binds[bindparam.key] = self.binds[name] = bindparam
         return self.bindparam_string(name)
-
+    
+    def render_literal_bindparam(self, bindparam, **kw):
+        value = bindparam.value
+        processor = bindparam.bind_processor(self.dialect)
+        if processor:
+            value = processor(value)
+        return self.render_literal_value(value, bindparam.type)
+        
+    def render_literal_value(self, value, type_):
+        """Render the value of a bind parameter as a quoted literal.
+        
+        This is used for statement sections that do not accept bind paramters
+        on the target driver/database.
+        
+        This should be implemented by subclasses using the quoting services
+        of the DBAPI.
+        
+        """
+        if isinstance(value, basestring):
+            value = value.replace("'", "''")
+            return "'%s'" % value
+        elif value is None:
+            return "NULL"
+        elif isinstance(value, (float, int, long)):
+            return repr(value)
+        elif isinstance(value, decimal.Decimal):
+            return str(value)
+        else:
+            raise NotImplementedError("Don't know how to literal-quote value %r" % value)
+        
     def _truncate_bindparam(self, bindparam):
         if bindparam in self.bind_names:
             return self.bind_names[bindparam]
@@ -597,33 +695,33 @@ class SQLCompiler(engine.Compiled):
         
         text = "SELECT "  # we're off to a good start !
         if select._prefixes:
-            text += " ".join(self.process(x) for x in select._prefixes) + " "
+            text += " ".join(self.process(x, **kwargs) for x in select._prefixes) + " "
         text += self.get_select_precolumns(select)
         text += ', '.join(inner_columns)
 
         if froms:
             text += " \nFROM "
-            text += ', '.join(self.process(f, asfrom=True) for f in froms)
+            text += ', '.join(self.process(f, asfrom=True, **kwargs) for f in froms)
         else:
             text += self.default_from()
 
         if select._whereclause is not None:
-            t = self.process(select._whereclause)
+            t = self.process(select._whereclause, **kwargs)
             if t:
                 text += " \nWHERE " + t
 
         if select._group_by_clause.clauses:
-            group_by = self.process(select._group_by_clause)
+            group_by = self.process(select._group_by_clause, **kwargs)
             if group_by:
                 text += " GROUP BY " + group_by
 
         if select._having is not None:
-            t = self.process(select._having)
+            t = self.process(select._having, **kwargs)
             if t:
                 text += " \nHAVING " + t
 
         if select._order_by_clause.clauses:
-            text += self.order_by_clause(select)
+            text += self.order_by_clause(select, **kwargs)
         if select._limit is not None or select._offset is not None:
             text += self.limit_clause(select)
         if select.for_update:
@@ -643,8 +741,8 @@ class SQLCompiler(engine.Compiled):
         """
         return select._distinct and "DISTINCT " or ""
 
-    def order_by_clause(self, select):
-        order_by = self.process(select._order_by_clause)
+    def order_by_clause(self, select, **kw):
+        order_by = self.process(select._order_by_clause, **kw)
         if order_by:
             return " ORDER BY " + order_by
         else:
@@ -691,8 +789,9 @@ class SQLCompiler(engine.Compiled):
         if not colparams and \
                 not self.dialect.supports_default_values and \
                 not self.dialect.supports_empty_insert:
-            raise exc.CompileError(
-                "The version of %s you are using does not support empty inserts." % self.dialect.name)
+            raise exc.CompileError("The version of %s you are using does "
+                                    "not support empty inserts." % 
+                                    self.dialect.name)
 
         preparer = self.preparer
         supports_default_values = self.dialect.supports_default_values
@@ -758,6 +857,14 @@ class SQLCompiler(engine.Compiled):
 
     def _create_crud_bind_param(self, col, value, required=False):
         bindparam = sql.bindparam(col.key, value, type_=col.type, required=required)
+        bindparam._is_crud = True
+        if col.key in self.binds:
+            raise exc.CompileError(
+                    "Bind parameter name '%s' is reserved "
+                    "for the VALUES or SET clause of this insert/update statement." 
+                    % col.key
+                )
+            
         self.binds[col.key] = bindparam
         return self.bindparam_string(self._truncate_bindparam(bindparam))
         
@@ -776,17 +883,12 @@ class SQLCompiler(engine.Compiled):
         self.prefetch = []
         self.returning = []
 
-        # get the keys of explicitly constructed bindparam() objects
-        bind_names = set(b.key for b in visitors.iterate(stmt, {}) if b.__visit_name__ == 'bindparam')
-        if stmt.parameters:
-            bind_names.update(stmt.parameters)
-
         # no parameters in the statement, no parameters in the
         # compiled params - return binds for all columns
         if self.column_keys is None and stmt.parameters is None:
             return [
                         (c, self._create_crud_bind_param(c, None, required=True)) 
-                        for c in stmt.table.columns if c.key not in bind_names
+                        for c in stmt.table.columns
                     ]
 
         required = object()
@@ -797,7 +899,8 @@ class SQLCompiler(engine.Compiled):
             parameters = {}
         else:
             parameters = dict((sql._column_as_key(key), required)
-                              for key in self.column_keys if key not in bind_names)
+                              for key in self.column_keys 
+                              if not stmt.parameters or key not in stmt.parameters)
 
         if stmt.parameters is not None:
             for k, v in stmt.parameters.iteritems():
@@ -808,7 +911,7 @@ class SQLCompiler(engine.Compiled):
         
         need_pks = self.isinsert and \
                         not self.inline and \
-                        not self.statement._returning
+                        not stmt._returning
         
         implicit_returning = need_pks and \
                                 self.dialect.implicit_returning and \
@@ -816,6 +919,9 @@ class SQLCompiler(engine.Compiled):
         
         postfetch_lastrowid = need_pks and self.dialect.postfetch_lastrowid
         
+        # iterating through columns at the top to maintain ordering.
+        # otherwise we might iterate through individual sets of 
+        # "defaults", "primary key cols", etc.
         for c in stmt.table.columns:
             if c.key in parameters:
                 value = parameters[c.key]
@@ -825,69 +931,73 @@ class SQLCompiler(engine.Compiled):
                     self.postfetch.append(c)
                     value = self.process(value.self_group())
                 values.append((c, value))
-            else:
-                if self.isinsert:
-                    if c.primary_key and \
-                        need_pks and \
-                        (
-                            not postfetch_lastrowid or 
-                            c is not stmt.table._autoincrement_column
-                        ):
-                        
-                        if implicit_returning:
-                            if c.default is not None and c.default.is_sequence:
+                
+            elif self.isinsert:
+                if c.primary_key and \
+                    need_pks and \
+                    (
+                        implicit_returning or 
+                        not postfetch_lastrowid or 
+                        c is not stmt.table._autoincrement_column
+                    ):
+                    
+                    if implicit_returning:
+                        if c.default is not None:
+                            if c.default.is_sequence:
                                 proc = self.process(c.default)
                                 if proc is not None:
                                     values.append((c, proc))
                                 self.returning.append(c)
-                            elif c.default is not None and c.default.is_clause_element:
+                            elif c.default.is_clause_element:
                                 values.append((c, self.process(c.default.arg.self_group())))
                                 self.returning.append(c)
-                            elif c.default is not None:
-                                values.append((c, self._create_crud_bind_param(c, None)))
-                                self.prefetch.append(c)
                             else:
-                                self.returning.append(c)
-                        else:
-                            if (
-                                c.default is not None and \
-                                    (
-                                        self.dialect.supports_sequences or 
-                                        not c.default.is_sequence
-                                    )
-                                ) or self.dialect.preexecute_autoincrement_sequences:
-
                                 values.append((c, self._create_crud_bind_param(c, None)))
                                 self.prefetch.append(c)
+                        else:
+                            self.returning.append(c)
+                    else:
+                        if (
+                            c.default is not None and \
+                                (
+                                    self.dialect.supports_sequences or 
+                                    not c.default.is_sequence
+                                )
+                            ) or self.dialect.preexecute_autoincrement_sequences:
 
-                    elif c.default is not None and c.default.is_sequence:
+                            values.append((c, self._create_crud_bind_param(c, None)))
+                            self.prefetch.append(c)
+                
+                elif c.default is not None:
+                    if c.default.is_sequence:
                         proc = self.process(c.default)
                         if proc is not None:
                             values.append((c, proc))
                             if not c.primary_key:
                                 self.postfetch.append(c)
-                    elif c.default is not None and c.default.is_clause_element:
+                    elif c.default.is_clause_element:
                         values.append((c, self.process(c.default.arg.self_group())))
-                        
+                    
                         if not c.primary_key:
                             # dont add primary key column to postfetch
                             self.postfetch.append(c)
-                    elif c.default is not None:
+                    else:
                         values.append((c, self._create_crud_bind_param(c, None)))
                         self.prefetch.append(c)
-                    elif c.server_default is not None:
-                        if not c.primary_key:
-                            self.postfetch.append(c)
-                elif self.isupdate:
-                    if c.onupdate is not None and not c.onupdate.is_sequence:
-                        if c.onupdate.is_clause_element:
-                            values.append((c, self.process(c.onupdate.arg.self_group())))
-                            self.postfetch.append(c)
-                        else:
-                            values.append((c, self._create_crud_bind_param(c, None)))
-                            self.prefetch.append(c)
-                    elif c.server_onupdate is not None:
+                elif c.server_default is not None:
+                    if not c.primary_key:
                         self.postfetch.append(c)
+                        
+            elif self.isupdate:
+                if c.onupdate is not None and not c.onupdate.is_sequence:
+                    if c.onupdate.is_clause_element:
+                        values.append((c, self.process(c.onupdate.arg.self_group())))
+                        self.postfetch.append(c)
+                    else:
+                        values.append((c, self._create_crud_bind_param(c, None)))
+                        self.prefetch.append(c)
+                elif c.server_onupdate is not None:
+                    self.postfetch.append(c)
         return values
 
     def visit_delete(self, delete_stmt):
@@ -979,17 +1089,26 @@ class DDLCompiler(engine.Compiled):
             if const:
                 text += " " + const
 
+        const = self.create_table_constraints(table)
+        if const:
+            text += ", \n\t" + const
+
+        text += "\n)%s\n\n" % self.post_create_table(table)
+        return text
+
+    def create_table_constraints(self, table):
+        
         # On some DB order is significant: visit PK first, then the
         # other constraints (engine.ReflectionTest.testbasic failed on FB2)
+        constraints = []
         if table.primary_key:
-            pk = self.process(table.primary_key)
-            if pk:
-                text += ", \n\t" + pk
+            constraints.append(table.primary_key)
+            
+        constraints.extend([c for c in table.constraints if c is not table.primary_key])
         
-        const = ", \n\t".join(p for p in 
-                        (self.process(constraint) for constraint in table.constraints 
-                        if constraint is not table.primary_key
-                        and (
+        return ", \n\t".join(p for p in
+                        (self.process(constraint) for constraint in constraints 
+                        if (
                             constraint._create_rule is None or
                             constraint._create_rule(self))
                         and (
@@ -997,17 +1116,9 @@ class DDLCompiler(engine.Compiled):
                             not getattr(constraint, 'use_alter', False)
                         )) if p is not None
                 )
-        if const:
-            text += ", \n\t" + const
-        
-        text += "\n)%s\n\n" % self.post_create_table(table)
-        return text
         
     def visit_drop_table(self, drop):
-        ret = "\nDROP TABLE " + self.preparer.format_table(drop.element)
-        if drop.cascade:
-            ret += " CASCADE CONSTRAINTS"
-        return ret
+        return "\nDROP TABLE " + self.preparer.format_table(drop.element)
         
     def visit_create_index(self, create):
         index = create.element

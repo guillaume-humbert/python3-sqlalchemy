@@ -3,6 +3,444 @@
 =======
 CHANGES
 =======
+0.6beta2
+- py3k
+  - Improved the installation/test setup regarding Python 3,
+    now that Distribute runs on Py3k.   distribute_setup.py
+    is now included.  See README.py3k for Python 3 installation/
+    testing instructions.
+    
+- orm
+  - The official name for the relation() function is now
+    relationship(), to eliminate confusion over the relational
+    algebra term.  relation() however will remain available 
+    in equal capacity for the foreseeable future.  [ticket:1740]
+
+  - Added "version_id_generator" argument to Mapper, this is a
+    callable that, given the current value of the "version_id_col",
+    returns the next version number.  Can be used for alternate
+    versioning schemes such as uuid, timestamps.  [ticket:1692]
+  
+  - added "lockmode" kw argument to Session.refresh(), will
+    pass through the string value to Query the same as  
+    in with_lockmode(), will also do version check for a 
+    version_id_col-enabled mapping.
+
+  - Fixed bug whereby calling query(A).join(A.bs).add_entity(B)
+    in a joined inheritance scenario would double-add B as a 
+    target and produce an invalid query.  [ticket:1188]
+
+  - Fixed bug in session.rollback() which involved not removing
+    formerly "pending" objects from the session before
+    re-integrating "deleted" objects, typically occured with
+    natural primary keys. If there was a primary key conflict
+    between them, the attach of the deleted would fail
+    internally. The formerly "pending" objects are now expunged
+    first. [ticket:1674]
+
+  - Removed a lot of logging that nobody really cares about,
+    logging that remains will respond to live changes in the
+    log level.  No significant overhead is added.  [ticket:1719]
+
+  - Fixed bug in session.merge() which prevented dict-like
+    collections from merging.
+    
+  - session.merge() works with relations that specifically
+    don't include "merge" in their cascade options - the target
+    is ignored completely.
+    
+  - session.merge() will not expire existing scalar attributes
+    on an existing target if the target has a value for that
+    attribute, even if the incoming merged doesn't have
+    a value for the attribute.  This prevents unnecessary loads
+    on existing items.  Will still mark the attr as expired
+    if the destination doesn't have the attr, though, which
+    fulfills some contracts of deferred cols.  [ticket:1681]
+
+  - The "allow_null_pks" flag is now called "allow_partial_pks",
+    defaults to True, acts like it did in 0.5 again.  Except,
+    it also is implemented within merge() such that a SELECT
+    won't be issued for an incoming instance with partially
+    NULL primary key if the flag is False.  [ticket:1680]
+  
+  - Fixed bug in 0.6-reworked "many-to-one" optimizations
+    such that a many-to-one that is against a non-primary key
+    column on the remote table (i.e. foreign key against a 
+    UNIQUE column) will pull the "old" value in from the
+    database during a change, since if it's in the session
+    we will need it for proper history/backref accounting,
+    and we can't pull from the local identity map on a 
+    non-primary key column. [ticket:1737]
+    
+  - fixed internal error which would occur if calling has()
+    or similar complex expression on a single-table inheritance
+    relation(). [ticket:1731]
+    
+  - query.one() no longer applies LIMIT to the query, this to
+    ensure that it fully counts all object identities present
+    in the result, even in the case where joins may conceal
+    multiple identities for two or more rows.  As a bonus,
+    one() can now also be called with a query that issued
+    from_statement() to start with since it no longer modifies
+    the query.  [ticket:1688]
+
+  - query.get() now returns None if queried for an identifier
+    that is present in the identity map with a different class 
+    than the one requested, i.e. when using polymorphic loading.  
+    [ticket:1727]
+    
+  - A major fix in query.join(), when the "on" clause is an
+    attribute of an aliased() construct, but there is already
+    an existing join made out to a compatible target, query properly
+    joins to the right aliased() construct instead of sticking
+    onto the right side of the existing join.  [ticket:1706]
+    
+  - Slight improvement to the fix for [ticket:1362] to not issue 
+    needless updates of the primary key column during a so-called
+    "row switch" operation, i.e. add + delete of two objects
+    with the same PK.
+
+  - Now uses sqlalchemy.orm.exc.DetachedInstanceError when an 
+    attribute load or refresh action fails due to object
+    being detached from any Session.   UnboundExecutionError
+    is specific to engines bound to sessions and statements.
+    
+  - Query called in the context of an expression will render
+    disambiguating labels in all cases.    Note that this does
+    not apply to the existing .statement and .subquery()
+    accessor/method, which still honors the .with_labels()
+    setting that defaults to False.  
+     
+  - Query.union() retains disambiguating labels within the
+    returned statement, thus avoiding various SQL composition
+    errors which can result from column name conflicts.
+    [ticket:1676]
+
+  - Fixed bug in attribute history that inadvertently invoked
+    __eq__ on mapped instances.
+
+  - Some internal streamlining of object loading grants a 
+    small speedup for large results, estimates are around 
+    10-15%.   Gave the "state" internals a good solid 
+    cleanup with less complexity, datamembers, 
+    method calls, blank dictionary creates.
+
+  - Documentation clarification for query.delete()
+    [ticket:1689]
+
+  - Fixed cascade bug in many-to-one relation() when attribute
+    was set to None, introduced in r6711 (cascade deleted
+    items into session during add()).
+
+  - Calling query.order_by() or query.distinct() before calling
+    query.select_from(), query.with_polymorphic(), or
+    query.from_statement() raises an exception now instead of 
+    silently dropping those criterion. [ticket:1736]
+    
+  - query.scalar() now raises an exception if more than one 
+    row is returned.  All other behavior remains the same.
+    [ticket:1735]
+
+  - Fixed bug which caused "row switch" logic, that is an 
+    INSERT and DELETE replaced by an UPDATE, to fail when 
+    version_id_col was in use. [ticket:1692]
+    
+- sql
+  - join() will now simulate a NATURAL JOIN by default.  Meaning,
+    if the left side is a join, it will attempt to join the right
+    side to the rightmost side of the left first, and not raise
+    any exceptions about ambiguous join conditions if successful
+    even if there are further join targets across the rest of
+    the left.  [ticket:1714]
+    
+  - The most common result processors conversion function were
+    moved to the new "processors" module.  Dialect authors are
+    encouraged to use those functions whenever they correspond
+    to their needs instead of implementing custom ones.
+
+  - SchemaType and subclasses Boolean, Enum are now serializable,
+    including their ddl listener and other event callables.
+    [ticket:1694] [ticket:1698]
+
+  - Some platforms will now interpret certain literal values 
+    as non-bind parameters, rendered literally into the SQL
+    statement.   This to support strict SQL-92 rules that are 
+    enforced by some platforms including MS-SQL and Sybase.
+    In this model, bind parameters aren't allowed in the
+    columns clause of a SELECT, nor are certain ambiguous
+    expressions like "?=?".  When this mode is enabled, the base
+    compiler will render the binds as inline literals, but only across
+    strings and numeric values.  Other types such as dates
+    will raise an error, unless the dialect subclass defines
+    a literal rendering function for those.  The bind parameter
+    must have an embedded literal value already or an error
+    is raised (i.e. won't work with straight bindparam('x')).
+    Dialects can also expand upon the areas where binds are not 
+    accepted, such as within argument lists of functions 
+    (which don't work on MS-SQL when native SQL binding is used).
+    
+  - Added "unicode_errors" parameter to String, Unicode, etc.
+    Behaves like the 'errors' keyword argument to
+    the standard library's string.decode() functions.   This flag
+    requires that `convert_unicode` is set to `"force"` - otherwise,
+    SQLAlchemy is not guaranteed to handle the task of unicode
+    conversion.   Note that this flag adds significant performance
+    overhead to row-fetching operations for backends that already
+    return unicode objects natively (which most DBAPIs do).  This
+    flag should only be used as an absolute last resort for reading
+    strings from a column with varied or corrupted encodings,
+    which only applies to databases that accept invalid encodings 
+    in the first place (i.e. MySQL. *not* PG, Sqlite, etc.)
+
+  - Added math negation operator support, -x.
+  
+  - FunctionElement subclasses are now directly executable the
+    same way any func.foo() construct is, with automatic 
+    SELECT being applied when passed to execute().
+    
+  - The "type" and "bind" keyword arguments of a func.foo() 
+    construct are now local to "func." constructs and are 
+    not part of the FunctionElement base class, allowing 
+    a "type" to be handled in a custom constructor or 
+    class-level variable.
+    
+  - Restored the keys() method to ResultProxy.
+  
+  - The type/expression system now does a more complete job
+    of determining the return type from an expression
+    as well as the adaptation of the Python operator into 
+    a SQL operator, based on the full left/right/operator
+    of the given expression.  In particular
+    the date/time/interval system created for Postgresql
+    EXTRACT in [ticket:1647] has now been generalized into
+    the type system.   The previous behavior which often
+    occured of an expression "column + literal" forcing
+    the type of "literal" to be the same as that of "column"
+    will now usually not occur - the type of 
+    "literal" is first derived from the Python type of the 
+    literal, assuming standard native Python types + date 
+    types, before falling back to that of the known type
+    on the other side of the expression.  If the 
+    "fallback" type is compatible (i.e. CHAR from String),
+    the literal side will use that.  TypeDecorator
+    types override this by default to coerce the "literal"
+    side unconditionally, which can be changed by implementing
+    the coerce_compared_value() method. Also part of 
+    [ticket:1683].
+
+  - Made sqlalchemy.sql.expressions.Executable part of public 
+    API, used for any expression construct that can be sent to
+    execute().  FunctionElement now inherits Executable so that
+    it gains execution_options(), which are also propagated
+    to the select() that's generated within execute().
+    Executable in turn subclasses _Generative which marks
+    any ClauseElement that supports the @_generative
+    decorator - these may also become "public" for the benefit
+    of the compiler extension at some point.
+
+  - A change to the solution for [ticket:1579] - an end-user
+    defined bind parameter name that directly conflicts with 
+    a column-named bind generated directly from the SET or
+    VALUES clause of an update/insert generates a compile error.
+    This reduces call counts and eliminates some cases where
+    undesirable name conflicts could still occur.
+
+  - Column() requires a type if it has no foreign keys (this is 
+    not new).  An error is now raised if a Column() has no type
+    and no foreign keys.  [ticket:1705]
+    
+  - the "scale" argument of the Numeric() type is honored when 
+    coercing a returned floating point value into a string 
+    on its way to Decimal - this allows accuracy to function
+    on SQLite, MySQL.  [ticket:1717]
+
+  - the copy() method of Column now copies over uninitialized
+    "on table attach" events.  Helps with the new declarative
+    "mixin" capability.
+    
+- engines
+  - Added an optional C extension to speed up the sql layer by
+    reimplementing RowProxy and the most common result processors.
+    The actual speedups will depend heavily on your DBAPI and
+    the mix of datatypes used in your tables, and can vary from
+    a 30% improvement to more than 200%.  It also provides a modest
+    (~15-20%) indirect improvement to ORM speed for large queries.
+    Note that it is *not* built/installed by default.
+    See README for installation instructions.
+
+  - the execution sequence pulls all rowcount/last inserted ID
+    info from the cursor before commit() is called on the 
+    DBAPI connection in an "autocommit" scenario.  This helps 
+    mxodbc with rowcount and is probably a good idea overall.
+    
+  - Opened up logging a bit such that isEnabledFor() is called 
+    more often, so that changes to the log level for engine/pool
+    will be reflected on next connect.   This adds a small 
+    amount of method call overhead.  It's negligible and will make
+    life a lot easier for all those situations when logging 
+    just happens to be configured after create_engine() is called.
+    [ticket:1719]
+    
+  - The assert_unicode flag is deprecated.  SQLAlchemy will raise
+    a warning in all cases where it is asked to encode a non-unicode
+    Python string, as well as when a Unicode or UnicodeType type
+    is explicitly passed a bytestring.  The String type will do nothing 
+    for DBAPIs that already accept Python unicode objects.
+
+  - Bind parameters are sent as a tuple instead of a list. Some
+    backend drivers will not accept bind parameters as a list.
+
+  - threadlocal engine wasn't properly closing the connection
+    upon close() - fixed that.
+
+  - Transaction object doesn't rollback or commit if it isn't 
+    "active", allows more accurate nesting of begin/rollback/commit.
+
+  - Python unicode objects as binds result in the Unicode type, 
+    not string, thus eliminating a certain class of unicode errors
+    on drivers that don't support unicode binds.
+
+  - Added "logging_name" argument to create_engine(), Pool() constructor
+    as well as "pool_logging_name" argument to create_engine() which
+    filters down to that of Pool.   Issues the given string name
+    within the "name" field of logging messages instead of the default
+    hex identifier string.  [ticket:1555]
+    
+  - The visit_pool() method of Dialect is removed, and replaced with
+    on_connect().  This method returns a callable which receives
+    the raw DBAPI connection after each one is created.   The callable
+    is assembled into a first_connect/connect pool listener by the 
+    connection strategy if non-None.   Provides a simpler interface 
+    for dialects.
+    
+  - StaticPool now initializes, disposes and recreates without 
+    opening a new connection - the connection is only opened when 
+    first requested. dispose() also works on AssertionPool now.
+    [ticket:1728]
+    
+- metadata
+  - Added the ability to strip schema information when using
+    "tometadata" by passing "schema=None" as an argument. If schema
+    is not specified then the table's schema is retained.
+    [ticket: 1673]
+
+- declarative
+  - DeclarativeMeta exclusively uses cls.__dict__ (not dict_) 
+    as the source of class information; _as_declarative exclusively 
+    uses the  dict_ passed to it as the source of class information 
+    (which when using DeclarativeMeta is cls.__dict__).  This should 
+    in theory make it easier for custom metaclasses to modify
+    the state passed into _as_declarative.
+
+  - declarative now accepts mixin classes directly, as a means
+    to provide common functional and column-based elements on
+    all subclasses, as well as a means to propagate a fixed
+    set of __table_args__ or __mapper_args__ to subclasses.  
+    For custom combinations of __table_args__/__mapper_args__ from
+    an inherited mixin to local, descriptors can now be used.
+    New details are all up in the Declarative documentation.
+    Thanks to Chris Withers for putting up with my strife 
+    on this. [ticket:1707]
+    
+  - the __mapper_args__ dict is copied when propagating to a subclass,
+    and is taken straight off the class __dict__ to avoid any
+    propagation from the parent.  mapper inheritance already
+    propagates the things you want from the parent mapper.
+    [ticket:1393]
+
+  - An exception is raised when a single-table subclass specifies
+    a column that is already present on the base class.
+    [ticket:1732]
+    
+- mysql
+  - Fixed reflection bug whereby when COLLATE was present, 
+    nullable flag and server defaults would not be reflected.
+    [ticket:1655]
+
+  - Fixed reflection of TINYINT(1) "boolean" columns defined with
+    integer flags like UNSIGNED.
+
+  - Further fixes for the mysql-connector dialect.  [ticket:1668]
+  
+  - Composite PK table on InnoDB where the "autoincrement" column
+    isn't first will emit an explicit "KEY" phrase within 
+    CREATE TABLE thereby avoiding errors, [ticket:1496]
+
+  - Added reflection/create table support for a wide range
+    of MySQL keywords.  [ticket:1634]
+  
+  - Fixed import error which could occur reflecting tables on
+    a Windows host [ticket:1580]
+    
+- mssql
+  - Re-established support for the pymssql dialect.
+
+  - Various fixes for implicit returning, reflection,
+    etc. - the MS-SQL dialects aren't quite complete
+    in 0.6 yet (but are close)
+  
+  - Added basic support for mxODBC [ticket:1710].
+  
+  - Removed the text_as_varchar option.
+
+- oracle
+   - "out" parameters require a type that is supported by
+     cx_oracle.  An error will be raised if no cx_oracle
+     type can be found.
+
+   - Oracle 'DATE' now does not perform any result processing,
+     as the DATE type in Oracle stores full date+time objects,
+     that's what you'll get.  Note that the generic types.Date
+     type *will* still call value.date() on incoming values, 
+     however.  When reflecting a table, the reflected type
+     will be 'DATE'.
+
+   - Added preliminary support for Oracle's WITH_UNICODE
+     mode.  At the very least this establishes initial
+     support for cx_Oracle with Python 3.  When WITH_UNICODE
+     mode is used in Python 2.xx, a large and scary warning
+     is emitted asking that the user seriously consider
+     the usage of this difficult mode of operation.
+     [ticket:1670]
+  
+   - The except_() method now renders as MINUS on Oracle,
+     which is more or less equivalent on that platform.
+     [ticket:1712]
+   
+   - Added support for rendering and reflecting 
+     TIMESTAMP WITH TIME ZONE, i.e. TIMESTAMP(timezone=True).
+     [ticket:651]
+     
+   - Oracle INTERVAL type can now be reflected.
+     
+- sqlite
+   - Added "native_datetime=True" flag to create_engine().
+     This will cause the DATE and TIMESTAMP types to skip 
+     all bind parameter and result row processing, under 
+     the assumption that PARSE_DECLTYPES has been enabled 
+     on the connection.  Note that this is not entirely
+     compatible with the "func.current_date()", which 
+     will be returned as a string. [ticket:1685]
+
+- sybase
+   - Implemented a preliminary working dialect for Sybase,
+     with sub-implementations for Python-Sybase as well
+     as Pyodbc.  Handles table
+     creates/drops and basic round trip functionality.
+     Does not yet include reflection or comprehensive
+     support of unicode/special expressions/etc.
+     
+- examples
+   - Changed the beaker cache example a bit to have a separate
+     RelationCache option for lazyload caching.  This object
+     does a lookup among any number of potential attributes
+     more efficiently by grouping several into a common structure.
+     Both FromCache and RelationCache are simpler individually.
+
+- documentation
+   - Major cleanup work in the docs to link class, function, and
+     method names into the API docs. [ticket:1700/1702/1703]
+
 0.6beta1
 ========
 - Major Release
@@ -10,8 +448,8 @@ CHANGES
     http://www.sqlalchemy.org/trac/wiki/06Migration .
     This document is a work in progress.
 
-  - All bug fixes and feature enhancements from 0.5.6 and 
-    below are also included within 0.6.
+  - All bug fixes and feature enhancements from the most
+    recent 0.5 version and below are also included within 0.6.
 
   - Platforms targeted now include Python 2.4/2.5/2.6, Python
     3.1, Jython2.5.
@@ -397,11 +835,13 @@ CHANGES
     the parent ResultProxy instead, or use autoclose.
     
   - ResultProxy internals have been overhauled to greatly reduce
-    method call counts when fetching columns that have no 
-    type-level processing applied.   Provides a 100% speed
-    improvement when fetching large result sets with no unicode
-    conversion as tuples.  Many thanks to Elixir's Gaëtan de Menten
-    for this dramatic improvement !  [ticket:1586]
+    method call counts when fetching columns.  Can provide a large 
+    speed improvement (up to more than 100%) when fetching large 
+    result sets.  The improvement is larger when fetching columns 
+    that have no type-level processing applied and when using 
+    results as tuples (instead of as dictionaries).  Many 
+    thanks to Elixir's Gaëtan de Menten for this dramatic 
+    improvement !  [ticket:1586]
 
   - Databases which rely upon postfetch of "last inserted id"
     to get at a generated sequence value (i.e. MySQL, MS-SQL)
@@ -879,6 +1319,15 @@ CHANGES
       is a Python unicode.   This allows vast performance
       increases for native-unicode DBAPIs, including
       pysqlite/sqlite3, psycopg2, and pg8000.
+
+    - Most types result processors have been checked for possible speed
+      improvements. Specifically, the following generic types have been 
+      optimized, resulting in varying speed improvements: 
+      Unicode, PickleType, Interval, TypeDecorator, Binary. 
+      Also the following dbapi-specific implementations have been improved:
+      Time, Date and DateTime on Sqlite, ARRAY on Postgresql,
+      Time on MySQL, Numeric(as_decimal=False) on MySQL, oursql and 
+      pypostgresql, DateTime on cx_oracle and LOB-based types on cx_oracle.
       
     - Reflection of types now returns the exact UPPERCASE
       type within types.py, or the UPPERCASE type within

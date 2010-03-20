@@ -7,7 +7,7 @@
         
         <title>
     PostgreSQL
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,7 +87,7 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">PostgreSQL</a><ul>
+<li><a class="reference external" href="#">PostgreSQL</a><ul>
 <li><a class="reference external" href="#sequences-serial">Sequences/SERIAL</a></li>
 <li><a class="reference external" href="#insert-update-returning">INSERT/UPDATE...RETURNING</a></li>
 <li><a class="reference external" href="#indexes">Indexes</a></li>
@@ -178,8 +178,7 @@ option to the Index constructor:</p>
 <h2>PostgresSQL Column Types<a class="headerlink" href="#postgressql-column-types" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.ARRAY">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">ARRAY</tt><big>(</big><em>item_type</em>, <em>mutable=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">ARRAY</tt><big>(</big><em>item_type</em>, <em>mutable=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.MutableType" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.MutableType</span></tt></a>, <a title="sqlalchemy.types.Concatenable" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Concatenable"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Concatenable</span></tt></a>, <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.ARRAY.__init__">
@@ -212,8 +211,7 @@ shallow-copy values.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.BIT">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">BIT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.BIT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">BIT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.BIT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.BIT.__init__">
@@ -224,8 +222,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><t
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.BYTEA">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">BYTEA</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.BYTEA" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">BYTEA</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.BYTEA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.LargeBinary" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.LargeBinary"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.BYTEA.__init__">
@@ -252,8 +249,7 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.CIDR">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">CIDR</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.CIDR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">CIDR</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.CIDR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.CIDR.__init__">
@@ -264,8 +260,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><t
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Float" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Float"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION.__init__">
@@ -290,8 +285,7 @@ defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.ENUM">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">ENUM</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ENUM" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">ENUM</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ENUM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Enum" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Enum"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Enum</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.ENUM.__init__">
@@ -306,8 +300,6 @@ by that backend.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><em>*enums</em> &#8211; string or unicode enumeration labels. If unicode labels
 are present, the <cite>convert_unicode</cite> flag is auto-enabled.</li>
-<li><em>assert_unicode</em> &#8211; Enable unicode asserts for bind parameter values.
-This flag is equivalent to that of <tt class="docutils literal"><span class="pre">String</span></tt>.</li>
 <li><em>convert_unicode</em> &#8211; Enable unicode-aware bind parameter and result-set
 processing for this Enum&#8217;s data. This is set automatically based on
 the presence of unicode label strings.</li>
@@ -345,8 +337,7 @@ name should be quoted.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.INET">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">INET</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.INET" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">INET</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.INET" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.INET.__init__">
@@ -357,8 +348,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><t
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.INTERVAL">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">INTERVAL</tt><big>(</big><em>precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.INTERVAL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">INTERVAL</tt><big>(</big><em>precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.INTERVAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.INTERVAL.__init__">
@@ -369,8 +359,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><t
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.MACADDR">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">MACADDR</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.MACADDR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">MACADDR</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.MACADDR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.MACADDR.__init__">
@@ -381,8 +370,7 @@ class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><t
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.REAL">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.REAL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.REAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Float" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Float"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.REAL.__init__">
@@ -407,8 +395,7 @@ defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.UUID">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">UUID</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.UUID" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">UUID</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.UUID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.UUID.__init__">
@@ -506,7 +493,7 @@ the &#8220;encoding&#8221; parameter on create_engine(), usually &#8220;utf-8&#8
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

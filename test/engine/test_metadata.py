@@ -4,7 +4,7 @@ from sqlalchemy import Integer, String, UniqueConstraint, CheckConstraint,\
                         ForeignKey, MetaData, Sequence, ForeignKeyConstraint,\
                         ColumnDefault
 from sqlalchemy.test.schema import Table, Column
-from sqlalchemy import schema
+from sqlalchemy import schema, exc
 import sqlalchemy as tsa
 from sqlalchemy.test import TestBase, ComparesTables, AssertsCompiledSQL, testing, engines
 from sqlalchemy.test.testing import eq_
@@ -54,7 +54,20 @@ class MetaDataTest(TestBase, ComparesTables):
             for a1, a2 in zip(col.foreign_keys, c2.foreign_keys):
                 assert a1 is not a2
                 eq_(a2._colspec, 'bat.blah')
-            
+
+    def test_uninitialized_column_copy_events(self):
+        msgs = []
+        def write(t, c):
+            msgs.append("attach %s.%s" % (t.name, c.name))
+        c1 = Column('foo', String())
+        c1._on_table_attach(write)
+        m = MetaData()
+        for i in xrange(3):
+            cx = c1.copy()
+            t = Table('foo%d' % i, m, cx)
+        eq_(msgs, ['attach foo0.foo', 'attach foo1.foo', 'attach foo2.foo'])
+        
+        
     def test_dupe_tables(self):
         metadata = MetaData()
         t1 = Table('table1', metadata, Column('col1', Integer, primary_key=True),
@@ -203,8 +216,57 @@ class MetaDataTest(TestBase, ComparesTables):
 
         eq_(str(table_c.join(table2_c).onclause), str(table_c.c.myid == table2_c.c.myid))
         eq_(str(table_c.join(table2_c).onclause), "someschema.mytable.myid = someschema.othertable.myid")
-        
-        
+
+    def test_tometadata_default_schema(self):
+        meta = MetaData()
+
+        table = Table('mytable', meta,
+            Column('myid', Integer, primary_key=True),
+            Column('name', String(40), nullable=True),
+            Column('description', String(30), CheckConstraint("description='hi'")),
+            UniqueConstraint('name'),
+            test_needs_fk=True,
+            schema='myschema',
+        )
+
+        table2 = Table('othertable', meta,
+            Column('id', Integer, primary_key=True),
+            Column('myid', Integer, ForeignKey('myschema.mytable.myid')),
+            test_needs_fk=True,
+            schema='myschema',
+            )
+
+        meta2 = MetaData()
+        table_c = table.tometadata(meta2)
+        table2_c = table2.tometadata(meta2)
+
+        eq_(str(table_c.join(table2_c).onclause), str(table_c.c.myid == table2_c.c.myid))
+        eq_(str(table_c.join(table2_c).onclause), "myschema.mytable.myid = myschema.othertable.myid")
+
+    def test_tometadata_strip_schema(self):
+        meta = MetaData()
+
+        table = Table('mytable', meta,
+            Column('myid', Integer, primary_key=True),
+            Column('name', String(40), nullable=True),
+            Column('description', String(30), CheckConstraint("description='hi'")),
+            UniqueConstraint('name'),
+            test_needs_fk=True,
+        )
+
+        table2 = Table('othertable', meta,
+            Column('id', Integer, primary_key=True),
+            Column('myid', Integer, ForeignKey('mytable.myid')),
+            test_needs_fk=True,
+            )
+
+        meta2 = MetaData()
+        table_c = table.tometadata(meta2, schema=None)
+        table2_c = table2.tometadata(meta2, schema=None)
+
+        eq_(str(table_c.join(table2_c).onclause), str(table_c.c.myid == table2_c.c.myid))
+        eq_(str(table_c.join(table2_c).onclause), "mytable.myid = othertable.myid")
+
     def test_nonexistent(self):
         assert_raises(tsa.exc.NoSuchTableError, Table,
                           'fake_table',
@@ -241,27 +303,4 @@ class TableOptionsTest(TestBase, AssertsCompiledSQL):
         for t in (t1, t2, t3):
             t.info['bar'] = 'zip'
             assert t.info['bar'] == 'zip'
-
-class ColumnOptionsTest(TestBase):
-    
-    def test_default_generators(self):
-        g1, g2 = Sequence('foo_id_seq'), ColumnDefault('f5')
-        assert Column(default=g1).default is g1
-        assert Column(onupdate=g1).onupdate is g1
-        assert Column(default=g2).default is g2
-        assert Column(onupdate=g2).onupdate is g2
-        
-        
-    def test_column_info(self):
-        
-        c1 = Column('foo', info={'x':'y'})
-        c2 = Column('bar', info={})
-        c3 = Column('bat')
-        assert c1.info == {'x':'y'}
-        assert c2.info == {}
-        assert c3.info == {}
-        
-        for c in (c1, c2, c3):
-            c.info['bar'] = 'zip'
-            assert c.info['bar'] == 'zip'
 

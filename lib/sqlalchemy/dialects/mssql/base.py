@@ -2,119 +2,10 @@
 
 """Support for the Microsoft SQL Server database.
 
-Driver
-------
-
-The MSSQL dialect will work with three different available drivers:
-
-* *pyodbc* - http://pyodbc.sourceforge.net/. This is the recommeded
-  driver.
-
-* *pymssql* - http://pymssql.sourceforge.net/
-
-* *adodbapi* - http://adodbapi.sourceforge.net/
-
-Drivers are loaded in the order listed above based on availability.
-
-If you need to load a specific driver pass ``module_name`` when
-creating the engine::
-
-    engine = create_engine('mssql+module_name://dsn')
-
-``module_name`` currently accepts: ``pyodbc``, ``pymssql``, and
-``adodbapi``.
-
-Currently the pyodbc driver offers the greatest level of
-compatibility.
-
 Connecting
 ----------
 
-Connecting with create_engine() uses the standard URL approach of
-``mssql://user:pass@host/dbname[?key=value&key=value...]``.
-
-If the database name is present, the tokens are converted to a
-connection string with the specified values. If the database is not
-present, then the host token is taken directly as the DSN name.
-
-Examples of pyodbc connection string URLs:
-
-* *mssql+pyodbc://mydsn* - connects using the specified DSN named ``mydsn``.
-  The connection string that is created will appear like::
-
-    dsn=mydsn;Trusted_Connection=Yes
-
-* *mssql+pyodbc://user:pass@mydsn* - connects using the DSN named
-  ``mydsn`` passing in the ``UID`` and ``PWD`` information. The
-  connection string that is created will appear like::
-
-    dsn=mydsn;UID=user;PWD=pass
-
-* *mssql+pyodbc://user:pass@mydsn/?LANGUAGE=us_english* - connects
-  using the DSN named ``mydsn`` passing in the ``UID`` and ``PWD``
-  information, plus the additional connection configuration option
-  ``LANGUAGE``. The connection string that is created will appear
-  like::
-
-    dsn=mydsn;UID=user;PWD=pass;LANGUAGE=us_english
-
-* *mssql+pyodbc://user:pass@host/db* - connects using a connection string
-  dynamically created that would appear like::
-
-    DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass
-
-* *mssql+pyodbc://user:pass@host:123/db* - connects using a connection
-  string that is dynamically created, which also includes the port
-  information using the comma syntax. If your connection string
-  requires the port information to be passed as a ``port`` keyword
-  see the next example. This will create the following connection
-  string::
-
-    DRIVER={SQL Server};Server=host,123;Database=db;UID=user;PWD=pass
-
-* *mssql+pyodbc://user:pass@host/db?port=123* - connects using a connection
-  string that is dynamically created that includes the port
-  information as a separate ``port`` keyword. This will create the
-  following connection string::
-
-    DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass;port=123
-
-If you require a connection string that is outside the options
-presented above, use the ``odbc_connect`` keyword to pass in a
-urlencoded connection string. What gets passed in will be urldecoded
-and passed directly.
-
-For example::
-
-    mssql+pyodbc:///?odbc_connect=dsn%3Dmydsn%3BDatabase%3Ddb
-
-would create the following connection string::
-
-    dsn=mydsn;Database=db
-
-Encoding your connection string can be easily accomplished through
-the python shell. For example::
-
-    >>> import urllib
-    >>> urllib.quote_plus('dsn=mydsn;Database=db')
-    'dsn%3Dmydsn%3BDatabase%3Ddb'
-
-Additional arguments which may be specified either as query string
-arguments on the URL, or as keyword argument to
-:func:`~sqlalchemy.create_engine()` are:
-
-* *query_timeout* - allows you to override the default query timeout.
-  Defaults to ``None``. This is only supported on pymssql.
-
-* *use_scope_identity* - allows you to specify that SCOPE_IDENTITY
-  should be used in place of the non-scoped version @@IDENTITY.
-  Defaults to True.
-
-* *max_identifier_length* - allows you to se the maximum length of
-  identfiers supported by the database. Defaults to 128. For pymssql
-  the default is 30.
-
-* *schema_name* - use to set the schema name. Defaults to ``dbo``.
+See the individual driver sections below for details on connecting.
 
 Auto Increment Behavior
 -----------------------
@@ -220,9 +111,6 @@ Known Issues
 
 * No support for more than one ``IDENTITY`` column per table
 
-* pymssql has problems with binary and unicode data that this module
-  does **not** work around
-
 """
 import datetime, decimal, inspect, operator, sys, re
 import itertools
@@ -233,11 +121,10 @@ from sqlalchemy.sql import select, compiler, expression, \
                             functions as sql_functions, util as sql_util
 from sqlalchemy.engine import default, base, reflection
 from sqlalchemy import types as sqltypes
-from decimal import Decimal as _python_Decimal
+from sqlalchemy import processors
 from sqlalchemy.types import INTEGER, BIGINT, SMALLINT, DECIMAL, NUMERIC, \
                                 FLOAT, TIMESTAMP, DATETIME, DATE, BINARY,\
                                 VARBINARY, BLOB
-            
 
 from sqlalchemy.dialects.mssql import information_schema as ischema
 
@@ -276,59 +163,6 @@ RESERVED_WORDS = set(
      'writetext',
     ])
 
-
-class _MSNumeric(sqltypes.Numeric):
-    def result_processor(self, dialect, coltype):
-        if self.asdecimal:
-            def process(value):
-                if value is not None:
-                    return _python_Decimal(str(value))
-                else:
-                    return value
-            return process
-        else:
-            #XXX: if the DBAPI returns a float (this is likely, given the
-            # processor when asdecimal is True), this should be a None
-            # processor instead.
-            def process(value):
-                if value is not None:
-                    return float(value)
-                else:
-                    return value
-            return process
-
-    def bind_processor(self, dialect):
-        def process(value):
-            if isinstance(value, decimal.Decimal):
-                if value.adjusted() < 0:
-                    result = "%s0.%s%s" % (
-                            (value < 0 and '-' or ''),
-                            '0' * (abs(value.adjusted()) - 1),
-                            "".join([str(nint) for nint in value._int]))
-
-                else:
-                    if 'E' in str(value):
-                        result = "%s%s%s" % (
-                                (value < 0 and '-' or ''),
-                                "".join([str(s) for s in value._int]),
-                                "0" * (value.adjusted() - (len(value._int)-1)))
-                    else:
-                        if (len(value._int) - 1) > value.adjusted():
-                            result = "%s%s.%s" % (
-                                    (value < 0 and '-' or ''),
-                                    "".join([str(s) for s in value._int][0:value.adjusted() + 1]),
-                                    "".join([str(s) for s in value._int][value.adjusted() + 1:]))
-                        else:
-                            result = "%s%s" % (
-                                    (value < 0 and '-' or ''),
-                                    "".join([str(s) for s in value._int][0:value.adjusted() + 1]))
-
-                return result
-
-            else:
-                return value
-
-        return process
 
 class REAL(sqltypes.Float):
     """A type for ``real`` numbers."""
@@ -425,26 +259,11 @@ class DATETIMEOFFSET(sqltypes.TypeEngine):
     def __init__(self, precision=None, **kwargs):
         self.precision = precision
 
-
 class _StringType(object):
     """Base for MSSQL string types."""
 
     def __init__(self, collation=None):
         self.collation = collation
-
-    def __repr__(self):
-        attributes = inspect.getargspec(self.__init__)[0][1:]
-        attributes.extend(inspect.getargspec(_StringType.__init__)[0][1:])
-
-        params = {}
-        for attr in attributes:
-            val = getattr(self, attr)
-            if val is not None and val is not False:
-                params[attr] = val
-
-        return "%s(%s)" % (self.__class__.__name__,
-                           ', '.join(['%s=%r' % (k, params[k]) for k in params]))
-
 
 class TEXT(_StringType, sqltypes.TEXT):
     """MSSQL TEXT type, for variable-length text up to 2^31 characters."""
@@ -500,16 +319,6 @@ class VARCHAR(_StringType, sqltypes.VARCHAR):
           If False, may be overridden by
           :attr:`sqlalchemy.engine.base.Dialect.convert_unicode`.
 
-        :param assert_unicode:
-
-          If None (the default), no assertion will take place unless
-          overridden by :attr:`sqlalchemy.engine.base.Dialect.assert_unicode`.
-
-          If 'warn', will issue a runtime warning if a ``str``
-          instance is used as a bind value.
-
-          If true, will raise an :exc:`sqlalchemy.exc.InvalidRequestError`.
-
         :param collation: Optional, a column-level collation for this string
           value. Accepts a Windows Collation Name or a SQL Collation Name.
 
@@ -557,16 +366,6 @@ class CHAR(_StringType, sqltypes.CHAR):
           If False, may be overridden by
           :attr:`sqlalchemy.engine.base.Dialect.convert_unicode`.
 
-        :param assert_unicode:
-
-          If None (the default), no assertion will take place unless
-          overridden by :attr:`sqlalchemy.engine.base.Dialect.assert_unicode`.
-
-          If 'warn', will issue a runtime warning if a ``str``
-          instance is used as a bind value.
-
-          If true, will raise an :exc:`sqlalchemy.exc.InvalidRequestError`.
-
         :param collation: Optional, a column-level collation for this string
           value. Accepts a Windows Collation Name or a SQL Collation Name.
 
@@ -613,7 +412,6 @@ class SQL_VARIANT(sqltypes.TypeEngine):
     __visit_name__ = 'SQL_VARIANT'
 
 # old names.
-MSNumeric = _MSNumeric
 MSDateTime = _MSDateTime
 MSDate = _MSDate
 MSReal = REAL
@@ -636,13 +434,6 @@ MSMoney = MONEY
 MSSmallMoney = SMALLMONEY
 MSUniqueIdentifier = UNIQUEIDENTIFIER
 MSVariant = SQL_VARIANT
-
-colspecs = {
-    sqltypes.Numeric : _MSNumeric,
-    sqltypes.DateTime : _MSDateTime,
-    sqltypes.Date : _MSDate,
-    sqltypes.Time : TIME,
-}
 
 ischema_names = {
     'int' : INTEGER,
@@ -824,17 +615,22 @@ class MSExecutionContext(default.DefaultExecutionContext):
         
         if self._select_lastrowid:
             if self.dialect.use_scope_identity:
-                self.cursor.execute("SELECT scope_identity() AS lastrowid")
+                self.cursor.execute("SELECT scope_identity() AS lastrowid", ())
             else:
-                self.cursor.execute("SELECT @@identity AS lastrowid")
-            row = self.cursor.fetchall()[0]   # fetchall() ensures the cursor is consumed without closing it
+                self.cursor.execute("SELECT @@identity AS lastrowid", ())
+            # fetchall() ensures the cursor is consumed without closing it
+            row = self.cursor.fetchall()[0]
             self._lastrowid = int(row[0])
 
         if (self.isinsert or self.isupdate or self.isdelete) and self.compiled.returning:
             self._result_proxy = base.FullyBufferedResultProxy(self)
             
         if self._enable_identity_insert:
-            self.cursor.execute("SET IDENTITY_INSERT %s OFF" % self.dialect.identifier_preparer.format_table(self.compiled.statement.table))
+            self.cursor.execute(
+                        "SET IDENTITY_INSERT %s OFF" %  
+                                self.dialect.identifier_preparer.
+                                    format_table(self.compiled.statement.table)
+                        )
         
     def get_lastrowid(self):
         return self._lastrowid
@@ -842,7 +638,11 @@ class MSExecutionContext(default.DefaultExecutionContext):
     def handle_dbapi_exception(self, e):
         if self._enable_identity_insert:
             try:
-                self.cursor.execute("SET IDENTITY_INSERT %s OFF" % self.dialect.identifier_preparer.format_table(self.compiled.statement.table))
+                self.cursor.execute("SET IDENTITY_INSERT %s OFF" % 
+                                    self.dialect.\
+                                    identifier_preparer.\
+                                    format_table(self.compiled.statement.table)
+                                )
             except:
                 pass
 
@@ -855,8 +655,9 @@ class MSExecutionContext(default.DefaultExecutionContext):
 class MSSQLCompiler(compiler.SQLCompiler):
     returning_precedes_values = True
     
-    extract_map = compiler.SQLCompiler.extract_map.copy()
-    extract_map.update ({
+    extract_map = util.update_copy(
+        compiler.SQLCompiler.extract_map,
+        {
         'doy': 'dayofyear',
         'dow': 'weekday',
         'milliseconds': 'millisecond',
@@ -879,11 +680,13 @@ class MSSQLCompiler(compiler.SQLCompiler):
     def visit_char_length_func(self, fn, **kw):
         return "LEN%s" % self.function_argspec(fn, **kw)
         
-    def visit_concat_op(self, binary):
-        return "%s + %s" % (self.process(binary.left), self.process(binary.right))
+    def visit_concat_op(self, binary, **kw):
+        return "%s + %s" % (self.process(binary.left, **kw), self.process(binary.right, **kw))
         
-    def visit_match_op(self, binary):
-        return "CONTAINS (%s, %s)" % (self.process(binary.left), self.process(binary.right))
+    def visit_match_op(self, binary, **kw):
+        return "CONTAINS (%s, %s)" % (
+                                        self.process(binary.left, **kw), 
+                                        self.process(binary.right, **kw))
         
     def get_select_precolumns(self, select):
         """ MS-SQL puts TOP, it's version of LIMIT here """
@@ -903,18 +706,20 @@ class MSSQLCompiler(compiler.SQLCompiler):
     def visit_select(self, select, **kwargs):
         """Look for ``LIMIT`` and OFFSET in a select statement, and if
         so tries to wrap it in a subquery with ``row_number()`` criterion.
-
         """
         if not getattr(select, '_mssql_visit', None) and select._offset:
             # to use ROW_NUMBER(), an ORDER BY is required.
             orderby = self.process(select._order_by_clause)
             if not orderby:
-                raise exc.InvalidRequestError('MSSQL requires an order_by when using an offset.')
+                raise exc.InvalidRequestError('MSSQL requires an order_by when '
+                                              'using an offset.')
 
             _offset = select._offset
             _limit = select._limit
             select._mssql_visit = True
-            select = select.column(sql.literal_column("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("mssql_rn")).order_by(None).alias()
+            select = select.column(sql.literal_column("ROW_NUMBER() OVER (ORDER BY %s)" 
+                                                      % orderby).label("mssql_rn")
+                                   ).order_by(None).alias()
 
             limitselect = sql.select([c for c in select.c if c.key!='mssql_rn'])
             limitselect.append_whereclause("mssql_rn>%d" % _offset)
@@ -949,12 +754,13 @@ class MSSQLCompiler(compiler.SQLCompiler):
         kwargs['mssql_aliased'] = True
         return super(MSSQLCompiler, self).visit_alias(alias, **kwargs)
 
-    def visit_extract(self, extract):
+    def visit_extract(self, extract, **kw):
         field = self.extract_map.get(extract.field, extract.field)
-        return 'DATEPART("%s", %s)' % (field, self.process(extract.expr))
+        return 'DATEPART("%s", %s)' % (field, self.process(extract.expr, **kw))
 
     def visit_rollback_to_savepoint(self, savepoint_stmt):
-        return "ROLLBACK TRANSACTION %s" % self.preparer.format_savepoint(savepoint_stmt)
+        return ("ROLLBACK TRANSACTION %s" 
+                % self.preparer.format_savepoint(savepoint_stmt))
 
     def visit_column(self, column, result_map=None, **kwargs):
         if column.table is not None and \
@@ -965,27 +771,51 @@ class MSSQLCompiler(compiler.SQLCompiler):
                 converted = expression._corresponding_column_or_error(t, column)
 
                 if result_map is not None:
-                    result_map[column.name.lower()] = (column.name, (column, ), column.type)
+                    result_map[column.name.lower()] = (column.name, (column, ), 
+                                                       column.type)
 
-                return super(MSSQLCompiler, self).visit_column(converted, result_map=None, **kwargs)
+                return super(MSSQLCompiler, self).visit_column(converted, 
+                                                               result_map=None, 
+                                                               **kwargs)
 
-        return super(MSSQLCompiler, self).visit_column(column, result_map=result_map, **kwargs)
+        return super(MSSQLCompiler, self).visit_column(column, 
+                                                       result_map=result_map, 
+                                                       **kwargs)
 
     def visit_binary(self, binary, **kwargs):
         """Move bind parameters to the right-hand side of an operator, where
         possible.
 
         """
-        if isinstance(binary.left, expression._BindParamClause) and binary.operator == operator.eq \
-            and not isinstance(binary.right, expression._BindParamClause):
-            return self.process(expression._BinaryExpression(binary.right, binary.left, binary.operator), **kwargs)
+        if (
+            isinstance(binary.left, expression._BindParamClause) 
+            and binary.operator == operator.eq
+            and not isinstance(binary.right, expression._BindParamClause)
+            ):
+            return self.process(expression._BinaryExpression(binary.right, 
+                                                             binary.left, 
+                                                             binary.operator), 
+                                **kwargs)
         else:
-            if (binary.operator is operator.eq or binary.operator is operator.ne) and (
-                (isinstance(binary.left, expression._FromGrouping) and isinstance(binary.left.element, expression._ScalarSelect)) or \
-                (isinstance(binary.right, expression._FromGrouping) and isinstance(binary.right.element, expression._ScalarSelect)) or \
-                 isinstance(binary.left, expression._ScalarSelect) or isinstance(binary.right, expression._ScalarSelect)):
+            if (
+
+                (binary.operator is operator.eq or binary.operator is operator.ne) 
+                and (
+                    (isinstance(binary.left, expression._FromGrouping) 
+                     and isinstance(binary.left.element, 
+                                    expression._ScalarSelect)) 
+                    or (isinstance(binary.right, expression._FromGrouping) 
+                        and isinstance(binary.right.element, 
+                                       expression._ScalarSelect)) 
+                    or isinstance(binary.left, expression._ScalarSelect) 
+                    or isinstance(binary.right, expression._ScalarSelect)
+                    )
+
+               ):
                 op = binary.operator == operator.eq and "IN" or "NOT IN"
-                return self.process(expression._BinaryExpression(binary.left, binary.right, op), **kwargs)
+                return self.process(expression._BinaryExpression(binary.left,
+                                                                 binary.right, op),
+                                    **kwargs)
             return super(MSSQLCompiler, self).visit_binary(binary, **kwargs)
 
     def returning_clause(self, stmt, returning_cols):
@@ -1023,8 +853,8 @@ class MSSQLCompiler(compiler.SQLCompiler):
         # "FOR UPDATE" is only allowed on "DECLARE CURSOR" which SQLAlchemy doesn't use
         return ''
 
-    def order_by_clause(self, select):
-        order_by = self.process(select._order_by_clause)
+    def order_by_clause(self, select, **kw):
+        order_by = self.process(select._order_by_clause, **kw)
 
         # MSSQL only allows ORDER BY in subqueries if there is a LIMIT
         if order_by and (not self.is_subquery() or select._limit):
@@ -1032,10 +862,56 @@ class MSSQLCompiler(compiler.SQLCompiler):
         else:
             return ""
 
+class MSSQLStrictCompiler(MSSQLCompiler):
+    """A subclass of MSSQLCompiler which disables the usage of bind
+    parameters where not allowed natively by MS-SQL.
+    
+    A dialect may use this compiler on a platform where native
+    binds are used.
+    
+    """
+    ansi_bind_rules = True
+
+    def visit_in_op(self, binary, **kw):
+        kw['literal_binds'] = True
+        return "%s IN %s" % (
+                                self.process(binary.left, **kw), 
+                                self.process(binary.right, **kw)
+            )
+
+    def visit_notin_op(self, binary, **kw):
+        kw['literal_binds'] = True
+        return "%s NOT IN %s" % (
+                                self.process(binary.left, **kw), 
+                                self.process(binary.right, **kw)
+            )
+
+    def visit_function(self, func, **kw):
+        kw['literal_binds'] = True
+        return super(MSSQLStrictCompiler, self).visit_function(func, **kw)
+
+    def render_literal_value(self, value, type_):
+        """
+        For date and datetime values, convert to a string
+        format acceptable to MSSQL. That seems to be the
+        so-called ODBC canonical date format which looks
+        like this:
+        
+            yyyy-mm-dd hh:mi:ss.mmm(24h)
+        
+        For other data types, call the base class implementation.
+        """
+        # datetime and date are both subclasses of datetime.date
+        if issubclass(type(value), datetime.date):
+            # SQL Server wants single quotes around the date string.
+            return "'" + str(value) + "'"
+        else:
+            return super(MSSQLStrictCompiler, self).render_literal_value(value, type_)
 
 class MSDDLCompiler(compiler.DDLCompiler):
     def get_column_specification(self, column, **kwargs):
-        colspec = self.preparer.format_column(column) + " " + self.dialect.type_compiler.process(column.type)
+        colspec = (self.preparer.format_column(column) + " " 
+                   + self.dialect.type_compiler.process(column.type))
 
         if column.nullable is not None:
             if not column.nullable or column.primary_key:
@@ -1044,7 +920,8 @@ class MSDDLCompiler(compiler.DDLCompiler):
                 colspec += " NULL"
         
         if column.table is None:
-            raise exc.InvalidRequestError("mssql requires Table-bound columns in order to generate DDL")
+            raise exc.InvalidRequestError("mssql requires Table-bound columns " 
+                                          "in order to generate DDL")
             
         seq_col = column.table._autoincrement_column
 
@@ -1066,7 +943,8 @@ class MSDDLCompiler(compiler.DDLCompiler):
     def visit_drop_index(self, drop):
         return "\nDROP INDEX %s.%s" % (
             self.preparer.quote_identifier(drop.element.table.name),
-            self.preparer.quote(self._validate_identifier(drop.element.name, False), drop.element.quote)
+            self.preparer.quote(self._validate_identifier(drop.element.name, False),
+                                drop.element.quote)
             )
 
 
@@ -1074,7 +952,8 @@ class MSIdentifierPreparer(compiler.IdentifierPreparer):
     reserved_words = RESERVED_WORDS
 
     def __init__(self, dialect):
-        super(MSIdentifierPreparer, self).__init__(dialect, initial_quote='[', final_quote=']')
+        super(MSIdentifierPreparer, self).__init__(dialect, initial_quote='[', 
+                                                   final_quote=']')
 
     def _escape_identifier(self, value):
         return value
@@ -1089,11 +968,16 @@ class MSDialect(default.DefaultDialect):
     supports_default_values = True
     supports_empty_insert = False
     execution_ctx_cls = MSExecutionContext
-    text_as_varchar = False
     use_scope_identity = True
     max_identifier_length = 128
     schema_name = "dbo"
-    colspecs = colspecs
+
+    colspecs = {
+        sqltypes.DateTime : _MSDateTime,
+        sqltypes.Date : _MSDate,
+        sqltypes.Time : TIME,
+    }
+
     ischema_names = ischema_names
     
     supports_native_boolean = False
@@ -1111,7 +995,7 @@ class MSDialect(default.DefaultDialect):
                  query_timeout=None,
                  use_scope_identity=True,
                  max_identifier_length=None,
-                 schema_name="dbo", **opts):
+                 schema_name=u"dbo", **opts):
         self.query_timeout = int(query_timeout or 0)
         self.schema_name = schema_name
 
@@ -1121,7 +1005,8 @@ class MSDialect(default.DefaultDialect):
         super(MSDialect, self).__init__(**opts)
     
     def do_savepoint(self, connection, name):
-        util.warn("Savepoint support in mssql is experimental and may lead to data loss.")
+        util.warn("Savepoint support in mssql is experimental and "
+                  "may lead to data loss.")
         connection.execute("IF @@TRANCOUNT = 0 BEGIN TRANSACTION")
         connection.execute("SAVE TRANSACTION %s" % name)
 
@@ -1130,7 +1015,8 @@ class MSDialect(default.DefaultDialect):
     
     def initialize(self, connection):
         super(MSDialect, self).initialize(connection)
-        if self.server_version_info >= MS_2005_VERSION and 'implicit_returning' not in self.__dict__:
+        if self.server_version_info >= MS_2005_VERSION and \
+                    'implicit_returning' not in self.__dict__:
             self.implicit_returning = True
         
     def _get_default_schema_name(self, connection):
@@ -1146,14 +1032,10 @@ class MSDialect(default.DefaultDialect):
             try:
                 default_schema_name = connection.scalar(query, [user_name])
                 if default_schema_name is not None:
-                    return default_schema_name
+                    return unicode(default_schema_name)
             except:
                 pass
         return self.schema_name
-
-    def table_names(self, connection, schema):
-        s = select([ischema.tables.c.table_name], ischema.tables.c.table_schema==schema)
-        return [row[0] for row in connection.execute(s)]
 
 
     def has_table(self, connection, tablename, schema=None):
@@ -1183,7 +1065,7 @@ class MSDialect(default.DefaultDialect):
         s = sql.select([tables.c.table_name],
             sql.and_(
                 tables.c.table_schema == current_schema,
-                tables.c.table_type == 'BASE TABLE'
+                tables.c.table_type == u'BASE TABLE'
             ),
             order_by=[tables.c.table_name]
         )
@@ -1197,7 +1079,7 @@ class MSDialect(default.DefaultDialect):
         s = sql.select([tables.c.table_name],
             sql.and_(
                 tables.c.table_schema == current_schema,
-                tables.c.table_type == 'VIEW'
+                tables.c.table_type == u'VIEW'
             ),
             order_by=[tables.c.table_name]
         )
@@ -1270,7 +1152,8 @@ class MSDialect(default.DefaultDialect):
             coltype = self.ischema_names.get(type, None)
 
             kwargs = {}
-            if coltype in (MSString, MSChar, MSNVarchar, MSNChar, MSText, MSNText, MSBinary, MSVarBinary, sqltypes.LargeBinary):
+            if coltype in (MSString, MSChar, MSNVarchar, MSNChar, MSText, 
+                           MSNText, MSBinary, MSVarBinary, sqltypes.LargeBinary):
                 kwargs['length'] = charlen
                 if collation:
                     kwargs['collation'] = collation
@@ -1299,7 +1182,9 @@ class MSDialect(default.DefaultDialect):
         for col in cols:
             colmap[col['name']] = col
         # We also run an sp_columns to check for identity columns:
-        cursor = connection.execute("sp_columns @table_name = '%s', @table_owner = '%s'" % (tablename, current_schema))
+        cursor = connection.execute("sp_columns @table_name = '%s', "
+                                    "@table_owner = '%s'" 
+                                    % (tablename, current_schema))
         ic = None
         while True:
             row = cursor.fetchone()
@@ -1313,34 +1198,32 @@ class MSDialect(default.DefaultDialect):
                                     name='%s_identity' % col_name)
                 break
         cursor.close()
-        if ic is not None:
-            try:
-                # is this table_fullname reliable?
-                table_fullname = "%s.%s" % (current_schema, tablename)
-                cursor = connection.execute(
-                    sql.text("select ident_seed(:seed), ident_incr(:incr)"), 
-                    {'seed':table_fullname, 'incr':table_fullname}
+
+        if ic is not None and self.server_version_info >= MS_2005_VERSION:
+            table_fullname = "%s.%s" % (current_schema, tablename)
+            cursor = connection.execute(
+                "select ident_seed('%s'), ident_incr('%s')" 
+                % (table_fullname, table_fullname)
                 )
-                row = cursor.first()
-                if not row is None:
-                    colmap[ic]['sequence'].update({
-                        'start' : int(row[0]),
-                        'increment' : int(row[1])
-                    })
-            except:
-                # ignoring it, works just like before
-                pass
+
+            row = cursor.first()
+            if row is not None and row[0] is not None:
+                colmap[ic]['sequence'].update({
+                    'start' : int(row[0]),
+                    'increment' : int(row[1])
+                })
         return cols
 
     @reflection.cache
     def get_primary_keys(self, connection, tablename, schema=None, **kw):
         current_schema = schema or self.default_schema_name
         pkeys = []
-        # Add constraints
-        RR = ischema.ref_constraints    #information_schema.referential_constraints
-        TC = ischema.constraints        #information_schema.table_constraints
-        C  = ischema.key_constraints.alias('C') #information_schema.constraint_column_usage: the constrained column
-        R  = ischema.key_constraints.alias('R') #information_schema.constraint_column_usage: the referenced column
+        RR = ischema.ref_constraints    # information_schema.referential_constraints
+        TC = ischema.constraints        # information_schema.table_constraints
+        C  = ischema.key_constraints.alias('C') # information_schema.constraint_column_usage: 
+                                                # the constrained column
+        R  = ischema.key_constraints.alias('R') # information_schema.constraint_column_usage: 
+                                                # the referenced column
 
         # Primary key constraints
         s = sql.select([C.c.column_name, TC.c.constraint_type],
@@ -1360,13 +1243,16 @@ class MSDialect(default.DefaultDialect):
         # Add constraints
         RR = ischema.ref_constraints    #information_schema.referential_constraints
         TC = ischema.constraints        #information_schema.table_constraints
-        C  = ischema.key_constraints.alias('C') #information_schema.constraint_column_usage: the constrained column
-        R  = ischema.key_constraints.alias('R') #information_schema.constraint_column_usage: the referenced column
+        C  = ischema.key_constraints.alias('C') # information_schema.constraint_column_usage: 
+                                                # the constrained column
+        R  = ischema.key_constraints.alias('R') # information_schema.constraint_column_usage: 
+                                                # the referenced column
 
         # Foreign key constraints
         s = sql.select([C.c.column_name,
                         R.c.table_schema, R.c.table_name, R.c.column_name,
-                        RR.c.constraint_name, RR.c.match_option, RR.c.update_rule, RR.c.delete_rule],
+                        RR.c.constraint_name, RR.c.match_option, RR.c.update_rule,
+                        RR.c.delete_rule],
                        sql.and_(C.c.table_name == tablename,
                                 C.c.table_schema == current_schema,
                                 C.c.constraint_name == RR.c.constraint_name,
@@ -1409,6 +1295,3 @@ class MSDialect(default.DefaultDialect):
 
         return fkeys.values()
 
-
-# fixme.  I added this for the tests to run. -Randall
-MSSQLDialect = MSDialect

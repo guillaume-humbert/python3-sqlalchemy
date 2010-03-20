@@ -9,6 +9,7 @@ from sqlalchemy import exc, schema, types
 from sqlalchemy.dialects.postgresql import base as postgresql
 from sqlalchemy.engine.strategies import MockEngineStrategy
 from sqlalchemy.test import *
+from sqlalchemy.test.util import round_decimal
 from sqlalchemy.sql import table, column
 from sqlalchemy.test.testing import eq_
 from test.engine._base import TablesTest
@@ -105,7 +106,7 @@ class CompileTest(TestBase, AssertsCompiledSQL):
 
         self.assert_compile(schema.CreateIndex(idx), 
             "CREATE INDEX test_idx1 ON testtbl (data) WHERE data > 5 AND data < 10", dialect=postgresql.dialect())
-
+    
     def test_extract(self):
         t = table('t', column('col1', DateTime), column('col2', Date), column('col3', Time),
                     column('col4', postgresql.INTERVAL)
@@ -113,6 +114,7 @@ class CompileTest(TestBase, AssertsCompiledSQL):
 
         for field in 'year', 'month', 'day', 'epoch', 'hour':
             for expr, compiled_expr in [
+
                 ( t.c.col1, "t.col1 :: timestamp" ),
                 ( t.c.col2, "t.col2 :: date" ),
                 ( t.c.col3, "t.col3 :: time" ),
@@ -202,13 +204,6 @@ class FloatCoercionTest(TablesTest, AssertsExecutionResults):
             {'data':9},
         )
     
-    def _round(self, x):
-        if isinstance(x, float):
-            return round(x, 9)
-        elif isinstance(x, decimal.Decimal):
-            # really ?
-            x = x.shift(decimal.Decimal(9)).to_integral() / pow(10, 9)
-        return x
     @testing.resolve_artifact_names
     def test_float_coercion(self):
         for type_, result in [
@@ -222,15 +217,15 @@ class FloatCoercionTest(TablesTest, AssertsExecutionResults):
                     func.stddev_pop(data_table.c.data, type_=type_)
                 ])
             ).scalar()
-            
-            eq_(self._round(ret), result)
+
+            eq_(round_decimal(ret, 9), result)
 
             ret = testing.db.execute(
                 select([
                     cast(func.stddev_pop(data_table.c.data), type_)
                 ])
             ).scalar()
-            eq_(self._round(ret), result)
+            eq_(round_decimal(ret, 9), result)
     
     
         
@@ -441,7 +436,7 @@ class InsertTest(TestBase, AssertsExecutionResults):
         # want to ensure that 
         # "null value in column "id" violates not-null constraint" is raised (IntegrityError on psycoopg2,
         # but ProgrammingError on pg8000),
-        # and not "ProgrammingError: (ProgrammingError) relation "t2_id_seq" does not exist".
+        # and not "ProgrammingError: (ProgrammingError) relationship "t2_id_seq" does not exist".
         # the latter corresponds to autoincrement behavior, which is not the case
         # here due to the foreign key.
         for eng in [
@@ -851,6 +846,8 @@ class InsertTest(TestBase, AssertsExecutionResults):
         
         if self.engine.driver == 'pg8000':
             exception_cls = exc.ProgrammingError
+        elif self.engine.driver == 'pypostgresql':
+            exception_cls = Exception
         else:
             exception_cls = exc.IntegrityError
         
@@ -1025,7 +1022,10 @@ class MiscTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
         finally:
             meta1.drop_all()
 
-    @testing.fails_on('+zxjdbc', "Can't infer the SQL type to use for an instance of org.python.core.PyObjectDerived.")
+    @testing.fails_on('+zxjdbc', "Can't infer the SQL type to use "
+                                "for an instance of "
+                                "org.python.core.PyObjectDerived.")
+    @testing.fails_on('+pg8000', "Can't determine correct type.")
     def test_extract(self):
         fivedaysago = datetime.datetime.now() - datetime.timedelta(days=5)
         for field, exp in (
@@ -1244,6 +1244,7 @@ class MiscTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             warnings.warn = capture_warnings._orig_showwarning
             m1.drop_all()
 
+    @testing.fails_on('postgresql+pypostgresql', 'pypostgresql bombs on multiple calls')
     def test_set_isolation_level(self):
         """Test setting the isolation level with create_engine"""
         eng = create_engine(testing.db.url)
@@ -1320,7 +1321,7 @@ class ArrayTest(TestBase, AssertsExecutionResults):
         arrtable = Table('arrtable', metadata,
             Column('id', Integer, primary_key=True),
             Column('intarr', postgresql.PGArray(Integer)),
-            Column('strarr', postgresql.PGArray(Unicode(assert_unicode=False)), nullable=False)
+            Column('strarr', postgresql.PGArray(Unicode()), nullable=False)
         )
         metadata.create_all()
 
@@ -1341,7 +1342,7 @@ class ArrayTest(TestBase, AssertsExecutionResults):
 
     @testing.fails_on('postgresql+zxjdbc', 'zxjdbc has no support for PG arrays')
     def test_insert_array(self):
-        arrtable.insert().execute(intarr=[1,2,3], strarr=['abc', 'def'])
+        arrtable.insert().execute(intarr=[1,2,3], strarr=[u'abc', u'def'])
         results = arrtable.select().execute().fetchall()
         eq_(len(results), 1)
         eq_(results[0]['intarr'], [1,2,3])
@@ -1350,16 +1351,17 @@ class ArrayTest(TestBase, AssertsExecutionResults):
     @testing.fails_on('postgresql+pg8000', 'pg8000 has poor support for PG arrays')
     @testing.fails_on('postgresql+zxjdbc', 'zxjdbc has no support for PG arrays')
     def test_array_where(self):
-        arrtable.insert().execute(intarr=[1,2,3], strarr=['abc', 'def'])
-        arrtable.insert().execute(intarr=[4,5,6], strarr='ABC')
+        arrtable.insert().execute(intarr=[1,2,3], strarr=[u'abc', u'def'])
+        arrtable.insert().execute(intarr=[4,5,6], strarr=u'ABC')
         results = arrtable.select().where(arrtable.c.intarr == [1,2,3]).execute().fetchall()
         eq_(len(results), 1)
         eq_(results[0]['intarr'], [1,2,3])
 
     @testing.fails_on('postgresql+pg8000', 'pg8000 has poor support for PG arrays')
+    @testing.fails_on('postgresql+pypostgresql', 'pypostgresql fails in coercing an array')
     @testing.fails_on('postgresql+zxjdbc', 'zxjdbc has no support for PG arrays')
     def test_array_concat(self):
-        arrtable.insert().execute(intarr=[1,2,3], strarr=['abc', 'def'])
+        arrtable.insert().execute(intarr=[1,2,3], strarr=[u'abc', u'def'])
         results = select([arrtable.c.intarr + [4,5,6]]).execute().fetchall()
         eq_(len(results), 1)
         eq_(results[0][0], [1,2,3,4,5,6])
@@ -1631,7 +1633,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
         matchtable.insert().execute([
             {'id': 1, 'title': 'Agile Web Development with Rails', 'category_id': 2},
             {'id': 2, 'title': 'Dive Into Python', 'category_id': 1},
-            {'id': 3, 'title': 'Programming Matz''s Ruby', 'category_id': 2},
+            {'id': 3, 'title': "Programming Matz's Ruby", 'category_id': 2},
             {'id': 4, 'title': 'The Definitive Guide to Django', 'category_id': 1},
             {'id': 5, 'title': 'Python in a Nutshell', 'category_id': 1}
         ])
@@ -1646,6 +1648,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(matchtable.c.title.match('somstr'), "matchtable.title @@ to_tsquery(%(title_1)s)")
 
     @testing.fails_on('postgresql+psycopg2', 'uses pyformat')
+    @testing.fails_on('postgresql+pypostgresql', 'uses pyformat')
     @testing.fails_on('postgresql+zxjdbc', 'uses qmark')
     def test_expression_positional(self):
         self.assert_compile(matchtable.c.title.match('somstr'), "matchtable.title @@ to_tsquery(%s)")
@@ -1655,7 +1658,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
         eq_([2, 5], [r.id for r in results])
 
     def test_simple_match_with_apostrophe(self):
-        results = matchtable.select().where(matchtable.c.title.match("Matz''s")).execute().fetchall()
+        results = matchtable.select().where(matchtable.c.title.match("Matz's")).execute().fetchall()
         eq_([3], [r.id for r in results])
 
     def test_simple_derivative_match(self):

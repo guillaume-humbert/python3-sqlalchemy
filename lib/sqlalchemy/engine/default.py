@@ -30,6 +30,10 @@ class DefaultDialect(base.Dialect):
     preparer = compiler.IdentifierPreparer
     supports_alter = True
 
+    # most DBAPIs happy with this for execute().
+    # not cx_oracle.  
+    execute_sequence_format = tuple
+    
     supports_sequences = False
     sequences_optional = False
     preexecute_autoincrement_sequences = False
@@ -38,6 +42,11 @@ class DefaultDialect(base.Dialect):
     
     supports_native_enum = False
     supports_native_boolean = False
+    
+    # if the NUMERIC type
+    # returns decimal.Decimal.
+    # *not* the FLOAT type however.
+    supports_native_decimal = False
     
     # Py3K
     #supports_unicode_statements = True
@@ -53,6 +62,7 @@ class DefaultDialect(base.Dialect):
     supports_sane_rowcount = True
     supports_sane_multi_rowcount = True
     dbapi_type_map = {}
+    colspecs = {}
     default_paramstyle = 'named'
     supports_default_values = False
     supports_empty_insert = True
@@ -78,7 +88,14 @@ class DefaultDialect(base.Dialect):
                 "The %s dialect is not yet ported to SQLAlchemy 0.6" % self.name)
         
         self.convert_unicode = convert_unicode
-        self.assert_unicode = assert_unicode
+        if assert_unicode:
+            util.warn_deprecated("assert_unicode is deprecated. "
+                                "SQLAlchemy emits a warning in all cases where it "
+                                "would otherwise like to encode a Python unicode object "
+                                "into a specific encoding but a plain bytestring is received. "
+                                "This does *not* apply to DBAPIs that coerce Unicode natively."
+                                )
+            
         self.encoding = encoding
         self.positional = False
         self._ischema = None
@@ -103,12 +120,6 @@ class DefaultDialect(base.Dialect):
 
         if not hasattr(self, 'description_encoding'):
             self.description_encoding = getattr(self, 'description_encoding', encoding)
-
-        # Py3K
-        ## work around dialects that might change these values
-        #self.supports_unicode_statements = True
-        #self.supports_unicode_binds = True
-        #self.returns_unicode_strings = True
     
     @property
     def dialect_description(self):
@@ -124,25 +135,60 @@ class DefaultDialect(base.Dialect):
         except NotImplementedError:
             self.default_schema_name = None
 
-        # Py2K
         self.returns_unicode_strings = self._check_unicode_returns(connection)
-        # end Py2K
-    
-    def _check_unicode_returns(self, connection):
-        cursor = connection.connection.cursor()
-        cursor.execute(
-            str(
-                expression.select( 
-                [expression.cast(
-                    expression.literal_column("'test unicode returns'"),sqltypes.VARCHAR(60))
-                ]).compile(dialect=self)
-            )
-        )
+   
+        self.do_rollback(connection.connection)
+ 
+    def on_connect(self):
+        """return a callable which sets up a newly created DBAPI connection.
         
-        row = cursor.fetchone()
-        result = isinstance(row[0], unicode)
-        cursor.close()
-        return result
+        This is used to set dialect-wide per-connection options such as isolation
+        modes, unicode modes, etc.
+        
+        If a callable is returned, it will be assembled into a pool listener
+        that receives the direct DBAPI connection, with all wrappers removed.
+        
+        If None is returned, no listener will be generated.
+        
+        """
+        return None
+        
+    def _check_unicode_returns(self, connection):
+        # Py2K
+        if self.supports_unicode_statements:
+            cast_to = unicode
+        else:
+            cast_to = str
+        # end Py2K
+        # Py3K
+        #cast_to = str
+        def check_unicode(type_):
+            cursor = connection.connection.cursor()
+            try:
+                cursor.execute(
+                    cast_to(
+                        expression.select( 
+                        [expression.cast(
+                            expression.literal_column("'test unicode returns'"), type_)
+                        ]).compile(dialect=self)
+                    )
+                )
+                row = cursor.fetchone()
+                
+                return isinstance(row[0], unicode)
+            finally:
+                cursor.close()
+                
+        # detect plain VARCHAR
+        unicode_for_varchar = check_unicode(sqltypes.VARCHAR(60))
+        
+        # detect if there's an NVARCHAR type with different behavior available
+        unicode_for_unicode = check_unicode(sqltypes.Unicode(60))
+        
+        if unicode_for_unicode and not unicode_for_varchar:
+            return "conditional"
+        else:
+            return unicode_for_varchar
         
     def type_descriptor(self, typeobj):
         """Provide a database-specific ``TypeEngine`` object, given
@@ -228,6 +274,7 @@ class DefaultExecutionContext(base.ExecutionContext):
     isinsert = False
     isupdate = False
     isdelete = False
+    isddl = False
     executemany = False
     result_map = None
     compiled = None
@@ -247,6 +294,7 @@ class DefaultExecutionContext(base.ExecutionContext):
         
         if compiled_ddl is not None:
             self.compiled = compiled = compiled_ddl
+            self.isddl = True
 
             if compiled.statement._execution_options:
                 self.execution_options = compiled.statement._execution_options
@@ -256,9 +304,10 @@ class DefaultExecutionContext(base.ExecutionContext):
                                                     )
 
             if not dialect.supports_unicode_statements:
-                self.statement = unicode(compiled).encode(self.dialect.encoding)
+                self.unicode_statement = unicode(compiled)
+                self.statement = self.unicode_statement.encode(self.dialect.encoding)
             else:
-                self.statement = unicode(compiled)
+                self.statement = self.unicode_statement = unicode(compiled)
                 
             self.cursor = self.create_cursor()
             self.compiled_parameters = []
@@ -290,9 +339,10 @@ class DefaultExecutionContext(base.ExecutionContext):
             self.result_map = compiled.result_map
 
             if not dialect.supports_unicode_statements:
-                self.statement = unicode(compiled).encode(self.dialect.encoding)
+                self.unicode_statement = unicode(compiled)
+                self.statement = self.unicode_statement.encode(self.dialect.encoding)
             else:
-                self.statement = unicode(compiled)
+                self.statement = self.unicode_statement = unicode(compiled)
 
             self.isinsert = compiled.isinsert
             self.isupdate = compiled.isupdate
@@ -310,16 +360,20 @@ class DefaultExecutionContext(base.ExecutionContext):
             if self.isinsert or self.isupdate:
                 self.__process_defaults()
             self.parameters = self.__convert_compiled_params(self.compiled_parameters)
+            
         elif statement is not None:
             # plain text statement
             if connection._execution_options:
                 self.execution_options = self.execution_options.union(connection._execution_options)
             self.parameters = self.__encode_param_keys(parameters)
             self.executemany = len(parameters) > 1
+            
             if isinstance(statement, unicode) and not dialect.supports_unicode_statements:
+                self.unicode_statement = statement
                 self.statement = statement.encode(self.dialect.encoding)
             else:
-                self.statement = statement
+                self.statement = self.unicode_statement = statement
+                
             self.cursor = self.create_cursor()
         else:
             # no statement. used for standalone ColumnDefault execution.
@@ -337,7 +391,7 @@ class DefaultExecutionContext(base.ExecutionContext):
                                                 or False)
                                                 
         if autocommit is expression.PARSE_AUTOCOMMIT:
-            return self.should_autocommit_text(self.statement)
+            return self.should_autocommit_text(self.unicode_statement)
         else:
             return autocommit
             
@@ -355,14 +409,15 @@ class DefaultExecutionContext(base.ExecutionContext):
     @util.memoized_property
     def _default_params(self):
         if self.dialect.positional:
-            return ()
+            return self.dialect.execute_sequence_format()
         else:
             return {}
         
     def _execute_scalar(self, stmt):
         """Execute a string statement on the current cursor, returning a scalar result.
         
-        Used to fire off sequences, default phrases, and "select lastrowid" types of statements individually
+        Used to fire off sequences, default phrases, and "select lastrowid" 
+        types of statements individually
         or in the context of a parent INSERT or UPDATE statement.
         
         """
@@ -381,21 +436,23 @@ class DefaultExecutionContext(base.ExecutionContext):
         """Apply string encoding to the keys of dictionary-based bind parameters.
 
         This is only used executing textual, non-compiled SQL expressions.
+        
         """
-
-        if self.dialect.positional or self.dialect.supports_unicode_statements:
-            if params:
+        
+        if not params:
+            return [self._default_params]
+        elif isinstance(params[0], self.dialect.execute_sequence_format):
+            return params
+        elif isinstance(params[0], dict):
+            if self.dialect.supports_unicode_statements:
                 return params
             else:
-                return [self._default_params]
+                def proc(d):
+                    return dict((k.encode(self.dialect.encoding), d[k]) for k in d)
+                return [proc(d) for d in params] or [{}]
         else:
-            def proc(d):
-                # sigh, sometimes we get positional arguments with a dialect
-                # that doesnt specify positional (because of execute_text())
-                if not isinstance(d, dict):
-                    return d
-                return dict((k.encode(self.dialect.encoding), d[k]) for k in d)
-            return [proc(d) for d in params] or [{}]
+            return [self.dialect.execute_sequence_format(p) for p in params]
+        
 
     def __convert_compiled_params(self, compiled_parameters):
         """Convert the dictionary of bind parameter values into a dict or list
@@ -412,7 +469,7 @@ class DefaultExecutionContext(base.ExecutionContext):
                         param.append(processors[key](compiled_params[key]))
                     else:
                         param.append(compiled_params[key])
-                parameters.append(param)
+                parameters.append(self.dialect.execute_sequence_format(param))
         else:
             encode = not self.dialect.supports_unicode_statements
             for compiled_params in compiled_parameters:
@@ -431,7 +488,7 @@ class DefaultExecutionContext(base.ExecutionContext):
                         else:
                             param[key] = compiled_params[key]
                 parameters.append(param)
-        return parameters
+        return self.dialect.execute_sequence_format(parameters)
 
     def should_autocommit_text(self, statement):
         return AUTOCOMMIT_REGEXP.match(statement)
@@ -503,7 +560,7 @@ class DefaultExecutionContext(base.ExecutionContext):
             
     def _fetch_implicit_returning(self, resultproxy):
         table = self.compiled.statement.table
-        row = resultproxy.first()
+        row = resultproxy.fetchone()
 
         self._inserted_primary_key = [v is not None and v or row[c] 
             for c, v in zip(table.primary_key, self._inserted_primary_key)

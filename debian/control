@@ -3,9 +3,9 @@ Section: python
 Priority: optional
 Maintainer: Piotr Ożarowski <piotr@debian.org>
 Uploaders: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-Build-Depends: debhelper (>= 5.0.38)
-Build-Depends-Indep: python-all (>= 2.3.5-11), python-support (>= 0.6.4),
- python-setuptools (>= 0.6b3-1~), python-sphinx (>= 0.6), python-mako
+Build-Depends: debhelper (>= 5.0.38), python-all-dev (>= 2.3.5-11),
+ python-support (>= 0.6.4), python-setuptools (>= 0.6b3-1~),
+Build-Depends-Indep: python-sphinx (>= 0.6), python-mako
 Standards-Version: 3.8.4
 Homepage: http://www.sqlalchemy.org/
 Vcs-Svn: svn://svn.debian.org/python-modules/packages/sqlalchemy/trunk
@@ -13,13 +13,13 @@ Vcs-Browser: http://svn.debian.org/viewsvn/python-modules/packages/sqlalchemy/tr
 XS-Python-Version: >= 2.4
 
 Package: python-sqlalchemy
-Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}
-Conflicts: python2.4-sqlalchemy (<< 0.2.3-0.1)
-Replaces: python2.4-sqlalchemy (<< 0.2.3-0.1)
+Architecture: any
+Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}
 Suggests: python-sqlalchemy-doc, python-psycopg2, python-mysqldb (>= 1.2.1-p2-2),
  python (>= 2.5) | python-pysqlite2 (>= 2.3.0-1) | python-pysqlite1.1 (>= 1.1.7-2) | python-sqlite (>= 1.0.1-5),
  python-kinterbasdb (>= 3.1.2-0.3), python-pymssql
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
 Description: SQL toolkit and Object Relational Mapper for Python
  SQLAlchemy is an SQL database abstraction library for Python.
  Its strengths are:
@@ -49,7 +49,8 @@ Description: SQL toolkit and Object Relational Mapper for Python
 Package: python-sqlalchemy-doc
 Section: doc
 Architecture: all
-Depends: ${misc:Depends}
+Priority: extra
+Depends: ${misc:Depends}, libjs-jquery
 Recommends: python-sqlalchemy
 Conflicts: python-sqlalchemy (<= 0.3.0-1)
 Description: documentation for the SQLAlchemy Python library

@@ -20,6 +20,15 @@ div.document {
     background-color: {{ theme_sidebarbgcolor }};
 }
 
+div.documentwrapper {
+    float: left;
+    width: 100%;
+}
+
+div.bodywrapper {
+    margin: 0 0 0 230px;
+}
+
 div.body {
     background-color: {{ theme_bgcolor }};
     color: {{ theme_textcolor }};
@@ -58,10 +67,11 @@ div.related a {
 div.sphinxsidebar {
     {%- if theme_stickysidebar|tobool %}
     top: 30px;
+    bottom: 0;
     margin: 0;
     position: fixed;
     overflow: auto;
-    height: 100%;
+    height: auto;
     {%- endif %}
     {%- if theme_rightsidebar|tobool %}
     float: right;
@@ -190,6 +200,18 @@ div.admonition p.admonition-title + p {
     display: inline;
 }
 
+div.admonition p {
+    margin-bottom: 5px;
+}
+
+div.admonition pre {
+    margin-bottom: 5px;
+}
+
+div.admonition ul, div.admonition ol {
+    margin-bottom: 5px;
+}
+
 div.note {
     background-color: #eee;
     border: 1px solid #ccc;
@@ -231,4 +253,12 @@ tt {
     background-color: #ecf0f3;
     padding: 0 1px 0 1px;
     font-size: 0.95em;
+}
+
+.warning tt {
+    background: #efc2c2;
+}
+
+.note tt {
+    background: #d6d6d6;
 }

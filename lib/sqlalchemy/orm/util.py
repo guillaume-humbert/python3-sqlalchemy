@@ -20,7 +20,7 @@ all_cascades = frozenset(("delete", "delete-orphan", "all", "merge",
 _INSTRUMENTOR = ('mapper', 'instrumentor')
 
 class CascadeOptions(object):
-    """Keeps track of the options sent to relation().cascade"""
+    """Keeps track of the options sent to relationship().cascade"""
 
     def __init__(self, arg=""):
         if not arg:
@@ -275,16 +275,20 @@ class ORMAdapter(sql_util.ColumnAdapter):
             return None
 
 class AliasedClass(object):
-    """Represents an 'alias'ed form of a mapped class for usage with Query.
+    """Represents an "aliased" form of a mapped class for usage with Query.
 
-    The ORM equivalent of a :class:`~sqlalchemy.sql.expression.Alias`
-    object, this object mimics the mapped class using a
+    The ORM equivalent of a :func:`sqlalchemy.sql.expression.alias`
+    construct, this object mimics the mapped class using a
     __getattr__ scheme and maintains a reference to a
-    real Alias object.   It indicates to Query that the
-    selectable produced for this class should be aliased,
-    and also adapts PropComparators produced by the class'
-    InstrumentedAttributes so that they adapt the
-    "local" side of SQL expressions against the alias.
+    real :class:`~sqlalchemy.sql.expression.Alias` object.   
+    
+    Usage is via the :class:`~sqlalchemy.orm.aliased()` synonym::
+
+        # find all pairs of users with the same name
+        user_alias = aliased(User)
+        session.query(User, user_alias).\\
+                        join((user_alias, User.id > user_alias.id)).\\
+                        filter(User.name==user_alias.name)
 
     """
     def __init__(self, cls, alias=None, name=None):
@@ -430,8 +434,8 @@ def join(left, right, onclause=None, isouter=False, join_to_left=True):
     In addition to the interface provided by
     :func:`~sqlalchemy.sql.expression.join()`, left and right may be mapped
     classes or AliasedClass instances. The onclause may be a
-    string name of a relation(), or a class-bound descriptor
-    representing a relation.
+    string name of a relationship(), or a class-bound descriptor
+    representing a relationship.
 
     join_to_left indicates to attempt aliasing the ON clause,
     in whatever form it is passed, to the selectable
@@ -447,8 +451,8 @@ def outerjoin(left, right, onclause=None, join_to_left=True):
     In addition to the interface provided by
     :func:`~sqlalchemy.sql.expression.outerjoin()`, left and right may be mapped
     classes or AliasedClass instances. The onclause may be a
-    string name of a relation(), or a class-bound descriptor
-    representing a relation.
+    string name of a relationship(), or a class-bound descriptor
+    representing a relationship.
 
     """
     return _ORMJoin(left, right, onclause, True, join_to_left)

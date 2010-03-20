@@ -28,7 +28,7 @@ is equivalent to::
 
 import logging
 import sys
-
+from sqlalchemy import util
 
 rootlogger = logging.getLogger('sqlalchemy')
 if rootlogger.level == logging.NOTSET:
@@ -53,33 +53,33 @@ def class_logger(cls, enable=False):
         logger.setLevel(logging.DEBUG)
     elif enable == 'info':
         logger.setLevel(logging.INFO)
-    cls._should_log_debug = logger.isEnabledFor(logging.DEBUG)
-    cls._should_log_info = logger.isEnabledFor(logging.INFO)
+    cls._should_log_debug = lambda self: logger.isEnabledFor(logging.DEBUG)
+    cls._should_log_info = lambda self: logger.isEnabledFor(logging.INFO)
     cls.logger = logger
     _logged_classes.add(cls)
     
-def _refresh_class_loggers():
-    for cls in _logged_classes:
-        logger = logging.getLogger(cls.__module__ + "." + cls.__name__)
-        cls._should_log_debug = logger.isEnabledFor(logging.DEBUG)
-        cls._should_log_info = logger.isEnabledFor(logging.INFO)
-        
+
+class Identified(object):
+    @util.memoized_property
+    def logging_name(self):
+        # limit the number of loggers by chopping off the hex(id).
+        # some novice users unfortunately create an unlimited number 
+        # of Engines in their applications which would otherwise
+        # cause the app to run out of memory.
+        return "0x...%s" % hex(id(self))[-4:]
+
+    
 def instance_logger(instance, echoflag=None):
-    """create a logger for an instance.
+    """create a logger for an instance that implements :class:`Identified`.
     
     Warning: this is an expensive call which also results in a permanent
     increase in memory overhead for each call.  Use only for 
     low-volume, long-time-spanning objects.
     
     """
-    
-    # limit the number of loggers by chopping off the hex(id).
-    # many novice users unfortunately create an unlimited number 
-    # of Engines in their applications which would otherwise
-    # cause the app to run out of memory.
-    name = "%s.%s.0x...%s" % (instance.__class__.__module__,
-                             instance.__class__.__name__,
-                             hex(id(instance))[-4:])
+
+    name = "%s.%s.%s" % (instance.__class__.__module__,
+                       instance.__class__.__name__, instance.logging_name)
     
     if echoflag is not None:
         l = logging.getLogger(name)
@@ -93,8 +93,8 @@ def instance_logger(instance, echoflag=None):
             l.setLevel(logging.WARN)
     else:
         l = logging.getLogger(name)
-    instance._should_log_debug = l.isEnabledFor(logging.DEBUG)
-    instance._should_log_info = l.isEnabledFor(logging.INFO)
+    instance._should_log_debug = lambda: l.isEnabledFor(logging.DEBUG)
+    instance._should_log_info = lambda: l.isEnabledFor(logging.INFO)
     return l
 
 class echo_property(object):
@@ -112,7 +112,8 @@ class echo_property(object):
         if instance is None:
             return self
         else:
-            return instance._should_log_debug and 'debug' or (instance._should_log_info and True or False)
+            return instance._should_log_debug() and 'debug' or \
+                            (instance._should_log_info() and True or False)
 
     def __set__(self, instance, value):
         instance_logger(instance, echoflag=value)

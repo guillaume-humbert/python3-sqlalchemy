@@ -7,7 +7,7 @@
         
         <title>
     SQL Statements and Expressions
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Database Schema" href="schema.html" />
         <link rel="prev" title="Connection Pooling" href="pooling.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,7 +87,7 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">SQL Statements and Expressions</a><ul>
+<li><a class="reference external" href="#">SQL Statements and Expressions</a><ul>
 <li><a class="reference external" href="#functions">Functions</a></li>
 <li><a class="reference external" href="#classes">Classes</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.sql.functions">Generic Functions</a></li>
@@ -845,8 +845,7 @@ against the <tt class="docutils literal"><span class="pre">UPDATE</span></tt> st
 <h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Alias">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Alias</tt><big>(</big><em>selectable</em>, <em>alias=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Alias" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Alias</tt><big>(</big><em>selectable</em>, <em>alias=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Alias" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression.FromClause" class="reference internal" href="#sqlalchemy.sql.expression.FromClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.FromClause</span></tt></a></p>
 <p>Represents an table or selectable alias (AS).</p>
 <p>Represents an alias, as typically applied to any table or
@@ -864,14 +863,13 @@ function as well as the <a title="sqlalchemy.sql.expression.alias" class="refere
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression._BindParamClause">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">_BindParamClause</tt><big>(</big><em>key</em>, <em>value</em>, <em>type_=None</em>, <em>unique=False</em>, <em>isoutparam=False</em>, <em>required=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._BindParamClause" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">_BindParamClause</tt><big>(</big><em>key</em>, <em>value</em>, <em>type_=None</em>, <em>unique=False</em>, <em>isoutparam=False</em>, <em>required=False</em>, <em>_compared_to_operator=None</em>, <em>_compared_to_type=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._BindParamClause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression.ColumnElement" class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a></p>
 <p>Represent a bind parameter.</p>
 <p>Public constructor is the <a title="sqlalchemy.sql.expression.bindparam" class="reference internal" href="#sqlalchemy.sql.expression.bindparam"><tt class="xref docutils literal"><span class="pre">bindparam()</span></tt></a> function.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression._BindParamClause.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>key</em>, <em>value</em>, <em>type_=None</em>, <em>unique=False</em>, <em>isoutparam=False</em>, <em>required=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._BindParamClause.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>key</em>, <em>value</em>, <em>type_=None</em>, <em>unique=False</em>, <em>isoutparam=False</em>, <em>required=False</em>, <em>_compared_to_operator=None</em>, <em>_compared_to_type=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._BindParamClause.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a _BindParamClause.</p>
 <dl class="docutils">
 <dt>key</dt>
@@ -911,8 +909,7 @@ parameter.</dd>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.ClauseElement">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ClauseElement</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ClauseElement" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ClauseElement</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ClauseElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.visitors.Visitable</span></tt></p>
 <p>Base class for elements of a programmatically constructed SQL
 expression.</p>
@@ -1022,8 +1019,7 @@ used.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.ColumnClause">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnClause</tt><big>(</big><em>text</em>, <em>selectable=None</em>, <em>type_=None</em>, <em>is_literal=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnClause" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnClause</tt><big>(</big><em>text</em>, <em>selectable=None</em>, <em>type_=None</em>, <em>is_literal=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnClause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._Immutable</span></tt>, <a title="sqlalchemy.sql.expression.ColumnElement" class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a></p>
 <p>Represents a generic column expression from any textual string.</p>
 <p>This includes columns associated with tables, aliases and select
@@ -1055,8 +1051,7 @@ rules applied regardless of case sensitive settings.  the
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.ColumnCollection">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnCollection</tt><big>(</big><em>*cols</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnCollection" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnCollection</tt><big>(</big><em>*cols</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnCollection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.util.OrderedProperties</span></tt></p>
 <p>An ordered dictionary that stores a list of ColumnElement
 instances.</p>
@@ -1078,8 +1073,9 @@ for this dictionary.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ColumnCollection.replace">
 <tt class="descname">replace</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnCollection.replace" title="Permalink to this definition">¶</a></dt>
-<dd><p>add the given column to this collection, removing unaliased versions of this column
-as well as existing columns with the same key.</p>
+<dd><p>add the given column to this collection, removing unaliased
+versions of this column  as well as existing columns with the
+same key.</p>
 <blockquote>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;sometable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">))</span>
@@ -1095,8 +1091,7 @@ the new column under the name &#8216;columnname&#8217;.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.ColumnElement">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnElement</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnElement</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression.ClauseElement" class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a>, <a title="sqlalchemy.sql.expression._CompareMixin" class="reference internal" href="#sqlalchemy.sql.expression._CompareMixin"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._CompareMixin</span></tt></a></p>
 <p>Represent an element that is usable within the &#8220;column clause&#8221; portion of a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement.</p>
 <p>This includes columns associated with tables, aliases, and
@@ -1140,14 +1135,14 @@ foreign key or other criterion.</li>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ColumnElement.shares_lineage">
 <tt class="descname">shares_lineage</tt><big>(</big><em>othercolumn</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement.shares_lineage" title="Permalink to this definition">¶</a></dt>
-<dd>Return True if the given <a title="sqlalchemy.sql.expression.ColumnElement" class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">ColumnElement</span></tt></a> has a common ancestor to this <a title="sqlalchemy.sql.expression.ColumnElement" class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">ColumnElement</span></tt></a>.</dd></dl>
+<dd>Return True if the given <a title="sqlalchemy.sql.expression.ColumnElement" class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">ColumnElement</span></tt></a> 
+has a common ancestor to this <a title="sqlalchemy.sql.expression.ColumnElement" class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">ColumnElement</span></tt></a>.</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression._CompareMixin">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">_CompareMixin</tt><a class="headerlink" href="#sqlalchemy.sql.expression._CompareMixin" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">_CompareMixin</tt><a class="headerlink" href="#sqlalchemy.sql.expression._CompareMixin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression.ColumnOperators" class="reference internal" href="#sqlalchemy.sql.expression.ColumnOperators"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnOperators</span></tt></a></p>
 <p>Defines comparison and math operations for <a title="sqlalchemy.sql.expression.ClauseElement" class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement"><tt class="xref docutils literal"><span class="pre">ClauseElement</span></tt></a> instances.</p>
 <dl class="method">
@@ -1249,12 +1244,11 @@ generated function.</td>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.ColumnOperators">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnOperators</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnOperators" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnOperators</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnOperators" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines comparison and math operations.</p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.sql.expression.ColumnOperators.__init__">
-<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnOperators.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnOperators.__init__" title="Permalink to this definition">¶</a></dt>
 <dd>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</dd></dl>
 
 <dl class="method">
@@ -1346,8 +1340,7 @@ class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="d
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.CompoundSelect">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">CompoundSelect</tt><big>(</big><em>keyword</em>, <em>*selects</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.CompoundSelect" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">CompoundSelect</tt><big>(</big><em>keyword</em>, <em>*selects</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.CompoundSelect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression._SelectBaseMixin" class="reference internal" href="#sqlalchemy.sql.expression._SelectBaseMixin"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._SelectBaseMixin</span></tt></a>, <a title="sqlalchemy.sql.expression.FromClause" class="reference internal" href="#sqlalchemy.sql.expression.FromClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.FromClause</span></tt></a></p>
 <p>Forms the basis of <tt class="docutils literal"><span class="pre">UNION</span></tt>, <tt class="docutils literal"><span class="pre">UNION</span> <span class="pre">ALL</span></tt>, and other 
 SELECT-based set operations.</p>
@@ -1360,8 +1353,7 @@ SELECT-based set operations.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Delete">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Delete</tt><big>(</big><em>table</em>, <em>whereclause</em>, <em>bind=None</em>, <em>returning=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Delete" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Delete</tt><big>(</big><em>table</em>, <em>whereclause</em>, <em>bind=None</em>, <em>returning=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._UpdateBase</span></tt></p>
 <p>Represent a DELETE construct.</p>
 <p>The <a title="sqlalchemy.sql.expression.Delete" class="reference internal" href="#sqlalchemy.sql.expression.Delete"><tt class="xref docutils literal"><span class="pre">Delete</span></tt></a> object is created using the <a title="sqlalchemy.sql.expression.delete" class="reference internal" href="#sqlalchemy.sql.expression.delete"><tt class="xref docutils literal"><span class="pre">delete()</span></tt></a> function.</p>
@@ -1373,10 +1365,48 @@ class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="d
 </dd></dl>
 
 <dl class="class">
+<dt id="sqlalchemy.sql.expression.Executable">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Executable</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Executable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._Generative</span></tt></p>
+<p>Mark a ClauseElement as supporting execution.</p>
+<p><a title="sqlalchemy.sql.expression.Executable" class="reference internal" href="#sqlalchemy.sql.expression.Executable"><tt class="xref docutils literal"><span class="pre">Executable</span></tt></a> is a superclass for all &#8220;statement&#8221; types
+of objects, including <a title="sqlalchemy.sql.expression.select" class="reference internal" href="#sqlalchemy.sql.expression.select"><tt class="xref docutils literal"><span class="pre">select()</span></tt></a>, <a title="sqlalchemy.sql.expression.delete" class="reference internal" href="#sqlalchemy.sql.expression.delete"><tt class="xref docutils literal"><span class="pre">delete()</span></tt></a>, <a title="sqlalchemy.sql.expression.update" class="reference internal" href="#sqlalchemy.sql.expression.update"><tt class="xref docutils literal"><span class="pre">update()</span></tt></a>,
+<a title="sqlalchemy.sql.expression.insert" class="reference internal" href="#sqlalchemy.sql.expression.insert"><tt class="xref docutils literal"><span class="pre">insert()</span></tt></a>, <a title="sqlalchemy.sql.expression.text" class="reference internal" href="#sqlalchemy.sql.expression.text"><tt class="xref docutils literal"><span class="pre">text()</span></tt></a>.</p>
+<dl class="method">
+<dt id="sqlalchemy.sql.expression.Executable.execution_options">
+<tt class="descname">execution_options</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Executable.execution_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set non-SQL options for the statement which take effect during execution.</p>
+<p>Current options include:</p>
+<ul class="simple">
+<li>autocommit - when True, a COMMIT will be invoked after execution 
+when executed in &#8216;autocommit&#8217; mode, i.e. when an explicit transaction
+is not begun on the connection.   Note that DBAPI connections by
+default are always in a transaction - SQLAlchemy uses rules applied
+to different kinds of statements to determine if COMMIT will be invoked
+in order to provide its &#8220;autocommit&#8221; feature.  Typically, all 
+INSERT/UPDATE/DELETE statements as well as CREATE/DROP statements 
+have autocommit behavior enabled; SELECT constructs do not.  Use this
+option when invokving a SELECT or other specific SQL construct
+where COMMIT is desired (typically when calling stored procedures
+and such).</li>
+<li>stream_results - indicate to the dialect that results should be 
+&#8220;streamed&#8221; and not pre-buffered, if possible.  This is a limitation
+of many DBAPIs.  The flag is currently understood only by the
+psycopg2 dialect.</li>
+</ul>
+<p>See also:</p>
+<blockquote>
+<p><a title="sqlalchemy.engine.base.Connection.execution_options" class="reference external" href="connections.html#sqlalchemy.engine.base.Connection.execution_options"><tt class="xref docutils literal"><span class="pre">sqlalchemy.engine.base.Connection.execution_options()</span></tt></a></p>
+<p><a title="sqlalchemy.orm.query.Query.execution_options" class="reference external" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options"><tt class="xref docutils literal"><span class="pre">sqlalchemy.orm.query.Query.execution_options()</span></tt></a></p>
+</blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="sqlalchemy.sql.expression.FunctionElement">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">FunctionElement</tt><big>(</big><em>*clauses</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FunctionElement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.sql.expression.ColumnElement" class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a>, <a title="sqlalchemy.sql.expression.FromClause" class="reference internal" href="#sqlalchemy.sql.expression.FromClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.FromClause</span></tt></a></p>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">FunctionElement</tt><big>(</big><em>*clauses</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FunctionElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="sqlalchemy.sql.expression.Executable" class="reference internal" href="#sqlalchemy.sql.expression.Executable"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable</span></tt></a>, <a title="sqlalchemy.sql.expression.ColumnElement" class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a>, <a title="sqlalchemy.sql.expression.FromClause" class="reference internal" href="#sqlalchemy.sql.expression.FromClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.FromClause</span></tt></a></p>
 <p>Base for SQL function-oriented constructs.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.FunctionElement.__init__">
@@ -1387,8 +1417,7 @@ class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="d
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Function">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Function</tt><big>(</big><em>name</em>, <em>*clauses</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Function" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Function</tt><big>(</big><em>name</em>, <em>*clauses</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Function" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression.FunctionElement" class="reference internal" href="#sqlalchemy.sql.expression.FunctionElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.FunctionElement</span></tt></a></p>
 <p>Describe a named SQL function.</p>
 <dl class="method">
@@ -1400,8 +1429,7 @@ class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="d
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.FromClause">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">FromClause</tt><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">FromClause</tt><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression.Selectable" class="reference internal" href="#sqlalchemy.sql.expression.Selectable"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.Selectable</span></tt></a></p>
 <p>Represent an element that can be used within the <tt class="docutils literal"><span class="pre">FROM</span></tt> 
 clause of a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement.</p>
@@ -1477,7 +1505,8 @@ of this <a title="sqlalchemy.sql.expression.FromClause" class="reference interna
 <dl class="attribute">
 <dt id="sqlalchemy.sql.expression.FromClause.foreign_keys">
 <tt class="descname">foreign_keys</tt><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause.foreign_keys" title="Permalink to this definition">¶</a></dt>
-<dd>Return the collection of ForeignKey objects which this FromClause references.</dd></dl>
+<dd>Return the collection of ForeignKey objects which this
+FromClause references.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.FromClause.is_derived_from">
@@ -1499,7 +1528,8 @@ of this <a title="sqlalchemy.sql.expression.FromClause" class="reference interna
 <dl class="attribute">
 <dt id="sqlalchemy.sql.expression.FromClause.primary_key">
 <tt class="descname">primary_key</tt><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause.primary_key" title="Permalink to this definition">¶</a></dt>
-<dd>Return the collection of Column objects which comprise the primary key of this FromClause.</dd></dl>
+<dd>Return the collection of Column objects which comprise the
+primary key of this FromClause.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.FromClause.replace_selectable">
@@ -1516,8 +1546,7 @@ object, returning a copy of this <a title="sqlalchemy.sql.expression.FromClause"
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Insert">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Insert</tt><big>(</big><em>table</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Insert" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Insert</tt><big>(</big><em>table</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Insert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._ValuesBase</span></tt></p>
 <p>Represent an INSERT construct.</p>
 <p>The <a title="sqlalchemy.sql.expression.Insert" class="reference internal" href="#sqlalchemy.sql.expression.Insert"><tt class="xref docutils literal"><span class="pre">Insert</span></tt></a> object is created using the <a title="sqlalchemy.sql.expression.insert" class="reference internal" href="#sqlalchemy.sql.expression.insert"><tt class="xref docutils literal"><span class="pre">insert()</span></tt></a> function.</p>
@@ -1549,8 +1578,7 @@ allows non-string based keys, such as Column objects, to be used.</dd>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Join">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Join</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Join" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Join</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Join" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression.FromClause" class="reference internal" href="#sqlalchemy.sql.expression.FromClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.FromClause</span></tt></a></p>
 <p>represent a <tt class="docutils literal"><span class="pre">JOIN</span></tt> construct between two <a title="sqlalchemy.sql.expression.FromClause" class="reference internal" href="#sqlalchemy.sql.expression.FromClause"><tt class="xref docutils literal"><span class="pre">FromClause</span></tt></a> elements.</p>
 <p>The public constructor function for <a title="sqlalchemy.sql.expression.Join" class="reference internal" href="#sqlalchemy.sql.expression.Join"><tt class="xref docutils literal"><span class="pre">Join</span></tt></a> is the module-level
@@ -1600,8 +1628,7 @@ underlying <a title="sqlalchemy.sql.expression.select" class="reference internal
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Select">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Select</tt><big>(</big><em>columns</em>, <em>whereclause=None</em>, <em>from_obj=None</em>, <em>distinct=False</em>, <em>having=None</em>, <em>correlate=True</em>, <em>prefixes=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Select</tt><big>(</big><em>columns</em>, <em>whereclause=None</em>, <em>from_obj=None</em>, <em>distinct=False</em>, <em>having=None</em>, <em>correlate=True</em>, <em>prefixes=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression._SelectBaseMixin" class="reference internal" href="#sqlalchemy.sql.expression._SelectBaseMixin"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._SelectBaseMixin</span></tt></a>, <a title="sqlalchemy.sql.expression.FromClause" class="reference internal" href="#sqlalchemy.sql.expression.FromClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.FromClause</span></tt></a></p>
 <p>Represents a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement.</p>
 <p>Select statements support appendable clauses, as well as the
@@ -1771,17 +1798,15 @@ with the given columns.</dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Selectable">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Selectable</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Selectable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Selectable</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Selectable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression.ClauseElement" class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a></p>
 <p>mark a class as being selectable</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression._SelectBaseMixin">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">_SelectBaseMixin</tt><big>(</big><em>use_labels=False</em>, <em>for_update=False</em>, <em>limit=None</em>, <em>offset=None</em>, <em>order_by=None</em>, <em>group_by=None</em>, <em>bind=None</em>, <em>autocommit=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._SelectBaseMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._Executable</span></tt></p>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">_SelectBaseMixin</tt><big>(</big><em>use_labels=False</em>, <em>for_update=False</em>, <em>limit=None</em>, <em>offset=None</em>, <em>order_by=None</em>, <em>group_by=None</em>, <em>bind=None</em>, <em>autocommit=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._SelectBaseMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a title="sqlalchemy.sql.expression.Executable" class="reference internal" href="#sqlalchemy.sql.expression.Executable"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable</span></tt></a></p>
 <p>Base class for <a title="sqlalchemy.sql.expression.Select" class="reference internal" href="#sqlalchemy.sql.expression.Select"><tt class="xref docutils literal"><span class="pre">Select</span></tt></a> and <tt class="docutils literal"><span class="pre">CompoundSelects</span></tt>.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression._SelectBaseMixin.__init__">
@@ -1867,8 +1892,7 @@ subquery with a label.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.TableClause">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">TableClause</tt><big>(</big><em>name</em>, <em>*columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TableClause" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">TableClause</tt><big>(</big><em>name</em>, <em>*columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TableClause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._Immutable</span></tt>, <a title="sqlalchemy.sql.expression.FromClause" class="reference internal" href="#sqlalchemy.sql.expression.FromClause"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.FromClause</span></tt></a></p>
 <p>Represents a &#8220;table&#8221; construct.</p>
 <p>Note that this represents tables only as another syntactical
@@ -1903,8 +1927,7 @@ functionality.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Update">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Update</tt><big>(</big><em>table</em>, <em>whereclause</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>returning=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Update" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Update</tt><big>(</big><em>table</em>, <em>whereclause</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>returning=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression._ValuesBase</span></tt></p>
 <p>Represent an Update construct.</p>
 <p>The <a title="sqlalchemy.sql.expression.Update" class="reference internal" href="#sqlalchemy.sql.expression.Update"><tt class="xref docutils literal"><span class="pre">Update</span></tt></a> object is created using the <a title="sqlalchemy.sql.expression.update" class="reference internal" href="#sqlalchemy.sql.expression.update"><tt class="xref docutils literal"><span class="pre">update()</span></tt></a> function.</p>
@@ -1940,8 +1963,7 @@ allows non-string based keys, such as Column objects, to be used.</dd>
 </div>
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.AnsiFunction">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">AnsiFunction</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.AnsiFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">AnsiFunction</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.AnsiFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.functions.GenericFunction" class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.GenericFunction</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.sql.functions.AnsiFunction.__init__">
@@ -1952,8 +1974,7 @@ class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="de
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.GenericFunction">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">GenericFunction</tt><big>(</big><em>type_=None</em>, <em>args=()</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.GenericFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">GenericFunction</tt><big>(</big><em>type_=None</em>, <em>args=()</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.GenericFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.expression.Function" class="reference internal" href="#sqlalchemy.sql.expression.Function"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.Function</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.sql.functions.GenericFunction.__init__">
@@ -1964,8 +1985,7 @@ class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="de
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.ReturnTypeFromArgs">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">ReturnTypeFromArgs</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.ReturnTypeFromArgs" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">ReturnTypeFromArgs</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.ReturnTypeFromArgs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.functions.GenericFunction" class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.GenericFunction</span></tt></a></p>
 <p>Define a function whose return type is the same as its arguments.</p>
 <dl class="method">
@@ -1977,8 +1997,7 @@ class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="de
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.char_length">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">char_length</tt><big>(</big><em>arg</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.char_length" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">char_length</tt><big>(</big><em>arg</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.char_length" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.functions.GenericFunction" class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.GenericFunction</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.sql.functions.char_length.__init__">
@@ -1989,14 +2008,12 @@ class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="de
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.coalesce">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">coalesce</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.coalesce" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">coalesce</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.coalesce" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.ReturnTypeFromArgs" class="reference internal" href="#sqlalchemy.sql.functions.ReturnTypeFromArgs"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.ReturnTypeFromArgs</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.concat">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">concat</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.concat" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">concat</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.concat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.functions.GenericFunction" class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.GenericFunction</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.sql.functions.concat.__init__">
@@ -2007,8 +2024,7 @@ class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="de
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.count">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">count</tt><big>(</big><em>expression=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.count" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">count</tt><big>(</big><em>expression=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.count" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.functions.GenericFunction" class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.GenericFunction</span></tt></a></p>
 <p>The ANSI COUNT aggregate function.  With no arguments, emits COUNT *.</p>
 <dl class="method">
@@ -2020,62 +2036,52 @@ class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="de
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.current_date">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">current_date</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.current_date" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">current_date</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.current_date" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.AnsiFunction" class="reference internal" href="#sqlalchemy.sql.functions.AnsiFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.AnsiFunction</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.current_time">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">current_time</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.current_time" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">current_time</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.current_time" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.AnsiFunction" class="reference internal" href="#sqlalchemy.sql.functions.AnsiFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.AnsiFunction</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.current_timestamp">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">current_timestamp</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.current_timestamp" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">current_timestamp</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.current_timestamp" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.AnsiFunction" class="reference internal" href="#sqlalchemy.sql.functions.AnsiFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.AnsiFunction</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.current_user">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">current_user</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.current_user" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">current_user</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.current_user" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.AnsiFunction" class="reference internal" href="#sqlalchemy.sql.functions.AnsiFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.AnsiFunction</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.localtime">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">localtime</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.localtime" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">localtime</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.localtime" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.AnsiFunction" class="reference internal" href="#sqlalchemy.sql.functions.AnsiFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.AnsiFunction</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.localtimestamp">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">localtimestamp</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.localtimestamp" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">localtimestamp</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.localtimestamp" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.AnsiFunction" class="reference internal" href="#sqlalchemy.sql.functions.AnsiFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.AnsiFunction</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.max">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">max</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.max" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">max</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.max" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.ReturnTypeFromArgs" class="reference internal" href="#sqlalchemy.sql.functions.ReturnTypeFromArgs"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.ReturnTypeFromArgs</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.min">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">min</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.min" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">min</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.min" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.ReturnTypeFromArgs" class="reference internal" href="#sqlalchemy.sql.functions.ReturnTypeFromArgs"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.ReturnTypeFromArgs</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.now">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">now</tt><big>(</big><em>type_=None</em>, <em>args=()</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.now" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">now</tt><big>(</big><em>type_=None</em>, <em>args=()</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.now" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.GenericFunction" class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.GenericFunction</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.random">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">random</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.random" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">random</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.random" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.sql.functions.GenericFunction" class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.GenericFunction</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.sql.functions.random.__init__">
@@ -2086,26 +2092,22 @@ class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="de
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.session_user">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">session_user</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.session_user" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">session_user</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.session_user" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.AnsiFunction" class="reference internal" href="#sqlalchemy.sql.functions.AnsiFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.AnsiFunction</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.sum">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">sum</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.sum" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">sum</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.sum" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.ReturnTypeFromArgs" class="reference internal" href="#sqlalchemy.sql.functions.ReturnTypeFromArgs"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.ReturnTypeFromArgs</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.sysdate">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">sysdate</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.sysdate" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">sysdate</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.sysdate" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.AnsiFunction" class="reference internal" href="#sqlalchemy.sql.functions.AnsiFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.AnsiFunction</span></tt></a></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.functions.user">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">user</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.user" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">user</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.user" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="sqlalchemy.sql.functions.AnsiFunction" class="reference internal" href="#sqlalchemy.sql.functions.AnsiFunction"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.functions.AnsiFunction</span></tt></a></dd></dl>
 
 </div>
@@ -2127,7 +2129,7 @@ class </em><tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="de
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         
