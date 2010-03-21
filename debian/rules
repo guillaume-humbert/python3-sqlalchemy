@@ -49,9 +49,12 @@ install-docs: build-docs
 
 install: build $(PYVERS:%=install-python%)
 install-python%:
-	python$* ./setup.py install --skip-build \
-		--root $(CURDIR)/debian/${p_name}
-	touch $@
+	#python$* ./setup.py install --skip-build \
+	#	--root $(CURDIR)/debian/${p_name}
+	#touch $@
+	# hack to workaround distutils/setuptools bug:
+	mkdir -p $(CURDIR)/debian/${p_name}/usr/lib/python$*/site-packages/
+	cp -R $(CURDIR)/build/lib.*-$*/* $(CURDIR)/debian/${p_name}/usr/lib/python$*/site-packages/
 
 binary-indep: build install-docs
 	dh_testdir -i
