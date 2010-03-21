@@ -5,21 +5,28 @@ p_name=python-sqlalchemy
 m_name=SQLAlchemy
 
 PYVERS=$(shell pyversions -vr)
--include /usr/share/python/python.mk # for py_setup_install_args (ignore if not available yet)
 
 clean:
 	dh_testdir
 	dh_testroot
 	rm -rf $(CURDIR)/lib/${m_name}.egg-info $(CURDIR)/build/
 	find . -name '*\.py[co]' -delete
-	dh_clean build-* $(PYVERS:%=install-python%) install-docs
+	dh_clean build-docs build-stamp install-docs \
+		$(PYVERS:%=install-python%) \
+		$(PYVERS:%=build-python%)
 
-#build: build-docs
-build:
+build: build-stamp
+
+build-stamp: $(PYVERS:%=build-python%)
+	touch $@
+
+build-python%:
+	python$* ./setup.py --with-cextensions build
+	touch $@
 
 build-docs:
 	dh_testdir
-	dh_installdirs
+	dh_installdirs -i
 	cd doc/build && sphinx-build -N -q -E -b html . \
 	 $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/
 	rm -rf $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/.doctrees
@@ -27,7 +34,7 @@ build-docs:
 
 install-docs: build-docs
 	dh_testdir
-	dh_installdirs
+	dh_installdirs -i
 	
 	dh_link -p${p_name}-doc /usr/share/doc/${p_name}-doc/html/_sources \
 	       	/usr/share/doc/${p_name}-doc/rst
@@ -40,15 +47,13 @@ install-docs: build-docs
 		/usr/share/doc/${p_name}/rst
 	touch $@
 
-install: build install-docs $(PYVERS:%=install-python%)
+install: build $(PYVERS:%=install-python%)
 install-python%:
-	python$* setup.py install \
-		--single-version-externally-managed \
-		--root $(CURDIR)/debian/${p_name} \
-		$(py_setup_install_args)
+	python$* ./setup.py install --skip-build \
+		--root $(CURDIR)/debian/${p_name}
 	touch $@
 
-binary-indep: build install
+binary-indep: build install-docs
 	dh_testdir -i
 	dh_testroot -i
 	dh_installchangelogs -i CHANGES
@@ -56,7 +61,6 @@ binary-indep: build install
 	dh_installexamples -i
 	rm -rf debian/${p_name}-doc/usr/share/doc/${p_name}-doc/doc/build \
 	       debian/${p_name}-doc/usr/share/doc/${p_name}-doc/examples/README
-	dh_pysupport -i
 	dh_compress -i -X.py -X.js -X.html
 	dh_fixperms -i
 	dh_installdeb -i
@@ -64,7 +68,21 @@ binary-indep: build install
 	dh_md5sums -i
 	dh_builddeb -i -- -Z bzip2
 
-binary-arch:
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs -a
+	dh_installdocs -a
+	dh_pysupport -a
+	dh_makeshlibs -a
+	dh_strip -a
+	dh_compress -a -X.py
+	dh_fixperms -a
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a -- -Z bzip2
 
 binary: binary-indep binary-arch
 

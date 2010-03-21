@@ -64,6 +64,15 @@ lib/sqlalchemy/dialects/access/base.py file:
 
 -----------------------------------------------------------
 
+lib/sqlalchemy/cextension/processors.c and resultproxy.c files:
+
+ Copyright (C) 2010 Gaetan de Menten gdementen@gmail.com
+
+ This module is part of SQLAlchemy and is released under
+ the MIT License: http://www.opensource.org/licenses/mit-license.php
+
+-----------------------------------------------------------
+
 doc/_static/jquery.js file:
  
  Copyright (c) 2008 John Resig (jquery.com)
