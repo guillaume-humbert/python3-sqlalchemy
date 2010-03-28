@@ -7,7 +7,7 @@
         
         <title>
     SQL Statements and Expressions
- &mdash; SQLAlchemy 0.6beta2 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta2',
+          VERSION:     '0.6beta3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Database Schema" href="schema.html" />
         <link rel="prev" title="Connection Pooling" href="pooling.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
+            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
         </div>
         <div class="clearboth"></div>
 
@@ -1787,6 +1787,25 @@ selectable.</dd></dl>
 <tt class="descname">where</tt><big>(</big><em>whereclause</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.where" title="Permalink to this definition">¶</a></dt>
 <dd>return a new select() construct with the given expression added to its 
 WHERE clause, joined to the existing clause via AND, if any.</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.sql.expression.Select.with_hint">
+<tt class="descname">with_hint</tt><big>(</big><em>selectable</em>, <em>text</em>, <em>dialect_name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.with_hint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an indexing hint for the given selectable to this <a title="sqlalchemy.sql.expression.Select" class="reference internal" href="#sqlalchemy.sql.expression.Select"><tt class="xref docutils literal"><span class="pre">Select</span></tt></a>.</p>
+<p>The text of the hint is written specific to a specific backend, and
+typically uses Python string substitution syntax to render the name
+of the table or alias, such as for Oracle:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">mytable</span><span class="p">])</span><span class="o">.</span><span class="n">with_hint</span><span class="p">(</span><span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;+ index(</span><span class="si">%(name)s</span><span class="s"> ix_mytable)&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>Would render SQL as:</p>
+<div class="highlight-python"><pre>select /*+ index(mytable ix_mytable) */ ... from mytable</pre>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">dialect_name</span></tt> option will limit the rendering of a particular hint
+to a particular backend.  Such as, to add hints for both Oracle and
+Sybase simultaneously:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">mytable</span><span class="p">])</span><span class="o">.</span>                <span class="n">with_hint</span><span class="p">(</span><span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;+ index(</span><span class="si">%(name)s</span><span class="s"> ix_mytable)&quot;</span><span class="p">,</span> <span class="s">&#39;oracle&#39;</span><span class="p">)</span><span class="o">.</span>                <span class="n">with_hint</span><span class="p">(</span><span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;WITH INDEX ix_mytable&quot;</span><span class="p">,</span> <span class="s">&#39;sybase&#39;</span><span class="p">)</span></pre></div>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Select.with_only_columns">

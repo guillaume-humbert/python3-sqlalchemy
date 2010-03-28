@@ -7,7 +7,7 @@
         
         <title>
     Connections
- &mdash; SQLAlchemy 0.6beta2 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta2',
+          VERSION:     '0.6beta3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Connection Pooling" href="pooling.html" />
         <link rel="prev" title="sqlalchemy" href="index.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
+            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
         </div>
         <div class="clearboth"></div>
 
@@ -116,10 +116,11 @@ first positional argument, to indicate the appropriate database
 dialect and connection arguments, with additional keyword
 arguments sent as options to the dialect and resulting Engine.</p>
 <p>The URL is a string in the form
-<tt class="docutils literal"><span class="pre">dialect://user:password&#64;host/dbname[?key=value..]</span></tt>, where
-<tt class="docutils literal"><span class="pre">dialect</span></tt> is a name such as <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>, <tt class="docutils literal"><span class="pre">postgresql</span></tt>,
-etc.  Alternatively, the URL can be an instance of
-<a title="sqlalchemy.engine.url.URL" class="reference internal" href="#sqlalchemy.engine.url.URL"><tt class="xref docutils literal"><span class="pre">URL</span></tt></a>.</p>
+<tt class="docutils literal"><span class="pre">dialect+driver://user:password&#64;host/dbname[?key=value..]</span></tt>, where
+<tt class="docutils literal"><span class="pre">dialect</span></tt> is a database name such as <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>, 
+<tt class="docutils literal"><span class="pre">postgresql</span></tt>, etc., and <tt class="docutils literal"><span class="pre">driver</span></tt> the name of a DBAPI, such as 
+<tt class="docutils literal"><span class="pre">psycopg2</span></tt>, <tt class="docutils literal"><span class="pre">pyodbc</span></tt>, <tt class="docutils literal"><span class="pre">cx_oracle</span></tt>, etc.  Alternatively, 
+the URL can be an instance of <a title="sqlalchemy.engine.url.URL" class="reference internal" href="#sqlalchemy.engine.url.URL"><tt class="xref docutils literal"><span class="pre">URL</span></tt></a>.</p>
 <p><cite>**kwargs</cite> takes a wide variety of options which are routed 
 towards their appropriate components.  Arguments may be 
 specific to the Engine, the underlying Dialect, as well as the 
@@ -315,6 +316,8 @@ but correlates the name to the original positionally.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.base.</tt><tt class="descname">Engine</tt><big>(</big><em>pool</em>, <em>dialect</em>, <em>url</em>, <em>logging_name=None</em>, <em>echo=None</em>, <em>proxy=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connects a <a title="sqlalchemy.pool.Pool" class="reference external" href="pooling.html#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">Pool</span></tt></a> and <a title="sqlalchemy.engine.base.Dialect" class="reference internal" href="#sqlalchemy.engine.base.Dialect"><tt class="xref docutils literal"><span class="pre">Dialect</span></tt></a>
 together to provide a source of database connectivity and behavior.</p>
+<p>An <a title="sqlalchemy.engine.base.Engine" class="reference internal" href="#sqlalchemy.engine.base.Engine"><tt class="xref docutils literal"><span class="pre">Engine</span></tt></a> object is instantiated publically using the <a title="sqlalchemy.create_engine" class="reference internal" href="#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a>
+function.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>pool</em>, <em>dialect</em>, <em>url</em>, <em>logging_name=None</em>, <em>echo=None</em>, <em>proxy=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.__init__" title="Permalink to this definition">¶</a></dt>

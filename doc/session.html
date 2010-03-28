@@ -7,7 +7,7 @@
         
         <title>
     Using the Session
- &mdash; SQLAlchemy 0.6beta2 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta3 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.6beta2',
+          VERSION:     '0.6beta3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="index.html" />
         <link rel="next" title="Database Engines" href="dbengine.html" />
         <link rel="prev" title="Mapper Configuration" href="mappers.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
+            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
         </div>
         <div class="clearboth"></div>
 
@@ -476,7 +476,7 @@
 <span class="p">})</span></pre></div>
 </div>
 <p>The above mapper specifies two relationships, <tt class="docutils literal"><span class="pre">items</span></tt> and <tt class="docutils literal"><span class="pre">customer</span></tt>.  The <tt class="docutils literal"><span class="pre">items</span></tt> relationship specifies &#8220;all, delete-orphan&#8221; as its <tt class="docutils literal"><span class="pre">cascade</span></tt> value, indicating that all  <tt class="docutils literal"><span class="pre">add</span></tt>, <tt class="docutils literal"><span class="pre">merge</span></tt>, <tt class="docutils literal"><span class="pre">expunge</span></tt>, <tt class="docutils literal"><span class="pre">refresh</span></tt> <tt class="docutils literal"><span class="pre">delete</span></tt> and <tt class="docutils literal"><span class="pre">expire</span></tt> operations performed on a parent <tt class="docutils literal"><span class="pre">Order</span></tt> instance should also be performed on the child <tt class="docutils literal"><span class="pre">Item</span></tt> instances attached to it.  The <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade value additionally indicates that if an <tt class="docutils literal"><span class="pre">Item</span></tt> instance is no longer associated with an <tt class="docutils literal"><span class="pre">Order</span></tt>, it should also be deleted.  The &#8220;all, delete-orphan&#8221; cascade argument allows a so-called <em>lifecycle</em> relationship between an <tt class="docutils literal"><span class="pre">Order</span></tt> and an <tt class="docutils literal"><span class="pre">Item</span></tt> object.</p>
-<p>The <tt class="docutils literal"><span class="pre">customer</span></tt> relationship specifies only the &#8220;save-update&#8221; cascade value, indicating most operations will not be cascaded from a parent <tt class="docutils literal"><span class="pre">Order</span></tt> instance to a child <tt class="docutils literal"><span class="pre">User</span></tt> instance except for the <a title="sqlalchemy.orm.session.Session.add" class="reference external" href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.add"><tt class="xref docutils literal"><span class="pre">add()</span></tt></a> operation.  &#8220;save-update&#8221; cascade indicates that an <a title="sqlalchemy.orm.session.Session.add" class="reference external" href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.add"><tt class="xref docutils literal"><span class="pre">add()</span></tt></a> on the parent will cascade to all child items, and also that items added to a parent which is already present in the session will also be added.  &#8220;save-update&#8221; cascade also cascades the <em>pending history</em> of a relationship()-based attribute, meaning that objects which were removed from a scalar or collection attribute whose changes have not yet been flushed are also placed into the new session - this so that foreign key clear operations and deletions will take place (new in 0.6).</p>
+<p>The <tt class="docutils literal"><span class="pre">customer</span></tt> relationship specifies only the &#8220;save-update&#8221; cascade value, indicating most operations will not be cascaded from a parent <tt class="docutils literal"><span class="pre">Order</span></tt> instance to a child <tt class="docutils literal"><span class="pre">User</span></tt> instance except for the <a title="sqlalchemy.orm.session.Session.add" class="reference external" href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.add"><tt class="xref docutils literal"><span class="pre">add()</span></tt></a> operation.  &#8220;save-update&#8221; cascade indicates that an <a title="sqlalchemy.orm.session.Session.add" class="reference external" href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.add"><tt class="xref docutils literal"><span class="pre">add()</span></tt></a> on the parent will cascade to all child items, and also that items added to a parent which is already present in a session will also be added to that same session.  &#8220;save-update&#8221; cascade also cascades the <em>pending history</em> of a relationship()-based attribute, meaning that objects which were removed from a scalar or collection attribute whose changes have not yet been flushed are also placed into the new session - this so that foreign key clear operations and deletions will take place (new in 0.6).</p>
 <p>Note that the <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade only functions for relationships where the target object can have a single parent at a time, meaning it is only appropriate for one-to-one or one-to-many relationships.  For a <a title="sqlalchemy.orm.relationship" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a> which establishes one-to-one via a local foreign key, i.e. a many-to-one that stores only a single parent, or one-to-one/one-to-many via a &#8220;secondary&#8221; (association) table, a warning will be issued if <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> is configured.  To disable this warning, also specify the <tt class="docutils literal"><span class="pre">single_parent=True</span></tt> flag on the relationship, which constrains objects to allow attachment to only one parent at a time.</p>
 <p>The default value for <tt class="docutils literal"><span class="pre">cascade</span></tt> on <a title="sqlalchemy.orm.relationship" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a> is <tt class="docutils literal"><span class="pre">save-update,</span> <span class="pre">merge</span></tt>.</p>
 </div>

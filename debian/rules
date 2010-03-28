@@ -5,6 +5,8 @@ p_name=python-sqlalchemy
 m_name=SQLAlchemy
 
 PYVERS=$(shell pyversions -vr)
+PKGDIR=$(CURDIR)/debian/${p_name}
+#-include /usr/share/python/python.mk # for py_setup_install_args (ignore if not available yet)
 
 clean:
 	dh_testdir
@@ -12,8 +14,8 @@ clean:
 	rm -rf $(CURDIR)/lib/${m_name}.egg-info $(CURDIR)/build/
 	find . -name '*\.py[co]' -delete
 	dh_clean build-docs build-stamp install-docs \
-		$(PYVERS:%=install-python%) \
-		$(PYVERS:%=build-python%)
+		$(PYVERS:%=install-python%) $(PYVERS:%=build-python%) \
+		$(PYVERS:%=install-debug-python%) $(PYVERS:%=build-debug-python%)
 
 build: build-stamp
 
@@ -24,12 +26,16 @@ build-python%:
 	python$* ./setup.py --with-cextensions build
 	touch $@
 
+build-debug-python%:
+	python$*-dbg setup.py --with-cextensions build
+	touch $@
+
 build-docs:
 	dh_testdir
 	dh_installdirs -i
 	cd doc/build && sphinx-build -N -q -E -b html . \
-	 $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/
-	rm -rf $(CURDIR)/debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/.doctrees
+	 $(PKGDIR)-doc/usr/share/doc/${p_name}-doc/html/
+	rm -rf $(PKGDIR)-doc/usr/share/doc/${p_name}-doc/html/.doctrees
 	touch $@
 
 install-docs: build-docs
@@ -48,22 +54,27 @@ install-docs: build-docs
 	touch $@
 
 install: build $(PYVERS:%=install-python%)
-install-python%:
+install-python%: build
 	#python$* ./setup.py install --skip-build \
-	#	--root $(CURDIR)/debian/${p_name}
+	#	--root $(PKGDIR) $(py_setup_install_args)
 	#touch $@
+	mkdir -p $(PKGDIR)-ext/usr/lib/python$*/site-packages/sqlalchemy
+	mv $(CURDIR)/build/lib.*-$*/sqlalchemy/*.so \
+	 $(PKGDIR)-ext/usr/lib/python$*/site-packages/sqlalchemy/
 	# hack to workaround distutils/setuptools bug:
-	mkdir -p $(CURDIR)/debian/${p_name}/usr/lib/python$*/site-packages/
-	cp -R $(CURDIR)/build/lib.*-$*/* $(CURDIR)/debian/${p_name}/usr/lib/python$*/site-packages/
+	mkdir -p $(PKGDIR)/usr/lib/python$*/site-packages/
+	cp -R $(CURDIR)/build/lib.*-$*/* $(PKGDIR)/usr/lib/python$*/site-packages/
 
-binary-indep: build install-docs
+binary-indep: build install install-docs
 	dh_testdir -i
 	dh_testroot -i
-	dh_installchangelogs -i CHANGES
+	dh_installchangelogs -i -p python-sqlalchemy-doc CHANGES
+	dh_installchangelogs -i
 	dh_installdocs -i
 	dh_installexamples -i
-	rm -rf debian/${p_name}-doc/usr/share/doc/${p_name}-doc/doc/build \
-	       debian/${p_name}-doc/usr/share/doc/${p_name}-doc/examples/README
+	rm -rf $(PKGDIR)-doc/usr/share/doc/${p_name}-doc/doc/build \
+	       $(PKGDIR)-doc/usr/share/doc/${p_name}-doc/examples/README
+	dh_pysupport -i
 	dh_compress -i -X.py -X.js -X.html
 	dh_fixperms -i
 	dh_installdeb -i

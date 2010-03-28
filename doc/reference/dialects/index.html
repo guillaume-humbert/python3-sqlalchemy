@@ -7,7 +7,7 @@
         
         <title>
     sqlalchemy.dialects
- &mdash; SQLAlchemy 0.6beta2 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta2',
+          VERSION:     '0.6beta3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
         <link rel="up" title="API Reference" href="../index.html" />
         <link rel="next" title="Firebird" href="firebird.html" />
         <link rel="prev" title="Utilities" href="../orm/utilities.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
+            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
         </div>
         <div class="clearboth"></div>
 
@@ -126,39 +126,63 @@ current versions of SQLAlchemy.</p>
 <li class="toctree-l2"><a class="reference external" href="mssql.html#date-time-handling">Date / Time Handling</a></li>
 <li class="toctree-l2"><a class="reference external" href="mssql.html#compatibility-levels">Compatibility Levels</a></li>
 <li class="toctree-l2"><a class="reference external" href="mssql.html#known-issues">Known Issues</a></li>
-<li class="toctree-l2"><a class="reference external" href="mssql.html#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a></li>
-<li class="toctree-l2"><a class="reference external" href="mssql.html#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a></li>
+<li class="toctree-l2"><a class="reference external" href="mssql.html#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a><ul>
+<li class="toctree-l3"><a class="reference external" href="mssql.html#id1">Connecting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="mssql.html#module-sqlalchemy.dialects.mssql.mxodbc">mxODBC</a><ul>
+<li class="toctree-l3"><a class="reference external" href="mssql.html#id2">Connecting</a></li>
+<li class="toctree-l3"><a class="reference external" href="mssql.html#execution-modes">Execution Modes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="mssql.html#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a><ul>
+<li class="toctree-l3"><a class="reference external" href="mssql.html#id3">Connecting</a></li>
+<li class="toctree-l3"><a class="reference external" href="mssql.html#limitations">Limitations</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference external" href="mssql.html#module-sqlalchemy.dialects.mssql.zxjdbc">zxjdbc Notes</a><ul>
 <li class="toctree-l3"><a class="reference external" href="mssql.html#jdbc-driver">JDBC Driver</a></li>
-<li class="toctree-l3"><a class="reference external" href="mssql.html#id1">Connecting</a></li>
+<li class="toctree-l3"><a class="reference external" href="mssql.html#id4">Connecting</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference external" href="mssql.html#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference external" href="mysql.html">MySQL</a><ul>
-<li class="toctree-l2"><a class="reference external" href="mysql.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference external" href="mysql.html#supported-versions-and-features">Supported Versions and Features</a></li>
+<li class="toctree-l2"><a class="reference external" href="mysql.html#connecting">Connecting</a></li>
+<li class="toctree-l2"><a class="reference external" href="mysql.html#data-types">Data Types</a></li>
+<li class="toctree-l2"><a class="reference external" href="mysql.html#connection-timeouts">Connection Timeouts</a></li>
 <li class="toctree-l2"><a class="reference external" href="mysql.html#storage-engines">Storage Engines</a></li>
 <li class="toctree-l2"><a class="reference external" href="mysql.html#keys">Keys</a></li>
 <li class="toctree-l2"><a class="reference external" href="mysql.html#sql-mode">SQL Mode</a></li>
 <li class="toctree-l2"><a class="reference external" href="mysql.html#mysql-sql-extensions">MySQL SQL Extensions</a></li>
-<li class="toctree-l2"><a class="reference external" href="mysql.html#boolean-types">Boolean Types</a></li>
 <li class="toctree-l2"><a class="reference external" href="mysql.html#troubleshooting">Troubleshooting</a></li>
-<li class="toctree-l2"><a class="reference external" href="mysql.html#mysql-column-types">MySQL Column Types</a></li>
+<li class="toctree-l2"><a class="reference external" href="mysql.html#module-sqlalchemy.dialects.mysql">MySQL Column Types</a></li>
 <li class="toctree-l2"><a class="reference external" href="mysql.html#module-sqlalchemy.dialects.mysql.mysqldb">MySQL-Python Notes</a><ul>
+<li class="toctree-l3"><a class="reference external" href="mysql.html#id1">Connecting</a></li>
 <li class="toctree-l3"><a class="reference external" href="mysql.html#character-sets">Character Sets</a></li>
+<li class="toctree-l3"><a class="reference external" href="mysql.html#known-issues">Known Issues</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference external" href="mysql.html#module-sqlalchemy.dialects.mysql.oursql">OurSQL Notes</a><ul>
-<li class="toctree-l3"><a class="reference external" href="mysql.html#id1">Character Sets</a></li>
+<li class="toctree-l3"><a class="reference external" href="mysql.html#id2">Connecting</a></li>
+<li class="toctree-l3"><a class="reference external" href="mysql.html#id3">Character Sets</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="mysql.html#module-sqlalchemy.dialects.mysql.mysqlconnector">MySQL-Connector Notes</a></li>
-<li class="toctree-l2"><a class="reference external" href="mysql.html#module-sqlalchemy.dialects.mysql.pyodbc">pyodbc Notes</a></li>
+<li class="toctree-l2"><a class="reference external" href="mysql.html#module-sqlalchemy.dialects.mysql.mysqlconnector">MySQL-Connector Notes</a><ul>
+<li class="toctree-l3"><a class="reference external" href="mysql.html#id4">Connecting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="mysql.html#module-sqlalchemy.dialects.mysql.pyodbc">pyodbc Notes</a><ul>
+<li class="toctree-l3"><a class="reference external" href="mysql.html#id5">Connecting</a></li>
+<li class="toctree-l3"><a class="reference external" href="mysql.html#limitations">Limitations</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference external" href="mysql.html#module-sqlalchemy.dialects.mysql.zxjdbc">zxjdbc Notes</a><ul>
 <li class="toctree-l3"><a class="reference external" href="mysql.html#jdbc-driver">JDBC Driver</a></li>
-<li class="toctree-l3"><a class="reference external" href="mysql.html#id2">Character Sets</a></li>
+<li class="toctree-l3"><a class="reference external" href="mysql.html#id6">Connecting</a></li>
+<li class="toctree-l3"><a class="reference external" href="mysql.html#id7">Character Sets</a></li>
 </ul>
 </li>
 </ul>
@@ -195,6 +219,7 @@ current versions of SQLAlchemy.</p>
 <li class="toctree-l3"><a class="reference external" href="postgresql.html#driver">Driver</a></li>
 <li class="toctree-l3"><a class="reference external" href="postgresql.html#connecting">Connecting</a></li>
 <li class="toctree-l3"><a class="reference external" href="postgresql.html#transactions">Transactions</a></li>
+<li class="toctree-l3"><a class="reference external" href="postgresql.html#notice-logging">NOTICE logging</a></li>
 <li class="toctree-l3"><a class="reference external" href="postgresql.html#per-statement-execution-options">Per-Statement Execution Options</a></li>
 </ul>
 </li>
@@ -223,6 +248,18 @@ current versions of SQLAlchemy.</p>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference external" href="sybase.html">Sybase</a><ul>
+<li class="toctree-l2"><a class="reference external" href="sybase.html#module-sqlalchemy.dialects.sybase.pysybase">python-sybase notes</a><ul>
+<li class="toctree-l3"><a class="reference external" href="sybase.html#unicode-support">Unicode Support</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="sybase.html#module-sqlalchemy.dialects.sybase.pyodbc">pyodbc notes</a><ul>
+<li class="toctree-l3"><a class="reference external" href="sybase.html#id1">Unicode Support</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="sybase.html#module-sqlalchemy.dialects.sybase.mxodbc">mxodbc notes</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="section" id="unsupported-databases">
@@ -236,18 +273,6 @@ ported to current versions of SQLAlchemy.</p>
 <li class="toctree-l2"><a class="reference external" href="maxdb.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference external" href="maxdb.html#connecting">Connecting</a></li>
 <li class="toctree-l2"><a class="reference external" href="maxdb.html#implementation-notes">Implementation Notes</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference external" href="sybase.html">Sybase</a><ul>
-<li class="toctree-l2"><a class="reference external" href="sybase.html#module-sqlalchemy.dialects.sybase.pysybase">python-sybase notes</a><ul>
-<li class="toctree-l3"><a class="reference external" href="sybase.html#unicode-support">Unicode Support</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference external" href="sybase.html#module-sqlalchemy.dialects.sybase.pyodbc">pyodbc notes</a><ul>
-<li class="toctree-l3"><a class="reference external" href="sybase.html#id1">Unicode Support</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference external" href="sybase.html#module-sqlalchemy.dialects.sybase.mxodbc">mxodbc notes</a></li>
 </ul>
 </li>
 </ul>
