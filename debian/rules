@@ -81,7 +81,7 @@ binary-indep: build install install-docs
 	dh_installexamples -i
 	rm -rf $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/doc/build \
 	       $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/examples/README
-	rm -f $(call pkgdir,3.X)/usr/share/doc/NEWS.Debian
+	rm -f $(call pkgdir,3.X)/usr/share/doc/python3-sqlalchemy/NEWS.Debian
 	find $(CURDIR)/debian/ -name '*.py[co]' -delete
 	dh_pysupport -i
 	dh_compress -i -X.py -X.js -X.html
