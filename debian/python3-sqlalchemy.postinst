@@ -1,0 +1,8 @@
+#! /bin/sh -e
+
+#if which pycompile >/dev/null 2>&1; then
+#	pycompile -p python3-sqlalchemy
+#fi
+dpkg -L python3-sqlalchemy | grep 3.1/dist-packages/sqlalchemy.*\.py$ | python3.1 -m compileall -qi -
+
+#DEBHELPER#

@@ -2,16 +2,19 @@
 
 #export DH_VERBOSE=1
 p_name=python-sqlalchemy
-m_name=SQLAlchemy
 
 PYVERS=$(shell pyversions -vr)
-PKGDIR=$(CURDIR)/debian/${p_name}
-#-include /usr/share/python/python.mk # for py_setup_install_args (ignore if not available yet)
+pkgdir = $(CURDIR)/debian/python$(if $(patsubst 3.%,,$(1)),,3)-sqlalchemy
+
+-include /usr/share/python/python.mk
+ifeq (,$(py_libdir))
+   py_libdir = /usr/lib/python$(subst python,,$(1))/site-packages
+endif
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -rf $(CURDIR)/lib/${m_name}.egg-info $(CURDIR)/build/
+	rm -rf $(CURDIR)/lib/SQLAlchemy.egg-info $(CURDIR)/build/
 	find . -name '*\.py[co]' -delete
 	dh_clean build-docs build-stamp install-docs \
 		$(PYVERS:%=install-python%) $(PYVERS:%=build-python%) \
@@ -34,8 +37,8 @@ build-docs:
 	dh_testdir
 	dh_installdirs -i
 	cd doc/build && sphinx-build -N -q -E -b html . \
-	 $(PKGDIR)-doc/usr/share/doc/${p_name}-doc/html/
-	rm -rf $(PKGDIR)-doc/usr/share/doc/${p_name}-doc/html/.doctrees
+	 $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/html/
+	rm -rf $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/html/.doctrees
 	touch $@
 
 install-docs: build-docs
@@ -53,17 +56,21 @@ install-docs: build-docs
 		/usr/share/doc/${p_name}/rst
 	touch $@
 
-install: build $(PYVERS:%=install-python%)
+install: build $(PYVERS:%=install-python%) install-python3.1
 install-python%: build
 	#python$* ./setup.py install --skip-build \
-	#	--root $(PKGDIR) $(py_setup_install_args)
+	#	--root $(call pkgdir,$*) $(py_setup_install_args)
 	#touch $@
-	mkdir -p $(PKGDIR)-ext/usr/lib/python$*/site-packages/sqlalchemy
+	mkdir -p $(call pkgdir,$*)-ext$(call py_libdir,$*)/sqlalchemy
 	mv $(CURDIR)/build/lib.*-$*/sqlalchemy/*.so \
-	 $(PKGDIR)-ext/usr/lib/python$*/site-packages/sqlalchemy/
+	 $(call pkgdir,$*)-ext$(call py_libdir,$*)/sqlalchemy/
 	# hack to workaround distutils/setuptools bug:
-	mkdir -p $(PKGDIR)/usr/lib/python$*/site-packages/
-	cp -R $(CURDIR)/build/lib.*-$*/* $(PKGDIR)/usr/lib/python$*/site-packages/
+	mkdir -p $(call pkgdir,$*)$(call py_libdir,$*)
+	cp -R $(CURDIR)/build/lib.*-$*/* $(call pkgdir,$*)$(call py_libdir,$*)
+
+install-python3.1:
+	python3.1 ./setup.py install $(py_setup_install_args) \
+		--root $(call pkgdir,3.1)
 
 binary-indep: build install install-docs
 	dh_testdir -i
@@ -72,8 +79,10 @@ binary-indep: build install install-docs
 	dh_installchangelogs -i
 	dh_installdocs -i
 	dh_installexamples -i
-	rm -rf $(PKGDIR)-doc/usr/share/doc/${p_name}-doc/doc/build \
-	       $(PKGDIR)-doc/usr/share/doc/${p_name}-doc/examples/README
+	rm -rf $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/doc/build \
+	       $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/examples/README
+	rm -f $(call pkgdir,3.X)/usr/share/doc/python3-sqlalchemy/NEWS.Debian
+	find $(CURDIR)/debian/ -name '*.py[co]' -delete
 	dh_pysupport -i
 	dh_compress -i -X.py -X.js -X.html
 	dh_fixperms -i

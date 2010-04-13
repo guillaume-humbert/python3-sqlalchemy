@@ -1,3 +1,12 @@
+sqlalchemy (0.6~beta3-2) experimental; urgency=low
+
+  * Add Python 3 support (closes: #575194)
+    - new python3-sqlalchemy binary package, no python3-sqlalchemy-ext
+      package for now as C extension is not compatible with Python 3 yet
+    - python3-all-dev and python3-setuptools added to build dependencies
+
+ -- Piotr Ożarowski <piotr@debian.org>  Tue, 13 Apr 2010 23:00:42 +0200
+
 sqlalchemy (0.6~beta3-1) experimental; urgency=low
 
   * New upstream release
