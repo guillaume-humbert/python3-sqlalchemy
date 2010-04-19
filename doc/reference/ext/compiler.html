@@ -7,7 +7,7 @@
         
         <title>
     compiler
- &mdash; SQLAlchemy 0.6beta3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.0 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta3',
+          VERSION:     '0.6.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-        <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="Horizontal Shard" href="horizontal_shard.html" />
         <link rel="prev" title="SqlSoup" href="sqlsoup.html" />
@@ -39,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.0 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
+            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
         </div>
         <div class="clearboth"></div>
 
@@ -95,6 +94,7 @@
 </ul>
 </li>
 <li><a class="reference external" href="#changing-the-default-compilation-of-existing-constructs">Changing the default compilation of existing constructs</a></li>
+<li><a class="reference external" href="#changing-compilation-of-types">Changing Compilation of Types</a></li>
 <li><a class="reference external" href="#subclassing-guidelines">Subclassing Guidelines</a></li>
 </ul>
 </li>
@@ -217,6 +217,22 @@ overriding routine and cause an endless loop.   Such as, to add &#8220;prefix&#8
 </div>
 <p>The above compiler will prefix all INSERT statements with &#8220;some prefix&#8221; when compiled.</p>
 </div>
+<div class="section" id="changing-compilation-of-types">
+<h2>Changing Compilation of Types<a class="headerlink" href="#changing-compilation-of-types" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">compiler</span></tt> works for types, too, such as below where we implement the MS-SQL specific &#8216;max&#8217; keyword for <tt class="docutils literal"><span class="pre">String</span></tt>/<tt class="docutils literal"><span class="pre">VARCHAR</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@compiles</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="s">&#39;mssql&#39;</span><span class="p">)</span>
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">VARCHAR</span><span class="p">,</span> <span class="s">&#39;mssql&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">compile_varchar</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="s">&#39;max&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;VARCHAR(&#39;max&#39;)&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">compiler</span><span class="o">.</span><span class="n">visit_VARCHAR</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+<span class="n">foo</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="s">&#39;max&#39;</span><span class="p">))</span>
+<span class="p">)</span></pre></div>
+</div>
+</div>
 <div class="section" id="subclassing-guidelines">
 <h2>Subclassing Guidelines<a class="headerlink" href="#subclassing-guidelines" title="Permalink to this headline">¶</a></h2>
 <p>A big part of using the compiler extension is subclassing SQLAlchemy expression constructs.  To make this easier, the expression and schema packages feature a set of &#8220;bases&#8221; intended for common tasks.  A synopsis is as follows:</p>
@@ -243,7 +259,22 @@ generally constant:</p>
 function or stored procedure type of call. Since most databases support
 statements along the line of &#8220;SELECT FROM &lt;some function&gt;&#8221;
 <tt class="docutils literal"><span class="pre">FunctionElement</span></tt> adds in the ability to be used in the FROM clause of a
-<tt class="docutils literal"><span class="pre">select()</span></tt> construct.</p>
+<tt class="docutils literal"><span class="pre">select()</span></tt> construct:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">FunctionElement</span>
+
+<span class="k">class</span> <span class="nc">coalesce</span><span class="p">(</span><span class="n">FunctionElement</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;coalesce&#39;</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">coalesce</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;coalesce(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">compiler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">clauses</span><span class="p">)</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">coalesce</span><span class="p">,</span> <span class="s">&#39;oracle&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">clauses</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;coalesce only supports two arguments on Oracle&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&quot;nvl(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">compiler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">clauses</span><span class="p">)</span></pre></div>
+</div>
 </li>
 <li><p class="first"><a title="sqlalchemy.schema.DDLElement" class="reference external" href="../sqlalchemy/schema.html#sqlalchemy.schema.DDLElement"><tt class="xref docutils literal"><span class="pre">DDLElement</span></tt></a> - The root of all DDL expressions,
 like CREATE TABLE, ALTER TABLE, etc. Compilation of <tt class="docutils literal"><span class="pre">DDLElement</span></tt>
@@ -276,7 +307,7 @@ within <tt class="docutils literal"><span class="pre">DDLElement</span></tt> and
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>

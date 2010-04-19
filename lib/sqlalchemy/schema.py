@@ -405,15 +405,23 @@ class Table(SchemaItem, expression.TableClause):
         """Issue a ``CREATE`` statement for this table.
 
         See also ``metadata.create_all()``.
+
         """
-        self.metadata.create_all(bind=bind, checkfirst=checkfirst, tables=[self])
+
+        if bind is None:
+            bind = _bind_or_error(self)
+        bind.create(self, checkfirst=checkfirst)
 
     def drop(self, bind=None, checkfirst=False):
         """Issue a ``DROP`` statement for this table.
 
         See also ``metadata.drop_all()``.
+
         """
-        self.metadata.drop_all(bind=bind, checkfirst=checkfirst, tables=[self])
+        if bind is None:
+            bind = _bind_or_error(self)
+        bind.drop(self, checkfirst=checkfirst)
+        
 
     def tometadata(self, metadata, schema=RETAIN_SCHEMA):
         """Return a copy of this ``Table`` associated with a different ``MetaData``."""
@@ -535,6 +543,10 @@ class Column(SchemaItem, expression.ColumnClause):
             Contrast this argument to ``server_default`` which creates a 
             default generator on the database side.
         
+        :param doc: optional String that can be used by the ORM or similar
+            to document attributes.   This attribute does not render SQL
+            comments (a future attribute 'comment' will achieve that).
+            
         :param key: An optional string identifier which will identify this
             ``Column`` object on the :class:`Table`. When a key is provided,
             this is the only identifier referencing the ``Column`` within the
@@ -651,6 +663,7 @@ class Column(SchemaItem, expression.ColumnClause):
         self.index = kwargs.pop('index', None)
         self.unique = kwargs.pop('unique', None)
         self.quote = kwargs.pop('quote', None)
+        self.doc = kwargs.pop('doc', None)
         self.onupdate = kwargs.pop('onupdate', None)
         self.autoincrement = kwargs.pop('autoincrement', True)
         self.constraints = set()

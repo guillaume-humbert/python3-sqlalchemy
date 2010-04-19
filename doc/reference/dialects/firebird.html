@@ -7,7 +7,7 @@
         
         <title>
     Firebird
- &mdash; SQLAlchemy 0.6beta3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.0 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta3',
+          VERSION:     '0.6.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-        <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="Microsoft SQL Server" href="mssql.html" />
         <link rel="prev" title="sqlalchemy.dialects" href="index.html" />
@@ -39,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.0 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
+            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
         </div>
         <div class="clearboth"></div>
 
@@ -163,14 +162,32 @@ the SQLAlchemy <tt class="docutils literal"><span class="pre">returning()</span>
 <p>The connection URL is of the form
 <tt class="docutils literal"><span class="pre">firebird[+kinterbasdb]://user:password&#64;host:port/path/to/db[?key=value&amp;key=value...]</span></tt>.</p>
 <p>Kinterbasedb backend specific keyword arguments are:</p>
-<dl class="docutils">
-<dt>type_conv</dt>
-<dd>select the kind of mapping done on the types: by default SQLAlchemy
-uses 200 with Unicode, datetime and decimal support (see <a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#adv_param_conv_dynamic_type_translation">details</a>).</dd>
-<dt>concurrency_level</dt>
-<dd>set the backend policy with regards to threading issues: by default
-SQLAlchemy uses policy 1 (see <a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#special_issue_concurrency">details</a>).</dd>
-</dl>
+<ul>
+<li><p class="first">type_conv - select the kind of mapping done on the types: by default SQLAlchemy
+uses 200 with Unicode, datetime and decimal support (see <a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#adv_param_conv_dynamic_type_translation">details</a>).</p>
+</li>
+<li><p class="first">concurrency_level - set the backend policy with regards to threading issues: by default
+SQLAlchemy uses policy 1 (see <a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#special_issue_concurrency">details</a>).</p>
+</li>
+<li><p class="first">enable_rowcount - True by default, setting this to False disables 
+the usage of &#8220;cursor.rowcount&#8221; with the 
+Kinterbasdb dialect, which SQLAlchemy ordinarily calls upon automatically
+after any UPDATE or DELETE statement.   When disabled, SQLAlchemy&#8217;s 
+ResultProxy will return -1 for result.rowcount.   The rationale here is 
+that Kinterbasdb requires a second round trip to the database when 
+.rowcount is called -  since SQLA&#8217;s resultproxy automatically closes 
+the cursor after a non-result-returning statement, rowcount must be 
+called, if at all, before the result object is returned.   Additionally,
+cursor.rowcount may not return correct results with older versions
+of Firebird, and setting this flag to False will also cause the SQLAlchemy ORM
+to ignore its usage. The behavior can also be controlled on a per-execution 
+basis using the <cite>enable_rowcount</cite> option with <tt class="xref docutils literal"><span class="pre">execution_options()</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">conn</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span><span class="o">.</span><span class="n">execution_options</span><span class="p">(</span><span class="n">enable_rowcount</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">r</span><span class="o">.</span><span class="n">rowcount</span></pre></div>
+</div>
+</li>
+</ul>
 </div>
 </div>
 
@@ -189,7 +206,7 @@ SQLAlchemy uses policy 1 (see <a class="reference external" href="http://kinterb
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>

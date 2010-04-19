@@ -7,7 +7,7 @@
         
         <title>
     SQL Statements and Expressions
- &mdash; SQLAlchemy 0.6beta3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.0 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta3',
+          VERSION:     '0.6.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-        <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Database Schema" href="schema.html" />
         <link rel="prev" title="Connection Pooling" href="pooling.html" />
@@ -39,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.0 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
+            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
         </div>
         <div class="clearboth"></div>
 
@@ -1052,7 +1051,7 @@ rules applied regardless of case sensitive settings.  the
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.ColumnCollection">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnCollection</tt><big>(</big><em>*cols</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnCollection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.util.OrderedProperties</span></tt></p>
+<dd><p>Bases: <a title="sqlalchemy.util.OrderedProperties" class="reference external" href="util.html#sqlalchemy.util.OrderedProperties"><tt class="xref docutils literal"><span class="pre">sqlalchemy.util.OrderedProperties</span></tt></a></p>
 <p>An ordered dictionary that stores a list of ColumnElement
 instances.</p>
 <p>Overrides the <tt class="docutils literal"><span class="pre">__eq__()</span></tt> method to produce SQL clauses between
@@ -1377,8 +1376,8 @@ of objects, including <a title="sqlalchemy.sql.expression.select" class="referen
 <tt class="descname">execution_options</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Executable.execution_options" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set non-SQL options for the statement which take effect during execution.</p>
 <p>Current options include:</p>
-<ul class="simple">
-<li>autocommit - when True, a COMMIT will be invoked after execution 
+<ul>
+<li><p class="first">autocommit - when True, a COMMIT will be invoked after execution 
 when executed in &#8216;autocommit&#8217; mode, i.e. when an explicit transaction
 is not begun on the connection.   Note that DBAPI connections by
 default are always in a transaction - SQLAlchemy uses rules applied
@@ -1388,11 +1387,29 @@ INSERT/UPDATE/DELETE statements as well as CREATE/DROP statements
 have autocommit behavior enabled; SELECT constructs do not.  Use this
 option when invokving a SELECT or other specific SQL construct
 where COMMIT is desired (typically when calling stored procedures
-and such).</li>
-<li>stream_results - indicate to the dialect that results should be 
+and such).</p>
+</li>
+<li><p class="first">stream_results - indicate to the dialect that results should be 
 &#8220;streamed&#8221; and not pre-buffered, if possible.  This is a limitation
 of many DBAPIs.  The flag is currently understood only by the
-psycopg2 dialect.</li>
+psycopg2 dialect.</p>
+</li>
+<li><p class="first">compiled_cache - a dictionary where <tt class="xref docutils literal"><span class="pre">Compiled</span></tt> objects
+will be cached when the <tt class="xref docutils literal"><span class="pre">Connection</span></tt> compiles a clause 
+expression into a dialect- and parameter-specific 
+<tt class="xref docutils literal"><span class="pre">Compiled</span></tt> object.   It is the user&#8217;s responsibility to
+manage the size of this dictionary, which will have keys
+corresponding to the dialect, clause element, the column
+names within the VALUES or SET clause of an INSERT or UPDATE, 
+as well as the &#8220;batch&#8221; mode for an INSERT or UPDATE statement.
+The format of this dictionary is not guaranteed to stay the
+same in future releases.</p>
+<p>This option is usually more appropriate
+to use via the 
+<a title="sqlalchemy.engine.base.Connection.execution_options" class="reference external" href="connections.html#sqlalchemy.engine.base.Connection.execution_options"><tt class="xref docutils literal"><span class="pre">sqlalchemy.engine.base.Connection.execution_options()</span></tt></a>
+method of <tt class="xref docutils literal"><span class="pre">Connection</span></tt>, rather than upon individual 
+statement objects, though the effect is the same.</p>
+</li>
 </ul>
 <p>See also:</p>
 <blockquote>
@@ -1613,8 +1630,7 @@ repeat column names in the column list of the resulting
 select, for columns that are calculated to be &#8220;equivalent&#8221;
 based on the join criterion of this <a title="sqlalchemy.sql.expression.Join" class="reference internal" href="#sqlalchemy.sql.expression.Join"><tt class="xref docutils literal"><span class="pre">Join</span></tt></a>. This will
 recursively apply to any joins directly nested by this one
-as well.  This flag is specific to a particular use case
-by the ORM and is deprecated as of 0.6.</li>
+as well.</li>
 <li><em>**kwargs</em> &#8211; all other kwargs are sent to the 
 underlying <a title="sqlalchemy.sql.expression.select" class="reference internal" href="#sqlalchemy.sql.expression.select"><tt class="xref docutils literal"><span class="pre">select()</span></tt></a> function.</li>
 </ul>
@@ -2147,7 +2163,7 @@ allows non-string based keys, such as Column objects, to be used.</dd>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>

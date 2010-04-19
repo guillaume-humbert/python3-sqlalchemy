@@ -7,7 +7,7 @@
         
         <title>
     Class Mapping
- &mdash; SQLAlchemy 0.6beta3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.0 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta3',
+          VERSION:     '0.6.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-        <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Collection Mapping" href="collections.html" />
         <link rel="prev" title="sqlalchemy.orm" href="index.html" />
@@ -39,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.0 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
+            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
         </div>
         <div class="clearboth"></div>
 
@@ -305,6 +304,9 @@ which provides custom SQL clause generation for comparison operations.</dd>
 it does not load immediately, and is instead loaded when the
 attribute is first accessed on an instance.  See also
 <a title="sqlalchemy.orm.deferred" class="reference internal" href="#sqlalchemy.orm.deferred"><tt class="xref docutils literal"><span class="pre">deferred()</span></tt></a>.</dd>
+<dt>doc</dt>
+<dd>optional string that will be applied as the doc on the
+class-bound descriptor.</dd>
 <dt>extension</dt>
 <dd>an <a title="sqlalchemy.orm.interfaces.AttributeExtension" class="reference external" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance,
 or list of extensions, which will be prepended to the list of
@@ -404,6 +406,9 @@ accessed on an instance.  See also <a title="sqlalchemy.orm.deferred" class="ref
 <dt>comparator_factory</dt>
 <dd>a class which extends <tt class="docutils literal"><span class="pre">sqlalchemy.orm.properties.CompositeProperty.Comparator</span></tt>
 which provides custom SQL clause generation for comparison operations.</dd>
+<dt>doc</dt>
+<dd>optional string that will be applied as the doc on the
+class-bound descriptor.</dd>
 <dt>extension</dt>
 <dd>an <a title="sqlalchemy.orm.interfaces.AttributeExtension" class="reference external" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance,
 or list of extensions, which will be prepended to the list of
@@ -425,7 +430,7 @@ table column when first accessed.</p>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.dynamic_loader">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">dynamic_loader</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>primaryjoin=None</em>, <em>secondaryjoin=None</em>, <em>foreign_keys=None</em>, <em>backref=None</em>, <em>post_update=False</em>, <em>cascade=False</em>, <em>remote_side=None</em>, <em>enable_typechecks=True</em>, <em>passive_deletes=False</em>, <em>order_by=None</em>, <em>comparator_factory=None</em>, <em>query_class=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.dynamic_loader" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">dynamic_loader</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>primaryjoin=None</em>, <em>secondaryjoin=None</em>, <em>foreign_keys=None</em>, <em>backref=None</em>, <em>post_update=False</em>, <em>cascade=False</em>, <em>remote_side=None</em>, <em>enable_typechecks=True</em>, <em>passive_deletes=False</em>, <em>doc=None</em>, <em>order_by=None</em>, <em>comparator_factory=None</em>, <em>query_class=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.dynamic_loader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a dynamically-loading mapper property.</p>
 <p>This property is similar to <a title="sqlalchemy.orm.relationship" class="reference internal" href="#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a>, except read
 operations return an active <tt class="xref docutils literal"><span class="pre">Query</span></tt> object which reads from
@@ -539,6 +544,7 @@ expunge, delete&#8221;</li>
 be used in place of a plain list for storing elements.</li>
 <li><em>comparator_factory</em> &#8211; a class which extends <tt class="xref docutils literal"><span class="pre">RelationshipProperty.Comparator</span></tt> which
 provides custom SQL clause generation for comparison operations.</li>
+<li><em>doc</em> &#8211; docstring which will be applied to the resulting descriptor.</li>
 <li><em>extension</em> &#8211; an <tt class="xref docutils literal"><span class="pre">AttributeExtension</span></tt> instance, or list of extensions,
 which will be prepended to the list of attribute listeners for
 the resulting descriptor placed on the class.  These listeners
@@ -701,7 +707,7 @@ case, use an alternative method.</li>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.synonym">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">synonym</tt><big>(</big><em>name</em>, <em>map_column=False</em>, <em>descriptor=None</em>, <em>comparator_factory=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.synonym" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">synonym</tt><big>(</big><em>name</em>, <em>map_column=False</em>, <em>descriptor=None</em>, <em>comparator_factory=None</em>, <em>doc=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.synonym" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set up <cite>name</cite> as a synonym to another mapped property.</p>
 <p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to  <a title="sqlalchemy.orm.mapper" class="reference internal" href="#sqlalchemy.orm.mapper"><tt class="xref docutils literal"><span class="pre">mapper()</span></tt></a>.</p>
 <p>Any existing attributes on the class which map the key name sent
@@ -1047,7 +1053,7 @@ instance.</dd></dl>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>

@@ -260,8 +260,23 @@ class Dialect(object):
         Given a :class:`~sqlalchemy.engine.Connection`, a string
         `table_name`, and an optional string `schema`, return primary
         key information as a list of column names.
-        """
 
+        """
+        raise NotImplementedError()
+
+    def get_pk_constraint(self, table_name, schema=None, **kw):
+        """Return information about the primary key constraint on `table_name`.
+
+        Given a string `table_name`, and an optional string `schema`, return
+        primary key information as a dictionary with these keys:
+
+        constrained_columns
+          a list of column names that make up the primary key
+
+        name
+          optional name of the primary key constraint.
+
+        """
         raise NotImplementedError()
 
     def get_foreign_keys(self, connection, table_name, schema=None, **kw):
@@ -794,6 +809,14 @@ class Connection(Connectable):
         """
 
         return self.engine.Connection(self.engine, self.__connection, _branch=True)
+
+    def _clone(self):
+        """Create a shallow copy of this Connection.
+
+        """
+        c = self.__class__.__new__(self.__class__)
+        c.__dict__ = self.__dict__.copy()
+        return c
     
     def execution_options(self, **opt):
         """ Set non-SQL options for the connection which take effect during execution.
@@ -811,9 +834,9 @@ class Connection(Connectable):
         :meth:`sqlalchemy.sql.expression.Executable.execution_options`.
 
         """
-        return self.engine.Connection(
-                    self.engine, self.__connection,
-                     _branch=self.__branch, _execution_options=opt)
+        c = self._clone()
+        c._execution_options = c._execution_options.union(opt)
+        return c
     
     @property
     def dialect(self):
@@ -1142,10 +1165,22 @@ class Connection(Connectable):
         else:
             keys = []
 
+        if 'compiled_cache' in self._execution_options:
+            key = self.dialect, elem, tuple(keys), len(params) > 1
+            if key in self._execution_options['compiled_cache']:
+                compiled_sql = self._execution_options['compiled_cache'][key]
+            else:
+                compiled_sql = elem.compile(
+                                dialect=self.dialect, column_keys=keys, 
+                                inline=len(params) > 1)
+                self._execution_options['compiled_cache'][key] = compiled_sql
+        else:
+            compiled_sql = elem.compile(
+                            dialect=self.dialect, column_keys=keys, 
+                            inline=len(params) > 1)
+
         context = self.__create_execution_context(
-                        compiled_sql=elem.compile(
-                                        dialect=self.dialect, column_keys=keys, 
-                                        inline=len(params) > 1),
+                        compiled_sql=compiled_sql,
                         parameters=params
                     )
         return self.__execute_context(context)
@@ -1462,14 +1497,14 @@ class Engine(Connectable, log.Identified):
         self.pool = self.pool.recreate()
 
     def create(self, entity, connection=None, **kwargs):
-        """Create a table or index within this engine's database connection given a schema.Table object."""
+        """Create a table or index within this engine's database connection given a schema object."""
 
         from sqlalchemy.engine import ddl
 
         self._run_visitor(ddl.SchemaGenerator, entity, connection=connection, **kwargs)
 
     def drop(self, entity, connection=None, **kwargs):
-        """Drop a table or index within this engine's database connection given a schema.Table object."""
+        """Drop a table or index within this engine's database connection given a schema object."""
 
         from sqlalchemy.engine import ddl
 
@@ -1497,7 +1532,7 @@ class Engine(Connectable, log.Identified):
         else:
             conn = connection
         try:
-            visitorcallable(self.dialect, conn, **kwargs).traverse(element)
+            visitorcallable(self.dialect, conn, **kwargs).traverse_single(element)
         finally:
             if connection is None:
                 conn.close()
