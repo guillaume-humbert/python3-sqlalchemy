@@ -1,3 +1,9 @@
+sqlalchemy (0.6.0-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Mon, 19 Apr 2010 22:10:04 +0200
+
 sqlalchemy (0.6~beta3-2) experimental; urgency=low
 
   * Add Python 3 support (closes: #575194)
