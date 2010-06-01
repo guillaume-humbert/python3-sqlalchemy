@@ -7,7 +7,7 @@
         
         <title>
     SQLite
- &mdash; SQLAlchemy 0.6.0 Documentation</title>
+ &mdash; SQLAlchemy 0.6.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.0',
+          VERSION:     '0.6.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="Sybase" href="sybase.html" />
         <link rel="prev" title="PostgreSQL" href="postgresql.html" />
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.0 Documentation</h1>
+        <h1>SQLAlchemy 0.6.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
+            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
         </div>
         <div class="clearboth"></div>
 
@@ -89,6 +89,7 @@
 <li><a class="reference external" href="#">SQLite</a><ul>
 <li><a class="reference external" href="#date-and-time-types">Date and Time Types</a></li>
 <li><a class="reference external" href="#auto-incrementing-behavior">Auto Incrementing Behavior</a></li>
+<li><a class="reference external" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.sqlite.pysqlite">Pysqlite</a><ul>
 <li><a class="reference external" href="#driver">Driver</a></li>
 <li><a class="reference external" href="#connect-strings">Connect Strings</a></li>
@@ -142,6 +143,13 @@ to the Table construct:</p>
         <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> 
         <span class="n">sqlite_autoincrement</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
+</div>
+<div class="section" id="transaction-isolation-level">
+<h2>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h2>
+<p><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter which results in 
+the command <tt class="docutils literal"><span class="pre">PRAGMA</span> <span class="pre">read_uncommitted</span> <span class="pre">&lt;level&gt;</span></tt> being invoked for every new 
+connection.   Valid values for this parameter are <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt> and 
+<tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt> corresponding to a value of 0 and 1, respectively.</p>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.sqlite.pysqlite">
 <h2>Pysqlite<a class="headerlink" href="#module-sqlalchemy.dialects.sqlite.pysqlite" title="Permalink to this headline">¶</a></h2>

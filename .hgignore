@@ -1,6 +1,0 @@
-syntax:regexp
-^build/
-^doc/build/output
-.pyc$
-.orig$
-.egg-info

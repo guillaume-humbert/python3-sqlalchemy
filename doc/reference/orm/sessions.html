@@ -7,7 +7,7 @@
         
         <title>
     Sessions
- &mdash; SQLAlchemy 0.6.0 Documentation</title>
+ &mdash; SQLAlchemy 0.6.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.0',
+          VERSION:     '0.6.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.0 Documentation</h1>
+        <h1>SQLAlchemy 0.6.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
+            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
         </div>
         <div class="clearboth"></div>
 
@@ -162,12 +162,6 @@ session:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 <span class="n">Session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
 </div>
-<p>To map classes so that new instances are saved in the current Session
-automatically, as well as to provide session-aware class attributes such
-as &#8220;query&#8221;, use the <cite>mapper</cite> classmethod from the scoped session:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">mapper</span>
-<span class="n">mapper</span><span class="p">(</span><span class="n">Class</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span></pre></div>
-</div>
 </dd></dl>
 
 <dl class="function">
@@ -206,93 +200,99 @@ defining the specific <tt class="docutils literal"><span class="pre">Engine</spa
 <span class="n">sess</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span></pre></div>
 </div>
 <p>Options:</p>
-<dl class="docutils">
-<dt>autocommit</dt>
-<dd><p class="first">Defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>. When <tt class="xref docutils literal"><span class="pre">True</span></tt>, the <tt class="docutils literal"><span class="pre">Session</span></tt> does not keep a
-persistent transaction running, and will acquire connections from the
-engine on an as-needed basis, returning them immediately after their
-use. Flushes will begin and commit (or possibly rollback) their own
-transaction if no transaction is present. When using this mode, the
-<cite>session.begin()</cite> method may be used to begin a transaction explicitly.</p>
-<p class="last">Leaving it on its default value of <tt class="xref docutils literal"><span class="pre">False</span></tt> means that the <tt class="docutils literal"><span class="pre">Session</span></tt>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>autocommit</em> &#8211; <p>Defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>. When <tt class="xref docutils literal"><span class="pre">True</span></tt>, the <tt class="docutils literal"><span class="pre">Session</span></tt>
+does not keep a persistent transaction running, and will acquire
+connections from the engine on an as-needed basis, returning them
+immediately after their use. Flushes will begin and commit (or possibly
+rollback) their own transaction if no transaction is present. When using
+this mode, the <cite>session.begin()</cite> method may be used to begin a
+transaction explicitly.</p>
+<p>Leaving it on its default value of <tt class="xref docutils literal"><span class="pre">False</span></tt> means that the <tt class="docutils literal"><span class="pre">Session</span></tt>
 will acquire a connection and begin a transaction the first time it is
 used, which it will maintain persistently until <tt class="docutils literal"><span class="pre">rollback()</span></tt>,
 <tt class="docutils literal"><span class="pre">commit()</span></tt>, or <tt class="docutils literal"><span class="pre">close()</span></tt> is called. When the transaction is released
 by any of these methods, the <tt class="docutils literal"><span class="pre">Session</span></tt> is ready for the next usage,
 which will again acquire and maintain a new connection/transaction.</p>
-</dd>
-<dt>autoflush</dt>
-<dd>When <tt class="xref docutils literal"><span class="pre">True</span></tt>, all query operations will issue a <tt class="docutils literal"><span class="pre">flush()</span></tt> call to
-this <tt class="docutils literal"><span class="pre">Session</span></tt> before proceeding. This is a convenience feature so
-that <tt class="docutils literal"><span class="pre">flush()</span></tt> need not be called repeatedly in order for database
-queries to retrieve results. It&#8217;s typical that <tt class="docutils literal"><span class="pre">autoflush</span></tt> is used in
-conjunction with <tt class="docutils literal"><span class="pre">autocommit=False</span></tt>.  In this scenario, explicit calls
-to <tt class="docutils literal"><span class="pre">flush()</span></tt> are rarely needed; you usually only need to call
-<tt class="docutils literal"><span class="pre">commit()</span></tt> (which flushes) to finalize changes.</dd>
-<dt>bind</dt>
-<dd>An optional <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> to which this <tt class="docutils literal"><span class="pre">Session</span></tt>
-should be bound. When specified, all SQL operations performed by this
-session will execute via this connectable.</dd>
-<dt>binds</dt>
-<dd><p class="first">An optional dictionary, which contains more granular &#8220;bind&#8221; information
-than the <tt class="docutils literal"><span class="pre">bind</span></tt> parameter provides. This dictionary can map individual
-<tt class="docutils literal"><span class="pre">Table</span></tt> instances as well as <tt class="docutils literal"><span class="pre">Mapper</span></tt> instances to individual
-<tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> objects. Operations which proceed relative
-to a particular <tt class="docutils literal"><span class="pre">Mapper</span></tt> will consult this dictionary for the direct
-<tt class="docutils literal"><span class="pre">Mapper</span></tt> instance as well as the mapper&#8217;s <tt class="docutils literal"><span class="pre">mapped_table</span></tt> attribute
-in order to locate an connectable to use. The full resolution is
-described in the <tt class="docutils literal"><span class="pre">get_bind()</span></tt> method of <tt class="docutils literal"><span class="pre">Session</span></tt>. Usage looks
-like:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">sess</span> <span class="o">=</span> <span class="n">Session</span><span class="p">(</span><span class="n">binds</span><span class="o">=</span><span class="p">{</span>
+</li>
+<li><em>autoflush</em> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, all query operations will issue a 
+<tt class="docutils literal"><span class="pre">flush()</span></tt> call to this <tt class="docutils literal"><span class="pre">Session</span></tt> before proceeding. This is a
+convenience feature so that <tt class="docutils literal"><span class="pre">flush()</span></tt> need not be called repeatedly
+in order for database queries to retrieve results. It&#8217;s typical that
+<tt class="docutils literal"><span class="pre">autoflush</span></tt> is used in conjunction with <tt class="docutils literal"><span class="pre">autocommit=False</span></tt>. In this
+scenario, explicit calls to <tt class="docutils literal"><span class="pre">flush()</span></tt> are rarely needed; you usually
+only need to call <tt class="docutils literal"><span class="pre">commit()</span></tt> (which flushes) to finalize changes.</li>
+<li><em>bind</em> &#8211; An optional <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> to which this
+<tt class="docutils literal"><span class="pre">Session</span></tt> should be bound. When specified, all SQL operations
+performed by this session will execute via this connectable.</li>
+<li><em>binds</em> &#8211; <dl class="docutils">
+<dt>An optional dictionary which contains more granular &#8220;bind&#8221;</dt>
+<dd>information than the <tt class="docutils literal"><span class="pre">bind</span></tt> parameter provides. This dictionary can
+map individual <tt class="docutils literal"><span class="pre">Table</span></tt> instances as well as <tt class="docutils literal"><span class="pre">Mapper</span></tt> instances to
+individual <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> objects. Operations which
+proceed relative to a particular <tt class="docutils literal"><span class="pre">Mapper</span></tt> will consult this
+dictionary for the direct <tt class="docutils literal"><span class="pre">Mapper</span></tt> instance as well as the mapper&#8217;s
+<tt class="docutils literal"><span class="pre">mapped_table</span></tt> attribute in order to locate an connectable to use.
+The full resolution is described in the <tt class="docutils literal"><span class="pre">get_bind()</span></tt> method of
+<tt class="docutils literal"><span class="pre">Session</span></tt>. Usage looks like:<div class="last highlight-python"><div class="highlight"><pre><span class="n">sess</span> <span class="o">=</span> <span class="n">Session</span><span class="p">(</span><span class="n">binds</span><span class="o">=</span><span class="p">{</span>
     <span class="n">SomeMappedClass</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://engine1&#39;</span><span class="p">),</span>
     <span class="n">somemapper</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://engine2&#39;</span><span class="p">),</span>
     <span class="n">some_table</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://engine3&#39;</span><span class="p">),</span>
     <span class="p">})</span></pre></div>
 </div>
-<p class="last">Also see the <tt class="docutils literal"><span class="pre">bind_mapper()</span></tt> and <tt class="docutils literal"><span class="pre">bind_table()</span></tt> methods.</p>
 </dd>
-<dt>class_</dt>
-<dd>Specify an alternate class other than <tt class="docutils literal"><span class="pre">sqlalchemy.orm.session.Session</span></tt>
-which should be used by the returned class.  This is the only argument
-that is local to the <tt class="docutils literal"><span class="pre">sessionmaker()</span></tt> function, and is not sent
-directly to the constructor for <tt class="docutils literal"><span class="pre">Session</span></tt>.</dd>
-<dt>_enable_transaction_accounting</dt>
-<dd>Defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>.  A legacy-only flag which when <tt class="xref docutils literal"><span class="pre">False</span></tt>
-disables <em>all</em> 0.5-style object accounting on transaction boundaries,
-including auto-expiry of instances on rollback and commit, maintenance of
-the &#8220;new&#8221; and &#8220;deleted&#8221; lists upon rollback, and autoflush
-of pending changes upon begin(), all of which are interdependent.</dd>
-<dt>expire_on_commit</dt>
-<dd>Defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>. When <tt class="xref docutils literal"><span class="pre">True</span></tt>, all instances will be fully expired after
-each <tt class="docutils literal"><span class="pre">commit()</span></tt>, so that all attribute/object access subsequent to a completed
-transaction will load from the most recent database state.</dd>
-<dt>extension</dt>
-<dd>An optional <tt class="xref docutils literal"><span class="pre">SessionExtension</span></tt> instance, or
-a list of such instances, which
-will receive pre- and post- commit and flush events, as well as a
-post-rollback event.  User- defined code may be placed within these
-hooks using a user-defined subclass of <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</dd>
-<dt>query_cls</dt>
-<dd>Class which should be used to create new Query objects, as returned
-by the <tt class="docutils literal"><span class="pre">query()</span></tt> method.  Defaults to <a title="sqlalchemy.orm.query.Query" class="reference external" href="query.html#sqlalchemy.orm.query.Query"><tt class="xref docutils literal"><span class="pre">Query</span></tt></a>.</dd>
-<dt>twophase</dt>
-<dd>When <tt class="xref docutils literal"><span class="pre">True</span></tt>, all transactions will be started using
-:mod:~sqlalchemy.engine_TwoPhaseTransaction. During a <tt class="docutils literal"><span class="pre">commit()</span></tt>, after
-<tt class="docutils literal"><span class="pre">flush()</span></tt> has been issued for all attached databases, the
-<tt class="docutils literal"><span class="pre">prepare()</span></tt> method on each database&#8217;s <tt class="docutils literal"><span class="pre">TwoPhaseTransaction</span></tt> will be
-called. This allows each database to roll back the entire transaction,
-before each transaction is committed.</dd>
-<dt>weak_identity_map</dt>
-<dd>When set to the default value of <tt class="xref docutils literal"><span class="pre">True</span></tt>, a weak-referencing map is
-used; instances which are not externally referenced will be garbage
-collected immediately. For dereferenced instances which have pending
-changes present, the attribute management system will create a temporary
-strong-reference to the object which lasts until the changes are flushed
-to the database, at which point it&#8217;s again dereferenced. Alternatively,
-when using the value <tt class="xref docutils literal"><span class="pre">False</span></tt>, the identity map uses a regular Python
-dictionary to store instances. The session will maintain all instances
-present until they are removed using expunge(), clear(), or purge().</dd>
 </dl>
+<p>Also see the <tt class="docutils literal"><span class="pre">bind_mapper()</span></tt> and <tt class="docutils literal"><span class="pre">bind_table()</span></tt> methods.</p>
+</li>
+<li><em>class_</em> &#8211; Specify an alternate class other than
+<tt class="docutils literal"><span class="pre">sqlalchemy.orm.session.Session</span></tt> which should be used by the returned
+class. This is the only argument that is local to the
+<tt class="docutils literal"><span class="pre">sessionmaker()</span></tt> function, and is not sent directly to the
+constructor for <tt class="docutils literal"><span class="pre">Session</span></tt>.</li>
+<li><em>_enable_transaction_accounting</em> &#8211; Defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>.  A
+legacy-only flag which when <tt class="xref docutils literal"><span class="pre">False</span></tt> disables <em>all</em> 0.5-style object
+accounting on transaction boundaries, including auto-expiry of
+instances on rollback and commit, maintenance of the &#8220;new&#8221; and
+&#8220;deleted&#8221; lists upon rollback, and autoflush of pending changes upon
+begin(), all of which are interdependent.</li>
+<li><em>expire_on_commit</em> &#8211; Defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>. When <tt class="xref docutils literal"><span class="pre">True</span></tt>, all
+instances will be fully expired after each <tt class="docutils literal"><span class="pre">commit()</span></tt>, so that all
+attribute/object access subsequent to a completed transaction will load
+from the most recent database state.</li>
+<li><em>extension</em> &#8211; An optional 
+<tt class="xref docutils literal"><span class="pre">SessionExtension</span></tt> instance, or a list
+of such instances, which will receive pre- and post- commit and flush
+events, as well as a post-rollback event. User- defined code may be
+placed within these hooks using a user-defined subclass of
+<tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</li>
+<li><em>query_cls</em> &#8211; Class which should be used to create new Query objects,
+as returned by the <tt class="docutils literal"><span class="pre">query()</span></tt> method. Defaults to
+<a title="sqlalchemy.orm.query.Query" class="reference external" href="query.html#sqlalchemy.orm.query.Query"><tt class="xref docutils literal"><span class="pre">Query</span></tt></a>.</li>
+<li><em>twophase</em> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, all transactions will be started using
+<tt class="xref docutils literal"><span class="pre">engine_TwoPhaseTransaction</span></tt>. During a <tt class="docutils literal"><span class="pre">commit()</span></tt>,
+after <tt class="docutils literal"><span class="pre">flush()</span></tt> has been issued for all attached databases, the
+<tt class="docutils literal"><span class="pre">prepare()</span></tt> method on each database&#8217;s <tt class="docutils literal"><span class="pre">TwoPhaseTransaction</span></tt> will
+be called. This allows each database to roll back the entire
+transaction, before each transaction is committed.</li>
+<li><em>weak_identity_map</em> &#8211; When set to the default value of <tt class="xref docutils literal"><span class="pre">True</span></tt>, a
+weak-referencing map is used; instances which are not externally
+referenced will be garbage collected immediately. For dereferenced
+instances which have pending changes present, the attribute management
+system will create a temporary strong-reference to the object which
+lasts until the changes are flushed to the database, at which point
+it&#8217;s again dereferenced. Alternatively, when using the value <tt class="xref docutils literal"><span class="pre">False</span></tt>,
+the identity map uses a regular Python dictionary to store instances.
+The session will maintain all instances present until they are removed
+using expunge(), clear(), or purge().</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">

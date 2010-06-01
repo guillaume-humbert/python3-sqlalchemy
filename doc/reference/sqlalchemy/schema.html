@@ -7,7 +7,7 @@
         
         <title>
     Database Schema
- &mdash; SQLAlchemy 0.6.0 Documentation</title>
+ &mdash; SQLAlchemy 0.6.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.0',
+          VERSION:     '0.6.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Column and Data Types" href="types.html" />
         <link rel="prev" title="SQL Statements and Expressions" href="expressions.html" />
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.0 Documentation</h1>
+        <h1>SQLAlchemy 0.6.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
+            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
         </div>
         <div class="clearboth"></div>
 
@@ -147,9 +147,11 @@ as well, e.g.:</p>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">type</span></tt> argument may be the second positional argument
 or specified by keyword.</p>
-<p>If this column also contains a <a title="sqlalchemy.schema.ForeignKey" class="reference internal" href="#sqlalchemy.schema.ForeignKey"><tt class="xref docutils literal"><span class="pre">ForeignKey</span></tt></a>,
-the type argument may be left as <tt class="xref docutils literal"><span class="pre">None</span></tt> in which case the
-type assigned will be that of the referenced column.</p>
+<p>There is partial support for automatic detection of the 
+type based on that of a <a title="sqlalchemy.schema.ForeignKey" class="reference internal" href="#sqlalchemy.schema.ForeignKey"><tt class="xref docutils literal"><span class="pre">ForeignKey</span></tt></a> associated 
+with this column, if the type is specified as <tt class="xref docutils literal"><span class="pre">None</span></tt>. 
+However, this feature is not fully implemented and 
+may not function in all cases.</p>
 </li>
 <li><em>*args</em> &#8211; Additional positional arguments include various 
 <a title="sqlalchemy.schema.SchemaItem" class="reference internal" href="#sqlalchemy.schema.SchemaItem"><tt class="xref docutils literal"><span class="pre">SchemaItem</span></tt></a> derived constructs which will be applied 
@@ -570,6 +572,18 @@ are overwritten.</li>
 <dt id="sqlalchemy.schema.Table.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Table.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.schema.Table.add_is_dependent_on">
+<tt class="descname">add_is_dependent_on</tt><big>(</big><em>table</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Table.add_is_dependent_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a &#8216;dependency&#8217; for this Table.</p>
+<p>This is another Table object which must be created
+first before this one can, or dropped after this one.</p>
+<p>Usually, dependencies between tables are determined via 
+ForeignKey objects.   However, for other situations that 
+create dependencies outside of foreign keys (rules, inheriting),
+this method can manually establish such a link.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.schema.Table.append_column">

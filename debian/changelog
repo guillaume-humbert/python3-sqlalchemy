@@ -1,3 +1,12 @@
+sqlalchemy (0.6.1-1) unstable; urgency=low
+
+  * New upstream release
+  * Add more hacks in debian/rules to workaround setuptools bugs
+  * get-orig-source target removed from debian/rules (no longer needed)
+  * Upload to unstable
+
+ -- Piotr Ożarowski <piotr@debian.org>  Tue, 01 Jun 2010 21:27:25 +0200
+
 sqlalchemy (0.6.0-1) experimental; urgency=low
 
   * New upstream release

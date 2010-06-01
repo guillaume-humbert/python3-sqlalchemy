@@ -22,6 +22,11 @@ def sort_tables(tables):
         visitors.traverse(table, 
                             {'schema_visitor':True}, 
                             {'foreign_key':visit_foreign_key})
+
+        tuples.extend(
+            [parent, table] for parent in table._extra_dependencies
+        )
+                            
     return list(topological.sort(tuples, tables))
 
 def find_join_source(clauses, join_to):
@@ -265,6 +270,10 @@ class Annotated(object):
     
     def _deannotate(self):
         return self.__element
+
+    @property
+    def _constructor(self):
+        return self.__element.__class__
         
     def _clone(self):
         clone = self.__element._clone()
@@ -288,7 +297,6 @@ class Annotated(object):
 # so that the resulting objects are pickleable.
 annotated_classes = {}
 
-from sqlalchemy.sql import expression
 for cls in expression.__dict__.values() + [schema.Column, schema.Table]:
     if isinstance(cls, type) and issubclass(cls, expression.ClauseElement):
         exec "class Annotated%s(Annotated, cls):\n" \

@@ -224,6 +224,7 @@ class Table(SchemaItem, expression.TableClause):
         self._columns = expression.ColumnCollection()
         self._set_primary_key(PrimaryKeyConstraint())
         self._foreign_keys = util.OrderedSet()
+        self._extra_dependencies = set()
         self.ddl_listeners = util.defaultdict(list)
         self.kwargs = {}
         if self.schema is not None:
@@ -338,6 +339,20 @@ class Table(SchemaItem, expression.TableClause):
 
         return self.metadata and self.metadata.bind or None
 
+    def add_is_dependent_on(self, table):
+        """Add a 'dependency' for this Table.
+        
+        This is another Table object which must be created
+        first before this one can, or dropped after this one.
+        
+        Usually, dependencies between tables are determined via 
+        ForeignKey objects.   However, for other situations that 
+        create dependencies outside of foreign keys (rules, inheriting),
+        this method can manually establish such a link.
+        
+        """
+        self._extra_dependencies.add(table)
+        
     def append_column(self, column):
         """Append a ``Column`` to this ``Table``."""
 
@@ -478,9 +493,11 @@ class Column(SchemaItem, expression.ColumnClause):
           The ``type`` argument may be the second positional argument
           or specified by keyword.
 
-          If this column also contains a :class:`ForeignKey`,
-          the type argument may be left as ``None`` in which case the
-          type assigned will be that of the referenced column.
+          There is partial support for automatic detection of the 
+          type based on that of a :class:`ForeignKey` associated 
+          with this column, if the type is specified as ``None``. 
+          However, this feature is not fully implemented and 
+          may not function in all cases.
 
         :param \*args: Additional positional arguments include various 
           :class:`SchemaItem` derived constructs which will be applied 
@@ -855,7 +872,7 @@ class Column(SchemaItem, expression.ColumnClause):
         
         """
         fk = [ForeignKey(f.column) for f in self.foreign_keys]
-        c = Column(
+        c = self._constructor(
             name or self.name, 
             self.type, 
             key = name or self.key, 
@@ -1568,7 +1585,7 @@ class ForeignKeyConstraint(Constraint):
                     link_to_name=self.link_to_name
                 )
 
-        if table:
+        if table is not None:
             self._set_parent(table)
     
     @property

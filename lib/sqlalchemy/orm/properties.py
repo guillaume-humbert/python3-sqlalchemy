@@ -13,12 +13,16 @@ attributes.
 
 from sqlalchemy import sql, util, log
 import sqlalchemy.exceptions as sa_exc
-from sqlalchemy.sql.util import ClauseAdapter, criterion_as_pairs, join_condition
+from sqlalchemy.sql.util import (
+    ClauseAdapter, criterion_as_pairs, join_condition
+    )
 from sqlalchemy.sql import operators, expression
 from sqlalchemy.orm import (
     attributes, dependency, mapper, object_mapper, strategies,
     )
-from sqlalchemy.orm.util import CascadeOptions, _class_to_mapper, _orm_annotate, _orm_deannotate
+from sqlalchemy.orm.util import (
+    CascadeOptions, _class_to_mapper, _orm_annotate, _orm_deannotate
+    )
 from sqlalchemy.orm.interfaces import (
     MANYTOMANY, MANYTOONE, MapperProperty, ONETOMANY, PropComparator,
     StrategizedProperty,
@@ -26,7 +30,8 @@ from sqlalchemy.orm.interfaces import (
 NoneType = type(None)
 
 __all__ = ('ColumnProperty', 'CompositeProperty', 'SynonymProperty',
-           'ComparableProperty', 'RelationshipProperty', 'RelationProperty', 'BackRef')
+           'ComparableProperty', 'RelationshipProperty', 'RelationProperty',
+           'BackRef')
 
 
 class ColumnProperty(StrategizedProperty):
@@ -55,7 +60,8 @@ class ColumnProperty(StrategizedProperty):
         self.group = kwargs.pop('group', None)
         self.deferred = kwargs.pop('deferred', False)
         self.instrument = kwargs.pop('_instrument', True)
-        self.comparator_factory = kwargs.pop('comparator_factory', self.__class__.Comparator)
+        self.comparator_factory = kwargs.pop('comparator_factory',
+                                            self.__class__.Comparator)
         self.descriptor = kwargs.pop('descriptor', None)
         self.extension = kwargs.pop('extension', None)
         self.doc = kwargs.pop('doc', getattr(columns[0], 'doc', None))
@@ -63,7 +69,8 @@ class ColumnProperty(StrategizedProperty):
         if kwargs:
             raise TypeError(
                 "%s received unexpected keyword argument(s): %s" % (
-                    self.__class__.__name__, ', '.join(sorted(kwargs.keys()))))
+                    self.__class__.__name__, 
+                    ', '.join(sorted(kwargs.keys()))))
 
         util.set_creation_order(self)
         if not self.instrument:
@@ -88,7 +95,8 @@ class ColumnProperty(StrategizedProperty):
         
     def do_init(self):
         super(ColumnProperty, self).do_init()
-        if len(self.columns) > 1 and self.parent.primary_key.issuperset(self.columns):
+        if len(self.columns) > 1 and \
+                self.parent.primary_key.issuperset(self.columns):
             util.warn(
                 ("On mapper %s, primary key column '%s' is being combined "
                  "with distinct primary key column '%s' in attribute '%s'.  "
@@ -97,18 +105,23 @@ class ColumnProperty(StrategizedProperty):
                                        self.columns[0], self.key))
 
     def copy(self):
-        return ColumnProperty(deferred=self.deferred, group=self.group, *self.columns)
+        return ColumnProperty(
+                        deferred=self.deferred, 
+                        group=self.group, 
+                        *self.columns)
 
     def _getattr(self, state, dict_, column):
         return state.get_impl(self.key).get(state, dict_)
 
     def _getcommitted(self, state, dict_, column, passive=False):
-        return state.get_impl(self.key).get_committed_value(state, dict_, passive=passive)
+        return state.get_impl(self.key).\
+                    get_committed_value(state, dict_, passive=passive)
 
     def _setattr(self, state, dict_, value, column):
         state.get_impl(self.key).set(state, dict_, value, None)
 
-    def merge(self, session, source_state, source_dict, dest_state, dest_dict, load, _recursive):
+    def merge(self, session, source_state, source_dict, dest_state, 
+                                dest_dict, load, _recursive):
         if self.key in source_dict:
             value = source_dict[self.key]
         
@@ -118,7 +131,7 @@ class ColumnProperty(StrategizedProperty):
                 impl = dest_state.get_impl(self.key)
                 impl.set(dest_state, dest_dict, value, None)
         else:
-            if self.key not in dest_dict:
+            if dest_state.has_identity and self.key not in dest_dict:
                 dest_state.expire_attributes(dest_dict, [self.key])
                 
     def get_col_value(self, column, value):
@@ -130,7 +143,9 @@ class ColumnProperty(StrategizedProperty):
             if self.adapter:
                 return self.adapter(self.prop.columns[0])
             else:
-                return self.prop.columns[0]._annotate({"parententity": self.mapper, "parentmapper":self.mapper})
+                return self.prop.columns[0]._annotate({
+                                                "parententity": self.mapper,
+                                                "parentmapper":self.mapper})
                 
         def operate(self, op, *other, **kwargs):
             return op(self.__clause_element__(), *other, **kwargs)
@@ -152,12 +167,18 @@ class CompositeProperty(ColumnProperty):
     
     def __init__(self, class_, *columns, **kwargs):
         super(CompositeProperty, self).__init__(*columns, **kwargs)
-        self._col_position_map = util.column_dict((c, i) for i, c in enumerate(columns))
+        self._col_position_map = util.column_dict(
+                                            (c, i) for i, c 
+                                            in enumerate(columns))
         self.composite_class = class_
         self.strategy_class = strategies.CompositeColumnLoader
 
     def copy(self):
-        return CompositeProperty(deferred=self.deferred, group=self.group, composite_class=self.composite_class, *self.columns)
+        return CompositeProperty(
+                        deferred=self.deferred, 
+                        group=self.group,
+                        composite_class=self.composite_class, 
+                        *self.columns)
 
     def do_init(self):
         # skip over ColumnProperty's do_init(),
@@ -170,7 +191,8 @@ class CompositeProperty(ColumnProperty):
 
     def _getcommitted(self, state, dict_, column, passive=False):
         # TODO: no coverage here
-        obj = state.get_impl(self.key).get_committed_value(state, dict_, passive=passive)
+        obj = state.get_impl(self.key).\
+                        get_committed_value(state, dict_, passive=passive)
         return self.get_col_value(column, obj)
 
     def _setattr(self, state, dict_, value, column):
@@ -198,7 +220,8 @@ class CompositeProperty(ColumnProperty):
         def __clause_element__(self):
             if self.adapter:
                 # TODO: test coverage for adapted composite comparison
-                return expression.ClauseList(*[self.adapter(x) for x in self.prop.columns])
+                return expression.ClauseList(
+                            *[self.adapter(x) for x in self.prop.columns])
             else:
                 return expression.ClauseList(*self.prop.columns)
         
@@ -209,7 +232,8 @@ class CompositeProperty(ColumnProperty):
                 values = [None] * len(self.prop.columns)
             else:
                 values = other.__composite_values__()
-            return sql.and_(*[a==b for a, b in zip(self.prop.columns, values)])
+            return sql.and_(
+                    *[a==b for a, b in zip(self.prop.columns, values)])
             
         def __ne__(self, other):
             return sql.not_(self.__eq__(other))
@@ -228,8 +252,9 @@ class ConcreteInheritedProperty(MapperProperty):
 
     def instrument_class(self, mapper):
         def warn():
-            raise AttributeError("Concrete %s does not implement attribute %r at "
-                "the instance level.  Add this property explicitly to %s." % 
+            raise AttributeError("Concrete %s does not implement "
+                "attribute %r at the instance level.  Add this "
+                "property explicitly to %s." % 
                 (self.parent, self.key, self.parent))
 
         class NoninheritedConcreteProp(object):
@@ -262,7 +287,9 @@ class SynonymProperty(MapperProperty):
 
     extension = None
 
-    def __init__(self, name, map_column=None, descriptor=None, comparator_factory=None, doc=None):
+    def __init__(self, name, map_column=None, 
+                            descriptor=None, comparator_factory=None,
+                            doc=None):
         self.name = name
         self.map_column = map_column
         self.descriptor = descriptor
@@ -294,7 +321,8 @@ class SynonymProperty(MapperProperty):
 
         def comparator_callable(prop, mapper):
             def comparator():
-                prop = self.parent._get_property(self.key, resolve_synonyms=True)
+                prop = self.parent._get_property(
+                                        self.key, resolve_synonyms=True)
                 if self.comparator_factory:
                     return self.comparator_factory(prop, mapper)
                 else:
@@ -396,7 +424,8 @@ class RelationshipProperty(StrategizedProperty):
         self.join_depth = join_depth
         self.local_remote_pairs = _local_remote_pairs
         self.extension = extension
-        self.comparator_factory = comparator_factory or RelationshipProperty.Comparator
+        self.comparator_factory = comparator_factory or \
+                                    RelationshipProperty.Comparator
         self.comparator = self.comparator_factory(self, None)
         util.set_creation_order(self)
         
@@ -419,8 +448,8 @@ class RelationshipProperty(StrategizedProperty):
                     ("delete" in self.cascade or 
                     "delete-orphan" in self.cascade):
             raise sa_exc.ArgumentError(
-                                "Can't set passive_deletes='all' in conjunction "
-                                "with 'delete' or 'delete-orphan' cascade")
+                            "Can't set passive_deletes='all' in conjunction "
+                            "with 'delete' or 'delete-orphan' cascade")
 
         self.order_by = order_by
 
@@ -429,8 +458,8 @@ class RelationshipProperty(StrategizedProperty):
         if self.back_populates:
             if backref:
                 raise sa_exc.ArgumentError(
-                                "backref and back_populates keyword arguments "
-                                "are mutually exclusive")
+                            "backref and back_populates keyword arguments "
+                            "are mutually exclusive")
             self.backref = None
         else:
             self.backref = backref

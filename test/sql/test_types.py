@@ -664,6 +664,19 @@ class BinaryTest(TestBase, AssertsExecutionResults):
             eq_(testobj3.moredata, l[0]['mypickle'].moredata)
             eq_(l[0]['mypickle'].stuff, 'this is the right stuff')
 
+    @testing.fails_on('oracle+cx_oracle', 'oracle fairly grumpy about binary '
+                                        'data, not really known how to make this work')
+    def test_comparison(self):
+        """test that type coercion occurs on comparison for binary"""
+        
+        expr = binary_table.c.data == 'foo'
+        assert isinstance(expr.right.type, LargeBinary)
+        
+        data = os.urandom(32)
+        binary_table.insert().execute(data=data)
+        eq_(binary_table.select().where(binary_table.c.data==data).alias().count().scalar(), 1)
+        
+        
     def load_stream(self, name):
         f = os.path.join(os.path.dirname(__file__), "..", name)
         return open(f, mode='rb').read()

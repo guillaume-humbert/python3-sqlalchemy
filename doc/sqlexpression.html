@@ -7,7 +7,7 @@
         
         <title>
     SQL Expression Language Tutorial
- &mdash; SQLAlchemy 0.6.0 Documentation</title>
+ &mdash; SQLAlchemy 0.6.1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.6.0',
+          VERSION:     '0.6.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/init.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mappers.html" />
         <link rel="prev" title="Object Relational Tutorial" href="ormtutorial.html" />
     
@@ -37,7 +37,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.0 Documentation</h1>
+        <h1>SQLAlchemy 0.6.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -49,7 +49,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
+            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
         </div>
         <div class="clearboth"></div>
 
@@ -107,7 +107,7 @@
 <li><a class="reference external" href="#ordering-grouping-limiting-offset-ing">Ordering, Grouping, Limiting, Offset...ing...</a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#updates">Updates</a><ul>
+<li><a class="reference external" href="#inserts-and-updates">Inserts and Updates</a><ul>
 <li><a class="reference external" href="#correlated-updates">Correlated Updates</a></li>
 </ul>
 </li>
@@ -875,9 +875,35 @@ LIMIT 1 OFFSET 1
 </div>
 </div>
 </div>
-<div class="section" id="updates">
-<h2>Updates<a class="headerlink" href="#updates" title="Permalink to this headline">¶</a></h2>
-<p>Finally, we&#8217;re back to UPDATE.  Updates work a lot like INSERTS, except there is an additional WHERE clause that can be specified.</p>
+<div class="section" id="inserts-and-updates">
+<h2>Inserts and Updates<a class="headerlink" href="#inserts-and-updates" title="Permalink to this headline">¶</a></h2>
+<p>Finally, we&#8217;re back to INSERT for some more detail. The <a title="sqlalchemy.sql.expression.insert" class="reference external" href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.insert"><tt class="xref docutils literal"><span class="pre">insert()</span></tt></a> construct provides a <tt class="docutils literal"><span class="pre">values()</span></tt> method which can be used to send any value or clause expression to the VALUES portion of the INSERT:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># insert from a function</span>
+<span class="n">users</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mf">12</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">upper</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">))</span>
+
+<span class="c"># insert from a concatenation expression</span>
+<span class="n">addresses</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">email_address</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;@&#39;</span> <span class="o">+</span> <span class="n">host</span><span class="p">)</span></pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">values()</span></tt> can be mixed with per-execution values:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="n">users</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">upper</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">)),</span>
+    <span class="n">fullname</span><span class="o">=</span><span class="s">&#39;Jack Jones&#39;</span>
+<span class="p">)</span></pre></div>
+</div>
+<p><a title="sqlalchemy.sql.expression.bindparam" class="reference external" href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.bindparam"><tt class="xref docutils literal"><span class="pre">bindparam()</span></tt></a> constructs can be passed, however the names of the table&#8217;s columns are reserved for the &#8220;automatic&#8221; generation of bind names:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">users</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">bindparam</span><span class="p">(</span><span class="s">&#39;_id&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">bindaparam</span><span class="p">(</span><span class="s">&#39;_name&#39;</span><span class="p">))</span>
+
+<span class="c"># insert many rows at once:</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="n">users</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">bindparam</span><span class="p">(</span><span class="s">&#39;_id&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">bindaparam</span><span class="p">(</span><span class="s">&#39;_name&#39;</span><span class="p">)),</span>
+    <span class="p">[</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span><span class="mf">1</span><span class="p">,</span> <span class="s">&#39;_name&#39;</span><span class="p">:</span><span class="s">&#39;name1&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span><span class="mf">2</span><span class="p">,</span> <span class="s">&#39;_name&#39;</span><span class="p">:</span><span class="s">&#39;name2&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span><span class="mf">3</span><span class="p">,</span> <span class="s">&#39;_name&#39;</span><span class="p">:</span><span class="s">&#39;name3&#39;</span><span class="p">},</span>
+    <span class="p">]</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>Updates work a lot like INSERTS, except there is an additional WHERE clause that can be specified:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># change &#39;jack&#39; to &#39;ed&#39;</span>
 <a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span>
 <span class="gp">... </span>                   <span class="n">where</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span>
