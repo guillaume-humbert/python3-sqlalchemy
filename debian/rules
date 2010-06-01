@@ -58,19 +58,28 @@ install-docs: build-docs
 
 install: build $(PYVERS:%=install-python%) install-python3.1
 install-python%: build
-	#python$* ./setup.py install --skip-build \
-	#	--root $(call pkgdir,$*) $(py_setup_install_args)
-	#touch $@
+	python$* ./setup.py install --skip-build \
+		--root $(call pkgdir,$*) $(py_setup_install_args)
+	# move extensions to -ext binary package
 	mkdir -p $(call pkgdir,$*)-ext$(call py_libdir,$*)/sqlalchemy
-	mv $(CURDIR)/build/lib.*-$*/sqlalchemy/*.so \
-	 $(call pkgdir,$*)-ext$(call py_libdir,$*)/sqlalchemy/
-	# hack to workaround distutils/setuptools bug:
-	mkdir -p $(call pkgdir,$*)$(call py_libdir,$*)
-	cp -R $(CURDIR)/build/lib.*-$*/* $(call pkgdir,$*)$(call py_libdir,$*)
-
+	mv $(call pkgdir,$*)$(call py_libdir,$*)/sqlalchemy/*so \
+	   $(call pkgdir,$*)-ext$(call py_libdir,$*)/sqlalchemy/
+	touch $@
+	
 install-python3.1:
+	# no extension for 3.1 yet...
 	python3.1 ./setup.py install $(py_setup_install_args) \
 		--root $(call pkgdir,3.1)
+
+install-python2.5: build-python2.5
+	# WTF? Why setuptools doesn't work with --skip-build in Python 2.5?
+	python2.5 ./setup.py install \
+		--root $(call pkgdir,2.5) $(py_setup_install_args)
+	# ... and *removes* .so files?
+	python2.5 ./setup.py --with-cextensions build_ext
+	mkdir -p $(call pkgdir,2.5)-ext$(call py_libdir,2.5)/sqlalchemy
+	mv $(CURDIR)/build/lib.*-2.5/sqlalchemy/*.so \
+	 $(call pkgdir,2.5)-ext$(call py_libdir,2.5)/sqlalchemy/
 
 binary-indep: build install install-docs
 	dh_testdir -i
@@ -108,16 +117,5 @@ binary-arch: build install
 	dh_builddeb -a -- -Z bzip2
 
 binary: binary-indep binary-arch
-
-get-orig-source:
-	REV=$(shell dpkg-parsechangelog | sed -rne 's,^Version: .*svn([^-]+).*,\1,p'); \
-	VER=$(shell dpkg-parsechangelog | sed -rne 's,^Version: ([^-]+).*,\1,p'); \
-	if [ x$$REV = x ]; then \
-	 uscan --noconf --force-download --rename --download-version=$$VER --destdir=.; \
-	else \
-	 svn -q export -r $$REV http://svn.sqlalchemy.org/sqlalchemy/trunk sqlalchemy-r$$REV && \
-         tar -zcf ./sqlalchemy_$$VER.orig.tar.gz sqlalchemy-r$$REV; \
-	 rm -rf sqlalchemy-r$$REV; \
-	fi
 
 .PHONY: build clean binary-indep binary-arch binary install get-orig-source
