@@ -4,6 +4,7 @@
 p_name=python-sqlalchemy
 
 PYVERS=$(shell pyversions -vr)
+PY3VERS=$(shell py3versions -vr '>= 3.0')
 pkgdir = $(CURDIR)/debian/python$(if $(patsubst 3.%,,$(1)),,3)-sqlalchemy
 
 -include /usr/share/python/python.mk
@@ -56,7 +57,7 @@ install-docs: build-docs
 		/usr/share/doc/${p_name}/rst
 	touch $@
 
-install: build $(PYVERS:%=install-python%) install-python3.1
+install: build $(PYVERS:%=install-python%) $(PY3VERS:%=install-python%)
 install-python%: build
 	python$* ./setup.py install --skip-build \
 		--root $(call pkgdir,$*) $(py_setup_install_args)
@@ -92,7 +93,8 @@ binary-indep: build install install-docs
 	       $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/examples/README
 	rm -f $(call pkgdir,3.X)/usr/share/doc/python3-sqlalchemy/NEWS.Debian
 	find $(CURDIR)/debian/ -name '*.py[co]' -delete
-	dh_pysupport -i
+	dh_python2 -i
+	dh_python3 -i
 	dh_compress -i -X.py -X.js -X.html
 	dh_fixperms -i
 	dh_installdeb -i
@@ -105,7 +107,8 @@ binary-arch: build install
 	dh_testroot
 	dh_installchangelogs -a
 	dh_installdocs -a
-	dh_pysupport -a
+	dh_python2 -a
+	dh_python3 -a
 	dh_makeshlibs -a
 	dh_strip -a
 	dh_compress -a -X.py

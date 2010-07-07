@@ -7,7 +7,7 @@
         
         <title>
     Column and Data Types
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,20 +15,21 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
-        <link rel="prev" title="Database Schema" href="schema.html" />
+        <link rel="prev" title="Schema Introspection" href="inspector.html" />
     
 
     </head>
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -74,7 +75,7 @@
                 
 <div class="prevnext">
         Previous:
-        <a href="schema.html" title="previous chapter">Database Schema</a>
+        <a href="inspector.html" title="previous chapter">Schema Introspection</a>
         Next:
         <a href="interfaces.html" title="next chapter">Interfaces</a>
 </div>
@@ -86,11 +87,11 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="#">Column and Data Types</a><ul>
-<li><a class="reference external" href="#generic-types">Generic Types</a></li>
-<li><a class="reference external" href="#sql-standard-types">SQL Standard Types</a></li>
-<li><a class="reference external" href="#vendor-specific-types">Vendor-Specific Types</a></li>
-<li><a class="reference external" href="#custom-types">Custom Types</a></li>
+<li><a class="reference internal" href="#">Column and Data Types</a><ul>
+<li><a class="reference internal" href="#generic-types">Generic Types</a></li>
+<li><a class="reference internal" href="#sql-standard-types">SQL Standard Types</a></li>
+<li><a class="reference internal" href="#vendor-specific-types">Vendor-Specific Types</a></li>
+<li><a class="reference internal" href="#custom-types">Custom Types</a></li>
 </ul>
 </li>
 </ul>
@@ -102,22 +103,22 @@
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.types">
-<span id="types"></span><h1>Column and Data Types<a class="headerlink" href="#module-sqlalchemy.types" title="Permalink to this headline">¶</a></h1>
+<span id="column-and-data-types"></span><span id="types"></span><h1>Column and Data Types<a class="headerlink" href="#module-sqlalchemy.types" title="Permalink to this headline">¶</a></h1>
 <p>SQLAlchemy provides abstractions for most common database data types,
 and a mechanism for specifying your own custom data types.</p>
 <p>The methods and attributes of type objects are rarely used directly.
-Type objects are supplied to <tt class="xref docutils literal"><span class="pre">Table</span></tt> definitions
+Type objects are supplied to <tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt> definitions
 and can be supplied as type hints to <cite>functions</cite> for occasions where
 the database driver returns an incorrect type.</p>
 <div class="highlight-pycon"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">users</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
 <span class="gp">... </span>              <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">... </span>              <span class="n">Column</span><span class="p">(</span><span class="s">&#39;login&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">32</span><span class="p">))</span>
+<span class="gp">... </span>              <span class="n">Column</span><span class="p">(</span><span class="s">&#39;login&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">32</span><span class="p">))</span>
 <span class="gp">... </span>             <span class="p">)</span></pre></div>
 </div>
 <p>SQLAlchemy will use the <tt class="docutils literal"><span class="pre">Integer</span></tt> and <tt class="docutils literal"><span class="pre">String(32)</span></tt> type
 information when issuing a <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement and will use it
 again when reading back rows <tt class="docutils literal"><span class="pre">SELECTed</span></tt> from the database.
-Functions that accept a type (such as <tt class="xref docutils literal"><span class="pre">Column()</span></tt>) will
+Functions that accept a type (such as <tt class="xref py py-func docutils literal"><span class="pre">Column()</span></tt>) will
 typically accept a type class or instance; <tt class="docutils literal"><span class="pre">Integer</span></tt> is equivalent
 to <tt class="docutils literal"><span class="pre">Integer()</span></tt> with no construction arguments in this case.</p>
 <div class="section" id="generic-types">
@@ -126,12 +127,12 @@ to <tt class="docutils literal"><span class="pre">Integer()</span></tt> with no 
 particular type of Python data.  SQLAlchemy will choose the best
 database column type available on the target database when issuing a
 <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement.  For complete control over which column
-type is emitted in <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>, such as <tt class="docutils literal"><span class="pre">VARCHAR</span></tt> see <a class="reference internal" href="#sql-standard-types">SQL
+type is emitted in <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>, such as <tt class="docutils literal"><span class="pre">VARCHAR</span></tt> see <a class="reference external" href="#sql-standard-types">SQL
 Standard Types</a> and the other sections of this chapter.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.Boolean">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Boolean</tt><big>(</big><em>create_constraint=True</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Boolean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a>, <a title="sqlalchemy.types.SchemaType" class="reference internal" href="#sqlalchemy.types.SchemaType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.SchemaType</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a>, <a class="reference internal" href="#sqlalchemy.types.SchemaType" title="sqlalchemy.types.SchemaType"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.SchemaType</span></tt></a></p>
 <p>A bool datatype.</p>
 <p>Boolean typically uses BOOLEAN or SMALLINT on the DDL side, and on
 the Python side deals in <tt class="xref docutils literal"><span class="pre">True</span></tt> or <tt class="xref docutils literal"><span class="pre">False</span></tt>.</p>
@@ -144,10 +145,10 @@ the Python side deals in <tt class="xref docutils literal"><span class="pre">Tru
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>create_constraint</em> &#8211; defaults to True.  If the boolean 
+<li><strong>create_constraint</strong> &#8211; defaults to True.  If the boolean 
 is generated as an int/smallint, also create a CHECK constraint
 on the table that ensures 1 or 0 as a value.</li>
-<li><em>name</em> &#8211; if a CHECK constraint is generated, specify
+<li><strong>name</strong> &#8211; if a CHECK constraint is generated, specify
 the name of the constraint.</li>
 </ul>
 </td>
@@ -161,14 +162,14 @@ the name of the constraint.</li>
 <dl class="class">
 <dt id="sqlalchemy.types.Date">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Date</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Date" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">datetime.date()</span></tt> objects.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.DateTime">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DateTime</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DateTime" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">datetime.datetime()</span></tt> objects.</p>
 <p>Date and time types return objects from the Python <tt class="docutils literal"><span class="pre">datetime</span></tt>
 module.  Most DBAPIs have built in support for the datetime
@@ -185,7 +186,7 @@ converted back to datetime objects when rows are returned.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.Enum">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Enum</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Enum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a>, <a title="sqlalchemy.types.SchemaType" class="reference internal" href="#sqlalchemy.types.SchemaType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.SchemaType</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a>, <a class="reference internal" href="#sqlalchemy.types.SchemaType" title="sqlalchemy.types.SchemaType"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.SchemaType</span></tt></a></p>
 <p>Generic Enum Type.</p>
 <p>The Enum type provides a set of possible string values which the 
 column is constrained towards.</p>
@@ -202,12 +203,12 @@ by that backend.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>*enums</em> &#8211; string or unicode enumeration labels. If unicode labels
+<li><strong>*enums</strong> &#8211; string or unicode enumeration labels. If unicode labels
 are present, the <cite>convert_unicode</cite> flag is auto-enabled.</li>
-<li><em>convert_unicode</em> &#8211; Enable unicode-aware bind parameter and result-set
+<li><strong>convert_unicode</strong> &#8211; Enable unicode-aware bind parameter and result-set
 processing for this Enum&#8217;s data. This is set automatically based on
 the presence of unicode label strings.</li>
-<li><em>metadata</em> &#8211; Associate this type directly with a <tt class="docutils literal"><span class="pre">MetaData</span></tt> object.
+<li><strong>metadata</strong> &#8211; Associate this type directly with a <tt class="docutils literal"><span class="pre">MetaData</span></tt> object.
 For types that exist on the target database as an independent schema
 construct (Postgresql), this type will be created and dropped within
 <tt class="docutils literal"><span class="pre">create_all()</span></tt> and <tt class="docutils literal"><span class="pre">drop_all()</span></tt> operations. If the type is not
@@ -216,17 +217,17 @@ each <tt class="docutils literal"><span class="pre">Table</span></tt> in which i
 those individual tables are created, after a check is performed for
 it&#8217;s existence. The type is only dropped when <tt class="docutils literal"><span class="pre">drop_all()</span></tt> is called
 for that <tt class="docutils literal"><span class="pre">Table</span></tt> object&#8217;s metadata, however.</li>
-<li><em>name</em> &#8211; The name of this type. This is required for Postgresql and
+<li><strong>name</strong> &#8211; The name of this type. This is required for Postgresql and
 any future supported database which requires an explicitly named type,
 or an explicitly named constraint in order to generate the type and/or
 a table that uses it.</li>
-<li><em>native_enum</em> &#8211; Use the database&#8217;s native ENUM type when available.
+<li><strong>native_enum</strong> &#8211; Use the database&#8217;s native ENUM type when available.
 Defaults to True.  When False, uses VARCHAR + check constraint
 for all backends.</li>
-<li><em>schema</em> &#8211; Schemaname of this type. For types that exist on the target
+<li><strong>schema</strong> &#8211; Schemaname of this type. For types that exist on the target
 database as an independent schema construct (Postgresql), this
 parameter specifies the named schema in which the type is present.</li>
-<li><em>quote</em> &#8211; Force quoting to be on or off on the type&#8217;s name. If left as
+<li><strong>quote</strong> &#8211; Force quoting to be on or off on the type&#8217;s name. If left as
 the default of <cite>None</cite>, the usual schema-level &#8220;case
 sensitive&#8221;/&#8221;reserved name&#8221; rules are used to determine if this type&#8217;s
 name should be quoted.</li>
@@ -242,7 +243,7 @@ name should be quoted.</li>
 <dl class="class">
 <dt id="sqlalchemy.types.Float">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Float</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Float" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Numeric" class="reference internal" href="#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">float</span></tt> numbers.</p>
 <p>Returns Python <tt class="docutils literal"><span class="pre">float</span></tt> objects by default, applying
 conversion as needed.</p>
@@ -255,8 +256,8 @@ conversion as needed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>precision</em> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
-<li><em>asdecimal</em> &#8211; the same flag as that of <a title="sqlalchemy.types.Numeric" class="reference internal" href="#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">Numeric</span></tt></a>, but
+<li><strong>precision</strong> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
+<li><strong>asdecimal</strong> &#8211; the same flag as that of <a class="reference internal" href="#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
 defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="xref docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
 </ul>
@@ -271,14 +272,14 @@ results in floating point conversion.</li>
 <dl class="class">
 <dt id="sqlalchemy.types.Integer">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Integer</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Integer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">int</span></tt> integers.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.Interval">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Interval</tt><big>(</big><em>native=True</em>, <em>second_precision=None</em>, <em>day_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Interval" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a title="sqlalchemy.types.TypeDecorator" class="reference internal" href="#sqlalchemy.types.TypeDecorator"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">datetime.timedelta()</span></tt> objects.</p>
 <p>The Interval type deals with <tt class="docutils literal"><span class="pre">datetime.timedelta</span></tt> objects.  In
 PostgreSQL, the native <tt class="docutils literal"><span class="pre">INTERVAL</span></tt> type is used; for others, the
@@ -289,7 +290,7 @@ date arithmetic operations on platforms which do not support
 interval types natively.   Such operations usually require
 transformation of both sides of the expression (such as, conversion
 of both sides into integer epoch values first) which currently
-is a manual procedure (such as via <a title="sqlalchemy.sql.expression.func" class="reference external" href="expressions.html#sqlalchemy.sql.expression.func"><tt class="xref docutils literal"><span class="pre">func</span></tt></a>).</p>
+is a manual procedure (such as via <a class="reference internal" href="expressions.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a>).</p>
 <dl class="method">
 <dt id="sqlalchemy.types.Interval.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>native=True</em>, <em>second_precision=None</em>, <em>day_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Interval.__init__" title="Permalink to this definition">¶</a></dt>
@@ -299,15 +300,15 @@ is a manual procedure (such as via <a title="sqlalchemy.sql.expression.func" cla
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>native</em> &#8211; when True, use the actual
+<li><strong>native</strong> &#8211; when True, use the actual
 INTERVAL type provided by the database, if
 supported (currently Postgresql, Oracle).  
 Otherwise, represent the interval data as 
 an epoch value regardless.</li>
-<li><em>second_precision</em> &#8211; For native interval types
+<li><strong>second_precision</strong> &#8211; For native interval types
 which support a &#8220;fractional seconds precision&#8221; parameter,
 i.e. Oracle and Postgresql</li>
-<li><em>day_precision</em> &#8211; for native interval types which 
+<li><strong>day_precision</strong> &#8211; for native interval types which 
 support a &#8220;day precision&#8221; parameter, i.e. Oracle.</li>
 </ul>
 </td>
@@ -319,14 +320,15 @@ support a &#8220;day precision&#8221; parameter, i.e. Oracle.</li>
 <dl class="attribute">
 <dt id="sqlalchemy.types.Interval.impl">
 <tt class="descname">impl</tt><a class="headerlink" href="#sqlalchemy.types.Interval.impl" title="Permalink to this definition">¶</a></dt>
-<dd>alias of <a title="sqlalchemy.types.DateTime" class="reference internal" href="#sqlalchemy.types.DateTime"><tt class="xref docutils literal"><span class="pre">DateTime</span></tt></a></dd></dl>
+<dd><p>alias of <a class="reference internal" href="#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">DateTime</span></tt></a></p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.LargeBinary">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">LargeBinary</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.LargeBinary" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>A type for large binary byte data.</p>
 <p>The Binary type generates BLOB or BYTEA when tables are created,
 and also converts incoming values using the <tt class="docutils literal"><span class="pre">Binary</span></tt> callable
@@ -339,14 +341,17 @@ provided by each DB-API.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>length</em> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -357,7 +362,7 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <dl class="class">
 <dt id="sqlalchemy.types.Numeric">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Numeric</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Numeric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for fixed precision numbers.</p>
 <p>Typically generates DECIMAL or NUMERIC.  Returns
 <tt class="docutils literal"><span class="pre">decimal.Decimal</span></tt> objects by default, applying
@@ -371,9 +376,9 @@ conversion as needed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>precision</em> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
-<li><em>scale</em> &#8211; the numeric scale for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
-<li><em>asdecimal</em> &#8211; default True.  Return whether or not
+<li><strong>precision</strong> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
+<li><strong>scale</strong> &#8211; the numeric scale for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
+<li><strong>asdecimal</strong> &#8211; default True.  Return whether or not
 values should be sent as Python Decimal objects, or
 as floats.   Different DBAPIs send one or the other based on
 datatypes - the Numeric type will ensure that return values
@@ -404,13 +409,13 @@ conversion overhead.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.PickleType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">PickleType</tt><big>(</big><em>protocol=2</em>, <em>pickler=None</em>, <em>mutable=True</em>, <em>comparator=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.PickleType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.MutableType</span></tt></a>, <a title="sqlalchemy.types.TypeDecorator" class="reference internal" href="#sqlalchemy.types.TypeDecorator"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.MutableType</span></tt></a>, <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></a></p>
 <p>Holds Python objects, which are serialized using pickle.</p>
 <p>PickleType builds upon the Binary type to apply Python&#8217;s
 <tt class="docutils literal"><span class="pre">pickle.dumps()</span></tt> to incoming objects, and <tt class="docutils literal"><span class="pre">pickle.loads()</span></tt> on
 the way out, allowing any pickleable Python object to be stored as
 a serialized binary field.</p>
-<p><strong>Note:</strong> be sure to read the notes for <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">MutableType</span></tt></a> regarding
+<p><strong>Note:</strong> be sure to read the notes for <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> regarding
 ORM performance implications.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.PickleType.__init__">
@@ -421,16 +426,16 @@ ORM performance implications.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>protocol</em> &#8211; defaults to <tt class="docutils literal"><span class="pre">pickle.HIGHEST_PROTOCOL</span></tt>.</li>
-<li><em>pickler</em> &#8211; defaults to cPickle.pickle or pickle.pickle if
+<li><strong>protocol</strong> &#8211; defaults to <tt class="docutils literal"><span class="pre">pickle.HIGHEST_PROTOCOL</span></tt>.</li>
+<li><strong>pickler</strong> &#8211; defaults to cPickle.pickle or pickle.pickle if
 cPickle is not available.  May be any object with
 pickle-compatible <tt class="docutils literal"><span class="pre">dumps`</span> <span class="pre">and</span> <span class="pre">``loads</span></tt> methods.</li>
-<li><em>mutable</em> &#8211; defaults to True; implements
-<a title="sqlalchemy.types.AbstractType.is_mutable" class="reference internal" href="#sqlalchemy.types.AbstractType.is_mutable"><tt class="xref docutils literal"><span class="pre">AbstractType.is_mutable()</span></tt></a>.   When <tt class="xref docutils literal"><span class="pre">True</span></tt>, incoming
+<li><strong>mutable</strong> &#8211; defaults to True; implements
+<a class="reference internal" href="#sqlalchemy.types.AbstractType.is_mutable" title="sqlalchemy.types.AbstractType.is_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">AbstractType.is_mutable()</span></tt></a>.   When <tt class="xref docutils literal"><span class="pre">True</span></tt>, incoming
 objects should provide an <tt class="docutils literal"><span class="pre">__eq__()</span></tt> method which
 performs the desired deep comparison of members, or the
 <tt class="docutils literal"><span class="pre">comparator</span></tt> argument must be present.</li>
-<li><em>comparator</em> &#8211; optional. a 2-arg callable predicate used
+<li><strong>comparator</strong> &#8211; optional. a 2-arg callable predicate used
 to compare values of this type.  Otherwise, 
 the == operator is used to compare values.</li>
 </ul>
@@ -443,14 +448,15 @@ the == operator is used to compare values.</li>
 <dl class="attribute">
 <dt id="sqlalchemy.types.PickleType.impl">
 <tt class="descname">impl</tt><a class="headerlink" href="#sqlalchemy.types.PickleType.impl" title="Permalink to this definition">¶</a></dt>
-<dd>alias of <a title="sqlalchemy.types.LargeBinary" class="reference internal" href="#sqlalchemy.types.LargeBinary"><tt class="xref docutils literal"><span class="pre">LargeBinary</span></tt></a></dd></dl>
+<dd><p>alias of <a class="reference internal" href="#sqlalchemy.types.LargeBinary" title="sqlalchemy.types.LargeBinary"><tt class="xref py py-class docutils literal"><span class="pre">LargeBinary</span></tt></a></p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.SchemaType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">SchemaType</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SchemaType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Mark a type as possibly requiring schema-level DDL for usage.</p>
 <p>Supports types that must be explicitly created/dropped (i.e. PG ENUM type)
 as well as types that are complimented by table or schema level
@@ -468,28 +474,30 @@ constraints, triggers, and other rules.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.SchemaType.create">
 <tt class="descname">create</tt><big>(</big><em>bind=None</em>, <em>checkfirst=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SchemaType.create" title="Permalink to this definition">¶</a></dt>
-<dd>Issue CREATE ddl for this type, if applicable.</dd></dl>
+<dd><p>Issue CREATE ddl for this type, if applicable.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.SchemaType.drop">
 <tt class="descname">drop</tt><big>(</big><em>bind=None</em>, <em>checkfirst=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SchemaType.drop" title="Permalink to this definition">¶</a></dt>
-<dd>Issue DROP ddl for this type, if applicable.</dd></dl>
+<dd><p>Issue DROP ddl for this type, if applicable.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.SmallInteger">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">SmallInteger</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SmallInteger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Integer" class="reference internal" href="#sqlalchemy.types.Integer"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
 <p>A type for smaller <tt class="docutils literal"><span class="pre">int</span></tt> integers.</p>
 <p>Typically generates a <tt class="docutils literal"><span class="pre">SMALLINT</span></tt> in DDL, and otherwise acts like
-a normal <a title="sqlalchemy.types.Integer" class="reference internal" href="#sqlalchemy.types.Integer"><tt class="xref docutils literal"><span class="pre">Integer</span></tt></a> on the Python side.</p>
+a normal <a class="reference internal" href="#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> on the Python side.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.String">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">String</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.String" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Concatenable" class="reference internal" href="#sqlalchemy.types.Concatenable"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Concatenable</span></tt></a>, <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Concatenable" title="sqlalchemy.types.Concatenable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Concatenable</span></tt></a>, <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>The base for all string and character types.</p>
 <p>In SQL, corresponds to VARCHAR.  Can also take Python unicode objects
 and encode to the database&#8217;s encoding in bind params (and the reverse for
@@ -506,13 +514,13 @@ on most databases.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>length</em> &#8211; optional, a length for the column for use in
+<li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><em>convert_unicode</em> &#8211; <p>defaults to False.  If True, the 
+<li><strong>convert_unicode</strong> &#8211; <p>defaults to False.  If True, the 
 type will do what is necessary in order to accept 
 Python Unicode objects as bind parameters, and to return
 Python Unicode objects in result rows.   This may
@@ -522,24 +530,24 @@ back to Unicode, or it may not require any interaction
 from SQLAlchemy at all, depending on the DBAPI in use.</p>
 <p>When SQLAlchemy performs the encoding/decoding, 
 the encoding used is configured via
-<tt class="xref docutils literal"><span class="pre">encoding</span></tt>, which
+<tt class="xref py py-attr docutils literal"><span class="pre">encoding</span></tt>, which
 defaults to <cite>utf-8</cite>.</p>
 <p>The &#8220;convert_unicode&#8221; behavior can also be turned on
 for all String types by setting 
-<tt class="xref docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>
+<tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>
 on create_engine().</p>
 <p>To instruct SQLAlchemy to perform Unicode encoding/decoding
 even on a platform that already handles Unicode natively,
 set convert_unicode=&#8217;force&#8217;.  This will incur significant
 performance overhead when fetching unicode result columns.</p>
 </li>
-<li><em>assert_unicode</em> &#8211; Deprecated.  A warning is raised in all cases when a non-Unicode
+<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is raised in all cases when a non-Unicode
 object is passed when SQLAlchemy would coerce into an encoding
 (note: but <strong>not</strong> when the DBAPI handles unicode objects natively).
 To suppress or raise this warning to an 
 error, use the Python warnings filter documented at:
 <a class="reference external" href="http://docs.python.org/library/warnings.html">http://docs.python.org/library/warnings.html</a></li>
-<li><em>unicode_error</em> &#8211; Optional, a method to use to handle Unicode
+<li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the &#8216;errors&#8217; keyword argument to
 the standard library&#8217;s string.decode() functions.   This flag
 requires that <cite>convert_unicode</cite> is set to <cite>&#8220;force&#8221;</cite> - otherwise,
@@ -563,7 +571,7 @@ in the first place (i.e. MySQL.  <em>not</em> PG, Sqlite, etc.)</li>
 <dl class="class">
 <dt id="sqlalchemy.types.Text">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Text</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Text" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>A variably sized string type.</p>
 <p>In SQL, usually corresponds to CLOB or TEXT. Can also take Python
 unicode objects and encode to the database&#8217;s encoding in bind
@@ -573,7 +581,7 @@ params (and the reverse for result sets.)</p>
 <dl class="class">
 <dt id="sqlalchemy.types.Time">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Time</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Time" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">datetime.time()</span></tt> objects.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.Time.__init__">
@@ -585,9 +593,9 @@ params (and the reverse for result sets.)</p>
 <dl class="class">
 <dt id="sqlalchemy.types.Unicode">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Unicode</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Unicode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>A variable length Unicode string.</p>
-<p>The <tt class="docutils literal"><span class="pre">Unicode</span></tt> type is a <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">String</span></tt></a> which converts Python
+<p>The <tt class="docutils literal"><span class="pre">Unicode</span></tt> type is a <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> which converts Python
 <tt class="docutils literal"><span class="pre">unicode</span></tt> objects (i.e., strings that are defined as
 <tt class="docutils literal"><span class="pre">u'somevalue'</span></tt>) into encoded bytestrings when passing the value
 to the database driver, and similarly decodes values from the
@@ -611,7 +619,7 @@ trace:</p>
 </div>
 <p>Bytestrings sent to and received from the database are encoded
 using the dialect&#8217;s
-<tt class="xref docutils literal"><span class="pre">encoding</span></tt>, which defaults
+<tt class="xref py py-attr docutils literal"><span class="pre">encoding</span></tt>, which defaults
 to <cite>utf-8</cite>.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.Unicode.__init__">
@@ -622,13 +630,13 @@ to <cite>utf-8</cite>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>length</em> &#8211; optional, a length for the column for use in
+<li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><em>**kwargs</em> &#8211; passed through to the underlying <tt class="docutils literal"><span class="pre">String</span></tt>
+<li><strong>**kwargs</strong> &#8211; passed through to the underlying <tt class="docutils literal"><span class="pre">String</span></tt>
 type.</li>
 </ul>
 </td>
@@ -642,9 +650,9 @@ type.</li>
 <dl class="class">
 <dt id="sqlalchemy.types.UnicodeText">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">UnicodeText</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UnicodeText" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Text" class="reference internal" href="#sqlalchemy.types.Text"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <p>An unbounded-length Unicode string.</p>
-<p>See <a title="sqlalchemy.types.Unicode" class="reference internal" href="#sqlalchemy.types.Unicode"><tt class="xref docutils literal"><span class="pre">Unicode</span></tt></a> for details on the unicode
+<p>See <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for details on the unicode
 behavior of this object.</p>
 <p>Like <tt class="docutils literal"><span class="pre">Unicode</span></tt>, usage the <tt class="docutils literal"><span class="pre">UnicodeText</span></tt> type implies a 
 unicode-capable type being used on the backend, such as NCLOB.</p>
@@ -656,12 +664,15 @@ unicode-capable type being used on the backend, such as NCLOB.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>length</em> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.  Whether the value is
-interpreted as bytes or characters is database specific.</td>
+interpreted as bytes or characters is database specific.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -678,35 +689,35 @@ on all databases.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.BINARY">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BINARY</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BINARY" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>The SQL BINARY type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.BLOB">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BLOB" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.LargeBinary" class="reference internal" href="#sqlalchemy.types.LargeBinary"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.LargeBinary" title="sqlalchemy.types.LargeBinary"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
 <p>The SQL BLOB type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.BOOLEAN">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BOOLEAN</tt><big>(</big><em>create_constraint=True</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BOOLEAN" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Boolean" class="reference internal" href="#sqlalchemy.types.Boolean"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Boolean</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Boolean" title="sqlalchemy.types.Boolean"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Boolean</span></tt></a></p>
 <p>The SQL BOOLEAN type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.CHAR">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">CHAR</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.CHAR" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>The SQL CHAR type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.CLOB">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">CLOB</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.CLOB" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Text" class="reference internal" href="#sqlalchemy.types.Text"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <p>The CLOB type.</p>
 <p>This type is found in Oracle and Informix.</p>
 </dd></dl>
@@ -714,103 +725,104 @@ on all databases.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.DATE">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DATE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DATE" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Date" class="reference internal" href="#sqlalchemy.types.Date"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Date</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Date" title="sqlalchemy.types.Date"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Date</span></tt></a></p>
 <p>The SQL DATE type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.DATETIME">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DATETIME" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.DateTime" class="reference internal" href="#sqlalchemy.types.DateTime"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
 <p>The SQL DATETIME type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.DECIMAL">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">DECIMAL</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DECIMAL" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Numeric" class="reference internal" href="#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
 <p>The SQL DECIMAL type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.FLOAT">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">FLOAT</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.FLOAT" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Float" class="reference internal" href="#sqlalchemy.types.Float"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
 <p>The SQL FLOAT type.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.types.INT">
 <tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">INT</tt><a class="headerlink" href="#sqlalchemy.types.INT" title="Permalink to this definition">¶</a></dt>
-<dd>alias of <a title="sqlalchemy.types.INTEGER" class="reference internal" href="#sqlalchemy.types.INTEGER"><tt class="xref docutils literal"><span class="pre">INTEGER</span></tt></a></dd></dl>
+<dd><p>alias of <a class="reference internal" href="#sqlalchemy.types.INTEGER" title="sqlalchemy.types.INTEGER"><tt class="xref py py-class docutils literal"><span class="pre">INTEGER</span></tt></a></p>
+</dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.INTEGER">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">INTEGER</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.INTEGER" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Integer" class="reference internal" href="#sqlalchemy.types.Integer"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
 <p>The SQL INT or INTEGER type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.NCHAR">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NCHAR" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Unicode" class="reference internal" href="#sqlalchemy.types.Unicode"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Unicode</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Unicode</span></tt></a></p>
 <p>The SQL NCHAR type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.NVARCHAR">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NVARCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NVARCHAR" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Unicode" class="reference internal" href="#sqlalchemy.types.Unicode"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Unicode</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Unicode</span></tt></a></p>
 <p>The SQL NVARCHAR type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.NUMERIC">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NUMERIC</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NUMERIC" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Numeric" class="reference internal" href="#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
 <p>The SQL NUMERIC type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.SMALLINT">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">SMALLINT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SMALLINT" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.SmallInteger" class="reference internal" href="#sqlalchemy.types.SmallInteger"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.SmallInteger</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.SmallInteger" title="sqlalchemy.types.SmallInteger"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.SmallInteger</span></tt></a></p>
 <p>The SQL SMALLINT type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.TEXT">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TEXT</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TEXT" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Text" class="reference internal" href="#sqlalchemy.types.Text"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <p>The SQL TEXT type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.TIME">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TIME" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Time" class="reference internal" href="#sqlalchemy.types.Time"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Time</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Time" title="sqlalchemy.types.Time"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Time</span></tt></a></p>
 <p>The SQL TIME type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.TIMESTAMP">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.DateTime" class="reference internal" href="#sqlalchemy.types.DateTime"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
 <p>The SQL TIMESTAMP type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.VARBINARY">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">VARBINARY</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.VARBINARY" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>The SQL VARBINARY type.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.VARCHAR">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">VARCHAR</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.VARCHAR" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.String" class="reference internal" href="#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>The SQL VARCHAR type.</p>
 </dd></dl>
 
@@ -818,7 +830,7 @@ on all databases.</p>
 <div class="section" id="vendor-specific-types">
 <h2>Vendor-Specific Types<a class="headerlink" href="#vendor-specific-types" title="Permalink to this headline">¶</a></h2>
 <p>Database-specific types are also available for import from each
-database&#8217;s dialect module. See the <a class="reference external" href="../dialects/index.html#sqlalchemy-dialects-toplevel"><em>sqlalchemy.dialects</em></a>
+database&#8217;s dialect module. See the <a class="reference internal" href="../dialects/index.html"><em>sqlalchemy.dialects</em></a>
 reference for the database you&#8217;re interested in.</p>
 <p>For example, MySQL has a <tt class="docutils literal"><span class="pre">BIGINTEGER</span></tt> type and PostgreSQL has an
 <tt class="docutils literal"><span class="pre">INET</span></tt> type.  To use these, import them from the module explicitly:</p>
@@ -845,7 +857,7 @@ implemented for that backend:</p>
 
 <span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-           <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mf">300</span><span class="p">)),</span>
+           <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">300</span><span class="p">)),</span>
            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;inetaddr&#39;</span><span class="p">,</span> <span class="n">INET</span><span class="p">)</span>
 <span class="p">)</span></pre></div>
 </div>
@@ -858,7 +870,7 @@ such as <cite>collation</cite> and <cite>charset</cite>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.mysql</span> <span class="kn">import</span> <span class="n">VARCHAR</span><span class="p">,</span> <span class="n">TEXT</span>
 
 <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mf">200</span><span class="p">,</span> <span class="n">collation</span><span class="o">=</span><span class="s">&#39;binary&#39;</span><span class="p">)),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">collation</span><span class="o">=</span><span class="s">&#39;binary&#39;</span><span class="p">)),</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col2&#39;</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">(</span><span class="n">charset</span><span class="o">=</span><span class="s">&#39;latin1&#39;</span><span class="p">))</span>
 <span class="p">)</span></pre></div>
 </div>
@@ -868,14 +880,14 @@ such as <cite>collation</cite> and <cite>charset</cite>:</p>
 <p>User-defined types may be created to match special capabilities of a
 particular database or simply for implementing custom processing logic
 in Python.</p>
-<p>The simplest method is implementing a <a title="sqlalchemy.types.TypeDecorator" class="reference internal" href="#sqlalchemy.types.TypeDecorator"><tt class="xref docutils literal"><span class="pre">TypeDecorator</span></tt></a>, a helper
+<p>The simplest method is implementing a <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>, a helper
 class that makes it easy to augment the bind parameter and result
 processing capabilities of one of the built in types.</p>
 <p>To build a type object from scratch, subclass <cite>:class:UserDefinedType</cite>.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.TypeDecorator">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TypeDecorator</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.AbstractType" class="reference internal" href="#sqlalchemy.types.AbstractType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.AbstractType</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.AbstractType" title="sqlalchemy.types.AbstractType"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.AbstractType</span></tt></a></p>
 <p>Allows the creation of types which add additional functionality
 to an existing type.</p>
 <p>This method is preferred to direct subclassing of SQLAlchemy&#8217;s
@@ -895,7 +907,7 @@ the underlying type is kept in place.</p>
         <span class="k">return</span> <span class="s">&quot;PREFIX:&quot;</span> <span class="o">+</span> <span class="n">value</span>
 
     <span class="k">def</span> <span class="nf">process_result_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">value</span><span class="p">[</span><span class="mf">7</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">[</span><span class="mi">7</span><span class="p">:]</span>
 
     <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">MyType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">length</span><span class="p">)</span></pre></div>
@@ -906,11 +918,11 @@ can be used to provide different type classes based on the dialect
 given; in this case, the &#8220;impl&#8221; variable can reference
 <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> as a placeholder.</p>
 <p>Types that receive a Python type that isn&#8217;t similar to the 
-ultimate type used may want to define the <a title="sqlalchemy.types.TypeDecorator.coerce_compared_value" class="reference internal" href="#sqlalchemy.types.TypeDecorator.coerce_compared_value"><tt class="xref docutils literal"><span class="pre">TypeDecorator.coerce_compared_value()</span></tt></a>
+ultimate type used may want to define the <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.coerce_compared_value" title="sqlalchemy.types.TypeDecorator.coerce_compared_value"><tt class="xref py py-meth docutils literal"><span class="pre">TypeDecorator.coerce_compared_value()</span></tt></a>
 method.  This is used to give the expression system a hint 
 when coercing Python objects into bind parameters within expressions.  
 Consider this expression:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">somecol</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mf">2009</span><span class="p">,</span> <span class="mf">5</span><span class="p">,</span> <span class="mf">15</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">somecol</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">2009</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span></pre></div>
 </div>
 <p>Above, if &#8220;somecol&#8221; is an <tt class="docutils literal"><span class="pre">Integer</span></tt> variant, it makes sense that 
 we&#8217;re doing date arithmetic, where above is usually interpreted
@@ -924,7 +936,7 @@ Such as below, we define an &#8220;epoch&#8221; type that stores a date value as
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyEpochType</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">TypeDecorator</span><span class="p">):</span>
     <span class="n">impl</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Integer</span>
     
-    <span class="n">epoch</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mf">1970</span><span class="p">,</span> <span class="mf">1</span><span class="p">,</span> <span class="mf">1</span><span class="p">)</span>
+    <span class="n">epoch</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">epoch</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
@@ -934,7 +946,7 @@ Such as below, we define an &#8220;epoch&#8221; type that stores a date value as
 </div>
 <p>Our expression of <tt class="docutils literal"><span class="pre">somecol</span> <span class="pre">+</span> <span class="pre">date</span></tt> with the above type will coerce the
 &#8220;date&#8221; on the right side to also be treated as <tt class="docutils literal"><span class="pre">MyEpochType</span></tt>.</p>
-<p>This behavior can be overridden via the <a title="sqlalchemy.types.TypeDecorator.coerce_compared_value" class="reference internal" href="#sqlalchemy.types.TypeDecorator.coerce_compared_value"><tt class="xref docutils literal"><span class="pre">coerce_compared_value()</span></tt></a>
+<p>This behavior can be overridden via the <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.coerce_compared_value" title="sqlalchemy.types.TypeDecorator.coerce_compared_value"><tt class="xref py py-meth docutils literal"><span class="pre">coerce_compared_value()</span></tt></a>
 method, which returns a type that should be used for the value of the expression.
 Below we set it such that an integer value will be treated as an <tt class="docutils literal"><span class="pre">Integer</span></tt>,
 and any other value is assumed to be a date and will be treated as a <tt class="docutils literal"><span class="pre">MyEpochType</span></tt>:</p>
@@ -967,7 +979,7 @@ and any other value is assumed to be a date and will be treated as a <tt class="
 the expression system when an object using this type is 
 on the left or right side of an expression against a plain Python
 object which does not yet have a SQLAlchemy type assigned:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">expr</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">somecolumn</span> <span class="o">+</span> <span class="mf">35</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">expr</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">somecolumn</span> <span class="o">+</span> <span class="mi">35</span></pre></div>
 </div>
 <p>Where above, if <tt class="docutils literal"><span class="pre">somecolumn</span></tt> uses this type, this method will
 be called with the value <tt class="docutils literal"><span class="pre">operator.add</span></tt>
@@ -1043,15 +1055,15 @@ can be overridden to provide different behavior.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.UserDefinedType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">UserDefinedType</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UserDefinedType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Base for user defined types.</p>
 <p>This should be the base of new types.  Note that
-for most cases, <a title="sqlalchemy.types.TypeDecorator" class="reference internal" href="#sqlalchemy.types.TypeDecorator"><tt class="xref docutils literal"><span class="pre">TypeDecorator</span></tt></a> is probably
+for most cases, <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> is probably
 more appropriate:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sqlalchemy.types</span> <span class="kn">as</span> <span class="nn">types</span>
 
 <span class="k">class</span> <span class="nc">MyType</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">UserDefinedType</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">precision</span> <span class="o">=</span> <span class="mf">8</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">precision</span> <span class="o">=</span> <span class="mi">8</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">precision</span> <span class="o">=</span> <span class="n">precision</span>
 
     <span class="k">def</span> <span class="nf">get_col_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1070,7 +1082,7 @@ more appropriate:</p>
 <p>Once the type is made, it&#8217;s immediately usable:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">MyType</span><span class="p">(</span><span class="mf">16</span><span class="p">))</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">MyType</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
     <span class="p">)</span></pre></div>
 </div>
 <dl class="method">
@@ -1105,7 +1117,8 @@ send to the DB-API.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.UserDefinedType.compare_values">
 <tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UserDefinedType.compare_values" title="Permalink to this definition">¶</a></dt>
-<dd>Compare two values for equality.</dd></dl>
+<dd><p>Compare two values for equality.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.UserDefinedType.compile">
@@ -1138,7 +1151,7 @@ This can be useful for calling <tt class="docutils literal"><span class="pre">se
 <p>This allows systems like the ORM to know if a column value can
 be considered &#8216;not changed&#8217; by comparing the identity of
 objects alone.</p>
-<p>Use the <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">MutableType</span></tt></a> mixin or override this method to
+<p>Use the <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> mixin or override this method to
 return True in custom types that hold mutable values such as
 <tt class="docutils literal"><span class="pre">dict</span></tt>, <tt class="docutils literal"><span class="pre">list</span></tt> and custom objects.</p>
 </dd></dl>
@@ -1158,7 +1171,7 @@ to return to the user.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.TypeEngine">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TypeEngine</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.AbstractType" class="reference internal" href="#sqlalchemy.types.AbstractType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.AbstractType</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.AbstractType" title="sqlalchemy.types.AbstractType"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.AbstractType</span></tt></a></p>
 <p>Base for built-in types.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.__init__">
@@ -1183,7 +1196,8 @@ send to the DB-API.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.compare_values">
 <tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.compare_values" title="Permalink to this definition">¶</a></dt>
-<dd>Compare two values for equality.</dd></dl>
+<dd><p>Compare two values for equality.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.compile">
@@ -1216,7 +1230,7 @@ This can be useful for calling <tt class="docutils literal"><span class="pre">se
 <p>This allows systems like the ORM to know if a column value can
 be considered &#8216;not changed&#8217; by comparing the identity of
 objects alone.</p>
-<p>Use the <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">MutableType</span></tt></a> mixin or override this method to
+<p>Use the <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> mixin or override this method to
 return True in custom types that hold mutable values such as
 <tt class="docutils literal"><span class="pre">dict</span></tt>, <tt class="docutils literal"><span class="pre">list</span></tt> and custom objects.</p>
 </dd></dl>
@@ -1236,7 +1250,7 @@ to return to the user.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.AbstractType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">AbstractType</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.visitors.Visitable</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.visitors.Visitable</span></tt></p>
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.__init__" title="Permalink to this definition">¶</a></dt>
@@ -1250,7 +1264,10 @@ to return to the user.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>dialect</em> &#8211; Dialect instance in use.</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dialect</strong> &#8211; Dialect instance in use.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1259,7 +1276,8 @@ to return to the user.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.compare_values">
 <tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.compare_values" title="Permalink to this definition">¶</a></dt>
-<dd>Compare two values for equality.</dd></dl>
+<dd><p>Compare two values for equality.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.compile">
@@ -1287,7 +1305,7 @@ This can be useful for calling <tt class="docutils literal"><span class="pre">se
 <p>This allows systems like the ORM to know if a column value can
 be considered &#8216;not changed&#8217; by comparing the identity of
 objects alone.</p>
-<p>Use the <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">MutableType</span></tt></a> mixin or override this method to
+<p>Use the <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> mixin or override this method to
 return True in custom types that hold mutable values such as
 <tt class="docutils literal"><span class="pre">dict</span></tt>, <tt class="docutils literal"><span class="pre">list</span></tt> and custom objects.</p>
 </dd></dl>
@@ -1301,8 +1319,8 @@ return True in custom types that hold mutable values such as
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>dialect</em> &#8211; Dialect instance in use.</li>
-<li><em>coltype</em> &#8211; DBAPI coltype argument received in cursor.description.</li>
+<li><strong>dialect</strong> &#8211; Dialect instance in use.</li>
+<li><strong>coltype</strong> &#8211; DBAPI coltype argument received in cursor.description.</li>
 </ul>
 </td>
 </tr>
@@ -1315,8 +1333,8 @@ return True in custom types that hold mutable values such as
 <dl class="class">
 <dt id="sqlalchemy.types.MutableType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">MutableType</tt><a class="headerlink" href="#sqlalchemy.types.MutableType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
-<p>A mixin that marks a <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">TypeEngine</span></tt></a> as representing
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A mixin that marks a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> as representing
 a mutable Python object type.</p>
 <p>&#8220;mutable&#8221; means that changes can occur in place to a value 
 of this type.   Examples includes Python lists, dictionaries,
@@ -1325,14 +1343,14 @@ need for identification of &#8220;mutable&#8221; types is by the ORM,
 which applies special rules to such values in order to guarantee 
 that changes are detected.  These rules may have a significant 
 performance impact, described below.</p>
-<p>A <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">MutableType</span></tt></a> usually allows a flag called
+<p>A <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> usually allows a flag called
 <tt class="docutils literal"><span class="pre">mutable=True</span></tt> to enable/disable the &#8220;mutability&#8221; flag,
-represented on this class by <a title="sqlalchemy.types.MutableType.is_mutable" class="reference internal" href="#sqlalchemy.types.MutableType.is_mutable"><tt class="xref docutils literal"><span class="pre">is_mutable()</span></tt></a>.  Examples 
-include <a title="sqlalchemy.types.PickleType" class="reference internal" href="#sqlalchemy.types.PickleType"><tt class="xref docutils literal"><span class="pre">PickleType</span></tt></a> and 
-<a title="sqlalchemy.dialects.postgresql.base.ARRAY" class="reference external" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.base.ARRAY"><tt class="xref docutils literal"><span class="pre">ARRAY</span></tt></a>.  Setting
+represented on this class by <a class="reference internal" href="#sqlalchemy.types.MutableType.is_mutable" title="sqlalchemy.types.MutableType.is_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">is_mutable()</span></tt></a>.  Examples 
+include <a class="reference internal" href="#sqlalchemy.types.PickleType" title="sqlalchemy.types.PickleType"><tt class="xref py py-class docutils literal"><span class="pre">PickleType</span></tt></a> and 
+<a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.base.ARRAY" title="sqlalchemy.dialects.postgresql.base.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">ARRAY</span></tt></a>.  Setting
 this flag to <tt class="xref docutils literal"><span class="pre">False</span></tt> effectively disables any mutability-
 specific behavior by the ORM.</p>
-<p><a title="sqlalchemy.types.MutableType.copy_value" class="reference internal" href="#sqlalchemy.types.MutableType.copy_value"><tt class="xref docutils literal"><span class="pre">copy_value()</span></tt></a> and <a title="sqlalchemy.types.MutableType.compare_values" class="reference internal" href="#sqlalchemy.types.MutableType.compare_values"><tt class="xref docutils literal"><span class="pre">compare_values()</span></tt></a> represent a copy
+<p><a class="reference internal" href="#sqlalchemy.types.MutableType.copy_value" title="sqlalchemy.types.MutableType.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">copy_value()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.types.MutableType.compare_values" title="sqlalchemy.types.MutableType.compare_values"><tt class="xref py py-meth docutils literal"><span class="pre">compare_values()</span></tt></a> represent a copy
 and compare function for values of this type - implementing
 subclasses should override these appropriately.</p>
 <p>The usage of mutable types has significant performance
@@ -1346,7 +1364,7 @@ through all instances in the session which are known to have
 one to its &#8220;clean&#8221;
 value. So for example, if the Session contains 6000 objects (a
 fairly large amount) and autoflush is enabled, every individual
-execution of <tt class="xref docutils literal"><span class="pre">Query</span></tt> will require a full scan of that subset of
+execution of <tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt> will require a full scan of that subset of
 the 6000 objects that have mutable attributes, possibly resulting
 in tens of thousands of additional method calls for every query.</p>
 <p>Note that for small numbers (&lt; 100 in the Session at a time)
@@ -1376,49 +1394,54 @@ changes.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.types.MutableType.__init__">
 <tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.types.MutableType.__init__" title="Permalink to this definition">¶</a></dt>
-<dd>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</dd></dl>
+<dd><p>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.MutableType.compare_values">
 <tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.compare_values" title="Permalink to this definition">¶</a></dt>
-<dd>Compare <em>x</em> == <em>y</em>.</dd></dl>
+<dd><p>Compare <em>x</em> == <em>y</em>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.MutableType.copy_value">
 <tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.copy_value" title="Permalink to this definition">¶</a></dt>
-<dd>Unimplemented.</dd></dl>
+<dd><p>Unimplemented.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.MutableType.is_mutable">
 <tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.is_mutable" title="Permalink to this definition">¶</a></dt>
-<dd>Return True, mutable.</dd></dl>
+<dd><p>Return True, mutable.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.Concatenable">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Concatenable</tt><a class="headerlink" href="#sqlalchemy.types.Concatenable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>A mixin that marks a type as supporting &#8216;concatenation&#8217;, typically strings.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.types.Concatenable.__init__">
 <tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.types.Concatenable.__init__" title="Permalink to this definition">¶</a></dt>
-<dd>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</dd></dl>
+<dd><p>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.types.NullType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">NullType</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.NullType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>An unknown type.</p>
-<p>NullTypes will stand in if <tt class="xref docutils literal"><span class="pre">Table</span></tt> reflection
+<p>NullTypes will stand in if <tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt> reflection
 encounters a column data type unknown to SQLAlchemy.  The
 resulting columns are nearly fully usable: the DB-API adapter will
 handle all translation to and from the database data type.</p>
 <p>NullType does not have sufficient information to particpate in a
 <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement and will raise an exception if
-encountered during a <tt class="xref docutils literal"><span class="pre">create()</span></tt> operation.</p>
+encountered during a <tt class="xref py py-meth docutils literal"><span class="pre">create()</span></tt> operation.</p>
 </dd></dl>
 
 </div>
@@ -1433,14 +1456,14 @@ encountered during a <tt class="xref docutils literal"><span class="pre">create(
                 
 <div class="prevnext">
         Previous:
-        <a href="schema.html" title="previous chapter">Database Schema</a>
+        <a href="inspector.html" title="previous chapter">Schema Introspection</a>
         Next:
         <a href="interfaces.html" title="next chapter">Interfaces</a>
 </div>
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

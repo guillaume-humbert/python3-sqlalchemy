@@ -1,8 +1,0 @@
-#! /bin/sh -e
-
-#if which pyclean >/dev/null 2>&1; then
-#	pyclean -p python3-sqlalchemy
-#fi
-find /usr/lib/python3.1/dist-packages/sqlalchemy/ -name '*\.pyc' -delete >/dev/null
-
-#DEBHELPER#

@@ -1,6 +1,12 @@
-/**
- * Sphinx stylesheet -- default theme
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/*
+ * default.css_t
+ * ~~~~~~~~~~~~~
+ *
+ * Sphinx stylesheet -- default theme.
+ *
+ * :copyright: Copyright 2007-2010 by the Sphinx team, see AUTHORS.
+ * :license: BSD, see LICENSE for details.
+ *
  */
 
 @import url("basic.css");
@@ -141,10 +147,16 @@ div.sphinxsidebar input {
     font-size: 1em;
 }
 
-/* -- body styles ----------------------------------------------------------- */
+
+/* -- hyperlink styles ------------------------------------------------------ */
 
 a {
     color: {{ theme_linkcolor }};
+    text-decoration: none;
+}
+
+a:visited {
+    color: {{ theme_visitedlinkcolor }};
     text-decoration: none;
 }
 
@@ -152,10 +164,19 @@ a:hover {
     text-decoration: underline;
 }
 
-div.body p, div.body dd, div.body li {
-    text-align: justify;
-    line-height: 130%;
+{% if theme_externalrefs|tobool %}
+a.external {
+   text-decoration: none;
+   border-bottom: 1px dashed {{ theme_linkcolor }};
 }
+
+a.external:hover {
+   text-decoration: none;
+   border-bottom: none;
+}
+{% endif %}
+
+/* -- body styles ----------------------------------------------------------- */
 
 div.body h1,
 div.body h2,
@@ -255,10 +276,24 @@ tt {
     font-size: 0.95em;
 }
 
+th {
+    background-color: #ede;
+}
+
 .warning tt {
     background: #efc2c2;
 }
 
 .note tt {
     background: #d6d6d6;
+}
+
+.viewcode-back {
+    font-family: {{ theme_bodyfont }};
+}
+
+div.viewcode-block:target {
+    background-color: #f4debf;
+    border-top: 1px solid #ac9;
+    border-bottom: 1px solid #ac9;
 }

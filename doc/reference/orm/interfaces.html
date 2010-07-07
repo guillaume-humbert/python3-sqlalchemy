@@ -7,7 +7,7 @@
         
         <title>
     Interfaces
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,17 +15,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Utilities" href="utilities.html" />
         <link rel="prev" title="Sessions" href="sessions.html" />
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -92,10 +93,10 @@
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.orm.interfaces">
-<h1>Interfaces<a class="headerlink" href="#module-sqlalchemy.orm.interfaces" title="Permalink to this headline">¶</a></h1>
+<span id="interfaces"></span><h1>Interfaces<a class="headerlink" href="#module-sqlalchemy.orm.interfaces" title="Permalink to this headline">¶</a></h1>
 <p>Semi-private module containing various base classes used throughout the ORM.</p>
-<p>Defines the extension classes <a title="sqlalchemy.orm.interfaces.MapperExtension" class="reference internal" href="#sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref docutils literal"><span class="pre">MapperExtension</span></tt></a>,
-<a title="sqlalchemy.orm.interfaces.SessionExtension" class="reference internal" href="#sqlalchemy.orm.interfaces.SessionExtension"><tt class="xref docutils literal"><span class="pre">SessionExtension</span></tt></a>, and <a title="sqlalchemy.orm.interfaces.AttributeExtension" class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref docutils literal"><span class="pre">AttributeExtension</span></tt></a> as
+<p>Defines the extension classes <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.orm.interfaces.SessionExtension" title="sqlalchemy.orm.interfaces.SessionExtension"><tt class="xref py py-class docutils literal"><span class="pre">SessionExtension</span></tt></a>, and <a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> as
 well as other user-subclassable extension objects.</p>
 <dl class="class">
 <dt id="sqlalchemy.orm.interfaces.AttributeExtension">
@@ -106,8 +107,9 @@ with a mapped class.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.orm.interfaces.AttributeExtension.active_history">
 <tt class="descname">active_history</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.AttributeExtension.active_history" title="Permalink to this definition">¶</a></dt>
-<dd>indicates that the set() method would like to receive the &#8216;old&#8217; value,
-even if it means firing lazy callables.</dd></dl>
+<dd><p>indicates that the set() method would like to receive the &#8216;old&#8217; value,
+even if it means firing lazy callables.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.AttributeExtension.append">
@@ -298,7 +300,7 @@ desired.</p>
 <dd>List to which results are being appended.</dd>
 <dt>**flags</dt>
 <dd>extra information about the row, same as criterion in
-<tt class="docutils literal"><span class="pre">create_row_processor()</span></tt> method of <tt class="xref docutils literal"><span class="pre">MapperProperty</span></tt></dd>
+<tt class="docutils literal"><span class="pre">create_row_processor()</span></tt> method of <a class="reference internal" href="mapping.html#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a></dd>
 </dl>
 </dd></dl>
 
@@ -480,8 +482,9 @@ PropComparator.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.PropComparator.adapted">
 <tt class="descname">adapted</tt><big>(</big><em>adapter</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.adapted" title="Permalink to this definition">¶</a></dt>
-<dd>Return a copy of this PropComparator which will use the given adaption function
-on the local side of generated expressions.</dd></dl>
+<dd><p>Return a copy of this PropComparator which will use the given adaption function
+on the local side of generated expressions.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.PropComparator.any">
@@ -651,7 +654,7 @@ method.</p>
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

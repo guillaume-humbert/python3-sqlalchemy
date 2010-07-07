@@ -578,9 +578,9 @@ class OracleIdentifierPreparer(compiler.IdentifierPreparer):
         
 class OracleExecutionContext(default.DefaultExecutionContext):
     def fire_sequence(self, seq):
-        return self._execute_scalar("SELECT " + 
+        return int(self._execute_scalar("SELECT " + 
                     self.dialect.identifier_preparer.format_sequence(seq) + 
-                    ".nextval FROM DUAL")
+                    ".nextval FROM DUAL"))
     
 class OracleDialect(default.DefaultDialect):
     name = 'oracle'
@@ -634,11 +634,11 @@ class OracleDialect(default.DefaultDialect):
         return self.server_version_info and \
                     self.server_version_info < (9, )
         
-    @util.memoized_property
+    @property
     def _supports_char_length(self):
         return not self._is_oracle_8
 
-    @util.memoized_property
+    @property
     def _supports_nchar(self):
         return not self._is_oracle_8
         

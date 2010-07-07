@@ -1,3 +1,14 @@
+sqlalchemy (0.6.2-1) unstable; urgency=low
+
+  * New upstream release
+  * Convert to dh_python2
+  * Add pydist file in python-sqlalchemy and python3-sqlalchemy
+    (packages that build depend on these packages and use dh_python* will get
+    correct dependencies via ${python:Depends})
+  * Standards-Version bumped to 3.9.0 (no changes needed)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Wed, 07 Jul 2010 19:54:32 +0200
+
 sqlalchemy (0.6.1-1) unstable; urgency=low
 
   * New upstream release

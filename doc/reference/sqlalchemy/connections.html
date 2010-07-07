@@ -7,7 +7,7 @@
         
         <title>
     Connections
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,17 +15,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Connection Pooling" href="pooling.html" />
         <link rel="prev" title="sqlalchemy" href="index.html" />
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -86,12 +87,12 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="#">Connections</a><ul>
-<li><a class="reference external" href="#creating-engines">Creating Engines</a></li>
-<li><a class="reference external" href="#connectables">Connectables</a></li>
-<li><a class="reference external" href="#result-objects">Result Objects</a></li>
-<li><a class="reference external" href="#transactions">Transactions</a></li>
-<li><a class="reference external" href="#internals">Internals</a></li>
+<li><a class="reference internal" href="#">Connections</a><ul>
+<li><a class="reference internal" href="#creating-engines">Creating Engines</a></li>
+<li><a class="reference internal" href="#connectables">Connectables</a></li>
+<li><a class="reference internal" href="#result-objects">Result Objects</a></li>
+<li><a class="reference internal" href="#transactions">Transactions</a></li>
+<li><a class="reference internal" href="#internals">Internals</a></li>
 </ul>
 </li>
 </ul>
@@ -119,7 +120,7 @@ arguments sent as options to the dialect and resulting Engine.</p>
 <tt class="docutils literal"><span class="pre">dialect</span></tt> is a database name such as <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>, 
 <tt class="docutils literal"><span class="pre">postgresql</span></tt>, etc., and <tt class="docutils literal"><span class="pre">driver</span></tt> the name of a DBAPI, such as 
 <tt class="docutils literal"><span class="pre">psycopg2</span></tt>, <tt class="docutils literal"><span class="pre">pyodbc</span></tt>, <tt class="docutils literal"><span class="pre">cx_oracle</span></tt>, etc.  Alternatively, 
-the URL can be an instance of <a title="sqlalchemy.engine.url.URL" class="reference internal" href="#sqlalchemy.engine.url.URL"><tt class="xref docutils literal"><span class="pre">URL</span></tt></a>.</p>
+the URL can be an instance of <a class="reference internal" href="#sqlalchemy.engine.url.URL" title="sqlalchemy.engine.url.URL"><tt class="xref py py-class docutils literal"><span class="pre">URL</span></tt></a>.</p>
 <p><cite>**kwargs</cite> takes a wide variety of options which are routed 
 towards their appropriate components.  Arguments may be 
 specific to the Engine, the underlying Dialect, as well as the 
@@ -131,87 +132,90 @@ that are common to most <tt class="docutils literal"><span class="pre">create_en
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>assert_unicode</em> &#8211; Deprecated.  A warning is raised in all cases when a non-Unicode
+<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is raised in all cases when a non-Unicode
 object is passed when SQLAlchemy would coerce into an encoding
 (note: but <strong>not</strong> when the DBAPI handles unicode objects natively).
 To suppress or raise this warning to an 
 error, use the Python warnings filter documented at:
 <a class="reference external" href="http://docs.python.org/library/warnings.html">http://docs.python.org/library/warnings.html</a></li>
-<li><em>connect_args</em> &#8211; a dictionary of options which will be
+<li><strong>connect_args</strong> &#8211; a dictionary of options which will be
 passed directly to the DBAPI&#8217;s <tt class="docutils literal"><span class="pre">connect()</span></tt> method as
 additional keyword arguments.</li>
-<li><em>convert_unicode=False</em> &#8211; if set to True, all
+<li><strong>convert_unicode=False</strong> &#8211; if set to True, all
 String/character based types will convert Unicode values to raw
 byte values going into the database, and all raw byte values to
 Python Unicode coming out in result sets. This is an
 engine-wide method to provide unicode conversion across the
 board. For unicode conversion on a column-by-column level, use
 the <tt class="docutils literal"><span class="pre">Unicode</span></tt> column type instead, described in <cite>types</cite>.</li>
-<li><em>creator</em> &#8211; a callable which returns a DBAPI connection.
+<li><strong>creator</strong> &#8211; a callable which returns a DBAPI connection.
 This creation function will be passed to the underlying
 connection pool and will be used to create all new database
 connections. Usage of this function causes connection
 parameters specified in the URL argument to be bypassed.</li>
-<li><em>echo=False</em> &#8211; if True, the Engine will log all statements
+<li><strong>echo=False</strong> &#8211; if True, the Engine will log all statements
 as well as a repr() of their parameter lists to the engines
 logger, which defaults to sys.stdout. The <tt class="docutils literal"><span class="pre">echo</span></tt> attribute of
 <tt class="docutils literal"><span class="pre">Engine</span></tt> can be modified at any time to turn logging on and
 off. If set to the string <tt class="docutils literal"><span class="pre">&quot;debug&quot;</span></tt>, result rows will be
 printed to the standard output as well. This flag ultimately
-controls a Python logger; see <a class="reference external" href="../../dbengine.html#dbengine-logging"><em>Configuring Logging</em></a> for
+controls a Python logger; see <a class="reference internal" href="../../dbengine.html#dbengine-logging"><em>Configuring Logging</em></a> for
 information on how to configure logging directly.</li>
-<li><em>echo_pool=False</em> &#8211; if True, the connection pool will log
+<li><strong>echo_pool=False</strong> &#8211; if True, the connection pool will log
 all checkouts/checkins to the logging stream, which defaults to
 sys.stdout. This flag ultimately controls a Python logger; see
-<a class="reference external" href="../../dbengine.html#dbengine-logging"><em>Configuring Logging</em></a> for information on how to configure logging
+<a class="reference internal" href="../../dbengine.html#dbengine-logging"><em>Configuring Logging</em></a> for information on how to configure logging
 directly.</li>
-<li><em>encoding=&#8217;utf-8&#8217;</em> &#8211; the encoding to use for all Unicode
+<li><strong>encoding=&#8217;utf-8&#8217;</strong> &#8211; the encoding to use for all Unicode
 translations, both by engine-wide unicode conversion as well as
 the <tt class="docutils literal"><span class="pre">Unicode</span></tt> type object.</li>
-<li><em>execution_options</em> &#8211; Dictionary execution options which will
+<li><strong>execution_options</strong> &#8211; Dictionary execution options which will
 be applied to all connections.  See
-<a title="sqlalchemy.engine.base.Connection.execution_options" class="reference internal" href="#sqlalchemy.engine.base.Connection.execution_options"><tt class="xref docutils literal"><span class="pre">execution_options()</span></tt></a></li>
-<li><em>label_length=None</em> &#8211; optional integer value which limits
+<a class="reference internal" href="#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">execution_options()</span></tt></a></li>
+<li><strong>label_length=None</strong> &#8211; optional integer value which limits
 the size of dynamically generated column labels to that many
 characters. If less than 6, labels are generated as
 &#8220;_(counter)&#8221;. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the value of
 <tt class="docutils literal"><span class="pre">dialect.max_identifier_length</span></tt> is used instead.</li>
-<li><em>listeners</em> &#8211; A list of one or more 
-<a title="sqlalchemy.interfaces.PoolListener" class="reference external" href="interfaces.html#sqlalchemy.interfaces.PoolListener"><tt class="xref docutils literal"><span class="pre">PoolListener</span></tt></a> objects which will 
+<li><strong>listeners</strong> &#8211; A list of one or more 
+<a class="reference internal" href="interfaces.html#sqlalchemy.interfaces.PoolListener" title="sqlalchemy.interfaces.PoolListener"><tt class="xref py py-class docutils literal"><span class="pre">PoolListener</span></tt></a> objects which will 
 receive connection pool events.</li>
-<li><em>logging_name</em> &#8211; String identifier which will be used within
+<li><strong>logging_name</strong> &#8211; String identifier which will be used within
 the &#8220;name&#8221; field of logging records generated within the
 &#8220;sqlalchemy.engine&#8221; logger. Defaults to a hexstring of the 
 object&#8217;s id.</li>
-<li><em>max_overflow=10</em> &#8211; the number of connections to allow in
+<li><strong>max_overflow=10</strong> &#8211; the number of connections to allow in
 connection pool &#8220;overflow&#8221;, that is connections that can be
 opened above and beyond the pool_size setting, which defaults
-to five. this is only used with <a title="sqlalchemy.pool.QueuePool" class="reference external" href="pooling.html#sqlalchemy.pool.QueuePool"><tt class="xref docutils literal"><span class="pre">QueuePool</span></tt></a>.</li>
-<li><em>module=None</em> &#8211; used by database implementations which
+to five. this is only used with <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a>.</li>
+<li><strong>module=None</strong> &#8211; used by database implementations which
 support multiple DBAPI modules, this is a reference to a DBAPI2
 module to be used instead of the engine&#8217;s default module. For
 PostgreSQL, the default is psycopg2. For Oracle, it&#8217;s cx_Oracle.</li>
-<li><em>pool=None</em> &#8211; an already-constructed instance of
-<a title="sqlalchemy.pool.Pool" class="reference external" href="pooling.html#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">Pool</span></tt></a>, such as a
-<a title="sqlalchemy.pool.QueuePool" class="reference external" href="pooling.html#sqlalchemy.pool.QueuePool"><tt class="xref docutils literal"><span class="pre">QueuePool</span></tt></a> instance. If non-None, this
+<li><strong>pool=None</strong> &#8211; an already-constructed instance of
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>, such as a
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a> instance. If non-None, this
 pool will be used directly as the underlying connection pool
 for the engine, bypassing whatever connection parameters are
 present in the URL argument. For information on constructing
 connection pools manually, see <cite>pooling</cite>.</li>
-<li><em>poolclass=None</em> &#8211; a <a title="sqlalchemy.pool.Pool" class="reference external" href="pooling.html#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">Pool</span></tt></a>
+<li><strong>poolclass=None</strong> &#8211; a <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>
 subclass, which will be used to create a connection pool
 instance using the connection parameters given in the URL. Note
 this differs from <tt class="docutils literal"><span class="pre">pool</span></tt> in that you don&#8217;t actually
 instantiate the pool in this case, you just indicate what type
 of pool to be used.</li>
-<li><em>pool_logging_name</em> &#8211; String identifier which will be used within
+<li><strong>pool_logging_name</strong> &#8211; String identifier which will be used within
 the &#8220;name&#8221; field of logging records generated within the 
 &#8220;sqlalchemy.pool&#8221; logger. Defaults to a hexstring of the object&#8217;s 
 id.</li>
-<li><em>pool_size=5</em> &#8211; the number of connections to keep open
-inside the connection pool. This used with <a title="sqlalchemy.pool.QueuePool" class="reference external" href="pooling.html#sqlalchemy.pool.QueuePool"><tt class="xref docutils literal"><span class="pre">QueuePool</span></tt></a> as
-well as <a title="sqlalchemy.pool.SingletonThreadPool" class="reference external" href="pooling.html#sqlalchemy.pool.SingletonThreadPool"><tt class="xref docutils literal"><span class="pre">SingletonThreadPool</span></tt></a>.</li>
-<li><em>pool_recycle=-1</em> &#8211; this setting causes the pool to recycle
+<li><strong>pool_size=5</strong> &#8211; the number of connections to keep open
+inside the connection pool. This used with <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a> as
+well as <a class="reference internal" href="pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a>.  With
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a>, a <tt class="docutils literal"><span class="pre">pool_size</span></tt> setting
+of 0 indicates no limit; to disable pooling, set <tt class="docutils literal"><span class="pre">poolclass</span></tt> to
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> instead.</li>
+<li><strong>pool_recycle=-1</strong> &#8211; this setting causes the pool to recycle
 connections after the given number of seconds has passed. It
 defaults to -1, or no timeout. For example, setting to 3600
 means connections will be recycled after one hour. Note that
@@ -219,12 +223,12 @@ MySQL in particular will <tt class="docutils literal"><span class="pre">disconne
 activity is detected on a connection for eight hours (although
 this is configurable with the MySQLDB connection itself and the
 server configuration as well).</li>
-<li><em>pool_timeout=30</em> &#8211; number of seconds to wait before giving
+<li><strong>pool_timeout=30</strong> &#8211; number of seconds to wait before giving
 up on getting a connection from the pool. This is only used
-with <a title="sqlalchemy.pool.QueuePool" class="reference external" href="pooling.html#sqlalchemy.pool.QueuePool"><tt class="xref docutils literal"><span class="pre">QueuePool</span></tt></a>.</li>
-<li><em>strategy=&#8217;plain&#8217;</em> &#8211; used to invoke alternate <tt class="xref docutils literal"></tt>
+with <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a>.</li>
+<li><strong>strategy=&#8217;plain&#8217;</strong> &#8211; used to invoke alternate <tt class="xref py py-class docutils literal"></tt>
 implementations. Currently available is the <tt class="docutils literal"><span class="pre">threadlocal</span></tt>
-strategy, which is described in <a class="reference external" href="../../dbengine.html#threadlocal-strategy"><em>Using the Threadlocal Execution Strategy</em></a>.</li>
+strategy, which is described in <a class="reference internal" href="../../dbengine.html#threadlocal-strategy"><em>Using the Threadlocal Execution Strategy</em></a>.</li>
 </ul>
 </td>
 </tr>
@@ -259,15 +263,15 @@ format of the URL is an RFC-1738-style string.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>drivername</em> &#8211; the name of the database backend.
+<li><strong>drivername</strong> &#8211; the name of the database backend.
 This name will correspond to a module in sqlalchemy/databases
 or a third party plug-in.</li>
-<li><em>username</em> &#8211; The user name.</li>
-<li><em>password</em> &#8211; database password.</li>
-<li><em>host</em> &#8211; The name of the host.</li>
-<li><em>port</em> &#8211; The port number.</li>
-<li><em>database</em> &#8211; The database name.</li>
-<li><em>query</em> &#8211; A dictionary of options to be passed to the
+<li><strong>username</strong> &#8211; The user name.</li>
+<li><strong>password</strong> &#8211; database password.</li>
+<li><strong>host</strong> &#8211; The name of the host.</li>
+<li><strong>port</strong> &#8211; The port number.</li>
+<li><strong>database</strong> &#8211; The database name.</li>
+<li><strong>query</strong> &#8211; A dictionary of options to be passed to the
 dialect and/or the DBAPI upon connect.</li>
 </ul>
 </td>
@@ -282,8 +286,9 @@ dialect and/or the DBAPI upon connect.</li>
 <dl class="method">
 <dt id="sqlalchemy.engine.url.URL.get_dialect">
 <tt class="descname">get_dialect</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.url.URL.get_dialect" title="Permalink to this definition">¶</a></dt>
-<dd>Return the SQLAlchemy database dialect class corresponding
-to this URL&#8217;s driver name.</dd></dl>
+<dd><p>Return the SQLAlchemy database dialect class corresponding
+to this URL&#8217;s driver name.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.url.URL.translate_connect_args">
@@ -298,8 +303,8 @@ from the final dictionary.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>**kw</em> &#8211; Optional, alternate key names for url attributes.</li>
-<li><em>names</em> &#8211; Deprecated.  Same purpose as the keyword-based alternate names,
+<li><strong>**kw</strong> &#8211; Optional, alternate key names for url attributes.</li>
+<li><strong>names</strong> &#8211; Deprecated.  Same purpose as the keyword-based alternate names,
 but correlates the name to the original positionally.</li>
 </ul>
 </td>
@@ -316,11 +321,11 @@ but correlates the name to the original positionally.</li>
 <dl class="class">
 <dt id="sqlalchemy.engine.base.Engine">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.base.</tt><tt class="descname">Engine</tt><big>(</big><em>pool</em>, <em>dialect</em>, <em>url</em>, <em>logging_name=None</em>, <em>echo=None</em>, <em>proxy=None</em>, <em>execution_options=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Connects a <a title="sqlalchemy.pool.Pool" class="reference external" href="pooling.html#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">Pool</span></tt></a> and 
-<a title="sqlalchemy.engine.base.Dialect" class="reference internal" href="#sqlalchemy.engine.base.Dialect"><tt class="xref docutils literal"><span class="pre">Dialect</span></tt></a> together to provide a source 
+<dd><p>Connects a <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> and 
+<a class="reference internal" href="#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> together to provide a source 
 of database connectivity and behavior.</p>
-<p>An <a title="sqlalchemy.engine.base.Engine" class="reference internal" href="#sqlalchemy.engine.base.Engine"><tt class="xref docutils literal"><span class="pre">Engine</span></tt></a> object is instantiated publically using the 
-<a title="sqlalchemy.create_engine" class="reference internal" href="#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> function.</p>
+<p>An <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> object is instantiated publically using the 
+<a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> function.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>pool</em>, <em>dialect</em>, <em>url</em>, <em>logging_name=None</em>, <em>echo=None</em>, <em>proxy=None</em>, <em>execution_options=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.__init__" title="Permalink to this definition">¶</a></dt>
@@ -329,7 +334,8 @@ of database connectivity and behavior.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.connect">
 <tt class="descname">connect</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.connect" title="Permalink to this definition">¶</a></dt>
-<dd>Return a newly allocated Connection object.</dd></dl>
+<dd><p>Return a newly allocated Connection object.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.contextual_connect">
@@ -343,13 +349,14 @@ or may be part of some ongoing context.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.create">
 <tt class="descname">create</tt><big>(</big><em>entity</em>, <em>connection=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.create" title="Permalink to this definition">¶</a></dt>
-<dd>Create a table or index within this engine&#8217;s database connection
-given a schema object.</dd></dl>
+<dd><p>Create a table or index within this engine&#8217;s database connection
+given a schema object.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.dispose">
 <tt class="descname">dispose</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.dispose" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dispose of the connection pool used by this <a title="sqlalchemy.engine.base.Engine" class="reference internal" href="#sqlalchemy.engine.base.Engine"><tt class="xref docutils literal"><span class="pre">Engine</span></tt></a>.</p>
+<dd><p>Dispose of the connection pool used by this <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
 <p>A new connection pool is created immediately after the old one has
 been disposed.   This new pool, like all SQLAlchemy connection pools,
 does not make any actual connections to the database until one is 
@@ -360,11 +367,11 @@ first requested.</p>
 <li>When a dropped connection is detected, it is assumed that all
 connections held by the pool are potentially dropped, and 
 the entire pool is replaced.</li>
-<li>An application may want to use <a title="sqlalchemy.engine.base.Engine.dispose" class="reference internal" href="#sqlalchemy.engine.base.Engine.dispose"><tt class="xref docutils literal"><span class="pre">dispose()</span></tt></a> within a test 
+<li>An application may want to use <a class="reference internal" href="#sqlalchemy.engine.base.Engine.dispose" title="sqlalchemy.engine.base.Engine.dispose"><tt class="xref py py-meth docutils literal"><span class="pre">dispose()</span></tt></a> within a test 
 suite that is creating multiple engines.</li>
 </ul>
 </blockquote>
-<p>It is critical to note that <a title="sqlalchemy.engine.base.Engine.dispose" class="reference internal" href="#sqlalchemy.engine.base.Engine.dispose"><tt class="xref docutils literal"><span class="pre">dispose()</span></tt></a> does <strong>not</strong> guarantee
+<p>It is critical to note that <a class="reference internal" href="#sqlalchemy.engine.base.Engine.dispose" title="sqlalchemy.engine.base.Engine.dispose"><tt class="xref py py-meth docutils literal"><span class="pre">dispose()</span></tt></a> does <strong>not</strong> guarantee
 that the application will release all open database connections - only
 those connections that are checked into the pool are closed.   
 Connections which remain checked out or have been detached from
@@ -374,14 +381,16 @@ the engine are not affected.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Engine.driver">
 <tt class="descname">driver</tt><a class="headerlink" href="#sqlalchemy.engine.base.Engine.driver" title="Permalink to this definition">¶</a></dt>
-<dd>Driver name of the <tt class="xref docutils literal"><span class="pre">Dialect</span></tt> in use by
-this <tt class="docutils literal"><span class="pre">Engine</span></tt>.</dd></dl>
+<dd><p>Driver name of the <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> in use by
+this <tt class="docutils literal"><span class="pre">Engine</span></tt>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.drop">
 <tt class="descname">drop</tt><big>(</big><em>entity</em>, <em>connection=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.drop" title="Permalink to this definition">¶</a></dt>
-<dd>Drop a table or index within this engine&#8217;s database connection
-given a schema object.</dd></dl>
+<dd><p>Drop a table or index within this engine&#8217;s database connection
+given a schema object.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Engine.echo">
@@ -397,19 +406,22 @@ whereas the string value <tt class="docutils literal"><span class="pre">debug</s
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Engine.name">
 <tt class="descname">name</tt><a class="headerlink" href="#sqlalchemy.engine.base.Engine.name" title="Permalink to this definition">¶</a></dt>
-<dd>String name of the <tt class="xref docutils literal"><span class="pre">Dialect</span></tt> in use by
-this <tt class="docutils literal"><span class="pre">Engine</span></tt>.</dd></dl>
+<dd><p>String name of the <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> in use by
+this <tt class="docutils literal"><span class="pre">Engine</span></tt>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.raw_connection">
 <tt class="descname">raw_connection</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.raw_connection" title="Permalink to this definition">¶</a></dt>
-<dd>Return a DB-API connection.</dd></dl>
+<dd><p>Return a DB-API connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.reflecttable">
 <tt class="descname">reflecttable</tt><big>(</big><em>table</em>, <em>connection=None</em>, <em>include_columns=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.reflecttable" title="Permalink to this definition">¶</a></dt>
-<dd>Given a Table object, reflects its columns and properties from the
-database.</dd></dl>
+<dd><p>Given a Table object, reflects its columns and properties from the
+database.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.table_names">
@@ -420,8 +432,8 @@ database.</dd></dl>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>schema</em> &#8211; Optional, retrieve names from a non-default schema.</li>
-<li><em>connection</em> &#8211; Optional, use a specified connection. Default is
+<li><strong>schema</strong> &#8211; Optional, retrieve names from a non-default schema.</li>
+<li><strong>connection</strong> &#8211; Optional, use a specified connection. Default is
 the <tt class="docutils literal"><span class="pre">contextual_connect</span></tt> for this <tt class="docutils literal"><span class="pre">Engine</span></tt>.</li>
 </ul>
 </td>
@@ -433,7 +445,8 @@ the <tt class="docutils literal"><span class="pre">contextual_connect</span></tt
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.text">
 <tt class="descname">text</tt><big>(</big><em>text</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.text" title="Permalink to this definition">¶</a></dt>
-<dd>Return a sql.text() object for performing literal queries.</dd></dl>
+<dd><p>Return a sql.text() object for performing literal queries.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.transaction">
@@ -449,10 +462,10 @@ given <cite>*args</cite> and <cite>**kwargs</cite> will be passed to the functio
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.update_execution_options">
 <tt class="descname">update_execution_options</tt><big>(</big><em>**opt</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.update_execution_options" title="Permalink to this definition">¶</a></dt>
-<dd><p>update the execution_options dictionary of this <a title="sqlalchemy.engine.base.Engine" class="reference internal" href="#sqlalchemy.engine.base.Engine"><tt class="xref docutils literal"><span class="pre">Engine</span></tt></a>.</p>
+<dd><p>update the execution_options dictionary of this <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
 <p>For details on execution_options, see
-<a title="sqlalchemy.engine.base.Connection.execution_options" class="reference internal" href="#sqlalchemy.engine.base.Connection.execution_options"><tt class="xref docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> as well as
-<a title="sqlalchemy.sql.expression.Executable.execution_options" class="reference external" href="expressions.html#sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable.execution_options()</span></tt></a>.</p>
+<a class="reference internal" href="#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> as well as
+<a class="reference internal" href="expressions.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable.execution_options()</span></tt></a>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -463,14 +476,14 @@ given <cite>*args</cite> and <cite>**kwargs</cite> will be passed to the functio
 <dd><p>Provides high-level functionality for a wrapped DB-API connection.</p>
 <p>Provides execution support for string-based SQL statements as well
 as ClauseElement, Compiled and DefaultGenerator objects.  Provides
-a <a title="sqlalchemy.engine.base.Connection.begin" class="reference internal" href="#sqlalchemy.engine.base.Connection.begin"><tt class="xref docutils literal"><span class="pre">begin()</span></tt></a> method to return Transaction objects.</p>
+a <a class="reference internal" href="#sqlalchemy.engine.base.Connection.begin" title="sqlalchemy.engine.base.Connection.begin"><tt class="xref py py-meth docutils literal"><span class="pre">begin()</span></tt></a> method to return Transaction objects.</p>
 <p>The Connection object is <strong>not</strong> thread-safe.</p>
-<span class="target" id="index-2"></span><dl class="method">
+<span class="target" id="index-0"></span><dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>engine</em>, <em>connection=None</em>, <em>close_with_result=False</em>, <em>_branch=False</em>, <em>_execution_options=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new Connection.</p>
 <p>Connection objects are typically constructed by an
-<tt class="xref docutils literal"><span class="pre">Engine</span></tt>, see the <tt class="docutils literal"><span class="pre">connect()</span></tt> and
+<tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt>, see the <tt class="docutils literal"><span class="pre">connect()</span></tt> and
 <tt class="docutils literal"><span class="pre">contextual_connect()</span></tt> methods of Engine.</p>
 </dd></dl>
 
@@ -505,8 +518,11 @@ handle.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>xid</em> &#8211; the two phase transaction id.  If not supplied, a 
-random id will be generated.</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xid</strong> &#8211; the two phase transaction id.  If not supplied, a 
+random id will be generated.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -515,12 +531,14 @@ random id will be generated.</td>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.close">
 <tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.close" title="Permalink to this definition">¶</a></dt>
-<dd>Close this Connection.</dd></dl>
+<dd><p>Close this Connection.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Connection.closed">
 <tt class="descname">closed</tt><a class="headerlink" href="#sqlalchemy.engine.base.Connection.closed" title="Permalink to this definition">¶</a></dt>
-<dd>Return True if this connection is closed.</dd></dl>
+<dd><p>Return True if this connection is closed.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.connect">
@@ -534,7 +552,8 @@ situations that require a bind.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Connection.connection">
 <tt class="descname">connection</tt><a class="headerlink" href="#sqlalchemy.engine.base.Connection.connection" title="Permalink to this definition">¶</a></dt>
-<dd>The underlying DB-API connection managed by this Connection.</dd></dl>
+<dd><p>The underlying DB-API connection managed by this Connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.contextual_connect">
@@ -548,7 +567,8 @@ situations that require a bind.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.create">
 <tt class="descname">create</tt><big>(</big><em>entity</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.create" title="Permalink to this definition">¶</a></dt>
-<dd>Create a Table or Index given an appropriate Schema object.</dd></dl>
+<dd><p>Create a Table or Index given an appropriate Schema object.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.detach">
@@ -561,7 +581,7 @@ new connection to replace the detached connection.</p>
 <p>This method can be used to insulate the rest of an application
 from a modified state on a connection (such as a transaction
 isolation level or similar).  Also see
-<a title="sqlalchemy.interfaces.PoolListener" class="reference external" href="interfaces.html#sqlalchemy.interfaces.PoolListener"><tt class="xref docutils literal"><span class="pre">PoolListener</span></tt></a> for a mechanism to modify
+<a class="reference internal" href="interfaces.html#sqlalchemy.interfaces.PoolListener" title="sqlalchemy.interfaces.PoolListener"><tt class="xref py py-class docutils literal"><span class="pre">PoolListener</span></tt></a> for a mechanism to modify
 connection state when connections leave and return to their
 connection pool.</p>
 </dd></dl>
@@ -569,44 +589,49 @@ connection pool.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Connection.dialect">
 <tt class="descname">dialect</tt><a class="headerlink" href="#sqlalchemy.engine.base.Connection.dialect" title="Permalink to this definition">¶</a></dt>
-<dd>Dialect used by this Connection.</dd></dl>
+<dd><p>Dialect used by this Connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.drop">
 <tt class="descname">drop</tt><big>(</big><em>entity</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.drop" title="Permalink to this definition">¶</a></dt>
-<dd>Drop a Table or Index given an appropriate Schema object.</dd></dl>
+<dd><p>Drop a Table or Index given an appropriate Schema object.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.execute">
 <tt class="descname">execute</tt><big>(</big><em>object</em>, <em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.execute" title="Permalink to this definition">¶</a></dt>
-<dd>Executes and returns a ResultProxy.</dd></dl>
+<dd><p>Executes and returns a ResultProxy.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.execution_options">
 <tt class="descname">execution_options</tt><big>(</big><em>**opt</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.execution_options" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set non-SQL options for the connection which take effect 
 during execution.</p>
-<p>The method returns a copy of this <a title="sqlalchemy.engine.base.Connection" class="reference internal" href="#sqlalchemy.engine.base.Connection"><tt class="xref docutils literal"><span class="pre">Connection</span></tt></a> which references
+<p>The method returns a copy of this <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> which references
 the same underlying DBAPI connection, but also defines the given
 execution options which will take effect for a call to
-<a title="sqlalchemy.engine.base.Connection.execute" class="reference internal" href="#sqlalchemy.engine.base.Connection.execute"><tt class="xref docutils literal"><span class="pre">execute()</span></tt></a>. As the new <a title="sqlalchemy.engine.base.Connection" class="reference internal" href="#sqlalchemy.engine.base.Connection"><tt class="xref docutils literal"><span class="pre">Connection</span></tt></a> references the same
+<a class="reference internal" href="#sqlalchemy.engine.base.Connection.execute" title="sqlalchemy.engine.base.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a>. As the new <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> references the same
 underlying resource, it is probably best to ensure that the copies
 would be discarded immediately, which is implicit if used as in:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execution_options</span><span class="p">(</span><span class="n">stream_results</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span>                                <span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span></pre></div>
 </div>
 <p>The options are the same as those accepted by 
-<a title="sqlalchemy.sql.expression.Executable.execution_options" class="reference external" href="expressions.html#sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable.execution_options()</span></tt></a>.</p>
+<a class="reference internal" href="expressions.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable.execution_options()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.in_transaction">
 <tt class="descname">in_transaction</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.in_transaction" title="Permalink to this definition">¶</a></dt>
-<dd>Return True if a transaction is in progress.</dd></dl>
+<dd><p>Return True if a transaction is in progress.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Connection.info">
 <tt class="descname">info</tt><a class="headerlink" href="#sqlalchemy.engine.base.Connection.info" title="Permalink to this definition">¶</a></dt>
-<dd>A collection of per-DB-API connection instance properties.</dd></dl>
+<dd><p>A collection of per-DB-API connection instance properties.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.invalidate">
@@ -628,13 +653,15 @@ operations in a non-transactional state.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Connection.invalidated">
 <tt class="descname">invalidated</tt><a class="headerlink" href="#sqlalchemy.engine.base.Connection.invalidated" title="Permalink to this definition">¶</a></dt>
-<dd>Return True if this connection was invalidated.</dd></dl>
+<dd><p>Return True if this connection was invalidated.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.reflecttable">
 <tt class="descname">reflecttable</tt><big>(</big><em>table</em>, <em>include_columns=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.reflecttable" title="Permalink to this definition">¶</a></dt>
-<dd>Reflect the columns in the given string table name from the
-database.</dd></dl>
+<dd><p>Reflect the columns in the given string table name from the
+database.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.scalar">
@@ -659,25 +686,28 @@ given <cite>*args</cite> and <cite>**kwargs</cite> will be passed to the functio
 <dt id="sqlalchemy.engine.base.Connectable">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.base.</tt><tt class="descname">Connectable</tt><a class="headerlink" href="#sqlalchemy.engine.base.Connectable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interface for an object which supports execution of SQL constructs.</p>
-<p>The two implementations of <tt class="docutils literal"><span class="pre">Connectable</span></tt> are <a title="sqlalchemy.engine.base.Connection" class="reference internal" href="#sqlalchemy.engine.base.Connection"><tt class="xref docutils literal"><span class="pre">Connection</span></tt></a> and
-<a title="sqlalchemy.engine.base.Engine" class="reference internal" href="#sqlalchemy.engine.base.Engine"><tt class="xref docutils literal"><span class="pre">Engine</span></tt></a>.</p>
+<p>The two implementations of <tt class="docutils literal"><span class="pre">Connectable</span></tt> are <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> and
+<a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
 <p>Connectable must also implement the &#8216;dialect&#8217; member which references a
-<a title="sqlalchemy.engine.base.Dialect" class="reference internal" href="#sqlalchemy.engine.base.Dialect"><tt class="xref docutils literal"><span class="pre">Dialect</span></tt></a> instance.</p>
+<a class="reference internal" href="#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> instance.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connectable.contextual_connect">
 <tt class="descname">contextual_connect</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connectable.contextual_connect" title="Permalink to this definition">¶</a></dt>
-<dd>Return a Connection object which may be part of an ongoing
-context.</dd></dl>
+<dd><p>Return a Connection object which may be part of an ongoing
+context.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connectable.create">
 <tt class="descname">create</tt><big>(</big><em>entity</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connectable.create" title="Permalink to this definition">¶</a></dt>
-<dd>Create a table or index given an appropriate schema object.</dd></dl>
+<dd><p>Create a table or index given an appropriate schema object.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connectable.drop">
 <tt class="descname">drop</tt><big>(</big><em>entity</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connectable.drop" title="Permalink to this definition">¶</a></dt>
-<dd>Drop a table or index given an appropriate schema object.</dd></dl>
+<dd><p>Drop a table or index given an appropriate schema object.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connectable.execute">
@@ -698,7 +728,7 @@ case-insensitive column name, or by <tt class="docutils literal"><span class="pr
 object. e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">row</span> <span class="o">=</span> <span class="n">fetchone</span><span class="p">()</span>
 
-<span class="n">col1</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span>    <span class="c"># access via integer position</span>
+<span class="n">col1</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>    <span class="c"># access via integer position</span>
 
 <span class="n">col2</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;col2&#39;</span><span class="p">]</span>   <span class="c"># access via name</span>
 
@@ -732,7 +762,8 @@ underlying DBAPI connection to the connection pool.)</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ResultProxy.fetchall">
 <tt class="descname">fetchall</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.fetchall" title="Permalink to this definition">¶</a></dt>
-<dd>Fetch all rows, just like DB-API <tt class="docutils literal"><span class="pre">cursor.fetchall()</span></tt>.</dd></dl>
+<dd><p>Fetch all rows, just like DB-API <tt class="docutils literal"><span class="pre">cursor.fetchall()</span></tt>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ResultProxy.fetchmany">
@@ -758,15 +789,24 @@ Else the cursor is automatically closed and None is returned.</p>
 <p>Returns None if no row is present.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.engine.base.ResultProxy.inserted_primary_key">
+<tt class="descname">inserted_primary_key</tt><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.inserted_primary_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the primary key for the row just inserted.</p>
+<p>This only applies to single row insert() constructs which
+did not explicitly specify returning().</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ResultProxy.keys">
 <tt class="descname">keys</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.keys" title="Permalink to this definition">¶</a></dt>
-<dd>Return the current set of string keys for rows.</dd></dl>
+<dd><p>Return the current set of string keys for rows.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ResultProxy.last_inserted_ids">
 <tt class="descname">last_inserted_ids</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.last_inserted_ids" title="Permalink to this definition">¶</a></dt>
-<dd><p>deprecated.  use inserted_primary_key.</p>
+<dd><p>deprecated.  use <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.inserted_primary_key" title="sqlalchemy.engine.base.ResultProxy.inserted_primary_key"><tt class="xref py py-attr docutils literal"><span class="pre">inserted_primary_key</span></tt></a>.</p>
 <p>Use inserted_primary_key</p>
 </dd></dl>
 
@@ -803,7 +843,7 @@ for those backends which support it, for statements
 where it is appropriate.  It&#8217;s behavior is not 
 consistent across backends.</p>
 <p>Usage of this method is normally unnecessary; the
-inserted_primary_key method provides a
+<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.inserted_primary_key" title="sqlalchemy.engine.base.ResultProxy.inserted_primary_key"><tt class="xref py py-attr docutils literal"><span class="pre">inserted_primary_key</span></tt></a> attribute provides a
 tuple of primary key values for a newly inserted row,
 regardless of database backend.</p>
 </dd></dl>
@@ -813,6 +853,23 @@ regardless of database backend.</p>
 <tt class="descname">postfetch_cols</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.postfetch_cols" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <tt class="docutils literal"><span class="pre">postfetch_cols()</span></tt> from the underlying ExecutionContext.</p>
 <p>See ExecutionContext for details.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.base.ResultProxy.rowcount">
+<tt class="descname">rowcount</tt><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.rowcount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the &#8216;rowcount&#8217; for this result.</p>
+<p>The &#8216;rowcount&#8217; reports the number of rows affected
+by an UPDATE or DELETE statement.  It has <em>no</em> other
+uses and is not intended to provide the number of rows
+present from a SELECT.</p>
+<p>Note that this row count may not be properly implemented in some
+dialects; this is indicated by
+<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount" title="sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount"><tt class="xref py py-meth docutils literal"><span class="pre">supports_sane_rowcount()</span></tt></a>
+and
+<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount" title="sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount"><tt class="xref py py-meth docutils literal"><span class="pre">supports_sane_multi_rowcount()</span></tt></a>.
+<tt class="docutils literal"><span class="pre">rowcount()</span></tt> also may not work at this time for a statement that
+uses <tt class="docutils literal"><span class="pre">returning()</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -825,12 +882,14 @@ regardless of database backend.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount">
 <tt class="descname">supports_sane_multi_rowcount</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount" title="Permalink to this definition">¶</a></dt>
-<dd>Return <tt class="docutils literal"><span class="pre">supports_sane_multi_rowcount</span></tt> from the dialect.</dd></dl>
+<dd><p>Return <tt class="docutils literal"><span class="pre">supports_sane_multi_rowcount</span></tt> from the dialect.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount">
 <tt class="descname">supports_sane_rowcount</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount" title="Permalink to this definition">¶</a></dt>
-<dd>Return <tt class="docutils literal"><span class="pre">supports_sane_rowcount</span></tt> from the dialect.</dd></dl>
+<dd><p>Return <tt class="docutils literal"><span class="pre">supports_sane_rowcount</span></tt> from the dialect.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -846,17 +905,20 @@ results that correspond to constructed SQL expressions).</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.RowProxy.has_key">
 <tt class="descname">has_key</tt><big>(</big><em>key</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.RowProxy.has_key" title="Permalink to this definition">¶</a></dt>
-<dd>Return True if this RowProxy contains the given key.</dd></dl>
+<dd><p>Return True if this RowProxy contains the given key.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.RowProxy.items">
 <tt class="descname">items</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.RowProxy.items" title="Permalink to this definition">¶</a></dt>
-<dd>Return a list of tuples, each tuple containing a key/value pair.</dd></dl>
+<dd><p>Return a list of tuples, each tuple containing a key/value pair.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.RowProxy.keys">
 <tt class="descname">keys</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.RowProxy.keys" title="Permalink to this definition">¶</a></dt>
-<dd>Return the list of keys as strings represented by this RowProxy.</dd></dl>
+<dd><p>Return the list of keys as strings represented by this RowProxy.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -868,7 +930,7 @@ results that correspond to constructed SQL expressions).</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.base.</tt><tt class="descname">Transaction</tt><big>(</big><em>connection</em>, <em>parent</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Transaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represent a Transaction in progress.</p>
 <p>The Transaction object is <strong>not</strong> threadsafe.</p>
-<span class="target" id="index-3"></span><dl class="method">
+<span class="target" id="index-1"></span><dl class="method">
 <dt id="sqlalchemy.engine.base.Transaction.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>connection</em>, <em>parent</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Transaction.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -936,9 +998,9 @@ types.</dd>
 <dd>type of encoding to use for unicode, usually defaults to
 &#8216;utf-8&#8217;.</dd>
 <dt>statement_compiler</dt>
-<dd>a <tt class="xref docutils literal"><span class="pre">Compiled</span></tt> class used to compile SQL statements</dd>
+<dd>a <tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt> class used to compile SQL statements</dd>
 <dt>ddl_compiler</dt>
-<dd>a <tt class="xref docutils literal"><span class="pre">Compiled</span></tt> class used to compile DDL statements</dd>
+<dd>a <tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt> class used to compile DDL statements</dd>
 <dt>server_version_info</dt>
 <dd>a tuple containing a version number for the DB backend in use.
 This value is only available for supporting dialects, and is
@@ -948,12 +1010,12 @@ typically populated during the initial connection to the database.</dd>
 supporting dialects, and is typically populated during the
 initial connection to the database.</dd>
 <dt>execution_ctx_cls</dt>
-<dd>a <a title="sqlalchemy.engine.base.ExecutionContext" class="reference internal" href="#sqlalchemy.engine.base.ExecutionContext"><tt class="xref docutils literal"><span class="pre">ExecutionContext</span></tt></a> class used to handle statement execution</dd>
+<dd>a <a class="reference internal" href="#sqlalchemy.engine.base.ExecutionContext" title="sqlalchemy.engine.base.ExecutionContext"><tt class="xref py py-class docutils literal"><span class="pre">ExecutionContext</span></tt></a> class used to handle statement execution</dd>
 <dt>execute_sequence_format</dt>
 <dd>either the &#8216;tuple&#8217; or &#8216;list&#8217; type, depending on what cursor.execute()
 accepts for the second argument (they vary).</dd>
 <dt>preparer</dt>
-<dd>a <tt class="xref docutils literal"><span class="pre">IdentifierPreparer</span></tt> class used to
+<dd>a <tt class="xref py py-class docutils literal"><span class="pre">IdentifierPreparer</span></tt> class used to
 quote identifiers.</dd>
 <dt>supports_alter</dt>
 <dd><tt class="xref docutils literal"><span class="pre">True</span></tt> if the database supports <tt class="docutils literal"><span class="pre">ALTER</span> <span class="pre">TABLE</span></tt>.</dd>
@@ -1021,7 +1083,7 @@ constraint when that type is used.</dd>
 <dt id="sqlalchemy.engine.base.Dialect.create_connect_args">
 <tt class="descname">create_connect_args</tt><big>(</big><em>url</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.create_connect_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build DB-API compatible connection arguments.</p>
-<p>Given a <a title="sqlalchemy.engine.url.URL" class="reference internal" href="#sqlalchemy.engine.url.URL"><tt class="xref docutils literal"><span class="pre">URL</span></tt></a> object, returns a tuple
+<p>Given a <a class="reference internal" href="#sqlalchemy.engine.url.URL" title="sqlalchemy.engine.url.URL"><tt class="xref py py-class docutils literal"><span class="pre">URL</span></tt></a> object, returns a tuple
 consisting of a <cite>*args</cite>/<cite>**kwargs</cite> suitable to send directly
 to the dbapi&#8217;s connect function.</p>
 </dd></dl>
@@ -1047,80 +1109,93 @@ requires_name_normalize=True.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_begin">
 <tt class="descname">do_begin</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_begin" title="Permalink to this definition">¶</a></dt>
-<dd>Provide an implementation of <em>connection.begin()</em>, given a 
-DB-API connection.</dd></dl>
+<dd><p>Provide an implementation of <em>connection.begin()</em>, given a 
+DB-API connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_begin_twophase">
 <tt class="descname">do_begin_twophase</tt><big>(</big><em>connection</em>, <em>xid</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_begin_twophase" title="Permalink to this definition">¶</a></dt>
-<dd>Begin a two phase transaction on the given connection.</dd></dl>
+<dd><p>Begin a two phase transaction on the given connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_commit">
 <tt class="descname">do_commit</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_commit" title="Permalink to this definition">¶</a></dt>
-<dd>Provide an implementation of <em>connection.commit()</em>, given a 
-DB-API connection.</dd></dl>
+<dd><p>Provide an implementation of <em>connection.commit()</em>, given a 
+DB-API connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_commit_twophase">
 <tt class="descname">do_commit_twophase</tt><big>(</big><em>connection</em>, <em>xid</em>, <em>is_prepared=True</em>, <em>recover=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_commit_twophase" title="Permalink to this definition">¶</a></dt>
-<dd>Commit a two phase transaction on the given connection.</dd></dl>
+<dd><p>Commit a two phase transaction on the given connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_execute">
 <tt class="descname">do_execute</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_execute" title="Permalink to this definition">¶</a></dt>
-<dd>Provide an implementation of <em>cursor.execute(statement,
-parameters)</em>.</dd></dl>
+<dd><p>Provide an implementation of <em>cursor.execute(statement,
+parameters)</em>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_executemany">
 <tt class="descname">do_executemany</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_executemany" title="Permalink to this definition">¶</a></dt>
-<dd>Provide an implementation of <em>cursor.executemany(statement,
-parameters)</em>.</dd></dl>
+<dd><p>Provide an implementation of <em>cursor.executemany(statement,
+parameters)</em>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_prepare_twophase">
 <tt class="descname">do_prepare_twophase</tt><big>(</big><em>connection</em>, <em>xid</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_prepare_twophase" title="Permalink to this definition">¶</a></dt>
-<dd>Prepare a two phase transaction on the given connection.</dd></dl>
+<dd><p>Prepare a two phase transaction on the given connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_recover_twophase">
 <tt class="descname">do_recover_twophase</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_recover_twophase" title="Permalink to this definition">¶</a></dt>
-<dd>Recover list of uncommited prepared two phase transaction
-identifiers on the given connection.</dd></dl>
+<dd><p>Recover list of uncommited prepared two phase transaction
+identifiers on the given connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_release_savepoint">
 <tt class="descname">do_release_savepoint</tt><big>(</big><em>connection</em>, <em>name</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_release_savepoint" title="Permalink to this definition">¶</a></dt>
-<dd>Release the named savepoint on a SQL Alchemy connection.</dd></dl>
+<dd><p>Release the named savepoint on a SQL Alchemy connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_rollback">
 <tt class="descname">do_rollback</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_rollback" title="Permalink to this definition">¶</a></dt>
-<dd>Provide an implementation of <em>connection.rollback()</em>, given 
-a DB-API connection.</dd></dl>
+<dd><p>Provide an implementation of <em>connection.rollback()</em>, given 
+a DB-API connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_rollback_to_savepoint">
 <tt class="descname">do_rollback_to_savepoint</tt><big>(</big><em>connection</em>, <em>name</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_rollback_to_savepoint" title="Permalink to this definition">¶</a></dt>
-<dd>Rollback a SQL Alchemy connection to the named savepoint.</dd></dl>
+<dd><p>Rollback a SQL Alchemy connection to the named savepoint.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_rollback_twophase">
 <tt class="descname">do_rollback_twophase</tt><big>(</big><em>connection</em>, <em>xid</em>, <em>is_prepared=True</em>, <em>recover=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_rollback_twophase" title="Permalink to this definition">¶</a></dt>
-<dd>Rollback a two phase transaction on the given connection.</dd></dl>
+<dd><p>Rollback a two phase transaction on the given connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_savepoint">
 <tt class="descname">do_savepoint</tt><big>(</big><em>connection</em>, <em>name</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_savepoint" title="Permalink to this definition">¶</a></dt>
-<dd>Create a savepoint with the given name on a SQLAlchemy
-connection.</dd></dl>
+<dd><p>Create a savepoint with the given name on a SQLAlchemy
+connection.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.get_columns">
 <tt class="descname">get_columns</tt><big>(</big><em>connection</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.get_columns" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return information about columns in <cite>table_name</cite>.</p>
-<p>Given a <tt class="xref docutils literal"><span class="pre">Connection</span></tt>, a string
+<p>Given a <tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt>, a string
 <cite>table_name</cite>, and an optional string <cite>schema</cite>, return column
 information as a list of dictionaries with these keys:</p>
 <dl class="docutils">
@@ -1148,7 +1223,7 @@ information as a list of dictionaries with these keys:</p>
 <dt id="sqlalchemy.engine.base.Dialect.get_foreign_keys">
 <tt class="descname">get_foreign_keys</tt><big>(</big><em>connection</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.get_foreign_keys" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return information about foreign_keys in <cite>table_name</cite>.</p>
-<p>Given a <tt class="xref docutils literal"><span class="pre">Connection</span></tt>, a string
+<p>Given a <tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt>, a string
 <cite>table_name</cite>, and an optional string <cite>schema</cite>, return foreign
 key information as a list of dicts with these keys:</p>
 <dl class="docutils">
@@ -1170,7 +1245,7 @@ constrained_columns</dd>
 <dt id="sqlalchemy.engine.base.Dialect.get_indexes">
 <tt class="descname">get_indexes</tt><big>(</big><em>connection</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.get_indexes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return information about indexes in <cite>table_name</cite>.</p>
-<p>Given a <tt class="xref docutils literal"><span class="pre">Connection</span></tt>, a string
+<p>Given a <tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt>, a string
 <cite>table_name</cite> and an optional string <cite>schema</cite>, return index
 information as a list of dictionaries with these keys:</p>
 <dl class="docutils">
@@ -1202,7 +1277,7 @@ primary key information as a dictionary with these keys:</p>
 <dt id="sqlalchemy.engine.base.Dialect.get_primary_keys">
 <tt class="descname">get_primary_keys</tt><big>(</big><em>connection</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.get_primary_keys" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return information about primary keys in <cite>table_name</cite>.</p>
-<p>Given a <tt class="xref docutils literal"><span class="pre">Connection</span></tt>, a string
+<p>Given a <tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt>, a string
 <cite>table_name</cite>, and an optional string <cite>schema</cite>, return primary
 key information as a list of column names.</p>
 </dd></dl>
@@ -1210,13 +1285,14 @@ key information as a list of column names.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.get_table_names">
 <tt class="descname">get_table_names</tt><big>(</big><em>connection</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.get_table_names" title="Permalink to this definition">¶</a></dt>
-<dd>Return a list of table names for <cite>schema</cite>.</dd></dl>
+<dd><p>Return a list of table names for <cite>schema</cite>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.get_view_definition">
 <tt class="descname">get_view_definition</tt><big>(</big><em>connection</em>, <em>view_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.get_view_definition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return view definition.</p>
-<p>Given a <tt class="xref docutils literal"><span class="pre">Connection</span></tt>, a string
+<p>Given a <tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt>, a string
 <cite>view_name</cite>, and an optional string <cite>schema</cite>, return the view
 definition.</p>
 </dd></dl>
@@ -1235,7 +1311,7 @@ definition.</p>
 <dt id="sqlalchemy.engine.base.Dialect.has_sequence">
 <tt class="descname">has_sequence</tt><big>(</big><em>connection</em>, <em>sequence_name</em>, <em>schema=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.has_sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check the existence of a particular sequence in the database.</p>
-<p>Given a <tt class="xref docutils literal"><span class="pre">Connection</span></tt> object and a string
+<p>Given a <tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt> object and a string
 <cite>sequence_name</cite>, return True if the given sequence exists in
 the database, False otherwise.</p>
 </dd></dl>
@@ -1244,7 +1320,7 @@ the database, False otherwise.</p>
 <dt id="sqlalchemy.engine.base.Dialect.has_table">
 <tt class="descname">has_table</tt><big>(</big><em>connection</em>, <em>table_name</em>, <em>schema=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.has_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check the existence of a particular table in the database.</p>
-<p>Given a <tt class="xref docutils literal"><span class="pre">Connection</span></tt> object and a string
+<p>Given a <tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt> object and a string
 <cite>table_name</cite>, return True if the given table (possibly within
 the specified <cite>schema</cite>) exists in the database, False
 otherwise.</p>
@@ -1266,8 +1342,9 @@ super().</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.is_disconnect">
 <tt class="descname">is_disconnect</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.is_disconnect" title="Permalink to this definition">¶</a></dt>
-<dd>Return True if the given DB-API error indicates an invalid
-connection</dd></dl>
+<dd><p>Return True if the given DB-API error indicates an invalid
+connection</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.normalize_name">
@@ -1295,15 +1372,15 @@ that receives the direct DBAPI connection, with all wrappers removed.</p>
 <dt id="sqlalchemy.engine.base.Dialect.reflecttable">
 <tt class="descname">reflecttable</tt><big>(</big><em>connection</em>, <em>table</em>, <em>include_columns=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.reflecttable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load table description from the database.</p>
-<p>Given a <tt class="xref docutils literal"><span class="pre">Connection</span></tt> and a
-<a title="sqlalchemy.schema.Table" class="reference external" href="schema.html#sqlalchemy.schema.Table"><tt class="xref docutils literal"><span class="pre">Table</span></tt></a> object, reflect its columns and
+<p>Given a <tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt> and a
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, reflect its columns and
 properties from the database.  If include_columns (a list or
 set) is specified, limit the autoload to the given column
 names.</p>
 <p>The default implementation uses the 
-<tt class="xref docutils literal"><span class="pre">Inspector</span></tt> interface to 
+<a class="reference internal" href="inspector.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> interface to 
 provide the output, building upon the granular table/column/
-constraint etc. methods of <a title="sqlalchemy.engine.base.Dialect" class="reference internal" href="#sqlalchemy.engine.base.Dialect"><tt class="xref docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
+constraint etc. methods of <a class="reference internal" href="#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -1311,7 +1388,7 @@ constraint etc. methods of <a title="sqlalchemy.engine.base.Dialect" class="refe
 <em class="property">classmethod </em><tt class="descname">type_descriptor</tt><big>(</big><em>typeobj</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.type_descriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform a generic type to a dialect-specific type.</p>
 <p>Dialect classes will usually use the
-<tt class="xref docutils literal"><span class="pre">adapt_type()</span></tt> function in the types module to
+<tt class="xref py py-func docutils literal"><span class="pre">adapt_type()</span></tt> function in the types module to
 make this job easy.</p>
 <p>The returned result is cached <em>per dialect class</em> so can
 contain no dialect-instance state.</p>
@@ -1322,7 +1399,7 @@ contain no dialect-instance state.</p>
 <dl class="class">
 <dt id="sqlalchemy.engine.default.DefaultDialect">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.default.</tt><tt class="descname">DefaultDialect</tt><big>(</big><em>convert_unicode=False</em>, <em>assert_unicode=False</em>, <em>encoding='utf-8'</em>, <em>paramstyle=None</em>, <em>dbapi=None</em>, <em>implicit_returning=None</em>, <em>label_length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.engine.base.Dialect" class="reference internal" href="#sqlalchemy.engine.base.Dialect"><tt class="xref docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect</span></tt></a></p>
 <p>Default implementation of Dialect</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.__init__">
@@ -1340,38 +1417,43 @@ do_commit_twophase().  Its format is unspecified.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.do_begin">
 <tt class="descname">do_begin</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.do_begin" title="Permalink to this definition">¶</a></dt>
-<dd>Implementations might want to put logic here for turning
-autocommit on/off, etc.</dd></dl>
+<dd><p>Implementations might want to put logic here for turning
+autocommit on/off, etc.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.do_commit">
 <tt class="descname">do_commit</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.do_commit" title="Permalink to this definition">¶</a></dt>
-<dd>Implementations might want to put logic here for turning
-autocommit on/off, etc.</dd></dl>
+<dd><p>Implementations might want to put logic here for turning
+autocommit on/off, etc.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.do_rollback">
 <tt class="descname">do_rollback</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.do_rollback" title="Permalink to this definition">¶</a></dt>
-<dd>Implementations might want to put logic here for turning
-autocommit on/off, etc.</dd></dl>
+<dd><p>Implementations might want to put logic here for turning
+autocommit on/off, etc.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.execute_sequence_format">
 <tt class="descname">execute_sequence_format</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.execute_sequence_format" title="Permalink to this definition">¶</a></dt>
-<dd>alias of <tt class="xref docutils literal"><span class="pre">tuple</span></tt></dd></dl>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt></p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.get_pk_constraint">
 <tt class="descname">get_pk_constraint</tt><big>(</big><em>conn</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.get_pk_constraint" title="Permalink to this definition">¶</a></dt>
-<dd>Compatiblity method, adapts the result of get_primary_keys()
-for those dialects which don&#8217;t implement get_pk_constraint().</dd></dl>
+<dd><p>Compatiblity method, adapts the result of get_primary_keys()
+for those dialects which don&#8217;t implement get_pk_constraint().</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.on_connect">
 <tt class="descname">on_connect</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.on_connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a callable which sets up a newly created DBAPI connection.</p>
-<p>This is used to set dialect-wide per-connection options such as isolation
-modes, unicode modes, etc.</p>
+<p>This is used to set dialect-wide per-connection options such as
+isolation modes, unicode modes, etc.</p>
 <p>If a callable is returned, it will be assembled into a pool listener
 that receives the direct DBAPI connection, with all wrappers removed.</p>
 <p>If None is returned, no listener will be generated.</p>
@@ -1380,12 +1462,14 @@ that receives the direct DBAPI connection, with all wrappers removed.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.preparer">
 <tt class="descname">preparer</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.preparer" title="Permalink to this definition">¶</a></dt>
-<dd>alias of <tt class="xref docutils literal"><span class="pre">IdentifierPreparer</span></tt></dd></dl>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">IdentifierPreparer</span></tt></p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.statement_compiler">
 <tt class="descname">statement_compiler</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.statement_compiler" title="Permalink to this definition">¶</a></dt>
-<dd>alias of <tt class="xref docutils literal"><span class="pre">SQLCompiler</span></tt></dd></dl>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">SQLCompiler</span></tt></p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.type_descriptor">
@@ -1402,7 +1486,7 @@ and passes on to <tt class="docutils literal"><span class="pre">types.adapt_type
 <dl class="class">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.default.</tt><tt class="descname">DefaultExecutionContext</tt><big>(</big><em>dialect</em>, <em>connection</em>, <em>compiled_sql=None</em>, <em>compiled_ddl=None</em>, <em>statement=None</em>, <em>parameters=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.engine.base.ExecutionContext" class="reference internal" href="#sqlalchemy.engine.base.ExecutionContext"><tt class="xref docutils literal"><span class="pre">sqlalchemy.engine.base.ExecutionContext</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.base.ExecutionContext" title="sqlalchemy.engine.base.ExecutionContext"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.base.ExecutionContext</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>dialect</em>, <em>connection</em>, <em>compiled_sql=None</em>, <em>compiled_ddl=None</em>, <em>statement=None</em>, <em>parameters=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.__init__" title="Permalink to this definition">¶</a></dt>
@@ -1435,9 +1519,10 @@ in all cases.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext.set_input_sizes">
 <tt class="descname">set_input_sizes</tt><big>(</big><em>translate=None</em>, <em>exclude_types=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.set_input_sizes" title="Permalink to this definition">¶</a></dt>
-<dd>Given a cursor and ClauseParameters, call the appropriate
+<dd><p>Given a cursor and ClauseParameters, call the appropriate
 style of <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt> on the cursor, using DB-API types
-from the bind parameter&#8217;s <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> objects.</dd></dl>
+from the bind parameter&#8217;s <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> objects.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1509,8 +1594,9 @@ dialect attributes.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ExecutionContext.handle_dbapi_exception">
 <tt class="descname">handle_dbapi_exception</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ExecutionContext.handle_dbapi_exception" title="Permalink to this definition">¶</a></dt>
-<dd>Receive a DBAPI exception which occured upon execute, result 
-fetch, etc.</dd></dl>
+<dd><p>Receive a DBAPI exception which occured upon execute, result 
+fetch, etc.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ExecutionContext.last_inserted_params">
@@ -1531,8 +1617,9 @@ compiled UPDATE statement.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ExecutionContext.lastrow_has_defaults">
 <tt class="descname">lastrow_has_defaults</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ExecutionContext.lastrow_has_defaults" title="Permalink to this definition">¶</a></dt>
-<dd>Return True if the last INSERT or UPDATE row contained
-inlined or database-side defaults.</dd></dl>
+<dd><p>Return True if the last INSERT or UPDATE row contained
+inlined or database-side defaults.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ExecutionContext.post_exec">
@@ -1562,8 +1649,9 @@ initialized after this statement is complete.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ExecutionContext.should_autocommit_text">
 <tt class="descname">should_autocommit_text</tt><big>(</big><em>statement</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ExecutionContext.should_autocommit_text" title="Permalink to this definition">¶</a></dt>
-<dd>Parse the given textual statement and return True if it refers to 
-a &#8220;committable&#8221; statement</dd></dl>
+<dd><p>Parse the given textual statement and return True if it refers to 
+a &#8220;committable&#8221; statement</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1586,7 +1674,7 @@ a &#8220;committable&#8221; statement</dd></dl>
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

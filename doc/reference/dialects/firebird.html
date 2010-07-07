@@ -7,7 +7,7 @@
         
         <title>
     Firebird
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,17 +15,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="Microsoft SQL Server" href="mssql.html" />
         <link rel="prev" title="sqlalchemy.dialects" href="index.html" />
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -86,11 +87,11 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="#">Firebird</a><ul>
-<li><a class="reference external" href="#dialects">Dialects</a></li>
-<li><a class="reference external" href="#locking-behavior">Locking Behavior</a></li>
-<li><a class="reference external" href="#returning-support">RETURNING support</a></li>
-<li><a class="reference external" href="#module-sqlalchemy.dialects.firebird.kinterbasdb">kinterbasdb</a></li>
+<li><a class="reference internal" href="#">Firebird</a><ul>
+<li><a class="reference internal" href="#dialects">Dialects</a></li>
+<li><a class="reference internal" href="#locking-behavior">Locking Behavior</a></li>
+<li><a class="reference internal" href="#returning-support">RETURNING support</a></li>
+<li><a class="reference internal" href="#kinterbasdb">kinterbasdb</a></li>
 </ul>
 </li>
 </ul>
@@ -102,9 +103,9 @@
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.dialects.firebird.base">
-<h1>Firebird<a class="headerlink" href="#module-sqlalchemy.dialects.firebird.base" title="Permalink to this headline">¶</a></h1>
+<span id="firebird"></span><h1>Firebird<a class="headerlink" href="#module-sqlalchemy.dialects.firebird.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the Firebird database.</p>
-<p>Connectivity is usually supplied via the <a class="reference internal" href="#kinterbasdb">kinterbasdb</a> DBAPI module.</p>
+<p>Connectivity is usually supplied via the <a class="reference external" href="#kinterbasdb">kinterbasdb</a> DBAPI module.</p>
 <div class="section" id="dialects">
 <h2>Dialects<a class="headerlink" href="#dialects" title="Permalink to this headline">¶</a></h2>
 <p>Firebird offers two distinct <a class="reference external" href="http://mc-computing.com/Databases/Firebird/SQL_Dialect.html">dialects</a> (not to be confused with a
@@ -150,24 +151,25 @@ the SQLAlchemy <tt class="docutils literal"><span class="pre">returning()</span>
 
 <span class="c"># UPDATE..RETURNING</span>
 <span class="n">raises</span> <span class="o">=</span> <span class="n">empl</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">empl</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">empl</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">salary</span><span class="p">)</span><span class="o">.</span>\
-              <span class="n">where</span><span class="p">(</span><span class="n">empl</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sales</span><span class="o">&gt;</span><span class="mf">100</span><span class="p">)</span><span class="o">.</span>\
+              <span class="n">where</span><span class="p">(</span><span class="n">empl</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sales</span><span class="o">&gt;</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span>\
               <span class="n">values</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">salary</span><span class="o">=</span><span class="n">empl</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">salary</span> <span class="o">*</span> <span class="mf">1.1</span><span class="p">))</span>
 <span class="k">print</span> <span class="n">raises</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
 </div>
-<div class="section" id="module-sqlalchemy.dialects.firebird.kinterbasdb">
-<span id="kinterbasdb"></span><h2>kinterbasdb<a class="headerlink" href="#module-sqlalchemy.dialects.firebird.kinterbasdb" title="Permalink to this headline">¶</a></h2>
-<p>The most common way to connect to a Firebird engine is implemented by
+<div class="section" id="kinterbasdb">
+<span id="id2"></span><h2>kinterbasdb<a class="headerlink" href="#kinterbasdb" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-sqlalchemy.dialects.firebird.kinterbasdb"></span><p>The most common way to connect to a Firebird engine is implemented by
 <a class="reference external" href="http://sourceforge.net/projects/kinterbasdb">kinterbasdb</a>, currently <a class="reference external" href="http://firebirdsql.org/index.php?op=devel&amp;sub=python">maintained</a> directly by the Firebird people.</p>
 <p>The connection URL is of the form
 <tt class="docutils literal"><span class="pre">firebird[+kinterbasdb]://user:password&#64;host:port/path/to/db[?key=value&amp;key=value...]</span></tt>.</p>
 <p>Kinterbasedb backend specific keyword arguments are:</p>
 <ul>
-<li><p class="first">type_conv - select the kind of mapping done on the types: by default SQLAlchemy
-uses 200 with Unicode, datetime and decimal support (see <a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#adv_param_conv_dynamic_type_translation">details</a>).</p>
+<li><p class="first">type_conv - select the kind of mapping done on the types: by default  
+SQLAlchemy uses 200 with Unicode, datetime and decimal support (see
+<a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#adv_param_conv_dynamic_type_translation">details</a>).</p>
 </li>
-<li><p class="first">concurrency_level - set the backend policy with regards to threading issues: by default
-SQLAlchemy uses policy 1 (see <a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#special_issue_concurrency">details</a>).</p>
+<li><p class="first">concurrency_level - set the backend policy with regards to threading 
+issues: by default SQLAlchemy uses policy 1 (see <a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#special_issue_concurrency">details</a>).</p>
 </li>
 <li><p class="first">enable_rowcount - True by default, setting this to False disables 
 the usage of &#8220;cursor.rowcount&#8221; with the 
@@ -179,9 +181,10 @@ that Kinterbasdb requires a second round trip to the database when
 the cursor after a non-result-returning statement, rowcount must be 
 called, if at all, before the result object is returned.   Additionally,
 cursor.rowcount may not return correct results with older versions
-of Firebird, and setting this flag to False will also cause the SQLAlchemy ORM
-to ignore its usage. The behavior can also be controlled on a per-execution 
-basis using the <cite>enable_rowcount</cite> option with <tt class="xref docutils literal"><span class="pre">execution_options()</span></tt>:</p>
+of Firebird, and setting this flag to False will also cause the 
+SQLAlchemy ORM to ignore its usage. The behavior can also be controlled on a
+per-execution basis using the <cite>enable_rowcount</cite> option with
+<tt class="xref py py-meth docutils literal"><span class="pre">execution_options()</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">conn</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span><span class="o">.</span><span class="n">execution_options</span><span class="p">(</span><span class="n">enable_rowcount</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span>
 <span class="k">print</span> <span class="n">r</span><span class="o">.</span><span class="n">rowcount</span></pre></div>
@@ -207,7 +210,7 @@ basis using the <cite>enable_rowcount</cite> option with <tt class="xref docutil
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

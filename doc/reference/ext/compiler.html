@@ -7,7 +7,7 @@
         
         <title>
     compiler
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,17 +15,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="Horizontal Shard" href="horizontal_shard.html" />
         <link rel="prev" title="SqlSoup" href="sqlsoup.html" />
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -86,16 +87,16 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="#">compiler</a><ul>
-<li><a class="reference external" href="#synopsis">Synopsis</a></li>
-<li><a class="reference external" href="#dialect-specific-compilation-rules">Dialect-specific compilation rules</a></li>
-<li><a class="reference external" href="#compiling-sub-elements-of-a-custom-expression-construct">Compiling sub-elements of a custom expression construct</a><ul>
-<li><a class="reference external" href="#cross-compiling-between-sql-and-ddl-compilers">Cross Compiling between SQL and DDL compilers</a></li>
+<li><a class="reference internal" href="#">compiler</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#dialect-specific-compilation-rules">Dialect-specific compilation rules</a></li>
+<li><a class="reference internal" href="#compiling-sub-elements-of-a-custom-expression-construct">Compiling sub-elements of a custom expression construct</a><ul>
+<li><a class="reference internal" href="#cross-compiling-between-sql-and-ddl-compilers">Cross Compiling between SQL and DDL compilers</a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#changing-the-default-compilation-of-existing-constructs">Changing the default compilation of existing constructs</a></li>
-<li><a class="reference external" href="#changing-compilation-of-types">Changing Compilation of Types</a></li>
-<li><a class="reference external" href="#subclassing-guidelines">Subclassing Guidelines</a></li>
+<li><a class="reference internal" href="#changing-the-default-compilation-of-existing-constructs">Changing the default compilation of existing constructs</a></li>
+<li><a class="reference internal" href="#changing-compilation-of-types">Changing Compilation of Types</a></li>
+<li><a class="reference internal" href="#subclassing-guidelines">Subclassing Guidelines</a></li>
 </ul>
 </li>
 </ul>
@@ -107,11 +108,11 @@
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.ext.compiler">
-<span id="sqlalchemy-ext-compiler-toplevel"></span><h1>compiler<a class="headerlink" href="#module-sqlalchemy.ext.compiler" title="Permalink to this headline">¶</a></h1>
+<span id="compiler"></span><span id="sqlalchemy-ext-compiler-toplevel"></span><h1>compiler<a class="headerlink" href="#module-sqlalchemy.ext.compiler" title="Permalink to this headline">¶</a></h1>
 <p>Provides an API for creation of custom ClauseElements and compilers.</p>
 <div class="section" id="synopsis">
 <h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
-<p>Usage involves the creation of one or more <a title="sqlalchemy.sql.expression.ClauseElement" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ClauseElement"><tt class="xref docutils literal"><span class="pre">ClauseElement</span></tt></a>
+<p>Usage involves the creation of one or more <a class="reference internal" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>
 subclasses and one or more callables defining its compilation:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">ColumnClause</span>
@@ -123,7 +124,7 @@ subclasses and one or more callables defining its compilation:</p>
 <span class="k">def</span> <span class="nf">compile_mycolumn</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
     <span class="k">return</span> <span class="s">&quot;[</span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span></pre></div>
 </div>
-<p>Above, <tt class="docutils literal"><span class="pre">MyColumn</span></tt> extends <a title="sqlalchemy.sql.expression.ColumnClause" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ColumnClause"><tt class="xref docutils literal"><span class="pre">ColumnClause</span></tt></a>,
+<p>Above, <tt class="docutils literal"><span class="pre">MyColumn</span></tt> extends <a class="reference internal" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>,
 the base expression element for named column objects. The <tt class="docutils literal"><span class="pre">compiles</span></tt>
 decorator registers itself with the <tt class="docutils literal"><span class="pre">MyColumn</span></tt> class so that it is invoked
 when the object is compiled to a string:</p>
@@ -160,11 +161,11 @@ invoked for the dialect in use:</p>
 </div>
 <div class="section" id="compiling-sub-elements-of-a-custom-expression-construct">
 <h2>Compiling sub-elements of a custom expression construct<a class="headerlink" href="#compiling-sub-elements-of-a-custom-expression-construct" title="Permalink to this headline">¶</a></h2>
-<p>The <tt class="docutils literal"><span class="pre">compiler</span></tt> argument is the <tt class="xref docutils literal"><span class="pre">Compiled</span></tt>
+<p>The <tt class="docutils literal"><span class="pre">compiler</span></tt> argument is the <tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt>
 object in use. This object can be inspected for any information about the
 in-progress compilation, including <tt class="docutils literal"><span class="pre">compiler.dialect</span></tt>,
-<tt class="docutils literal"><span class="pre">compiler.statement</span></tt> etc. The <tt class="xref docutils literal"><span class="pre">SQLCompiler</span></tt>
-and <tt class="xref docutils literal"><span class="pre">DDLCompiler</span></tt> both include a <tt class="docutils literal"><span class="pre">process()</span></tt>
+<tt class="docutils literal"><span class="pre">compiler.statement</span></tt> etc. The <tt class="xref py py-class docutils literal"><span class="pre">SQLCompiler</span></tt>
+and <tt class="xref py py-class docutils literal"><span class="pre">DDLCompiler</span></tt> both include a <tt class="docutils literal"><span class="pre">process()</span></tt>
 method which can be used for compilation of embedded attributes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">Executable</span><span class="p">,</span> <span class="n">ClauseElement</span>
 
@@ -180,7 +181,7 @@ method which can be used for compilation of embedded attributes:</p>
         <span class="n">compiler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">select</span><span class="p">)</span>
     <span class="p">)</span>
 
-<span class="n">insert</span> <span class="o">=</span> <span class="n">InsertFromSelect</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">select</span><span class="p">([</span><span class="n">t1</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span><span class="o">&gt;</span><span class="mf">5</span><span class="p">))</span>
+<span class="n">insert</span> <span class="o">=</span> <span class="n">InsertFromSelect</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">select</span><span class="p">([</span><span class="n">t1</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span><span class="o">&gt;</span><span class="mi">5</span><span class="p">))</span>
 <span class="k">print</span> <span class="n">insert</span></pre></div>
 </div>
 <p>Produces:</p>
@@ -237,16 +238,16 @@ overriding routine and cause an endless loop.   Such as, to add &#8220;prefix&#8
 <h2>Subclassing Guidelines<a class="headerlink" href="#subclassing-guidelines" title="Permalink to this headline">¶</a></h2>
 <p>A big part of using the compiler extension is subclassing SQLAlchemy expression constructs.  To make this easier, the expression and schema packages feature a set of &#8220;bases&#8221; intended for common tasks.  A synopsis is as follows:</p>
 <ul>
-<li><p class="first"><a title="sqlalchemy.sql.expression.ClauseElement" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ClauseElement"><tt class="xref docutils literal"><span class="pre">ClauseElement</span></tt></a> - This is the root
+<li><p class="first"><a class="reference internal" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> - This is the root
 expression class. Any SQL expression can be derived from this base, and is
 probably the best choice for longer constructs such as specialized INSERT
 statements.</p>
 </li>
-<li><p class="first"><a title="sqlalchemy.sql.expression.ColumnElement" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">ColumnElement</span></tt></a> - The root of all
+<li><p class="first"><a class="reference internal" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> - The root of all
 &#8220;column-like&#8221; elements. Anything that you&#8217;d place in the &#8220;columns&#8221; clause of
 a SELECT statement (as well as order by and group by) can derive from this -
 the object will automatically have Python &#8220;comparison&#8221; behavior.</p>
-<p><a title="sqlalchemy.sql.expression.ColumnElement" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ColumnElement"><tt class="xref docutils literal"><span class="pre">ColumnElement</span></tt></a> classes want to have a
+<p><a class="reference internal" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> classes want to have a
 <tt class="docutils literal"><span class="pre">type</span></tt> member which is expression&#8217;s return type.  This can be established
 at the instance level in the constructor, or at the class level if its
 generally constant:</p>
@@ -254,7 +255,7 @@ generally constant:</p>
     <span class="nb">type</span> <span class="o">=</span> <span class="n">TIMESTAMP</span><span class="p">()</span></pre></div>
 </div>
 </li>
-<li><p class="first"><a title="sqlalchemy.sql.expression.FunctionElement" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.FunctionElement"><tt class="xref docutils literal"><span class="pre">FunctionElement</span></tt></a> - This is a hybrid of a
+<li><p class="first"><a class="reference internal" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.FunctionElement" title="sqlalchemy.sql.expression.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a> - This is a hybrid of a
 <tt class="docutils literal"><span class="pre">ColumnElement</span></tt> and a &#8220;from clause&#8221; like object, and represents a SQL
 function or stored procedure type of call. Since most databases support
 statements along the line of &#8220;SELECT FROM &lt;some function&gt;&#8221;
@@ -271,19 +272,19 @@ statements along the line of &#8220;SELECT FROM &lt;some function&gt;&#8221;
 
 <span class="nd">@compiles</span><span class="p">(</span><span class="n">coalesce</span><span class="p">,</span> <span class="s">&#39;oracle&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">clauses</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">2</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">clauses</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;coalesce only supports two arguments on Oracle&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="s">&quot;nvl(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">compiler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">clauses</span><span class="p">)</span></pre></div>
 </div>
 </li>
-<li><p class="first"><a title="sqlalchemy.schema.DDLElement" class="reference external" href="../sqlalchemy/schema.html#sqlalchemy.schema.DDLElement"><tt class="xref docutils literal"><span class="pre">DDLElement</span></tt></a> - The root of all DDL expressions,
+<li><p class="first"><a class="reference internal" href="../sqlalchemy/schema.html#sqlalchemy.schema.DDLElement" title="sqlalchemy.schema.DDLElement"><tt class="xref py py-class docutils literal"><span class="pre">DDLElement</span></tt></a> - The root of all DDL expressions,
 like CREATE TABLE, ALTER TABLE, etc. Compilation of <tt class="docutils literal"><span class="pre">DDLElement</span></tt>
 subclasses is issued by a <tt class="docutils literal"><span class="pre">DDLCompiler</span></tt> instead of a <tt class="docutils literal"><span class="pre">SQLCompiler</span></tt>.
 <tt class="docutils literal"><span class="pre">DDLElement</span></tt> also features <tt class="docutils literal"><span class="pre">Table</span></tt> and <tt class="docutils literal"><span class="pre">MetaData</span></tt> event hooks via the
 <tt class="docutils literal"><span class="pre">execute_at()</span></tt> method, allowing the construct to be invoked during CREATE
 TABLE and DROP TABLE sequences.</p>
 </li>
-<li><p class="first"><a title="sqlalchemy.sql.expression.Executable" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.Executable"><tt class="xref docutils literal"><span class="pre">Executable</span></tt></a> - This is a mixin which should be
+<li><p class="first"><a class="reference internal" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> - This is a mixin which should be
 used with any expression class that represents a &#8220;standalone&#8221; SQL statement that
 can be passed directly to an <tt class="docutils literal"><span class="pre">execute()</span></tt> method.  It is already implicit 
 within <tt class="docutils literal"><span class="pre">DDLElement</span></tt> and <tt class="docutils literal"><span class="pre">FunctionElement</span></tt>.</p>
@@ -308,7 +309,7 @@ within <tt class="docutils literal"><span class="pre">DDLElement</span></tt> and
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

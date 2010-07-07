@@ -7,7 +7,7 @@
         
         <title>
     SqlSoup
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,17 +15,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="compiler" href="compiler.html" />
         <link rel="prev" title="serializer" href="serializer.html" />
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -86,20 +87,20 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="#">SqlSoup</a><ul>
-<li><a class="reference external" href="#introduction">Introduction</a></li>
-<li><a class="reference external" href="#loading-objects">Loading objects</a><ul>
-<li><a class="reference external" href="#full-query-documentation">Full query documentation</a></li>
+<li><a class="reference internal" href="#">SqlSoup</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#loading-objects">Loading objects</a><ul>
+<li><a class="reference internal" href="#full-query-documentation">Full query documentation</a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#modifying-objects">Modifying objects</a></li>
-<li><a class="reference external" href="#joins">Joins</a></li>
-<li><a class="reference external" href="#relationships">Relationships</a></li>
-<li><a class="reference external" href="#advanced-use">Advanced Use</a><ul>
-<li><a class="reference external" href="#sessions-transations-and-application-integration">Sessions, Transations and Application Integration</a></li>
-<li><a class="reference external" href="#mapping-arbitrary-selectables">Mapping arbitrary Selectables</a></li>
-<li><a class="reference external" href="#raw-sql">Raw SQL</a></li>
-<li><a class="reference external" href="#dynamic-table-names">Dynamic table names</a></li>
+<li><a class="reference internal" href="#modifying-objects">Modifying objects</a></li>
+<li><a class="reference internal" href="#joins">Joins</a></li>
+<li><a class="reference internal" href="#relationships">Relationships</a></li>
+<li><a class="reference internal" href="#advanced-use">Advanced Use</a><ul>
+<li><a class="reference internal" href="#sessions-transations-and-application-integration">Sessions, Transations and Application Integration</a></li>
+<li><a class="reference internal" href="#mapping-arbitrary-selectables">Mapping arbitrary Selectables</a></li>
+<li><a class="reference internal" href="#raw-sql">Raw SQL</a></li>
+<li><a class="reference internal" href="#dynamic-table-names">Dynamic table names</a></li>
 </ul>
 </li>
 </ul>
@@ -113,7 +114,7 @@
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.ext.sqlsoup">
-<h1>SqlSoup<a class="headerlink" href="#module-sqlalchemy.ext.sqlsoup" title="Permalink to this headline">¶</a></h1>
+<span id="sqlsoup"></span><h1>SqlSoup<a class="headerlink" href="#module-sqlalchemy.ext.sqlsoup" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>SqlSoup provides a convenient way to access existing database tables without
@@ -146,7 +147,7 @@ SqlSoup:</p>
 <span class="go">[MappedUsers(name=u&#39;Bhargan Basepair&#39;,email=u&#39;basepair@example.edu&#39;,password=u&#39;basepair&#39;,classname=None,admin=1), MappedUsers(name=u&#39;Joe Student&#39;,email=u&#39;student@example.edu&#39;,password=u&#39;student&#39;,classname=None,admin=0)]</span></pre></div>
 </div>
 <p>Field access is intuitive:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">users</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span><span class="o">.</span><span class="n">email</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">users</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">email</span>
 <span class="go">u&#39;student@example.edu&#39;</span></pre></div>
 </div>
 <p>Of course, you don&#8217;t want to load all users very often.  Let&#8217;s add a
@@ -177,7 +178,7 @@ complex queries like the or_ above or non-equality based comparisons this way.</
 <div class="section" id="full-query-documentation">
 <h3>Full query documentation<a class="headerlink" href="#full-query-documentation" title="Permalink to this headline">¶</a></h3>
 <p>Get, filter, filter_by, order_by, limit, and the rest of the
-query methods are explained in detail in <a class="reference external" href="../../ormtutorial.html#ormtutorial-querying"><em>Querying</em></a>.</p>
+query methods are explained in detail in <a class="reference internal" href="../../ormtutorial.html#ormtutorial-querying"><em>Querying</em></a>.</p>
 </div>
 </div>
 <div class="section" id="modifying-objects">
@@ -196,7 +197,7 @@ it:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">book_id</span><span class="o">=</span><span class="n">book_id</span><span class="p">,</span> <span class="n">user_name</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 <span class="go">MappedLoans(book_id=2,user_name=u&#39;Bhargan Basepair&#39;,loan_date=None)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">loan</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">book_id</span><span class="o">=</span><span class="mf">2</span><span class="p">,</span> <span class="n">user_name</span><span class="o">=</span><span class="s">&#39;Bhargan Basepair&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loan</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">book_id</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">user_name</span><span class="o">=</span><span class="s">&#39;Bhargan Basepair&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">loan</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></pre></div>
 </div>
@@ -208,12 +209,12 @@ Mapper level.) The same where-clause construction rules apply here as
 to the select methods.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">book_id</span><span class="o">=</span><span class="n">book_id</span><span class="p">,</span> <span class="n">user_name</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 <span class="go">MappedLoans(book_id=2,user_name=u&#39;Bhargan Basepair&#39;,loan_date=None)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">book_id</span><span class="o">==</span><span class="mf">2</span><span class="p">)</span></pre></div>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">book_id</span><span class="o">==</span><span class="mi">2</span><span class="p">)</span></pre></div>
 </div>
 <p>You can similarly update multiple rows at once. This will change the
 book_id to 1 in all loans whose book_id is 2:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">book_id</span><span class="o">==</span><span class="mf">2</span><span class="p">,</span> <span class="n">book_id</span><span class="o">=</span><span class="mf">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">book_id</span><span class="o">=</span><span class="mf">1</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">book_id</span><span class="o">==</span><span class="mi">2</span><span class="p">,</span> <span class="n">book_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">book_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <span class="go">[MappedLoans(book_id=1,user_name=u&#39;Joe Student&#39;,loan_date=datetime.datetime(2006, 7, 12, 0, 0))]</span></pre></div>
 </div>
 </div>
@@ -261,14 +262,12 @@ with <cite>with_labels</cite>, to disambiguate columns with their table name
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">relate</span><span class="p">(</span><span class="s">&#39;loans&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="p">)</span></pre></div>
 </div>
 <p>These can then be used like a normal SA property:</p>
-<blockquote>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Joe Student&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">loans</span>
 <span class="go">[MappedLoans(book_id=1,user_name=u&#39;Joe Student&#39;,loan_date=datetime.datetime(2006, 7, 12, 0, 0))]</span></pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">~</span><span class="n">db</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">any</span><span class="p">())</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <span class="go">[MappedUsers(name=u&#39;Bhargan Basepair&#39;,email=&#39;basepair+nospam@example.edu&#39;,password=u&#39;basepair&#39;,classname=None,admin=1)]</span></pre></div>
 </div>
-</blockquote>
 <p>relate can take any options that the relationship function accepts in normal mapper definition:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">db</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s">&#39;users&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">relate</span><span class="p">(</span><span class="s">&#39;loans&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">loan_date</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s">&#39;all, delete-orphan&#39;</span><span class="p">)</span></pre></div>
@@ -293,7 +292,7 @@ roll things back.</p>
 <p>Since the SqlSoup object&#8217;s Session automatically enters into a transaction as soon 
 as it&#8217;s used, it is <em>essential</em> that you call <tt class="docutils literal"><span class="pre">commit()</span></tt> or <tt class="docutils literal"><span class="pre">rollback()</span></tt>
 on it when the work within a thread completes.  This means all the guidelines
-for web application integration at <a class="reference external" href="../../session.html#session-lifespan"><em>Lifespan of a Contextual Session</em></a> must be followed.</p>
+for web application integration at <a class="reference internal" href="../../session.html#session-lifespan"><em>Lifespan of a Contextual Session</em></a> must be followed.</p>
 <p>The SqlSoup object can have any session or scoped session configured onto it.
 This is of key importance when integrating with existing code or frameworks
 such as Pylons.   If your application already has a <tt class="docutils literal"><span class="pre">Session</span></tt> configured,
@@ -338,7 +337,7 @@ your db object:</p>
 </div>
 <div class="section" id="raw-sql">
 <h3>Raw SQL<a class="headerlink" href="#raw-sql" title="Permalink to this headline">¶</a></h3>
-<p>SqlSoup works fine with SQLAlchemy&#8217;s text construct, described in <a class="reference external" href="../../sqlexpression.html#sqlexpression-text"><em>Using Text</em></a>. 
+<p>SqlSoup works fine with SQLAlchemy&#8217;s text construct, described in <a class="reference internal" href="../../sqlexpression.html#sqlexpression-text"><em>Using Text</em></a>. 
 You can also execute textual SQL directly using the <cite>execute()</cite> method,
 which corresponds to the <cite>execute()</cite> method on the underlying <cite>Session</cite>.
 Expressions here are expressed like <tt class="docutils literal"><span class="pre">text()</span></tt> constructs, using named parameters
@@ -382,7 +381,7 @@ default schema is used.</p>
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

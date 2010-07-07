@@ -7,7 +7,7 @@
         
         <title>
     Utilities
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,17 +15,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="sqlalchemy.orm" href="../orm/index.html" />
         <link rel="prev" title="Interfaces" href="interfaces.html" />
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -92,7 +93,7 @@
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.util">
-<h1>Utilities<a class="headerlink" href="#module-sqlalchemy.util" title="Permalink to this headline">¶</a></h1>
+<span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-sqlalchemy.util" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="sqlalchemy.util.IdentitySet">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">IdentitySet</tt><big>(</big><em>iterable=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.IdentitySet" title="Permalink to this definition">¶</a></dt>
@@ -267,9 +268,10 @@ __mapper_args__ when using declarative.</p>
 <dl class="function">
 <dt id="sqlalchemy.util.coerce_kw_type">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">coerce_kw_type</tt><big>(</big><em>kw</em>, <em>key</em>, <em>type_</em>, <em>flexi_bool=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.coerce_kw_type" title="Permalink to this definition">¶</a></dt>
-<dd>If &#8216;key&#8217; is present in dict &#8216;kw&#8217;, coerce its value to type &#8216;type_&#8217; if
+<dd><p>If &#8216;key&#8217; is present in dict &#8216;kw&#8217;, coerce its value to type &#8216;type_&#8217; if
 necessary.  If &#8216;flexi_bool&#8217; is True, the string &#8216;0&#8217; is considered false
-when coercing to boolean.</dd></dl>
+when coercing to boolean.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.decode_slice">
@@ -281,7 +283,8 @@ when coercing to boolean.</dd></dl>
 <dl class="function">
 <dt id="sqlalchemy.util.decorator">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">decorator</tt><big>(</big><em>target</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.decorator" title="Permalink to this definition">¶</a></dt>
-<dd>A signature-matching decorator factory.</dd></dl>
+<dd><p>A signature-matching decorator factory.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.deprecated">
@@ -301,20 +304,23 @@ provided, or sensible default if message is omitted.</dd>
 <dl class="function">
 <dt id="sqlalchemy.util.dictlike_iteritems">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">dictlike_iteritems</tt><big>(</big><em>dictlike</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.dictlike_iteritems" title="Permalink to this definition">¶</a></dt>
-<dd>Return a (key, value) iterator for almost any dict-like object.</dd></dl>
+<dd><p>Return a (key, value) iterator for almost any dict-like object.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.duck_type_collection">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">duck_type_collection</tt><big>(</big><em>specimen</em>, <em>default=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.duck_type_collection" title="Permalink to this definition">¶</a></dt>
-<dd>Given an instance or class, guess if it is or is acting as one of
+<dd><p>Given an instance or class, guess if it is or is acting as one of
 the basic collection types: list, set and dict.  If the __emulates__
-property is present, return that preferentially.</dd></dl>
+property is present, return that preferentially.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.flatten_iterator">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">flatten_iterator</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.flatten_iterator" title="Permalink to this definition">¶</a></dt>
-<dd>Given an iterator of which further sub-elements may also be
-iterators, flatten the sub-elements into a single iterator.</dd></dl>
+<dd><p>Given an iterator of which further sub-elements may also be
+iterators, flatten the sub-elements into a single iterator.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.format_argspec_init">
@@ -352,7 +358,7 @@ passed positionally.</dd>
 <dd>Like apply_pos, except keyword-ish args are passed as keywords.</dd>
 </dl>
 <p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">format_argspec_plus</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mf">3</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">:</span> <span class="mf">123</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">format_argspec_plus</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">:</span> <span class="mi">123</span><span class="p">)</span>
 <span class="go">{&#39;args&#39;: &#39;(self, a, b, c=3, **d)&#39;,</span>
 <span class="go"> &#39;self_arg&#39;: &#39;self&#39;,</span>
 <span class="go"> &#39;apply_kw&#39;: &#39;(self, a, b, c=c, **d)&#39;,</span>
@@ -381,7 +387,8 @@ process is repeated recursively on each of the bases.</p>
 <dl class="function">
 <dt id="sqlalchemy.util.get_func_kwargs">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">get_func_kwargs</tt><big>(</big><em>func</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.get_func_kwargs" title="Permalink to this definition">¶</a></dt>
-<dd>Return the full set of legal kwargs for the given <cite>func</cite>.</dd></dl>
+<dd><p>Return the full set of legal kwargs for the given <cite>func</cite>.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.getargspec_init">
@@ -414,12 +421,14 @@ called with different arguments.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.util.memoized_property">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">memoized_property</tt><a class="headerlink" href="#sqlalchemy.util.memoized_property" title="Permalink to this definition">¶</a></dt>
-<dd>A read-only &#64;property that is only evaluated once.</dd></dl>
+<dd><p>A read-only &#64;property that is only evaluated once.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.monkeypatch_proxied_specials">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">monkeypatch_proxied_specials</tt><big>(</big><em>into_cls</em>, <em>from_cls</em>, <em>skip=None</em>, <em>only=None</em>, <em>name='self.proxy'</em>, <em>from_instance=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.monkeypatch_proxied_specials" title="Permalink to this definition">¶</a></dt>
-<dd>Automates delegation of __specials__ for a proxying type.</dd></dl>
+<dd><p>Automates delegation of __specials__ for a proxying type.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.pending_deprecation">
@@ -442,7 +451,8 @@ provided, or sensible default if message is omitted.</dd>
 <dl class="attribute">
 <dt id="sqlalchemy.util.populate_column_dict">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">populate_column_dict</tt><a class="headerlink" href="#sqlalchemy.util.populate_column_dict" title="Permalink to this definition">¶</a></dt>
-<dd>alias of <a title="sqlalchemy.util.PopulateDict" class="reference internal" href="#sqlalchemy.util.PopulateDict"><tt class="xref docutils literal"><span class="pre">PopulateDict</span></tt></a></dd></dl>
+<dd><p>alias of <a class="reference internal" href="#sqlalchemy.util.PopulateDict" title="sqlalchemy.util.PopulateDict"><tt class="xref py py-class docutils literal"><span class="pre">PopulateDict</span></tt></a></p>
+</dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.util.portable_instancemethod">
@@ -482,17 +492,20 @@ advantage of symbol() is its repr().  They are also singletons.</p>
 <dl class="function">
 <dt id="sqlalchemy.util.unbound_method_to_callable">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">unbound_method_to_callable</tt><big>(</big><em>func_or_cls</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.unbound_method_to_callable" title="Permalink to this definition">¶</a></dt>
-<dd>Adjust the incoming callable such that a &#8216;self&#8217; argument is not required.</dd></dl>
+<dd><p>Adjust the incoming callable such that a &#8216;self&#8217; argument is not required.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.update_copy">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">update_copy</tt><big>(</big><em>d</em>, <em>_new=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.update_copy" title="Permalink to this definition">¶</a></dt>
-<dd>Copy the given dict and update with the given values.</dd></dl>
+<dd><p>Copy the given dict and update with the given values.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.util.warn_exception">
 <tt class="descclassname">sqlalchemy.util.</tt><tt class="descname">warn_exception</tt><big>(</big><em>func</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.util.warn_exception" title="Permalink to this definition">¶</a></dt>
-<dd>executes the given function, catches all exceptions and converts to a warning.</dd></dl>
+<dd><p>executes the given function, catches all exceptions and converts to a warning.</p>
+</dd></dl>
 
 </div>
 
@@ -512,7 +525,7 @@ advantage of symbol() is its repr().  They are also singletons.</p>
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

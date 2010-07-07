@@ -907,7 +907,7 @@ class ENUM(sqltypes.Enum, _StringType):
 
         """
         self.quoting = kw.pop('quoting', 'auto')
-
+        
         if self.quoting == 'auto' and len(enums):
             # What quoting character are we using?
             q = None
@@ -937,6 +937,7 @@ class ENUM(sqltypes.Enum, _StringType):
         kw.pop('schema', None)
         kw.pop('name', None)
         kw.pop('quote', None)
+        kw.pop('native_enum', None)
         _StringType.__init__(self, length=length, **kw)
         sqltypes.Enum.__init__(self, *enums)
     
@@ -1186,12 +1187,21 @@ class MySQLCompiler(compiler.SQLCompiler):
 
     def visit_cast(self, cast, **kwargs):
         # No cast until 4, no decimals until 5.
+        if not self.dialect._supports_cast:
+            return self.process(cast.clause)
+        
         type_ = self.process(cast.typeclause)
         if type_ is None:
             return self.process(cast.clause)
 
         return 'CAST(%s AS %s)' % (self.process(cast.clause), type_)
 
+    def render_literal_value(self, value, type_):
+        value = super(MySQLCompiler, self).render_literal_value(value, type_)
+        if self.dialect._backslash_escapes:
+            value = value.replace('\\', '\\\\')
+        return value
+        
     def get_select_precolumns(self, select):
         if isinstance(select._distinct, basestring):
             return select._distinct.upper() + " "
@@ -1635,6 +1645,12 @@ class MySQLDialect(default.DefaultDialect):
     ischema_names = ischema_names
     preparer = MySQLIdentifierPreparer
     
+    # default SQL compilation settings -
+    # these are modified upon initialize(), 
+    # i.e. first connect
+    _backslash_escapes = True
+    _server_ansiquotes = False
+    
     def __init__(self, use_ansiquotes=None, **kwargs):
         default.DefaultDialect.__init__(self, **kwargs)
 
@@ -1756,12 +1772,18 @@ class MySQLDialect(default.DefaultDialect):
         self._connection_charset = self._detect_charset(connection)
         self._server_casing = self._detect_casing(connection)
         self._server_collations = self._detect_collations(connection)
-        self._server_ansiquotes = self._detect_ansiquotes(connection)
+        self._detect_ansiquotes(connection)
         if self._server_ansiquotes:
             # if ansiquotes == True, build a new IdentifierPreparer
             # with the new setting
-            self.identifier_preparer = self.preparer(self, server_ansiquotes=self._server_ansiquotes)
+            self.identifier_preparer = self.preparer(self,
+                                                    server_ansiquotes=self._server_ansiquotes)
 
+    @property
+    def _supports_cast(self):
+        return self.server_version_info is None or \
+                    self.server_version_info >= (4, 0, 2)
+        
     @reflection.cache
     def get_schema_names(self, connection, **kw):
         rp = connection.execute("SHOW schemas")
@@ -2009,8 +2031,11 @@ class MySQLDialect(default.DefaultDialect):
                 mode_no = int(mode)
                 mode = (mode_no | 4 == mode_no) and 'ANSI_QUOTES' or ''
 
-        return 'ANSI_QUOTES' in mode
-
+        self._server_ansiquotes = 'ANSI_QUOTES' in mode
+        
+        # as of MySQL 5.0.1
+        self._backslash_escapes = 'NO_BACKSLASH_ESCAPES' not in mode
+        
     def _show_create_table(self, connection, table, charset=None,
                            full_name=None):
         """Run SHOW CREATE TABLE for a ``Table``."""
