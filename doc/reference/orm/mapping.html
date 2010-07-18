@@ -7,7 +7,7 @@
         
         <title>
     Class Mapping
- &mdash; SQLAlchemy 0.6.2 Documentation</title>
+ &mdash; SQLAlchemy 0.6.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.2',
+          VERSION:     '0.6.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Collection Mapping" href="collections.html" />
         <link rel="prev" title="sqlalchemy.orm" href="index.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.2 Documentation</h1>
+        <h1>SQLAlchemy 0.6.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
+            Version: <span class="versionnum">0.6.3</span> Last Updated: 07/15/2010 12:35:47
         </div>
         <div class="clearboth"></div>
 
@@ -779,7 +779,8 @@ should otherwise return the given value.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.object_mapper">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">object_mapper</tt><big>(</big><em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.object_mapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given an object, return the primary Mapper associated with the object instance.</p>
+<dd><p>Given an object, return the primary Mapper associated with the object
+instance.</p>
 <p>Raises UnmappedInstanceError if no mapping is configured.</p>
 </dd></dl>
 
@@ -849,7 +850,10 @@ for a previously unloaded attribute.  e.g.:</p>
 <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
     <span class="n">collection_adapter</span><span class="o">.</span><span class="n">append_without_event</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span></pre></div>
 </div>
-<p>For an easier way to do the above, see <a class="reference internal" href="#sqlalchemy.orm.attributes.set_committed_value" title="sqlalchemy.orm.attributes.set_committed_value"><tt class="xref py py-func docutils literal"><span class="pre">set_committed_value()</span></tt></a>.</p>
+<dl class="docutils">
+<dt>For an easier way to do the above, see</dt>
+<dd><a class="reference internal" href="#sqlalchemy.orm.attributes.set_committed_value" title="sqlalchemy.orm.attributes.set_committed_value"><tt class="xref py py-func docutils literal"><span class="pre">set_committed_value()</span></tt></a>.</dd>
+</dl>
 <p>obj is an instrumented object instance.  An InstanceState
 is accepted directly for backwards compatibility but 
 this usage is deprecated.</p>
@@ -864,8 +868,8 @@ this usage is deprecated.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.attributes.is_instrumented">
 <tt class="descclassname">sqlalchemy.orm.attributes.</tt><tt class="descname">is_instrumented</tt><big>(</big><em>instance</em>, <em>key</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.attributes.is_instrumented" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True if the given attribute on the given instance is instrumented
-by the attributes package.</p>
+<dd><p>Return True if the given attribute on the given instance is
+instrumented by the attributes package.</p>
 <p>This function may be used regardless of instrumentation
 applied directly to the class, i.e. no descriptors are required.</p>
 </dd></dl>
@@ -1068,7 +1072,8 @@ a particular &#8216;cascade&#8217;, starting with this MapperProperty.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.orm.interfaces.MapperProperty.class_attribute">
 <tt class="descname">class_attribute</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperProperty.class_attribute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the class-bound descriptor corresponding to this MapperProperty.</p>
+<dd><p>Return the class-bound descriptor corresponding to this
+MapperProperty.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1100,13 +1105,15 @@ returned callables.  The callables will then be used to process all
 rows and instances.</p>
 <p>Callables are of the following form:</p>
 <div class="highlight-python"><pre>def new_execute(state, dict_, row, isnew):
-    # process incoming instance state and given row.  the instance is
+    # process incoming instance state and given row.  
+    # the instance is
     # "new" and was just created upon receipt of this row.
     "isnew" indicates if the instance was newly created as a
     result of reading this row
 
 def existing_execute(state, dict_, row):
-    # process incoming instance state and given row.  the instance is
+    # process incoming instance state and given row.  the 
+    # instance is
     # "existing" and was created based on a previous row.
 
 return (new_execute, existing_execute)</pre>
@@ -1118,9 +1125,10 @@ is called.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperProperty.do_init">
 <tt class="descname">do_init</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperProperty.do_init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Perform subclass-specific initialization post-mapper-creation steps.</p>
-<p>This is a <em>template</em> method called by the
-<tt class="docutils literal"><span class="pre">MapperProperty</span></tt> object&#8217;s init() method.</p>
+<dd><p>Perform subclass-specific initialization post-mapper-creation
+steps.</p>
+<p>This is a template method called by the <tt class="docutils literal"><span class="pre">MapperProperty</span></tt>
+object&#8217;s init() method.</p>
 </dd></dl>
 
 <dl class="method">

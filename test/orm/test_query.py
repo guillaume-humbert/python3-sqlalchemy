@@ -13,7 +13,8 @@ import sqlalchemy as sa
 from sqlalchemy.test import testing, AssertsCompiledSQL, Column, engines
 
 from test.orm import _fixtures
-from test.orm._fixtures import keywords, addresses, Base, Keyword, FixtureTest, \
+from test.orm._fixtures import keywords, addresses, Base, \
+            Keyword, FixtureTest, \
            Dingaling, item_keywords, dingalings, User, items,\
            orders, Address, users, nodes, \
             order_items, Item, Order, Node, \
@@ -66,10 +67,66 @@ class RowTupleTest(QueryTest):
             'uname':users.c.name
         })
         
-        row  = create_session().query(User.id, User.uname).filter(User.id==7).first()
+        row  = create_session().\
+                    query(User.id, User.uname).\
+                    filter(User.id==7).first()
         assert row.id == 7
         assert row.uname == 'jack'
 
+    def test_column_metadata(self):
+        mapper(User, users)
+        mapper(Address, addresses)
+        sess = create_session()
+        user_alias = aliased(User)
+        address_alias = aliased(Address, name='aalias')
+        fn = func.count(User.id)
+        name_label = User.name.label('uname')
+        for q, asserted in [
+            (
+                sess.query(User),
+                [{'name':'User', 'type':User, 'aliased':False, 'expr':User}]
+            ),
+            (
+                sess.query(User.id, User),
+                [
+                    {'name':'id', 'type':users.c.id.type, 'aliased':False,
+                        'expr':User.id},
+                    {'name':'User', 'type':User, 'aliased':False, 'expr':User}
+                ]
+            ),
+            (
+                sess.query(User.id, user_alias),
+                [
+                    {'name':'id', 'type':users.c.id.type, 'aliased':False,
+                        'expr':User.id},
+                    {'name':None, 'type':User, 'aliased':True,
+                        'expr':user_alias}
+                ]
+            ),
+            (
+                sess.query(address_alias),
+                [
+                    {'name':'aalias', 'type':Address, 'aliased':True,
+                        'expr':address_alias}
+                ]
+            ),
+            (
+                sess.query(name_label, fn),
+                [
+                    {'name':'uname', 'type':users.c.name.type,
+                                        'aliased':False,'expr':name_label},
+                    {'name':None, 'type':fn.type, 'aliased':False,
+                        'expr':fn
+                    },
+                ]
+            )
+        ]:
+            eq_(
+                q.column_descriptions,
+                asserted
+            )
+        
+        
 class GetTest(QueryTest):
     def test_get(self):
         s = create_session()
@@ -2286,6 +2343,44 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
                 (order3, item3),
             ]
         )
+    
+    def test_joins_from_adapted_entities(self):
+
+        # test for #1853
+
+        session = create_session()
+        first = session.query(User)
+        second = session.query(User)
+        unioned = first.union(second)
+        subquery = session.query(User.id).subquery()
+        join = subquery, subquery.c.id == User.id
+        joined = unioned.outerjoin(join)
+        self.assert_compile(joined,
+                            'SELECT anon_1.users_id AS '
+                            'anon_1_users_id, anon_1.users_name AS '
+                            'anon_1_users_name FROM (SELECT users.id '
+                            'AS users_id, users.name AS users_name '
+                            'FROM users UNION SELECT users.id AS '
+                            'users_id, users.name AS users_name FROM '
+                            'users) AS anon_1 LEFT OUTER JOIN (SELECT '
+                            'users.id AS id FROM users) AS anon_2 ON '
+                            'anon_2.id = anon_1.users_id',
+                            use_default_dialect=True)
+
+        first = session.query(User.id)
+        second = session.query(User.id)
+        unioned = first.union(second)
+        subquery = session.query(User.id).subquery()
+        join = subquery, subquery.c.id == User.id
+        joined = unioned.outerjoin(join)
+        self.assert_compile(joined,
+                            'SELECT anon_1.users_id AS anon_1_users_id '
+                            'FROM (SELECT users.id AS users_id FROM '
+                            'users UNION SELECT users.id AS users_id '
+                            'FROM users) AS anon_1 LEFT OUTER JOIN '
+                            '(SELECT users.id AS id FROM users) AS '
+                            'anon_2 ON anon_2.id = anon_1.users_id',
+                            use_default_dialect=True)
         
     def test_reset_joinpoint(self):
         for aliased in (True, False):
@@ -2364,6 +2459,24 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         eq_(
             sess.query(User.name).join((addresses, User.id==addresses.c.user_id)).order_by(User.id).all(),
             [(u'jack',), (u'ed',), (u'ed',), (u'ed',), (u'fred',)]
+        )
+    
+    def test_no_joinpoint_expr(self):
+        sess = create_session()
+        
+        # these are consistent regardless of
+        # select_from() being present.
+        
+        assert_raises_message(
+            sa_exc.InvalidRequestError,
+            "Could not find a FROM",
+            sess.query(users.c.id).join, User
+        )
+        
+        assert_raises_message(
+            sa_exc.InvalidRequestError,
+            "Could not find a FROM",
+            sess.query(users.c.id).select_from(users).join, User
         )
         
     def test_from_self_resets_joinpaths(self):

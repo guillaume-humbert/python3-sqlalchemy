@@ -38,6 +38,10 @@ database column type available on the target database when issuing a
 type is emitted in ``CREATE TABLE``, such as ``VARCHAR`` see `SQL
 Standard Types`_ and the other sections of this chapter.
 
+.. autoclass:: BigInteger
+  :show-inheritance:
+  :members:
+
 .. autoclass:: Boolean
   :show-inheritance:
   :members:
@@ -113,6 +117,9 @@ SQL Standard Types
 The SQL standard types always create database column types of the same
 name when ``CREATE TABLE`` is issued.  Some types may not be supported
 on all databases.
+
+.. autoclass:: BIGINT
+  :show-inheritance:
 
 .. autoclass:: BINARY
   :show-inheritance:

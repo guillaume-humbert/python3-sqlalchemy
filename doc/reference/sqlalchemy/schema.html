@@ -7,7 +7,7 @@
         
         <title>
     Database Schema
- &mdash; SQLAlchemy 0.6.2 Documentation</title>
+ &mdash; SQLAlchemy 0.6.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.2',
+          VERSION:     '0.6.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Schema Introspection" href="inspector.html" />
         <link rel="prev" title="SQL Statements and Expressions" href="expressions.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.2 Documentation</h1>
+        <h1>SQLAlchemy 0.6.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
+            Version: <span class="versionnum">0.6.3</span> Last Updated: 07/15/2010 12:35:47
         </div>
         <div class="clearboth"></div>
 
@@ -308,7 +308,8 @@ an explicit name, use the <a class="reference internal" href="#sqlalchemy.schema
 <dl class="method">
 <dt id="sqlalchemy.schema.Column.references">
 <tt class="descname">references</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Column.references" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True if this Column references the given column via foreign key.</p>
+<dd><p>Return True if this Column references the given column via foreign
+key.</p>
 </dd></dl>
 
 </dd></dl>
@@ -339,17 +340,23 @@ or loaded via reflection.</p>
 <dt id="sqlalchemy.schema.MetaData.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>bind=None</em>, <em>reflect=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new MetaData object.</p>
-<dl class="docutils">
-<dt>bind</dt>
-<dd>An Engine or Connection to bind to.  May also be a string or URL
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bind</strong> &#8211; An Engine or Connection to bind to.  May also be a string or URL
 instance, these are passed to create_engine() and this MetaData will
-be bound to the resulting engine.</dd>
-<dt>reflect</dt>
-<dd>Optional, automatically load all tables from the bound database.
+be bound to the resulting engine.</li>
+<li><strong>reflect</strong> &#8211; Optional, automatically load all tables from the bound database.
 Defaults to False. <tt class="docutils literal"><span class="pre">bind</span></tt> is required when this option is set.
 For finer control over loaded tables, use the <tt class="docutils literal"><span class="pre">reflect</span></tt> method of
-<tt class="docutils literal"><span class="pre">MetaData</span></tt>.</dd>
-</dl>
+<tt class="docutils literal"><span class="pre">MetaData</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -359,23 +366,32 @@ For finer control over loaded tables, use the <tt class="docutils literal"><span
 <p>The <tt class="docutils literal"><span class="pre">listener</span></tt> callable will be triggered when this <tt class="docutils literal"><span class="pre">MetaData</span></tt> is
 involved in DDL creates or drops, and will be invoked either before
 all Table-related actions or after.</p>
-<p>Arguments are:</p>
-<dl class="docutils">
-<dt>event</dt>
-<dd>One of <tt class="docutils literal"><span class="pre">MetaData.ddl_events</span></tt>; &#8216;before-create&#8217;, &#8216;after-create&#8217;,
-&#8216;before-drop&#8217; or &#8216;after-drop&#8217;.</dd>
-<dt>listener</dt>
-<dd><p class="first">A callable, invoked with three positional arguments:</p>
-<dl class="last docutils">
-<dt>event</dt>
-<dd>The event currently being handled</dd>
-<dt>target</dt>
-<dd>The <tt class="docutils literal"><span class="pre">MetaData</span></tt> object being operated upon</dd>
-<dt>bind</dt>
-<dd>The <tt class="docutils literal"><span class="pre">Connection</span></tt> bueing used for DDL execution.</dd>
-</dl>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event</strong> &#8211; One of <tt class="docutils literal"><span class="pre">MetaData.ddl_events</span></tt>; &#8216;before-create&#8217;, &#8216;after-create&#8217;,
+&#8216;before-drop&#8217; or &#8216;after-drop&#8217;.</li>
+<li><strong>listener</strong> &#8211; <p>A callable, invoked with three positional arguments:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">event:</th><td class="field-body">The event currently being handled</td>
+</tr>
+<tr class="field"><th class="field-name">target:</th><td class="field-body">The <tt class="docutils literal"><span class="pre">MetaData</span></tt> object being operated upon</td>
+</tr>
+<tr class="field"><th class="field-name">bind:</th><td class="field-body">The <tt class="docutils literal"><span class="pre">Connection</span></tt> bueing used for DDL execution.</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <p>Listeners are added to the MetaData&#8217;s <tt class="docutils literal"><span class="pre">ddl_listeners</span></tt> attribute.</p>
 <p>Note: MetaData listeners are invoked even when <tt class="docutils literal"><span class="pre">Tables</span></tt> are created
 in isolation.  This may change in a future release. I.e.:</p>
@@ -408,17 +424,23 @@ for this bind with <tt class="docutils literal"><span class="pre">create_engine(
 <dd><p>Create all tables stored in this metadata.</p>
 <p>Conditional by default, will not attempt to recreate tables already
 present in the target database.</p>
-<dl class="docutils">
-<dt>bind</dt>
-<dd>A <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> used to access the database; if None, uses the
-existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if any.</dd>
-<dt>tables</dt>
-<dd>Optional list of <tt class="docutils literal"><span class="pre">Table</span></tt> objects, which is a subset of the total
-tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt> (others are ignored).</dd>
-<dt>checkfirst</dt>
-<dd>Defaults to True, don&#8217;t issue CREATEs for tables already present
-in the target database.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bind</strong> &#8211; A <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> used to access the
+database; if None, uses the existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if
+any.</li>
+<li><strong>tables</strong> &#8211; Optional list of <tt class="docutils literal"><span class="pre">Table</span></tt> objects, which is a subset of the total
+tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt> (others are ignored).</li>
+<li><strong>checkfirst</strong> &#8211; Defaults to True, don&#8217;t issue CREATEs for tables already present
+in the target database.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -427,17 +449,23 @@ in the target database.</dd>
 <dd><p>Drop all tables stored in this metadata.</p>
 <p>Conditional by default, will not attempt to drop tables not present in
 the target database.</p>
-<dl class="docutils">
-<dt>bind</dt>
-<dd>A <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> used to access the database; if None, uses
-the existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if any.</dd>
-<dt>tables</dt>
-<dd>Optional list of <tt class="docutils literal"><span class="pre">Table</span></tt> objects, which is a subset of the
-total tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt> (others are ignored).</dd>
-<dt>checkfirst</dt>
-<dd>Defaults to True, only issue DROPs for tables confirmed to be present
-in the target database.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bind</strong> &#8211; A <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> used to access the
+database; if None, uses the existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if
+any.</li>
+<li><strong>tables</strong> &#8211; Optional list of <tt class="docutils literal"><span class="pre">Table</span></tt> objects, which is a subset of the
+total tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt> (others are ignored).</li>
+<li><strong>checkfirst</strong> &#8211; Defaults to True, only issue DROPs for tables confirmed to be
+present in the target database.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -455,25 +483,31 @@ table available in the database but not yet present in the
 <tt class="docutils literal"><span class="pre">MetaData</span></tt>.  May be called multiple times to pick up tables recently
 added to the database, however no special action is taken if a table
 in this <tt class="docutils literal"><span class="pre">MetaData</span></tt> no longer exists in the database.</p>
-<dl class="docutils">
-<dt>bind</dt>
-<dd>A <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> used to access the database; if None, uses the
-existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if any.</dd>
-<dt>schema</dt>
-<dd>Optional, query and reflect tables from an alterate schema.</dd>
-<dt>only</dt>
-<dd><p class="first">Optional.  Load only a sub-set of available named tables.  May be
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bind</strong> &#8211; A <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> used to access the
+database; if None, uses the existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if
+any.</li>
+<li><strong>schema</strong> &#8211; Optional, query and reflect tables from an alterate schema.</li>
+<li><strong>only</strong> &#8211; <p>Optional.  Load only a sub-set of available named tables.  May be
 specified as a sequence of names or a callable.</p>
 <p>If a sequence of names is provided, only those tables will be
 reflected.  An error is raised if a table is requested but not
 available.  Named tables already present in this <tt class="docutils literal"><span class="pre">MetaData</span></tt> are
 ignored.</p>
-<p class="last">If a callable is provided, it will be used as a boolean predicate to
+<p>If a callable is provided, it will be used as a boolean predicate to
 filter the list of potential table names.  The callable is called
 with a table name and this <tt class="docutils literal"><span class="pre">MetaData</span></tt> instance as positional
 arguments and should return a true value for any table to reflect.</p>
-</dd>
-</dl>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -528,27 +562,27 @@ with other tables which are referenced via foreign key.  It also
 may be used to associate this table with a particular 
 <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a>.</li>
 <li><strong>*args</strong> &#8211; Additional positional arguments are used primarily
-to add the list of <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects contained within this table.
-Similar to the style of a CREATE TABLE statement, other <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">SchemaItem</span></tt></a>
-constructs may be added here, including <a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a>,
-and <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>.</li>
-<li><strong>autoload</strong> &#8211; Defaults to False: the Columns for this table should be reflected
-from the database.  Usually there will be no Column objects in the
-constructor if this property is set.</li>
-<li><strong>autoload_with</strong> &#8211; If autoload==True, this is an optional Engine or Connection
-instance to be used for the table reflection.  If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the
-underlying MetaData&#8217;s bound connectable will be used.</li>
+to add the list of <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects contained within this
+table. Similar to the style of a CREATE TABLE statement, other
+<a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">SchemaItem</span></tt></a> constructs may be added here, including
+<a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a>, and <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>.</li>
+<li><strong>autoload</strong> &#8211; Defaults to False: the Columns for this table should 
+be reflected from the database. Usually there will be no Column
+objects in the constructor if this property is set.</li>
+<li><strong>autoload_with</strong> &#8211; If autoload==True, this is an optional Engine 
+or Connection instance to be used for the table reflection. If
+<tt class="xref docutils literal"><span class="pre">None</span></tt>, the underlying MetaData&#8217;s bound connectable will be used.</li>
 <li><strong>implicit_returning</strong> &#8211; True by default - indicates that 
 RETURNING can be used by default to fetch newly inserted primary key 
 values, for backends which support this.  Note that 
 create_engine() also provides an implicit_returning flag.</li>
-<li><strong>include_columns</strong> &#8211; A list of strings indicating a subset of columns to be loaded via
-the <tt class="docutils literal"><span class="pre">autoload</span></tt> operation; table columns who aren&#8217;t present in
-this list will not be represented on the resulting <tt class="docutils literal"><span class="pre">Table</span></tt>
-object.  Defaults to <tt class="xref docutils literal"><span class="pre">None</span></tt> which indicates all columns should
-be reflected.</li>
-<li><strong>info</strong> &#8211; A dictionary which defaults to <tt class="docutils literal"><span class="pre">{}</span></tt>.  A space to store application 
-specific data. This must be a dictionary.</li>
+<li><strong>include_columns</strong> &#8211; A list of strings indicating a subset of 
+columns to be loaded via the <tt class="docutils literal"><span class="pre">autoload</span></tt> operation; table columns who
+aren&#8217;t present in this list will not be represented on the resulting
+<tt class="docutils literal"><span class="pre">Table</span></tt> object. Defaults to <tt class="xref docutils literal"><span class="pre">None</span></tt> which indicates all columns
+should be reflected.</li>
+<li><strong>info</strong> &#8211; A dictionary which defaults to <tt class="docutils literal"><span class="pre">{}</span></tt>.  A space to store
+application specific data. This must be a dictionary.</li>
 <li><strong>mustexist</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that this Table must already 
 be present in the given <tt class="xref py py-class docutils literal"><span class="pre">MetaData`</span></tt> collection.</li>
 <li><strong>prefixes</strong> &#8211; A list of strings to insert after CREATE in the CREATE TABLE
@@ -561,14 +595,14 @@ treated as case sensitive), or if it&#8217;s a reserved word.  This flag
 is only needed to force quoting of a reserved word which is not known
 by the SQLAlchemy dialect.</li>
 <li><strong>quote_schema</strong> &#8211; same as &#8216;quote&#8217; but applies to the schema identifier.</li>
-<li><strong>schema</strong> &#8211; The <em>schema name</em> for this table, which is required if the table
-resides in a schema other than the default selected schema for the
-engine&#8217;s database connection.  Defaults to <tt class="xref docutils literal"><span class="pre">None</span></tt>.</li>
+<li><strong>schema</strong> &#8211; The <em>schema name</em> for this table, which is required if 
+the table resides in a schema other than the default selected schema
+for the engine&#8217;s database connection. Defaults to <tt class="xref docutils literal"><span class="pre">None</span></tt>.</li>
 <li><strong>useexisting</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that if this Table is already
 present in the given <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>, apply further arguments within
-the constructor to the existing <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  If this flag is not 
-set, an error is raised when the parameters of an existing <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
-are overwritten.</li>
+the constructor to the existing <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>. If this flag is not
+set, an error is raised when the parameters of an existing
+<a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> are overwritten.</li>
 </ul>
 </td>
 </tr>
@@ -611,23 +645,32 @@ this method can manually establish such a link.</p>
 created or dropped, either directly before or after the DDL is issued
 to the database.  The listener may modify the Table, but may not abort
 the event itself.</p>
-<p>Arguments are:</p>
-<dl class="docutils">
-<dt>event</dt>
-<dd>One of <tt class="docutils literal"><span class="pre">Table.ddl_events</span></tt>; e.g. &#8216;before-create&#8217;, &#8216;after-create&#8217;,
-&#8216;before-drop&#8217; or &#8216;after-drop&#8217;.</dd>
-<dt>listener</dt>
-<dd><p class="first">A callable, invoked with three positional arguments:</p>
-<dl class="last docutils">
-<dt>event</dt>
-<dd>The event currently being handled</dd>
-<dt>target</dt>
-<dd>The <tt class="docutils literal"><span class="pre">Table</span></tt> object being created or dropped</dd>
-<dt>bind</dt>
-<dd>The <tt class="docutils literal"><span class="pre">Connection</span></tt> bueing used for DDL execution.</dd>
-</dl>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event</strong> &#8211; One of <tt class="docutils literal"><span class="pre">Table.ddl_events</span></tt>; e.g. &#8216;before-create&#8217;, &#8216;after-create&#8217;,
+&#8216;before-drop&#8217; or &#8216;after-drop&#8217;.</li>
+<li><strong>listener</strong> &#8211; <p>A callable, invoked with three positional arguments:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">event:</th><td class="field-body">The event currently being handled</td>
+</tr>
+<tr class="field"><th class="field-name">target:</th><td class="field-body">The <tt class="docutils literal"><span class="pre">Table</span></tt> object being created or dropped</td>
+</tr>
+<tr class="field"><th class="field-name">bind:</th><td class="field-body">The <tt class="docutils literal"><span class="pre">Connection</span></tt> bueing used for DDL execution.</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <p>Listeners are added to the Table&#8217;s <tt class="docutils literal"><span class="pre">ddl_listeners</span></tt> attribute.</p>
 </dd></dl>
 
@@ -659,7 +702,7 @@ the event itself.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.schema.Table.get_children">
-<tt class="descname">get_children</tt><big>(</big><em>column_collections=True</em>, <em>schema_visitor=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Table.get_children" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_children</tt><big>(</big><em>column_collections=True</em>, <em>schema_visitor=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Table.get_children" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -675,7 +718,8 @@ the event itself.</p>
 <dl class="method">
 <dt id="sqlalchemy.schema.Table.tometadata">
 <tt class="descname">tometadata</tt><big>(</big><em>metadata</em>, <em>schema=&lt;symbol 'retain_schema&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Table.tometadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a copy of this <tt class="docutils literal"><span class="pre">Table</span></tt> associated with a different <tt class="docutils literal"><span class="pre">MetaData</span></tt>.</p>
+<dd><p>Return a copy of this <tt class="docutils literal"><span class="pre">Table</span></tt> associated with a different
+<tt class="docutils literal"><span class="pre">MetaData</span></tt>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -734,19 +778,23 @@ with <tt class="docutils literal"><span class="pre">create_engine()</span></tt>.
 <dt id="sqlalchemy.schema.CheckConstraint.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>sqltext</em>, <em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>table=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CheckConstraint.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a CHECK constraint.</p>
-<dl class="docutils">
-<dt>sqltext</dt>
-<dd>A string containing the constraint definition, which will be used
-verbatim, or a SQL expression construct.</dd>
-<dt>name</dt>
-<dd>Optional, the in-database name of the constraint.</dd>
-<dt>deferrable</dt>
-<dd>Optional bool.  If set, emit DEFERRABLE or NOT DEFERRABLE when
-issuing DDL for this constraint.</dd>
-<dt>initially</dt>
-<dd>Optional string.  If set, emit INITIALLY &lt;value&gt; when issuing DDL
-for this constraint.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sqltext</strong> &#8211; A string containing the constraint definition, which will be used
+verbatim, or a SQL expression construct.</li>
+<li><strong>name</strong> &#8211; Optional, the in-database name of the constraint.</li>
+<li><strong>deferrable</strong> &#8211; Optional bool.  If set, emit DEFERRABLE or NOT DEFERRABLE when
+issuing DDL for this constraint.</li>
+<li><strong>initially</strong> &#8211; Optional string.  If set, emit INITIALLY &lt;value&gt; when issuing DDL
+for this constraint.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -765,17 +813,17 @@ for this constraint.</dd>
 <dt id="sqlalchemy.schema.Constraint.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Constraint.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a SQL constraint.</p>
-<dl class="docutils">
-<dt>name</dt>
-<dd>Optional, the in-database name of this <tt class="docutils literal"><span class="pre">Constraint</span></tt>.</dd>
-<dt>deferrable</dt>
-<dd>Optional bool.  If set, emit DEFERRABLE or NOT DEFERRABLE when
-issuing DDL for this constraint.</dd>
-<dt>initially</dt>
-<dd>Optional string.  If set, emit INITIALLY &lt;value&gt; when issuing DDL
-for this constraint.</dd>
-<dt>_create_rule</dt>
-<dd><p class="first">a callable which is passed the DDLCompiler object during
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Optional, the in-database name of this <tt class="docutils literal"><span class="pre">Constraint</span></tt>.</li>
+<li><strong>deferrable</strong> &#8211; Optional bool.  If set, emit DEFERRABLE or NOT DEFERRABLE when
+issuing DDL for this constraint.</li>
+<li><strong>initially</strong> &#8211; Optional string.  If set, emit INITIALLY &lt;value&gt; when issuing DDL
+for this constraint.</li>
+<li><strong>_create_rule</strong> &#8211; <p>a callable which is passed the DDLCompiler object during
 compilation. Returns True or False to signal inline generation of
 this Constraint.</p>
 <p>The AddConstraint and DropConstraint DDL constructs provide
@@ -786,10 +834,14 @@ may not be any transaction/connection in progress. However, it
 allows conditional compilation of the constraint even for backends
 which do not support addition of constraints through ALTER TABLE,
 which currently includes SQLite.</p>
-<p class="last">_create_rule is used by some types to create constraints.
+<p>_create_rule is used by some types to create constraints.
 Currently, its call signature is subject to change at any time.</p>
-</dd>
-</dl>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -895,7 +947,8 @@ statement. See that classes&#8217; constructor for details.</li>
 <dt id="sqlalchemy.schema.ForeignKey.get_referent">
 <tt class="descname">get_referent</tt><big>(</big><em>table</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey.get_referent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the column in the given table referenced by this ForeignKey.</p>
-<p>Returns None if this <tt class="docutils literal"><span class="pre">ForeignKey</span></tt> does not reference the given table.</p>
+<p>Returns None if this <tt class="docutils literal"><span class="pre">ForeignKey</span></tt> does not reference the given
+table.</p>
 </dd></dl>
 
 <dl class="method">
@@ -995,23 +1048,21 @@ a shorthand equivalent for an unnamed, single column Index.</p>
 <dt id="sqlalchemy.schema.Index.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>*columns</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an index object.</p>
-<p>Arguments are:</p>
-<dl class="docutils">
-<dt>name</dt>
-<dd>The name of the index</dd>
-<dt>*columns</dt>
-<dd>Columns to include in the index. All columns must belong to the same
-table.</dd>
-<dt>**kwargs</dt>
-<dd><p class="first">Keyword arguments include:</p>
-<dl class="last docutils">
-<dt>unique</dt>
-<dd>Defaults to False: create a unique index.</dd>
-<dt>postgresql_where</dt>
-<dd>Defaults to None: create a partial index when using PostgreSQL</dd>
-</dl>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the index</li>
+<li><strong>*columns</strong> &#8211; Columns to include in the index. All columns must belong to the same
+table.</li>
+<li><strong>unique</strong> &#8211; Defaults to False: create a unique index.</li>
+<li><strong>**kw</strong> &#8211; Other keyword arguments may be interpreted by specific dialects.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -1201,41 +1252,55 @@ UniqueConstraint.</p>
 <tt class="descname">execute</tt><big>(</big><em>bind=None</em>, <em>target=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DDLElement.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute this DDL immediately.</p>
 <p>Executes the DDL statement in isolation using the supplied
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> or <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> assigned to the <tt class="docutils literal"><span class="pre">.bind</span></tt> property,
-if not supplied.  If the DDL has a conditional <tt class="docutils literal"><span class="pre">on</span></tt> criteria, it
-will be invoked with None as the event.</p>
-<dl class="docutils">
-<dt>bind</dt>
-<dd>Optional, an <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>.  If not supplied, a
-valid <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> must be present in the <tt class="docutils literal"><span class="pre">.bind</span></tt> property.</dd>
-<dt>target</dt>
-<dd>Optional, defaults to None.  The target SchemaItem for the 
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> or
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> assigned to the <tt class="docutils literal"><span class="pre">.bind</span></tt>
+property, if not supplied. If the DDL has a conditional <tt class="docutils literal"><span class="pre">on</span></tt>
+criteria, it will be invoked with None as the event.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bind</strong> &#8211; Optional, an <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>. If not supplied, a valid
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> must be present in the
+<tt class="docutils literal"><span class="pre">.bind</span></tt> property.</li>
+<li><strong>target</strong> &#8211; Optional, defaults to None.  The target SchemaItem for the 
 execute call.  Will be passed to the <tt class="docutils literal"><span class="pre">on</span></tt> callable if any, 
 and may also provide string expansion data for the
-statement. See <tt class="docutils literal"><span class="pre">execute_at</span></tt> for more information.</dd>
-</dl>
+statement. See <tt class="docutils literal"><span class="pre">execute_at</span></tt> for more information.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.schema.DDLElement.execute_at">
 <tt class="descname">execute_at</tt><big>(</big><em>event</em>, <em>target</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DDLElement.execute_at" title="Permalink to this definition">¶</a></dt>
 <dd><p>Link execution of this DDL to the DDL lifecycle of a SchemaItem.</p>
-<p>Links this <tt class="docutils literal"><span class="pre">DDLElement</span></tt> to a <tt class="docutils literal"><span class="pre">Table</span></tt> or <tt class="docutils literal"><span class="pre">MetaData</span></tt> instance, executing
-it when that schema item is created or dropped.  The DDL statement
-will be executed using the same Connection and transactional context
-as the Table create/drop itself.  The <tt class="docutils literal"><span class="pre">.bind</span></tt> property of this
-statement is ignored.</p>
-<dl class="docutils">
-<dt>event</dt>
-<dd>One of the events defined in the schema item&#8217;s <tt class="docutils literal"><span class="pre">.ddl_events</span></tt>;
-e.g. &#8216;before-create&#8217;, &#8216;after-create&#8217;, &#8216;before-drop&#8217; or &#8216;after-drop&#8217;</dd>
-<dt>target</dt>
-<dd>The Table or MetaData instance for which this DDLElement will
-be associated with.</dd>
-</dl>
+<p>Links this <tt class="docutils literal"><span class="pre">DDLElement</span></tt> to a <tt class="docutils literal"><span class="pre">Table</span></tt> or <tt class="docutils literal"><span class="pre">MetaData</span></tt> instance,
+executing it when that schema item is created or dropped. The DDL
+statement will be executed using the same Connection and transactional
+context as the Table create/drop itself. The <tt class="docutils literal"><span class="pre">.bind</span></tt> property of
+this statement is ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event</strong> &#8211; One of the events defined in the schema item&#8217;s <tt class="docutils literal"><span class="pre">.ddl_events</span></tt>;
+e.g. &#8216;before-create&#8217;, &#8216;after-create&#8217;, &#8216;before-drop&#8217; or &#8216;after-drop&#8217;</li>
+<li><strong>target</strong> &#8211; The Table or MetaData instance for which this DDLElement will
+be associated with.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <p>A DDLElement instance can be linked to any number of schema items.</p>
 <p><tt class="docutils literal"><span class="pre">execute_at</span></tt> builds on the <tt class="docutils literal"><span class="pre">append_ddl_listener</span></tt> interface of
-MetaDta and Table objects.</p>
+<a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> and <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects.</p>
 <p>Caveat: Creating or dropping a Table in isolation will also trigger
 any DDL set to <tt class="docutils literal"><span class="pre">execute_at</span></tt> that Table&#8217;s MetaData.  This may change
 in a future release.</p>
@@ -1276,16 +1341,18 @@ the standard substitutions.</p>
 <dt id="sqlalchemy.schema.DDL.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>statement</em>, <em>on=None</em>, <em>context=None</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DDL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a DDL statement.</p>
-<dl class="docutils">
-<dt>statement</dt>
-<dd><p class="first">A string or unicode string to be executed.  Statements will be
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>statement</strong> &#8211; <p>A string or unicode string to be executed.  Statements will be
 processed with Python&#8217;s string formatting operator.  See the
 <tt class="docutils literal"><span class="pre">context</span></tt> argument and the <tt class="docutils literal"><span class="pre">execute_at</span></tt> method.</p>
 <p>A literal &#8216;%&#8217; in a statement must be escaped as &#8216;%%&#8217;.</p>
-<p class="last">SQL bind parameters are not available in DDL statements.</p>
-</dd>
-<dt>on</dt>
-<dd><p class="first">Optional filtering criteria.  May be a string, tuple or a callable
+<p>SQL bind parameters are not available in DDL statements.</p>
+</li>
+<li><strong>on</strong> &#8211; <p>Optional filtering criteria.  May be a string, tuple or a callable
 predicate.  If a string, it will be compared to the name of the
 executing database dialect:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">DDL</span><span class="p">(</span><span class="s">&#39;something&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s">&#39;postgresql&#39;</span><span class="p">)</span></pre></div>
@@ -1296,37 +1363,39 @@ executing database dialect:</p>
 <p>If a callable, it will be invoked with four positional arguments
 as well as optional keyword arguments:</p>
 <blockquote>
-<dl class="docutils">
-<dt>ddl</dt>
-<dd>This DDL element.</dd>
-<dt>event</dt>
-<dd>The name of the event that has triggered this DDL, such as
-&#8216;after-create&#8217; Will be None if the DDL is executed explicitly.</dd>
-<dt>target</dt>
-<dd>The <tt class="docutils literal"><span class="pre">Table</span></tt> or <tt class="docutils literal"><span class="pre">MetaData</span></tt> object which is the target of 
-this event. May be None if the DDL is executed explicitly.</dd>
-<dt>connection</dt>
-<dd>The <tt class="docutils literal"><span class="pre">Connection</span></tt> being used for DDL execution</dd>
-<dt>**kw</dt>
-<dd><dl class="first last docutils">
-<dt>Keyword arguments which may be sent include:</dt>
-<dd>tables - a list of Table objects which are to be created/
-dropped within a MetaData.create_all() or drop_all() method
-call.</dd>
-</dl>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">ddl:</th><td class="field-body">This DDL element.</td>
+</tr>
+<tr class="field"><th class="field-name">event:</th><td class="field-body">The name of the event that has triggered this DDL, such as
+&#8216;after-create&#8217; Will be None if the DDL is executed explicitly.</td>
+</tr>
+<tr class="field"><th class="field-name">target:</th><td class="field-body">The <tt class="docutils literal"><span class="pre">Table</span></tt> or <tt class="docutils literal"><span class="pre">MetaData</span></tt> object which is the target of 
+this event. May be None if the DDL is executed explicitly.</td>
+</tr>
+<tr class="field"><th class="field-name">connection:</th><td class="field-body">The <tt class="docutils literal"><span class="pre">Connection</span></tt> being used for DDL execution</td>
+</tr>
+<tr class="field"><th class="field-name">tables:</th><td class="field-body">Optional keyword argument - a list of Table objects which are to
+be created/ dropped within a MetaData.create_all() or drop_all()
+method call.</td>
+</tr>
+</tbody>
+</table>
 </blockquote>
-<p class="last">If the callable returns a true value, the DDL statement will be
+<p>If the callable returns a true value, the DDL statement will be
 executed.</p>
-</dd>
-<dt>context</dt>
-<dd>Optional dictionary, defaults to None.  These values will be
-available for use in string substitutions on the DDL statement.</dd>
-<dt>bind</dt>
-<dd>Optional. A <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a>, used by default when <tt class="docutils literal"><span class="pre">execute()</span></tt>
-is invoked without a bind argument.</dd>
-</dl>
+</li>
+<li><strong>context</strong> &#8211; Optional dictionary, defaults to None.  These values will be
+available for use in string substitutions on the DDL statement.</li>
+<li><strong>bind</strong> &#8211; Optional. A <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a>, used by
+default when <tt class="docutils literal"><span class="pre">execute()</span></tt> is invoked without a bind argument.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

@@ -7,7 +7,7 @@
         
         <title>
     Interfaces
- &mdash; SQLAlchemy 0.6.2 Documentation</title>
+ &mdash; SQLAlchemy 0.6.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.2',
+          VERSION:     '0.6.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Utilities" href="utilities.html" />
         <link rel="prev" title="Sessions" href="sessions.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.2 Documentation</h1>
+        <h1>SQLAlchemy 0.6.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
+            Version: <span class="versionnum">0.6.3</span> Last Updated: 07/15/2010 12:35:47
         </div>
         <div class="clearboth"></div>
 
@@ -299,8 +299,11 @@ desired.</p>
 <dt>result</dt>
 <dd>List to which results are being appended.</dd>
 <dt>**flags</dt>
-<dd>extra information about the row, same as criterion in
-<tt class="docutils literal"><span class="pre">create_row_processor()</span></tt> method of <a class="reference internal" href="mapping.html#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a></dd>
+<dd><p class="first">extra information about the row, same as criterion in
+<tt class="docutils literal"><span class="pre">create_row_processor()</span></tt> method of</p>
+<blockquote class="last">
+<a class="reference internal" href="mapping.html#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a></blockquote>
+</dd>
 </dl>
 </dd></dl>
 
@@ -339,16 +342,17 @@ chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</
 <dd><p>Receive an object instance before that instance is updated.</p>
 <p>Note that this method is called for all instances that are marked as
 &#8220;dirty&#8221;, even those which have no net changes to their column-based
-attributes.  An object is marked as dirty when any of its column-based
+attributes. An object is marked as dirty when any of its column-based
 attributes have a &#8220;set attribute&#8221; operation called or when any of its
-collections are modified.  If, at update time, no column-based attributes
-have any net changes, no UPDATE statement will be issued.  This means
-that an instance being sent to before_update is <em>not</em> a guarantee that
-an UPDATE statement will be issued (although you can affect the outcome
-here).</p>
-<p>To detect if the column-based attributes on the object have net changes,
-and will therefore generate an UPDATE statement, use
-<tt class="docutils literal"><span class="pre">object_session(instance).is_modified(instance,</span> <span class="pre">include_collections=False)</span></tt>.</p>
+collections are modified. If, at update time, no column-based
+attributes have any net changes, no UPDATE statement will be issued.
+This means that an instance being sent to before_update is <em>not</em> a
+guarantee that an UPDATE statement will be issued (although you can
+affect the outcome here).</p>
+<p>To detect if the column-based attributes on the object have net
+changes, and will therefore generate an UPDATE statement, use
+<tt class="docutils literal"><span class="pre">object_session(instance).is_modified(instance,</span>
+<span class="pre">include_collections=False)</span></tt>.</p>
 <p>Column-based attributes can be modified within this method
 which will result in the new value being updated.  However
 <em>no</em> changes to the overall flush plan can be made, and 
@@ -482,14 +486,15 @@ PropComparator.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.PropComparator.adapted">
 <tt class="descname">adapted</tt><big>(</big><em>adapter</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.adapted" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a copy of this PropComparator which will use the given adaption function
-on the local side of generated expressions.</p>
+<dd><p>Return a copy of this PropComparator which will use the given
+adaption function on the local side of generated expressions.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.PropComparator.any">
 <tt class="descname">any</tt><big>(</big><em>criterion=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.any" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return true if this collection contains any member that meets the given criterion.</p>
+<dd><p>Return true if this collection contains any member that meets the
+given criterion.</p>
 <dl class="docutils">
 <dt>criterion</dt>
 <dd>an optional ClauseElement formulated against the member class&#8217; table
@@ -508,7 +513,8 @@ will be compared via equality to the corresponding values.</dd>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.PropComparator.has">
 <tt class="descname">has</tt><big>(</big><em>criterion=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.has" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return true if this element references a member which meets the given criterion.</p>
+<dd><p>Return true if this element references a member which meets the
+given criterion.</p>
 <dl class="docutils">
 <dt>criterion</dt>
 <dd>an optional ClauseElement formulated against the member class&#8217; table
@@ -528,7 +534,8 @@ will be compared via equality to the corresponding values.</dd>
 <dt id="sqlalchemy.orm.interfaces.PropComparator.of_type">
 <tt class="descname">of_type</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.of_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Redefine this object in terms of a polymorphic subclass.</p>
-<p>Returns a new PropComparator from which further criterion can be evaluated.</p>
+<p>Returns a new PropComparator from which further criterion can be
+evaluated.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">of_type</span><span class="p">(</span><span class="n">Engineer</span><span class="p">))</span><span class="o">.</span>\
    <span class="nb">filter</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;foo&#39;</span><span class="p">)</span></pre></div>
@@ -550,8 +557,9 @@ this specific subclass.</dd>
 <dl class="class">
 <dt id="sqlalchemy.orm.interfaces.SessionExtension">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">SessionExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension" title="Permalink to this definition">¶</a></dt>
-<dd><p>An extension hook object for Sessions.  Subclasses may be installed into a Session
-(or sessionmaker) using the <tt class="docutils literal"><span class="pre">extension</span></tt> keyword argument.</p>
+<dd><p>An extension hook object for Sessions.  Subclasses may be
+installed into a Session (or sessionmaker) using the <tt class="docutils literal"><span class="pre">extension</span></tt>
+keyword argument.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.SessionExtension.after_attach">
 <tt class="descname">after_attach</tt><big>(</big><em>session</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.after_attach" title="Permalink to this definition">¶</a></dt>
@@ -563,8 +571,8 @@ this specific subclass.</dd>
 <dt id="sqlalchemy.orm.interfaces.SessionExtension.after_begin">
 <tt class="descname">after_begin</tt><big>(</big><em>session</em>, <em>transaction</em>, <em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.after_begin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute after a transaction is begun on a connection</p>
-<p><cite>transaction</cite> is the SessionTransaction. This method is called after an
-engine level transaction is begun on a connection.</p>
+<p><cite>transaction</cite> is the SessionTransaction. This method is called
+after an engine level transaction is begun on a connection.</p>
 </dd></dl>
 
 <dl class="method">
@@ -572,8 +580,8 @@ engine level transaction is begun on a connection.</p>
 <tt class="descname">after_bulk_delete</tt><big>(</big><em>session</em>, <em>query</em>, <em>query_context</em>, <em>result</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.after_bulk_delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute after a bulk delete operation to the session.</p>
 <p>This is called after a session.query(...).delete()</p>
-<p><cite>query</cite> is the query object that this delete operation was called on.
-<cite>query_context</cite> was the query context object.
+<p><cite>query</cite> is the query object that this delete operation was
+called on. <cite>query_context</cite> was the query context object.
 <cite>result</cite> is the result object returned from the bulk operation.</p>
 </dd></dl>
 
@@ -582,8 +590,8 @@ engine level transaction is begun on a connection.</p>
 <tt class="descname">after_bulk_update</tt><big>(</big><em>session</em>, <em>query</em>, <em>query_context</em>, <em>result</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.after_bulk_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute after a bulk update operation to the session.</p>
 <p>This is called after a session.query(...).update()</p>
-<p><cite>query</cite> is the query object that this update operation was called on.
-<cite>query_context</cite> was the query context object.
+<p><cite>query</cite> is the query object that this update operation was
+called on. <cite>query_context</cite> was the query context object.
 <cite>result</cite> is the result object returned from the bulk operation.</p>
 </dd></dl>
 
@@ -591,47 +599,53 @@ engine level transaction is begun on a connection.</p>
 <dt id="sqlalchemy.orm.interfaces.SessionExtension.after_commit">
 <tt class="descname">after_commit</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.after_commit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute after a commit has occured.</p>
-<p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
+<p>Note that this may not be per-flush if a longer running
+transaction is ongoing.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.SessionExtension.after_flush">
 <tt class="descname">after_flush</tt><big>(</big><em>session</em>, <em>flush_context</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.after_flush" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute after flush has completed, but before commit has been called.</p>
-<p>Note that the session&#8217;s state is still in pre-flush, i.e. &#8216;new&#8217;, &#8216;dirty&#8217;,
-and &#8216;deleted&#8217; lists still show pre-flush state as well as the history
-settings on instance attributes.</p>
+<dd><p>Execute after flush has completed, but before commit has been
+called.</p>
+<p>Note that the session&#8217;s state is still in pre-flush, i.e. &#8216;new&#8217;,
+&#8216;dirty&#8217;, and &#8216;deleted&#8217; lists still show pre-flush state as well
+as the history settings on instance attributes.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.SessionExtension.after_flush_postexec">
 <tt class="descname">after_flush_postexec</tt><big>(</big><em>session</em>, <em>flush_context</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.after_flush_postexec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute after flush has completed, and after the post-exec state occurs.</p>
-<p>This will be when the &#8216;new&#8217;, &#8216;dirty&#8217;, and &#8216;deleted&#8217; lists are in their final
-state.  An actual commit() may or may not have occured, depending on whether or not
-the flush started its own transaction or participated in a larger transaction.</p>
+<dd><p>Execute after flush has completed, and after the post-exec
+state occurs.</p>
+<p>This will be when the &#8216;new&#8217;, &#8216;dirty&#8217;, and &#8216;deleted&#8217; lists are in
+their final state.  An actual commit() may or may not have
+occured, depending on whether or not the flush started its own
+transaction or participated in a larger transaction.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.SessionExtension.after_rollback">
 <tt class="descname">after_rollback</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.after_rollback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute after a rollback has occured.</p>
-<p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
+<p>Note that this may not be per-flush if a longer running
+transaction is ongoing.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.SessionExtension.before_commit">
 <tt class="descname">before_commit</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.before_commit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute right before commit is called.</p>
-<p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
+<p>Note that this may not be per-flush if a longer running
+transaction is ongoing.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.SessionExtension.before_flush">
 <tt class="descname">before_flush</tt><big>(</big><em>session</em>, <em>flush_context</em>, <em>instances</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.before_flush" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute before flush process has started.</p>
-<p><cite>instances</cite> is an optional list of objects which were passed to the <tt class="docutils literal"><span class="pre">flush()</span></tt>
-method.</p>
+<p><cite>instances</cite> is an optional list of objects which were passed to
+the <tt class="docutils literal"><span class="pre">flush()</span></tt> method.</p>
 </dd></dl>
 
 </dd></dl>

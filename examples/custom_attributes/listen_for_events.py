@@ -4,7 +4,8 @@ across the board.
 
 """
 
-from sqlalchemy.orm.interfaces import AttributeExtension, InstrumentationManager
+from sqlalchemy.orm.interfaces import AttributeExtension, \
+    InstrumentationManager
 
 class InstallListeners(InstrumentationManager):
     def post_configure_attribute(self, class_, key, inst):
@@ -15,7 +16,7 @@ class InstallListeners(InstrumentationManager):
 class AttributeListener(AttributeExtension):
     """Generic event listener.  
     
-    Propigates attribute change events to a 
+    Propagates attribute change events to a 
     "receive_change_event()" method on the target
     instance.
     

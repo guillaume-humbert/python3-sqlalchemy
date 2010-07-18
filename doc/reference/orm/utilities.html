@@ -7,7 +7,7 @@
         
         <title>
     Utilities
- &mdash; SQLAlchemy 0.6.2 Documentation</title>
+ &mdash; SQLAlchemy 0.6.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.2',
+          VERSION:     '0.6.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="sqlalchemy.dialects" href="../dialects/index.html" />
         <link rel="prev" title="Interfaces" href="interfaces.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.2 Documentation</h1>
+        <h1>SQLAlchemy 0.6.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
+            Version: <span class="versionnum">0.6.3</span> Last Updated: 07/15/2010 12:35:47
         </div>
         <div class="clearboth"></div>
 
@@ -165,16 +165,23 @@ return the same value given, unless it wishes to modify it.</p>
 <dt id="sqlalchemy.orm.util.with_parent">
 <tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">with_parent</tt><big>(</big><em>instance</em>, <em>prop</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.with_parent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return criterion which selects instances with a given parent.</p>
-<dl class="docutils">
-<dt>instance</dt>
-<dd>a parent instance, which should be persistent or detached.</dd>
-<dt>property</dt>
-<dd>a class-attached descriptor, MapperProperty or string property name
-attached to the parent instance.</dd>
-<dt>**kwargs</dt>
-<dd>all extra keyword arguments are propagated to the constructor of
-Query.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>instance</strong> &#8211; a parent instance, which should be persistent 
+or detached.</li>
+<li><strong>property</strong> &#8211; a class-attached descriptor, MapperProperty or 
+string property name
+attached to the parent instance.</li>
+<li><strong>**kwargs</strong> &#8211; all extra keyword arguments are propagated 
+to the constructor of Query.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
