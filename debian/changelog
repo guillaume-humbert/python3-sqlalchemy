@@ -1,3 +1,9 @@
+sqlalchemy (0.6.3-2) UNRELEASED; urgency=low
+
+  * Use ${python3:Depends} in python3-sqlalchemy package (closes: 591954)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Fri, 06 Aug 2010 22:42:27 -0400
+
 sqlalchemy (0.6.3-1) unstable; urgency=low
 
   * New upstream release
