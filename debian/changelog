@@ -1,8 +1,10 @@
-sqlalchemy (0.6.3-2) UNRELEASED; urgency=low
+sqlalchemy (0.6.3-2) unstable; urgency=low
 
   * Use ${python3:Depends} in python3-sqlalchemy package (closes: 591954)
+    - minimum python3-all-dev version bumped to 3.1.2-6~
+  * Standards-Version bumped to 3.9.1 (no changes needed)
 
- -- Piotr Ożarowski <piotr@debian.org>  Fri, 06 Aug 2010 22:42:27 -0400
+ -- Piotr Ożarowski <piotr@debian.org>  Sat, 21 Aug 2010 19:05:08 +0200
 
 sqlalchemy (0.6.3-1) unstable; urgency=low
 
