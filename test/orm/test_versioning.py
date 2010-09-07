@@ -8,11 +8,22 @@ from test.orm import _base, _fixtures
 from test.engine import _base as engine_base
 
 
-_uuids =['1fc614acbb904742a2990f86af6ded95', '23e253786f4d491b9f9d6189dc33de9b', 'fc44910db37e43fd93e9ec8165b885cf', 
-    '0187a1832b4249e6b48911821d86de58', '778af6ea2fb74a009d8d2f5abe5dc29a', '51a6ce031aff47e4b5f2895c4161f120',
-    '7434097cd319401fb9f15fa443ccbbbb', '9bc548a8128e4a85ac18060bc3f4b7d3', '59548715e3c440b7bcb96417d06f7930', 
-    'd7647c7004734de196885ca2bd73adf8', '70cef121d3ff48d39906b6d1ac77f41a', 'ee37a8a6430c466aa322b8a215a0dd70', 
-    '782a5f04b4364a53a6fce762f48921c1', 'bef510f2420f4476a7629013ead237f5']
+_uuids = [
+    '1fc614acbb904742a2990f86af6ded95',
+    '23e253786f4d491b9f9d6189dc33de9b',
+    'fc44910db37e43fd93e9ec8165b885cf',
+    '0187a1832b4249e6b48911821d86de58',
+    '778af6ea2fb74a009d8d2f5abe5dc29a',
+    '51a6ce031aff47e4b5f2895c4161f120',
+    '7434097cd319401fb9f15fa443ccbbbb',
+    '9bc548a8128e4a85ac18060bc3f4b7d3',
+    '59548715e3c440b7bcb96417d06f7930',
+    'd7647c7004734de196885ca2bd73adf8',
+    '70cef121d3ff48d39906b6d1ac77f41a',
+    'ee37a8a6430c466aa322b8a215a0dd70',
+    '782a5f04b4364a53a6fce762f48921c1',
+    'bef510f2420f4476a7629013ead237f5',
+    ]
     
 def make_uuid():
     """generate uuids even on Python 2.4 which has no 'uuid'"""
@@ -85,9 +96,12 @@ class VersioningTest(_base.MappedTest):
         f1.value='f1rev3mine'
 
         # Only dialects with a sane rowcount can detect the
-        # ConcurrentModificationError
+        # StaleDataError
         if testing.db.dialect.supports_sane_rowcount:
-            assert_raises(sa.orm.exc.ConcurrentModificationError, s1.commit)
+            assert_raises_message(sa.orm.exc.StaleDataError, 
+            r"UPDATE statement on table 'version_table' expected "
+            r"to update 1 row\(s\); 0 were matched.",
+            s1.commit),
             s1.rollback()
         else:
             s1.commit()
@@ -103,10 +117,48 @@ class VersioningTest(_base.MappedTest):
         s1.delete(f2)
 
         if testing.db.dialect.supports_sane_rowcount:
-            assert_raises(sa.orm.exc.ConcurrentModificationError, s1.commit)
+            assert_raises_message(
+                sa.orm.exc.StaleDataError, 
+                r"DELETE statement on table 'version_table' expected "
+                r"to delete 2 row\(s\); 1 were matched.",
+                s1.commit)
         else:
             s1.commit()
 
+    @testing.emits_warning(r'.*does not support updated rowcount')
+    @testing.resolve_artifact_names
+    def test_bump_version(self):
+        """test that version number can be bumped.
+        
+        Ensures that the UPDATE or DELETE is against the 
+        last committed version of version_id_col, not the modified 
+        state.
+        
+        """
+        mapper(Foo, version_table, 
+                version_id_col=version_table.c.version_id)
+
+        s1 = sessionmaker()()
+        f1 = Foo(value='f1')
+        s1.add(f1)
+        s1.commit()
+        eq_(f1.version_id, 1)
+        f1.version_id = 2
+        s1.commit()
+        eq_(f1.version_id, 2)
+        
+        # skip an id, test that history
+        # is honored
+        f1.version_id = 4
+        f1.value = "something new"
+        s1.commit()
+        eq_(f1.version_id, 4)
+        
+        f1.version_id = 5
+        s1.delete(f1)
+        s1.commit()
+        eq_(s1.query(Foo).count(), 0)
+        
     @testing.emits_warning(r'.*does not support updated rowcount')
     @engines.close_open_connections
     @testing.resolve_artifact_names
@@ -126,8 +178,10 @@ class VersioningTest(_base.MappedTest):
         s2.commit()
 
         # load, version is wrong
-        assert_raises(
-                sa.orm.exc.ConcurrentModificationError, 
+        assert_raises_message(
+                sa.orm.exc.StaleDataError, 
+                r"Instance .* has version id '\d+' which does not "
+                r"match database-loaded version id '\d+'",
                 s1.query(Foo).with_lockmode('read').get, f1s1.id
             )
 
@@ -236,7 +290,7 @@ class RowSwitchTest(_base.MappedTest):
         assert P.c.property.strategy.use_get
         
         session = sessionmaker()()
-        session.add(P(id=1, data='P version 1'))
+        session.add(P(id='P1', data='P version 1'))
         session.commit()
         session.close()
 
@@ -298,7 +352,7 @@ class AlternateGeneratorTest(_base.MappedTest):
         assert P.c.property.strategy.use_get
 
         session = sessionmaker()()
-        session.add(P(id=1, data='P version 1'))
+        session.add(P(id='P1', data='P version 1'))
         session.commit()
         session.close()
 
@@ -314,8 +368,11 @@ class AlternateGeneratorTest(_base.MappedTest):
     def test_child_row_switch_two(self):
         Session = sessionmaker()
         
+        # TODO: not sure this test is 
+        # testing exactly what its looking for
+        
         sess1 = Session()
-        sess1.add(P(id=1, data='P version 1'))
+        sess1.add(P(id='P1', data='P version 1'))
         sess1.commit()
         sess1.close()
         
@@ -327,12 +384,15 @@ class AlternateGeneratorTest(_base.MappedTest):
         sess1.delete(p1)
         sess1.commit()
         
+        # this can be removed and it still passes
         sess1.add(P(id='P1', data='P version 2'))
         sess1.commit()
         
         p2.data = 'P overwritten by concurrent tx'
-        assert_raises(
-            orm.exc.ConcurrentModificationError,
+        assert_raises_message(
+            orm.exc.StaleDataError,
+            r"UPDATE statement on table 'p' expected to update "
+            r"1 row\(s\); 0 were matched.",
             sess2.commit
         )
         

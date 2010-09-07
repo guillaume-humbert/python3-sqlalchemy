@@ -36,6 +36,8 @@ extensions = ['sphinx.ext.autodoc',
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']
 
+nitpicky = True
+
 # The suffix of source filenames.
 source_suffix = '.rst'
 
@@ -71,7 +73,7 @@ release = sqlalchemy.__version__
 #today_fmt = '%B %d, %Y'
 
 # List of documents that shouldn't be included in the build.
-unused_docs = ['copyright']
+unused_docs = []
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.

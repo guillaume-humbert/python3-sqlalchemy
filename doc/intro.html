@@ -7,7 +7,7 @@
         
         <title>
     Overview / Installation
- &mdash; SQLAlchemy 0.6.3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.4 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.6.3',
+          VERSION:     '0.6.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,8 +26,9 @@
     <script type="text/javascript" src="_static/init.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.3 Documentation" href="index.html" />
-        <link rel="next" title="Object Relational Tutorial" href="ormtutorial.html" />
+        <link rel="copyright" title="Copyright" href="copyright.html" />
+    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="index.html" />
+        <link rel="next" title="SQLAlchemy ORM" href="orm/index.html" />
         <link rel="prev" title="Table of Contents" href="index.html" />
     
 
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.4 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,14 +51,12 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.3</span> Last Updated: 07/15/2010 12:35:47
+            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
-                <a href="reference/index.html">API Reference</a>
-                |
                 <a href="genindex.html">Index</a>
             
                 <div class="sourcelink">(<a href="_sources/intro.txt">view source)</div>
@@ -74,7 +73,7 @@
         Previous:
         <a href="index.html" title="previous chapter">Table of Contents</a>
         Next:
-        <a href="ormtutorial.html" title="next chapter">Object Relational Tutorial</a>
+        <a href="orm/index.html" title="next chapter">SQLAlchemy ORM</a>
 </div>
 
                 <h2>
@@ -86,10 +85,8 @@
                 <ul>
 <li><a class="reference internal" href="#">Overview / Installation</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
-<li><a class="reference internal" href="#tutorials">Tutorials</a></li>
-<li><a class="reference internal" href="#main-documentation">Main Documentation</a></li>
+<li><a class="reference internal" href="#documentation-overview">Documentation Overview</a></li>
 <li><a class="reference internal" href="#code-examples">Code Examples</a></li>
-<li><a class="reference internal" href="#api-reference">API Reference</a></li>
 <li><a class="reference internal" href="#installing-sqlalchemy">Installing SQLAlchemy</a></li>
 <li><a class="reference internal" href="#installing-a-database-api">Installing a Database API</a></li>
 <li><a class="reference internal" href="#checking-the-installed-sqlalchemy-version">Checking the Installed SQLAlchemy Version</a></li>
@@ -112,51 +109,55 @@
 <img alt="_images/sqla_arch_small.jpg" src="_images/sqla_arch_small.jpg" />
 <p>Above, the two most significant front-facing portions of SQLAlchemy are the <strong>Object Relational Mapper</strong> and the <strong>SQL Expression Language</strong>.  SQL Expressions can be used independently of the ORM.  When using the ORM, the SQL Expression language remains part of the public facing API as it is used within object-relational configurations and queries.</p>
 </div>
-<div class="section" id="tutorials">
-<h2>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><a class="reference internal" href="ormtutorial.html"><em>Object Relational Tutorial</em></a> - This describes the richest feature of SQLAlchemy, its object relational mapper.  If you want to work with higher-level SQL which is constructed automatically for you, as well as management of Python objects, proceed to this tutorial.</li>
-<li><a class="reference internal" href="sqlexpression.html"><em>SQL Expression Language Tutorial</em></a> - The core of SQLAlchemy is its SQL expression language.  The SQL Expression Language is a toolkit all its own, independent of the ORM package, which can be used to construct manipulable SQL expressions which can be programmatically constructed, modified, and executed, returning cursor-like result sets.  It&#8217;s a lot more lightweight than the ORM and is appropriate for higher scaling SQL operations.  It&#8217;s also heavily present within the ORM&#8217;s public facing API, so advanced ORM users will want to master this language as well.</li>
-</ul>
-</div>
-<div class="section" id="main-documentation">
-<h2>Main Documentation<a class="headerlink" href="#main-documentation" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><a class="reference internal" href="mappers.html"><em>Mapper Configuration</em></a> - A comprehensive walkthrough of major ORM patterns and techniques.</li>
-<li><a class="reference internal" href="session.html"><em>Using the Session</em></a> - A detailed description of SQLAlchemy&#8217;s Session object</li>
-<li><a class="reference internal" href="dbengine.html"><em>Database Engines</em></a> - Describes SQLAlchemy&#8217;s database-connection facilities, including connection documentation and working with connections and transactions.</li>
-<li><a class="reference internal" href="metadata.html"><em>Database Meta Data</em></a> - All about schema management using <a class="reference internal" href="reference/sqlalchemy/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> and <a class="reference internal" href="reference/sqlalchemy/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects; reading database schemas into your application, creating and dropping tables, constraints, defaults, sequences, indexes.</li>
-<li><a class="reference internal" href="reference/sqlalchemy/pooling.html"><em>Connection Pooling</em></a> - Further detail about SQLAlchemy&#8217;s connection pool library.</li>
-<li><a class="reference internal" href="reference/sqlalchemy/types.html#types"><em>Column and Data Types</em></a> - Datatypes included with SQLAlchemy, their functions, as well as how to create your own types.</li>
-<li><a class="reference internal" href="reference/ext/index.html#plugins"><em>sqlalchemy.ext</em></a> - Included addons for SQLAlchemy</li>
-</ul>
+<div class="section" id="documentation-overview">
+<h2>Documentation Overview<a class="headerlink" href="#documentation-overview" title="Permalink to this headline">¶</a></h2>
+<p>The documentation is separated into three sections: <a class="reference internal" href="orm/index.html"><em>SQLAlchemy ORM</em></a>, <a class="reference internal" href="core/index.html"><em>SQLAlchemy Core</em></a>, and <a class="reference internal" href="dialects/index.html"><em>Dialects</em></a>.</p>
+<p>In <a class="reference internal" href="orm/index.html"><em>SQLAlchemy ORM</em></a>, the Object Relational Mapper is introduced and fully
+described. New users should begin with the <a class="reference internal" href="orm/tutorial.html"><em>Object Relational Tutorial</em></a>. If you
+want to work with higher-level SQL which is constructed automatically for you,
+as well as management of Python objects, proceed to this tutorial.</p>
+<p>In <a class="reference internal" href="core/index.html"><em>SQLAlchemy Core</em></a>, the breadth of SQLAlchemy&#8217;s SQL and database
+integration and description services are documented, the core of which is the
+SQL Expression language.  The SQL Expression Language is a toolkit all its own,
+independent of the ORM package, which can be used to construct manipulable SQL
+expressions which can be programmatically constructed, modified, and executed,
+returning cursor-like result sets.  In contrast to the ORM&#8217;s domain-centric
+mode of usage, the expression language provides a schema-centric usage
+paradigm.  New users should begin here with <a class="reference internal" href="core/tutorial.html"><em>SQL Expression Language Tutorial</em></a>.
+SQLAlchemy engine, connection, and pooling services are also described in
+<a class="reference internal" href="core/index.html"><em>SQLAlchemy Core</em></a>.</p>
+<p>In <a class="reference internal" href="dialects/index.html"><em>Dialects</em></a>, reference documentation for all provided
+database and DBAPI backends is provided.</p>
 </div>
 <div class="section" id="code-examples">
 <h2>Code Examples<a class="headerlink" href="#code-examples" title="Permalink to this headline">¶</a></h2>
-<p>Working code examples are included in the SQLAlchemy distribution, and there are also usage recipes on the SQLAlchemy wiki.   A description of all the included example applications is at <a class="reference internal" href="examples.html"><em>Examples</em></a>.</p>
-</div>
-<div class="section" id="api-reference">
-<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
-<p>An organized section of all SQLAlchemy APIs is at <a class="reference internal" href="reference/index.html"><em>API Reference</em></a>.</p>
+<p>Working code examples, mostly regarding the ORM, are included in the
+SQLAlchemy distribution. A description of all the included example
+applications is at <a class="reference internal" href="orm/examples.html"><em>Examples</em></a>.</p>
+<p>There is also a wide variety of examples involving both core SQLAlchemy
+constructs as well as the ORM on the wiki.  See
+<a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/UsageRecipes">http://www.sqlalchemy.org/trac/wiki/UsageRecipes</a>.</p>
 </div>
 <div class="section" id="installing-sqlalchemy">
 <h2>Installing SQLAlchemy<a class="headerlink" href="#installing-sqlalchemy" title="Permalink to this headline">¶</a></h2>
-<p>Installing SQLAlchemy from scratch is most easily achieved with <a class="reference external" href="http://pypi.python.org/pypi/setuptools/">setuptools</a>. Assuming it&#8217;s installed, just run this from the command-line:</p>
+<p>Installing SQLAlchemy from scratch is most easily achieved with <a class="reference external" href="http://pypi.python.org/pypi/setuptools/">setuptools</a>, or alternatively
+<a class="reference external" href="http://pypi.python.org/pypi/pip/">pip</a>. Assuming it&#8217;s installed, just run
+this from the command-line:</p>
 <div class="highlight-none"><div class="highlight"><pre># easy_install SQLAlchemy</pre></div>
 </div>
-<p>This command will download the latest version of SQLAlchemy from the <a class="reference external" href="http://pypi.python.org/pypi/SQLAlchemy">Python Cheese Shop</a> and install it to your system.</p>
-<ul class="simple">
-<li><a class="reference external" href="http://pypi.python.org/pypi/setuptools/">setuptools</a></li>
-<li><a class="reference external" href="http://peak.telecommunity.com/DevCenter/EasyInstall#installation-instructions">install setuptools</a></li>
-<li><a class="reference external" href="http://pypi.python.org/pypi/SQLAlchemy">pypi</a></li>
-</ul>
+<p>Or with pip:</p>
+<div class="highlight-none"><div class="highlight"><pre># pip install SQLAlchemy</pre></div>
+</div>
+<p>This command will download the latest version of SQLAlchemy from the <a class="reference external" href="http://pypi.python.org/pypi/SQLAlchemy">Python
+Cheese Shop</a> and install it to your
+system.</p>
 <p>Otherwise, you can install from the distribution using the <tt class="docutils literal"><span class="pre">setup.py</span></tt> script:</p>
 <div class="highlight-none"><div class="highlight"><pre># python setup.py install</pre></div>
 </div>
 </div>
 <div class="section" id="installing-a-database-api">
 <h2>Installing a Database API<a class="headerlink" href="#installing-a-database-api" title="Permalink to this headline">¶</a></h2>
-<p>SQLAlchemy is designed to operate with a <a class="reference external" href="http://www.python.org/doc/peps/pep-0249/">DB-API</a> implementation built for a particular database, and includes support for the most popular databases.  The current list is at <a class="reference internal" href="dbengine.html#supported-dbapis"><em>Supported Databases</em></a>.</p>
+<p>SQLAlchemy is designed to operate with a <a class="reference external" href="http://www.python.org/doc/peps/pep-0249/">DB-API</a> implementation built for a particular database, and includes support for the most popular databases.  The current list is at <a class="reference internal" href="core/engines.html#supported-dbapis"><em>Supported Databases</em></a>.</p>
 </div>
 <div class="section" id="checking-the-installed-sqlalchemy-version">
 <h2>Checking the Installed SQLAlchemy Version<a class="headerlink" href="#checking-the-installed-sqlalchemy-version" title="Permalink to this headline">¶</a></h2>
@@ -183,12 +184,12 @@
         Previous:
         <a href="index.html" title="previous chapter">Table of Contents</a>
         Next:
-        <a href="ormtutorial.html" title="next chapter">Object Relational Tutorial</a>
+        <a href="orm/index.html" title="next chapter">SQLAlchemy ORM</a>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
+                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>
         
