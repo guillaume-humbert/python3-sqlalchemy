@@ -1,4 +1,4 @@
-sqlalchemy (0.6.4-1) unstable; urgency=low
+sqlalchemy (0.6.4-1) experimental; urgency=low
 
   * New upstream release
 
