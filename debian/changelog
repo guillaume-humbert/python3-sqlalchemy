@@ -1,3 +1,10 @@
+sqlalchemy (0.6.4-2) experimental; urgency=low
+
+  * Rebuild against newer python3-all package (python3.1 now uses
+    /usr/lib/python3/), minimum python3-all version bumped to 3.1.2-8
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 12 Sep 2010 17:49:47 +0200
+
 sqlalchemy (0.6.4-1) experimental; urgency=low
 
   * New upstream release
