@@ -1,3 +1,10 @@
+sqlalchemy (0.6.3-3) unstable; urgency=low
+
+  * Rebuild against newer python3-all package (python3.1 now uses
+    /usr/lib/python3/), minimum python3-all version bumped to 3.1.2-8
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 26 Sep 2010 21:32:39 +0200
+
 sqlalchemy (0.6.3-2) unstable; urgency=low
 
   * Use ${python3:Depends} in python3-sqlalchemy package (closes: 591954)
