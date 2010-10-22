@@ -1,3 +1,11 @@
+sqlalchemy (0.6.4-3) experimental; urgency=low
+
+  * Rebuild to get python2.7 extension
+  * Update debian/rules to skip extension handling for all 3.X Python versions
+    (closes: 601013)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Fri, 22 Oct 2010 15:44:25 +0200
+
 sqlalchemy (0.6.4-2) experimental; urgency=low
 
   * Rebuild against newer python3-all package (python3.1 now uses
