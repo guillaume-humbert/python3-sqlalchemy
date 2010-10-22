@@ -58,6 +58,12 @@ install-docs: build-docs
 	touch $@
 
 install: build $(PYVERS:%=install-python%) $(PY3VERS:%=install-python%)
+
+install-python3.%:
+	# no extension for 3.X yet...
+	python3.$* ./setup.py install $(py_setup_install_args) \
+		--root $(call pkgdir,3.X)
+
 install-python%: build
 	python$* ./setup.py install --skip-build \
 		--root $(call pkgdir,$*) $(py_setup_install_args)
@@ -67,11 +73,6 @@ install-python%: build
 	   $(call pkgdir,$*)-ext$(call py_libdir,$*)/sqlalchemy/
 	touch $@
 	
-install-python3.1:
-	# no extension for 3.1 yet...
-	python3.1 ./setup.py install $(py_setup_install_args) \
-		--root $(call pkgdir,3.1)
-
 install-python2.5: build-python2.5
 	# WTF? Why setuptools doesn't work with --skip-build in Python 2.5?
 	python2.5 ./setup.py install \
