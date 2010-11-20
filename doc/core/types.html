@@ -7,7 +7,7 @@
         
         <title>
     Column and Data Types
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Event Interfaces" href="interfaces.html" />
         <link rel="prev" title="Schema Definition Language" href="schema.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -107,7 +107,7 @@
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.types">
-<span id="column-and-data-types"></span><span id="types"></span><h1>Column and Data Types<a class="headerlink" href="#module-sqlalchemy.types" title="Permalink to this headline">¶</a></h1>
+<span id="column-and-data-types"></span><span id="types-toplevel"></span><h1>Column and Data Types<a class="headerlink" href="#module-sqlalchemy.types" title="Permalink to this headline">¶</a></h1>
 <p>SQLAlchemy provides abstractions for most common database data types,
 and a mechanism for specifying your own custom data types.</p>
 <p>The methods and attributes of type objects are rarely used directly.
@@ -1076,9 +1076,9 @@ is recommended as a helper.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.load_dialect_impl">
 <tt class="descname">load_dialect_impl</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads the dialect-specific implementation of this type.</p>
-<p>by default calls dialect.type_descriptor(self.impl), but
-can be overridden to provide different behavior.</p>
+<dd><p>User hook which can be overridden to provide a different &#8216;impl&#8217;
+type per-dialect.</p>
+<p>by default returns self.impl.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1099,7 +1099,8 @@ can be overridden to provide different behavior.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.type_engine">
 <tt class="descname">type_engine</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.type_engine" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return a TypeEngine instance for this TypeDecorator.</p>
+</dd></dl>
 
 </dd></dl>
 

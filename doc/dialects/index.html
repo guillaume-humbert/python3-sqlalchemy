@@ -7,7 +7,7 @@
         
         <title>
     Dialects
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="next" title="Firebird" href="firebird.html" />
         <link rel="prev" title="Expression Serializer Extension" href="../core/serializer.html" />
     
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -82,18 +82,6 @@
  
                 </h2>
             </div>
-                <ul>
-<li><a class="reference internal" href="#">Dialects</a><ul>
-<li><a class="reference internal" href="#supported-databases">Supported Databases</a><ul>
-</ul>
-</li>
-<li><a class="reference internal" href="#unsupported-databases">Unsupported Databases</a><ul>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
             <div class="clearboth"></div>
         </div>
         
@@ -102,16 +90,19 @@
                 
 <div class="section" id="dialects">
 <span id="dialect-toplevel"></span><h1>Dialects<a class="headerlink" href="#dialects" title="Permalink to this headline">¶</a></h1>
-<p>The <em>dialect</em> is the system SQLAlchemy uses to communicate with various types of DBAPIs and databases.
-A compatibility chart of supported backends can be found at <a class="reference internal" href="../core/engines.html#supported-dbapis"><em>Supported Databases</em></a>.</p>
-<p>This section contains all notes and documentation specific to the usage of various backends.</p>
-<div class="section" id="supported-databases">
-<h2>Supported Databases<a class="headerlink" href="#supported-databases" title="Permalink to this headline">¶</a></h2>
-<p>These backends are fully operational with
-current versions of SQLAlchemy.</p>
+<p>The <strong>dialect</strong> is the system SQLAlchemy uses to communicate with various types of DBAPIs and databases.
+A compatibility chart of supported backends can be found at <a class="reference internal" href="../core/engines.html#supported-dbapis"><em>Supported Databases</em></a>.  The sections that
+follow contain reference documentation and notes specific to the usage of each backend, as well as notes
+for the various DBAPIs.</p>
+<p>Note that not all backends are fully ported and tested with
+current versions of SQLAlchemy. The compatibility chart
+should be consulted to check for current support level.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="firebird.html">Firebird</a></li>
+<li class="toctree-l1"><a class="reference internal" href="informix.html">Informix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="maxdb.html">MaxDB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="access.html">Microsoft Access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mssql.html">Microsoft SQL Server</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mysql.html">MySQL</a></li>
 <li class="toctree-l1"><a class="reference internal" href="oracle.html">Oracle</a></li>
@@ -119,19 +110,6 @@ current versions of SQLAlchemy.</p>
 <li class="toctree-l1"><a class="reference internal" href="sqlite.html">SQLite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sybase.html">Sybase</a></li>
 </ul>
-</div>
-</div>
-<div class="section" id="unsupported-databases">
-<h2>Unsupported Databases<a class="headerlink" href="#unsupported-databases" title="Permalink to this headline">¶</a></h2>
-<p>These backends are untested and may not be completely
-ported to current versions of SQLAlchemy.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="access.html">Microsoft Access</a></li>
-<li class="toctree-l1"><a class="reference internal" href="informix.html">Informix</a></li>
-<li class="toctree-l1"><a class="reference internal" href="maxdb.html">MaxDB</a></li>
-</ul>
-</div>
 </div>
 </div>
 

@@ -7,7 +7,7 @@
         
         <title>
     Working with Engines and Connections
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Connection Pooling" href="pooling.html" />
         <link rel="prev" title="Engine Configuration" href="engines.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -181,12 +181,6 @@ ultimately close out the cursor as well as trigger a return of the pooled
 DBAPI connection resource to the pool (SQLAlchemy achieves this by the usage
 of weakref callbacks - <em>never</em> the <tt class="docutils literal"><span class="pre">__del__</span></tt> method) - however it&#8217;s never a
 good idea to rely upon Python garbage collection to manage resources.</p>
-<p>We have just summarized two of three usage patterns that are possible
-with the <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.   When the <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object is used
-explicitly, it&#8217;s referred to as <strong>explicit execution</strong>.   When the
-<a class="reference internal" href="#sqlalchemy.engine.base.Engine.execute" title="sqlalchemy.engine.base.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method of <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is used, this
-pattern is referred to as <strong>explicit, connectionless execution</strong>.  The
-third pattern is known as <strong>implicit execution</strong> and is described later.</p>
 <p>Our example above illustrated the execution of a textual SQL string.
 The <a class="reference internal" href="#sqlalchemy.engine.base.Connection.execute" title="sqlalchemy.engine.base.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method can of course accommodate more than
 that, including the variety of SQL expression constructs described
@@ -209,10 +203,7 @@ from the connection pool. In this state, the connection pool has no affect
 upon the connection, including its expiration or timeout state. For the
 connection pool to properly manage connections, connections should be
 returned to the connection pool (i.e. <tt class="docutils literal"><span class="pre">connection.close()</span></tt>) whenever the
-connection is not in use. If your application has a need for management
-of multiple connections or is otherwise long running (this includes all
-web applications, threaded or not), don&#8217;t hold a single connection open at
-the module level.</p>
+connection is not in use.</p>
 <span class="target" id="index-0"></span><dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>engine</em>, <em>connection=None</em>, <em>close_with_result=False</em>, <em>_branch=False</em>, <em>_execution_options=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.__init__" title="Permalink to this definition">¶</a></dt>
@@ -996,7 +987,8 @@ usage of <a class="reference internal" href="#sqlalchemy.engine.base.Connection"
 refers to the usage of the <tt class="docutils literal"><span class="pre">execute()</span></tt> method on an object which is not a
 <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.  This was illustrated using the <a class="reference internal" href="#sqlalchemy.engine.base.Engine.execute" title="sqlalchemy.engine.base.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method
 of <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
-<p>A third case exists, which is to use the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method of
+<p>In addition to &#8220;connectionless&#8221; execution, it is also possible
+to use the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method of
 any <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> construct, which is a marker for SQL expression objects
 that support execution.   The SQL expression object itself references an
 <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> known as the <strong>bind</strong>, which it uses
@@ -1069,7 +1061,7 @@ connection resources derived from a thread-local variable whenever
 <a class="reference internal" href="#sqlalchemy.engine.base.Engine.execute" title="sqlalchemy.engine.base.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.execute()</span></tt></a> or <a class="reference internal" href="#sqlalchemy.engine.base.Engine.contextual_connect" title="sqlalchemy.engine.base.Engine.contextual_connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.contextual_connect()</span></tt></a> is called. This
 connection resource is maintained as long as it is referenced, which allows
 multiple points of an application to share a transaction while using
-connectionless, explicit execution:</p>
+connectionless execution:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">call_operation1</span><span class="p">():</span>
     <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;insert into users values (?, ?)&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;john&quot;</span><span class="p">)</span>
 

@@ -7,7 +7,7 @@
         
         <title>
     Using the Session
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Querying" href="query.html" />
         <link rel="prev" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -93,7 +93,10 @@
 <li><a class="reference internal" href="#frequently-asked-questions">Frequently Asked Questions</a></li>
 <li><a class="reference internal" href="#querying">Querying</a></li>
 <li><a class="reference internal" href="#adding-new-or-existing-items">Adding New or Existing Items</a></li>
-<li><a class="reference internal" href="#merging">Merging</a></li>
+<li><a class="reference internal" href="#merging">Merging</a><ul>
+<li><a class="reference internal" href="#merge-tips">Merge Tips</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#deleting">Deleting</a><ul>
 <li><a class="reference internal" href="#deleting-based-on-filter-criterion">Deleting based on Filter Criterion</a></li>
 </ul>
@@ -451,7 +454,7 @@ the <tt class="docutils literal"><span class="pre">save-update</span></tt> casca
 <a class="reference internal" href="#unitofwork-cascades"><em>Cascades</em></a>.</p>
 </div>
 <div class="section" id="merging">
-<h3>Merging<a class="headerlink" href="#merging" title="Permalink to this headline">¶</a></h3>
+<span id="unitofwork-merging"></span><h3>Merging<a class="headerlink" href="#merging" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-func docutils literal"><span class="pre">merge()</span></tt></a> reconciles the current state of
 an instance and its associated children with existing data in the database,
 and returns a copy of the instance associated with the session. Usage is as
@@ -459,7 +462,6 @@ follows:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">merged_object</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">existing_object</span><span class="p">)</span></pre></div>
 </div>
 <p>When given an instance, it follows these steps:</p>
-<blockquote>
 <ul class="simple">
 <li>It examines the primary key of the instance. If it&#8217;s present, it attempts
 to load an instance with that primary key (or pulls from the local
@@ -473,30 +475,30 @@ cascade. Note that all changes present on the given instance, including
 changes to collections, are merged.</li>
 <li>The new instance is returned.</li>
 </ul>
-</blockquote>
 <p>With <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-func docutils literal"><span class="pre">merge()</span></tt></a>, the given instance is not
 placed within the session, and can be associated with a different session or
 detached. <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-func docutils literal"><span class="pre">merge()</span></tt></a> is very useful for
 taking the state of any kind of object structure without regard for its
 origins or current session associations and placing that state within a
 session. Here&#8217;s two examples:</p>
-<blockquote>
 <ul class="simple">
 <li>An application which reads an object structure from a file and wishes to
-save it to the database might parse the file, build up the structure, and
-then use <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-func docutils literal"><span class="pre">merge()</span></tt></a> to save it to the
-database, ensuring that the data within the file is used to formulate the
-primary key of each element of the structure. Later, when the file has
-changed, the same process can be re-run, producing a slightly different
-object structure, which can then be <tt class="docutils literal"><span class="pre">merged</span></tt> in again, and the
-<a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> will automatically update the
-database to reflect those changes.</li>
+save it to the database might parse the file, build up the
+structure, and then use
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-func docutils literal"><span class="pre">merge()</span></tt></a> to save it
+to the database, ensuring that the data within the file is
+used to formulate the primary key of each element of the
+structure. Later, when the file has changed, the same
+process can be re-run, producing a slightly different
+object structure, which can then be <tt class="docutils literal"><span class="pre">merged</span></tt> in again,
+and the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> will
+automatically update the database to reflect those
+changes.</li>
 <li>A web application stores mapped entities within an HTTP session object.
-When each request starts up, the serialized data can be merged into the
-session, so that the original entity may be safely shared among requests
-and threads.</li>
+When each request starts up, the serialized data can be
+merged into the session, so that the original entity may
+be safely shared among requests and threads.</li>
 </ul>
-</blockquote>
 <p><a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-func docutils literal"><span class="pre">merge()</span></tt></a> is frequently used by
 applications which implement their own second level caches. This refers to an
 application which uses an in memory dictionary, or an tool like Memcached to
@@ -511,6 +513,117 @@ thereby reducing query overhead. The limitation is that the given object and
 all of its children may not contain any pending changes, and it&#8217;s also of
 course possible that newer information in the database will not be present on
 the merged object, since no load is issued.</p>
+<div class="section" id="merge-tips">
+<h4>Merge Tips<a class="headerlink" href="#merge-tips" title="Permalink to this headline">¶</a></h4>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">merge()</span></tt></a> is an extremely useful method for many purposes.  However,
+it deals with the intricate border between objects that are transient/detached and
+those that are persistent, as well as the automated transferrence of state.
+The wide variety of scenarios that can present themselves here often require a
+more careful approach to the state of objects.   Common problems with merge usually involve
+some unexpected state regarding the object being passed to <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">merge()</span></tt></a>.</p>
+<p>Lets use the canonical example of the User and Address objects:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;user&quot;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;address&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">email_address</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></pre></div>
+</div>
+<p>Assume a <tt class="docutils literal"><span class="pre">User</span></tt> object with one <tt class="docutils literal"><span class="pre">Address</span></tt>, already persistent:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">u1</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="n">addresses</span><span class="o">=</span><span class="p">[</span><span class="n">Address</span><span class="p">(</span><span class="n">email_address</span><span class="o">=</span><span class="s">&#39;ed@ed.com&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">u1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></pre></div>
+</div>
+<p>We now create <tt class="docutils literal"><span class="pre">a1</span></tt>, an object outside the session, which we&#8217;d like
+to merge on top of the existing <tt class="docutils literal"><span class="pre">Address</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">existing_a1</span> <span class="o">=</span> <span class="n">u1</span><span class="o">.</span><span class="n">addresses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="o">=</span> <span class="n">Address</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">existing_a1</span><span class="o">.</span><span class="n">id</span><span class="p">)</span></pre></div>
+</div>
+<p>A surprise would occur if we said this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">u1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="go">sqlalchemy.orm.exc.FlushError: New instance &lt;Address at 0x1298f50&gt;</span>
+<span class="go">with identity key (&lt;class &#39;__main__.Address&#39;&gt;, (1,)) conflicts with</span>
+<span class="go">persistent instance &lt;Address at 0x12a25d0&gt;</span></pre></div>
+</div>
+<p>Why is that ?   We weren&#8217;t careful with our cascades.   The assignment
+of <tt class="docutils literal"><span class="pre">a1.user</span></tt> to a persistent object cascaded to the backref of <tt class="docutils literal"><span class="pre">User.addresses</span></tt>
+and made our <tt class="docutils literal"><span class="pre">a1</span></tt> object pending, as though we had added it.   Now we have
+<em>two</em> <tt class="docutils literal"><span class="pre">Address</span></tt> objects in the session:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="o">=</span> <span class="n">Address</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">u1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="ow">in</span> <span class="n">session</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">existing_a1</span> <span class="ow">in</span> <span class="n">session</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="ow">is</span> <span class="n">existing_a1</span>
+<span class="go">False</span></pre></div>
+</div>
+<p>Above, our <tt class="docutils literal"><span class="pre">a1</span></tt> is already pending in the session. The
+subsequent <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">merge()</span></tt></a> operation essentially
+does nothing. Cascade can be configured via the <tt class="docutils literal"><span class="pre">cascade</span></tt>
+option on <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, although in this case it
+would mean removing the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade from the
+<tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship - and usually, that behavior
+is extremely convenient.  The solution here would usually be to not assign
+<tt class="docutils literal"><span class="pre">a1.user</span></tt> to an object already persistent in the target
+session.</p>
+<p>Note that a new <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> option introduced in 0.6.5,
+<tt class="docutils literal"><span class="pre">cascade_backrefs=False</span></tt>, will also prevent the <tt class="docutils literal"><span class="pre">Address</span></tt> from
+being added to the session via the <tt class="docutils literal"><span class="pre">a1.user</span> <span class="pre">=</span> <span class="pre">u1</span></tt> assignment.</p>
+<p>Further detail on cascade operation is at <a class="reference internal" href="#unitofwork-cascades"><em>Cascades</em></a>.</p>
+<p>Another example of unexpected state:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="o">=</span> <span class="n">Address</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">existing_a1</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="n">u1</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">a1</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="go">sqlalchemy.exc.IntegrityError: (IntegrityError) address.user_id</span>
+<span class="go">may not be NULL</span></pre></div>
+</div>
+<p>Here, we accessed a1.user, which returned its default value
+of <tt class="xref docutils literal"><span class="pre">None</span></tt>, which as a result of this access, has been placed in the <tt class="docutils literal"><span class="pre">__dict__</span></tt> of
+our object <tt class="docutils literal"><span class="pre">a1</span></tt>.  Normally, this operation creates no change event,
+so the <tt class="docutils literal"><span class="pre">user_id</span></tt> attribute takes precedence during a
+flush.  But when we merge the <tt class="docutils literal"><span class="pre">Address</span></tt> object into the session, the operation
+is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">existing_a1</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">existing_a1</span><span class="o">.</span><span class="n">id</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">existing_a1</span><span class="o">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">u1</span><span class="o">.</span><span class="n">id</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">existing_a1</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="bp">None</span></pre></div>
+</div>
+<p>Where above, both <tt class="docutils literal"><span class="pre">user_id</span></tt> and <tt class="docutils literal"><span class="pre">user</span></tt> are assigned to, and change events
+are emitted for both.  The <tt class="docutils literal"><span class="pre">user</span></tt> association
+takes precedence, and None is applied to <tt class="docutils literal"><span class="pre">user_id</span></tt>, causing a failure.</p>
+<p>Most <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">merge()</span></tt></a> issues can be examined by first checking -
+is the object prematurely in the session ?</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a1</span> <span class="o">=</span> <span class="n">Address</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">existing_a1</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">assert</span> <span class="n">a1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">session</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a1</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span></pre></div>
+</div>
+<p>Or is there state on the object that we don&#8217;t want ?   Examining <tt class="docutils literal"><span class="pre">__dict__</span></tt>
+is a quick way to check:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="o">=</span> <span class="n">Address</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">existing_a1</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span><span class="o">.</span><span class="n">user</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span><span class="o">.</span><span class="n">__dict__</span>
+<span class="go">{&#39;_sa_instance_state&#39;: &lt;sqlalchemy.orm.state.InstanceState object at 0x1298d10&gt;,</span>
+<span class="go">    &#39;user_id&#39;: 1,</span>
+<span class="go">    &#39;id&#39;: 1,</span>
+<span class="go">    &#39;user&#39;: None}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># we don&#39;t want user=None merged, remove it</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">a1</span><span class="o">.</span><span class="n">user</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># success</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="deleting">
 <h3>Deleting<a class="headerlink" href="#deleting" title="Permalink to this headline">¶</a></h3>
@@ -798,7 +911,7 @@ relationship between an <tt class="docutils literal"><span class="pre">Order</sp
 <p>The <tt class="docutils literal"><span class="pre">customer</span></tt> relationship specifies only the &#8220;save-update&#8221; cascade value,
 indicating most operations will not be cascaded from a parent <tt class="docutils literal"><span class="pre">Order</span></tt>
 instance to a child <tt class="docutils literal"><span class="pre">User</span></tt> instance except for the
-<a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-func docutils literal"><span class="pre">add()</span></tt></a> operation. &#8220;save-update&#8221; cascade
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-func docutils literal"><span class="pre">add()</span></tt></a> operation. <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade
 indicates that an <a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-func docutils literal"><span class="pre">add()</span></tt></a> on the parent
 will cascade to all child items, and also that items added to a parent which
 is already present in a session will also be added to that same session.
@@ -818,6 +931,40 @@ specify the <tt class="docutils literal"><span class="pre">single_parent=True</s
 objects to allow attachment to only one parent at a time.</p>
 <p>The default value for <tt class="docutils literal"><span class="pre">cascade</span></tt> on <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> is
 <tt class="docutils literal"><span class="pre">save-update,</span> <span class="pre">merge</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">save-update</span></tt> cascade also takes place on backrefs by default.   This means
+that, given a mapping such as this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Order</span><span class="p">,</span> <span class="n">order_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+    <span class="s">&#39;items&#39;</span> <span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Item</span><span class="p">,</span> <span class="n">items_table</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;order&#39;</span><span class="p">)</span>
+<span class="p">})</span></pre></div>
+</div>
+<p>If an <tt class="docutils literal"><span class="pre">Order</span></tt> is already in the session, and is assigned to the <tt class="docutils literal"><span class="pre">order</span></tt>
+attribute of an <tt class="docutils literal"><span class="pre">Item</span></tt>, the backref appends the <tt class="docutils literal"><span class="pre">Item</span></tt> to the <tt class="docutils literal"><span class="pre">orders</span></tt>
+collection of that <tt class="docutils literal"><span class="pre">Order</span></tt>, resulting in the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade taking
+place:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">o1</span> <span class="o">=</span> <span class="n">Order</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">o1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">o1</span> <span class="ow">in</span> <span class="n">session</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span> <span class="o">=</span> <span class="n">Item</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="n">o1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span> <span class="ow">in</span> <span class="n">o1</span><span class="o">.</span><span class="n">orders</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span> <span class="ow">in</span> <span class="n">session</span>
+<span class="go">True</span></pre></div>
+</div>
+<p>This behavior can be disabled as of 0.6.5 using the <tt class="docutils literal"><span class="pre">cascade_backrefs</span></tt> flag:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Order</span><span class="p">,</span> <span class="n">order_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+    <span class="s">&#39;items&#39;</span> <span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Item</span><span class="p">,</span> <span class="n">items_table</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;order&#39;</span><span class="p">,</span>
+                                <span class="n">cascade_backrefs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">})</span></pre></div>
+</div>
+<p>So above, the assignment of <tt class="docutils literal"><span class="pre">i1.order</span> <span class="pre">=</span> <span class="pre">o1</span></tt> will append <tt class="docutils literal"><span class="pre">i1</span></tt> to the <tt class="docutils literal"><span class="pre">orders</span></tt>
+collection of <tt class="docutils literal"><span class="pre">o1</span></tt>, but will not add <tt class="docutils literal"><span class="pre">i1</span></tt> to the session.   You can of
+course <a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-func docutils literal"><span class="pre">add()</span></tt></a> <tt class="docutils literal"><span class="pre">i1</span></tt> to the session at a later point.   This option
+may be helpful for situations where an object needs to be kept out of a
+session until it&#8217;s construction is completed, but still needs to be given
+associations to objects which are already persistent in the target session.</p>
 </div>
 <div class="section" id="managing-transactions">
 <span id="unitofwork-transaction"></span><h2>Managing Transactions<a class="headerlink" href="#managing-transactions" title="Permalink to this headline">¶</a></h2>
@@ -1133,7 +1280,7 @@ proceed relative to a particular <tt class="docutils literal"><span class="pre">
 dictionary for the direct <tt class="docutils literal"><span class="pre">Mapper</span></tt> instance as well as the mapper&#8217;s
 <tt class="docutils literal"><span class="pre">mapped_table</span></tt> attribute in order to locate an connectable to use.
 The full resolution is described in the <tt class="docutils literal"><span class="pre">get_bind()</span></tt> method of
-<tt class="docutils literal"><span class="pre">Session</span></tt>. Usage looks like:<div class="last highlight-python"><div class="highlight"><pre><span class="n">sess</span> <span class="o">=</span> <span class="n">Session</span><span class="p">(</span><span class="n">binds</span><span class="o">=</span><span class="p">{</span>
+<tt class="docutils literal"><span class="pre">Session</span></tt>. Usage looks like:<div class="last highlight-python"><div class="highlight"><pre><span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">binds</span><span class="o">=</span><span class="p">{</span>
     <span class="n">SomeMappedClass</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://engine1&#39;</span><span class="p">),</span>
     <span class="n">somemapper</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://engine2&#39;</span><span class="p">),</span>
     <span class="n">some_table</span><span class="p">:</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://engine3&#39;</span><span class="p">),</span>
@@ -1141,7 +1288,7 @@ The full resolution is described in the <tt class="docutils literal"><span class
 </div>
 </dd>
 </dl>
-<p>Also see the <tt class="docutils literal"><span class="pre">bind_mapper()</span></tt> and <tt class="docutils literal"><span class="pre">bind_table()</span></tt> methods.</p>
+<p>Also see the <a class="reference internal" href="#sqlalchemy.orm.session.Session.bind_mapper" title="sqlalchemy.orm.session.Session.bind_mapper"><tt class="xref py py-meth docutils literal"><span class="pre">Session.bind_mapper()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.orm.session.Session.bind_table" title="sqlalchemy.orm.session.Session.bind_table"><tt class="xref py py-meth docutils literal"><span class="pre">Session.bind_table()</span></tt></a> methods.</p>
 </li>
 <li><strong>class_</strong> &#8211; Specify an alternate class other than
 <tt class="docutils literal"><span class="pre">sqlalchemy.orm.session.Session</span></tt> which should be used by the returned
@@ -1167,8 +1314,9 @@ placed within these hooks using a user-defined subclass of
 <li><strong>query_cls</strong> &#8211; Class which should be used to create new Query objects,
 as returned by the <tt class="docutils literal"><span class="pre">query()</span></tt> method. Defaults to
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</li>
-<li><strong>twophase</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, all transactions will be started using
-<tt class="xref py py-mod docutils literal"><span class="pre">engine_TwoPhaseTransaction</span></tt>. During a <tt class="docutils literal"><span class="pre">commit()</span></tt>,
+<li><strong>twophase</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, all transactions will be started as
+a &#8220;two phase&#8221; transaction, i.e. using the &#8220;two phase&#8221; semantics
+of the database in use along with an XID.  During a <tt class="docutils literal"><span class="pre">commit()</span></tt>,
 after <tt class="docutils literal"><span class="pre">flush()</span></tt> has been issued for all attached databases, the
 <tt class="docutils literal"><span class="pre">prepare()</span></tt> method on each database&#8217;s <tt class="docutils literal"><span class="pre">TwoPhaseTransaction</span></tt> will
 be called. This allows each database to roll back the entire
@@ -1194,7 +1342,7 @@ using expunge(), clear(), or purge().</li>
 <dt id="sqlalchemy.orm.session.Session">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.session.</tt><tt class="descname">Session</tt><big>(</big><em>bind=None</em>, <em>autoflush=True</em>, <em>expire_on_commit=True</em>, <em>_enable_transaction_accounting=True</em>, <em>autocommit=False</em>, <em>twophase=False</em>, <em>weak_identity_map=True</em>, <em>binds=None</em>, <em>extension=None</em>, <em>query_cls=&lt;class 'sqlalchemy.orm.query.Query'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Manages persistence operations for ORM-mapped objects.</p>
-<p>The Session&#8217;s usage paradigm is described at <a class="reference internal" href="#session-toplevel"><em>Using the Session</em></a>.</p>
+<p>The Session&#8217;s usage paradigm is described at <a class="reference internal" href="#"><em>Using the Session</em></a>.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.session.Session.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>bind=None</em>, <em>autoflush=True</em>, <em>expire_on_commit=True</em>, <em>_enable_transaction_accounting=True</em>, <em>autocommit=False</em>, <em>twophase=False</em>, <em>weak_identity_map=True</em>, <em>binds=None</em>, <em>extension=None</em>, <em>query_cls=&lt;class 'sqlalchemy.orm.query.Query'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.__init__" title="Permalink to this definition">¶</a></dt>
@@ -1303,6 +1451,12 @@ not use any connection resources until they are first needed.</p>
 <dd><p>Flush pending changes and commit the current transaction.</p>
 <p>If no transaction is in progress, this method raises an
 InvalidRequestError.</p>
+<p>By default, the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> also expires all database
+loaded state on all ORM-managed attributes after transaction commit.  
+This so that subsequent operations load the most recent 
+data from the database.   This behavior can be disabled using
+the <tt class="docutils literal"><span class="pre">expire_on_commit=False</span></tt> option to <a class="reference internal" href="#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> or
+the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> constructor.</p>
 <p>If a subtransaction is in effect (which occurs when begin() is called
 multiple times), the subtransaction will be closed, and the next call
 to <tt class="docutils literal"><span class="pre">commit()</span></tt> will operate on the enclosing transaction.</p>
@@ -1533,19 +1687,40 @@ accounting among inter-object relations and can cause invalid results.</dd>
 <dl class="method">
 <dt id="sqlalchemy.orm.session.Session.is_modified">
 <tt class="descname">is_modified</tt><big>(</big><em>instance</em>, <em>include_collections=True</em>, <em>passive=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.is_modified" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True if instance has modified attributes.</p>
+<dd><p>Return <tt class="xref docutils literal"><span class="pre">True</span></tt> if instance has modified attributes.</p>
 <p>This method retrieves a history instance for each instrumented
 attribute on the instance and performs a comparison of the current
-value to its previously committed value.  Note that instances present
-in the &#8216;dirty&#8217; collection may result in a value of <tt class="xref docutils literal"><span class="pre">False</span></tt> when
-tested with this method.</p>
-<p><cite>include_collections</cite> indicates if multivalued collections should be
+value to its previously committed value.</p>
+<p><tt class="docutils literal"><span class="pre">include_collections</span></tt> indicates if multivalued collections should be
 included in the operation.  Setting this to False is a way to detect
 only local-column based properties (i.e. scalar columns or many-to-one
 foreign keys) that would result in an UPDATE for this instance upon
 flush.</p>
-<p>The <cite>passive</cite> flag indicates if unloaded attributes and collections
+<p>The <tt class="docutils literal"><span class="pre">passive</span></tt> flag indicates if unloaded attributes and collections
 should not be loaded in the course of performing this test.</p>
+<p>A few caveats to this method apply:</p>
+<ul>
+<li><p class="first">Instances present in the &#8216;dirty&#8217; collection may result in a value 
+of <tt class="xref docutils literal"><span class="pre">False</span></tt> when tested with this method.  This because while
+the object may have received attribute set events, there may be
+no net changes on its state.</p>
+</li>
+<li><p class="first">Scalar attributes may not have recorded the &#8220;previously&#8221; set
+value when a new value was applied, if the attribute was not loaded,
+or was expired, at the time the new value was received - in these
+cases, the attribute is assumed to have a change, even if there is
+ultimately no net change against its database value. SQLAlchemy in
+most cases does not need the &#8220;old&#8221; value when a set event occurs, so
+it skips the expense of a SQL call if the old value isn&#8217;t present,
+based on the assumption that an UPDATE of the scalar value is
+usually needed, and in those few cases where it isn&#8217;t, is less
+expensive on average than issuing a defensive SELECT.</p>
+<p>The &#8220;old&#8221; value is fetched unconditionally only if the attribute
+container has the &#8220;active_history&#8221; flag set to <tt class="xref docutils literal"><span class="pre">True</span></tt>. This flag
+is set typically for primary key attributes and scalar references
+that are not a simple many-to-one.</p>
+</li>
+</ul>
 </dd></dl>
 
 <dl class="method">
@@ -1559,6 +1734,7 @@ persistent instance. The given instance does not become associated
 with the session.</p>
 <p>This operation cascades to associated instances if the association is
 mapped with <tt class="docutils literal"><span class="pre">cascade=&quot;merge&quot;</span></tt>.</p>
+<p>See <a class="reference internal" href="#unitofwork-merging"><em>Merging</em></a> for a detailed discussion of merging.</p>
 </dd></dl>
 
 <dl class="attribute">

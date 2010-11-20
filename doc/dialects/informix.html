@@ -7,7 +7,7 @@
         
         <title>
     Informix
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="MaxDB" href="maxdb.html" />
-        <link rel="prev" title="Microsoft Access" href="access.html" />
+        <link rel="prev" title="Firebird" href="firebird.html" />
     
 
     </head>
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -73,7 +73,7 @@
                 
 <div class="prevnext">
         Previous:
-        <a href="access.html" title="previous chapter">Microsoft Access</a>
+        <a href="firebird.html" title="previous chapter">Firebird</a>
         Next:
         <a href="maxdb.html" title="next chapter">MaxDB</a>
 </div>
@@ -84,6 +84,16 @@
  
                 </h2>
             </div>
+                <ul>
+<li><a class="reference internal" href="#">Informix</a><ul>
+<li><a class="reference internal" href="#module-sqlalchemy.dialects.informix.informixdb">informixdb Notes</a><ul>
+<li><a class="reference internal" href="#connecting">Connecting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
             <div class="clearboth"></div>
         </div>
         
@@ -93,7 +103,20 @@
 <div class="section" id="module-sqlalchemy.dialects.informix.base">
 <span id="informix"></span><h1>Informix<a class="headerlink" href="#module-sqlalchemy.dialects.informix.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the Informix database.</p>
-<p>This dialect is <em>not</em> tested on SQLAlchemy 0.6.</p>
+<p>This dialect is mostly functional as of SQLAlchemy 0.6.5.</p>
+<div class="section" id="module-sqlalchemy.dialects.informix.informixdb">
+<span id="informixdb-notes"></span><h2>informixdb Notes<a class="headerlink" href="#module-sqlalchemy.dialects.informix.informixdb" title="Permalink to this headline">¶</a></h2>
+<p>Support for the informixdb DBAPI.</p>
+<p>informixdb is available at:</p>
+<blockquote>
+<a class="reference external" href="http://informixdb.sourceforge.net/">http://informixdb.sourceforge.net/</a></blockquote>
+<div class="section" id="connecting">
+<h3>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h3>
+<p>Sample informix connection:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;informix+informixdb://user:password@host/dbname&#39;</span><span class="p">)</span></pre></div>
+</div>
+</div>
+</div>
 </div>
 
             </div>
@@ -105,7 +128,7 @@
                 
 <div class="prevnext">
         Previous:
-        <a href="access.html" title="previous chapter">Microsoft Access</a>
+        <a href="firebird.html" title="previous chapter">Firebird</a>
         Next:
         <a href="maxdb.html" title="next chapter">MaxDB</a>
 </div>

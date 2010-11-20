@@ -7,7 +7,7 @@
         
         <title>
     Schema Definition Language
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Column and Data Types" href="types.html" />
         <link rel="prev" title="Connection Pooling" href="pooling.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -196,7 +196,7 @@ primary key, known as a <em>composite</em> primary key.</p>
 to genericized types, such as <a class="reference internal" href="types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> and
 <a class="reference internal" href="types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>. SQLAlchemy features dozens of types of
 varying levels of specificity as well as the ability to create custom types.
-Documentation on the type system can be found at <a class="reference internal" href="types.html#types"><em>Column and Data Types</em></a>.</p>
+Documentation on the type system can be found at <em class="xref std std-ref">types</em>.</p>
 <div class="section" id="accessing-tables-and-columns">
 <h3>Accessing Tables and Columns<a class="headerlink" href="#accessing-tables-and-columns" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object contains all of the schema
@@ -834,7 +834,7 @@ present in the target database.</li>
 
 <dl class="method">
 <dt id="sqlalchemy.schema.MetaData.reflect">
-<tt class="descname">reflect</tt><big>(</big><em>bind=None</em>, <em>schema=None</em>, <em>only=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData.reflect" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reflect</tt><big>(</big><em>bind=None</em>, <em>schema=None</em>, <em>views=False</em>, <em>only=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData.reflect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load all available table definitions from the database.</p>
 <p>Automatically creates <tt class="docutils literal"><span class="pre">Table</span></tt> entries in this <tt class="docutils literal"><span class="pre">MetaData</span></tt> for any
 table available in the database but not yet present in the
@@ -850,6 +850,7 @@ in this <tt class="docutils literal"><span class="pre">MetaData</span></tt> no l
 database; if None, uses the existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if
 any.</li>
 <li><strong>schema</strong> &#8211; Optional, query and reflect tables from an alterate schema.</li>
+<li><strong>views</strong> &#8211; If True, also reflect views.</li>
 <li><strong>only</strong> &#8211; <p>Optional.  Load only a sub-set of available named tables.  May be
 specified as a sequence of names or a callable.</p>
 <p>If a sequence of names is provided, only those tables will be
@@ -2217,7 +2218,7 @@ so there is limited &#8220;database independent&#8221; behavior. Column level ch
 constraints generally should only refer to the column to which they are
 placed, while table level constraints can refer to any columns in the table.</p>
 <p>Note that some databases do not actively support check constraints such as
-MySQL and SQLite.</p>
+MySQL.</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 <span class="n">mytable</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
 
@@ -2484,9 +2485,8 @@ other DDL elements except it accepts a string which is the text to be emitted:</
     <span class="s">&quot; CHECK (length(user_name) &gt;= 8)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">execute_at</span><span class="p">(</span><span class="s">&quot;after-create&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span></pre></div>
 </div>
 <p>A more comprehensive method of creating libraries of DDL constructs is to use
-custom compilation - see <a class="reference internal" href="compiler.html"><em>Custom SQL Constructs and Compilation Extension</em></a> for</p>
-<blockquote>
-details.</blockquote>
+custom compilation - see <a class="reference internal" href="compiler.html"><em>Custom SQL Constructs and Compilation Extension</em></a> for
+details.</p>
 </div>
 <div class="section" id="ddl-api">
 <span id="schema-api-ddl"></span><h3>DDL API<a class="headerlink" href="#ddl-api" title="Permalink to this headline">¶</a></h3>

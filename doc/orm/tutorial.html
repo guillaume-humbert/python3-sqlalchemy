@@ -7,7 +7,7 @@
         
         <title>
     Object Relational Tutorial
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mapper_config.html" />
         <link rel="prev" title="SQLAlchemy ORM" href="index.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -341,7 +341,7 @@ in the <tt class="xref doc docutils literal"><span class="pre">reference/index</
 <p>At this point, the instance is <strong>pending</strong>; no SQL has yet been issued.  The <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> will issue the SQL to persist <tt class="docutils literal"><span class="pre">Ed</span> <span class="pre">Jones</span></tt> as soon as is needed, using a process known as a <strong>flush</strong>.  If we query the database for <tt class="docutils literal"><span class="pre">Ed</span> <span class="pre">Jones</span></tt>, all pending information will first be flushed, and the query is issued afterwards.</p>
 <p>For example, below we create a new <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object which loads instances of <tt class="docutils literal"><span class="pre">User</span></tt>.  We &#8220;filter by&#8221; the <tt class="docutils literal"><span class="pre">name</span></tt> attribute of <tt class="docutils literal"><span class="pre">ed</span></tt>, and indicate that we&#8217;d like only the first result in the full list of rows.  A <tt class="docutils literal"><span class="pre">User</span></tt> instance is returned which is equivalent to that which we&#8217;ve added:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">our_user</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> 
-<div class='popup_sql'>BEGIN
+<div class='popup_sql'>BEGIN (implicit)
 INSERT INTO users (name, fullname, password) VALUES (?, ?, ?)
 ('ed', 'Ed Jones', 'edspassword')
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
@@ -390,7 +390,7 @@ COMMIT</div></pre></div>
 <p><tt class="docutils literal"><span class="pre">commit()</span></tt> flushes whatever remaining changes remain to the database, and commits the transaction.  The connection resources referenced by the session are now returned to the connection pool.  Subsequent operations with this session will occur in a <strong>new</strong> transaction, which will again re-acquire connection resources when first needed.</p>
 <p>If we look at Ed&#8217;s <tt class="docutils literal"><span class="pre">id</span></tt> attribute, which earlier was <tt class="xref docutils literal"><span class="pre">None</span></tt>, it now has a value:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">ed_user</span><span class="o">.</span><span class="n">id</span> 
-<div class='popup_sql'>BEGIN
+<div class='popup_sql'>BEGIN (implicit)
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.id = ?
@@ -422,7 +422,7 @@ WHERE users.name IN (?, ?)
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 <div class='popup_sql'>ROLLBACK</div>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">ed_user</span><span class="o">.</span><span class="n">name</span> 
-<div class='popup_sql'>BEGIN
+<div class='popup_sql'>BEGIN (implicit)
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.id = ?
@@ -759,7 +759,7 @@ COMMIT</div></pre></div>
 </div>
 <p>Querying for Jack, we get just Jack back.  No SQL is yet issued for Jack&#8217;s addresses:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span> 
-<div class='popup_sql'>BEGIN
+<div class='popup_sql'>BEGIN (implicit)
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.name = ?
@@ -1051,7 +1051,8 @@ WHERE addresses.email_address IN (?, ?)
 <span class="o">&gt;&gt;&gt;</span> <span class="n">clear_mappers</span><span class="p">()</span> <span class="c"># remove all class mappings</span></pre></div>
 </div>
 <p>Below, we use <tt class="docutils literal"><span class="pre">mapper()</span></tt> to reconfigure an ORM mapping for <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt>, on our existing but currently un-mapped classes.  The <tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship now has <tt class="docutils literal"><span class="pre">delete,</span> <span class="pre">delete-orphan</span></tt> cascade on it, which indicates that DELETE operations will cascade to attached <tt class="docutils literal"><span class="pre">Address</span></tt> objects as well as <tt class="docutils literal"><span class="pre">Address</span></tt> objects which are removed from their parent:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>    
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">users_table</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">__table__</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>    
 <span class="o">...</span>     <span class="s">&#39;addresses&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;all, delete, delete-orphan&quot;</span><span class="p">)</span>
 <span class="o">...</span> <span class="p">})</span>
 <span class="o">&lt;</span><span class="n">Mapper</span> <span class="n">at</span> <span class="mi">0</span><span class="n">x</span><span class="o">...</span><span class="p">;</span> <span class="n">User</span><span class="o">&gt;</span>
@@ -1063,7 +1064,7 @@ WHERE addresses.email_address IN (?, ?)
 <p>Now when we load Jack (below using <tt class="docutils literal"><span class="pre">get()</span></tt>, which loads by primary key), removing an address from his <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will result in that <tt class="docutils literal"><span class="pre">Address</span></tt> being deleted:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># load Jack by primary key</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>    
-<div class='popup_sql'>BEGIN
+<div class='popup_sql'>BEGIN (implicit)
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.id = ?
@@ -1246,8 +1247,9 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 <div class="section" id="further-reference">
 <h2>Further Reference<a class="headerlink" href="#further-reference" title="Permalink to this headline">¶</a></h2>
 <p>Query Reference: <a class="reference internal" href="query.html"><em>Querying</em></a></p>
-<p>Further information on mapping setups are in <em class="xref std std-ref">datamapping_toplevel</em>.</p>
-<p>Further information on working with Sessions: <a class="reference internal" href="session.html"><em>Using the Session</em></a>.</p>
+<p>Mapper Reference: <a class="reference internal" href="mapper_config.html"><em>Mapper Configuration</em></a></p>
+<p>Relationship Reference: <a class="reference internal" href="relationships.html"><em>Relationship Configuration</em></a></p>
+<p>Session Reference: <a class="reference internal" href="session.html"><em>Using the Session</em></a>.</p>
 </div>
 </div>
 

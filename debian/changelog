@@ -1,3 +1,11 @@
+sqlalchemy (0.6.5-1) experimental; urgency=low
+
+  * New upstream release
+  * python-sphinx minimum required build version bumped to 1.0
+  * Change source package format to 3.0 (quilt)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sat, 20 Nov 2010 19:09:40 +0100
+
 sqlalchemy (0.6.4-3) experimental; urgency=low
 
   * Rebuild to get python2.7 extension
