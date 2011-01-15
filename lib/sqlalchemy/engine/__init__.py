@@ -1,5 +1,5 @@
 # engine/__init__.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -51,7 +51,7 @@ url.py
 """
 
 # not sure what this was used for
-#import sqlalchemy.databases  
+#import sqlalchemy.databases
 
 from sqlalchemy.engine.base import (
     BufferedColumnResultProxy,
@@ -174,17 +174,26 @@ def create_engine(*args, **kwargs):
     :param execution_options: Dictionary execution options which will
         be applied to all connections.  See
         :meth:`~sqlalchemy.engine.base.Connection.execution_options`
-        
+
+    :param implicit_returning=True: When ``True``, a RETURNING-
+        compatible construct, if available, will be used to
+        fetch newly generated primary key values when a single row
+        INSERT statement is emitted with no existing returning() 
+        clause.  This applies to those backends which support RETURNING 
+        or a compatible construct, including Postgresql, Firebird, Oracle, 
+        Microsoft SQL Server.   Set this to ``False`` to disable
+        the automatic usage of RETURNING.
+
     :param label_length=None: optional integer value which limits
         the size of dynamically generated column labels to that many
         characters. If less than 6, labels are generated as
         "_(counter)". If ``None``, the value of
         ``dialect.max_identifier_length`` is used instead.
-    
+
     :param listeners: A list of one or more 
         :class:`~sqlalchemy.interfaces.PoolListener` objects which will 
         receive connection pool events.
-      
+
     :param logging_name:  String identifier which will be used within
         the "name" field of logging records generated within the
         "sqlalchemy.engine" logger. Defaults to a hexstring of the 
@@ -246,7 +255,7 @@ def create_engine(*args, **kwargs):
     :param strategy='plain': selects alternate engine implementations.
         Currently available is the ``threadlocal``
         strategy, which is described in :ref:`threadlocal_strategy`.
-    
+
     """
 
     strategy = kwargs.pop('strategy', default_strategy)

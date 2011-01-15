@@ -1,3 +1,9 @@
+# sqlite/pysqlite.py
+# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+#
+# This module is part of SQLAlchemy and is released under
+# the MIT License: http://www.opensource.org/licenses/mit-license.php
+
 """Support for the SQLite database via pysqlite.
 
 Note that pysqlite is the same driver as the ``sqlite3``
@@ -30,20 +36,20 @@ The file specification for the SQLite database is taken as the "database" portio
 the URL.  Note that the format of a url is::
 
     driver://user:pass@host/database
-    
+
 This means that the actual filename to be used starts with the characters to the
 **right** of the third slash.   So connecting to a relative filepath looks like::
 
     # relative path
     e = create_engine('sqlite:///path/to/database.db')
-    
+
 An absolute path, which is denoted by starting with a slash, means you need **four**
 slashes::
 
     # absolute path
     e = create_engine('sqlite:////path/to/database.db')
 
-To use a Windows path, regular drive specifications and backslashes can be used.  
+To use a Windows path, regular drive specifications and backslashes can be used.
 Double backslashes are probably needed::
 
     # absolute path on Windows
@@ -104,7 +110,7 @@ To provide a default which accomodates SQLite's default threading capabilities
 somewhat reasonably, the SQLite dialect will specify that the :class:`~sqlalchemy.pool.SingletonThreadPool`
 be used by default.  This pool maintains a single SQLite connection per thread
 that is held open up to a count of five concurrent threads.  When more than five threads
-are used, a cleanup mechanism will dispose of excess unused connections.   
+are used, a cleanup mechanism will dispose of excess unused connections.
 
 Two optional pool implementations that may be appropriate for particular SQLite usage scenarios:
 
@@ -112,7 +118,7 @@ Two optional pool implementations that may be appropriate for particular SQLite 
    application using an in-memory database, assuming the threading issues inherent in 
    pysqlite are somehow accomodated for.  This pool holds persistently onto a single connection
    which is never closed, and is returned for all requests.
-   
+
  * the :class:`sqlalchemy.pool.NullPool` might be appropriate for an application that
    makes use of a file-based sqlite database.  This pool disables any actual "pooling"
    behavior, and simply opens and closes real connections corresonding to the :func:`connect()`
@@ -149,7 +155,7 @@ class _SQLite_pysqliteTimeStamp(DATETIME):
             return None
         else:
             return DATETIME.bind_processor(self, dialect)
-            
+
     def result_processor(self, dialect, coltype):
         if dialect.native_datetime:
             return None
@@ -162,7 +168,7 @@ class _SQLite_pysqliteDate(DATE):
             return None
         else:
             return DATE.bind_processor(self, dialect)
-            
+
     def result_processor(self, dialect, coltype):
         if dialect.native_datetime:
             return None
@@ -180,12 +186,12 @@ class SQLiteDialect_pysqlite(SQLiteDialect):
             sqltypes.TIMESTAMP:_SQLite_pysqliteTimeStamp,
         }
     )
-    
+
     # Py3K
     #description_encoding = None
-    
+
     driver = 'pysqlite'
-    
+
     def __init__(self, **kwargs):
         SQLiteDialect.__init__(self, **kwargs)
 

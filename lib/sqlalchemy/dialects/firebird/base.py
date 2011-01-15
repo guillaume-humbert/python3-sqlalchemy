@@ -1,5 +1,5 @@
-# firebird.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
+# firebird/base.py
+# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -194,7 +194,7 @@ class FBTypeCompiler(compiler.GenericTypeCompiler):
     def visit_VARCHAR(self, type_):
         basic = super(FBTypeCompiler, self).visit_VARCHAR(type_)
         return self._extend_string(type_, basic)
-        
+
 
 
 class FBCompiler(sql.compiler.SQLCompiler):
@@ -564,7 +564,7 @@ class FBDialect(default.DefaultDialect):
                 else:
                     coltype = BLOB()
             else:
-                coltype = coltype(row)
+                coltype = coltype()
 
             # does it have a default value?
             defvalue = None

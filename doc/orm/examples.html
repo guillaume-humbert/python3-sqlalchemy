@@ -7,7 +7,7 @@
         
         <title>
     Examples
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="SQLAlchemy Core" href="../core/index.html" />
         <link rel="prev" title="SqlSoup" href="extensions/sqlsoup.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/orm/examples.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » 
     Examples
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -108,7 +108,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -211,7 +211,7 @@ python examples/beaker_caching/local_session_caching.py</pre>
 manager, data / cache file paths, and configurations, 
 bootstrap fixture data if necessary.</p>
 <p>caching_query.py - Represent functions and classes 
-which allow the usage of Beaker caching with SQLAlchemy.  
+which allow the usage of Beaker caching with SQLAlchemy.
 Introduces a query option called FromCache.</p>
 <p>model.py - The datamodel, which represents Person that has multiple
 Address objects, each with PostalCode, City, Country</p>
@@ -259,7 +259,7 @@ collection without loading the full collection at once.</p>
 <div class="section" id="horizontal-sharding">
 <span id="examples-sharding"></span><h2>Horizontal Sharding<a class="headerlink" href="#horizontal-sharding" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/sharding</p>
-<span class="target" id="module-sharding"></span><p>a basic example of using the SQLAlchemy Sharding API.
+<span class="target" id="module-sharding"></span><p>A basic example of using the SQLAlchemy Sharding API.
 Sharding refers to horizontally scaling data across multiple
 databases.</p>
 <p>The basic components of a &#8220;sharded&#8221; mapping are:</p>
@@ -274,8 +274,17 @@ all shards will be searched.</li>
 Query (&#8220;query_chooser&#8221;).  If it returns all shard ids, all shards will be 
 queried and the results joined together.</li>
 </ul>
-<p>In this example, four sqlite databases will store information about
-weather data on a database-per-continent basis.  We provide example shard_chooser, id_chooser and query_chooser functions.  The query_chooser illustrates inspection of the SQL expression element in order to attempt to determine a single shard being requested.</p>
+<p>In this example, four sqlite databases will store information about weather
+data on a database-per-continent basis. We provide example shard_chooser,
+id_chooser and query_chooser functions. The query_chooser illustrates
+inspection of the SQL expression element in order to attempt to determine a
+single shard being requested.</p>
+<p>The construction of generic sharding routines is an ambitious approach
+to the issue of organizing instances among multiple databases.   For a
+more plain-spoken alternative, the &#8220;distinct entity&#8221; approach 
+is a simple method of assigning objects to different tables (and potentially
+database nodes) in an explicit way - described on the wiki at 
+<a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/UsageRecipes/EntityName">EntityName</a>.</p>
 </div>
 <div class="section" id="inheritance-mappings">
 <h2>Inheritance Mappings<a class="headerlink" href="#inheritance-mappings" title="Permalink to this headline">¶</a></h2>
@@ -361,7 +370,7 @@ be run via nose:</p>
 
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="n">SomeClass</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
-    
+
 <span class="n">sess</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
 <span class="n">sc</span> <span class="o">=</span> <span class="n">SomeClass</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;sc1&#39;</span><span class="p">)</span>
 <span class="n">sess</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>
@@ -410,7 +419,7 @@ plain mappers, the <tt class="docutils literal"><span class="pre">_history_mappe
 <h2>Vertical Attribute Mapping<a class="headerlink" href="#vertical-attribute-mapping" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/vertical</p>
 <span class="target" id="module-vertical"></span><p>Illustrates &#8220;vertical table&#8221; mappings.</p>
-<p>A &#8220;vertical table&#8221; refers to a technique where individual attributes of an object are stored as distinct rows in a table.   
+<p>A &#8220;vertical table&#8221; refers to a technique where individual attributes of an object are stored as distinct rows in a table.
 The &#8220;vertical table&#8221; technique is used to persist objects which can have a varied set of attributes, at the expense of simple query control and brevity.   It is commonly found in content/document management systems in order to represent user-created structures flexibly.</p>
 <p>Two variants on the approach are given.  In the second, each row references a &#8220;datatype&#8221; which contains information about the type of information stored in the attribute, such as integer, string, or date.</p>
 <p>Example:</p>
@@ -481,7 +490,7 @@ the load in a non-recursive fashion and is much more efficient.</li>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

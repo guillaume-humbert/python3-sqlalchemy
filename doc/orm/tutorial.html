@@ -7,7 +7,7 @@
         
         <title>
     Object Relational Tutorial
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mapper_config.html" />
         <link rel="prev" title="SQLAlchemy ORM" href="index.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/orm/tutorial.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » 
     Object Relational Tutorial
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -126,7 +126,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -237,7 +237,12 @@ without being instructed. For that, you use the <a class="reference internal" hr
 </div>
 <div class="section" id="define-a-python-class-to-be-mapped">
 <h2>Define a Python Class to be Mapped<a class="headerlink" href="#define-a-python-class-to-be-mapped" title="Permalink to this headline">¶</a></h2>
-<p>While the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object defines information about our database, it does not say anything about the definition or behavior of the business objects used by our application;  SQLAlchemy views this as a separate concern.  To correspond to our <tt class="docutils literal"><span class="pre">users</span></tt> table, let&#8217;s create a rudimentary <tt class="docutils literal"><span class="pre">User</span></tt> class.  It only need subclass Python&#8217;s built-in <tt class="docutils literal"><span class="pre">object</span></tt> class (i.e. it&#8217;s a new style class):</p>
+<p>While the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object defines information about
+our database, it does not say anything about the definition or behavior of the
+business objects used by our application; SQLAlchemy views this as a separate
+concern. To correspond to our <tt class="docutils literal"><span class="pre">users</span></tt> table, let&#8217;s create a rudimentary
+<tt class="docutils literal"><span class="pre">User</span></tt> class. It only need subclass Python&#8217;s built-in <tt class="docutils literal"><span class="pre">object</span></tt> class (i.e.
+it&#8217;s a new style class):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fullname</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
 <span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
@@ -247,16 +252,23 @@ without being instructed. For that, you use the <a class="reference internal" hr
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="gp">... </span>       <span class="k">return</span> <span class="s">&quot;&lt;User(&#39;</span><span class="si">%s</span><span class="s">&#39;,&#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fullname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">)</span></pre></div>
 </div>
-<p>The class has an <tt class="docutils literal"><span class="pre">__init__()</span></tt> and a <tt class="docutils literal"><span class="pre">__repr__()</span></tt> method for convenience.  These methods are both entirely optional, and can be of any form.  SQLAlchemy never calls <tt class="docutils literal"><span class="pre">__init__()</span></tt> directly.</p>
+<p>The class has an <tt class="docutils literal"><span class="pre">__init__()</span></tt> and a <tt class="docutils literal"><span class="pre">__repr__()</span></tt> method for convenience.
+These methods are both entirely optional, and can be of any form. SQLAlchemy
+never calls <tt class="docutils literal"><span class="pre">__init__()</span></tt> directly.</p>
 </div>
 <div class="section" id="setting-up-the-mapping">
 <h2>Setting up the Mapping<a class="headerlink" href="#setting-up-the-mapping" title="Permalink to this headline">¶</a></h2>
-<p>With our <tt class="docutils literal"><span class="pre">users_table</span></tt> and <tt class="docutils literal"><span class="pre">User</span></tt> class, we now want to map the two together.  That&#8217;s where the SQLAlchemy ORM package comes in.  We&#8217;ll use the <tt class="docutils literal"><span class="pre">mapper</span></tt> function to create a <strong>mapping</strong> between <tt class="docutils literal"><span class="pre">users_table</span></tt> and <tt class="docutils literal"><span class="pre">User</span></tt>:</p>
+<p>With our <tt class="docutils literal"><span class="pre">users_table</span></tt> and <tt class="docutils literal"><span class="pre">User</span></tt> class, we now want to map the two
+together. That&#8217;s where the SQLAlchemy ORM package comes in. We&#8217;ll use the
+<a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> function to create a <strong>mapping</strong> between <tt class="docutils literal"><span class="pre">users_table</span></tt> and
+<tt class="docutils literal"><span class="pre">User</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">mapper</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">)</span> 
 <span class="go">&lt;Mapper at 0x...; User&gt;</span></pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">mapper()</span></tt> function creates a new <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> object and stores it away for future reference, associated with our class.  Let&#8217;s now create and inspect a <tt class="docutils literal"><span class="pre">User</span></tt> object:</p>
+<p>The <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> function creates a new <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a>
+object and stores it away for future reference, associated with our class.
+Let&#8217;s now create and inspect a <tt class="docutils literal"><span class="pre">User</span></tt> object:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ed_user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="s">&#39;edspassword&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ed_user</span><span class="o">.</span><span class="n">name</span>
 <span class="go">&#39;ed&#39;</span>
@@ -265,14 +277,23 @@ without being instructed. For that, you use the <a class="reference internal" hr
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">(</span><span class="n">ed_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 <span class="go">&#39;None&#39;</span></pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">id</span></tt> attribute, which while not defined by our <tt class="docutils literal"><span class="pre">__init__()</span></tt> method, exists due to the <tt class="docutils literal"><span class="pre">id</span></tt> column present within the <tt class="docutils literal"><span class="pre">users_table</span></tt> object.  By default, the <tt class="docutils literal"><span class="pre">mapper</span></tt> creates class attributes for all columns present within the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  These class attributes exist as Python descriptors, and define <strong>instrumentation</strong> for the mapped class.  The functionality of this instrumentation is very rich and includes the ability to track modifications and automatically load new data from the database when needed.</p>
-<p>Since we have not yet told SQLAlchemy to persist <tt class="docutils literal"><span class="pre">Ed</span> <span class="pre">Jones</span></tt> within the database, its id is <tt class="xref docutils literal"><span class="pre">None</span></tt>.  When we persist the object later, this attribute will be populated with a newly generated value.</p>
+<p>The <tt class="docutils literal"><span class="pre">id</span></tt> attribute, which while not defined by our <tt class="docutils literal"><span class="pre">__init__()</span></tt> method,
+exists due to the <tt class="docutils literal"><span class="pre">id</span></tt> column present within the <tt class="docutils literal"><span class="pre">users_table</span></tt> object. By
+default, the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> creates class attributes for all columns present
+within the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>. These class attributes exist as
+Python descriptors, and define <strong>instrumentation</strong> for the mapped class. The
+functionality of this instrumentation is very rich and includes the ability to
+track modifications and automatically load new data from the database when
+needed.</p>
+<p>Since we have not yet told SQLAlchemy to persist <tt class="docutils literal"><span class="pre">Ed</span> <span class="pre">Jones</span></tt> within the
+database, its id is <tt class="xref docutils literal"><span class="pre">None</span></tt>. When we persist the object later, this attribute
+will be populated with a newly generated value.</p>
 </div>
 <div class="section" id="creating-table-class-and-mapper-all-at-once-declaratively">
 <h2>Creating Table, Class and Mapper All at Once Declaratively<a class="headerlink" href="#creating-table-class-and-mapper-all-at-once-declaratively" title="Permalink to this headline">¶</a></h2>
 <p>The preceding approach to configuration involved a
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, a user-defined class, and
-a call to``mapper()``.  This illustrates classical SQLAlchemy usage, which values
+a call to <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>.  This illustrates classical SQLAlchemy usage, which values
 the highest separation of concerns possible.
 A large number of applications don&#8217;t require this degree of
 separation, and for those SQLAlchemy offers an alternate &#8220;shorthand&#8221;
@@ -311,35 +332,66 @@ attribute name.</p>
 <p>The owning <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object is available as well:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span></pre></div>
 </div>
-<p>Full documentation for <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> can be found
-in the <tt class="xref doc docutils literal"><span class="pre">reference/index</span></tt> section for <tt class="xref doc docutils literal"><span class="pre">reference/ext/declarative</span></tt>.</p>
-<p>Yet another &#8220;declarative&#8221; method is available for SQLAlchemy as a third party library called <a class="reference external" href="http://elixir.ematia.de/">Elixir</a>.  This is a full-featured configurational product which also includes many higher level mapping configurations built in.  Like declarative, once classes and mappings are defined, ORM usage is the same as with a classical SQLAlchemy configuration.</p>
+<p><a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> is covered at <a class="reference internal" href="extensions/declarative.html"><em>Declarative</em></a>
+as well as throughout <a class="reference internal" href="mapper_config.html"><em>Mapper Configuration</em></a>.</p>
+<p>Yet another &#8220;declarative&#8221; method is available for SQLAlchemy as a third party
+library called <a class="reference external" href="http://elixir.ematia.de/">Elixir</a>. This is a full-featured
+configurational product which also includes many higher level mapping
+configurations built in. Like declarative, once classes and mappings are
+defined, ORM usage is the same as with a classical SQLAlchemy configuration.</p>
 </div>
 <div class="section" id="creating-a-session">
 <h2>Creating a Session<a class="headerlink" href="#creating-a-session" title="Permalink to this headline">¶</a></h2>
-<p>We&#8217;re now ready to start talking to the database.  The ORM&#8217;s &#8220;handle&#8221; to the database is the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.  When we first set up the application, at the same level as our <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> statement, we define a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> class which will serve as a factory for new <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> objects:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span></pre></div>
+<p>We&#8217;re now ready to start talking to the database. The ORM&#8217;s &#8220;handle&#8221; to the
+database is the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>. When we first set up
+the application, at the same level as our <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>
+statement, we define a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> class which
+will serve as a factory for new <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+objects:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span></pre></div>
 </div>
-<p>In the case where your application does not yet have an <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> when you define your module-level objects, just set it up like this:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">()</span></pre></div>
+<p>In the case where your application does not yet have an
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> when you define your module-level
+objects, just set it up like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">()</span></pre></div>
 </div>
-<p>Later, when you create your engine with <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>, connect it to the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> using <tt class="docutils literal"><span class="pre">configure()</span></tt>:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">Session</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>  <span class="c"># once engine is available</span></pre></div>
+<p>Later, when you create your engine with <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>,
+connect it to the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> using
+<tt class="xref py py-meth docutils literal"><span class="pre">configure()</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Session</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>  <span class="c"># once engine is available</span></pre></div>
 </div>
-<p>This custom-made <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> class will create new <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> objects which are bound to our database.  Other transactional characteristics may be defined when calling <tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt> as well; these are described in a later chapter.  Then, whenever you need to have a conversation with the database, you instantiate a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>:</p>
+<p>This custom-made <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> class will create
+new <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> objects which are bound to our
+database. Other transactional characteristics may be defined when calling
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> as well; these are described in a later
+chapter. Then, whenever you need to have a conversation with the database, you
+instantiate a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span></pre></div>
 </div>
-<p>The above <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is associated with our SQLite <tt class="docutils literal"><span class="pre">engine</span></tt>, but it hasn&#8217;t opened any connections yet.  When it&#8217;s first used, it retrieves a connection from a pool of connections maintained by the <tt class="docutils literal"><span class="pre">engine</span></tt>, and holds onto it until we commit all changes and/or close the session object.</p>
+<p>The above <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is associated with our
+SQLite-enabled <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, but it hasn&#8217;t opened any connections yet. When it&#8217;s first
+used, it retrieves a connection from a pool of connections maintained by the
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, and holds onto it until we commit all changes and/or close the
+session object.</p>
 </div>
 <div class="section" id="adding-new-objects">
 <h2>Adding new Objects<a class="headerlink" href="#adding-new-objects" title="Permalink to this headline">¶</a></h2>
-<p>To persist our <tt class="docutils literal"><span class="pre">User</span></tt> object, we <tt class="docutils literal"><span class="pre">add()</span></tt> it to our <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>:</p>
+<p>To persist our <tt class="docutils literal"><span class="pre">User</span></tt> object, we <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">add()</span></tt></a> it to our <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ed_user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="s">&#39;edspassword&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ed_user</span><span class="p">)</span></pre></div>
 </div>
-<p>At this point, the instance is <strong>pending</strong>; no SQL has yet been issued.  The <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> will issue the SQL to persist <tt class="docutils literal"><span class="pre">Ed</span> <span class="pre">Jones</span></tt> as soon as is needed, using a process known as a <strong>flush</strong>.  If we query the database for <tt class="docutils literal"><span class="pre">Ed</span> <span class="pre">Jones</span></tt>, all pending information will first be flushed, and the query is issued afterwards.</p>
-<p>For example, below we create a new <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object which loads instances of <tt class="docutils literal"><span class="pre">User</span></tt>.  We &#8220;filter by&#8221; the <tt class="docutils literal"><span class="pre">name</span></tt> attribute of <tt class="docutils literal"><span class="pre">ed</span></tt>, and indicate that we&#8217;d like only the first result in the full list of rows.  A <tt class="docutils literal"><span class="pre">User</span></tt> instance is returned which is equivalent to that which we&#8217;ve added:</p>
+<p>At this point, we say that the instance is <em>pending</em>; no SQL has yet been issued
+and the object is not yet represented by a row in the database.  The
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> will issue the SQL to persist <tt class="docutils literal"><span class="pre">Ed</span>
+<span class="pre">Jones</span></tt> as soon as is needed, using a process known as a <strong>flush</strong>. If we
+query the database for <tt class="docutils literal"><span class="pre">Ed</span> <span class="pre">Jones</span></tt>, all pending information will first be
+flushed, and the query is issued immediately thereafter.</p>
+<p>For example, below we create a new <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object
+which loads instances of <tt class="docutils literal"><span class="pre">User</span></tt>. We &#8220;filter by&#8221; the <tt class="docutils literal"><span class="pre">name</span></tt> attribute of
+<tt class="docutils literal"><span class="pre">ed</span></tt>, and indicate that we&#8217;d like only the first result in the full list of
+rows. A <tt class="docutils literal"><span class="pre">User</span></tt> instance is returned which is equivalent to that which we&#8217;ve
+added:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">our_user</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> 
 <div class='popup_sql'>BEGIN (implicit)
 INSERT INTO users (name, fullname, password) VALUES (?, ?, ?)
@@ -351,12 +403,24 @@ WHERE users.name = ?
 ('ed',)</div><span class="o">&gt;&gt;&gt;</span> <span class="n">our_user</span>
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;ed&#39;</span><span class="p">,</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="s">&#39;edspassword&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
-<p>In fact, the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> has identified that the row returned is the <strong>same</strong> row as one already represented within its internal map of objects, so we actually got back the identical instance as that which we just added:</p>
+<p>In fact, the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> has identified that the
+row returned is the <strong>same</strong> row as one already represented within its
+internal map of objects, so we actually got back the identical instance as
+that which we just added:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ed_user</span> <span class="ow">is</span> <span class="n">our_user</span>
 <span class="go">True</span></pre></div>
 </div>
-<p>The ORM concept at work here is known as an <strong>identity map</strong> and ensures that all operations upon a particular row within a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> operate upon the same set of data.  Once an object with a particular primary key is present in the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>, all SQL queries on that <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> will always return the same Python object for that particular primary key; it also will raise an error if an attempt is made to place a second, already-persisted object with the same primary key within the session.</p>
-<p>We can add more <tt class="docutils literal"><span class="pre">User</span></tt> objects at once using <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add_all" title="sqlalchemy.orm.session.Session.add_all"><tt class="xref py py-func docutils literal"><span class="pre">add_all()</span></tt></a>:</p>
+<p>The ORM concept at work here is known as an <strong>identity map</strong> and ensures that
+all operations upon a particular row within a
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> operate upon the same set of data.
+Once an object with a particular primary key is present in the
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>, all SQL queries on that
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> will always return the same Python
+object for that particular primary key; it also will raise an error if an
+attempt is made to place a second, already-persisted object with the same
+primary key within the session.</p>
+<p>We can add more <tt class="docutils literal"><span class="pre">User</span></tt> objects at once using
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add_all" title="sqlalchemy.orm.session.Session.add_all"><tt class="xref py py-func docutils literal"><span class="pre">add_all()</span></tt></a>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">([</span>
 <span class="o">...</span>     <span class="n">User</span><span class="p">(</span><span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="s">&#39;Wendy Williams&#39;</span><span class="p">,</span> <span class="s">&#39;foobar&#39;</span><span class="p">),</span>
 <span class="o">...</span>     <span class="n">User</span><span class="p">(</span><span class="s">&#39;mary&#39;</span><span class="p">,</span> <span class="s">&#39;Mary Contrary&#39;</span><span class="p">,</span> <span class="s">&#39;xxg527&#39;</span><span class="p">),</span>
@@ -375,7 +439,9 @@ WHERE users.name = ?
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;mary&#39;</span><span class="p">,</span><span class="s">&#39;Mary Contrary&#39;</span><span class="p">,</span> <span class="s">&#39;xxg527&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;fred&#39;</span><span class="p">,</span><span class="s">&#39;Fred Flinstone&#39;</span><span class="p">,</span> <span class="s">&#39;blah&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">])</span></pre></div>
 </div>
-<p>We tell the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> that we&#8217;d like to issue all remaining changes to the database and commit the transaction, which has been in progress throughout.  We do this via <tt class="docutils literal"><span class="pre">commit()</span></tt>:</p>
+<p>We tell the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> that we&#8217;d like to issue
+all remaining changes to the database and commit the transaction, which has
+been in progress throughout. We do this via <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">commit()</span></tt></a>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 <div class='popup_sql'>UPDATE users SET password=? WHERE users.id = ?
 ('f8s7ccs', 1)
@@ -387,7 +453,11 @@ INSERT INTO users (name, fullname, password) VALUES (?, ?, ?)
 ('fred', 'Fred Flinstone', 'blah')
 COMMIT</div></pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">commit()</span></tt> flushes whatever remaining changes remain to the database, and commits the transaction.  The connection resources referenced by the session are now returned to the connection pool.  Subsequent operations with this session will occur in a <strong>new</strong> transaction, which will again re-acquire connection resources when first needed.</p>
+<p><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">commit()</span></tt></a> flushes whatever remaining changes remain to the
+database, and commits the transaction. The connection resources referenced by
+the session are now returned to the connection pool. Subsequent operations
+with this session will occur in a <strong>new</strong> transaction, which will again
+re-acquire connection resources when first needed.</p>
 <p>If we look at Ed&#8217;s <tt class="docutils literal"><span class="pre">id</span></tt> attribute, which earlier was <tt class="xref docutils literal"><span class="pre">None</span></tt>, it now has a value:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">ed_user</span><span class="o">.</span><span class="n">id</span> 
 <div class='popup_sql'>BEGIN (implicit)
@@ -396,11 +466,21 @@ FROM users
 WHERE users.id = ?
 (1,)</div><span class="mi">1</span></pre></div>
 </div>
-<p>After the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> inserts new rows in the database, all newly generated identifiers and database-generated defaults become available on the instance, either immediately or via load-on-first-access.  In this case, the entire row was re-loaded on access because a new transaction was begun after we issued <tt class="docutils literal"><span class="pre">commit()</span></tt>.  SQLAlchemy by default refreshes data from a previous transaction the first time it&#8217;s accessed within a new transaction, so that the most recent state is available.  The level of reloading is configurable as is described in the chapter on Sessions.</p>
+<p>After the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> inserts new rows in the
+database, all newly generated identifiers and database-generated defaults
+become available on the instance, either immediately or via
+load-on-first-access. In this case, the entire row was re-loaded on access
+because a new transaction was begun after we issued <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">commit()</span></tt></a>. SQLAlchemy
+by default refreshes data from a previous transaction the first time it&#8217;s
+accessed within a new transaction, so that the most recent state is available.
+The level of reloading is configurable as is described in the chapter on
+Sessions.</p>
 </div>
 <div class="section" id="rolling-back">
 <h2>Rolling Back<a class="headerlink" href="#rolling-back" title="Permalink to this headline">¶</a></h2>
-<p>Since the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> works within a transaction, we can roll back changes made too.   Let&#8217;s make two changes that we&#8217;ll revert; <tt class="docutils literal"><span class="pre">ed_user</span></tt>&#8216;s user name gets set to <tt class="docutils literal"><span class="pre">Edwardo</span></tt>:</p>
+<p>Since the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> works within a transaction,
+we can roll back changes made too. Let&#8217;s make two changes that we&#8217;ll revert;
+<tt class="docutils literal"><span class="pre">ed_user</span></tt>&#8216;s user name gets set to <tt class="docutils literal"><span class="pre">Edwardo</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">ed_user</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Edwardo&#39;</span></pre></div>
 </div>
 <p>and we&#8217;ll add another erroneous user, <tt class="docutils literal"><span class="pre">fake_user</span></tt>:</p>
@@ -440,7 +520,14 @@ WHERE users.name IN (?, ?)
 </div>
 <div class="section" id="querying">
 <span id="ormtutorial-querying"></span><h2>Querying<a class="headerlink" href="#querying" title="Permalink to this headline">¶</a></h2>
-<p>A <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> is created using the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-class docutils literal"><span class="pre">query()</span></tt></a> function on <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.  This function takes a variable number of arguments, which can be any combination of classes and class-instrumented descriptors.  Below, we indicate a <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> which loads <tt class="docutils literal"><span class="pre">User</span></tt> instances.  When evaluated in an iterative context, the list of <tt class="docutils literal"><span class="pre">User</span></tt> objects present is returned:</p>
+<p>A <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> is created using the
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-class docutils literal"><span class="pre">query()</span></tt></a> function on
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>. This function takes a variable
+number of arguments, which can be any combination of classes and
+class-instrumented descriptors. Below, we indicate a
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> which loads <tt class="docutils literal"><span class="pre">User</span></tt> instances. When
+evaluated in an iterative context, the list of <tt class="docutils literal"><span class="pre">User</span></tt> objects present is
+returned:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">):</span> 
 <span class="o">...</span>     <span class="k">print</span> <span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">instance</span><span class="o">.</span><span class="n">fullname</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name,
@@ -451,7 +538,11 @@ FROM users ORDER BY users.id
 <span class="n">mary</span> <span class="n">Mary</span> <span class="n">Contrary</span>
 <span class="n">fred</span> <span class="n">Fred</span> <span class="n">Flinstone</span></pre></div>
 </div>
-<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> also accepts ORM-instrumented descriptors as arguments.  Any time multiple class entities or column-based entities are expressed as arguments to the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-class docutils literal"><span class="pre">query()</span></tt></a> function, the return result is expressed as tuples:</p>
+<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> also accepts ORM-instrumented
+descriptors as arguments. Any time multiple class entities or column-based
+entities are expressed as arguments to the
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-class docutils literal"><span class="pre">query()</span></tt></a> function, the return result
+is expressed as tuples:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">fullname</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">fullname</span><span class="p">):</span> 
 <span class="o">...</span>     <span class="k">print</span> <span class="n">name</span><span class="p">,</span> <span class="n">fullname</span>
 <div class='popup_sql'>SELECT users.name AS users_name, users.fullname AS users_fullname
@@ -461,7 +552,10 @@ FROM users
 <span class="n">mary</span> <span class="n">Mary</span> <span class="n">Contrary</span>
 <span class="n">fred</span> <span class="n">Fred</span> <span class="n">Flinstone</span></pre></div>
 </div>
-<p>The tuples returned by <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> are <em>named</em> tuples, and can be treated much like an ordinary Python object.  The names are the same as the attribute&#8217;s name for an attribute, and the class name for a class:</p>
+<p>The tuples returned by <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> are <em>named</em>
+tuples, and can be treated much like an ordinary Python object. The names are
+the same as the attribute&#8217;s name for an attribute, and the class name for a
+class:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
 <span class="o">...</span>    <span class="k">print</span> <span class="n">row</span><span class="o">.</span><span class="n">User</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">name</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
@@ -471,7 +565,8 @@ FROM users
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;mary&#39;</span><span class="p">,</span><span class="s">&#39;Mary Contrary&#39;</span><span class="p">,</span> <span class="s">&#39;xxg527&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">mary</span>
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;fred&#39;</span><span class="p">,</span><span class="s">&#39;Fred Flinstone&#39;</span><span class="p">,</span> <span class="s">&#39;blah&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">fred</span></pre></div>
 </div>
-<p>You can control the names using the <tt class="docutils literal"><span class="pre">label()</span></tt> construct for scalar attributes and <tt class="docutils literal"><span class="pre">aliased()</span></tt> for class constructs:</p>
+<p>You can control the names using the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression._CompareMixin.label" title="sqlalchemy.sql.expression._CompareMixin.label"><tt class="xref py py-meth docutils literal"><span class="pre">label()</span></tt></a> construct for
+scalar attributes and <a class="reference internal" href="query.html#sqlalchemy.orm.aliased" title="sqlalchemy.orm.aliased"><tt class="xref py py-class docutils literal"><span class="pre">aliased</span></tt></a> for class constructs:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">aliased</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">user_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;user_alias&#39;</span><span class="p">)</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">user_alias</span><span class="p">,</span> <span class="n">user_alias</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;name_label&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
@@ -483,7 +578,9 @@ FROM users AS users_1
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;mary&#39;</span><span class="p">,</span><span class="s">&#39;Mary Contrary&#39;</span><span class="p">,</span> <span class="s">&#39;xxg527&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">mary</span>
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;fred&#39;</span><span class="p">,</span><span class="s">&#39;Fred Flinstone&#39;</span><span class="p">,</span> <span class="s">&#39;blah&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">fred</span></pre></div>
 </div>
-<p>Basic operations with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> include issuing LIMIT and OFFSET, most conveniently using Python array slices and typically in conjunction with ORDER BY:</p>
+<p>Basic operations with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> include issuing
+LIMIT and OFFSET, most conveniently using Python array slices and typically in
+conjunction with ORDER BY:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]:</span> 
 <span class="o">...</span>    <span class="k">print</span> <span class="n">u</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
@@ -492,21 +589,29 @@ LIMIT 2 OFFSET 1
 ()</div><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;wendy&#39;</span><span class="p">,</span><span class="s">&#39;Wendy Williams&#39;</span><span class="p">,</span> <span class="s">&#39;foobar&#39;</span><span class="p">)</span><span class="o">&gt;</span>
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;mary&#39;</span><span class="p">,</span><span class="s">&#39;Mary Contrary&#39;</span><span class="p">,</span> <span class="s">&#39;xxg527&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
-<p>and filtering results, which is accomplished either with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter_by" title="sqlalchemy.orm.query.Query.filter_by"><tt class="xref py py-func docutils literal"><span class="pre">filter_by()</span></tt></a>, which uses keyword arguments:</p>
+<p>and filtering results, which is accomplished either with
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter_by" title="sqlalchemy.orm.query.Query.filter_by"><tt class="xref py py-func docutils literal"><span class="pre">filter_by()</span></tt></a>, which uses keyword arguments:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">fullname</span><span class="o">=</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">):</span> 
 <span class="o">...</span>    <span class="k">print</span> <span class="n">name</span>
 <div class='popup_sql'>SELECT users.name AS users_name FROM users
 WHERE users.fullname = ?
 ('Ed Jones',)</div><span class="n">ed</span></pre></div>
 </div>
-<p>...or <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-func docutils literal"><span class="pre">filter()</span></tt></a>, which uses more flexible SQL expression language constructs.  These allow you to use regular Python operators with the class-level attributes on your mapped class:</p>
+<p>...or <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-func docutils literal"><span class="pre">filter()</span></tt></a>, which uses more flexible SQL
+expression language constructs. These allow you to use regular Python
+operators with the class-level attributes on your mapped class:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">fullname</span><span class="o">==</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">):</span> 
 <span class="o">...</span>    <span class="k">print</span> <span class="n">name</span>
 <div class='popup_sql'>SELECT users.name AS users_name FROM users
 WHERE users.fullname = ?
 ('Ed Jones',)</div><span class="n">ed</span></pre></div>
 </div>
-<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object is fully <em>generative</em>, meaning that most method calls return a new <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object upon which further criteria may be added.  For example, to query for users named &#8220;ed&#8221; with a full name of &#8220;Ed Jones&#8221;, you can call <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-func docutils literal"><span class="pre">filter()</span></tt></a> twice, which joins criteria using <tt class="docutils literal"><span class="pre">AND</span></tt>:</p>
+<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object is fully <em>generative</em>, meaning
+that most method calls return a new <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>
+object upon which further criteria may be added. For example, to query for
+users named &#8220;ed&#8221; with a full name of &#8220;Ed Jones&#8221;, you can call
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-func docutils literal"><span class="pre">filter()</span></tt></a> twice, which joins criteria using
+<tt class="docutils literal"><span class="pre">AND</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">fullname</span><span class="o">==</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">):</span> 
 <span class="o">...</span>    <span class="k">print</span> <span class="n">user</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
@@ -573,7 +678,11 @@ The contents of the match parameter are database backend specific.</blockquote>
 </div>
 <div class="section" id="returning-lists-and-scalars">
 <h3>Returning Lists and Scalars<a class="headerlink" href="#returning-lists-and-scalars" title="Permalink to this headline">¶</a></h3>
-<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.all" title="sqlalchemy.orm.query.Query.all"><tt class="xref py py-meth docutils literal"><span class="pre">all()</span></tt></a>, <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.one" title="sqlalchemy.orm.query.Query.one"><tt class="xref py py-meth docutils literal"><span class="pre">one()</span></tt></a>, and <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.first" title="sqlalchemy.orm.query.Query.first"><tt class="xref py py-meth docutils literal"><span class="pre">first()</span></tt></a> methods of <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> immediately issue SQL and return a non-iterator value.  <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.all" title="sqlalchemy.orm.query.Query.all"><tt class="xref py py-meth docutils literal"><span class="pre">all()</span></tt></a> returns a list:</p>
+<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.all" title="sqlalchemy.orm.query.Query.all"><tt class="xref py py-meth docutils literal"><span class="pre">all()</span></tt></a>,
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.one" title="sqlalchemy.orm.query.Query.one"><tt class="xref py py-meth docutils literal"><span class="pre">one()</span></tt></a>, and
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.first" title="sqlalchemy.orm.query.Query.first"><tt class="xref py py-meth docutils literal"><span class="pre">first()</span></tt></a> methods of
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> immediately issue SQL and return a
+non-iterator value. <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.all" title="sqlalchemy.orm.query.Query.all"><tt class="xref py py-meth docutils literal"><span class="pre">all()</span></tt></a> returns a list:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%e</span><span class="s">d&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
@@ -581,7 +690,8 @@ FROM users
 WHERE users.name LIKE ? ORDER BY users.id
 ('%ed',)</div><span class="p">[</span><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;ed&#39;</span><span class="p">,</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="s">&#39;f8s7ccs&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;fred&#39;</span><span class="p">,</span><span class="s">&#39;Fred Flinstone&#39;</span><span class="p">,</span> <span class="s">&#39;blah&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
-<p><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.first" title="sqlalchemy.orm.query.Query.first"><tt class="xref py py-meth docutils literal"><span class="pre">first()</span></tt></a> applies a limit of one and returns the first result as a scalar:</p>
+<p><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.first" title="sqlalchemy.orm.query.Query.first"><tt class="xref py py-meth docutils literal"><span class="pre">first()</span></tt></a> applies a limit of one and returns
+the first result as a scalar:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
@@ -589,7 +699,9 @@ WHERE users.name LIKE ? ORDER BY users.id
  LIMIT 1 OFFSET 0
 ('%ed',)</div><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;ed&#39;</span><span class="p">,</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="s">&#39;f8s7ccs&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
-<p><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.one" title="sqlalchemy.orm.query.Query.one"><tt class="xref py py-meth docutils literal"><span class="pre">one()</span></tt></a>, fully fetches all rows, and if not exactly one object identity or composite row is present in the result, raises an error:</p>
+<p><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.one" title="sqlalchemy.orm.query.Query.one"><tt class="xref py py-meth docutils literal"><span class="pre">one()</span></tt></a>, fully fetches all rows, and if not
+exactly one object identity or composite row is present in the result, raises
+an error:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm.exc</span> <span class="kn">import</span> <span class="n">MultipleResultsFound</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">try</span><span class="p">:</span> 
 <span class="o">...</span>     <span class="n">user</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
@@ -613,7 +725,11 @@ WHERE users.name LIKE ? AND users.id = ? ORDER BY users.id
 </div>
 <div class="section" id="using-literal-sql">
 <h3>Using Literal SQL<a class="headerlink" href="#using-literal-sql" title="Permalink to this headline">¶</a></h3>
-<p>Literal strings can be used flexibly with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.  Most methods accept strings in addition to SQLAlchemy clause constructs.  For example, <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">filter()</span></tt></a> and <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.order_by" title="sqlalchemy.orm.query.Query.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a>:</p>
+<p>Literal strings can be used flexibly with
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>. Most methods accept strings in addition
+to SQLAlchemy clause constructs. For example,
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">filter()</span></tt></a> and
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.order_by" title="sqlalchemy.orm.query.Query.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s">&quot;id&lt;224&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
 <span class="o">...</span>     <span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
@@ -624,7 +740,9 @@ WHERE id<224 ORDER BY id
 <span class="n">mary</span>
 <span class="n">fred</span></pre></div>
 </div>
-<p>Bind parameters can be specified with string-based SQL, using a colon.  To specify the values, use the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.params" title="sqlalchemy.orm.query.Query.params"><tt class="xref py py-meth docutils literal"><span class="pre">params()</span></tt></a> method:</p>
+<p>Bind parameters can be specified with string-based SQL, using a colon. To
+specify the values, use the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.params" title="sqlalchemy.orm.query.Query.params"><tt class="xref py py-meth docutils literal"><span class="pre">params()</span></tt></a>
+method:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s">&quot;id&lt;:value and name=:name&quot;</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>     <span class="n">params</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;fred&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
@@ -632,13 +750,22 @@ FROM users
 WHERE id<? and name=? ORDER BY users.id
 (224, 'fred')</div><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;fred&#39;</span><span class="p">,</span><span class="s">&#39;Fred Flinstone&#39;</span><span class="p">,</span> <span class="s">&#39;blah&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
-<p>To use an entirely string-based statement, using <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.from_statement" title="sqlalchemy.orm.query.Query.from_statement"><tt class="xref py py-meth docutils literal"><span class="pre">from_statement()</span></tt></a>; just ensure that the columns clause of the statement contains the column names normally used by the mapper (below illustrated using an asterisk):</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">from_statement</span><span class="p">(</span><span class="s">&quot;SELECT * FROM users where name=:name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">params</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<p>To use an entirely string-based statement, using
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.from_statement" title="sqlalchemy.orm.query.Query.from_statement"><tt class="xref py py-meth docutils literal"><span class="pre">from_statement()</span></tt></a>; just ensure that the
+columns clause of the statement contains the column names normally used by the
+mapper (below illustrated using an asterisk):</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">from_statement</span><span class="p">(</span>
+<span class="o">...</span>                     <span class="s">&quot;SELECT * FROM users where name=:name&quot;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span>                     <span class="n">params</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <div class='popup_sql'>SELECT * FROM users where name=?
 ('ed',)</div><span class="p">[</span><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;ed&#39;</span><span class="p">,</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="s">&#39;f8s7ccs&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
-<p>You can use <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.from_statement" title="sqlalchemy.orm.query.Query.from_statement"><tt class="xref py py-meth docutils literal"><span class="pre">from_statement()</span></tt></a> to go completely &#8220;raw&#8221;, using string names to identify desired columns:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="s">&quot;thenumber12&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">from_statement</span><span class="p">(</span><span class="s">&quot;SELECT id, name, 12 as thenumber12 FROM users where name=:name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">params</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<p>You can use <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.from_statement" title="sqlalchemy.orm.query.Query.from_statement"><tt class="xref py py-meth docutils literal"><span class="pre">from_statement()</span></tt></a> to go
+completely &#8220;raw&#8221;, using string names to identify desired columns:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="s">&quot;thenumber12&quot;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span>         <span class="n">from_statement</span><span class="p">(</span><span class="s">&quot;SELECT id, name, 12 as &quot;</span>
+<span class="o">...</span>                 <span class="s">&quot;thenumber12 FROM users where name=:name&quot;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span>                 <span class="n">params</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <div class='popup_sql'>SELECT id, name, 12 as thenumber12 FROM users where name=?
 ('ed',)</div><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="mi">12</span><span class="p">)]</span></pre></div>
 </div>
@@ -652,7 +779,13 @@ FROM users
 WHERE users.name LIKE ?
 ('%ed',)</div><span class="mi">2</span></pre></div>
 </div>
-<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.count" title="sqlalchemy.orm.query.Query.count"><tt class="xref py py-meth docutils literal"><span class="pre">count()</span></tt></a> method is used to determine how many rows the SQL statement would return, and is mainly intended to return a simple count of a single type of entity, in this case <tt class="docutils literal"><span class="pre">User</span></tt>.   For more complicated sets of columns or entities where the &#8220;thing to be counted&#8221; needs to be indicated more specifically, <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.count" title="sqlalchemy.orm.query.Query.count"><tt class="xref py py-meth docutils literal"><span class="pre">count()</span></tt></a> is probably not what you want.  Below, a query for individual columns does return the expected result:</p>
+<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.count" title="sqlalchemy.orm.query.Query.count"><tt class="xref py py-meth docutils literal"><span class="pre">count()</span></tt></a> method is used to determine
+how many rows the SQL statement would return, and is mainly intended to return
+a simple count of a single type of entity, in this case <tt class="docutils literal"><span class="pre">User</span></tt>. For more
+complicated sets of columns or entities where the &#8220;thing to be counted&#8221; needs
+to be indicated more specifically, <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.count" title="sqlalchemy.orm.query.Query.count"><tt class="xref py py-meth docutils literal"><span class="pre">count()</span></tt></a>
+is probably not what you want. Below, a query for individual columns does
+return the expected result:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%e</span><span class="s">d&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT count(1) AS count_1
 FROM (SELECT users.id AS users_id, users.name AS users_name
@@ -660,14 +793,20 @@ FROM users
 WHERE users.name LIKE ?) AS anon_1
 ('%ed',)</div><span class="mi">2</span></pre></div>
 </div>
-<p>...but if you look at the generated SQL, SQLAlchemy saw that we were placing individual column expressions and decided to wrap whatever it was we were doing in a subquery, so as to be assured that it returns the &#8220;number of rows&#8221;.   This defensive behavior is not really needed here and in other cases is not what we want at all, such as if we wanted a grouping of counts per name:</p>
+<p>...but if you look at the generated SQL, SQLAlchemy saw that we were placing
+individual column expressions and decided to wrap whatever it was we were
+doing in a subquery, so as to be assured that it returns the &#8220;number of rows&#8221;.
+This defensive behavior is not really needed here and in other cases is not
+what we want at all, such as if we wanted a grouping of counts per name:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>  
 <div class='popup_sql'>SELECT count(1) AS count_1
 FROM (SELECT users.name AS users_name
 FROM users GROUP BY users.name) AS anon_1
 ()</div><span class="mi">4</span></pre></div>
 </div>
-<p>We don&#8217;t want the number <tt class="docutils literal"><span class="pre">4</span></tt>, we wanted some rows back.   So for detailed queries where you need to count something specific, use the <tt class="docutils literal"><span class="pre">func.count()</span></tt> function as a column expression:</p>
+<p>We don&#8217;t want the number <tt class="docutils literal"><span class="pre">4</span></tt>, we wanted some rows back. So for detailed
+queries where you need to count something specific, use the <tt class="docutils literal"><span class="pre">func.count()</span></tt>
+function as a column expression:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>  
 <div class='popup_sql'>SELECT count(users.name) AS count_1, users.name AS users_name
@@ -678,7 +817,11 @@ FROM users GROUP BY users.name</div><span class="p">()</span>
 </div>
 <div class="section" id="building-a-relationship">
 <h2>Building a Relationship<a class="headerlink" href="#building-a-relationship" title="Permalink to this headline">¶</a></h2>
-<p>Now let&#8217;s consider a second table to be dealt with.  Users in our system also can store any number of email addresses associated with their username.  This implies a basic one to many association from the <tt class="docutils literal"><span class="pre">users_table</span></tt> to a new table which stores email addresses, which we will call <tt class="docutils literal"><span class="pre">addresses</span></tt>.  Using declarative, we define this table along with its mapped class, <tt class="docutils literal"><span class="pre">Address</span></tt>:</p>
+<p>Now let&#8217;s consider a second table to be dealt with. Users in our system also
+can store any number of email addresses associated with their username. This
+implies a basic one to many association from the <tt class="docutils literal"><span class="pre">users_table</span></tt> to a new
+table which stores email addresses, which we will call <tt class="docutils literal"><span class="pre">addresses</span></tt>. Using
+declarative, we define this table along with its mapped class, <tt class="docutils literal"><span class="pre">Address</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">ForeignKey</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">backref</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -695,24 +838,54 @@ FROM users GROUP BY users.name</div><span class="p">()</span>
 <span class="o">...</span>     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="o">...</span>         <span class="k">return</span> <span class="s">&quot;&lt;Address(&#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">email_address</span></pre></div>
 </div>
-<p>The above class introduces a <strong>foreign key</strong> constraint which references the <tt class="docutils literal"><span class="pre">users</span></tt> table.  This defines for SQLAlchemy the relationship between the two tables at the database level.  The relationship between the <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt> classes is defined separately using the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function, which defines an attribute <tt class="docutils literal"><span class="pre">user</span></tt> to be placed on the <tt class="docutils literal"><span class="pre">Address</span></tt> class, as well as an <tt class="docutils literal"><span class="pre">addresses</span></tt> collection to be placed on the <tt class="docutils literal"><span class="pre">User</span></tt> class.  Such a relationship is known as a <strong>bidirectional</strong> relationship.   Because of the placement of the foreign key, from <tt class="docutils literal"><span class="pre">Address</span></tt> to <tt class="docutils literal"><span class="pre">User</span></tt> it is <strong>many to one</strong>, and from <tt class="docutils literal"><span class="pre">User</span></tt> to <tt class="docutils literal"><span class="pre">Address</span></tt> it is <strong>one to many</strong>.  SQLAlchemy is automatically aware of many-to-one/one-to-many based on foreign keys.</p>
+<p>The above class introduces a <strong>foreign key</strong> constraint which references the
+<tt class="docutils literal"><span class="pre">users</span></tt> table. This defines for SQLAlchemy the relationship between the two
+tables at the database level. The relationship between the <tt class="docutils literal"><span class="pre">User</span></tt> and
+<tt class="docutils literal"><span class="pre">Address</span></tt> classes is defined separately using the
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function, which defines an attribute
+<tt class="docutils literal"><span class="pre">user</span></tt> to be placed on the <tt class="docutils literal"><span class="pre">Address</span></tt> class, as well as an <tt class="docutils literal"><span class="pre">addresses</span></tt>
+collection to be placed on the <tt class="docutils literal"><span class="pre">User</span></tt> class. Such a relationship is known as
+a <strong>bidirectional</strong> relationship. Because of the placement of the foreign key,
+from <tt class="docutils literal"><span class="pre">Address</span></tt> to <tt class="docutils literal"><span class="pre">User</span></tt> it is <strong>many to one</strong>, and from <tt class="docutils literal"><span class="pre">User</span></tt> to
+<tt class="docutils literal"><span class="pre">Address</span></tt> it is <strong>one to many</strong>. SQLAlchemy is automatically aware of
+many-to-one/one-to-many based on foreign keys.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function has historically been known as <a class="reference internal" href="relationships.html#sqlalchemy.orm.relation" title="sqlalchemy.orm.relation"><tt class="xref py py-func docutils literal"><span class="pre">relation()</span></tt></a>, which is the name that&#8217;s available in all versions of SQLAlchemy prior to 0.6beta2, including the 0.5 and 0.4 series. <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> is only available starting with SQLAlchemy 0.6beta2.  <a class="reference internal" href="relationships.html#sqlalchemy.orm.relation" title="sqlalchemy.orm.relation"><tt class="xref py py-func docutils literal"><span class="pre">relation()</span></tt></a> will remain available in SQLAlchemy for the foreseeable future to enable cross-compatibility.</p>
+<p class="last">The <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function has historically
+been known as <a class="reference internal" href="relationships.html#sqlalchemy.orm.relation" title="sqlalchemy.orm.relation"><tt class="xref py py-func docutils literal"><span class="pre">relation()</span></tt></a>, which is the name that&#8217;s
+available in all versions of SQLAlchemy prior to 0.6beta2, including the 0.5
+and 0.4 series. <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> is only available
+starting with SQLAlchemy 0.6beta2. <a class="reference internal" href="relationships.html#sqlalchemy.orm.relation" title="sqlalchemy.orm.relation"><tt class="xref py py-func docutils literal"><span class="pre">relation()</span></tt></a> will
+remain available in SQLAlchemy for the foreseeable future to enable
+cross-compatibility.</p>
 </div>
-<p>The <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function is extremely flexible, and could just have easily been defined on the <tt class="docutils literal"><span class="pre">User</span></tt> class:</p>
+<p>The <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function is extremely flexible, and
+could just have easily been defined on the <tt class="docutils literal"><span class="pre">User</span></tt> class:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="c"># ....</span>
     <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="n">Address</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;user&quot;</span><span class="p">)</span></pre></div>
 </div>
-<p>We are also free to not define a backref, and to define the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> only on one class and not the other.   It is also possible to define two separate <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> constructs for either direction, which is generally safe for many-to-one and one-to-many relationships, but not for many-to-many relationships.</p>
-<p>When using the <tt class="docutils literal"><span class="pre">declarative</span></tt> extension, <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> gives us the option to use strings for most arguments that concern the target class, in the case that the target class has not yet been defined.  This <strong>only</strong> works in conjunction with <tt class="docutils literal"><span class="pre">declarative</span></tt>:</p>
+<p>We are also free to not define a backref, and to define the
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> only on one class and not the other. It
+is also possible to define two separate <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
+constructs for either direction, which is generally safe for many-to-one and
+one-to-many relationships, but not for many-to-many relationships.</p>
+<p>When using the <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> extension,
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> gives us the option to use strings for
+most arguments that concern the target class, in the case that the target
+class has not yet been defined. This <strong>only</strong> works in conjunction with
+<a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="o">....</span>
     <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s">&quot;Address.id&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;user&quot;</span><span class="p">)</span></pre></div>
 </div>
-<p>When <tt class="docutils literal"><span class="pre">declarative</span></tt> is not in use, you typically define your <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> well after the target classes and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects have been defined, so string expressions are not needed.</p>
-<p>We&#8217;ll need to create the <tt class="docutils literal"><span class="pre">addresses</span></tt> table in the database, so we will issue another CREATE from our metadata, which will skip over tables which have already been created:</p>
+<p>When <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> is not in use, you typically define your
+<a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> well after the target classes and
+<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects have been defined, so string
+expressions are not needed.</p>
+<p>We&#8217;ll need to create the <tt class="docutils literal"><span class="pre">addresses</span></tt> table in the database, so we will issue
+another CREATE from our metadata, which will skip over tables which have
+already been created:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span> 
 <div class='popup_sql'>PRAGMA table_info("users")
 ()
@@ -731,22 +904,31 @@ COMMIT</div></pre></div>
 </div>
 <div class="section" id="working-with-related-objects">
 <h2>Working with Related Objects<a class="headerlink" href="#working-with-related-objects" title="Permalink to this headline">¶</a></h2>
-<p>Now when we create a <tt class="docutils literal"><span class="pre">User</span></tt>, a blank <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will be present.  Various collection types, such as sets and dictionaries, are possible here (see <em class="xref std std-ref">alternate_collection_implementations</em> for details), but by default, the collection is a Python list.</p>
+<p>Now when we create a <tt class="docutils literal"><span class="pre">User</span></tt>, a blank <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will be
+present. Various collection types, such as sets and dictionaries, are possible
+here (see <a class="reference internal" href="collections.html#custom-collections"><em>Customizing Collection Access</em></a> for details), but by
+default, the collection is a Python list.</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span> <span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span>
 <span class="p">[]</span></pre></div>
 </div>
-<p>We are free to add <tt class="docutils literal"><span class="pre">Address</span></tt> objects on our <tt class="docutils literal"><span class="pre">User</span></tt> object.  In this case we just assign a full list directly:</p>
+<p>We are free to add <tt class="docutils literal"><span class="pre">Address</span></tt> objects on our <tt class="docutils literal"><span class="pre">User</span></tt> object. In this case we
+just assign a full list directly:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span> <span class="o">=</span> <span class="p">[</span><span class="n">Address</span><span class="p">(</span><span class="n">email_address</span><span class="o">=</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">),</span> <span class="n">Address</span><span class="p">(</span><span class="n">email_address</span><span class="o">=</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)]</span></pre></div>
 </div>
-<p>When using a bidirectional relationship, elements added in one direction automatically become visible in the other direction.  This is the basic behavior of the <strong>backref</strong> keyword, which maintains the relationship purely in memory, without using any SQL:</p>
+<p>When using a bidirectional relationship, elements added in one direction
+automatically become visible in the other direction. This is the basic
+behavior of the <strong>backref</strong> keyword, which maintains the relationship purely
+in memory, without using any SQL:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">&gt;</span>
 
 <span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">user</span>
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
-<p>Let&#8217;s add and commit <tt class="docutils literal"><span class="pre">Jack</span> <span class="pre">Bean</span></tt> to the database.  <tt class="docutils literal"><span class="pre">jack</span></tt> as well as the two <tt class="docutils literal"><span class="pre">Address</span></tt> members in his <tt class="docutils literal"><span class="pre">addresses</span></tt> collection are both added to the session at once, using a process known as <strong>cascading</strong>:</p>
+<p>Let&#8217;s add and commit <tt class="docutils literal"><span class="pre">Jack</span> <span class="pre">Bean</span></tt> to the database. <tt class="docutils literal"><span class="pre">jack</span></tt> as well as the
+two <tt class="docutils literal"><span class="pre">Address</span></tt> members in his <tt class="docutils literal"><span class="pre">addresses</span></tt> collection are both added to the
+session at once, using a process known as <strong>cascading</strong>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">jack</span><span class="p">)</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 <div class='popup_sql'>INSERT INTO users (name, fullname, password) VALUES (?, ?, ?)
@@ -773,8 +955,17 @@ FROM addresses
 WHERE ? = addresses.user_id ORDER BY addresses.id
 (5,)</div><span class="p">[</span><span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
-<p>When we accessed the <tt class="docutils literal"><span class="pre">addresses</span></tt> collection, SQL was suddenly issued.  This is an example of a <strong>lazy loading relationship</strong>.  The <tt class="docutils literal"><span class="pre">addresses</span></tt> collection is now loaded and behaves just like an ordinary list.</p>
-<p>If you want to reduce the number of queries (dramatically, in many cases), we can apply an <strong>eager load</strong> to the query operation, using the <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> function.  This function is a <strong>query option</strong> that gives additional instructions to the query on how we would like it to load, in this case we&#8217;d like to indicate that we&#8217;d like <tt class="docutils literal"><span class="pre">addresses</span></tt> to load &#8220;eagerly&#8221;.  SQLAlchemy then constructs an outer join between the <tt class="docutils literal"><span class="pre">users</span></tt> and <tt class="docutils literal"><span class="pre">addresses</span></tt> tables, and loads them at once, populating the <tt class="docutils literal"><span class="pre">addresses</span></tt> collection on each <tt class="docutils literal"><span class="pre">User</span></tt> object if it&#8217;s not already populated:</p>
+<p>When we accessed the <tt class="docutils literal"><span class="pre">addresses</span></tt> collection, SQL was suddenly issued. This
+is an example of a <strong>lazy loading relationship</strong>. The <tt class="docutils literal"><span class="pre">addresses</span></tt> collection
+is now loaded and behaves just like an ordinary list.</p>
+<p>If you want to reduce the number of queries (dramatically, in many cases), we
+can apply an <strong>eager load</strong> to the query operation, using the
+<a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> function. This function is a <strong>query
+option</strong> that gives additional instructions to the query on how we would like
+it to load, in this case we&#8217;d like to indicate that we&#8217;d like <tt class="docutils literal"><span class="pre">addresses</span></tt> to
+load &#8220;eagerly&#8221;. SQLAlchemy then constructs an outer join between the <tt class="docutils literal"><span class="pre">users</span></tt>
+and <tt class="docutils literal"><span class="pre">addresses</span></tt> tables, and loads them at once, populating the <tt class="docutils literal"><span class="pre">addresses</span></tt>
+collection on each <tt class="docutils literal"><span class="pre">User</span></tt> object if it&#8217;s not already populated:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">joinedload</span>
 
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
@@ -791,11 +982,19 @@ WHERE users.name = ? ORDER BY addresses_1.id
 <span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span>
 <span class="p">[</span><span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
-<p>See <em class="xref std std-ref">mapper_loader_strategies</em> for information on <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> and its new brother, <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>.   We&#8217;ll also see another way to &#8220;eagerly&#8221; load in the next section.</p>
+<p>See <a class="reference internal" href="loading.html"><em>Relationship Loading Techniques</em></a> for information on
+<a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> and its new brother,
+<a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>. We&#8217;ll also see another way to &#8220;eagerly&#8221;
+load in the next section.</p>
 </div>
 <div class="section" id="querying-with-joins">
 <h2>Querying with Joins<a class="headerlink" href="#querying-with-joins" title="Permalink to this headline">¶</a></h2>
-<p>While <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> created a JOIN specifically to populate a collection, we can also work explicitly with joins in many ways.  For example, to construct a simple inner join between <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt>, we can just <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">filter()</span></tt></a> their related columns together.  Below we load the <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt> entities at once using this method:</p>
+<p>While <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> created a JOIN specifically to
+populate a collection, we can also work explicitly with joins in many ways.
+For example, to construct a simple inner join between <tt class="docutils literal"><span class="pre">User</span></tt> and
+<tt class="docutils literal"><span class="pre">Address</span></tt>, we can just <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">filter()</span></tt></a> their
+related columns together. Below we load the <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt> entities
+at once using this method:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">Address</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>         <span class="nb">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="o">==</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>   
 <span class="o">...</span>     <span class="k">print</span> <span class="n">u</span><span class="p">,</span> <span class="n">a</span>
@@ -806,7 +1005,8 @@ FROM users, addresses
 WHERE users.id = addresses.user_id AND addresses.email_address = ?
 ('jack@google.com',)</div><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
-<p>Or we can make a real JOIN construct; the most common way is to use <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a>:</p>
+<p>Or we can make a real JOIN construct; the most common way is to use
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>         <span class="nb">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="o">==</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
@@ -827,9 +1027,15 @@ WHERE addresses.email_address = ?
                         <span class="p">(</span><span class="n">Widget</span><span class="p">,</span> <span class="n">Bat</span><span class="o">.</span><span class="n">widget_id</span><span class="o">==</span><span class="n">Widget</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
                         <span class="p">)</span></pre></div>
 </div>
-<p>The above would produce SQL something like <tt class="docutils literal"><span class="pre">foo</span> <span class="pre">JOIN</span> <span class="pre">bars</span> <span class="pre">ON</span> <span class="pre">&lt;onclause&gt;</span> <span class="pre">JOIN</span> <span class="pre">bats</span> <span class="pre">ON</span> <span class="pre">&lt;onclause&gt;</span> <span class="pre">JOIN</span> <span class="pre">widgets</span> <span class="pre">ON</span> <span class="pre">&lt;onclause&gt;</span></tt>.</p>
-<p>The general functionality of <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> is also available as a standalone function <a class="reference internal" href="query.html#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a>, which is an ORM-enabled version of the same function present in the SQL expression language.  This function accepts two or three arguments (left side, right side, optional ON clause) and can be used in conjunction with
-the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">select_from()</span></tt></a> method to set an explicit FROM clause:</p>
+<p>The above would produce SQL something like <tt class="docutils literal"><span class="pre">foo</span> <span class="pre">JOIN</span> <span class="pre">bars</span> <span class="pre">ON</span> <span class="pre">&lt;onclause&gt;</span> <span class="pre">JOIN</span>
+<span class="pre">bats</span> <span class="pre">ON</span> <span class="pre">&lt;onclause&gt;</span> <span class="pre">JOIN</span> <span class="pre">widgets</span> <span class="pre">ON</span> <span class="pre">&lt;onclause&gt;</span></tt>.</p>
+<p>The general functionality of <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> is
+also available as a standalone function <a class="reference internal" href="query.html#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a>, which is
+an ORM-enabled version of the same function present in the SQL expression
+language. This function accepts two or three arguments (left side, right side,
+optional ON clause) and can be used in conjunction with the
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">select_from()</span></tt></a> method to set an explicit FROM
+clause:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">join</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>                <span class="n">select_from</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">Address</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">))</span><span class="o">.</span>\
@@ -841,10 +1047,15 @@ WHERE addresses.email_address = ?
 </div>
 <div class="section" id="using-join-to-eagerly-load-collections-attributes">
 <h3>Using join() to Eagerly Load Collections/Attributes<a class="headerlink" href="#using-join-to-eagerly-load-collections-attributes" title="Permalink to this headline">¶</a></h3>
-<p>The &#8220;eager loading&#8221; capabilities of the <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> function and the join-construction capabilities of <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> or an equivalent can be combined together using the <a class="reference internal" href="loading.html#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">contains_eager()</span></tt></a> option.   This is typically used
-for a query that is already joining to some related entity (more often than not via many-to-one), and you&#8217;d like the related entity to also be loaded onto the resulting objects
-in one step without the need for additional queries and without the &#8220;automatic&#8221; join embedded
-by the <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> function:</p>
+<p>The &#8220;eager loading&#8221; capabilities of the <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a>
+function and the join-construction capabilities of
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> or an equivalent can be combined
+together using the <a class="reference internal" href="loading.html#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">contains_eager()</span></tt></a> option. This is
+typically used for a query that is already joining to some related entity
+(more often than not via many-to-one), and you&#8217;d like the related entity to
+also be loaded onto the resulting objects in one step without the need for
+additional queries and without the &#8220;automatic&#8221; join embedded by the
+<a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> function:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">contains_eager</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>                <span class="n">join</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user</span><span class="p">)</span><span class="o">.</span>\
@@ -859,13 +1070,24 @@ WHERE users.name = ?
 ('jack',)</div><span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span>
 <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
-<p>Note that above the join was used both to limit the rows to just those <tt class="docutils literal"><span class="pre">Address</span></tt> objects which
-had a related <tt class="docutils literal"><span class="pre">User</span></tt> object with the name &#8220;jack&#8221;.   It&#8217;s safe to have the <tt class="docutils literal"><span class="pre">Address.user</span></tt> attribute populated with this user using an inner join.  However, when filtering on a join that
-is filtering on a particular member of a collection, using <a class="reference internal" href="loading.html#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">contains_eager()</span></tt></a> to populate a related collection may populate the collection with only part of what it actually references, since the collection itself is filtered.</p>
+<p>Note that above the join was used both to limit the rows to just those
+<tt class="docutils literal"><span class="pre">Address</span></tt> objects which had a related <tt class="docutils literal"><span class="pre">User</span></tt> object with the name &#8220;jack&#8221;.
+It&#8217;s safe to have the <tt class="docutils literal"><span class="pre">Address.user</span></tt> attribute populated with this user
+using an inner join. However, when filtering on a join that is filtering on a
+particular member of a collection, using
+<a class="reference internal" href="loading.html#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">contains_eager()</span></tt></a> to populate a related collection may
+populate the collection with only part of what it actually references, since
+the collection itself is filtered.</p>
 </div>
 <div class="section" id="using-aliases">
 <h3>Using Aliases<a class="headerlink" href="#using-aliases" title="Permalink to this headline">¶</a></h3>
-<p>When querying across multiple tables, if the same table needs to be referenced more than once, SQL typically requires that the table be <em>aliased</em> with another name, so that it can be distinguished against other occurrences of that table.  The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> supports this most explicitly using the <tt class="docutils literal"><span class="pre">aliased</span></tt> construct.  Below we join to the <tt class="docutils literal"><span class="pre">Address</span></tt> entity twice, to locate a user who has two distinct email addresses at the same time:</p>
+<p>When querying across multiple tables, if the same table needs to be referenced
+more than once, SQL typically requires that the table be <em>aliased</em> with
+another name, so that it can be distinguished against other occurrences of
+that table. The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> supports this most
+explicitly using the <tt class="docutils literal"><span class="pre">aliased</span></tt> construct. Below we join to the <tt class="docutils literal"><span class="pre">Address</span></tt>
+entity twice, to locate a user who has two distinct email addresses at the
+same time:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">aliased</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">adalias1</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">adalias2</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span>
@@ -885,17 +1107,32 @@ WHERE addresses_1.email_address = ? AND addresses_2.email_address = ?
 </div>
 <div class="section" id="using-subqueries">
 <h3>Using Subqueries<a class="headerlink" href="#using-subqueries" title="Permalink to this headline">¶</a></h3>
-<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> is suitable for generating statements which can be used as subqueries.  Suppose we wanted to load <tt class="docutils literal"><span class="pre">User</span></tt> objects along with a count of how many <tt class="docutils literal"><span class="pre">Address</span></tt> records each user has.  The best way to generate SQL like this is to get the count of addresses grouped by user ids, and JOIN to the parent.  In this case we use a LEFT OUTER JOIN so that we get rows back for those users who don&#8217;t have any addresses, e.g.:</p>
+<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> is suitable for generating statements
+which can be used as subqueries. Suppose we wanted to load <tt class="docutils literal"><span class="pre">User</span></tt> objects
+along with a count of how many <tt class="docutils literal"><span class="pre">Address</span></tt> records each user has. The best way
+to generate SQL like this is to get the count of addresses grouped by user
+ids, and JOIN to the parent. In this case we use a LEFT OUTER JOIN so that we
+get rows back for those users who don&#8217;t have any addresses, e.g.:</p>
 <div class="highlight-python"><pre>SELECT users.*, adr_count.address_count FROM users LEFT OUTER JOIN
     (SELECT user_id, count(*) AS address_count FROM addresses GROUP BY user_id) AS adr_count
     ON users.id=adr_count.user_id</pre>
 </div>
-<p>Using the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, we build a statement like this from the inside out.  The <tt class="docutils literal"><span class="pre">statement</span></tt> accessor returns a SQL expression representing the statement generated by a particular <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> - this is an instance of a <tt class="docutils literal"><span class="pre">select()</span></tt> construct, which are described in <a class="reference internal" href="../core/tutorial.html"><em>SQL Expression Language Tutorial</em></a>:</p>
+<p>Using the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, we build a statement like this
+from the inside out. The <tt class="docutils literal"><span class="pre">statement</span></tt> accessor returns a SQL expression
+representing the statement generated by a particular
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> - this is an instance of a <tt class="docutils literal"><span class="pre">select()</span></tt>
+construct, which are described in <a class="reference internal" href="../core/tutorial.html"><em>SQL Expression Language Tutorial</em></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">func</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stmt</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;address_count&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span></pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">func</span></tt> keyword generates SQL functions, and the <tt class="docutils literal"><span class="pre">subquery()</span></tt> method on <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> produces a SQL expression construct representing a SELECT statement embedded within an alias (it&#8217;s actually shorthand for <tt class="docutils literal"><span class="pre">query.statement.alias()</span></tt>).</p>
-<p>Once we have our statement, it behaves like a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> construct, such as the one we created for <tt class="docutils literal"><span class="pre">users</span></tt> at the start of this tutorial.  The columns on the statement are accessible through an attribute called <tt class="docutils literal"><span class="pre">c</span></tt>:</p>
+<p>The <tt class="docutils literal"><span class="pre">func</span></tt> keyword generates SQL functions, and the <tt class="docutils literal"><span class="pre">subquery()</span></tt> method on
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> produces a SQL expression construct
+representing a SELECT statement embedded within an alias (it&#8217;s actually
+shorthand for <tt class="docutils literal"><span class="pre">query.statement.alias()</span></tt>).</p>
+<p>Once we have our statement, it behaves like a
+<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> construct, such as the one we created for
+<tt class="docutils literal"><span class="pre">users</span></tt> at the start of this tutorial. The columns on the statement are
+accessible through an attribute called <tt class="docutils literal"><span class="pre">c</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">stmt</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">address_count</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>     <span class="n">outerjoin</span><span class="p">((</span><span class="n">stmt</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">stmt</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">))</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">):</span> 
 <span class="o">...</span>     <span class="k">print</span> <span class="n">u</span><span class="p">,</span> <span class="n">count</span>
@@ -914,7 +1151,9 @@ ORDER BY users.id
 </div>
 <div class="section" id="selecting-entities-from-subqueries">
 <h3>Selecting Entities from Subqueries<a class="headerlink" href="#selecting-entities-from-subqueries" title="Permalink to this headline">¶</a></h3>
-<p>Above, we just selected a result that included a column from a subquery.  What if we wanted our subquery to map to an entity ?   For this we use <tt class="docutils literal"><span class="pre">aliased()</span></tt> to associate an &#8220;alias&#8221; of a mapped class to a subquery:</p>
+<p>Above, we just selected a result that included a column from a subquery. What
+if we wanted our subquery to map to an entity ? For this we use <tt class="docutils literal"><span class="pre">aliased()</span></tt>
+to associate an &#8220;alias&#8221; of a mapped class to a subquery:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">stmt</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span> <span class="o">!=</span> <span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">adalias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">stmt</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">user</span><span class="p">,</span> <span class="n">address</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">adalias</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">adalias</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)):</span> 
@@ -930,7 +1169,10 @@ WHERE addresses.email_address != ?) AS anon_1 ON users.id = anon_1.user_id
 </div>
 <div class="section" id="using-exists">
 <h3>Using EXISTS<a class="headerlink" href="#using-exists" title="Permalink to this headline">¶</a></h3>
-<p>The EXISTS keyword in SQL is a boolean operator which returns True if the given expression contains any rows.  It may be used in many scenarios in place of joins, and is also useful for locating rows which do not have a corresponding row in a related table.</p>
+<p>The EXISTS keyword in SQL is a boolean operator which returns True if the
+given expression contains any rows. It may be used in many scenarios in place
+of joins, and is also useful for locating rows which do not have a
+corresponding row in a related table.</p>
 <p>There is an explicit EXISTS construct, which looks like this:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">exists</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">stmt</span> <span class="o">=</span> <span class="n">exists</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
@@ -943,7 +1185,9 @@ FROM addresses
 WHERE addresses.user_id = users.id)
 ()</div><span class="n">jack</span></pre></div>
 </div>
-<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> features several operators which make usage of EXISTS automatically.  Above, the statement can be expressed along the <tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship using <tt class="docutils literal"><span class="pre">any()</span></tt>:</p>
+<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> features several operators which make
+usage of EXISTS automatically. Above, the statement can be expressed along the
+<tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship using <tt class="docutils literal"><span class="pre">any()</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="o">.</span><span class="n">any</span><span class="p">()):</span>   
 <span class="o">...</span>     <span class="k">print</span> <span class="n">name</span>
 <div class='popup_sql'>SELECT users.name AS users_name
@@ -1015,7 +1259,8 @@ WHERE users.id = addresses.user_id AND users.name = ?))
 </div>
 <div class="section" id="deleting">
 <h2>Deleting<a class="headerlink" href="#deleting" title="Permalink to this headline">¶</a></h2>
-<p>Let&#8217;s try to delete <tt class="docutils literal"><span class="pre">jack</span></tt> and see how that goes.  We&#8217;ll mark as deleted in the session, then we&#8217;ll issue a <tt class="docutils literal"><span class="pre">count</span></tt> query to see that no rows remain:</p>
+<p>Let&#8217;s try to delete <tt class="docutils literal"><span class="pre">jack</span></tt> and see how that goes. We&#8217;ll mark as deleted in
+the session, then we&#8217;ll issue a <tt class="docutils literal"><span class="pre">count</span></tt> query to see that no rows remain:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">jack</span><span class="p">)</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> 
 <div class='popup_sql'>UPDATE addresses SET user_id=? WHERE addresses.id = ?
@@ -1038,19 +1283,33 @@ FROM addresses
 WHERE addresses.email_address IN (?, ?)
 ('jack@google.com', 'j25@yahoo.com')</div><span class="mi">2</span></pre></div>
 </div>
-<p>Uh oh, they&#8217;re still there !  Analyzing the flush SQL, we can see that the <tt class="docutils literal"><span class="pre">user_id</span></tt> column of each address was set to NULL, but the rows weren&#8217;t deleted.  SQLAlchemy doesn&#8217;t assume that deletes cascade, you have to tell it to do so.</p>
+<p>Uh oh, they&#8217;re still there ! Analyzing the flush SQL, we can see that the
+<tt class="docutils literal"><span class="pre">user_id</span></tt> column of each address was set to NULL, but the rows weren&#8217;t
+deleted. SQLAlchemy doesn&#8217;t assume that deletes cascade, you have to tell it
+to do so.</p>
 <div class="section" id="configuring-delete-delete-orphan-cascade">
 <h3>Configuring delete/delete-orphan Cascade<a class="headerlink" href="#configuring-delete-delete-orphan-cascade" title="Permalink to this headline">¶</a></h3>
-<p>We will configure <strong>cascade</strong> options on the <tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship to change the behavior.  While SQLAlchemy allows you to add new attributes and relationships to mappings at any point in time, in this case the existing relationship needs to be removed, so we need to tear down the mappings completely and start again.</p>
+<p>We will configure <strong>cascade</strong> options on the <tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship
+to change the behavior. While SQLAlchemy allows you to add new attributes and
+relationships to mappings at any point in time, in this case the existing
+relationship needs to be removed, so we need to tear down the mappings
+completely and start again.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Tearing down mappers with <tt class="xref py py-func docutils literal"><span class="pre">clear_mappers()</span></tt> is not a typical operation, and normal applications do not need to use this function.  It is here so that the tutorial code can be executed as a whole.</p>
+<p class="last">Tearing down mappers with <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.clear_mappers" title="sqlalchemy.orm.clear_mappers"><tt class="xref py py-func docutils literal"><span class="pre">clear_mappers()</span></tt></a> is not a typical
+operation, and normal applications do not need to use this function. It is
+here so that the tutorial code can be executed as a whole.</p>
 </div>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c"># roll back and close the transaction</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">clear_mappers</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">clear_mappers</span><span class="p">()</span> <span class="c"># remove all class mappings</span></pre></div>
 </div>
-<p>Below, we use <tt class="docutils literal"><span class="pre">mapper()</span></tt> to reconfigure an ORM mapping for <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt>, on our existing but currently un-mapped classes.  The <tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship now has <tt class="docutils literal"><span class="pre">delete,</span> <span class="pre">delete-orphan</span></tt> cascade on it, which indicates that DELETE operations will cascade to attached <tt class="docutils literal"><span class="pre">Address</span></tt> objects as well as <tt class="docutils literal"><span class="pre">Address</span></tt> objects which are removed from their parent:</p>
+<p>Below, we use <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-class docutils literal"><span class="pre">mapper</span></tt></a> to reconfigure an ORM mapping for <tt class="docutils literal"><span class="pre">User</span></tt> and
+<tt class="docutils literal"><span class="pre">Address</span></tt>, on our existing but currently un-mapped classes. The
+<tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship now has <tt class="docutils literal"><span class="pre">delete,</span> <span class="pre">delete-orphan</span></tt> cascade on
+it, which indicates that DELETE operations will cascade to attached
+<tt class="docutils literal"><span class="pre">Address</span></tt> objects as well as <tt class="docutils literal"><span class="pre">Address</span></tt> objects which are removed from
+their parent:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">users_table</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">__table__</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>    
 <span class="o">...</span>     <span class="s">&#39;addresses&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;all, delete, delete-orphan&quot;</span><span class="p">)</span>
@@ -1061,7 +1320,9 @@ WHERE addresses.email_address IN (?, ?)
 <span class="o">&gt;&gt;&gt;</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">addresses_table</span><span class="p">)</span> 
 <span class="o">&lt;</span><span class="n">Mapper</span> <span class="n">at</span> <span class="mi">0</span><span class="n">x</span><span class="o">...</span><span class="p">;</span> <span class="n">Address</span><span class="o">&gt;</span></pre></div>
 </div>
-<p>Now when we load Jack (below using <tt class="docutils literal"><span class="pre">get()</span></tt>, which loads by primary key), removing an address from his <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will result in that <tt class="docutils literal"><span class="pre">Address</span></tt> being deleted:</p>
+<p>Now when we load Jack (below using <tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt>, which loads by primary key),
+removing an address from his <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will result in that
+<tt class="docutils literal"><span class="pre">Address</span></tt> being deleted:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># load Jack by primary key</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>    
 <div class='popup_sql'>BEGIN (implicit)
@@ -1111,7 +1372,10 @@ WHERE addresses.email_address IN (?, ?)
 </div>
 <div class="section" id="building-a-many-to-many-relationship">
 <h2>Building a Many To Many Relationship<a class="headerlink" href="#building-a-many-to-many-relationship" title="Permalink to this headline">¶</a></h2>
-<p>We&#8217;re moving into the bonus round here, but lets show off a many-to-many relationship.  We&#8217;ll sneak in some other features too, just to take a tour.  We&#8217;ll make our application a blog application, where users can write <tt class="docutils literal"><span class="pre">BlogPost</span></tt> items, which have <tt class="docutils literal"><span class="pre">Keyword</span></tt> items associated with them.</p>
+<p>We&#8217;re moving into the bonus round here, but lets show off a many-to-many
+relationship. We&#8217;ll sneak in some other features too, just to take a tour.
+We&#8217;ll make our application a blog application, where users can write
+<tt class="docutils literal"><span class="pre">BlogPost</span></tt> items, which have <tt class="docutils literal"><span class="pre">Keyword</span></tt> items associated with them.</p>
 <p>The declarative setup is as follows:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Text</span>
 
@@ -1149,9 +1413,28 @@ WHERE addresses.email_address IN (?, ?)
 <span class="o">...</span>     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyword</span><span class="p">):</span>
 <span class="o">...</span>         <span class="bp">self</span><span class="o">.</span><span class="n">keyword</span> <span class="o">=</span> <span class="n">keyword</span></pre></div>
 </div>
-<p>Above, the many-to-many relationship is <tt class="docutils literal"><span class="pre">BlogPost.keywords</span></tt>.  The defining feature of a many-to-many relationship is the <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword argument which references a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object representing the association table.  This table only contains columns which reference the two sides of the relationship; if it has <em>any</em> other columns, such as its own primary key, or foreign keys to other tables, SQLAlchemy requires a different usage pattern called the &#8220;association object&#8221;, described at <a class="reference internal" href="relationships.html#association-pattern"><em>Association Object</em></a>.</p>
-<p>The many-to-many relationship is also bi-directional using the <tt class="docutils literal"><span class="pre">backref</span></tt> keyword.  This is the one case where usage of <tt class="docutils literal"><span class="pre">backref</span></tt> is generally required, since if a separate <tt class="docutils literal"><span class="pre">posts</span></tt> relationship were added to the <tt class="docutils literal"><span class="pre">Keyword</span></tt> entity, both relationships would independently add and remove rows from the <tt class="docutils literal"><span class="pre">post_keywords</span></tt> table and produce conflicts.</p>
-<p>We would also like our <tt class="docutils literal"><span class="pre">BlogPost</span></tt> class to have an <tt class="docutils literal"><span class="pre">author</span></tt> field.  We will add this as another bidirectional relationship, except one issue we&#8217;ll have is that a single user might have lots of blog posts.  When we access <tt class="docutils literal"><span class="pre">User.posts</span></tt>, we&#8217;d like to be able to filter results further so as not to load the entire collection.  For this we use a setting accepted by <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> called <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt>, which configures an alternate <strong>loader strategy</strong> on the attribute.  To use it on the &#8220;reverse&#8221; side of a <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, we use the <a class="reference internal" href="relationships.html#sqlalchemy.orm.backref" title="sqlalchemy.orm.backref"><tt class="xref py py-func docutils literal"><span class="pre">backref()</span></tt></a> function:</p>
+<p>Above, the many-to-many relationship is <tt class="docutils literal"><span class="pre">BlogPost.keywords</span></tt>. The defining
+feature of a many-to-many relationship is the <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword argument
+which references a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object representing the
+association table. This table only contains columns which reference the two
+sides of the relationship; if it has <em>any</em> other columns, such as its own
+primary key, or foreign keys to other tables, SQLAlchemy requires a different
+usage pattern called the &#8220;association object&#8221;, described at
+<a class="reference internal" href="relationships.html#association-pattern"><em>Association Object</em></a>.</p>
+<p>The many-to-many relationship is also bi-directional using the <tt class="docutils literal"><span class="pre">backref</span></tt>
+keyword. This is the one case where usage of <tt class="docutils literal"><span class="pre">backref</span></tt> is generally
+required, since if a separate <tt class="docutils literal"><span class="pre">posts</span></tt> relationship were added to the
+<tt class="docutils literal"><span class="pre">Keyword</span></tt> entity, both relationships would independently add and remove rows
+from the <tt class="docutils literal"><span class="pre">post_keywords</span></tt> table and produce conflicts.</p>
+<p>We would also like our <tt class="docutils literal"><span class="pre">BlogPost</span></tt> class to have an <tt class="docutils literal"><span class="pre">author</span></tt> field. We will
+add this as another bidirectional relationship, except one issue we&#8217;ll have is
+that a single user might have lots of blog posts. When we access
+<tt class="docutils literal"><span class="pre">User.posts</span></tt>, we&#8217;d like to be able to filter results further so as not to
+load the entire collection. For this we use a setting accepted by
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> called <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt>, which
+configures an alternate <strong>loader strategy</strong> on the attribute. To use it on the
+&#8220;reverse&#8221; side of a <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, we use the
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.backref" title="sqlalchemy.orm.backref"><tt class="xref py py-func docutils literal"><span class="pre">backref()</span></tt></a> function:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">backref</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="c"># &quot;dynamic&quot; loading relationship to User</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">BlogPost</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s">&#39;posts&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s">&#39;dynamic&#39;</span><span class="p">))</span></pre></div>
@@ -1203,11 +1486,14 @@ WHERE users.name = ?
 ('wendy',)</div><span class="o">&gt;&gt;&gt;</span> <span class="n">post</span> <span class="o">=</span> <span class="n">BlogPost</span><span class="p">(</span><span class="s">&quot;Wendy&#39;s Blog Post&quot;</span><span class="p">,</span> <span class="s">&quot;This is a test&quot;</span><span class="p">,</span> <span class="n">wendy</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">post</span><span class="p">)</span></pre></div>
 </div>
-<p>We&#8217;re storing keywords uniquely in the database, but we know that we don&#8217;t have any yet, so we can just create them:</p>
+<p>We&#8217;re storing keywords uniquely in the database, but we know that we don&#8217;t
+have any yet, so we can just create them:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">post</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Keyword</span><span class="p">(</span><span class="s">&#39;wendy&#39;</span><span class="p">))</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">post</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Keyword</span><span class="p">(</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span></pre></div>
 </div>
-<p>We can now look up all blog posts with the keyword &#8216;firstpost&#8217;.   We&#8217;ll use the <tt class="docutils literal"><span class="pre">any</span></tt> operator to locate &#8220;blog posts where any of its keywords has the keyword string &#8216;firstpost&#8217;&#8221;:</p>
+<p>We can now look up all blog posts with the keyword &#8216;firstpost&#8217;. We&#8217;ll use the
+<tt class="docutils literal"><span class="pre">any</span></tt> operator to locate &#8220;blog posts where any of its keywords has the
+keyword string &#8216;firstpost&#8217;&#8221;:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BlogPost</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>INSERT INTO keywords (keyword) VALUES (?)
 ('wendy',)
@@ -1224,7 +1510,8 @@ FROM post_keywords, keywords
 WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_id AND keywords.keyword = ?)
 ('firstpost',)</div><span class="p">[</span><span class="n">BlogPost</span><span class="p">(</span><span class="s">&quot;Wendy&#39;s Blog Post&quot;</span><span class="p">,</span> <span class="s">&#39;This is a test&#39;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;wendy&#39;</span><span class="p">,</span><span class="s">&#39;Wendy Williams&#39;</span><span class="p">,</span> <span class="s">&#39;foobar&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)]</span></pre></div>
 </div>
-<p>If we want to look up just Wendy&#8217;s posts, we can tell the query to narrow down to her as a parent:</p>
+<p>If we want to look up just Wendy&#8217;s posts, we can tell the query to narrow down
+to her as a parent:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BlogPost</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">author</span><span class="o">==</span><span class="n">wendy</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body
@@ -1234,7 +1521,8 @@ FROM post_keywords, keywords
 WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_id AND keywords.keyword = ?))
 (2, 'firstpost')</div><span class="p">[</span><span class="n">BlogPost</span><span class="p">(</span><span class="s">&quot;Wendy&#39;s Blog Post&quot;</span><span class="p">,</span> <span class="s">&#39;This is a test&#39;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;wendy&#39;</span><span class="p">,</span><span class="s">&#39;Wendy Williams&#39;</span><span class="p">,</span> <span class="s">&#39;foobar&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)]</span></pre></div>
 </div>
-<p>Or we can use Wendy&#8217;s own <tt class="docutils literal"><span class="pre">posts</span></tt> relationship, which is a &#8220;dynamic&#8221; relationship, to query straight from there:</p>
+<p>Or we can use Wendy&#8217;s own <tt class="docutils literal"><span class="pre">posts</span></tt> relationship, which is a &#8220;dynamic&#8221;
+relationship, to query straight from there:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">wendy</span><span class="o">.</span><span class="n">posts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body
 FROM posts
@@ -1268,7 +1556,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

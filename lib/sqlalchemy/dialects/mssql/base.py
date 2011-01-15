@@ -1,4 +1,8 @@
-# mssql.py
+# mssql/base.py
+# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+#
+# This module is part of SQLAlchemy and is released under
+# the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 """Support for the Microsoft SQL Server database.
 
@@ -14,7 +18,7 @@ Auto Increment Behavior
 ``schema.Sequence()`` objects. In other words::
 
     from sqlalchemy import Table, Integer, Sequence, Column
-    
+
     Table('test', metadata,
            Column('id', Integer,
                   Sequence('blah',100,10), primary_key=True),
@@ -109,6 +113,33 @@ server version information (in this case SQL2005) and not the
 compatibiility level information. Because of this, if running under
 a backwards compatibility mode SQAlchemy may attempt to use T-SQL
 statements that are unable to be parsed by the database server.
+
+Triggers
+--------
+
+SQLAlchemy by default uses OUTPUT INSERTED to get at newly
+generated primary key values via IDENTITY columns or other
+server side defaults.   MS-SQL does not 
+allow the usage of OUTPUT INSERTED on tables that have triggers.
+To disable the usage of OUTPUT INSERTED on a per-table basis,
+specify ``implicit_returning=False`` for each :class:`.Table`
+which has triggers::
+
+    Table('mytable', metadata, 
+        Column('id', Integer, primary_key=True), 
+        # ...,
+        implicit_returning=False
+    )
+    
+Declarative form::
+
+    class MyClass(Base):
+        # ...
+        __table_args__ = {'implicit_returning':False}
+        
+        
+This option can also be specified engine-wide using the
+``implicit_returning=False`` argument on :func:`.create_engine`.
 
 Known Issues
 ------------
@@ -257,7 +288,7 @@ class SMALLDATETIME(_DateTimeBase, sqltypes.DateTime):
 
 class DATETIME2(_DateTimeBase, sqltypes.DateTime):
     __visit_name__ = 'DATETIME2'
-    
+
     def __init__(self, precision=None, **kwargs):
         self.precision = precision
 
@@ -265,7 +296,7 @@ class DATETIME2(_DateTimeBase, sqltypes.DateTime):
 # TODO: is this not an Interval ?
 class DATETIMEOFFSET(sqltypes.TypeEngine):
     __visit_name__ = 'DATETIMEOFFSET'
-    
+
     def __init__(self, precision=None, **kwargs):
         self.precision = precision
 
@@ -294,7 +325,7 @@ class NTEXT(_StringType, sqltypes.UnicodeText):
     characters."""
 
     __visit_name__ = 'NTEXT'
-    
+
     def __init__(self, *args, **kwargs):
         """Construct a NTEXT.
 
@@ -407,7 +438,7 @@ class IMAGE(sqltypes.LargeBinary):
 
 class BIT(sqltypes.TypeEngine):
     __visit_name__ = 'BIT'
-    
+
 
 class MONEY(sqltypes.TypeEngine):
     __visit_name__ = 'MONEY'
@@ -492,7 +523,7 @@ class MSTypeCompiler(compiler.GenericTypeCompiler):
 
         if type_.length:
             spec = spec + "(%d)" % type_.length
-        
+
         return ' '.join([c for c in (spec, collation)
             if c is not None])
 
@@ -534,10 +565,10 @@ class MSTypeCompiler(compiler.GenericTypeCompiler):
 
     def visit_unicode(self, type_):
         return self.visit_NVARCHAR(type_)
-        
+
     def visit_unicode_text(self, type_):
         return self.visit_NTEXT(type_)
-        
+
     def visit_NTEXT(self, type_):
         return self._extend("NTEXT", type_)
 
@@ -567,7 +598,7 @@ class MSTypeCompiler(compiler.GenericTypeCompiler):
             return self.visit_DATETIME(type_)
         else:
             return self.visit_TIME(type_)
-            
+
     def visit_large_binary(self, type_):
         return self.visit_IMAGE(type_)
 
@@ -597,7 +628,7 @@ class MSExecutionContext(default.DefaultExecutionContext):
     _select_lastrowid = False
     _result_proxy = None
     _lastrowid = None
-    
+
     def pre_exec(self):
         """Activate IDENTITY_INSERT if needed."""
 
@@ -605,25 +636,25 @@ class MSExecutionContext(default.DefaultExecutionContext):
             tbl = self.compiled.statement.table
             seq_column = tbl._autoincrement_column
             insert_has_sequence = seq_column is not None
-            
+
             if insert_has_sequence:
                 self._enable_identity_insert = \
                         seq_column.key in self.compiled_parameters[0]
             else:
                 self._enable_identity_insert = False
-            
+
             self._select_lastrowid = insert_has_sequence and \
                                         not self.compiled.returning and \
                                         not self._enable_identity_insert and \
                                         not self.executemany
-            
+
             if self._enable_identity_insert:
                 self.cursor.execute("SET IDENTITY_INSERT %s ON" % 
                     self.dialect.identifier_preparer.format_table(tbl))
 
     def post_exec(self):
         """Disable IDENTITY_INSERT if enabled."""
-        
+
         if self._select_lastrowid:
             if self.dialect.use_scope_identity:
                 self.cursor.execute(
@@ -637,17 +668,17 @@ class MSExecutionContext(default.DefaultExecutionContext):
         if (self.isinsert or self.isupdate or self.isdelete) and \
                 self.compiled.returning:
             self._result_proxy = base.FullyBufferedResultProxy(self)
-            
+
         if self._enable_identity_insert:
             self.cursor.execute(
-                        "SET IDENTITY_INSERT %s OFF" %  
+                        "SET IDENTITY_INSERT %s OFF" %
                             self.dialect.identifier_preparer.
                                 format_table(self.compiled.statement.table)
                         )
-        
+
     def get_lastrowid(self):
         return self._lastrowid
-        
+
     def handle_dbapi_exception(self, e):
         if self._enable_identity_insert:
             try:
@@ -667,7 +698,7 @@ class MSExecutionContext(default.DefaultExecutionContext):
 
 class MSSQLCompiler(compiler.SQLCompiler):
     returning_precedes_values = True
-    
+
     extract_map = util.update_copy(
         compiler.SQLCompiler.extract_map,
         {
@@ -683,31 +714,31 @@ class MSSQLCompiler(compiler.SQLCompiler):
 
     def visit_now_func(self, fn, **kw):
         return "CURRENT_TIMESTAMP"
-        
+
     def visit_current_date_func(self, fn, **kw):
         return "GETDATE()"
-        
+
     def visit_length_func(self, fn, **kw):
         return "LEN%s" % self.function_argspec(fn, **kw)
-        
+
     def visit_char_length_func(self, fn, **kw):
         return "LEN%s" % self.function_argspec(fn, **kw)
-        
+
     def visit_concat_op(self, binary, **kw):
         return "%s + %s" % \
                 (self.process(binary.left, **kw), 
                 self.process(binary.right, **kw))
-        
+
     def visit_match_op(self, binary, **kw):
         return "CONTAINS (%s, %s)" % (
                                         self.process(binary.left, **kw), 
                                         self.process(binary.right, **kw))
-        
+
     def get_select_precolumns(self, select):
         """ MS-SQL puts TOP, it's version of LIMIT here """
         if select._distinct or select._limit:
             s = select._distinct and "DISTINCT " or ""
-            
+
             if select._limit:
                 if not select._offset:
                     s += "TOP %s " % (select._limit,)
@@ -847,7 +878,7 @@ class MSSQLCompiler(compiler.SQLCompiler):
             target = stmt.table.alias("inserted")
         else:
             target = stmt.table.alias("deleted")
-        
+
         adapter = sql_util.ClauseAdapter(target)
         def col_label(col):
             adapted = adapter.traverse(col)
@@ -855,7 +886,7 @@ class MSSQLCompiler(compiler.SQLCompiler):
                 return adapted.label(c.key)
             else:
                 return self.label_select_column(None, adapted, asfrom=False)
-            
+
         columns = [
             self.process(
                 col_label(c), 
@@ -890,10 +921,10 @@ class MSSQLCompiler(compiler.SQLCompiler):
 class MSSQLStrictCompiler(MSSQLCompiler):
     """A subclass of MSSQLCompiler which disables the usage of bind
     parameters where not allowed natively by MS-SQL.
-    
+
     A dialect may use this compiler on a platform where native
     binds are used.
-    
+
     """
     ansi_bind_rules = True
 
@@ -921,9 +952,9 @@ class MSSQLStrictCompiler(MSSQLCompiler):
         format acceptable to MSSQL. That seems to be the
         so-called ODBC canonical date format which looks
         like this:
-        
+
             yyyy-mm-dd hh:mi:ss.mmm(24h)
-        
+
         For other data types, call the base class implementation.
         """
         # datetime and date are both subclasses of datetime.date
@@ -944,12 +975,12 @@ class MSDDLCompiler(compiler.DDLCompiler):
                 colspec += " NOT NULL"
             else:
                 colspec += " NULL"
-        
+
         if column.table is None:
             raise exc.InvalidRequestError(
                             "mssql requires Table-bound columns " 
                             "in order to generate DDL")
-            
+
         seq_col = column.table._autoincrement_column
 
         # install a IDENTITY Sequence if we have an implicit IDENTITY column
@@ -1009,13 +1040,13 @@ class MSDialect(default.DefaultDialect):
     }
 
     ischema_names = ischema_names
-    
+
     supports_native_boolean = False
     supports_unicode_binds = True
     postfetch_lastrowid = True
-    
+
     server_version_info = ()
-    
+
     statement_compiler = MSSQLCompiler
     ddl_compiler = MSDDLCompiler
     type_compiler = MSTypeCompiler
@@ -1033,7 +1064,7 @@ class MSDialect(default.DefaultDialect):
         self.max_identifier_length = int(max_identifier_length or 0) or \
                 self.max_identifier_length
         super(MSDialect, self).__init__(**opts)
-    
+
     def do_savepoint(self, connection, name):
         util.warn("Savepoint support in mssql is experimental and "
                   "may lead to data loss.")
@@ -1042,7 +1073,7 @@ class MSDialect(default.DefaultDialect):
 
     def do_release_savepoint(self, connection, name):
         pass
-    
+
     def initialize(self, connection):
         super(MSDialect, self).initialize(connection)
         if self.server_version_info[0] not in range(8, 17):
@@ -1058,7 +1089,7 @@ class MSDialect(default.DefaultDialect):
         if self.server_version_info >= MS_2005_VERSION and \
                     'implicit_returning' not in self.__dict__:
             self.implicit_returning = True
-        
+
     def _get_default_schema_name(self, connection):
         user_name = connection.scalar("SELECT user_name() as user_name;")
         if user_name is not None:
@@ -1132,7 +1163,7 @@ class MSDialect(default.DefaultDialect):
         # below MS 2005
         if self.server_version_info < MS_2005_VERSION:
             return []
-        
+
         current_schema = schema or self.default_schema_name
         full_tname = "%s.%s" % (current_schema, tablename)
 
@@ -1145,8 +1176,10 @@ class MSDialect(default.DefaultDialect):
                 "and sch.name=:schname "
                 "and ind.is_primary_key=0", 
                 bindparams=[
-                    sql.bindparam('tabname', tablename, sqltypes.Unicode),
-                    sql.bindparam('schname', current_schema, sqltypes.Unicode)
+                    sql.bindparam('tabname', tablename, 
+                                    sqltypes.String(convert_unicode=True)),
+                    sql.bindparam('schname', current_schema, 
+                                    sqltypes.String(convert_unicode=True))
                 ]
             )
         )
@@ -1158,22 +1191,27 @@ class MSDialect(default.DefaultDialect):
                 'column_names':[]
             }
         rp = connection.execute(
-            sql.text("select ind_col.index_id, col.name from sys.columns as col "
-                        "join sys.index_columns as ind_col on "
-                        "ind_col.column_id=col.column_id "
-                        "join sys.tables as tab on tab.object_id=col.object_id "
-                        "join sys.schemas as sch on sch.schema_id=tab.schema_id "
-                        "where tab.name=:tabname "
-                        "and sch.name=:schname",
+            sql.text(
+                "select ind_col.index_id, ind_col.object_id, col.name "
+                "from sys.columns as col "
+                "join sys.tables as tab on tab.object_id=col.object_id "
+                "join sys.index_columns as ind_col on "
+                "(ind_col.column_id=col.column_id and "
+                "ind_col.object_id=tab.object_id) "
+                "join sys.schemas as sch on sch.schema_id=tab.schema_id "
+                "where tab.name=:tabname "
+                "and sch.name=:schname",
                         bindparams=[
-                            sql.bindparam('tabname', tablename, sqltypes.Unicode),
-                            sql.bindparam('schname', current_schema, sqltypes.Unicode)
+                            sql.bindparam('tabname', tablename, 
+                                    sqltypes.String(convert_unicode=True)),
+                            sql.bindparam('schname', current_schema, 
+                                    sqltypes.String(convert_unicode=True))
                         ]),
             )
         for row in rp:
             if row['index_id'] in indexes:
                 indexes[row['index_id']]['column_names'].append(row['name'])
-        
+
         return indexes.values()
 
     @reflection.cache
@@ -1302,7 +1340,7 @@ class MSDialect(default.DefaultDialect):
         # the constrained column
         C  = ischema.key_constraints.alias('C') 
         # information_schema.constraint_column_usage: 
-        # the referenced column                                                
+        # the referenced column
         R  = ischema.key_constraints.alias('R') 
 
         # Primary key constraints
@@ -1324,7 +1362,7 @@ class MSDialect(default.DefaultDialect):
         #information_schema.referential_constraints
         RR = ischema.ref_constraints
         # information_schema.table_constraints
-        TC = ischema.constraints        
+        TC = ischema.constraints
         # information_schema.constraint_column_usage: 
         # the constrained column
         C  = ischema.key_constraints.alias('C') 
@@ -1348,12 +1386,12 @@ class MSDialect(default.DefaultDialect):
                        order_by = [
                                     RR.c.constraint_name,
                                     R.c.ordinal_position])
-        
+
 
         # group rows by constraint ID, to handle multi-column FKs
         fkeys = []
         fknm, scols, rcols = (None, [], [])
-        
+
         def fkey_rec():
             return {
                 'name' : None,
@@ -1364,7 +1402,7 @@ class MSDialect(default.DefaultDialect):
             }
 
         fkeys = util.defaultdict(fkey_rec)
-        
+
         for r in connection.execute(s).fetchall():
             scol, rschema, rtbl, rcol, rfknm, fkmatch, fkuprule, fkdelrule = r
 
@@ -1375,11 +1413,11 @@ class MSDialect(default.DefaultDialect):
 
                 if schema is not None or current_schema != rschema:
                     rec['referred_schema'] = rschema
-            
+
             local_cols, remote_cols = \
                                         rec['constrained_columns'],\
                                         rec['referred_columns']
-            
+
             local_cols.append(scol)
             remote_cols.append(rcol)
 

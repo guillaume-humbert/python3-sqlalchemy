@@ -7,7 +7,7 @@
         
         <title>
     Relationship Loading Techniques
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Event Interfaces" href="interfaces.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/orm/loading.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » 
     Relationship Loading Techniques
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -97,7 +97,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -130,7 +130,9 @@ when the attribute is first accessed.</p>
 Loading</strong>. We used an <tt class="docutils literal"><span class="pre">option</span></tt> in conjunction with the
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object in order to indicate that a
 relationship should be loaded at the same time as the parent, within a single
-SQL query.   This option, known as <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a></p>
+SQL query.   This option, known as <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a>, connects a JOIN (by default
+a LEFT OUTER join) to the statement and populates the scalar/collection from the
+same result set as that of the parent:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT addresses_1.id AS addresses_1_id, addresses_1.email_address AS addresses_1_email_address,
 addresses_1.user_id AS addresses_1_user_id, users.id AS users_id, users.name AS users_name,
@@ -567,7 +569,7 @@ load in one subquery eager load.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

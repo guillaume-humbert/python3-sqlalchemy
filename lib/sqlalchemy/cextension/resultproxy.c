@@ -107,11 +107,11 @@ BaseRowProxy_init(BaseRowProxy *self, PyObject *args, PyObject *kwds)
 static PyObject *
 BaseRowProxy_reduce(PyObject *self)
 {
-	PyObject *method, *state;
-	PyObject *module, *reconstructor, *cls;
+    PyObject *method, *state;
+    PyObject *module, *reconstructor, *cls;
 
-	method = PyObject_GetAttrString(self, "__getstate__");
-	if (method == NULL)
+    method = PyObject_GetAttrString(self, "__getstate__");
+    if (method == NULL)
         return NULL;
 
     state = PyObject_CallObject(method, NULL);
@@ -327,6 +327,12 @@ BaseRowProxy_subscript(BaseRowProxy *self, PyObject *key)
 }
 
 static PyObject *
+BaseRowProxy_getitem(PyObject *self, Py_ssize_t i)
+{
+    return BaseRowProxy_subscript((BaseRowProxy*)self, PyInt_FromSsize_t(i));
+}
+
+static PyObject *
 BaseRowProxy_getattro(BaseRowProxy *self, PyObject *name)
 {
     PyObject *tmp;
@@ -497,8 +503,8 @@ static PyGetSetDef BaseRowProxy_getseters[] = {
 static PyMethodDef BaseRowProxy_methods[] = {
     {"values", (PyCFunction)BaseRowProxy_values, METH_NOARGS,
      "Return the values represented by this BaseRowProxy as a list."},
-	{"__reduce__",  (PyCFunction)BaseRowProxy_reduce, METH_NOARGS,
-	 "Pickle support method."},
+    {"__reduce__",  (PyCFunction)BaseRowProxy_reduce, METH_NOARGS,
+     "Pickle support method."},
     {NULL}  /* Sentinel */
 };
 
@@ -506,7 +512,7 @@ static PySequenceMethods BaseRowProxy_as_sequence = {
     (lenfunc)BaseRowProxy_length,   /* sq_length */
     0,                              /* sq_concat */
     0,                              /* sq_repeat */
-    0,                              /* sq_item */
+    (ssizeargfunc)BaseRowProxy_getitem,          /* sq_item */
     0,                              /* sq_slice */
     0,                              /* sq_ass_item */
     0,                              /* sq_ass_slice */

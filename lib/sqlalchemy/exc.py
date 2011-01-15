@@ -1,4 +1,5 @@
-# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
+# sqlalchemy/exc.py
+# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -67,13 +68,13 @@ class InvalidRequestError(SQLAlchemyError):
 class ResourceClosedError(InvalidRequestError):
     """An operation was requested from a connection, cursor, or other
     object that's in a closed state."""
-    
+
 class NoSuchColumnError(KeyError, InvalidRequestError):
     """A nonexistent column is requested from a ``RowProxy``."""
 
 class NoReferenceError(InvalidRequestError):
     """Raised by ``ForeignKey`` to indicate a reference cannot be resolved."""
-    
+
 class NoReferencedTableError(NoReferenceError):
     """Raised by ``ForeignKey`` when the referred ``Table`` cannot be located."""
 

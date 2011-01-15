@@ -7,7 +7,7 @@
         
         <title>
     Oracle
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="PostgreSQL" href="postgresql.html" />
         <link rel="prev" title="MySQL" href="mysql.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/dialects/oracle.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="Dialects">Dialects</a>
                 » 
     Oracle
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -101,6 +101,7 @@
 <li><a class="reference internal" href="#id1">Unicode</a></li>
 <li><a class="reference internal" href="#lob-objects">LOB Objects</a></li>
 <li><a class="reference internal" href="#two-phase-transaction-support">Two Phase Transaction Support</a></li>
+<li><a class="reference internal" href="#precision-numerics">Precision Numerics</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.oracle.zxjdbc">zxjdbc Notes</a><ul>
@@ -113,7 +114,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -536,6 +537,47 @@ cursor is broken.</p>
 <p>Two Phase transactions are implemented using XA transactions.  Success has been reported 
 with this feature but it should be regarded as experimental.</p>
 </div>
+<div class="section" id="precision-numerics">
+<h3>Precision Numerics<a class="headerlink" href="#precision-numerics" title="Permalink to this headline">¶</a></h3>
+<p>The SQLAlchemy dialect goes thorugh a lot of steps to ensure
+that decimal numbers are sent and received with full accuracy.
+An &#8220;outputtypehandler&#8221; callable is associated with each
+cx_oracle connection object which detects numeric types and
+receives them as string values, instead of receiving a Python
+<tt class="docutils literal"><span class="pre">float</span></tt> directly, which is then passed to the Python
+<tt class="docutils literal"><span class="pre">Decimal</span></tt> constructor.  The <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a> and
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> types under the cx_oracle dialect are aware of
+this behavior, and will coerce the <tt class="docutils literal"><span class="pre">Decimal</span></tt> to <tt class="docutils literal"><span class="pre">float</span></tt> if
+the <tt class="docutils literal"><span class="pre">asdecimal</span></tt> flag is <tt class="xref docutils literal"><span class="pre">False</span></tt> (default on <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a>,
+optional on <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>).</p>
+<p>The handler attempts to use the &#8220;precision&#8221; and &#8220;scale&#8221;
+attributes of the result set column to best determine if
+subsequent incoming values should be received as <tt class="docutils literal"><span class="pre">Decimal</span></tt> as
+opposed to int (in which case no processing is added). There are
+several scenarios where <a class="reference external" href="http://www.oracle.com/technetwork/database/features/oci/index.html">OCI</a> does not provide unambiguous data
+as to the numeric type, including some situations where
+individual rows may return a combination of floating point and
+integer values. Certain values for &#8220;precision&#8221; and &#8220;scale&#8221; have
+been observed to determine this scenario.  When it occurs, the
+outputtypehandler receives as string and then passes off to a
+processing function which detects, for each returned value, if a
+decimal point is present, and if so converts to <tt class="docutils literal"><span class="pre">Decimal</span></tt>,
+otherwise to int.  The intention is that simple int-based
+statements like &#8220;SELECT my_seq.nextval() FROM DUAL&#8221; continue to
+return ints and not <tt class="docutils literal"><span class="pre">Decimal</span></tt> objects, and that any kind of
+floating point value is received as a string so that there is no
+floating point loss of precision.</p>
+<p>The &#8220;decimal point is present&#8221; logic itself is also sensitive to
+locale.  Under <a class="reference external" href="http://www.oracle.com/technetwork/database/features/oci/index.html">OCI</a>, this is controlled by the NLS_LANG
+environment variable. Upon first connection, the dialect runs a
+test to determine the current &#8220;decimal&#8221; character, which can be
+a comma &#8220;,&#8221; for european locales. From that point forward the
+outputtypehandler uses that character to represent a decimal
+point (this behavior is new in version 0.6.6). Note that
+cx_oracle 5.0.3 or greater is required when dealing with
+numerics with locale settings that don&#8217;t use a period &#8220;.&#8221; as the
+decimal character.</p>
+</div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.oracle.zxjdbc">
 <span id="zxjdbc-notes"></span><h2>zxjdbc Notes<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.zxjdbc" title="Permalink to this headline">¶</a></h2>
@@ -563,7 +605,7 @@ with this feature but it should be regarded as experimental.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

@@ -7,7 +7,7 @@
         
         <title>
     Declarative
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Ordering List" href="orderinglist.html" />
         <link rel="prev" title="Association Proxy" href="associationproxy.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,17 +52,17 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../../_sources/orm/extensions/declarative.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../../index.html">Table of Contents</a>
                         » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
@@ -70,7 +70,7 @@
                 » 
     Declarative
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -109,8 +109,6 @@
 <li><a class="reference internal" href="#mixing-in-deferred-column-property-etc">Mixing in deferred(), column_property(), etc.</a></li>
 <li><a class="reference internal" href="#controlling-table-inheritance-with-mixins">Controlling table inheritance with mixins</a></li>
 <li><a class="reference internal" href="#combining-table-mapper-arguments-from-multiple-mixins">Combining Table/Mapper Arguments from Multiple Mixins</a></li>
-<li><a class="reference internal" href="#defining-indexes-in-mixins">Defining Indexes in Mixins</a></li>
-<li><a class="reference internal" href="#using-multiple-mixins-that-require-metaclasses">Using multiple Mixins that require Metaclasses</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#class-constructor">Class Constructor</a></li>
@@ -122,12 +120,12 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.ext.declarative">
-<span id="declarative"></span><h1>Declarative<a class="headerlink" href="#module-sqlalchemy.ext.declarative" title="Permalink to this headline">¶</a></h1>
+<span id="declarative"></span><span id="declarative-toplevel"></span><h1>Declarative<a class="headerlink" href="#module-sqlalchemy.ext.declarative" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="synopsis">
 <h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
 <p>SQLAlchemy object-relational configuration involves the
@@ -283,7 +281,7 @@ the <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;author_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;authors.id&#39;</span><span class="p">)),</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;keyword_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;keywords.id&#39;</span><span class="p">))</span>
     <span class="p">)</span>
-            
+
 <span class="k">class</span> <span class="nc">Author</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;authors&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -311,11 +309,11 @@ using Python 2.6 style properties:</p>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attr</span>
-    
+
     <span class="nd">@attr.setter</span>
     <span class="k">def</span> <span class="nf">attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_attr</span> <span class="o">=</span> <span class="n">attr</span>
-        
+
     <span class="n">attr</span> <span class="o">=</span> <span class="n">synonym</span><span class="p">(</span><span class="s">&#39;_attr&#39;</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">=</span><span class="n">attr</span><span class="p">)</span></pre></div>
 </div>
 <p>The above synonym is then usable as an instance attribute as well as a
@@ -376,13 +374,13 @@ classes:</p>
 
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">user_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.id&#39;</span><span class="p">))</span>
-    
+
 <span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user&#39;</span>
 
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
-    
+
     <span class="n">address_count</span> <span class="o">=</span> <span class="n">column_property</span><span class="p">(</span>
         <span class="n">select</span><span class="p">([</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">id</span><span class="p">)])</span><span class="o">.</span>\
             <span class="n">where</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="nb">id</span><span class="p">)</span>
@@ -474,10 +472,10 @@ class declaration:</p>
 
 <span class="k">class</span> <span class="nc">Widget</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;widgets&#39;</span>
-    
+
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">timestamp</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    
+
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s">&#39;version_id_col&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">,</span>
                     <span class="s">&#39;version_id_generator&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
@@ -563,7 +561,7 @@ collection (empty or otherwise) to the <tt class="docutils literal"><span class=
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;people&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
-    
+
 <span class="k">class</span> <span class="nc">Engineer</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;engineers&#39;</span>
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;concrete&#39;</span><span class="p">:</span><span class="bp">True</span><span class="p">}</span>
@@ -592,7 +590,7 @@ requires usage of <a class="reference internal" href="../mapper_config.html#sqla
 <span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__table__</span> <span class="o">=</span> <span class="n">punion</span>
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_on&#39;</span><span class="p">:</span><span class="n">punion</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">}</span>
-    
+
 <span class="k">class</span> <span class="nc">Engineer</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
     <span class="n">__table__</span> <span class="o">=</span> <span class="n">engineers</span>
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;engineer&#39;</span><span class="p">,</span> <span class="s">&#39;concrete&#39;</span><span class="p">:</span><span class="bp">True</span><span class="p">}</span>
@@ -616,7 +614,7 @@ table and doesn&#8217;t subclass the declarative <tt class="xref py py-class doc
 
     <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;mysql_engine&#39;</span><span class="p">:</span> <span class="s">&#39;InnoDB&#39;</span><span class="p">}</span>
     <span class="n">__mapper_args__</span><span class="o">=</span> <span class="p">{</span><span class="s">&#39;always_refresh&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
-    
+
     <span class="nb">id</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 
@@ -670,7 +668,7 @@ patterns common to many classes can be defined as callables:</p>
     <span class="nd">@declared_attr</span>
     <span class="k">def</span> <span class="nf">address_id</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;address.id&#39;</span><span class="p">))</span>
-        
+
 <span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span> <span class="n">ReferenceAddressMixin</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
@@ -721,21 +719,21 @@ reference a common target class via many-to-one:</p>
 <span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span> <span class="n">RefTargetMixin</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;bar&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-                
+
 <span class="k">class</span> <span class="nc">Target</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;target&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <p><a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> definitions which require explicit
 primaryjoin, order_by etc. expressions should use the string forms 
-for these arguments, so that they are evaluated as late as possible.  
+for these arguments, so that they are evaluated as late as possible.
 To reference the mixin class in these expressions, use the given <tt class="docutils literal"><span class="pre">cls</span></tt>
 to get it&#8217;s name:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">RefTargetMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="nd">@declared_attr</span>
     <span class="k">def</span> <span class="nf">target_id</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;target_id&#39;</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;target.id&#39;</span><span class="p">))</span>
-    
+
     <span class="nd">@declared_attr</span>
     <span class="k">def</span> <span class="nf">target</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Target&quot;</span><span class="p">,</span>
@@ -862,7 +860,7 @@ from multiple collections:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declared_attr</span>
 
 <span class="k">class</span> <span class="nc">MySQLSettings</span><span class="p">:</span>
-    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;mysql_engine&#39;</span><span class="p">:</span><span class="s">&#39;InnoDB&#39;</span><span class="p">}</span>             
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;mysql_engine&#39;</span><span class="p">:</span><span class="s">&#39;InnoDB&#39;</span><span class="p">}</span>
 
 <span class="k">class</span> <span class="nc">MyOtherMixin</span><span class="p">:</span>
     <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;info&#39;</span><span class="p">:</span><span class="s">&#39;foo&#39;</span><span class="p">}</span>
@@ -879,78 +877,6 @@ from multiple collections:</p>
 
     <span class="nb">id</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
-</div>
-<div class="section" id="defining-indexes-in-mixins">
-<h3>Defining Indexes in Mixins<a class="headerlink" href="#defining-indexes-in-mixins" title="Permalink to this headline">¶</a></h3>
-<p>If you need to define a multi-column index that applies to all tables
-that make use of a particular mixin, you will need to do this in a
-metaclass as shown in the following example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">DeclarativeMeta</span>
-
-<span class="k">class</span> <span class="nc">MyMixinMeta</span><span class="p">(</span><span class="n">DeclarativeMeta</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="s">&#39;_decl_class_registry&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">MyMeta</span><span class="p">,</span><span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-        <span class="c"># Index creation done here</span>
-        <span class="n">Index</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span><span class="n">cls</span><span class="o">.</span><span class="n">a</span><span class="p">,</span><span class="n">cls</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
-
-<span class="k">class</span> <span class="nc">MyMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">__metaclass__</span><span class="o">=</span><span class="n">MyMixinMeta</span>
-    <span class="n">a</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
-    <span class="n">b</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
-
-<span class="k">class</span> <span class="nc">MyModel</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span><span class="n">MyMixin</span><span class="p">):</span>
-    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;atable&#39;</span>
-    <span class="n">c</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span><span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
-</div>
-</div>
-<div class="section" id="using-multiple-mixins-that-require-metaclasses">
-<h3>Using multiple Mixins that require Metaclasses<a class="headerlink" href="#using-multiple-mixins-that-require-metaclasses" title="Permalink to this headline">¶</a></h3>
-<p>If you end up in a situation where you need to use multiple mixins and
-more than one of them uses a metaclass to, for example, create a
-multi-column index, then you will need to create a metaclass that
-correctly combines the actions of the other metaclasses. For example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyMeta1</span><span class="p">(</span><span class="n">DeclarativeMeta</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="s">&#39;_decl_class_registry&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">MyMeta1</span><span class="p">,</span><span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-        <span class="n">Index</span><span class="p">(</span><span class="s">&#39;ab&#39;</span><span class="p">,</span><span class="n">cls</span><span class="o">.</span><span class="n">a</span><span class="p">,</span><span class="n">cls</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
-
-<span class="k">class</span> <span class="nc">MyMixin1</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">__metaclass__</span><span class="o">=</span><span class="n">MyMeta1</span>
-    <span class="n">a</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
-    <span class="n">b</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
-
-<span class="k">class</span> <span class="nc">MyMeta2</span><span class="p">(</span><span class="n">DeclarativeMeta</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="s">&#39;_decl_class_registry&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">MyMeta2</span><span class="p">,</span><span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-        <span class="n">Index</span><span class="p">(</span><span class="s">&#39;cd&#39;</span><span class="p">,</span><span class="n">cls</span><span class="o">.</span><span class="n">c</span><span class="p">,</span><span class="n">cls</span><span class="o">.</span><span class="n">d</span><span class="p">)</span>
-
-<span class="k">class</span> <span class="nc">MyMixin2</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">__metaclass__</span><span class="o">=</span><span class="n">MyMeta2</span>
-    <span class="n">c</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
-    <span class="n">d</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
-
-<span class="k">class</span> <span class="nc">CombinedMeta</span><span class="p">(</span><span class="n">MyMeta1</span><span class="p">,</span><span class="n">MyMeta2</span><span class="p">):</span>
-    <span class="c"># This is needed to successfully combine</span>
-    <span class="c"># two mixins which both have metaclasses</span>
-    <span class="k">pass</span>
-
-<span class="k">class</span> <span class="nc">MyModel</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span><span class="n">MyMixin1</span><span class="p">,</span><span class="n">MyMixin2</span><span class="p">):</span>
-    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;awooooga&#39;</span>
-    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">CombinedMeta</span>
-    <span class="n">z</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span><span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
-</div>
-<p>For this reason, if a mixin requires a custom metaclass, this should
-be mentioned in any documentation of that mixin to avoid confusion
-later down the line.</p>
 </div>
 </div>
 <div class="section" id="class-constructor">
@@ -980,7 +906,7 @@ setup using <a class="reference internal" href="../session.html#sqlalchemy.orm.s
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x42b1a30&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x443bd70&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that produces
 appropriate <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and makes
@@ -1048,7 +974,7 @@ to define relationships that are to be applied to different
 implementors of the class:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ProvidesUser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="s">&quot;A mixin that adds a &#39;user&#39; relationship to classes.&quot;</span>
-    
+
     <span class="nd">@declared_attr</span>
     <span class="k">def</span> <span class="nf">user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;User&quot;</span><span class="p">)</span></pre></div>
@@ -1058,11 +984,11 @@ a &#8220;polymorphic&#8221; scheme for inheritance:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="nb">type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    
+
     <span class="nd">@declared_attr</span>
     <span class="k">def</span> <span class="nf">__tablename__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    
+
     <span class="nd">@declared_attr</span>
     <span class="k">def</span> <span class="nf">__mapper_args__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;Employee&#39;</span><span class="p">:</span>
@@ -1155,7 +1081,7 @@ MetaData object.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

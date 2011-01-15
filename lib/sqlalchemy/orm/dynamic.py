@@ -1,5 +1,5 @@
-# dynamic.py
-# Copyright (C) the SQLAlchemy authors and contributors
+# orm/dynamic.py
+# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -44,7 +44,7 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
     uses_objects = True
     accepts_scalar_loader = False
     supports_population = False
-    
+
     def __init__(self, class_, key, typecallable,
                      target_mapper, order_by, query_class=None, **kwargs):
         super(DynamicAttributeImpl, self).\
@@ -135,7 +135,7 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
     def set_committed_value(self, state, dict_, value):
         raise NotImplementedError("Dynamic attributes don't support "
                                   "collection population.")
-    
+
     def get_history(self, state, dict_, passive=False):
         c = self._get_collection_history(state, passive)
         return attributes.History(c.added_items, c.unchanged_items,
@@ -261,10 +261,10 @@ class AppenderMixin(object):
             query = self.query_class(self.attr.target_mapper, session=sess)
         else:
             query = sess.query(self.attr.target_mapper)
-        
+
         query._criterion = self._criterion
         query._order_by = self._order_by
-        
+
         return query
 
     def append(self, item):

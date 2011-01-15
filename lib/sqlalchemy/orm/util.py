@@ -1,6 +1,5 @@
-# mapper/util.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer
-# mike_mp@zzzcomputing.com
+# orm/util.py
+# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -13,7 +12,7 @@ from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE,\
                                 AttributeExtension
 from sqlalchemy.orm import attributes, exc
 
-mapperlib = None
+mapperlib = util.importlater("sqlalchemy.orm", "mapperlib")
 
 all_cascades = frozenset(("delete", "delete-orphan", "all", "merge",
                           "expunge", "save-update", "refresh-expire",
@@ -288,8 +287,8 @@ class AliasedClass(object):
     The ORM equivalent of a :func:`sqlalchemy.sql.expression.alias`
     construct, this object mimics the mapped class using a
     __getattr__ scheme and maintains a reference to a
-    real :class:`~sqlalchemy.sql.expression.Alias` object.   
-    
+    real :class:`~sqlalchemy.sql.expression.Alias` object.
+
     Usage is via the :class:`~sqlalchemy.orm.aliased()` synonym::
 
         # find all pairs of users with the same name
@@ -485,19 +484,19 @@ def with_parent(instance, prop):
     """Create filtering criterion that relates this query's primary entity
     to the given related instance, using established :func:`.relationship()`
     configuration.
-    
+
     The SQL rendered is the same as that rendered when a lazy loader
     would fire off from the given parent on that attribute, meaning
     that the appropriate state is taken from the parent object in 
     Python without the need to render joins to the parent table
     in the rendered statement.
-    
+
     As of 0.6.4, this method accepts parent instances in all 
     persistence states, including transient, persistent, and detached.
     Only the requisite primary key/foreign key attributes need to
     be populated.  Previous versions didn't work with transient
     instances.
-    
+
     :param instance:
       An instance which has some :func:`.relationship`.
 
@@ -505,7 +504,7 @@ def with_parent(instance, prop):
       String property name, or class-bound attribute, which indicates
       what relationship from the instance should be used to reconcile the 
       parent/child relationship. 
-      
+
     """
     if isinstance(prop, basestring):
         mapper = object_mapper(instance)
@@ -532,37 +531,33 @@ def _entity_info(entity, compile=True):
     if isinstance(entity, AliasedClass):
         return entity._AliasedClass__mapper, entity._AliasedClass__alias, True
 
-    global mapperlib
-    if mapperlib is None:
-        from sqlalchemy.orm import mapperlib
-    
     if isinstance(entity, mapperlib.Mapper):
         mapper = entity
-        
+
     elif isinstance(entity, type):
         class_manager = attributes.manager_of_class(entity)
-        
+
         if class_manager is None:
             return None, entity, False
-            
+
         mapper = class_manager.mapper
     else:
         return None, entity, False
-        
+
     if compile:
         mapper = mapper.compile()
     return mapper, mapper._with_polymorphic_selectable, False
 
 def _entity_descriptor(entity, key):
     """Return a class attribute given an entity and string name.
-    
+
     May return :class:`.InstrumentedAttribute` or user-defined
     attribute.
 
     """
     if not isinstance(entity, (AliasedClass, type)):
         entity = entity.class_
-    
+
     try:
         return getattr(entity, key)
     except AttributeError:
@@ -615,7 +610,7 @@ def class_mapper(class_, compile=True):
     Raises UnmappedClassError if no mapping is configured.
 
     """
-    
+
     try:
         class_manager = attributes.manager_of_class(class_)
         mapper = class_manager.mapper
@@ -630,24 +625,28 @@ def class_mapper(class_, compile=True):
 def _class_to_mapper(class_or_mapper, compile=True):
     if _is_aliased_class(class_or_mapper):
         return class_or_mapper._AliasedClass__mapper
+
     elif isinstance(class_or_mapper, type):
-        return class_mapper(class_or_mapper, compile=compile)
-    elif hasattr(class_or_mapper, 'compile'):
-        if compile:
-            return class_or_mapper.compile()
-        else:
-            return class_or_mapper
+        try:
+            class_manager = attributes.manager_of_class(class_or_mapper)
+            mapper = class_manager.mapper
+        except exc.NO_STATE:
+            raise exc.UnmappedClassError(class_or_mapper)
+    elif isinstance(class_or_mapper, mapperlib.Mapper):
+        mapper = class_or_mapper
     else:
         raise exc.UnmappedClassError(class_or_mapper)
+
+    if compile:
+        return mapper.compile()
+    else:
+        return mapper
 
 def has_identity(object):
     state = attributes.instance_state(object)
     return state.has_identity
 
 def _is_mapped_class(cls):
-    global mapperlib
-    if mapperlib is None:
-        from sqlalchemy.orm import mapperlib
     if isinstance(cls, (AliasedClass, mapperlib.Mapper)):
         return True
     if isinstance(cls, expression.ClauseElement):
@@ -690,8 +689,3 @@ def identity_equal(a, b):
         return False
     return state_a.key == state_b.key
 
-
-# TODO: Avoid circular import.
-attributes.identity_equal = identity_equal
-attributes._is_aliased_class = _is_aliased_class
-attributes._entity_info = _entity_info
