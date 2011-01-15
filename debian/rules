@@ -96,7 +96,7 @@ binary-indep: build install install-docs
 	find $(CURDIR)/debian/ -name '*.py[co]' -delete
 	dh_python2 -i
 	dh_python3 -i
-	dh_compress -i -X.py -X.js -X.html
+	dh_compress -i -X.py -X.js -X.html -X.inv
 	dh_fixperms -i
 	dh_installdeb -i
 	dh_gencontrol -i
