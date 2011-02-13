@@ -1,12 +1,12 @@
 
-from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
+from test.lib.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy import *
 from sqlalchemy.orm import attributes
-from sqlalchemy import exc as sa_exc
+from sqlalchemy import exc as sa_exc, event
 from sqlalchemy.orm import exc as orm_exc
 from sqlalchemy.orm import *
-from sqlalchemy.test.util import gc_collect
-from sqlalchemy.test import testing
+from test.lib.util import gc_collect
+from test.lib import testing
 from test.orm import _base
 from test.orm._fixtures import FixtureTest, User, Address, users, addresses
 
@@ -22,6 +22,7 @@ class TransactionTest(FixtureTest):
                                  cascade="all, delete-orphan", order_by=addresses.c.id),
             })
         mapper(Address, addresses)
+
 
 class FixtureDataTest(TransactionTest):
     run_inserts = 'each'
@@ -456,7 +457,8 @@ class AccountingFlagsTest(TransactionTest):
         sess.commit()
 
     def test_preflush_no_accounting(self):
-        sess = sessionmaker(_enable_transaction_accounting=False, autocommit=True)()
+        sess = Session(_enable_transaction_accounting=False, 
+                        autocommit=True, autoflush=False)
         u1 = User(name='ed')
         sess.add(u1)
         sess.flush()
@@ -490,6 +492,82 @@ class AutoCommitTest(TransactionTest):
         assert u2 not in sess
         assert u1 in sess
         assert sess.query(User).filter_by(name='ed').one() is u1
+
+    def test_accounting_commit_fails_add(self):
+        sess = create_session(autocommit=True)
+
+        fail = False
+        def fail_fn(*arg, **kw):
+            if fail:
+                raise Exception("commit fails")
+
+        event.listen(sess, "after_flush_postexec", fail_fn)
+        u1 = User(name='ed')
+        sess.add(u1)
+
+        fail = True
+        assert_raises(
+            Exception,
+            sess.flush
+        )
+        fail = False
+
+        assert u1 not in sess
+        u1new = User(id=2, name='fred')
+        sess.add(u1new)
+        sess.add(u1)
+        sess.flush()
+        assert u1 in sess
+        eq_(
+            sess.query(User.name).order_by(User.name).all(),
+            [('ed', ), ('fred',)]
+        )
+
+    def test_accounting_commit_fails_delete(self):
+        sess = create_session(autocommit=True)
+
+        fail = False
+        def fail_fn(*arg, **kw):
+            if fail:
+                raise Exception("commit fails")
+
+        event.listen(sess, "after_flush_postexec", fail_fn)
+        u1 = User(name='ed')
+        sess.add(u1)
+        sess.flush()
+
+        sess.delete(u1)
+        fail = True
+        assert_raises(
+            Exception,
+            sess.flush
+        )
+        fail = False
+
+        assert u1 in sess
+        assert u1 not in sess.deleted
+        sess.delete(u1)
+        sess.flush()
+        assert u1 not in sess
+        eq_(
+            sess.query(User.name).order_by(User.name).all(),
+            []
+        )
+
+    def test_accounting_no_select_needed(self):
+        """test that flush accounting works on non-expired instances
+        when autocommit=True/expire_on_commit=True."""
+        sess = create_session(autocommit=True, expire_on_commit=True)
+
+        u1 = User(id=1, name='ed')
+        sess.add(u1)
+        sess.flush()
+
+        u1.id = 3
+        u1.name = 'fred'
+        self.assert_sql_count(testing.db, sess.flush, 1)
+        assert 'id' not in u1.__dict__
+        eq_(u1.id, 3)
 
 class NaturalPKRollbackTest(_base.MappedTest):
     @classmethod

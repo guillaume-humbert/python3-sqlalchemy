@@ -1,14 +1,15 @@
 """SQLite-specific tests."""
 
-from sqlalchemy.test.testing import eq_, assert_raises, \
+from test.lib.testing import eq_, assert_raises, \
     assert_raises_message
 import datetime
 from sqlalchemy import *
-from sqlalchemy import exc, sql, schema
+from sqlalchemy import exc, sql, schema, pool, types as sqltypes
 from sqlalchemy.dialects.sqlite import base as sqlite, \
     pysqlite as pysqlite_dialect
-from sqlalchemy.test import *
-
+from sqlalchemy.engine.url import make_url
+from test.lib import *
+import os
 
 class TestTypes(TestBase, AssertsExecutionResults):
 
@@ -43,7 +44,7 @@ class TestTypes(TestBase, AssertsExecutionResults):
             meta.drop_all()
 
     def test_string_dates_raise(self):
-        assert_raises(TypeError, testing.db.execute,
+        assert_raises(exc.StatementError, testing.db.execute,
                       select([1]).where(bindparam('date', type_=Date)),
                       date=str(datetime.date(2007, 10, 30)))
 
@@ -98,6 +99,7 @@ class TestTypes(TestBase, AssertsExecutionResults):
             assert not bindproc or isinstance(bindproc(u'some string'),
                     unicode)
 
+    @testing.provide_metadata
     def test_type_reflection(self):
 
         # (ask_for, roundtripped_as_if_different)
@@ -135,25 +137,33 @@ class TestTypes(TestBase, AssertsExecutionResults):
         columns = [Column('c%i' % (i + 1), t[0]) for (i, t) in
                    enumerate(specs)]
         db = testing.db
-        m = MetaData(db)
-        t_table = Table('types', m, *columns)
-        m.create_all()
+        t_table = Table('types', metadata, *columns)
+        metadata.create_all()
+        m2 = MetaData(db)
+        rt = Table('types', m2, autoload=True)
         try:
-            m2 = MetaData(db)
-            rt = Table('types', m2, autoload=True)
-            try:
-                db.execute('CREATE VIEW types_v AS SELECT * from types')
-                rv = Table('types_v', m2, autoload=True)
-                expected = [len(c) > 1 and c[1] or c[0] for c in specs]
-                for table in rt, rv:
-                    for i, reflected in enumerate(table.c):
-                        assert isinstance(reflected.type,
-                                type(expected[i])), '%d: %r' % (i,
-                                type(expected[i]))
-            finally:
-                db.execute('DROP VIEW types_v')
+            db.execute('CREATE VIEW types_v AS SELECT * from types')
+            rv = Table('types_v', m2, autoload=True)
+            expected = [len(c) > 1 and c[1] or c[0] for c in specs]
+            for table in rt, rv:
+                for i, reflected in enumerate(table.c):
+                    assert isinstance(reflected.type,
+                            type(expected[i])), '%d: %r' % (i,
+                            type(expected[i]))
         finally:
-            m.drop_all()
+            db.execute('DROP VIEW types_v')
+
+    @testing.emits_warning('Did not recognize')
+    @testing.provide_metadata
+    def test_unknown_reflection(self):
+        t = Table('t', metadata,
+            Column('x', sqltypes.BINARY(16)),
+            Column('y', sqltypes.BINARY())
+        )
+        t.create()
+        t2 = Table('t', MetaData(), autoload=True, autoload_with=testing.db)
+        assert isinstance(t2.c.x.type, sqltypes.NullType)
+        assert isinstance(t2.c.y.type, sqltypes.NullType)
 
 
 class TestDefaults(TestBase, AssertsExecutionResults):
@@ -319,6 +329,24 @@ class DialectTest(TestBase, AssertsExecutionResults):
                 pass
             raise
 
+    def test_file_path_is_absolute(self):
+        d = pysqlite_dialect.dialect()
+        eq_(
+            d.create_connect_args(make_url('sqlite:///foo.db')),
+            ([os.path.abspath('foo.db')], {})
+        )
+
+    def test_pool_class(self):
+        e = create_engine('sqlite+pysqlite://')
+        assert e.pool.__class__ is pool.SingletonThreadPool
+
+        e = create_engine('sqlite+pysqlite:///:memory:')
+        assert e.pool.__class__ is pool.SingletonThreadPool
+
+        e = create_engine('sqlite+pysqlite:///foo.db')
+        assert e.pool.__class__ is pool.NullPool
+
+
     def test_dont_reflect_autoindex(self):
         meta = MetaData(testing.db)
         t = Table('foo', meta, Column('bar', String, primary_key=True))
@@ -332,20 +360,6 @@ class DialectTest(TestBase, AssertsExecutionResults):
                 : u'sqlite_autoindex_foo_1', 'column_names': [u'bar']}])
         finally:
             meta.drop_all()
-
-    def test_set_isolation_level(self):
-        """Test setting the read uncommitted/serializable levels"""
-
-        eng = create_engine(testing.db.url)
-        eq_(eng.execute('PRAGMA read_uncommitted').scalar(), 0)
-        eng = create_engine(testing.db.url,
-                            isolation_level='READ UNCOMMITTED')
-        eq_(eng.execute('PRAGMA read_uncommitted').scalar(), 1)
-        eng = create_engine(testing.db.url,
-                            isolation_level='SERIALIZABLE')
-        eq_(eng.execute('PRAGMA read_uncommitted').scalar(), 0)
-        assert_raises(exc.ArgumentError, create_engine, testing.db.url,
-                      isolation_level='FOO')
 
     def test_create_index_with_schema(self):
         """Test creation of index with explicit schema"""
@@ -566,7 +580,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
 
     def test_expression(self):
         self.assert_compile(matchtable.c.title.match('somstr'),
-                            'matchtable.title MATCH ?')
+                            'matchtable.title MATCH ?', dialect=sqlite.dialect())
 
     def test_simple_match(self):
         results = \
@@ -602,7 +616,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
         eq_([1, 3], [r.id for r in results])
 
 
-class TestAutoIncrement(TestBase, AssertsCompiledSQL):
+class AutoIncrementTest(TestBase, AssertsCompiledSQL):
 
     def test_sqlite_autoincrement(self):
         table = Table('autoinctable', MetaData(), Column('id', Integer,
@@ -637,23 +651,16 @@ class TestAutoIncrement(TestBase, AssertsCompiledSQL):
                             'NOT NULL, x INTEGER, PRIMARY KEY (id))',
                             dialect=sqlite.dialect())
 
-
-class ReflectHeadlessFKsTest(TestBase):
-    __only_on__ = ('sqlite', )
-
-    def setup(self):
-        testing.db.execute("CREATE TABLE a (id INTEGER PRIMARY KEY)")
-        testing.db.execute("CREATE TABLE b (id INTEGER PRIMARY KEY REFERENCES a)")
-
-    def teardown(self):
-        testing.db.execute("drop table b")
-        testing.db.execute("drop table a")
-
-    def test_reflect_tables_fk_no_colref(self):
-        meta = MetaData()
-        a = Table('a', meta, autoload=True, autoload_with=testing.db)
-        b = Table('b', meta, autoload=True, autoload_with=testing.db)
-
-        assert b.c.id.references(a.c.id)
-
-
+    def test_sqlite_autoincrement_int_affinity(self):
+        class MyInteger(TypeDecorator):
+            impl = Integer
+        table = Table(
+            'autoinctable',
+            MetaData(),
+            Column('id', MyInteger, primary_key=True),
+            sqlite_autoincrement=True,
+            )
+        self.assert_compile(schema.CreateTable(table),
+                            'CREATE TABLE autoinctable (id INTEGER NOT '
+                            'NULL PRIMARY KEY AUTOINCREMENT)',
+                            dialect=sqlite.dialect())

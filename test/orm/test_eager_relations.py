@@ -1,18 +1,18 @@
 """tests of joined-eager loaded attributes"""
 
-from sqlalchemy.test.testing import eq_, is_, is_not_
+from test.lib.testing import eq_, is_, is_not_
 import sqlalchemy as sa
-from sqlalchemy.test import testing
+from test.lib import testing
 from sqlalchemy.orm import joinedload, deferred, undefer, \
     joinedload_all, backref
 from sqlalchemy import Integer, String, Date, ForeignKey, and_, select, \
     func
-from sqlalchemy.test.schema import Table, Column
+from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session, \
     lazyload, aliased
-from sqlalchemy.test.testing import eq_, assert_raises, \
+from test.lib.testing import eq_, assert_raises, \
     assert_raises_message
-from sqlalchemy.test.assertsql import CompiledSQL
+from test.lib.assertsql import CompiledSQL
 from test.orm import _base, _fixtures
 from sqlalchemy.util import OrderedDict as odict
 import datetime
@@ -672,8 +672,9 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "orders_1_address_id, orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
             "FROM (SELECT users.id AS users_id, users.name AS users_name "
             "FROM users "
-            " LIMIT 10) AS anon_1 LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = orders_1.user_id"
-            ,use_default_dialect=True
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = orders_1.user_id",
+            {'param_1':10},
+            use_default_dialect=True
         )
 
         self.assert_compile(
@@ -681,8 +682,9 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, orders.address_id AS "
             "orders_address_id, orders.description AS orders_description, orders.isopen AS orders_isopen, "
             "users_1.id AS users_1_id, users_1.name AS users_1_name FROM orders LEFT OUTER JOIN users AS "
-            "users_1 ON users_1.id = orders.user_id  LIMIT 10"
-            ,use_default_dialect=True
+            "users_1 ON users_1.id = orders.user_id LIMIT :param_1",
+            {'param_1':10},
+            use_default_dialect=True
         )
 
         self.assert_compile(
@@ -690,8 +692,9 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, orders.address_id AS "
             "orders_address_id, orders.description AS orders_description, orders.isopen AS orders_isopen, "
             "users_1.id AS users_1_id, users_1.name AS users_1_name FROM orders JOIN users AS "
-            "users_1 ON users_1.id = orders.user_id  LIMIT 10"
-            ,use_default_dialect=True
+            "users_1 ON users_1.id = orders.user_id LIMIT :param_1",
+            {'param_1':10},
+            use_default_dialect=True
         )
 
         self.assert_compile(
@@ -701,10 +704,11 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "addresses_1.email_address AS addresses_1_email_address, orders_1.id AS orders_1_id, "
             "orders_1.user_id AS orders_1_user_id, orders_1.address_id AS orders_1_address_id, "
             "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen FROM "
-            "(SELECT users.id AS users_id, users.name AS users_name FROM users  LIMIT 10) AS anon_1 "
+            "(SELECT users.id AS users_id, users.name AS users_name FROM users LIMIT :param_1) AS anon_1 "
             "LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = orders_1.user_id LEFT OUTER JOIN "
-            "addresses AS addresses_1 ON addresses_1.id = orders_1.address_id"
-            ,use_default_dialect=True
+            "addresses AS addresses_1 ON addresses_1.id = orders_1.address_id",
+            {'param_1':10},
+            use_default_dialect=True
         )
 
         self.assert_compile(
@@ -731,9 +735,10 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
             "FROM (SELECT users.id AS users_id, users.name AS users_name "
             "FROM users "
-            " LIMIT 10) AS anon_1 LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = "
-            "orders_1.user_id LEFT OUTER JOIN addresses AS addresses_1 ON addresses_1.id = orders_1.address_id"
-            ,use_default_dialect=True
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = "
+            "orders_1.user_id LEFT OUTER JOIN addresses AS addresses_1 ON addresses_1.id = orders_1.address_id",
+            {'param_1':10},
+            use_default_dialect=True
         )
 
         self.assert_compile(
@@ -746,9 +751,10 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
             "FROM (SELECT users.id AS users_id, users.name AS users_name "
             "FROM users "
-            " LIMIT 10) AS anon_1 JOIN orders AS orders_1 ON anon_1.users_id = "
-            "orders_1.user_id JOIN addresses AS addresses_1 ON addresses_1.id = orders_1.address_id"
-            ,use_default_dialect=True
+            "LIMIT :param_1) AS anon_1 JOIN orders AS orders_1 ON anon_1.users_id = "
+            "orders_1.user_id JOIN addresses AS addresses_1 ON addresses_1.id = orders_1.address_id",
+            {'param_1':10},
+            use_default_dialect=True
         )
 
     @testing.resolve_artifact_names
@@ -1171,8 +1177,8 @@ class AddEntityTest(_fixtures.FixtureTest):
         sess = create_session()
         oalias = sa.orm.aliased(Order)
         def go():
-            ret = sess.query(User, oalias).join(('orders', oalias)).order_by(User.id,
-                                                                             oalias.id).all()
+            ret = sess.query(User, oalias).join(oalias, 'orders').\
+                                order_by(User.id,oalias.id).all()
             eq_(ret, self._assert_result())
         self.assert_sql_count(testing.db, go, 1)
 
@@ -1192,16 +1198,19 @@ class AddEntityTest(_fixtures.FixtureTest):
 
         oalias = sa.orm.aliased(Order)
         def go():
-            ret = sess.query(User, oalias).options(joinedload('addresses')).join(
-                ('orders', oalias)).order_by(User.id, oalias.id).all()
+            ret = sess.query(User, oalias).options(joinedload('addresses')).\
+                    join(oalias, 'orders').\
+                    order_by(User.id, oalias.id).all()
             eq_(ret, self._assert_result())
         self.assert_sql_count(testing.db, go, 6)
 
         sess.expunge_all()
         def go():
-            ret = sess.query(User, oalias).options(joinedload('addresses'),
-                                                   joinedload(oalias.items)).join(
-                ('orders', oalias)).order_by(User.id, oalias.id).all()
+            ret = sess.query(User, oalias).\
+                                options(joinedload('addresses'),
+                                           joinedload(oalias.items)).\
+                                join(oalias, 'orders').\
+                                order_by(User.id, oalias.id).all()
             eq_(ret, self._assert_result())
         self.assert_sql_count(testing.db, go, 1)
 
@@ -1442,7 +1451,7 @@ class SelfReferentialEagerTest(_base.MappedTest):
         self.assert_sql_execution(testing.db, go, 
             CompiledSQL(
                 "SELECT nodes.id AS nodes_id, nodes.parent_id AS nodes_parent_id, nodes.data AS nodes_data FROM nodes "
-                "WHERE nodes.data = :data_1 ORDER BY nodes.id  LIMIT 1 OFFSET 0",
+                "WHERE nodes.data = :data_1 ORDER BY nodes.id LIMIT :param_1 OFFSET :param_2",
                 {'data_1': 'n1'}
             )
         )
@@ -1679,8 +1688,8 @@ class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                     ), 
                 ],
                 sess.query(User, Order, u1, o1).\
-                        join((Order, User.orders)).options(joinedload(User.addresses), joinedload(Order.items)).filter(User.id==9).\
-                        join((o1, u1.orders)).options(joinedload(u1.addresses), joinedload(o1.items)).filter(u1.id==7).\
+                        join(Order, User.orders).options(joinedload(User.addresses), joinedload(Order.items)).filter(User.id==9).\
+                        join(o1, u1.orders).options(joinedload(u1.addresses), joinedload(o1.items)).filter(u1.id==7).\
                         filter(Order.id<o1.id).\
                         order_by(User.id, Order.id, u1.id, o1.id).all(),
             )
@@ -1714,8 +1723,11 @@ class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                     (User(id=9, addresses=[Address(id=5)]), Order(id=2, items=[Item(id=1), Item(id=2), Item(id=3)])),
                     (User(id=9, addresses=[Address(id=5)]), Order(id=4, items=[Item(id=1), Item(id=5)])),
                 ],
-                sess.query(User, oalias).join((User.orders, oalias)).options(joinedload(User.addresses), joinedload(oalias.items)).filter(User.id==9).\
-                    order_by(User.id, oalias.id).all(),
+                sess.query(User, oalias).join(oalias, User.orders).
+                                    options(joinedload(User.addresses), 
+                                            joinedload(oalias.items)).
+                                            filter(User.id==9).
+                                            order_by(User.id, oalias.id).all(),
             )
         self.assert_sql_count(testing.db, go, 1)
 

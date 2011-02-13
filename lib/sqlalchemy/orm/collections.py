@@ -108,9 +108,8 @@ import operator
 import sys
 import weakref
 
-import sqlalchemy.exceptions as sa_exc
 from sqlalchemy.sql import expression
-from sqlalchemy import schema, util
+from sqlalchemy import schema, util, exc as sa_exc
 
 
 __all__ = ['collection', 'collection_adapter',
@@ -186,7 +185,7 @@ class collection(object):
     The decorators fall into two groups: annotations and interception recipes.
 
     The annotating decorators (appender, remover, iterator,
-    internally_instrumented, on_link) indicate the method's purpose and take no
+    internally_instrumented, link) indicate the method's purpose and take no
     arguments.  They are not written with parens::
 
         @collection.appender
@@ -315,7 +314,7 @@ class collection(object):
         return fn
 
     @staticmethod
-    def on_link(fn):
+    def link(fn):
         """Tag the method as a the "linked to attribute" event handler.
 
         This optional event handler will be called when the collection class
@@ -325,7 +324,7 @@ class collection(object):
         that has been linked, or None if unlinking.
 
         """
-        setattr(fn, '_sa_instrument_role', 'on_link')
+        setattr(fn, '_sa_instrument_role', 'link')
         return fn
 
     @staticmethod
@@ -477,6 +476,9 @@ class CollectionAdapter(object):
     The ORM uses an CollectionAdapter exclusively for interaction with
     entity collections.
 
+    The usage of getattr()/setattr() is currently to allow injection
+    of custom methods, such as to unwrap Zope security proxies.
+
     """
     def __init__(self, attr, owner_state, data):
         self._key = attr.key
@@ -559,6 +561,12 @@ class CollectionAdapter(object):
         """Add or restore an entity to the collection, firing no events."""
         getattr(self._data(), '_sa_appender')(item, _sa_initiator=False)
 
+    def append_multiple_without_event(self, items):
+        """Add or restore an entity to the collection, firing no events."""
+        appender = getattr(self._data(), '_sa_appender')
+        for item in items:
+            appender(item, _sa_initiator=False)
+
     def remove_with_event(self, item, initiator=None):
         """Remove an entity from the collection, firing mutation events."""
         getattr(self._data(), '_sa_remover')(item, _sa_initiator=initiator)
@@ -569,13 +577,17 @@ class CollectionAdapter(object):
 
     def clear_with_event(self, initiator=None):
         """Empty the collection, firing a mutation event for each entity."""
+
+        remover = getattr(self._data(), '_sa_remover')
         for item in list(self):
-            self.remove_with_event(item, initiator)
+            remover(item, _sa_initiator=initiator)
 
     def clear_without_event(self):
         """Empty the collection, firing no events."""
+
+        remover = getattr(self._data(), '_sa_remover')
         for item in list(self):
-            self.remove_without_event(item)
+            remover(item, _sa_initiator=False)
 
     def __iter__(self):
         """Iterate over entities in the collection."""
@@ -788,7 +800,7 @@ def _instrument_class(cls):
         if hasattr(method, '_sa_instrument_role'):
             role = method._sa_instrument_role
             assert role in ('appender', 'remover', 'iterator',
-                            'on_link', 'converter')
+                            'link', 'converter')
             roles[role] = name
 
         # transfer instrumentation requests from decorated function

@@ -171,15 +171,13 @@ class _StringType(sqltypes.String):
 class MaxString(_StringType):
     _type = 'VARCHAR'
 
-    def __init__(self, *a, **kw):
-        super(MaxString, self).__init__(*a, **kw)
-
 
 class MaxUnicode(_StringType):
     _type = 'VARCHAR'
 
     def __init__(self, length=None, **kw):
-        super(MaxUnicode, self).__init__(length=length, encoding='unicode')
+        kw['encoding'] = 'unicode'
+        super(MaxUnicode, self).__init__(length=length, **kw)
 
 
 class MaxChar(_StringType):
@@ -189,8 +187,8 @@ class MaxChar(_StringType):
 class MaxText(_StringType):
     _type = 'LONG'
 
-    def __init__(self, *a, **kw):
-        super(MaxText, self).__init__(*a, **kw)
+    def __init__(self, length=None, **kw):
+        super(MaxText, self).__init__(length, **kw)
 
     def get_col_spec(self):
         spec = 'LONG'
@@ -658,6 +656,7 @@ class MaxDBCompiler(compiler.SQLCompiler):
     def limit_clause(self, select):
         # The docs say offsets are supported with LIMIT.  But they're not.
         # TODO: maybe emulate by adding a ROWNO/ROWNUM predicate?
+        # TODO: does MaxDB support bind params for LIMIT / TOP ?
         if self.is_subquery():
             # sub queries need TOP
             return ''

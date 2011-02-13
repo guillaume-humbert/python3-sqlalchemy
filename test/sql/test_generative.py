@@ -1,11 +1,11 @@
 from sqlalchemy import *
 from sqlalchemy.sql import table, column, ClauseElement
 from sqlalchemy.sql.expression import  _clone, _from_objects
-from sqlalchemy.test import *
+from test.lib import *
 from sqlalchemy.sql.visitors import *
 from sqlalchemy import util
 from sqlalchemy.sql import util as sql_util
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 
 class TraversalTest(TestBase, AssertsExecutionResults):
     """test ClauseVisitor's traversal, particularly its 
@@ -169,6 +169,8 @@ class TraversalTest(TestBase, AssertsExecutionResults):
 class ClauseTest(TestBase, AssertsCompiledSQL):
     """test copy-in-place behavior of various ClauseElements."""
 
+    __dialect__ = 'default'
+
     @classmethod
     def setup_class(cls):
         global t1, t2
@@ -327,6 +329,11 @@ class ClauseTest(TestBase, AssertsCompiledSQL):
         expr2 = CloningVisitor().traverse(expr)
         assert str(expr) == str(expr2)
 
+    def test_over(self):
+        expr = func.row_number().over(order_by=t1.c.col1)
+        expr2 = CloningVisitor().traverse(expr)
+        assert str(expr) == str(expr2)
+
     def test_adapt_union(self):
         u = union(
                 t1.select().where(t1.c.col1==4),
@@ -466,6 +473,8 @@ class ClauseTest(TestBase, AssertsCompiledSQL):
                             'anon_1.col1')
 
 class ClauseAdapterTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     @classmethod
     def setup_class(cls):
         global t1, t2
@@ -771,15 +780,17 @@ class ClauseAdapterTest(TestBase, AssertsCompiledSQL):
         assert s2.is_derived_from(s1)
 
     def test_aliasedselect_to_aliasedselect(self):
+
         # original issue from ticket #904
+
         s1 = select([t1]).alias('foo')
         s2 = select([s1]).limit(5).offset(10).alias()
-
         self.assert_compile(sql_util.ClauseAdapter(s2).traverse(s1),
                             'SELECT foo.col1, foo.col2, foo.col3 FROM '
                             '(SELECT table1.col1 AS col1, table1.col2 '
                             'AS col2, table1.col3 AS col3 FROM table1) '
-                            'AS foo  LIMIT 5 OFFSET 10')
+                            'AS foo LIMIT :param_1 OFFSET :param_2',
+                            {'param_1': 5, 'param_2': 10})
         j = s1.outerjoin(t2, s1.c.col1 == t2.c.col1)
         self.assert_compile(sql_util.ClauseAdapter(s2).traverse(j).select(),
                             'SELECT anon_1.col1, anon_1.col2, '
@@ -788,9 +799,10 @@ class ClauseAdapterTest(TestBase, AssertsCompiledSQL):
                             'col1, foo.col2 AS col2, foo.col3 AS col3 '
                             'FROM (SELECT table1.col1 AS col1, '
                             'table1.col2 AS col2, table1.col3 AS col3 '
-                            'FROM table1) AS foo  LIMIT 5 OFFSET 10) '
-                            'AS anon_1 LEFT OUTER JOIN table2 ON '
-                            'anon_1.col1 = table2.col1')
+                            'FROM table1) AS foo LIMIT :param_1 OFFSET '
+                            ':param_2) AS anon_1 LEFT OUTER JOIN '
+                            'table2 ON anon_1.col1 = table2.col1',
+                            {'param_1': 5, 'param_2': 10})
         talias = t1.alias('bar')
         j = s1.outerjoin(talias, s1.c.col1 == talias.c.col1)
         self.assert_compile(sql_util.ClauseAdapter(s2).traverse(j).select(),
@@ -799,21 +811,21 @@ class ClauseAdapterTest(TestBase, AssertsCompiledSQL):
                             'FROM (SELECT foo.col1 AS col1, foo.col2 '
                             'AS col2, foo.col3 AS col3 FROM (SELECT '
                             'table1.col1 AS col1, table1.col2 AS col2, '
-                            'table1.col3 AS col3 FROM table1) AS foo  '
-                            'LIMIT 5 OFFSET 10) AS anon_1 LEFT OUTER '
-                            'JOIN table1 AS bar ON anon_1.col1 = '
-                            'bar.col1')
+                            'table1.col3 AS col3 FROM table1) AS foo '
+                            'LIMIT :param_1 OFFSET :param_2) AS anon_1 '
+                            'LEFT OUTER JOIN table1 AS bar ON '
+                            'anon_1.col1 = bar.col1', {'param_1': 5,
+                            'param_2': 10})
 
     def test_functions(self):
         self.assert_compile(
             sql_util.ClauseAdapter(t1.alias()).\
-                traverse(func.count(t1.c.col1)), "count(table1_1.col1)")
-
+                    traverse(func.count(t1.c.col1)),
+                            'count(table1_1.col1)')
         s = select([func.count(t1.c.col1)])
-        self.assert_compile(
-            sql_util.ClauseAdapter(t1.alias()).traverse(s), 
-                "SELECT count(table1_1.col1) AS count_1 FROM table1 "
-                "AS table1_1")
+        self.assert_compile(sql_util.ClauseAdapter(t1.alias()).traverse(s),
+                            'SELECT count(table1_1.col1) AS count_1 '
+                            'FROM table1 AS table1_1')
 
     def test_recursive(self):
         metadata = MetaData()
@@ -850,6 +862,8 @@ class ClauseAdapterTest(TestBase, AssertsCompiledSQL):
         )
 
 class SpliceJoinsTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     @classmethod
     def setup_class(cls):
         global table1, table2, table3, table4
@@ -909,8 +923,7 @@ class SpliceJoinsTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(sql_util.splice_joins(table1, j2),
                             'table1 JOIN table4 AS table4_1 ON '
                             'table1.col3 = table4_1.col3')
-        self.assert_compile(
-            sql_util.splice_joins(sql_util.splice_joins(table1,
+        self.assert_compile(sql_util.splice_joins(sql_util.splice_joins(table1,
                             j1), j2),
                             'table1 JOIN table2 AS table2_1 ON '
                             'table1.col1 = table2_1.col1 JOIN table3 '
@@ -921,6 +934,8 @@ class SpliceJoinsTest(TestBase, AssertsCompiledSQL):
 
 class SelectTest(TestBase, AssertsCompiledSQL):
     """tests the generative capability of Select"""
+
+    __dialect__ = 'default'
 
     @classmethod
     def setup_class(cls):
@@ -1075,6 +1090,8 @@ class SelectTest(TestBase, AssertsCompiledSQL):
 
 class InsertTest(TestBase, AssertsCompiledSQL):
     """Tests the generative capability of Insert"""
+
+    __dialect__ = 'default'
 
     # fixme: consolidate converage from elsewhere here and expand
 

@@ -3,9 +3,7 @@
 <%!
     local_script_files = ['_static/searchtools.js']
 %>
-<%block name="show_title">
-    ${_('Search')}
-</%block>
+<%def name="show_title()">${_('Search')}</%def>
 
 <div id="searchform">
 <h3>Enter Search Terms:</h3>
@@ -18,7 +16,7 @@
 
 <div id="search-results"></div>
 
-<%block name="footer">
+<%def name="footer()">
     ${parent.footer()}
     <script type="text/javascript" src="searchindex.js"></script>
-</%block>
+</%def>

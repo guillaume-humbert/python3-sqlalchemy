@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                ORM Event Interfaces
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Deprecated ORM Event Interfaces
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
-        <link rel="next" title="ORM Extensions" href="extensions/index.html" />
-        <link rel="prev" title="Relationship Loading Techniques" href="loading.html" />
+        <link rel="next" title="ORM Exceptions" href="exceptions.html" />
+        <link rel="prev" title="Examples" href="examples.html" />
+    
 
     </head>
     <body>
@@ -38,78 +39,89 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/orm/interfaces.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+                » 
+    Deprecated ORM Event Interfaces
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="examples.html" title="previous chapter">Examples</a>
+        Next:
+        <a href="exceptions.html" title="next chapter">ORM Exceptions</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="loading.html" title="previous chapter">Relationship Loading Techniques</a>
-            </li>
-            <li>Next:
-            <a href="extensions/index.html" title="next chapter">ORM Extensions</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/interfaces.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                ORM Event Interfaces
-             
-
-        <h2>
-            
-                ORM Event Interfaces
-            
-        </h2>
-        <ul>
-<li><a class="reference internal" href="#">ORM Event Interfaces</a><ul>
+                <h2>
+                    
+    Deprecated ORM Event Interfaces
+ 
+                </h2>
+            </div>
+                <ul>
+<li><a class="reference internal" href="#">Deprecated ORM Event Interfaces</a><ul>
 <li><a class="reference internal" href="#mapper-events">Mapper Events</a></li>
 <li><a class="reference internal" href="#session-events">Session Events</a></li>
 <li><a class="reference internal" href="#attribute-events">Attribute Events</a></li>
-<li><a class="reference internal" href="#instrumentation-events-and-re-implementation">Instrumentation Events and Re-implementation</a></li>
 </ul>
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="module-sqlalchemy.orm.interfaces">
-<span id="orm-event-interfaces"></span><span id="events-orm-toplevel"></span><span id="interfaces-orm-toplevel"></span><h1>ORM Event Interfaces<a class="headerlink" href="#module-sqlalchemy.orm.interfaces" title="Permalink to this headline">¶</a></h1>
-<p>This section describes the various categories of events which can be intercepted
-within the SQLAlchemy ORM.</p>
-<p>For non-ORM event documentation, see <a class="reference internal" href="../core/interfaces.html"><em>Core Event Interfaces</em></a>.</p>
-<p>A new version of this API with a significantly more flexible and consistent
-interface will be available in version 0.7.</p>
+<span id="deprecated-orm-event-interfaces"></span><span id="dep-interfaces-orm-toplevel"></span><h1>Deprecated ORM Event Interfaces<a class="headerlink" href="#module-sqlalchemy.orm.interfaces" title="Permalink to this headline">¶</a></h1>
+<p>This section describes the class-based ORM event interface which first
+existed in SQLAlchemy 0.1, which progressed with more kinds of events up
+until SQLAlchemy 0.5.  The non-ORM analogue is described at <a class="reference internal" href="../core/interfaces.html"><em>Deprecated Event Interfaces</em></a>.</p>
+<p>As of SQLAlchemy 0.7, the new event system described in
+<a class="reference internal" href="../core/event.html"><em>Events</em></a> replaces the extension/proxy/listener system, providing
+a consistent interface to all events without the need for subclassing.</p>
 <div class="section" id="mapper-events">
 <h2>Mapper Events<a class="headerlink" href="#mapper-events" title="Permalink to this headline">¶</a></h2>
-<p>To use <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a>, make your own subclass of it and just send it off to a mapper:</p>
+<dl class="class">
+<dt id="sqlalchemy.orm.interfaces.MapperExtension">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">MapperExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base implementation for <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> event hooks.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a> is deprecated.   Please
+refer to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> as well as 
+<a class="reference internal" href="events.html#sqlalchemy.orm.events.MapperEvents" title="sqlalchemy.orm.events.MapperEvents"><tt class="xref py py-class docutils literal"><span class="pre">MapperEvents</span></tt></a>.</p>
+</div>
+<p>New extension classes subclass <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a> and are specified
+using the <tt class="docutils literal"><span class="pre">extension</span></tt> mapper() argument, which is a single
+<a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a> or a list of such:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm.interfaces</span> <span class="kn">import</span> <span class="n">MapperExtension</span>
 
 <span class="k">class</span> <span class="nc">MyExtension</span><span class="p">(</span><span class="n">MapperExtension</span><span class="p">):</span>
@@ -118,20 +130,13 @@ interface will be available in version 0.7.</p>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="n">MyExtension</span><span class="p">())</span></pre></div>
 </div>
-<p>Multiple extensions will be chained together and processed in order; they are specified as a list:</p>
+<p>A single mapper can maintain a chain of <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
+objects. When a particular mapping event occurs, the
+corresponding method on each <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> is invoked
+serially, and each method has the ability to halt the chain
+from proceeding further:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">m</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="p">[</span><span class="n">ext1</span><span class="p">,</span> <span class="n">ext2</span><span class="p">,</span> <span class="n">ext3</span><span class="p">])</span></pre></div>
 </div>
-<dl class="class">
-<dt id="sqlalchemy.orm.interfaces.MapperExtension">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">MapperExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base implementation for customizing <tt class="docutils literal"><span class="pre">Mapper</span></tt> behavior.</p>
-<p>New extension classes subclass <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> and are specified
-using the <tt class="docutils literal"><span class="pre">extension</span></tt> mapper() argument, which is a single
-<tt class="docutils literal"><span class="pre">MapperExtension</span></tt> or a list of such.   A single mapper
-can maintain a chain of <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> objects.  When a
-particular mapping event occurs, the corresponding method 
-on each <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> is invoked serially, and each method
-has the ability to halt the chain from proceeding further.</p>
 <p>Each <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> method returns the symbol
 EXT_CONTINUE by default.   This symbol generally means &#8220;move
 to the next <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> for processing&#8221;.  For methods
@@ -364,7 +369,19 @@ is not translated.</p>
 </div>
 <div class="section" id="session-events">
 <h2>Session Events<a class="headerlink" href="#session-events" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="#sqlalchemy.orm.interfaces.SessionExtension" title="sqlalchemy.orm.interfaces.SessionExtension"><tt class="xref py py-class docutils literal"><span class="pre">SessionExtension</span></tt></a> applies plugin points for <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> objects:</p>
+<dl class="class">
+<dt id="sqlalchemy.orm.interfaces.SessionExtension">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">SessionExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base implementation for <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> event hooks.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.interfaces.SessionExtension" title="sqlalchemy.orm.interfaces.SessionExtension"><tt class="xref py py-class docutils literal"><span class="pre">SessionExtension</span></tt></a> is deprecated.   Please
+refer to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> as well as 
+<a class="reference internal" href="events.html#sqlalchemy.orm.events.SessionEvents" title="sqlalchemy.orm.events.SessionEvents"><tt class="xref py py-class docutils literal"><span class="pre">SessionEvents</span></tt></a>.</p>
+</div>
+<p>Subclasses may be installed into a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> (or
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a>) using the <tt class="docutils literal"><span class="pre">extension</span></tt> keyword
+argument:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm.interfaces</span> <span class="kn">import</span> <span class="n">SessionExtension</span>
 
 <span class="k">class</span> <span class="nc">MySessionExtension</span><span class="p">(</span><span class="n">SessionExtension</span><span class="p">):</span>
@@ -373,14 +390,8 @@ is not translated.</p>
 
 <span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">extension</span><span class="o">=</span><span class="n">MySessionExtension</span><span class="p">())</span></pre></div>
 </div>
-<p>The same <a class="reference internal" href="#sqlalchemy.orm.interfaces.SessionExtension" title="sqlalchemy.orm.interfaces.SessionExtension"><tt class="xref py py-class docutils literal"><span class="pre">SessionExtension</span></tt></a> instance can be
-used with any number of sessions.</p>
-<dl class="class">
-<dt id="sqlalchemy.orm.interfaces.SessionExtension">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">SessionExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension" title="Permalink to this definition">¶</a></dt>
-<dd><p>An extension hook object for Sessions.  Subclasses may be
-installed into a Session (or sessionmaker) using the <tt class="docutils literal"><span class="pre">extension</span></tt>
-keyword argument.</p>
+<p>The same <a class="reference internal" href="#sqlalchemy.orm.interfaces.SessionExtension" title="sqlalchemy.orm.interfaces.SessionExtension"><tt class="xref py py-class docutils literal"><span class="pre">SessionExtension</span></tt></a> instance can be used
+with any number of sessions.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.SessionExtension.after_attach">
 <tt class="descname">after_attach</tt><big>(</big><em>session</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension.after_attach" title="Permalink to this definition">¶</a></dt>
@@ -474,10 +485,23 @@ the <tt class="docutils literal"><span class="pre">flush()</span></tt> method.</
 </div>
 <div class="section" id="attribute-events">
 <h2>Attribute Events<a class="headerlink" href="#attribute-events" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> is used to listen for set, remove, and append
-events on individual mapped attributes. It is established on an individual
-mapped attribute using the <cite>extension</cite> argument, available on
-<a class="reference internal" href="mapper_config.html#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>, <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, and others:</p>
+<dl class="class">
+<dt id="sqlalchemy.orm.interfaces.AttributeExtension">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">AttributeExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base implementation for <tt class="xref py py-class docutils literal"><span class="pre">AttributeImpl</span></tt> event hooks, events
+that fire upon attribute mutations in user code.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> is deprecated.   Please
+refer to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> as well as 
+<a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</p>
+</div>
+<p><a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> is used to listen for set,
+remove, and append events on individual mapped attributes.
+It is established on an individual mapped attribute using
+the <cite>extension</cite> argument, available on
+<a class="reference internal" href="mapper_config.html#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>, <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, and
+others:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm.interfaces</span> <span class="kn">import</span> <span class="n">AttributeExtension</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">mapper</span><span class="p">,</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">column_property</span>
 
@@ -496,13 +520,11 @@ mapped attribute using the <cite>extension</cite> argument, available on
 <span class="p">})</span></pre></div>
 </div>
 <p>Note that the <a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> methods
-<a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension.append" title="sqlalchemy.orm.interfaces.AttributeExtension.append"><tt class="xref py py-meth docutils literal"><span class="pre">append()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension.set" title="sqlalchemy.orm.interfaces.AttributeExtension.set"><tt class="xref py py-meth docutils literal"><span class="pre">set()</span></tt></a> need
-to return the <tt class="docutils literal"><span class="pre">value</span></tt> parameter. The returned value is used as the effective
-value, and allows the extension to change what is ultimately persisted.</p>
-<dl class="class">
-<dt id="sqlalchemy.orm.interfaces.AttributeExtension">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">AttributeExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="Permalink to this definition">¶</a></dt>
-<dd><p>An event handler for individual attribute change events.</p>
+<a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension.append" title="sqlalchemy.orm.interfaces.AttributeExtension.append"><tt class="xref py py-meth docutils literal"><span class="pre">append()</span></tt></a> and
+<a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension.set" title="sqlalchemy.orm.interfaces.AttributeExtension.set"><tt class="xref py py-meth docutils literal"><span class="pre">set()</span></tt></a> need to return the
+<tt class="docutils literal"><span class="pre">value</span></tt> parameter. The returned value is used as the
+effective value, and allows the extension to change what is
+ultimately persisted.</p>
 <p>AttributeExtension is assembled within the descriptors associated
 with a mapped class.</p>
 <dl class="attribute">
@@ -540,129 +562,30 @@ set.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="instrumentation-events-and-re-implementation">
-<h2>Instrumentation Events and Re-implementation<a class="headerlink" href="#instrumentation-events-and-re-implementation" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="#sqlalchemy.orm.interfaces.InstrumentationManager" title="sqlalchemy.orm.interfaces.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a> can be subclassed in order to receive class
-instrumentation events as well as to change how class instrumentation
-proceeds. This class exists for the purposes of integration with other object
-management frameworks which would like to entirely modify the instrumentation
-methodology of the ORM, and is not intended for regular usage. One possible
-exception is the <a class="reference internal" href="#sqlalchemy.orm.interfaces.InstrumentationManager.post_configure_attribute" title="sqlalchemy.orm.interfaces.InstrumentationManager.post_configure_attribute"><tt class="xref py py-meth docutils literal"><span class="pre">InstrumentationManager.post_configure_attribute()</span></tt></a>
-method, which can be useful for adding extensions to all mapped attributes,
-though a much better way to do this will be available in a future release of
-SQLAlchemy.</p>
-<p>For an example of <a class="reference internal" href="#sqlalchemy.orm.interfaces.InstrumentationManager" title="sqlalchemy.orm.interfaces.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a>, see the example
-<a class="reference internal" href="examples.html#examples-instrumentation"><em>Attribute Instrumentation</em></a>.</p>
-<dl class="class">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">InstrumentationManager</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager" title="Permalink to this definition">¶</a></dt>
-<dd><p>User-defined class instrumentation extension.</p>
-<p>The API for this class should be considered as semi-stable,
-and may change slightly with new releases.</p>
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.dict_getter">
-<tt class="descname">dict_getter</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.dict_getter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.dispose">
-<tt class="descname">dispose</tt><big>(</big><em>class_</em>, <em>manager</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.dispose" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.get_instance_dict">
-<tt class="descname">get_instance_dict</tt><big>(</big><em>class_</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.get_instance_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.initialize_instance_dict">
-<tt class="descname">initialize_instance_dict</tt><big>(</big><em>class_</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.initialize_instance_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.install_descriptor">
-<tt class="descname">install_descriptor</tt><big>(</big><em>class_</em>, <em>key</em>, <em>inst</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.install_descriptor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.install_member">
-<tt class="descname">install_member</tt><big>(</big><em>class_</em>, <em>key</em>, <em>implementation</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.install_member" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.install_state">
-<tt class="descname">install_state</tt><big>(</big><em>class_</em>, <em>instance</em>, <em>state</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.install_state" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.instrument_attribute">
-<tt class="descname">instrument_attribute</tt><big>(</big><em>class_</em>, <em>key</em>, <em>inst</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.instrument_attribute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.instrument_collection_class">
-<tt class="descname">instrument_collection_class</tt><big>(</big><em>class_</em>, <em>key</em>, <em>collection_class</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.instrument_collection_class" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.manage">
-<tt class="descname">manage</tt><big>(</big><em>class_</em>, <em>manager</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.manage" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.manager_getter">
-<tt class="descname">manager_getter</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.manager_getter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.post_configure_attribute">
-<tt class="descname">post_configure_attribute</tt><big>(</big><em>class_</em>, <em>key</em>, <em>inst</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.post_configure_attribute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.remove_state">
-<tt class="descname">remove_state</tt><big>(</big><em>class_</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.remove_state" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.state_getter">
-<tt class="descname">state_getter</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.state_getter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.uninstall_descriptor">
-<tt class="descname">uninstall_descriptor</tt><big>(</big><em>class_</em>, <em>key</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.uninstall_descriptor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.uninstall_member">
-<tt class="descname">uninstall_member</tt><big>(</big><em>class_</em>, <em>key</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.uninstall_member" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
 </div>
 
-    </div>
-</div>
-
-
-    <div class="bottomnav">
-            Previous:
-            <a href="loading.html" title="previous chapter">Relationship Loading Techniques</a>
-            Next:
-            <a href="extensions/index.html" title="next chapter">ORM Extensions</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+            </div>
         </div>
-    </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="examples.html" title="previous chapter">Examples</a>
+        Next:
+        <a href="exceptions.html" title="next chapter">ORM Exceptions</a>
+</div>
+
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
+
+
 
 
 

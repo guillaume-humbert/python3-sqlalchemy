@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                SQLAlchemy Core
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    SQLAlchemy Core
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,9 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="next" title="SQL Expression Language Tutorial" href="tutorial.html" />
         <link rel="prev" title="ORM Exceptions" href="../orm/exceptions.html" />
+    
 
     </head>
     <body>
@@ -37,57 +38,56 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/core/index.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                » 
+    SQLAlchemy Core
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="../orm/exceptions.html" title="previous chapter">ORM Exceptions</a>
+        Next:
+        <a href="tutorial.html" title="next chapter">SQL Expression Language Tutorial</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
+                <h2>
+                    
+    SQLAlchemy Core
+ 
+                </h2>
+            </div>
+            <div class="clearboth"></div>
+        </div>
 
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="../orm/exceptions.html" title="previous chapter">ORM Exceptions</a>
-            </li>
-            <li>Next:
-            <a href="tutorial.html" title="next chapter">SQL Expression Language Tutorial</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/index.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-        » 
-                SQLAlchemy Core
-             
-
-        <h2>
-            
-                SQLAlchemy Core
-            
-        </h2>
-    </div>
-    <div class="clearboth"></div>
-</div>
-
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="sqlalchemy-core">
 <span id="core-toplevel"></span><h1>SQLAlchemy Core<a class="headerlink" href="#sqlalchemy-core" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
@@ -162,9 +162,18 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="types.html#base-type-api">Base Type API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="interfaces.html">Core Event Interfaces</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="interfaces.html#execution-connection-and-cursor-events">Execution, Connection and Cursor Events</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interfaces.html#connection-pool-events">Connection Pool Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event.html">Events</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="event.html#event-registration">Event Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html#targets">Targets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html#modifiers">Modifiers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html#event-reference">Event Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html#api-reference">API Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="events.html">Core Events</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="events.html#connection-pool-events">Connection Pool Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#connection-events">Connection Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#schema-events">Schema Events</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="compiler.html">Custom SQL Constructs and Compilation Extension</a><ul>
@@ -177,25 +186,38 @@ Search:
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="serializer.html">Expression Serializer Extension</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interfaces.html">Deprecated Event Interfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="interfaces.html#execution-connection-and-cursor-events">Execution, Connection and Cursor Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interfaces.html#connection-pool-events">Connection Pool Events</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="exceptions.html">Core Exceptions</a></li>
 </ul>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="../orm/exceptions.html" title="previous chapter">ORM Exceptions</a>
+        Next:
+        <a href="tutorial.html" title="next chapter">SQL Expression Language Tutorial</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="../orm/exceptions.html" title="previous chapter">ORM Exceptions</a>
-            Next:
-            <a href="tutorial.html" title="next chapter">SQL Expression Language Tutorial</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

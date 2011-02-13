@@ -2,8 +2,8 @@ from sqlalchemy import *
 from sqlalchemy.orm import *
 
 from test.orm import _base
-from sqlalchemy.test import testing
-from sqlalchemy.test.schema import Table, Column
+from test.lib import testing
+from test.lib.schema import Table, Column
 
 
 class PolymorphicCircularTest(_base.MappedTest):
@@ -79,7 +79,7 @@ class PolymorphicCircularTest(_base.MappedTest):
                                     'data':relationship(mapper(Data, data))
                                     },
                             order_by=table1.c.id)
-            table1_mapper.compile()
+            configure_mappers()
             assert False
         except:
             assert True
@@ -112,8 +112,8 @@ class PolymorphicCircularTest(_base.MappedTest):
 
         table3_mapper = mapper(Table3, table3, inherits=table1_mapper, polymorphic_identity='table3')
 
-        table1_mapper.compile()
-        assert table1_mapper.primary_key == [table1.c.id], table1_mapper.primary_key
+        configure_mappers()
+        assert table1_mapper.primary_key == (table1.c.id,), table1_mapper.primary_key
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
     def testone(self):

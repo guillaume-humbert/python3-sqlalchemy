@@ -1,11 +1,11 @@
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 import sqlalchemy as sa
-from sqlalchemy.test import testing
+from test.lib import testing
 from sqlalchemy import Integer, String, ForeignKey, MetaData, func
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from test.lib.schema import Table
+from test.lib.schema import Column
 from sqlalchemy.orm import mapper, relationship, create_session
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 from test.orm import _base, _fixtures
 
 
@@ -124,15 +124,6 @@ class GenerativeQueryTest(_base.MappedTest):
         assert query.filter(Foo.bar < 30).count() == 30
         res2 = query.filter(Foo.bar < 30).filter(Foo.bar > 10)
         assert res2.count() == 19
-
-    @testing.resolve_artifact_names
-    def test_options(self):
-        query = create_session().query(Foo)
-        class ext1(sa.orm.MapperExtension):
-            def populate_instance(self, mapper, selectcontext, row, instance, **flags):
-                instance.TEST = "hello world"
-                return sa.orm.EXT_CONTINUE
-        assert query.options(sa.orm.extension(ext1()))[0].TEST == "hello world"
 
     @testing.resolve_artifact_names
     def test_order_by(self):

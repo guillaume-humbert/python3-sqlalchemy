@@ -1,12 +1,12 @@
-from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
+from test.lib.testing import eq_, assert_raises, assert_raises_message
 import StringIO, unicodedata
 from sqlalchemy import types as sql_types
 from sqlalchemy import schema
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy import MetaData
-from sqlalchemy.test.schema import Table, Column
+from test.lib.schema import Table, Column
 import sqlalchemy as sa
-from sqlalchemy.test import TestBase, ComparesTables, \
+from test.lib import TestBase, ComparesTables, \
                             testing, engines, AssertsCompiledSQL
 
 create_inspector = Inspector.from_engine
@@ -611,6 +611,7 @@ class ReflectionTest(TestBase, ComparesTables):
             self.assert_tables_equal(multi, table)
             self.assert_tables_equal(multi2, table2)
             j = sa.join(table, table2)
+
             self.assert_(sa.and_(table.c.multi_id == table2.c.foo,
                          table.c.multi_rev == table2.c.bar,
                          table.c.multi_hoho
@@ -760,12 +761,13 @@ class ReflectionTest(TestBase, ComparesTables):
         finally:
             m1.drop_all()
 
+    @testing.requires.views
     @testing.provide_metadata
     def test_views(self):
         users, addresses = createTables(metadata, None)
         try:
             metadata.create_all()
-            createViews(metadata.bind, None)
+            _create_views(metadata.bind, None)
             m2 = MetaData(testing.db)
             users_v = Table("users_v", m2, autoload=True)
             addresses_v = Table("email_addresses_v", m2, autoload=True)
@@ -778,14 +780,15 @@ class ReflectionTest(TestBase, ComparesTables):
                 eq_(c1.name, c2.name)
                 self.assert_types_base(c1, c2)
         finally:
-            dropViews(metadata.bind)
+            _drop_views(metadata.bind)
 
+    @testing.requires.views
     @testing.provide_metadata
     def test_reflect_all_with_views(self):
         users, addresses = createTables(metadata, None)
         try:
             metadata.create_all()
-            createViews(metadata.bind, None)
+            _create_views(metadata.bind, None)
             m2 = MetaData(testing.db)
 
             m2.reflect(views=False)
@@ -802,7 +805,7 @@ class ReflectionTest(TestBase, ComparesTables):
                             u'users', u'email_addresses'])
             )
         finally:
-            dropViews(metadata.bind)
+            _drop_views(metadata.bind)
 
 class CreateDropTest(TestBase):
 
@@ -1107,7 +1110,8 @@ def createIndexes(con, schema=None):
     query = "CREATE INDEX users_t_idx ON %s (test1, test2)" % fullname
     con.execute(sa.sql.text(query))
 
-def createViews(con, schema=None):
+@testing.requires.views
+def _create_views(con, schema=None):
     for table_name in ('users', 'email_addresses'):
         fullname = table_name
         if schema:
@@ -1117,7 +1121,8 @@ def createViews(con, schema=None):
                                                                    fullname)
         con.execute(sa.sql.text(query))
 
-def dropViews(con, schema=None):
+@testing.requires.views
+def _drop_views(con, schema=None):
     for table_name in ('email_addresses', 'users'):
         fullname = table_name
         if schema:
@@ -1128,6 +1133,7 @@ def dropViews(con, schema=None):
 
 
 class ReverseCasingReflectTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     @testing.requires.denormalized_names
     def setup(self):
@@ -1175,7 +1181,7 @@ class ComponentReflectionTest(TestBase):
         meta = MetaData(testing.db)
         (users, addresses) = createTables(meta, schema)
         meta.create_all()
-        createViews(meta.bind, schema)
+        _create_views(meta.bind, schema)
         try:
             insp = Inspector(meta.bind)
             if table_type == 'view':
@@ -1192,7 +1198,7 @@ class ComponentReflectionTest(TestBase):
                     answer = ['email_addresses', 'users']
             eq_(table_names, answer)
         finally:
-            dropViews(meta.bind, schema)
+            _drop_views(meta.bind, schema)
             addresses.drop()
             users.drop()
 
@@ -1203,6 +1209,7 @@ class ComponentReflectionTest(TestBase):
     def test_get_table_names_with_schema(self):
         self._test_get_table_names('test_schema')
 
+    @testing.requires.views
     def test_get_view_names(self):
         self._test_get_table_names(table_type='view')
 
@@ -1216,7 +1223,7 @@ class ComponentReflectionTest(TestBase):
         table_names = ['users', 'email_addresses']
         meta.create_all()
         if table_type == 'view':
-            createViews(meta.bind, schema)
+            _create_views(meta.bind, schema)
             table_names = ['users_v', 'email_addresses_v']
         try:
             insp = Inspector(meta.bind)
@@ -1257,7 +1264,7 @@ class ComponentReflectionTest(TestBase):
                                 col.type, cols[i]['name'], ctype))
         finally:
             if table_type == 'view':
-                dropViews(meta.bind, schema)
+                _drop_views(meta.bind, schema)
             addresses.drop()
             users.drop()
 
@@ -1268,9 +1275,11 @@ class ComponentReflectionTest(TestBase):
     def test_get_columns_with_schema(self):
         self._test_get_columns(schema='test_schema')
 
+    @testing.requires.views
     def test_get_view_columns(self):
         self._test_get_columns(table_type='view')
 
+    @testing.requires.views
     @testing.requires.schemas
     def test_get_view_columns_with_schema(self):
         self._test_get_columns(schema='test_schema', table_type='view')
@@ -1378,7 +1387,7 @@ class ComponentReflectionTest(TestBase):
         meta = MetaData(testing.db)
         (users, addresses) = createTables(meta, schema)
         meta.create_all()
-        createViews(meta.bind, schema)
+        _create_views(meta.bind, schema)
         view_name1 = 'users_v'
         view_name2 = 'email_addresses_v'
         try:
@@ -1388,13 +1397,15 @@ class ComponentReflectionTest(TestBase):
             v2 = insp.get_view_definition(view_name2, schema=schema)
             self.assert_(v2)
         finally:
-            dropViews(meta.bind, schema)
+            _drop_views(meta.bind, schema)
             addresses.drop()
             users.drop()
 
+    @testing.requires.views
     def test_get_view_definition(self):
         self._test_get_view_definition()
 
+    @testing.requires.views
     @testing.requires.schemas
     def test_get_view_definition_with_schema(self):
         self._test_get_view_definition(schema='test_schema')

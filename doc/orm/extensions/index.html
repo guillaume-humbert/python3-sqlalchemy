@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                ORM Extensions
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    ORM Extensions
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="../index.html" />
         <link rel="next" title="Association Proxy" href="associationproxy.html" />
-        <link rel="prev" title="ORM Event Interfaces" href="../interfaces.html" />
+        <link rel="prev" title="ORM Events" href="../events.html" />
+    
 
     </head>
     <body>
@@ -38,87 +39,100 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../../_sources/orm/extensions/index.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../../index.html">Table of Contents</a>
+                        » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+                » 
+    ORM Extensions
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="../events.html" title="previous chapter">ORM Events</a>
+        Next:
+        <a href="associationproxy.html" title="next chapter">Association Proxy</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
+                <h2>
+                    
+    ORM Extensions
+ 
+                </h2>
+            </div>
+            <div class="clearboth"></div>
+        </div>
 
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="../interfaces.html" title="previous chapter">ORM Event Interfaces</a>
-            </li>
-            <li>Next:
-            <a href="associationproxy.html" title="next chapter">Association Proxy</a>
-            </li>
-
-        <li>
-            <a href="../../contents.html">Table of Contents</a> |
-            <a href="../../genindex.html">Index</a>
-            | <a href="../../_sources/orm/extensions/index.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                ORM Extensions
-             
-
-        <h2>
-            
-                ORM Extensions
-            
-        </h2>
-    </div>
-    <div class="clearboth"></div>
-</div>
-
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="orm-extensions">
 <span id="sqlalchemy-ext"></span><span id="plugins"></span><h1>ORM Extensions<a class="headerlink" href="#orm-extensions" title="Permalink to this headline">¶</a></h1>
 <p>SQLAlchemy has a variety of ORM extensions available, which add additional
 functionality to the core behavior.</p>
+<p>The extensions build almost entirely on public core and ORM APIs and users should
+be encouraged to read their source code to further their understanding of their
+behavior.   In particular the &#8220;Horizontal Sharding&#8221;, &#8220;Hybrid Attributes&#8221;, and
+&#8220;Mutation Tracking&#8221; extensions are very succinct.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="associationproxy.html">Association Proxy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="declarative.html">Declarative</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutable.html">Mutation Tracking</a></li>
 <li class="toctree-l1"><a class="reference internal" href="orderinglist.html">Ordering List</a></li>
 <li class="toctree-l1"><a class="reference internal" href="horizontal_shard.html">Horizontal Sharding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hybrid.html">Hybrid Attributes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sqlsoup.html">SqlSoup</a></li>
 </ul>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="../events.html" title="previous chapter">ORM Events</a>
+        Next:
+        <a href="associationproxy.html" title="next chapter">Association Proxy</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="../interfaces.html" title="previous chapter">ORM Event Interfaces</a>
-            Next:
-            <a href="associationproxy.html" title="next chapter">Association Proxy</a>
-        <div class="doc_copyright">
-            &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

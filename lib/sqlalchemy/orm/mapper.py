@@ -20,16 +20,16 @@ import operator
 from itertools import chain, groupby
 deque = __import__('collections').deque
 
-from sqlalchemy import sql, util, log, exc as sa_exc, schema
+from sqlalchemy import sql, util, log, exc as sa_exc, event, schema
 from sqlalchemy.sql import expression, visitors, operators, util as sqlutil
-from sqlalchemy.orm import attributes, sync, exc as orm_exc, unitofwork
-from sqlalchemy.orm.interfaces import (
-    MapperProperty, EXT_CONTINUE, PropComparator
-    )
-from sqlalchemy.orm.util import (
-     ExtensionCarrier, _INSTRUMENTOR, _class_to_mapper, 
-     _state_mapper, class_mapper, instance_str, state_str,
-     )
+from sqlalchemy.orm import instrumentation, attributes, sync, \
+                        exc as orm_exc, unitofwork, events
+from sqlalchemy.orm.interfaces import MapperProperty, EXT_CONTINUE, \
+                                PropComparator
+
+from sqlalchemy.orm.util import _INSTRUMENTOR, _class_to_mapper, \
+     _state_mapper, class_mapper, instance_str, state_str
+
 import sys
 sessionlib = util.importlater("sqlalchemy.orm", "session")
 properties = util.importlater("sqlalchemy.orm", "properties")
@@ -46,10 +46,7 @@ _new_mappers = False
 _already_compiling = False
 _none_set = frozenset([None])
 
-_memoized_compiled_property = util.group_expirable_memoized_property()
-
-# a list of MapperExtensions that will be installed in all mappers by default
-global_extensions = []
+_memoized_configured_property = util.group_expirable_memoized_property()
 
 # a constant returned by _get_attr_by_column to indicate
 # this mapper is not handling an attribute for a particular
@@ -125,7 +122,6 @@ class Mapper(object):
         self.local_table = local_table
         self.inherit_condition = inherit_condition
         self.inherit_foreign_keys = inherit_foreign_keys
-        self.extension = extension
         self._init_properties = properties or {}
         self.delete_orphans = []
         self.batch = batch
@@ -140,6 +136,8 @@ class Mapper(object):
         self._inherits_equated_pairs = None
         self._memoized_values = {}
         self._compiled_cache_size = _compiled_cache_size
+        self._reconstructor = None
+        self._deprecated_extensions = util.to_list(extension or [])
 
         if allow_null_pks:
             util.warn_deprecated(
@@ -162,7 +160,7 @@ class Mapper(object):
         else:
             self.with_polymorphic = None
 
-        if isinstance(self.local_table, expression._SelectBaseMixin):
+        if isinstance(self.local_table, expression._SelectBase):
             raise sa_exc.InvalidRequestError(
                 "When mapping against a select() construct, map against "
                 "an alias() of the construct instead."
@@ -172,7 +170,7 @@ class Mapper(object):
 
         if self.with_polymorphic and \
                     isinstance(self.with_polymorphic[1],
-                                expression._SelectBaseMixin):
+                                expression._SelectBase):
             self.with_polymorphic = (self.with_polymorphic[0],
                                 self.with_polymorphic[1].alias())
 
@@ -198,17 +196,19 @@ class Mapper(object):
         else:
             self.exclude_properties = None
 
-        self.compiled = False
+        self.configured = False
 
         # prevent this mapper from being constructed
-        # while a compile() is occuring (and defer a compile()
+        # while a configure_mappers() is occuring (and defer a configure_mappers()
         # until construction succeeds)
         _COMPILE_MUTEX.acquire()
         try:
             self._configure_inheritance()
-            self._configure_extensions()
+            self._configure_legacy_instrument_class()
             self._configure_class_instrumentation()
+            self._configure_listeners()
             self._configure_properties()
+            self._configure_polymorphic_setter()
             self._configure_pks()
             global _new_mappers
             _new_mappers = True
@@ -216,6 +216,8 @@ class Mapper(object):
             self._expire_memoizations()
         finally:
             _COMPILE_MUTEX.release()
+
+    dispatch = event.dispatcher(events.MapperEvents)
 
     def _configure_inheritance(self):
         """Configure settings related to inherting and/or inherited mappers
@@ -256,8 +258,7 @@ class Mapper(object):
                         # want (allows test/inheritance.InheritTest4 to pass)
                         self.inherit_condition = sqlutil.join_condition(
                                                     self.inherits.local_table,
-                                                    self.local_table,
-                                                    ignore_nonexistent_tables=True)
+                                                    self.local_table)
                     self.mapped_table = sql.join(
                                                 self.inherits.mapped_table, 
                                                 self.local_table,
@@ -328,34 +329,33 @@ class Mapper(object):
                     "Mapper '%s' does not have a mapped_table specified." 
                     % self)
 
-    def _configure_extensions(self):
-        """Go through the global_extensions list as well as the list
-        of ``MapperExtensions`` specified for this ``Mapper`` and
-        creates a linked list of those extensions.
-
-        """
-        extlist = util.OrderedSet()
-
-        extension = self.extension
-        if extension:
-            for ext_obj in util.to_list(extension):
-                # local MapperExtensions have already instrumented the class
-                extlist.add(ext_obj)
+    def _configure_legacy_instrument_class(self):
 
         if self.inherits:
-            for ext in self.inherits.extension:
-                if ext not in extlist:
-                    extlist.add(ext)
+            self.dispatch._update(self.inherits.dispatch)
+            super_extensions = set(chain(*[m._deprecated_extensions 
+                                    for m in self.inherits.iterate_to_root()]))
         else:
-            for ext in global_extensions:
-                if isinstance(ext, type):
-                    ext = ext()
-                if ext not in extlist:
-                    extlist.add(ext)
+            super_extensions = set()
 
-        self.extension = ExtensionCarrier()
-        for ext in extlist:
-            self.extension.append(ext)
+        for ext in self._deprecated_extensions:
+            if ext not in super_extensions:
+                ext._adapt_instrument_class(self, ext)
+
+    def _configure_listeners(self):
+        if self.inherits:
+            super_extensions = set(chain(*[m._deprecated_extensions 
+                                    for m in self.inherits.iterate_to_root()]))
+        else:
+            super_extensions = set()
+
+        for ext in self._deprecated_extensions:
+            if ext not in super_extensions:
+                ext._adapt_listener(self, ext)
+
+        if self.inherits:
+            self.class_manager.dispatch._update(
+                        self.inherits.class_manager.dispatch)
 
     def _configure_class_instrumentation(self):
         """If this mapper is to be a primary mapper (i.e. the
@@ -377,7 +377,6 @@ class Mapper(object):
                     "a primary mapper first before setting up a non primary "
                     "Mapper." % self.class_)
             self.class_manager = manager
-            self._identity_class = manager.mapper._identity_class
             _mapper_registry[self] = True
             return
 
@@ -397,10 +396,10 @@ class Mapper(object):
 
         _mapper_registry[self] = True
 
-        self.extension.instrument_class(self, self.class_)
+        self.dispatch.instrument_class(self, self.class_)
 
         if manager is None:
-            manager = attributes.register_class(self.class_, 
+            manager = instrumentation.register_class(self.class_, 
                 deferred_scalar_loader = _load_scalar_attributes
             )
 
@@ -413,46 +412,53 @@ class Mapper(object):
         if manager.info.get(_INSTRUMENTOR, False):
             return
 
-        event_registry = manager.events
-        event_registry.add_listener('on_init', _event_on_init)
-        event_registry.add_listener('on_init_failure', _event_on_init_failure)
-        event_registry.add_listener('on_resurrect', _event_on_resurrect)
+        event.listen(manager, 'first_init', _event_on_first_init, raw=True)
+        event.listen(manager, 'init', _event_on_init, raw=True)
+        event.listen(manager, 'resurrect', _event_on_resurrect, raw=True)
 
         for key, method in util.iterate_attributes(self.class_):
             if isinstance(method, types.FunctionType):
                 if hasattr(method, '__sa_reconstructor__'):
-                    event_registry.add_listener('on_load', method)
+                    self._reconstructor = method
+                    event.listen(manager, 'load', _event_on_load, raw=True)
                 elif hasattr(method, '__sa_validators__'):
                     for name in method.__sa_validators__:
                         self._validators[name] = method
 
-        if 'reconstruct_instance' in self.extension:
-            def reconstruct(instance):
-                self.extension.reconstruct_instance(self, instance)
-            event_registry.add_listener('on_load', reconstruct)
-
         manager.info[_INSTRUMENTOR] = self
+
+    @util.deprecated("0.7", message=":meth:`.Mapper.compile` "
+                            "is replaced by :func:`.configure_mappers`")
+    def compile(self):
+        """Initialize the inter-mapper relationships of all mappers that
+        have been constructed thus far.
+
+        """
+        configure_mappers()
+        return self
+
+
+    @property
+    @util.deprecated("0.7", message=":attr:`.Mapper.compiled` "
+                            "is replaced by :attr:`.Mapper.configured`")
+    def compiled(self):
+        return self.configured
 
     def dispose(self):
         # Disable any attribute-based compilation.
-        self.compiled = True
+        self.configured = True
 
-        if hasattr(self, '_compile_failed'):
-            del self._compile_failed
+        if hasattr(self, '_configure_failed'):
+            del self._configure_failed
 
         if not self.non_primary and \
             self.class_manager.is_mapped and \
             self.class_manager.mapper is self:
-            attributes.unregister_class(self.class_)
+            instrumentation.unregister_class(self.class_)
 
     def _configure_pks(self):
 
         self.tables = sqlutil.find_tables(self.mapped_table)
-
-        if not self.tables:
-            raise sa_exc.InvalidRequestError(
-                    "Could not find any Table objects in mapped table '%s'" 
-                    % self.mapped_table)
 
         self._pks_by_table = {}
         self._cols_by_table = {}
@@ -532,7 +538,7 @@ class Mapper(object):
                     "key columns for mapped table '%s'" % 
                     (self, self.mapped_table.description))
 
-            self.primary_key = primary_key
+            self.primary_key = tuple(primary_key)
             self._log("Identified primary key columns: %s", primary_key)
 
     def _configure_properties(self):
@@ -586,33 +592,65 @@ class Mapper(object):
                                     init=False, 
                                     setparent=True)
 
+    def _configure_polymorphic_setter(self):
+        """Configure an attribute on the mapper representing the 
+        'polymorphic_on' column, if applicable, and not 
+        already generated by _configure_properties (which is typical).
+
+        Also create a setter function which will assign this
+        attribute to the value of the 'polymorphic_identity'
+        upon instance construction, also if applicable.  This 
+        routine will run when an instance is created.
+
+        """
         # do a special check for the "discriminiator" column, as it 
         # may only be present in the 'with_polymorphic' selectable 
         # but we need it for the base mapper
-        if self.polymorphic_on is not None and \
-                    self.polymorphic_on not in self._columntoproperty:
-            col = self.mapped_table.corresponding_column(self.polymorphic_on)
-            if col is None:
-                instrument = False
-                col = self.polymorphic_on
-                if self.with_polymorphic is None \
-                    or self.with_polymorphic[1].corresponding_column(col) \
-                    is None:
-                    util.warn("Could not map polymorphic_on column "
-                              "'%s' to the mapped table - polymorphic "
-                              "loads will not function properly"
-                              % col.description)
-            else:
-                instrument = True
-            if self._should_exclude(col.key, col.key, local=False, column=col):
-                raise sa_exc.InvalidRequestError(
-                    "Cannot exclude or override the discriminator column %r" %
-                    col.key)
+        setter = False
 
-            self._configure_property(
-                            col.key, 
-                            properties.ColumnProperty(col, _instrument=instrument),
-                            init=False, setparent=True)
+        if self.polymorphic_on is not None:
+            setter = True
+
+            if self.polymorphic_on not in self._columntoproperty:
+                col = self.mapped_table.corresponding_column(self.polymorphic_on)
+                if col is None:
+                    setter = False
+                    instrument = False
+                    col = self.polymorphic_on
+                    if self.with_polymorphic is None \
+                        or self.with_polymorphic[1].corresponding_column(col) \
+                        is None:
+                        raise sa_exc.InvalidRequestError("Could not map polymorphic_on column "
+                                  "'%s' to the mapped table - polymorphic "
+                                  "loads will not function properly"
+                                  % col.description)
+                else:
+                    instrument = True
+
+                if self._should_exclude(col.key, col.key, False, col):
+                    raise sa_exc.InvalidRequestError(
+                        "Cannot exclude or override the discriminator column %r" %
+                        col.key)
+
+                self._configure_property(
+                                col.key, 
+                                properties.ColumnProperty(col, _instrument=instrument),
+                                init=False, setparent=True)
+                polymorphic_key = col.key
+            else:
+                polymorphic_key = self._columntoproperty[self.polymorphic_on].key
+
+        if setter:
+            def _set_polymorphic_identity(state):
+                dict_ = state.dict
+                state.get_impl(polymorphic_key).set(state, dict_,
+                        self.polymorphic_identity, None)
+
+            self._set_polymorphic_identity = _set_polymorphic_identity
+        else:
+            self._set_polymorphic_identity = None
+
+
 
     def _adapt_inherited_property(self, key, prop, init):
         if not self.concrete:
@@ -639,26 +677,20 @@ class Mapper(object):
             prop = self._props.get(key, None)
 
             if isinstance(prop, properties.ColumnProperty):
-                # TODO: the "property already exists" case is still not 
-                # well defined here. assuming single-column, etc.
-
-                if prop.parent is not self:
-                    # existing properties.ColumnProperty from an inheriting mapper.
-                    # make a copy and append our column to it
-                    prop = prop.copy()
-                else:
-                    util.warn(
+                if prop.parent is self:
+                    raise sa_exc.InvalidRequestError(
                             "Implicitly combining column %s with column "
-                            "%s under attribute '%s'.  This usage will be "
-                            "prohibited in 0.7.  Please configure one "
+                            "%s under attribute '%s'.  Please configure one "
                             "or more attributes for these same-named columns "
                             "explicitly."
                              % (prop.columns[-1], column, key))
 
-                # this hypothetically changes to 
-                # prop.columns.insert(0, column) when we do [ticket:1892]
-                prop.columns.append(column)
-                self._log("appending to existing properties.ColumnProperty %s" % (key))
+                # existing properties.ColumnProperty from an inheriting 
+                # mapper. make a copy and append our column to it
+                prop = prop.copy()
+                prop.columns.insert(0, column)
+                self._log("inserting column to existing list "
+                            "in properties.ColumnProperty %s" % (key))
 
             elif prop is None or isinstance(prop, properties.ConcreteInheritedProperty):
                 mapped_column = []
@@ -774,60 +806,6 @@ class Mapper(object):
             prop.post_instrument_class(self)
 
 
-    def compile(self):
-        """Compile this mapper and all other non-compiled mappers.
-
-        This method checks the local compiled status as well as for
-        any new mappers that have been defined, and is safe to call
-        repeatedly.
-
-        """
-        global _new_mappers
-        if self.compiled and not _new_mappers:
-            return self
-
-        _COMPILE_MUTEX.acquire()
-        try:
-            try:
-                global _already_compiling
-                if _already_compiling:
-                    return
-                _already_compiling = True
-                try:
-
-                    # double-check inside mutex
-                    if self.compiled and not _new_mappers:
-                        return self
-
-                    # initialize properties on all mappers
-                    # note that _mapper_registry is unordered, which 
-                    # may randomly conceal/reveal issues related to 
-                    # the order of mapper compilation
-                    for mapper in list(_mapper_registry):
-                        if getattr(mapper, '_compile_failed', False):
-                            e = sa_exc.InvalidRequestError(
-                                    "One or more mappers failed to initialize - "
-                                    "can't proceed with initialization of other "
-                                    "mappers.  Original exception was: %s"
-                                    % mapper._compile_failed)
-                            e._compile_failed = mapper._compile_failed
-                            raise e
-                        if not mapper.compiled:
-                            mapper._post_configure_properties()
-
-                    _new_mappers = False
-                    return self
-                finally:
-                    _already_compiling = False
-            except:
-                exc = sys.exc_info()[1]
-                if not hasattr(exc, '_compile_failed'):
-                    self._compile_failed = exc
-                raise
-        finally:
-            self._expire_memoizations()
-            _COMPILE_MUTEX.release()
-
     def _post_configure_properties(self):
         """Call the ``init()`` method on all ``MapperProperties``
         attached to this mapper.
@@ -849,7 +827,7 @@ class Mapper(object):
                 prop.post_instrument_class(self)
 
         self._log("_post_configure_properties() complete")
-        self.compiled = True
+        self.configured = True
 
     def add_properties(self, dict_of_properties):
         """Add the given dictionary of properties to this mapper,
@@ -862,40 +840,39 @@ class Mapper(object):
     def add_property(self, key, prop):
         """Add an individual MapperProperty to this mapper.
 
-        If the mapper has not been compiled yet, just adds the
+        If the mapper has not been configured yet, just adds the
         property to the initial properties dictionary sent to the
-        constructor.  If this Mapper has already been compiled, then
-        the given MapperProperty is compiled immediately.
+        constructor.  If this Mapper has already been configured, then
+        the given MapperProperty is configured immediately.
 
         """
         self._init_properties[key] = prop
-        self._configure_property(key, prop, init=self.compiled)
+        self._configure_property(key, prop, init=self.configured)
         self._expire_memoizations()
 
     def _expire_memoizations(self):
         for mapper in self.iterate_to_root():
-            _memoized_compiled_property.expire_instance(mapper)
-
-    @property
-    def _log_desc(self):
-        return "(" + self.class_.__name__ + \
-            "|" + \
-            (self.local_table is not None and 
-                self.local_table.description or 
-                str(self.local_table)) +\
-            (self.non_primary and 
-            "|non-primary" or "") + ")"
+            _memoized_configured_property.expire_instance(mapper)
 
     def _log(self, msg, *args):
-
         self.logger.info(
-            "%s " + msg, *((self._log_desc,) + args)
-        )
+            "(" + self.class_.__name__ + 
+            "|" + 
+            (self.local_table is not None and 
+                self.local_table.description or 
+                str(self.local_table)) +
+            (self.non_primary and "|non-primary" or "") + ") " + 
+            msg, *args)
 
     def _log_debug(self, msg, *args):
         self.logger.debug(
-            "%s " + msg, *((self._log_desc,) + args)
-        )
+            "(" + self.class_.__name__ + 
+            "|" + 
+            (self.local_table is not None and 
+                self.local_table.description 
+                or str(self.local_table)) + 
+            (self.non_primary and "|non-primary" or "") + ") " + 
+            msg, *args)
 
     def __repr__(self):
         return '<Mapper at 0x%x; %s>' % (
@@ -914,7 +891,7 @@ class Mapper(object):
         for mapper in self.iterate_to_root():
             for (key, cls) in mapper.delete_orphans:
                 if attributes.manager_of_class(cls).has_parent(
-                    state, key, optimistic=state.has_identity):
+                    state, key, optimistic=bool(state.key)):
                     return False
             o = o or bool(mapper.delete_orphans)
         return o
@@ -922,35 +899,18 @@ class Mapper(object):
     def has_property(self, key):
         return key in self._props
 
-    def get_property(self, key, 
-                            resolve_synonyms=False, 
-                            raiseerr=True, _compile_mappers=True):
-
-        """return a :class:`.MapperProperty` associated with the given key.
-
-        resolve_synonyms=False and raiseerr=False are deprecated.
-
+    def get_property(self, key, _compile_mappers=True):
+        """return a MapperProperty associated with the given key.
         """
 
-        if _compile_mappers and not self.compiled:
-            self.compile()
+        if _compile_mappers and _new_mappers:
+            configure_mappers()
 
-        if not resolve_synonyms:
-            prop = self._props.get(key, None)
-            if prop is None and raiseerr:
-                raise sa_exc.InvalidRequestError(
-                        "Mapper '%s' has no property '%s'" % 
-                        (self, key))
-            return prop
-        else:
-            try:
-                return getattr(self.class_, key).property
-            except AttributeError:
-                if raiseerr:
-                    raise sa_exc.InvalidRequestError(
-                        "Mapper '%s' has no property '%s'" % (self, key))
-                else:
-                    return None
+        try:
+            return self._props[key]
+        except KeyError:
+            raise sa_exc.InvalidRequestError(
+                    "Mapper '%s' has no property '%s'" % (self, key))
 
     @util.deprecated('0.6.4',
                      'Call to deprecated function mapper._get_col_to_pr'
@@ -967,8 +927,8 @@ class Mapper(object):
     @property
     def iterate_properties(self):
         """return an iterator of all MapperProperty objects."""
-        if not self.compiled:
-            self.compile()
+        if _new_mappers:
+            configure_mappers()
         return self._props.itervalues()
 
     def _mappers_from_spec(self, spec, selectable):
@@ -1019,7 +979,7 @@ class Mapper(object):
 
         return from_obj
 
-    @_memoized_compiled_property
+    @_memoized_configured_property
     def _single_table_criterion(self):
         if self.single and \
             self.inherits and \
@@ -1030,13 +990,13 @@ class Mapper(object):
         else:
             return None
 
-    @_memoized_compiled_property
+    @_memoized_configured_property
     def _with_polymorphic_mappers(self):
         if not self.with_polymorphic:
             return [self]
         return self._mappers_from_spec(*self.with_polymorphic)
 
-    @_memoized_compiled_property
+    @_memoized_configured_property
     def _with_polymorphic_selectable(self):
         if not self.with_polymorphic:
             return self.mapped_table
@@ -1061,7 +1021,7 @@ class Mapper(object):
         else:
             return mappers, self._selectable_from_mappers(mappers)
 
-    @_memoized_compiled_property
+    @_memoized_configured_property
     def _polymorphic_properties(self):
         return tuple(self._iterate_polymorphic_properties(
             self._with_polymorphic_mappers))
@@ -1097,7 +1057,7 @@ class Mapper(object):
                     "provided by the get_property() and iterate_properties "
                     "accessors.")
 
-    @_memoized_compiled_property
+    @_memoized_configured_property
     def _get_clause(self):
         """create a "get clause" based on the primary key.  this is used
         by query.get() and many-to-one lazyloads to load this item
@@ -1109,7 +1069,7 @@ class Mapper(object):
         return sql.and_(*[k==v for (k, v) in params]), \
                 util.column_dict(params)
 
-    @_memoized_compiled_property
+    @_memoized_configured_property
     def _equivalent_columns(self):
         """Create a map of all *equivalent* columns, based on
         the determination of column pairs that are equated to
@@ -1151,8 +1111,11 @@ class Mapper(object):
 
     def _is_userland_descriptor(self, obj):
         return not isinstance(obj, 
-                    (MapperProperty, attributes.InstrumentedAttribute)) and \
-                    hasattr(obj, '__get__')
+                    (MapperProperty, attributes.QueryableAttribute)) and \
+                    hasattr(obj, '__get__') and not \
+                     isinstance(obj.__get__(None, obj),
+                                    attributes.QueryableAttribute)
+
 
     def _should_exclude(self, name, assigned_name, local, column):
         """determine whether a particular property should be implicitly
@@ -1219,7 +1182,7 @@ class Mapper(object):
             yield m
             m = m.inherits
 
-    @_memoized_compiled_property
+    @_memoized_configured_property
     def self_and_descendants(self):
         """The collection including this mapper and all descendant mappers.
 
@@ -1283,7 +1246,7 @@ class Mapper(object):
           A list of values indicating the identifier.
 
         """
-        return self._identity_class, tuple(util.to_list(primary_key))
+        return self._identity_class, tuple(primary_key)
 
     def identity_key_from_instance(self, instance):
         """Return the identity key for the given instance, based on
@@ -1297,8 +1260,13 @@ class Mapper(object):
                         self.primary_key_from_instance(instance))
 
     def _identity_key_from_state(self, state):
-        return self.identity_key_from_primary_key(
-                        self._primary_key_from_state(state))
+        dict_ = state.dict
+        manager = state.manager
+        return self._identity_class, tuple([
+            manager[self._columntoproperty[col].key].\
+                impl.get(state, dict_, attributes.PASSIVE_OFF)
+            for col in self.primary_key
+        ])
 
     def primary_key_from_instance(self, instance):
         """Return the list of primary key values for the given
@@ -1310,25 +1278,33 @@ class Mapper(object):
 
     def _primary_key_from_state(self, state):
         dict_ = state.dict
-        return [self._get_state_attr_by_column(state, dict_, column) for
-                column in self.primary_key]
+        manager = state.manager
+        return [
+            manager[self._columntoproperty[col].key].\
+                impl.get(state, dict_, attributes.PASSIVE_OFF)
+            for col in self.primary_key
+        ]
 
-    # TODO: improve names?
-    def _get_state_attr_by_column(self, state, dict_, column, passive=False):
-        return self._columntoproperty[column]._getattr(state, dict_, column, passive=passive)
+    def _get_state_attr_by_column(self, state, dict_, column, 
+                                    passive=attributes.PASSIVE_OFF):
+        prop = self._columntoproperty[column]
+        return state.manager[prop.key].impl.get(state, dict_, passive=passive)
 
     def _set_state_attr_by_column(self, state, dict_, column, value):
-        return self._columntoproperty[column]._setattr(state, dict_, value, column)
+        prop = self._columntoproperty[column]
+        state.manager[prop.key].impl.set(state, dict_, value, None)
 
     def _get_committed_attr_by_column(self, obj, column):
         state = attributes.instance_state(obj)
         dict_ = attributes.instance_dict(obj)
         return self._get_committed_state_attr_by_column(state, dict_, column)
 
-    def _get_committed_state_attr_by_column(self, state, dict_, column,
-                                                    passive=False):
-        return self._columntoproperty[column]._getcommitted(
-            state, dict_, column, passive=passive)
+    def _get_committed_state_attr_by_column(self, state, dict_, 
+                        column, passive=attributes.PASSIVE_OFF):
+
+        prop = self._columntoproperty[column]
+        return state.manager[prop.key].impl.\
+                    get_committed_value(state, dict_, passive=passive)
 
     def _optimized_get_statement(self, state, attribute_names):
         """assemble a WHERE clause which retrieves a given state by primary
@@ -1362,16 +1338,18 @@ class Mapper(object):
 
             if leftcol.table not in tables:
                 leftval = self._get_committed_state_attr_by_column(
-                                                    state, state.dict, 
-                                                    leftcol, passive=True)
+                                    state, state.dict, 
+                                    leftcol, 
+                                    passive=attributes.PASSIVE_NO_INITIALIZE)
                 if leftval is attributes.PASSIVE_NO_RESULT or leftval is None:
                     raise ColumnsNotAvailable()
                 binary.left = sql.bindparam(None, leftval,
                                             type_=binary.right.type)
             elif rightcol.table not in tables:
                 rightval = self._get_committed_state_attr_by_column(
-                                                    state, state.dict, 
-                                                    rightcol, passive=True)
+                                    state, state.dict, 
+                                    rightcol, 
+                                    passive=attributes.PASSIVE_NO_INITIALIZE)
                 if rightval is attributes.PASSIVE_NO_RESULT or rightval is None:
                     raise ColumnsNotAvailable()
                 binary.right = sql.bindparam(None, rightval,
@@ -1417,13 +1395,14 @@ class Mapper(object):
         reference so that they don't fall out of scope immediately.
 
         """
-        visited_instances = util.IdentitySet()
+        visited_states = set()
         prp, mpp = object(), object()
 
-        visitables = [(deque(self._props.values()), prp, state)]
+        visitables = deque([(deque(self._props.values()), prp, 
+                                state, state.dict)])
 
         while visitables:
-            iterator, item_type, parent_state = visitables[-1]
+            iterator, item_type, parent_state, parent_dict = visitables[-1]
             if not iterator:
                 visitables.pop()
                 continue
@@ -1433,21 +1412,23 @@ class Mapper(object):
                 if type_ not in prop.cascade:
                     continue
                 queue = deque(prop.cascade_iterator(type_, parent_state, 
-                            visited_instances, halt_on))
+                            parent_dict, visited_states, halt_on))
                 if queue:
-                    visitables.append((queue,mpp, None))
+                    visitables.append((queue,mpp, None, None))
             elif item_type is mpp:
-                instance, instance_mapper, corresponding_state  = \
-                                iterator.popleft()
-                yield (instance, instance_mapper)
+                instance, instance_mapper, corresponding_state, \
+                                corresponding_dict = iterator.popleft()
+                yield instance, instance_mapper, \
+                        corresponding_state, corresponding_dict
                 visitables.append((deque(instance_mapper._props.values()), 
-                                        prp, corresponding_state))
+                                        prp, corresponding_state, 
+                                        corresponding_dict))
 
-    @_memoized_compiled_property
+    @_memoized_configured_property
     def _compiled_cache(self):
         return util.LRUCache(self._compiled_cache_size)
 
-    @_memoized_compiled_property
+    @_memoized_configured_property
     def _sorted_tables(self):
         table_to_mapper = {}
         for mapper in self.base_mapper.self_and_descendants:
@@ -1508,9 +1489,9 @@ class Mapper(object):
         # if session has a connection callable,
         # organize individual states with the connection 
         # to use for update
-        if 'connection_callable' in uowtransaction.mapper_flush_opts:
+        if uowtransaction.session.connection_callable:
             connection_callable = \
-                    uowtransaction.mapper_flush_opts['connection_callable']
+                    uowtransaction.session.connection_callable
         else:
             connection = uowtransaction.transaction.connection(self)
             connection_callable = None
@@ -1548,11 +1529,11 @@ class Mapper(object):
                     elif col in post_update_cols:
                         prop = mapper._columntoproperty[col]
                         history = attributes.get_state_history(
-                                        state, prop.key, passive=True)
+                                    state, prop.key, 
+                                    attributes.PASSIVE_NO_INITIALIZE)
                         if history.added:
-                            params[col.key] = \
-                                prop.get_col_value(col,
-                                                    history.added[0])
+                            value = history.added[0]
+                            params[col.key] = value
                             hasdata = True
                 if hasdata:
                     update.append((state, state_dict, params, mapper, 
@@ -1589,14 +1570,9 @@ class Mapper(object):
         of objects.
 
         This is called within the context of a UOWTransaction during a
-        flush operation.
-
-        `_save_obj` issues SQL statements not just for instances mapped
-        directly by this mapper, but for instances mapped by all
-        inheriting mappers as well.  This is to maintain proper insert
-        ordering among a polymorphic chain of instances. Therefore
-        _save_obj is typically called only on a *base mapper*, or a
-        mapper which does not inherit from any other mapper.
+        flush operation, given a list of states to be flushed.  The
+        base mapper in an inheritance hierarchy handles the inserts/
+        updates for all descendant mappers.
 
         """
 
@@ -1611,9 +1587,9 @@ class Mapper(object):
         # if session has a connection callable,
         # organize individual states with the connection 
         # to use for insert/update
-        if 'connection_callable' in uowtransaction.mapper_flush_opts:
+        if uowtransaction.session.connection_callable:
             connection_callable = \
-                    uowtransaction.mapper_flush_opts['connection_callable']
+                    uowtransaction.session.connection_callable
         else:
             connection = uowtransaction.transaction.connection(self)
             connection_callable = None
@@ -1626,20 +1602,17 @@ class Mapper(object):
             else:
                 conn = connection
 
-            has_identity = state.has_identity
+            has_identity = bool(state.key)
             mapper = _state_mapper(state)
             instance_key = state.key or mapper._identity_key_from_state(state)
 
             row_switch = None
+
             # call before_XXX extensions
             if not has_identity:
-                if 'before_insert' in mapper.extension:
-                    mapper.extension.before_insert(
-                                        mapper, conn, state.obj())
+                mapper.dispatch.before_insert(mapper, conn, state)
             else:
-                if 'before_update' in mapper.extension:
-                    mapper.extension.before_update(
-                                        mapper, conn, state.obj())
+                mapper.dispatch.before_update(mapper, conn, state)
 
             # detect if we have a "pending" instance (i.e. has 
             # no instance_key attached to it), and another instance 
@@ -1691,45 +1664,39 @@ class Mapper(object):
 
                 pks = mapper._pks_by_table[table]
 
-                isinsert = not has_identity and \
-                                not row_switch
+                isinsert = not has_identity and not row_switch
 
                 params = {}
                 value_params = {}
-                hasdata = False
 
                 if isinsert:
+                    has_all_pks = True
                     for col in mapper._cols_by_table[table]:
                         if col is mapper.version_id_col:
                             params[col.key] = \
                               mapper.version_id_generator(None)
-                        elif mapper.polymorphic_on is not None and \
-                                mapper.polymorphic_on.shares_lineage(col):
-                            value = mapper.polymorphic_identity
-                            if ((col.default is None and
-                                 col.server_default is None) or
-                                value is not None):
-                                params[col.key] = value
-                        elif col in pks:
-                            value = \
-                             mapper._get_state_attr_by_column(
-                                                state, state_dict, col)
-                            if value is not None:
-                                params[col.key] = value
                         else:
-                            value = \
-                              mapper._get_state_attr_by_column(
-                                                state, state_dict, col)
-                            if ((col.default is None and
-                                 col.server_default is None) or
-                                value is not None):
-                                if isinstance(value, sql.ClauseElement):
-                                    value_params[col] = value
-                                else:
-                                    params[col.key] = value
+                            # pull straight from the dict for 
+                            # pending objects
+                            prop = mapper._columntoproperty[col]
+                            value = state_dict.get(prop.key, None)
+
+                            if value is None:
+                                if col in pks:
+                                    has_all_pks = False
+                                elif col.default is None and \
+                                     col.server_default is None:
+                                     params[col.key] = value
+
+                            elif isinstance(value, sql.ClauseElement):
+                                value_params[col] = value
+                            else:
+                                params[col.key] = value
+
                     insert.append((state, state_dict, params, mapper, 
-                                    connection, value_params))
+                                    connection, value_params, has_all_pks))
                 else:
+                    hasdata = False
                     for col in mapper._cols_by_table[table]:
                         if col is mapper.version_id_col:
                             params[col._label] = \
@@ -1741,7 +1708,8 @@ class Mapper(object):
 
                             prop = mapper._columntoproperty[col]
                             history = attributes.get_state_history(
-                                state, prop.key, passive=True
+                                state, prop.key, 
+                                attributes.PASSIVE_NO_INITIALIZE
                             )
                             if history.added:
                                 params[col.key] = history.added[0]
@@ -1758,26 +1726,22 @@ class Mapper(object):
                                 for prop in mapper._columntoproperty.\
                                                         itervalues():
                                     history = attributes.get_state_history(
-                                                    state, prop.key, 
-                                                    passive=True)
+                                            state, prop.key, 
+                                            attributes.PASSIVE_NO_INITIALIZE)
                                     if history.added:
                                         hasdata = True
-                        elif mapper.polymorphic_on is not None and \
-                            mapper.polymorphic_on.shares_lineage(col) and \
-                                col not in pks:
-                            pass
                         else:
                             prop = mapper._columntoproperty[col]
                             history = attributes.get_state_history(
-                                            state, prop.key, passive=True)
+                                            state, prop.key, 
+                                            attributes.PASSIVE_NO_INITIALIZE)
                             if history.added:
                                 if isinstance(history.added[0],
                                                 sql.ClauseElement):
                                     value_params[col] = history.added[0]
                                 else:
-                                    params[col.key] = \
-                                        prop.get_col_value(col,
-                                                            history.added[0])
+                                    value = history.added[0]
+                                    params[col.key] = value
 
                                 if col in pks:
                                     if history.deleted:
@@ -1788,15 +1752,13 @@ class Mapper(object):
                                         if ("pk_cascaded", state, col) in \
                                                         uowtransaction.\
                                                         attributes:
-                                            params[col._label] = \
-                                                    prop.get_col_value(col,
-                                                        history.added[0])
+                                            value = history.added[0]
+                                            params[col._label] = value
                                         else:
                                             # use the old value to 
                                             # locate the row
-                                            params[col._label] = \
-                                                    prop.get_col_value(col,
-                                                        history.deleted[0])
+                                            value = history.deleted[0]
+                                            params[col._label] = value
                                         hasdata = True
                                     else:
                                         # row switch logic can reach us here
@@ -1805,16 +1767,14 @@ class Mapper(object):
                                         # attempt to include the pk in the
                                         # update statement
                                         del params[col.key]
-                                        params[col._label] = \
-                                                    prop.get_col_value(col,
-                                                      history.added[0])
+                                        value = history.added[0]
+                                        params[col._label] = value
                                 else:
                                     hasdata = True
                             elif col in pks:
-                                params[col._label] = \
-                                        mapper._get_state_attr_by_column(
-                                                        state,
-                                                        state_dict, col)
+                                value = state.manager[prop.key].\
+                                            impl.get(state, state_dict)
+                                params[col._label] = value
                     if hasdata:
                         update.append((state, state_dict, params, mapper, 
                                         connection, value_params))
@@ -1853,10 +1813,15 @@ class Mapper(object):
                         c = cached_connections[connection].\
                                             execute(statement, params)
 
-                    mapper._postfetch(uowtransaction, table, 
-                                        state, state_dict, c, 
-                                        c.last_updated_params(), value_params)
-
+                    mapper._postfetch(
+                            uowtransaction, 
+                            table, 
+                            state, 
+                            state_dict, 
+                            c.context.prefetch_cols, 
+                            c.context.postfetch_cols,
+                            c.context.compiled_parameters[0], 
+                            value_params)
                     rows += c.rowcount
 
                 if connection.dialect.supports_sane_rowcount:
@@ -1875,86 +1840,111 @@ class Mapper(object):
             if insert:
                 statement = self._memo(('insert', table), table.insert)
 
-                for state, state_dict, params, mapper, \
-                            connection, value_params in insert:
+                for (connection, pkeys, hasvalue, has_all_pks), \
+                    records in groupby(insert, 
+                                        lambda rec: (rec[4], 
+                                                rec[2].keys(), 
+                                                bool(rec[5]), 
+                                                rec[6])
+                ):
+                    if has_all_pks and not hasvalue:
+                        records = list(records)
+                        multiparams = [rec[2] for rec in records]
+                        c = cached_connections[connection].\
+                                            execute(statement, multiparams)
 
-                    if value_params:
-                        c = connection.execute(
+                        for (state, state_dict, params, mapper, 
+                                conn, value_params, has_all_pks), \
+                                last_inserted_params in \
+                                zip(records, c.context.compiled_parameters):
+                            mapper._postfetch(
+                                    uowtransaction, 
+                                    table,
+                                    state, 
+                                    state_dict,
+                                    c.context.prefetch_cols,
+                                    c.context.postfetch_cols,
+                                    last_inserted_params, 
+                                    value_params)
+
+                    else:
+                        for state, state_dict, params, mapper, \
+                                    connection, value_params, \
+                                    has_all_pks in records:
+
+                            if value_params:
+                                result = connection.execute(
                                             statement.values(value_params),
                                             params)
-                    else:
-                        c = cached_connections[connection].\
-                                            execute(statement, params)
+                            else:
+                                result = cached_connections[connection].\
+                                                    execute(statement, params)
 
-                    primary_key = c.inserted_primary_key
+                            primary_key = result.context.inserted_primary_key
 
-                    if primary_key is not None:
-                        # set primary key attributes
-                        for i, col in enumerate(mapper._pks_by_table[table]):
-                            if mapper._get_state_attr_by_column(
-                                        state, state_dict, col) \
-                                        is None and len(primary_key) > i:
-                                mapper._set_state_attr_by_column(
-                                        state, state_dict, col,
-                                        primary_key[i])
+                            if primary_key is not None:
+                                # set primary key attributes
+                                for pk, col in zip(primary_key, 
+                                                mapper._pks_by_table[table]):
+                                    prop = mapper._columntoproperty[col]
+                                    if state_dict.get(prop.key) is None:
+                                        # TODO: would rather say:
+                                        #state_dict[prop.key] = pk
+                                        mapper._set_state_attr_by_column(
+                                                    state, 
+                                                    state_dict, 
+                                                    col, pk)
 
-                    mapper._postfetch(uowtransaction, table, 
-                                        state, state_dict, c,
-                                        c.last_inserted_params(),
-                                        value_params)
+                            mapper._postfetch(
+                                    uowtransaction, 
+                                    table, 
+                                    state, 
+                                    state_dict,
+                                    result.context.prefetch_cols, 
+                                    result.context.postfetch_cols,
+                                    result.context.compiled_parameters[0], 
+                                    value_params)
+
 
         for state, state_dict, mapper, connection, has_identity, \
                         instance_key, row_switch in tups:
 
-            # expire readonly attributes
-            readonly = state.unmodified.intersection(
-                p.key for p in mapper._readonly_props
-            )
-
-            if readonly:
-                sessionlib._expire_state(state, state.dict, readonly)
+            if mapper._readonly_props:
+                readonly = state.unmodified_intersection(
+                    [p.key for p in mapper._readonly_props]
+                )
+                if readonly:
+                    state.expire_attributes(state.dict, readonly)
 
             # if eager_defaults option is enabled,
             # refresh whatever has been expired.
             if self.eager_defaults and state.unloaded:
                 state.key = self._identity_key_from_state(state)
-                uowtransaction.session.query(self)._get(
+                uowtransaction.session.query(self)._load_on_ident(
                     state.key, refresh_state=state,
                     only_load_props=state.unloaded)
 
             # call after_XXX extensions
             if not has_identity:
-                if 'after_insert' in mapper.extension:
-                    mapper.extension.after_insert(
-                                        mapper, connection, state.obj())
+                mapper.dispatch.after_insert(mapper, connection, state)
             else:
-                if 'after_update' in mapper.extension:
-                    mapper.extension.after_update(
-                                        mapper, connection, state.obj())
+                mapper.dispatch.after_update(mapper, connection, state)
 
     def _postfetch(self, uowtransaction, table, 
-                        state, dict_, resultproxy, 
-                        params, value_params):
+                    state, dict_, prefetch_cols, postfetch_cols,
+                                params, value_params):
         """During a flush, expire attributes in need of newly 
         persisted database state."""
 
-        postfetch_cols = resultproxy.postfetch_cols()
-        generated_cols = list(resultproxy.prefetch_cols())
-
-        if self.polymorphic_on is not None:
-            po = table.corresponding_column(self.polymorphic_on)
-            if po is not None:
-                generated_cols.append(po)
-
         if self.version_id_col is not None:
-            generated_cols.append(self.version_id_col)
+            prefetch_cols = list(prefetch_cols) + [self.version_id_col]
 
-        for c in generated_cols:
+        for c in prefetch_cols:
             if c.key in params and c in self._columntoproperty:
                 self._set_state_attr_by_column(state, dict_, c, params[c.key])
 
         if postfetch_cols:
-            sessionlib._expire_state(state, state.dict, 
+            state.expire_attributes(state.dict, 
                                 [self._columntoproperty[c].key 
                                 for c in postfetch_cols if c in 
                                 self._columntoproperty]
@@ -1993,9 +1983,9 @@ class Mapper(object):
         flush operation.
 
         """
-        if 'connection_callable' in uowtransaction.mapper_flush_opts:
+        if uowtransaction.session.connection_callable:
             connection_callable = \
-                    uowtransaction.mapper_flush_opts['connection_callable']
+                    uowtransaction.session.connection_callable
         else:
             connection = uowtransaction.transaction.connection(self)
             connection_callable = None
@@ -2014,13 +2004,12 @@ class Mapper(object):
             else:
                 conn = connection
 
-            if 'before_delete' in mapper.extension:
-                mapper.extension.before_delete(mapper, conn, state.obj())
+            mapper.dispatch.before_delete(mapper, conn, state)
 
             tups.append((state, 
                     state.dict,
                     _state_mapper(state), 
-                    state.has_identity,
+                    bool(state.key),
                     conn))
 
         table_to_mapper = self._sorted_tables
@@ -2085,7 +2074,7 @@ class Mapper(object):
                         util.warn(
                             "Dialect %s does not support deleted rowcount "
                             "- versioning cannot be verified." % 
-                            c.dialect.dialect_description,
+                            connection.dialect.dialect_description,
                             stacklevel=12)
                         connection.execute(statement, del_objects)
                 else:
@@ -2101,11 +2090,10 @@ class Mapper(object):
                     )
 
         for state, state_dict, mapper, has_identity, connection in tups:
-            if 'after_delete' in mapper.extension:
-                mapper.extension.after_delete(mapper, connection, state.obj())
+            mapper.dispatch.after_delete(mapper, connection, state)
 
-    def _instance_processor(self, context, path, adapter, 
-                                polymorphic_from=None, extension=None, 
+    def _instance_processor(self, context, path, reduced_path, adapter, 
+                                polymorphic_from=None, 
                                 only_load_props=None, refresh_state=None,
                                 polymorphic_discriminator=None):
 
@@ -2123,7 +2111,7 @@ class Mapper(object):
                 polymorphic_on = self.polymorphic_on
             polymorphic_instances = util.PopulateDict(
                                         self._configure_subclass_mapper(
-                                                context, path, adapter)
+                                                context, path, reduced_path, adapter)
                                         )
 
         version_id_col = self.version_id_col
@@ -2136,8 +2124,6 @@ class Mapper(object):
                 version_id_col = adapter.columns[version_id_col]
 
         identity_class = self._identity_class
-        def identity_key(row):
-            return identity_class, tuple([row[column] for column in pk_cols])
 
         new_populators = []
         existing_populators = []
@@ -2151,7 +2137,7 @@ class Mapper(object):
                     state.load_path = load_path
 
             if not new_populators:
-                self._populators(context, path, row, adapter,
+                self._populators(context, path, reduced_path, row, adapter,
                                 new_populators,
                                 existing_populators
                 )
@@ -2162,21 +2148,21 @@ class Mapper(object):
                 populators = existing_populators
 
             if only_load_props:
-                populators = [p for p in populators 
-                                if p[0] in only_load_props]
-
-            for key, populator in populators:
-                populator(state, dict_, row)
+                for key, populator in populators:
+                    if key in only_load_props:
+                        populator(state, dict_, row)
+            else:
+                for key, populator in populators:
+                    populator(state, dict_, row)
 
         session_identity_map = context.session.identity_map
 
-        if not extension:
-            extension = self.extension
+        listeners = self.dispatch
 
-        translate_row = extension.get('translate_row', None)
-        create_instance = extension.get('create_instance', None)
-        populate_instance = extension.get('populate_instance', None)
-        append_result = extension.get('append_result', None)
+        translate_row = listeners.translate_row or None
+        create_instance = listeners.create_instance or None
+        populate_instance = listeners.populate_instance or None
+        append_result = listeners.append_result or None
         populate_existing = context.populate_existing or self.always_refresh
         if self.allow_partial_pks:
             is_not_primary_key = _none_set.issuperset
@@ -2185,9 +2171,11 @@ class Mapper(object):
 
         def _instance(row, result):
             if translate_row:
-                ret = translate_row(self, context, row)
-                if ret is not EXT_CONTINUE:
-                    row = ret
+                for fn in translate_row:
+                    ret = fn(self, context, row)
+                    if ret is not EXT_CONTINUE:
+                        row = ret
+                        break
 
             if polymorphic_on is not None:
                 discriminator = row[polymorphic_on]
@@ -2205,7 +2193,7 @@ class Mapper(object):
                     # occur within a flush()
                     identitykey = self._identity_key_from_state(refresh_state)
             else:
-                identitykey = identity_key(row)
+                identitykey = identity_class, tuple([row[column] for column in pk_cols])
 
             instance = session_identity_map.get(identitykey)
             if instance is not None:
@@ -2255,17 +2243,19 @@ class Mapper(object):
                 loaded_instance = True
 
                 if create_instance:
-                    instance = create_instance(self, 
+                    for fn in create_instance:
+                        instance = fn(self, 
                                                 context, 
                                                 row, self.class_)
-                    if instance is EXT_CONTINUE:
-                        instance = self.class_manager.new_instance()
+                        if instance is not EXT_CONTINUE:
+                            manager = attributes.manager_of_class(
+                                                    instance.__class__)
+                            # TODO: if manager is None, raise a friendly error
+                            # about returning instances of unmapped types
+                            manager.setup_instance(instance)
+                            break
                     else:
-                        manager = attributes.manager_of_class(
-                                                instance.__class__)
-                        # TODO: if manager is None, raise a friendly error
-                        # about returning instances of unmapped types
-                        manager.setup_instance(instance)
+                        instance = self.class_manager.new_instance()
                 else:
                     instance = self.class_manager.new_instance()
 
@@ -2283,50 +2273,69 @@ class Mapper(object):
                     state.runid = context.runid
                     context.progress[state] = dict_
 
-                if not populate_instance or \
-                        populate_instance(self, context, row, instance, 
+                if populate_instance:
+                    for fn in populate_instance:
+                        ret = fn(self, context, row, state, 
                             only_load_props=only_load_props, 
-                            instancekey=identitykey, isnew=isnew) is \
-                            EXT_CONTINUE:
+                            instancekey=identitykey, isnew=isnew)
+                        if ret is not EXT_CONTINUE:
+                            break
+                    else:
+                        populate_state(state, dict_, row, isnew, only_load_props)
+                else:
                     populate_state(state, dict_, row, isnew, only_load_props)
 
-            else:
+                if loaded_instance:
+                    state.manager.dispatch.load(state, context)
+                elif isnew:
+                    state.manager.dispatch.refresh(state, context, only_load_props)
+
+            elif state in context.partials or state.unloaded:
                 # populate attributes on non-loading instances which have 
                 # been expired
                 # TODO: apply eager loads to un-lazy loaded collections ?
-                if state in context.partials or state.unloaded:
 
-                    if state in context.partials:
-                        isnew = False
-                        (d_, attrs) = context.partials[state]
+                if state in context.partials:
+                    isnew = False
+                    (d_, attrs) = context.partials[state]
+                else:
+                    isnew = True
+                    attrs = state.unloaded
+                    # allow query.instances to commit the subset of attrs
+                    context.partials[state] = (dict_, attrs)
+
+                if populate_instance:
+                    for fn in populate_instance:
+                        ret = fn(self, context, row, state, 
+                            only_load_props=attrs, 
+                            instancekey=identitykey, isnew=isnew)
+                        if ret is not EXT_CONTINUE:
+                            break
                     else:
-                        isnew = True
-                        attrs = state.unloaded
-                        # allow query.instances to commit the subset of attrs
-                        context.partials[state] = (dict_, attrs)
-
-                    if not populate_instance or \
-                            populate_instance(self, context, row, instance, 
-                                only_load_props=attrs, 
-                                instancekey=identitykey, isnew=isnew) is \
-                                EXT_CONTINUE:
                         populate_state(state, dict_, row, isnew, attrs)
+                else:
+                    populate_state(state, dict_, row, isnew, attrs)
 
-            if loaded_instance:
-                state._run_on_load(instance)
+                if isnew:
+                    state.manager.dispatch.refresh(state, context, attrs)
 
-            if result is not None and \
-                        (not append_result or 
-                            append_result(self, context, row, instance, 
+
+            if result is not None:
+                if append_result:
+                    for fn in append_result:
+                        if fn(self, context, row, state, 
                                     result, instancekey=identitykey,
-                                    isnew=isnew) 
-                                    is EXT_CONTINUE):
-                result.append(instance)
+                                    isnew=isnew) is not EXT_CONTINUE:
+                            break
+                    else:
+                        result.append(instance)
+                else:
+                    result.append(instance)
 
             return instance
         return _instance
 
-    def _populators(self, context, path, row, adapter,
+    def _populators(self, context, path, reduced_path, row, adapter,
             new_populators, existing_populators):
         """Produce a collection of attribute level row processor callables."""
 
@@ -2334,6 +2343,7 @@ class Mapper(object):
         for prop in self._props.itervalues():
             newpop, existingpop, delayedpop = prop.create_row_processor(
                                                     context, path, 
+                                                    reduced_path,
                                                     self, row, adapter)
             if newpop:
                 new_populators.append((prop.key, newpop))
@@ -2344,7 +2354,7 @@ class Mapper(object):
         if delayed_populators:
             new_populators.extend(delayed_populators)
 
-    def _configure_subclass_mapper(self, context, path, adapter):
+    def _configure_subclass_mapper(self, context, path, reduced_path, adapter):
         """Produce a mapper level row processor callable factory for mappers
         inheriting this one."""
 
@@ -2368,11 +2378,67 @@ class Mapper(object):
             #assert mapper.isa(_class_to_mapper(path[-1]))
 
             return mapper._instance_processor(context, path[0:-1] + (mapper,), 
+                                                    reduced_path[0:-1] + (mapper.base_mapper,),
                                                     adapter,
                                                     polymorphic_from=self)
         return configure_subclass_mapper
 
 log.class_logger(Mapper)
+
+def configure_mappers():
+    """Initialize the inter-mapper relationships of all mappers that
+    have been constructed thus far.
+
+    This function can be called any number of times, but in 
+    most cases is handled internally.
+
+    """
+
+    global _new_mappers
+    if not _new_mappers:
+        return 
+
+    _COMPILE_MUTEX.acquire()
+    try:
+        global _already_compiling
+        if _already_compiling:
+            return
+        _already_compiling = True
+        try:
+
+            # double-check inside mutex
+            if not _new_mappers:
+                return
+
+            # initialize properties on all mappers
+            # note that _mapper_registry is unordered, which 
+            # may randomly conceal/reveal issues related to 
+            # the order of mapper compilation
+            for mapper in list(_mapper_registry):
+                if getattr(mapper, '_configure_failed', False):
+                    e = sa_exc.InvalidRequestError(
+                            "One or more mappers failed to initialize - "
+                            "can't proceed with initialization of other "
+                            "mappers.  Original exception was: %s"
+                            % mapper._configure_failed)
+                    e._configure_failed = mapper._configure_failed
+                    raise e
+                if not mapper.configured:
+                    try:
+                        mapper._post_configure_properties()
+                        mapper._expire_memoizations()
+                        mapper.dispatch.mapper_configured(mapper, mapper.class_)
+                    except:
+                        exc = sys.exc_info()[1]
+                        if not hasattr(exc, '_configure_failed'):
+                            mapper._configure_failed = exc
+                        raise
+
+            _new_mappers = False
+        finally:
+            _already_compiling = False
+    finally:
+        _COMPILE_MUTEX.release()
 
 
 def reconstructor(fn):
@@ -2399,10 +2465,11 @@ def validates(*names):
 
     Designates a method as a validator, a method which receives the
     name of the attribute as well as a value to be assigned, or in the
-    case of a collection to be added to the collection.  The function
-    can then raise validation exceptions to halt the process from continuing,
-    or can modify or replace the value before proceeding.   The function
-    should otherwise return the given value.
+    case of a collection, the value to be added to the collection.  The function
+    can then raise validation exceptions to halt the process from continuing
+    (where Python's built-in ``ValueError`` and ``AssertionError`` exceptions are
+    reasonable choices), or can modify or replace the value before proceeding.   
+    The function should otherwise return the given value.
 
     Note that a validator for a collection **cannot** issue a load of that
     collection within the validation routine - this usage raises
@@ -2415,35 +2482,35 @@ def validates(*names):
         return fn
     return wrap
 
-def _event_on_init(state, instance, args, kwargs):
-    """Trigger mapper compilation and run init_instance hooks."""
-
+def _event_on_load(state, ctx):
     instrumenting_mapper = state.manager.info[_INSTRUMENTOR]
-    # compile() always compiles all mappers
-    instrumenting_mapper.compile()
-    if 'init_instance' in instrumenting_mapper.extension:
-        instrumenting_mapper.extension.init_instance(
-            instrumenting_mapper, instrumenting_mapper.class_,
-            state.manager.events.original_init,
-            instance, args, kwargs)
+    if instrumenting_mapper._reconstructor:
+        instrumenting_mapper._reconstructor(state.obj())
 
-def _event_on_init_failure(state, instance, args, kwargs):
-    """Run init_failed hooks."""
+def _event_on_first_init(manager, cls):
+    """Trigger mapper compilation."""
 
-    instrumenting_mapper = state.manager.info[_INSTRUMENTOR]
-    if 'init_failed' in instrumenting_mapper.extension:
-        util.warn_exception(
-            instrumenting_mapper.extension.init_failed,
-            instrumenting_mapper, instrumenting_mapper.class_,
-            state.manager.events.original_init, instance, args, kwargs)
+    instrumenting_mapper = manager.info.get(_INSTRUMENTOR)
+    if instrumenting_mapper:
+        if _new_mappers:
+            configure_mappers()
 
-def _event_on_resurrect(state, instance):
+def _event_on_init(state, args, kwargs):
+    """Run init_instance hooks."""
+
+    instrumenting_mapper = state.manager.info.get(_INSTRUMENTOR)
+    if instrumenting_mapper and \
+        instrumenting_mapper._set_polymorphic_identity:
+        instrumenting_mapper._set_polymorphic_identity(state)
+
+def _event_on_resurrect(state):
     # re-populate the primary key elements
     # of the dict based on the mapping.
-    instrumenting_mapper = state.manager.info[_INSTRUMENTOR]
-    for col, val in zip(instrumenting_mapper.primary_key, state.key[1]):
-        instrumenting_mapper._set_state_attr_by_column(
-                                        state, state.dict, col, val)
+    instrumenting_mapper = state.manager.info.get(_INSTRUMENTOR)
+    if instrumenting_mapper:
+        for col, val in zip(instrumenting_mapper.primary_key, state.key[1]):
+            instrumenting_mapper._set_state_attr_by_column(
+                                            state, state.dict, col, val)
 
 
 def _sort_states(states):
@@ -2460,7 +2527,7 @@ def _load_scalar_attributes(state, attribute_names):
                     "attribute refresh operation cannot proceed" %
                     (state_str(state)))
 
-    has_key = state.has_identity
+    has_key = bool(state.key)
 
     result = False
 
@@ -2468,7 +2535,7 @@ def _load_scalar_attributes(state, attribute_names):
         statement = mapper._optimized_get_statement(state, attribute_names)
         if statement is not None:
             result = session.query(mapper).from_statement(statement).\
-                                    _get(None, 
+                                    _load_on_ident(None, 
                                         only_load_props=attribute_names, 
                                         refresh_state=state)
 
@@ -2496,7 +2563,7 @@ def _load_scalar_attributes(state, attribute_names):
                         % state_str(state))
             return
 
-        result = session.query(mapper)._get(
+        result = session.query(mapper)._load_on_ident(
                                             identity_key, 
                                             refresh_state=state, 
                                             only_load_props=attribute_names)

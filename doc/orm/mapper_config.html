@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                Mapper Configuration
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Mapper Configuration
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Relationship Configuration" href="relationships.html" />
         <link rel="prev" title="Object Relational Tutorial" href="tutorial.html" />
+    
 
     </head>
     <body>
@@ -38,52 +39,52 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/orm/mapper_config.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+                » 
+    Mapper Configuration
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="tutorial.html" title="previous chapter">Object Relational Tutorial</a>
+        Next:
+        <a href="relationships.html" title="next chapter">Relationship Configuration</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="tutorial.html" title="previous chapter">Object Relational Tutorial</a>
-            </li>
-            <li>Next:
-            <a href="relationships.html" title="next chapter">Relationship Configuration</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/mapper_config.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                Mapper Configuration
-             
-
-        <h2>
-            
-                Mapper Configuration
-            
-        </h2>
-        <ul>
+                <h2>
+                    
+    Mapper Configuration
+ 
+                </h2>
+            </div>
+                <ul>
 <li><a class="reference internal" href="#">Mapper Configuration</a><ul>
 <li><a class="reference internal" href="#customizing-column-properties">Customizing Column Properties</a><ul>
 <li><a class="reference internal" href="#mapping-a-subset-of-table-columns">Mapping a Subset of Table Columns</a></li>
@@ -97,10 +98,15 @@ Search:
 <li><a class="reference internal" href="#changing-attribute-behavior">Changing Attribute Behavior</a><ul>
 <li><a class="reference internal" href="#simple-validators">Simple Validators</a></li>
 <li><a class="reference internal" href="#using-descriptors">Using Descriptors</a></li>
+<li><a class="reference internal" href="#id1">Synonyms</a></li>
 <li><a class="reference internal" href="#custom-comparators">Custom Comparators</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#composite-column-types">Composite Column Types</a></li>
+<li><a class="reference internal" href="#composite-column-types">Composite Column Types</a><ul>
+<li><a class="reference internal" href="#tracking-in-place-mutations-on-composites">Tracking In-Place Mutations on Composites</a></li>
+<li><a class="reference internal" href="#redefining-comparison-operations-for-composites">Redefining Comparison Operations for Composites</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#mapping-a-class-against-multiple-tables">Mapping a Class against Multiple Tables</a></li>
 <li><a class="reference internal" href="#mapping-a-class-against-arbitrary-selects">Mapping a Class against Arbitrary Selects</a></li>
 <li><a class="reference internal" href="#multiple-mappers-for-one-class">Multiple Mappers for One Class</a></li>
@@ -111,13 +117,12 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <span class="target" id="module-sqlalchemy.orm"></span><div class="section" id="mapper-configuration">
 <span id="mapper-config-toplevel"></span><h1>Mapper Configuration<a class="headerlink" href="#mapper-configuration" title="Permalink to this headline">¶</a></h1>
 <p>This section describes a variety of configurational patterns that are usable
@@ -125,7 +130,7 @@ with mappers. It assumes you&#8217;ve worked through <a class="reference interna
 know how to construct and use rudimentary mappers and relationships.</p>
 <p>Note that all patterns here apply both to the usage of explicit
 <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects as well as when using the
-<a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.declarative</span></tt></a> extension. Any example in this section which
+<a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.declarative</span></tt></a> extension. Any example in this section which
 takes a form such as:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="p">[</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">])</span></pre></div>
 </div>
@@ -184,7 +189,7 @@ collections (new feature as of 0.6.4):</p>
 </div>
 <p>It should be noted that insert and update defaults configured on individal
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects, such as those configured by the &#8220;default&#8221;,
-&#8220;on_update&#8221;, &#8220;server_default&#8221; and &#8220;server_onupdate&#8221; arguments, will continue
+&#8220;update&#8221;, &#8220;server_default&#8221; and &#8220;server_onupdate&#8221; arguments, will continue
 to function normally even if those <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects are not mapped.
 This functionality is part of the SQL expression and execution system and
 occurs below the level of the ORM.</p>
@@ -199,7 +204,7 @@ with the desired key:</p>
    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_name</span><span class="p">,</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>When using <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>, the above configuration is more
+<p>When using <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>, the above configuration is more
 succinct - place the full column name in the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> definition,
 using the desired attribute name in the class definition:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
@@ -292,12 +297,12 @@ attribute is first accessed on an instance.  See also
 <a class="reference internal" href="#sqlalchemy.orm.deferred" title="sqlalchemy.orm.deferred"><tt class="xref py py-func docutils literal"><span class="pre">deferred()</span></tt></a>.</li>
 <li><strong>doc</strong> &#8211; optional string that will be applied as the doc on the
 class-bound descriptor.</li>
-<li><strong>extension</strong> &#8211; an <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance,
-or list of extensions, which will be prepended to the list of
-attribute listeners for the resulting descriptor placed on the class.
-These listeners will receive append and set events before the
-operation proceeds, and may be used to halt (via exception throw)
-or change the value used in the operation.</li>
+<li><strong>extension</strong> &#8211; an
+<a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a>
+instance, or list of extensions, which will be prepended
+to the list of attribute listeners for the resulting
+descriptor placed on the class. 
+<strong>Deprecated.</strong> Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -471,9 +476,9 @@ transactional context from which to emit a statement:</p>
                     <span class="n">where</span><span class="p">(</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
             <span class="p">)</span></pre></div>
 </div>
-<p>On the subject of object-level methods, be sure to see the <a class="reference internal" href="examples.html#module-derived_attributes" title="derived_attributes"><tt class="xref py py-mod docutils literal"><span class="pre">derived_attributes</span></tt></a> example,
+<p>On the subject of object-level methods, be sure to see the <tt class="xref py py-mod docutils literal"><span class="pre">derived_attributes</span></tt> example,
 which provides a simple method of reusing instance-level expressions simultaneously
-as SQL expressions.   The <a class="reference internal" href="examples.html#module-derived_attributes" title="derived_attributes"><tt class="xref py py-mod docutils literal"><span class="pre">derived_attributes</span></tt></a> example is slated to become a
+as SQL expressions.   The <tt class="xref py py-mod docutils literal"><span class="pre">derived_attributes</span></tt> example is slated to become a
 built-in feature of SQLAlchemy in a future release.</p>
 </div>
 <div class="section" id="changing-attribute-behavior">
@@ -514,10 +519,11 @@ issued when the ORM is populating the object.</p>
 <dd><p>Decorate a method as a &#8216;validator&#8217; for one or more named properties.</p>
 <p>Designates a method as a validator, a method which receives the
 name of the attribute as well as a value to be assigned, or in the
-case of a collection to be added to the collection.  The function
-can then raise validation exceptions to halt the process from continuing,
-or can modify or replace the value before proceeding.   The function
-should otherwise return the given value.</p>
+case of a collection, the value to be added to the collection.  The function
+can then raise validation exceptions to halt the process from continuing
+(where Python&#8217;s built-in <tt class="docutils literal"><span class="pre">ValueError</span></tt> and <tt class="docutils literal"><span class="pre">AssertionError</span></tt> exceptions are
+reasonable choices), or can modify or replace the value before proceeding.   
+The function should otherwise return the given value.</p>
 <p>Note that a validator for a collection <strong>cannot</strong> issue a load of that
 collection within the validation routine - this usage raises
 an assertion to avoid recursion overflows.  This is a reentrant
@@ -532,7 +538,9 @@ use descriptors. These are commonly used in Python using the <tt class="docutils
 function. The standard SQLAlchemy technique for descriptors is to create a
 plain descriptor, and to have it read/write from a mapped attribute with a
 different name. Below we illustrate this using Python 2.6-style properties:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">EmailAddress</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">mapper</span>
+
+<span class="k">class</span> <span class="nc">EmailAddress</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">email</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -551,49 +559,89 @@ different name. Below we illustrate this using Python 2.6-style properties:</p>
 descriptor and into the <tt class="docutils literal"><span class="pre">_email</span></tt> mapped attribute, the class level
 <tt class="docutils literal"><span class="pre">EmailAddress.email</span></tt> attribute does not have the usual expression semantics
 usable with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>. To provide these, we instead use the
-<a class="reference internal" href="#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a> function as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">EmailAddress</span><span class="p">,</span> <span class="n">addresses_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="n">synonym</span><span class="p">(</span><span class="s">&#39;_email&#39;</span><span class="p">,</span> <span class="n">map_column</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="p">})</span></pre></div>
-</div>
-<p>The <tt class="docutils literal"><span class="pre">email</span></tt> attribute is now usable in the same way as any
-other mapped attribute, including filter expressions,
-get/set operations, etc.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">address</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">EmailAddress</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">EmailAddress</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="s">&#39;some address&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+<a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">hybrid_property</span>
 
-<span class="n">address</span><span class="o">.</span><span class="n">email</span> <span class="o">=</span> <span class="s">&#39;some other address&#39;</span>
-<span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+<span class="k">class</span> <span class="nc">EmailAddress</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
-<span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">EmailAddress</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s">&#39;some other address&#39;</span><span class="p">)</span></pre></div>
+    <span class="nd">@hybrid_property</span>
+    <span class="k">def</span> <span class="nf">email</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_email</span>
+
+    <span class="nd">@email.setter</span>
+    <span class="k">def</span> <span class="nf">email</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">email</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_email</span> <span class="o">=</span> <span class="n">email</span></pre></div>
 </div>
-<p>If the mapped class does not provide a property, the <a class="reference internal" href="#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a> construct will create a default getter/setter object automatically.</p>
-<p>To use synonyms with <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>, see the section
-<a class="reference internal" href="extensions/declarative.html#declarative-synonyms"><em>Defining Synonyms</em></a>.</p>
-<p>Note that the &#8220;synonym&#8221; feature is eventually to be replaced by the superior
-&#8220;hybrid attributes&#8221; approach, slated to become a built in feature of SQLAlchemy
-in a future release.  &#8220;hybrid&#8221; attributes are simply Python properties that evaulate
-at both the class level and at the instance level.  For an example of their usage,
-see the <a class="reference internal" href="examples.html#module-derived_attributes" title="derived_attributes"><tt class="xref py py-mod docutils literal"><span class="pre">derived_attributes</span></tt></a> example.</p>
+<p>The <tt class="docutils literal"><span class="pre">email</span></tt> attribute now provides a SQL expression when used at the class level:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">Session</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+
+<a href='#' class='sql_link'>sql</a><span class="n">address</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">EmailAddress</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">EmailAddress</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="s">&#39;address@example.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+<div class='popup_sql'>SELECT addresses.email AS addresses_email, addresses.id AS addresses_id
+FROM addresses
+WHERE addresses.email = ?
+('address@example.com',)</div>
+<span class="n">address</span><span class="o">.</span><span class="n">email</span> <span class="o">=</span> <span class="s">&#39;otheraddress@example.com&#39;</span>
+<a href='#' class='sql_link'>sql</a><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<div class='popup_sql'>UPDATE addresses SET email=? WHERE addresses.id = ?
+('otheraddress@example.com', 1)
+COMMIT</div></pre></div>
+</div>
+<p>The <a class="reference internal" href="extensions/hybrid.html#sqlalchemy.ext.hybrid.hybrid_property" title="sqlalchemy.ext.hybrid.hybrid_property"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_property</span></tt></a> also allows us to change the behavior of the attribute, including
+defining separate behaviors when the attribute is accessed at the instance level versus at
+the class/expression level, using the <a class="reference internal" href="extensions/hybrid.html#sqlalchemy.ext.hybrid.hybrid_property.expression" title="sqlalchemy.ext.hybrid.hybrid_property.expression"><tt class="xref py py-meth docutils literal"><span class="pre">hybrid_property.expression()</span></tt></a> modifier.  Such
+as, if we wanted to add a host name automatically, we might define two sets of string manipulation
+logic:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">EmailAddress</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="nd">@hybrid_property</span>
+    <span class="k">def</span> <span class="nf">email</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the value of _email up until the last twelve</span>
+<span class="sd">        characters.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_email</span><span class="p">[:</span><span class="o">-</span><span class="mi">12</span><span class="p">]</span>
+
+    <span class="nd">@email.setter</span>
+    <span class="k">def</span> <span class="nf">email</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">email</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the value of _email, tacking on the twelve character</span>
+<span class="sd">        value @example.com.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_email</span> <span class="o">=</span> <span class="n">email</span> <span class="o">+</span> <span class="s">&quot;@example.com&quot;</span>
+
+    <span class="nd">@email.expression</span>
+    <span class="k">def</span> <span class="nf">email</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Produce a SQL expression that represents the value</span>
+<span class="sd">        of the _email column, minus the last twelve characters.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">substr</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_email</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_email</span><span class="p">)</span> <span class="o">-</span> <span class="mi">12</span><span class="p">)</span></pre></div>
+</div>
+<p>Above, accessing the <tt class="docutils literal"><span class="pre">email</span></tt> property of an instance of <tt class="docutils literal"><span class="pre">EmailAddress</span></tt> will return the value of
+the <tt class="docutils literal"><span class="pre">_email</span></tt> attribute, removing
+or adding the hostname <tt class="docutils literal"><span class="pre">&#64;example.com</span></tt> from the value.   When we query against the <tt class="docutils literal"><span class="pre">email</span></tt> attribute,
+a SQL function is rendered which produces the same effect:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="n">address</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">EmailAddress</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">EmailAddress</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="s">&#39;address&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+<div class='popup_sql'>SELECT addresses.email AS addresses_email, addresses.id AS addresses_id
+FROM addresses
+WHERE substr(addresses.email, ?, length(addresses.email) - ?) = ?
+(0, 12, 'address')</div></pre></div>
+</div>
+<p>Read more about Hybrids at <a class="reference internal" href="extensions/hybrid.html"><em>Hybrid Attributes</em></a>.</p>
+</div>
+<div class="section" id="id1">
+<h3>Synonyms<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Synonyms are a mapper-level construct that applies expression behavior to a descriptor
+based attribute.  The functionality of synonym is superceded as of 0.7 by hybrid attributes.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.synonym">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">synonym</tt><big>(</big><em>name</em>, <em>map_column=False</em>, <em>descriptor=None</em>, <em>comparator_factory=None</em>, <em>doc=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.synonym" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set up <cite>name</cite> as a synonym to another mapped property.</p>
+<dd><p>Denote an attribute name as a synonym to a mapped property.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a> is superceded as of 0.7 by 
+the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See 
+the documentation for hybrids at <a class="reference internal" href="extensions/hybrid.html"><em>Hybrid Attributes</em></a>.</p>
+</div>
 <p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to
-<a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>.</p>
-<p>Any existing attributes on the class which map the key name sent
-to the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary will be used by the synonym to provide
-instance-attribute behavior (that is, any Python property object, provided
-by the <tt class="docutils literal"><span class="pre">property</span></tt> builtin or providing a <tt class="docutils literal"><span class="pre">__get__()</span></tt>, <tt class="docutils literal"><span class="pre">__set__()</span></tt>
-and <tt class="docutils literal"><span class="pre">__del__()</span></tt> method).  If no name exists for the key, the
-<tt class="docutils literal"><span class="pre">synonym()</span></tt> creates a default getter/setter object automatically and
-applies it to the class.</p>
-<p><cite>name</cite> refers to the name of the existing mapped property, which can be
-any other <tt class="docutils literal"><span class="pre">MapperProperty</span></tt> including column-based properties and
-relationships.</p>
-<p>If <cite>map_column</cite> is <tt class="xref docutils literal"><span class="pre">True</span></tt>, an additional <tt class="docutils literal"><span class="pre">ColumnProperty</span></tt> is created
-on the mapper automatically, using the synonym&#8217;s name as the keyname of
-the property, and the keyname of this <tt class="docutils literal"><span class="pre">synonym()</span></tt> as the name of the
-column to map.  For example, if a table has a column named <tt class="docutils literal"><span class="pre">status</span></tt>:</p>
+<a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">_get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span>
@@ -605,21 +653,43 @@ column to map.  For example, if a table has a column named <tt class="docutils l
     <span class="s">&quot;status&quot;</span><span class="p">:</span><span class="n">synonym</span><span class="p">(</span><span class="s">&quot;_status&quot;</span><span class="p">,</span> <span class="n">map_column</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>The column named <tt class="docutils literal"><span class="pre">status</span></tt> will be mapped to the attribute named
-<tt class="docutils literal"><span class="pre">_status</span></tt>, and the <tt class="docutils literal"><span class="pre">status</span></tt> attribute on <tt class="docutils literal"><span class="pre">MyClass</span></tt> will be used to
-proxy access to the column-based attribute.</p>
+<p>Above, the <tt class="docutils literal"><span class="pre">status</span></tt> attribute of MyClass will produce
+expression behavior against the table column named <tt class="docutils literal"><span class="pre">status</span></tt>,
+using the Python attribute <tt class="docutils literal"><span class="pre">_status</span></tt> on the mapped class
+to represent the underlying value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; the name of the existing mapped property, which can be
+any other <tt class="docutils literal"><span class="pre">MapperProperty</span></tt> including column-based properties and
+relationships.</li>
+<li><strong>map_column</strong> &#8211; if <tt class="xref docutils literal"><span class="pre">True</span></tt>, an additional <tt class="docutils literal"><span class="pre">ColumnProperty</span></tt> is created
+on the mapper automatically, using the synonym&#8217;s name as the keyname of
+the property, and the keyname of this <tt class="docutils literal"><span class="pre">synonym()</span></tt> as the name of the
+column to map.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
 <div class="section" id="custom-comparators">
-<span id="id1"></span><h3>Custom Comparators<a class="headerlink" href="#custom-comparators" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>Custom Comparators<a class="headerlink" href="#custom-comparators" title="Permalink to this headline">¶</a></h3>
 <p>The expressions returned by comparison operations, such as
 <tt class="docutils literal"><span class="pre">User.name=='ed'</span></tt>, can be customized, by implementing an object that
-explicitly defines each comparison method needed. This is a relatively rare
-use case. For most needs, the approach in <a class="reference internal" href="#mapper-sql-expressions"><em>SQL Expressions as Mapped Attributes</em></a> will
-often suffice, or alternatively a scheme like that of the
-<a class="reference internal" href="examples.html#module-derived_attributes" title="derived_attributes"><tt class="xref py py-mod docutils literal"><span class="pre">derived_attributes</span></tt></a> example.  Those approaches should be tried first
-before resorting to custom comparison objects.</p>
+explicitly defines each comparison method needed.</p>
+<p>This is a relatively rare use case which generally applies only to
+highly customized types.  Usually, custom SQL behaviors can be
+associated with a mapped class by composing together the classes&#8217;
+existing mapped attributes with other expression components,
+using either mapped SQL expressions as those described in
+<a class="reference internal" href="#mapper-sql-expressions"><em>SQL Expressions as Mapped Attributes</em></a>, or so-called &#8220;hybrid&#8221; attributes
+as described at <a class="reference internal" href="extensions/hybrid.html"><em>Hybrid Attributes</em></a>.  Those approaches should be
+considered first before resorting to custom comparison objects.</p>
 <p>Each of <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a>, <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>,
 and <a class="reference internal" href="#sqlalchemy.orm.comparable_property" title="sqlalchemy.orm.comparable_property"><tt class="xref py py-func docutils literal"><span class="pre">comparable_property()</span></tt></a> accept an argument called
 <tt class="docutils literal"><span class="pre">comparator_factory</span></tt>.   A subclass of <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> can be provided
@@ -681,33 +751,49 @@ the appropriate subclass of <a class="reference internal" href="#sqlalchemy.orm.
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">comparable_property</tt><big>(</big><em>comparator_factory</em>, <em>descriptor=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.comparable_property" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provides a method of applying a <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> 
 to any Python descriptor attribute.</p>
-<p>Allows a regular Python &#64;property (descriptor) to be used in Queries and
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.comparable_property" title="sqlalchemy.orm.comparable_property"><tt class="xref py py-func docutils literal"><span class="pre">comparable_property()</span></tt></a> is superceded as of 0.7 by 
+the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See the example 
+at <a class="reference internal" href="extensions/hybrid.html#hybrid-custom-comparators"><em>Building Custom Comparators</em></a>.</p>
+</div>
+<p>Allows a regular Python &#64;property (descriptor) to be used in queries and
 SQL constructs like a managed attribute.  comparable_property wraps a
 descriptor with a proxy that directs operator overrides such as ==
 (__eq__) to the supplied comparator but proxies everything else through to
-the original descriptor:</p>
+the original descriptor.  Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to
+<a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">mapper</span><span class="p">,</span> <span class="n">comparable_property</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm.interfaces</span> <span class="kn">import</span> <span class="n">PropComparator</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">func</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span>
 
-<span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">myprop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&#39;foo&#39;</span>
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">MyComparator</span><span class="p">(</span><span class="n">PropComparator</span><span class="p">):</span>
+<span class="n">word_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;word&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+  <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+  <span class="n">Column</span><span class="p">(</span><span class="s">&#39;word&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">200</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">CaseInsensitiveComparator</span><span class="p">(</span><span class="n">PropComparator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__clause_element__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">prop</span>
+        
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="n">foo</span>
+        <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clause_element__</span><span class="p">())</span> <span class="o">==</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
-<span class="n">mapper</span><span class="p">(</span><span class="n">MyClass</span><span class="p">,</span> <span class="n">mytable</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-         <span class="s">&#39;myprop&#39;</span><span class="p">:</span> <span class="n">comparable_property</span><span class="p">(</span><span class="n">MyComparator</span><span class="p">)})</span></pre></div>
+<span class="k">class</span> <span class="nc">SearchWord</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="n">mapper</span><span class="p">(</span><span class="n">SearchWord</span><span class="p">,</span> <span class="n">word_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+         <span class="s">&#39;word_insensitive&#39;</span><span class="p">:</span> <span class="n">comparable_property</span><span class="p">(</span><span class="n">CaseInsensitiveComparator</span><span class="p">)</span>
+        <span class="p">})</span></pre></div>
 </div>
-<p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to
-<a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>.</p>
-<p>Note that <a class="reference internal" href="#sqlalchemy.orm.comparable_property" title="sqlalchemy.orm.comparable_property"><tt class="xref py py-func docutils literal"><span class="pre">comparable_property()</span></tt></a> is usually not needed for basic
-needs. The recipe at <a class="reference internal" href="examples.html#module-derived_attributes" title="derived_attributes"><tt class="xref py py-mod docutils literal"><span class="pre">derived_attributes</span></tt></a> offers a simpler
-pure-Python method of achieving a similar result using class-bound
-attributes with SQLAlchemy expression constructs.</p>
+<p>A mapping like the above allows the <tt class="docutils literal"><span class="pre">word_insensitive</span></tt> attribute 
+to render an expression like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">SearchWord</span><span class="o">.</span><span class="n">word_insensitive</span> <span class="o">==</span> <span class="s">&quot;Trucks&quot;</span>
+<span class="go">lower(:lower_1) = lower(:lower_2)</span></pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -731,8 +817,16 @@ mapped class if left blank in a <tt class="docutils literal"><span class="pre">p
 </div>
 <div class="section" id="composite-column-types">
 <span id="mapper-composite"></span><h2>Composite Column Types<a class="headerlink" href="#composite-column-types" title="Permalink to this headline">¶</a></h2>
-<p>Sets of columns can be associated with a single user-defined datatype.  The ORM provides a single attribute which represents the group of columns
-using the class you provide.</p>
+<p>Sets of columns can be associated with a single user-defined datatype. The ORM
+provides a single attribute which represents the group of columns using the
+class you provide.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As of SQLAlchemy 0.7, composites have been simplified such that
+they no longer &#8220;conceal&#8221; the underlying column based attributes.  Additionally,
+in-place mutation is no longer automatic; see the section below on
+enabling mutability to support tracking of in-place changes.</p>
+</div>
 <p>A simple example represents pairs of columns as a &#8220;Point&#8221; object.
 Starting with a table that represents two points as x1/y1 and x2/y2:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span>
@@ -751,15 +845,15 @@ pair:</p>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+
     <span class="k">def</span> <span class="nf">__composite_values__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span>
-    <span class="k">def</span> <span class="nf">__set_composite_values__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> \
-                <span class="n">other</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="ow">and</span> \
-                <span class="n">other</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Point</span><span class="p">)</span> <span class="ow">and</span> \
+            <span class="n">other</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="ow">and</span> \
+            <span class="n">other</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span>
+
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></pre></div>
 </div>
@@ -769,9 +863,6 @@ format, and also provides a method <tt class="docutils literal"><span class="pre
 returns the state of the object as a list or tuple, in order of its
 column-based attributes. It also should supply adequate <tt class="docutils literal"><span class="pre">__eq__()</span></tt> and
 <tt class="docutils literal"><span class="pre">__ne__()</span></tt> methods which test the equality of two instances.</p>
-<p>The <tt class="docutils literal"><span class="pre">__set_composite_values__()</span></tt> method is optional. If it&#8217;s not
-provided, the names of the mapped columns are taken as the names of
-attributes on the object, and <tt class="docutils literal"><span class="pre">setattr()</span></tt> is used to set data.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a> function is then used in the mapping:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">composite</span>
 
@@ -783,14 +874,76 @@ attributes on the object, and <tt class="docutils literal"><span class="pre">set
     <span class="s">&#39;end&#39;</span><span class="p">:</span> <span class="n">composite</span><span class="p">(</span><span class="n">Point</span><span class="p">,</span> <span class="n">vertices</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x2</span><span class="p">,</span> <span class="n">vertices</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">y2</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>We can now use the <tt class="docutils literal"><span class="pre">Vertex</span></tt> instances as well as querying as though the
-<tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> attributes are regular scalar attributes:</p>
+<p>When using <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.declarative</span></tt></a>, the individual
+<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects may optionally be bundled into the
+<a class="reference internal" href="#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a> call, ensuring that they are named:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Vertex</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;vertices&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">composite</span><span class="p">(</span><span class="n">Point</span><span class="p">,</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;x1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;y1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">))</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">composite</span><span class="p">(</span><span class="n">Point</span><span class="p">,</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;x2&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;y2&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">))</span></pre></div>
+</div>
+<p>Using either configurational approach, we can now use the <tt class="docutils literal"><span class="pre">Vertex</span></tt> instances
+as well as querying as though the <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt> attributes are regular
+scalar attributes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
 <span class="n">v</span> <span class="o">=</span> <span class="n">Vertex</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 
 <span class="n">v2</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Vertex</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Vertex</span><span class="o">.</span><span class="n">start</span> <span class="o">==</span> <span class="n">Point</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span></pre></div>
 </div>
+<dl class="function">
+<dt id="sqlalchemy.orm.composite">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">composite</tt><big>(</big><em>class_</em>, <em>*cols</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.composite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a composite column-based property for use with a Mapper.</p>
+<p>See the mapping documention section <a class="reference internal" href="#mapper-composite"><em>Composite Column Types</em></a> for a full
+usage example.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>class_</strong> &#8211; The &#8220;composite type&#8221; class.</li>
+<li><strong>*cols</strong> &#8211; List of Column objects to be mapped.</li>
+<li><strong>active_history=False</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
+scalar attribute should be loaded when replaced, if not
+already loaded.  See the same flag on <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>.
+(This flag becomes meaningful specifically for 
+<a class="reference internal" href="#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a> in 0.7 - previously it was a placeholder).</li>
+<li><strong>group</strong> &#8211; A group name for this property when marked as deferred.</li>
+<li><strong>deferred</strong> &#8211; When True, the column property is &#8220;deferred&#8221;, meaning that it does not
+load immediately, and is instead loaded when the attribute is first
+accessed on an instance.  See also <a class="reference internal" href="#sqlalchemy.orm.deferred" title="sqlalchemy.orm.deferred"><tt class="xref py py-func docutils literal"><span class="pre">deferred()</span></tt></a>.</li>
+<li><strong>comparator_factory</strong> &#8211; a class which extends
+<tt class="xref py py-class docutils literal"><span class="pre">CompositeProperty.Comparator</span></tt> which provides custom SQL clause
+generation for comparison operations.</li>
+<li><strong>doc</strong> &#8211; optional string that will be applied as the doc on the
+class-bound descriptor.</li>
+<li><strong>extension</strong> &#8211; an <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance,
+or list of extensions, which will be prepended to the list of
+attribute listeners for the resulting descriptor placed on the class.
+<strong>Deprecated.</strong>  Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="section" id="tracking-in-place-mutations-on-composites">
+<h3>Tracking In-Place Mutations on Composites<a class="headerlink" href="#tracking-in-place-mutations-on-composites" title="Permalink to this headline">¶</a></h3>
+<p>As of SQLAlchemy 0.7, in-place changes to an existing composite value are
+not tracked automatically.  Instead, the composite class needs to provide
+events to its parent object explicitly.   This task is largely automated
+via the usage of the <a class="reference internal" href="extensions/mutable.html#sqlalchemy.ext.mutable.MutableComposite" title="sqlalchemy.ext.mutable.MutableComposite"><tt class="xref py py-class docutils literal"><span class="pre">MutableComposite</span></tt></a> mixin, which uses events
+to associate each user-defined composite object with all parent associations.
+Please see the example in <a class="reference internal" href="extensions/mutable.html#mutable-composites"><em>Establishing Mutability on Composites</em></a>.</p>
+</div>
+<div class="section" id="redefining-comparison-operations-for-composites">
+<h3>Redefining Comparison Operations for Composites<a class="headerlink" href="#redefining-comparison-operations-for-composites" title="Permalink to this headline">¶</a></h3>
 <p>The &#8220;equals&#8221; comparison operation by default produces an AND of all
 corresponding columns equated to one another. This can be changed using
 the <tt class="docutils literal"><span class="pre">comparator_factory</span></tt>, described in <a class="reference internal" href="#custom-comparators"><em>Custom Comparators</em></a>.
@@ -814,48 +967,7 @@ the same expression that the base &#8220;greater than&#8221; does:</p>
                                 <span class="n">comparator_factory</span><span class="o">=</span><span class="n">PointComparator</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<dl class="function">
-<dt id="sqlalchemy.orm.composite">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">composite</tt><big>(</big><em>class_</em>, <em>*cols</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.composite" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a composite column-based property for use with a Mapper.</p>
-<p>See the mapping documention section <a class="reference internal" href="#mapper-composite"><em>Composite Column Types</em></a> for a full
-usage example.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>class_</strong> &#8211; The &#8220;composite type&#8221; class.</li>
-<li><strong>*cols</strong> &#8211; List of Column objects to be mapped.</li>
-<li><strong>active_history=False</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
-scalar attribute should be loaded when replaced, if not
-already loaded.  Note that attributes generated by 
-<a class="reference internal" href="#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a> properties load the &#8220;previous&#8221; value
-in any case, however this is being changed in 0.7, 
-so the flag is introduced here for forwards compatibility.
-(new in 0.6.6)</li>
-<li><strong>group</strong> &#8211; A group name for this property when marked as deferred.</li>
-<li><strong>deferred</strong> &#8211; When True, the column property is &#8220;deferred&#8221;, meaning that it does not
-load immediately, and is instead loaded when the attribute is first
-accessed on an instance.  See also <a class="reference internal" href="#sqlalchemy.orm.deferred" title="sqlalchemy.orm.deferred"><tt class="xref py py-func docutils literal"><span class="pre">deferred()</span></tt></a>.</li>
-<li><strong>comparator_factory</strong> &#8211; a class which extends
-<tt class="xref py py-class docutils literal"><span class="pre">CompositeProperty.Comparator</span></tt> which provides custom SQL clause
-generation for comparison operations.</li>
-<li><strong>doc</strong> &#8211; optional string that will be applied as the doc on the
-class-bound descriptor.</li>
-<li><strong>extension</strong> &#8211; an <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance,
-or list of extensions, which will be prepended to the list of
-attribute listeners for the resulting descriptor placed on the class.
-These listeners will receive append and set events before the
-operation proceeds, and may be used to halt (via exception throw)
-or change the value used in the operation.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+</div>
 </div>
 <div class="section" id="mapping-a-class-against-multiple-tables">
 <span id="maptojoin"></span><h2>Mapping a Class against Multiple Tables<a class="headerlink" href="#mapping-a-class-against-multiple-tables" title="Permalink to this headline">¶</a></h2>
@@ -1065,7 +1177,7 @@ to have fewer properties than its superclass, <tt class="docutils literal"><span
 <li><strong>extension</strong> &#8211; A <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a> instance or
 list of <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a>
 instances which will be applied to all operations by this
-<a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a>.</li>
+<a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a>.  <strong>Deprecated.</strong>  Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.MapperEvents" title="sqlalchemy.orm.events.MapperEvents"><tt class="xref py py-class docutils literal"><span class="pre">MapperEvents</span></tt></a>.</li>
 <li><strong>include_properties</strong> &#8211; An inclusive list or set of string column
 names to map. As of SQLAlchemy 0.6.4, this collection may also
 include <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects in order to disambiguate between
@@ -1112,7 +1224,7 @@ session during a flush will also be refreshed.</p>
 are expected and the database in use doesn&#8217;t support CASCADE (i.e.
 SQLite, MySQL MyISAM tables).</p>
 <blockquote>
-<div>Also see the passive_updates flag on <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</div></blockquote>
+Also see the passive_updates flag on <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</blockquote>
 <p>A future SQLAlchemy release will provide a &#8220;detect&#8221; feature for
 this flag.</p>
 </li>
@@ -1198,8 +1310,9 @@ instance.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.compile_mappers">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">compile_mappers</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.compile_mappers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compile all mappers that have been defined.</p>
-<p>This is equivalent to calling <tt class="docutils literal"><span class="pre">compile()</span></tt> on any individual mapper.</p>
+<dd><p>Initialize the inter-mapper relationships of all mappers that have been defined.</p>
+<p class="deprecated">
+<span class="versionmodified">Deprecated since version 0.7: </span><a class="reference internal" href="#sqlalchemy.orm.compile_mappers" title="sqlalchemy.orm.compile_mappers"><tt class="xref py py-func docutils literal"><span class="pre">compile_mappers()</span></tt></a> is renamed to <tt class="xref py py-func docutils literal"><span class="pre">configure_mappers()</span></tt></p>
 </dd></dl>
 
 <dl class="function">
@@ -1292,10 +1405,10 @@ using <cite>add_property</cite>.</p>
 <dt id="sqlalchemy.orm.mapper.Mapper.add_property">
 <tt class="descname">add_property</tt><big>(</big><em>key</em>, <em>prop</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.add_property" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add an individual MapperProperty to this mapper.</p>
-<p>If the mapper has not been compiled yet, just adds the
+<p>If the mapper has not been configured yet, just adds the
 property to the initial properties dictionary sent to the
-constructor.  If this Mapper has already been compiled, then
-the given MapperProperty is compiled immediately.</p>
+constructor.  If this Mapper has already been configured, then
+the given MapperProperty is configured immediately.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1331,17 +1444,23 @@ this mapper.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.compile">
 <tt class="descname">compile</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.compile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compile this mapper and all other non-compiled mappers.</p>
-<p>This method checks the local compiled status as well as for
-any new mappers that have been defined, and is safe to call
-repeatedly.</p>
+<dd><p>Initialize the inter-mapper relationships of all mappers that</p>
+<p class="deprecated">
+<span class="versionmodified">Deprecated since version 0.7: </span><a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.compile" title="sqlalchemy.orm.mapper.Mapper.compile"><tt class="xref py py-meth docutils literal"><span class="pre">Mapper.compile()</span></tt></a> is replaced by <tt class="xref py py-func docutils literal"><span class="pre">configure_mappers()</span></tt></p>
+<p>have been constructed thus far.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.orm.mapper.Mapper.compiled">
+<tt class="descname">compiled</tt><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.compiled" title="Permalink to this definition">¶</a></dt>
+<dd><p class="deprecated">
+<span class="versionmodified">Deprecated since version 0.7: </span><a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.compiled" title="sqlalchemy.orm.mapper.Mapper.compiled"><tt class="xref py py-attr docutils literal"><span class="pre">Mapper.compiled</span></tt></a> is replaced by <tt class="xref py py-attr docutils literal"><span class="pre">Mapper.configured</span></tt></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.get_property">
-<tt class="descname">get_property</tt><big>(</big><em>key</em>, <em>resolve_synonyms=False</em>, <em>raiseerr=True</em>, <em>_compile_mappers=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.get_property" title="Permalink to this definition">¶</a></dt>
-<dd><p>return a <tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt> associated with the given key.</p>
-<p>resolve_synonyms=False and raiseerr=False are deprecated.</p>
+<tt class="descname">get_property</tt><big>(</big><em>key</em>, <em>_compile_mappers=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.get_property" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a MapperProperty associated with the given key.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1434,20 +1553,28 @@ all their inheriting mappers as well.</p>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="tutorial.html" title="previous chapter">Object Relational Tutorial</a>
+        Next:
+        <a href="relationships.html" title="next chapter">Relationship Configuration</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="tutorial.html" title="previous chapter">Object Relational Tutorial</a>
-            Next:
-            <a href="relationships.html" title="next chapter">Relationship Configuration</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

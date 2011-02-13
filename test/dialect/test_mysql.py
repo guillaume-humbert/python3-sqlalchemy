@@ -1,33 +1,21 @@
 # coding: utf-8
 
-from sqlalchemy.test.testing import eq_, assert_raises
+from test.lib.testing import eq_, assert_raises
 
 # Py2K
 import sets
 # end Py2K
 
 from sqlalchemy import *
-from sqlalchemy import sql, exc, schema, types as sqltypes
+from sqlalchemy import sql, exc, schema, types as sqltypes, event
 from sqlalchemy.dialects.mysql import base as mysql
-from sqlalchemy.test.testing import eq_
-from sqlalchemy.test import *
-from sqlalchemy.test.engines import utf8_engine
-import datetime
 from sqlalchemy.engine.url import make_url
 
+from test.lib.testing import eq_
+from test.lib import *
+from test.lib.engines import utf8_engine
+import datetime
 
-class CompileTest(TestBase, AssertsCompiledSQL):
-
-    __dialect__ = mysql.dialect()
-
-    def test_reserved_words(self):
-        table = Table("mysql_table", MetaData(),
-            Column("col1", Integer),
-            Column("master_ssl_verify_server_cert", Integer))
-        x = select([table.c.col1, table.c.master_ssl_verify_server_cert])
-
-        self.assert_compile(x, 
-            '''SELECT mysql_table.col1, mysql_table.`master_ssl_verify_server_cert` FROM mysql_table''')
 
 class DialectTest(TestBase):
     __only_on__ = 'mysql'
@@ -228,8 +216,7 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             table_args.append(Column('c%s' % index, type_(*args, **kw)))
 
         numeric_table = Table(*table_args)
-        gen = testing.db.dialect.ddl_compiler(
-                testing.db.dialect, numeric_table)
+        gen = testing.db.dialect.ddl_compiler(testing.db.dialect, None)
 
         for col in numeric_table.c:
             index = int(col.name[1:])
@@ -317,8 +304,7 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             table_args.append(Column('c%s' % index, type_(*args, **kw)))
 
         charset_table = Table(*table_args)
-        gen = testing.db.dialect.ddl_compiler(testing.db.dialect,
-                charset_table)
+        gen = testing.db.dialect.ddl_compiler(testing.db.dialect, None)
 
         for col in charset_table.c:
             index = int(col.name[1:])
@@ -398,7 +384,7 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             meta.drop_all()
 
     def test_boolean(self):
-        """Test BOOL/TINYINT(1) compatibility and reflection."""
+        """Test BOOL/TINYINT(1) compatability and reflection."""
 
         meta = MetaData(testing.db)
         bool_table = Table(
@@ -572,6 +558,7 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
         finally:
             meta.drop_all()
 
+
     def test_set(self):
         """Exercise the SET type."""
 
@@ -662,10 +649,10 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
         enum_table.drop(checkfirst=True)
         enum_table.create()
 
-        assert_raises(exc.SQLError, enum_table.insert().execute, 
+        assert_raises(exc.DBAPIError, enum_table.insert().execute, 
                         e1=None, e2=None, e3=None, e4=None)
 
-        assert_raises(exc.InvalidRequestError, enum_table.insert().execute,
+        assert_raises(exc.StatementError, enum_table.insert().execute,
                                         e1='c', e2='c', e2generic='c', e3='c',
                                         e4='c', e5='c', e5generic='c', e6='c')
 
@@ -1064,24 +1051,46 @@ class SQLTest(TestBase, AssertsCompiledSQL):
 
         eq_(gen(None), 'SELECT q')
         eq_(gen(True), 'SELECT DISTINCT q')
-        eq_(gen(1), 'SELECT DISTINCT q')
-        eq_(gen('diSTInct'), 'SELECT DISTINCT q')
-        eq_(gen('DISTINCT'), 'SELECT DISTINCT q')
 
-        # Standard SQL
-        eq_(gen('all'), 'SELECT ALL q')
-        eq_(gen('distinctrow'), 'SELECT DISTINCTROW q')
+        assert_raises(
+            exc.SADeprecationWarning,
+            gen, 'DISTINCT'
+        )
+
+        eq_(gen(prefixes=['ALL']), 'SELECT ALL q')
+        eq_(gen(prefixes=['DISTINCTROW']), 
+                'SELECT DISTINCTROW q')
 
         # Interaction with MySQL prefix extensions
         eq_(
             gen(None, ['straight_join']),
             'SELECT straight_join q')
         eq_(
-            gen('all', ['HIGH_PRIORITY SQL_SMALL_RESULT']),
+            gen(False, ['HIGH_PRIORITY', 'SQL_SMALL_RESULT', 'ALL']),
             'SELECT HIGH_PRIORITY SQL_SMALL_RESULT ALL q')
         eq_(
             gen(True, ['high_priority', sql.text('sql_cache')]),
             'SELECT high_priority sql_cache DISTINCT q')
+
+    @testing.uses_deprecated
+    def test_deprecated_distinct(self):
+        dialect = self.__dialect__
+
+        self.assert_compile(
+            select(['q'], distinct='ALL'),
+            'SELECT ALL q',
+        )
+
+        self.assert_compile(
+            select(['q'], distinct='distinctROW'),
+            'SELECT DISTINCTROW q',
+        )
+
+        self.assert_compile(
+            select(['q'], distinct='ALL', 
+                    prefixes=['HIGH_PRIORITY', 'SQL_SMALL_RESULT']),
+            'SELECT HIGH_PRIORITY SQL_SMALL_RESULT ALL q'
+        )
 
     def test_backslash_escaping(self):
         self.assert_compile(
@@ -1102,14 +1111,18 @@ class SQLTest(TestBase, AssertsCompiledSQL):
 
         self.assert_compile(
             select([t]).limit(10).offset(20),
-            "SELECT t.col1, t.col2 FROM t  LIMIT 20, 10"
+            "SELECT t.col1, t.col2 FROM t  LIMIT %s, %s",
+            {'param_1':20, 'param_2':10}
             )
         self.assert_compile(
             select([t]).limit(10),
-            "SELECT t.col1, t.col2 FROM t  LIMIT 10")
+            "SELECT t.col1, t.col2 FROM t  LIMIT %s", 
+            {'param_1':10})
+
         self.assert_compile(
             select([t]).offset(10),
-            "SELECT t.col1, t.col2 FROM t  LIMIT 10, 18446744073709551615"
+            "SELECT t.col1, t.col2 FROM t  LIMIT %s, 18446744073709551615",
+            {'param_1':10}
             )
 
     def test_varchar_raise(self):
@@ -1312,13 +1325,17 @@ class SQLModeDetectionTest(TestBase):
     __only_on__ = 'mysql'
 
     def _options(self, modes):
-        class SetOptions(object):
-            def first_connect(self, con, record):
-                self.connect(con, record)
-            def connect(self, con, record):
-                cursor = con.cursor()
-                cursor.execute("set sql_mode='%s'" % (",".join(modes)))
-        return engines.testing_engine(options={"listeners":[SetOptions()]})
+        def connect(con, record):
+            cursor = con.cursor()
+            print "DOING THiS:", "set sql_mode='%s'" % (",".join(modes))
+            cursor.execute("set sql_mode='%s'" % (",".join(modes)))
+        e = engines.testing_engine(options={
+            'pool_events':[
+                (connect, 'first_connect'),
+                (connect, 'connect')
+            ]
+        })
+        return e
 
     def test_backslash_escapes(self):
         engine = self._options(['NO_BACKSLASH_ESCAPES'])
@@ -1437,6 +1454,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
             "MATCH (matchtable.title) AGAINST (%s IN BOOLEAN MODE)" % format)
 
     @testing.fails_on('mysql+mysqldb', 'uses format')
+    @testing.fails_on('mysql+pymysql', 'uses format')
     @testing.fails_on('mysql+oursql', 'uses format')
     @testing.fails_on('mysql+pyodbc', 'uses format')
     @testing.fails_on('mysql+zxjdbc', 'uses format')
@@ -1502,5 +1520,6 @@ class MatchTest(TestBase, AssertsCompiledSQL):
 
 
 def colspec(c):
-    return testing.db.dialect.ddl_compiler(testing.db.dialect, c.table).get_column_specification(c)
+    return testing.db.dialect.ddl_compiler(
+                    testing.db.dialect, None).get_column_specification(c)
 

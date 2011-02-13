@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                Microsoft SQL Server
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Microsoft SQL Server
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="MySQL" href="mysql.html" />
         <link rel="prev" title="Microsoft Access" href="access.html" />
+    
 
     </head>
     <body>
@@ -38,52 +39,52 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/dialects/mssql.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="Dialects">Dialects</a>
+                » 
+    Microsoft SQL Server
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="access.html" title="previous chapter">Microsoft Access</a>
+        Next:
+        <a href="mysql.html" title="next chapter">MySQL</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="access.html" title="previous chapter">Microsoft Access</a>
-            </li>
-            <li>Next:
-            <a href="mysql.html" title="next chapter">MySQL</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/dialects/mssql.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="Dialects">Dialects</a>
-        » 
-                Microsoft SQL Server
-             
-
-        <h2>
-            
-                Microsoft SQL Server
-            
-        </h2>
-        <ul>
+                <h2>
+                    
+    Microsoft SQL Server
+ 
+                </h2>
+            </div>
+                <ul>
 <li><a class="reference internal" href="#">Microsoft SQL Server</a><ul>
 <li><a class="reference internal" href="#connecting">Connecting</a></li>
 <li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
@@ -93,7 +94,6 @@ Search:
 <li><a class="reference internal" href="#date-time-handling">Date / Time Handling</a></li>
 <li><a class="reference internal" href="#compatibility-levels">Compatibility Levels</a></li>
 <li><a class="reference internal" href="#triggers">Triggers</a></li>
-<li><a class="reference internal" href="#enabling-snapshot-isolation">Enabling Snapshot Isolation</a></li>
 <li><a class="reference internal" href="#known-issues">Known Issues</a></li>
 <li><a class="reference internal" href="#sql-server-data-types">SQL Server Data Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a><ul>
@@ -120,13 +120,12 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="module-sqlalchemy.dialects.mssql.base">
 <span id="microsoft-sql-server"></span><h1>Microsoft SQL Server<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the Microsoft SQL Server database.</p>
@@ -249,21 +248,6 @@ which has triggers:</p>
 <p>This option can also be specified engine-wide using the
 <tt class="docutils literal"><span class="pre">implicit_returning=False</span></tt> argument on <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
 </div>
-<div class="section" id="enabling-snapshot-isolation">
-<h2>Enabling Snapshot Isolation<a class="headerlink" href="#enabling-snapshot-isolation" title="Permalink to this headline">¶</a></h2>
-<p>Not necessarily specific to SQLAlchemy, SQL Server has a default transaction 
-isolation mode that locks entire tables, and causes even mildly concurrent
-applications to have long held locks and frequent deadlocks.   
-Enabling snapshot isolation for the database as a whole is recommended 
-for modern levels of concurrency support.  This is accomplished via the 
-following ALTER DATABASE commands executed at the SQL prompt:</p>
-<div class="highlight-python"><pre>ALTER DATABASE MyDatabase SET ALLOW_SNAPSHOT_ISOLATION ON
-
-ALTER DATABASE MyDatabase SET READ_COMMITTED_SNAPSHOT ON</pre>
-</div>
-<p>Background on SQL Server snapshot isolation is available at
-<a class="reference external" href="http://msdn.microsoft.com/en-us/library/ms175095.aspx">http://msdn.microsoft.com/en-us/library/ms175095.aspx</a>.</p>
-</div>
 <div class="section" id="known-issues">
 <h2>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -276,7 +260,7 @@ SQL Server 2005</li>
 <h2>SQL Server Data Types<a class="headerlink" href="#sql-server-data-types" title="Permalink to this headline">¶</a></h2>
 <p>As with all SQLAlchemy dialects, all UPPERCASE types that are known to be
 valid with SQL server are importable from the top level dialect, whether
-they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types" title="sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
+they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.mssql</span> <span class="kn">import</span> \
     <span class="n">BIGINT</span><span class="p">,</span> <span class="n">BINARY</span><span class="p">,</span> <span class="n">BIT</span><span class="p">,</span> <span class="n">CHAR</span><span class="p">,</span> <span class="n">DATE</span><span class="p">,</span> <span class="n">DATETIME</span><span class="p">,</span> <span class="n">DATETIME2</span><span class="p">,</span> \
     <span class="n">DATETIMEOFFSET</span><span class="p">,</span> <span class="n">DECIMAL</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> <span class="n">IMAGE</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> <span class="n">MONEY</span><span class="p">,</span> \
@@ -287,25 +271,25 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <p>Types which are specific to SQL Server, or have SQL Server-specific
 construction arguments, are as follows:</p>
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.BIT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">BIT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.BIT" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.BIT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">BIT</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.BIT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.BIT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.BIT.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.BIT.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.BIT.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.CHAR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">CHAR</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.CHAR" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.CHAR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">CHAR</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.CHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._StringType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.CHAR" title="sqlalchemy.types.CHAR"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.CHAR</span></tt></a></p>
 <p>MSSQL CHAR type, for fixed-length non-Unicode data with a maximum
 of 8,000 characters.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.CHAR.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.CHAR.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.CHAR.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.CHAR.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a CHAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -335,47 +319,50 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.DATETIME2">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">DATETIME2</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.DATETIME2" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.DATETIME2">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">DATETIME2</tt><big>(</big><em>precision=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.DATETIME2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._DateTimeBase</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.DATETIME2.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.DATETIME2.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.DATETIME2.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.DATETIME2.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.DATETIMEOFFSET">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">DATETIMEOFFSET</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.DATETIMEOFFSET" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.DATETIMEOFFSET">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">DATETIMEOFFSET</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.DATETIMEOFFSET" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.DATETIMEOFFSET.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.DATETIMEOFFSET.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.DATETIMEOFFSET.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.DATETIMEOFFSET.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.IMAGE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">IMAGE</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.IMAGE" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.IMAGE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">IMAGE</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.IMAGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.LargeBinary" title="sqlalchemy.types.LargeBinary"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.IMAGE.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.IMAGE.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.IMAGE.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.IMAGE.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a LargeBinary type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -384,25 +371,25 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.MONEY">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">MONEY</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.MONEY" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.MONEY">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">MONEY</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.MONEY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.MONEY.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.MONEY.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.MONEY.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.MONEY.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.NCHAR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">NCHAR</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.NCHAR" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.NCHAR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">NCHAR</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.NCHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._StringType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.NCHAR" title="sqlalchemy.types.NCHAR"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.NCHAR</span></tt></a></p>
 <p>MSSQL NCHAR type.</p>
 <p>For fixed-length unicode character data up to 4,000 characters.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.NCHAR.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.NCHAR.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.NCHAR.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.NCHAR.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an NCHAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -422,21 +409,24 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.NTEXT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">NTEXT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.NTEXT" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.NTEXT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">NTEXT</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.NTEXT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._StringType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.UnicodeText</span></tt></a></p>
 <p>MSSQL NTEXT type, for variable-length unicode text up to 2^30
 characters.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.NTEXT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.NTEXT.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.NTEXT.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.NTEXT.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a NTEXT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
-value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -445,14 +435,14 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.NVARCHAR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">NVARCHAR</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.NVARCHAR" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.NVARCHAR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">NVARCHAR</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.NVARCHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._StringType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.NVARCHAR" title="sqlalchemy.types.NVARCHAR"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.NVARCHAR</span></tt></a></p>
 <p>MSSQL NVARCHAR type.</p>
 <p>For variable-length unicode character data up to 4,000 characters.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.NVARCHAR.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.NVARCHAR.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.NVARCHAR.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.NVARCHAR.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a NVARCHAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -472,65 +462,68 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.REAL">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">REAL</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.REAL" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.REAL">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">REAL</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.REAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">real</span></tt> numbers.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.REAL.__init__">
-<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.REAL.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.REAL.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.REAL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.SMALLDATETIME">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">SMALLDATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLDATETIME" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.SMALLDATETIME">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">SMALLDATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.SMALLDATETIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._DateTimeBase</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.SMALLDATETIME.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLDATETIME.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.SMALLDATETIME.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.SMALLDATETIME.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.SMALLMONEY">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">SMALLMONEY</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLMONEY" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.SMALLMONEY">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">SMALLMONEY</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.SMALLMONEY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.SMALLMONEY.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLMONEY.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.SMALLMONEY.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.SMALLMONEY.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.SQL_VARIANT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">SQL_VARIANT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SQL_VARIANT" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.SQL_VARIANT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">SQL_VARIANT</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.SQL_VARIANT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.SQL_VARIANT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SQL_VARIANT.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.SQL_VARIANT.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.SQL_VARIANT.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.TEXT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">TEXT</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TEXT" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.TEXT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">TEXT</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.TEXT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._StringType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TEXT" title="sqlalchemy.types.TEXT"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TEXT</span></tt></a></p>
 <p>MSSQL TEXT type, for variable-length text up to 2^31 characters.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.TEXT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TEXT.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.TEXT.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.TEXT.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a TEXT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
-value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -539,47 +532,47 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.TIME">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">TIME</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TIME" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.TIME">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">TIME</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.TIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TIME" title="sqlalchemy.types.TIME"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TIME</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.TIME.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TIME.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.TIME.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.TIME.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.TINYINT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">TINYINT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TINYINT" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.TINYINT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">TINYINT</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.TINYINT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.TINYINT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TINYINT.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.TINYINT.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.TINYINT.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">UNIQUEIDENTIFIER</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.UNIQUEIDENTIFIER">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">UNIQUEIDENTIFIER</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.UNIQUEIDENTIFIER" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.UNIQUEIDENTIFIER.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.UNIQUEIDENTIFIER.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.mssql.VARCHAR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">VARCHAR</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.VARCHAR" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.VARCHAR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.base.</tt><tt class="descname">VARCHAR</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.VARCHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._StringType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.VARCHAR" title="sqlalchemy.types.VARCHAR"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.VARCHAR</span></tt></a></p>
 <p>MSSQL VARCHAR type, for variable-length non-Unicode data with a maximum
 of 8,000 characters.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.mssql.VARCHAR.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.VARCHAR.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.mssql.base.VARCHAR.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.base.VARCHAR.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a VARCHAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -614,7 +607,7 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <p>Support for MS-SQL via pyodbc.</p>
 <p>pyodbc is available at:</p>
 <blockquote>
-<div><a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></div></blockquote>
+<a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></blockquote>
 <div class="section" id="id1">
 <h3>Connecting<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>Examples of pyodbc connection string URLs:</p>
@@ -683,7 +676,7 @@ the python shell. For example:</p>
 <p>Support for MS-SQL via mxODBC.</p>
 <p>mxODBC is available at:</p>
 <blockquote>
-<div><a class="reference external" href="http://www.egenix.com/">http://www.egenix.com/</a></div></blockquote>
+<a class="reference external" href="http://www.egenix.com/">http://www.egenix.com/</a></blockquote>
 <p>This was tested with mxODBC 3.1.2 and the SQL Server Native
 Client connected to MSSQL 2005 and 2008 Express Editions.</p>
 <div class="section" id="id2">
@@ -723,13 +716,13 @@ of <tt class="xref docutils literal"><span class="pre">False</span></tt> will un
 <p>This dialect supports pymssql 1.0 and greater.</p>
 <p>pymssql is available at:</p>
 <blockquote>
-<div><a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></div></blockquote>
+<a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></blockquote>
 <div class="section" id="id3">
 <h3>Connecting<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>Sample connect string:</p>
 <div class="highlight-python"><pre>mssql+pymssql://&lt;username&gt;:&lt;password&gt;@&lt;freetds_name&gt;</pre>
 </div>
-<p>Adding &#8221;?charset=utf8&#8221; or similar will cause pymssql to return
+<p>Adding &#8220;?charset=utf8&#8221; or similar will cause pymssql to return
 strings as Python unicode objects.   This can potentially improve 
 performance in some scenarios as decoding of strings is 
 handled natively.</p>
@@ -770,20 +763,28 @@ properties to the underlying JDBC driver.</p>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="access.html" title="previous chapter">Microsoft Access</a>
+        Next:
+        <a href="mysql.html" title="next chapter">MySQL</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="access.html" title="previous chapter">Microsoft Access</a>
-            Next:
-            <a href="mysql.html" title="next chapter">MySQL</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

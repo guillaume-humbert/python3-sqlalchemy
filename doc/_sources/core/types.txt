@@ -28,8 +28,6 @@ Functions that accept a type (such as :func:`~sqlalchemy.Column`) will
 typically accept a type class or instance; ``Integer`` is equivalent
 to ``Integer()`` with no construction arguments in this case.
 
-.. _types_generic:
-
 Generic Types
 -------------
 
@@ -113,8 +111,6 @@ Standard Types`_ and the other sections of this chapter.
    :show-inheritance:
    :members:
 
-.. _types_sqlstandard:
-
 SQL Standard Types
 ------------------
 
@@ -185,7 +181,6 @@ on all databases.
 .. autoclass:: VARCHAR
   :show-inheritance:
 
-.. _types_vendor:
 
 Vendor-Specific Types
 ---------------------
@@ -241,8 +236,6 @@ such as `collation` and `charset`::
         Column('col2', TEXT(charset='latin1'))
     )
 
-.. _types_custom:
-
 Custom Types
 ------------
 
@@ -252,29 +245,10 @@ as well as to provide new ones.
 Overriding Type Compilation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A frequent need is to force the "string" version of a type, that is
-the one rendered in a CREATE TABLE statement or other SQL function 
-like CAST, to be changed.   For example, an application may want
-to force the rendering of ``BINARY`` for all platforms
-except for one, in which is wants ``BLOB`` to be rendered.  Usage 
-of an existing generic type, in this case :class:`.LargeBinary`, is
-preferred for most use cases.  But to control
-types more accurately, a compilation directive that is per-dialect
-can be associated with any type::
-
-    from sqlalchemy.ext.compiler import compiles
-    from sqlalchemy.types import BINARY
-
-    @compiles(BINARY, "sqlite")
-    def compile_binary_sqlite(type_, compiler, **kw):
-        return "BLOB"
-
-The above code allows the usage of :class:`.types.BINARY`, which
-will produce the string ``BINARY`` against all backends except SQLite, 
-in which case it will produce ``BLOB``.
-
-See the section :ref:`type_compilation_extension`, a subsection of 
-:ref:`sqlalchemy.ext.compiler_toplevel`, for additional examples.
+The string produced by any type object, when rendered in a CREATE TABLE 
+statement or other SQL function like CAST, can be changed.  See the
+section :ref:`type_compilation_extension`, a subsection of 
+:ref:`sqlalchemy.ext.compiler_toplevel`, for a short example.
 
 Augmenting Existing Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -366,17 +340,10 @@ Marshal JSON Strings
 ^^^^^^^^^^^^^^^^^^^^^
 
 This type uses ``simplejson`` to marshal Python data structures
-to/from JSON.   Can be modified to use Python's builtin json encoder.
+to/from JSON.   Can be modified to use Python's builtin json encoder::
 
-Note that the base type is not "mutable", meaning in-place changes to 
-the value will not be detected by the ORM - you instead would need to 
-replace the existing value with a new one to detect changes.
-The subtype ``MutableJSONEncodedDict``
-adds "mutability" to allow this, but note that "mutable" types add
-a significant performance penalty to the ORM's flush process::
-
-    from sqlalchemy.types import TypeDecorator, MutableType, VARCHAR
-    import simplejson
+    from sqlalchemy.types import TypeDecorator, VARCHAR
+    import json
 
     class JSONEncodedDict(TypeDecorator):
         """Represents an immutable structure as a json-encoded string.
@@ -391,22 +358,23 @@ a significant performance penalty to the ORM's flush process::
 
         def process_bind_param(self, value, dialect):
             if value is not None:
-                value = simplejson.dumps(value, use_decimal=True)
+                value = json.dumps(value)
 
             return value
 
         def process_result_value(self, value, dialect):
             if value is not None:
-                value = simplejson.loads(value, use_decimal=True)
+                value = json.loads(value)
             return value
 
-    class MutableJSONEncodedDict(MutableType, JSONEncodedDict):
-        """Adds mutability to JSONEncodedDict."""
-
-        def copy_value(self, value):
-            return simplejson.loads(
-                        simplejson.dumps(value, use_decimal=True), 
-                        use_decimal=True)
+Note that the ORM by default will not detect "mutability" on such a type -
+meaning, in-place changes to values will not be detected and will not be
+flushed. Without further steps, you instead would need to replace the existing
+value with a new one on each parent object to detect changes. Note that
+there's nothing wrong with this, as many applications may not require that the
+values are ever mutated once created.  For those which do have this requirment,
+support for mutability is best applied using the ``sqlalchemy.ext.mutable``
+extension - see the example in :ref:`mutable_toplevel`.
 
 Creating New Types
 ~~~~~~~~~~~~~~~~~~
@@ -419,8 +387,6 @@ for defining entirely new database types:
    :undoc-members:
    :inherited-members:
    :show-inheritance:
-
-.. _types_api:
 
 Base Type API
 --------------

@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                Relationship Loading Techniques
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Relationship Loading Techniques
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
-        <link rel="next" title="ORM Event Interfaces" href="interfaces.html" />
+        <link rel="next" title="ORM Events" href="events.html" />
         <link rel="prev" title="Querying" href="query.html" />
+    
 
     </head>
     <body>
@@ -38,52 +39,52 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/orm/loading.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+                » 
+    Relationship Loading Techniques
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="query.html" title="previous chapter">Querying</a>
+        Next:
+        <a href="events.html" title="next chapter">ORM Events</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="query.html" title="previous chapter">Querying</a>
-            </li>
-            <li>Next:
-            <a href="interfaces.html" title="next chapter">ORM Event Interfaces</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/loading.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                Relationship Loading Techniques
-             
-
-        <h2>
-            
-                Relationship Loading Techniques
-            
-        </h2>
-        <ul>
+                <h2>
+                    
+    Relationship Loading Techniques
+ 
+                </h2>
+            </div>
+                <ul>
 <li><a class="reference internal" href="#">Relationship Loading Techniques</a><ul>
 <li><a class="reference internal" href="#using-loader-strategies-lazy-loading-eager-loading">Using Loader Strategies: Lazy Loading, Eager Loading</a></li>
 <li><a class="reference internal" href="#the-zen-of-eager-loading">The Zen of Eager Loading</a></li>
@@ -94,13 +95,12 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="relationship-loading-techniques">
 <span id="loading-toplevel"></span><h1>Relationship Loading Techniques<a class="headerlink" href="#relationship-loading-techniques" title="Permalink to this headline">¶</a></h1>
 <p>A big part of SQLAlchemy is providing a wide range of control over how related objects get loaded when querying.   This behavior
@@ -193,20 +193,25 @@ query options:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Parent</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&#39;foo.bar.bat&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
 </div>
 <p>When using dot-separated names with <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> or
-<a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, option applies <strong>only</strong> to the actual
+<a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, the option applies <strong>only</strong> to the actual
 attribute named, and <strong>not</strong> its ancestors. For example, suppose a mapping
 from <tt class="docutils literal"><span class="pre">A</span></tt> to <tt class="docutils literal"><span class="pre">B</span></tt> to <tt class="docutils literal"><span class="pre">C</span></tt>, where the relationships, named <tt class="docutils literal"><span class="pre">atob</span></tt> and
 <tt class="docutils literal"><span class="pre">btoc</span></tt>, are both lazy-loading. A statement like the following:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&#39;atob.btoc&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
 </div>
-<p>will load only <tt class="docutils literal"><span class="pre">A</span></tt> objects to start.  When the <tt class="docutils literal"><span class="pre">atob</span></tt> attribute on each <tt class="docutils literal"><span class="pre">A</span></tt> is accessed, the returned <tt class="docutils literal"><span class="pre">B</span></tt> objects will <em>eagerly</em> load their <tt class="docutils literal"><span class="pre">C</span></tt> objects.</p>
-<p>Therefore, to modify the eager load to load both <tt class="docutils literal"><span class="pre">atob</span></tt> as well as <tt class="docutils literal"><span class="pre">btoc</span></tt>, place joinedloads for both:</p>
+<p>will load only <tt class="docutils literal"><span class="pre">A</span></tt> objects to start. When the <tt class="docutils literal"><span class="pre">atob</span></tt> attribute on each
+<tt class="docutils literal"><span class="pre">A</span></tt> is accessed, the returned <tt class="docutils literal"><span class="pre">B</span></tt> objects will <em>eagerly</em> load their <tt class="docutils literal"><span class="pre">C</span></tt>
+objects.</p>
+<p>Therefore, to modify the eager load to load both <tt class="docutils literal"><span class="pre">atob</span></tt> as well as <tt class="docutils literal"><span class="pre">btoc</span></tt>,
+place joinedloads for both:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&#39;atob&#39;</span><span class="p">),</span> <span class="n">joinedload</span><span class="p">(</span><span class="s">&#39;atob.btoc&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
 </div>
-<p>or more simply just use <a class="reference internal" href="#sqlalchemy.orm.joinedload_all" title="sqlalchemy.orm.joinedload_all"><tt class="xref py py-func docutils literal"><span class="pre">joinedload_all()</span></tt></a> or <a class="reference internal" href="#sqlalchemy.orm.subqueryload_all" title="sqlalchemy.orm.subqueryload_all"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload_all()</span></tt></a>:</p>
+<p>or more simply just use <a class="reference internal" href="#sqlalchemy.orm.joinedload_all" title="sqlalchemy.orm.joinedload_all"><tt class="xref py py-func docutils literal"><span class="pre">joinedload_all()</span></tt></a> or
+<a class="reference internal" href="#sqlalchemy.orm.subqueryload_all" title="sqlalchemy.orm.subqueryload_all"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload_all()</span></tt></a>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload_all</span><span class="p">(</span><span class="s">&#39;atob.btoc&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
 </div>
-<p>There are two other loader strategies available, <strong>dynamic loading</strong> and <strong>no loading</strong>; these are described in <a class="reference internal" href="collections.html#largecollections"><em>Working with Large Collections</em></a>.</p>
+<p>There are two other loader strategies available, <strong>dynamic loading</strong> and <strong>no
+loading</strong>; these are described in <a class="reference internal" href="collections.html#largecollections"><em>Working with Large Collections</em></a>.</p>
 </div>
 <div class="section" id="the-zen-of-eager-loading">
 <h2>The Zen of Eager Loading<a class="headerlink" href="#the-zen-of-eager-loading" title="Permalink to this headline">¶</a></h2>
@@ -245,7 +250,7 @@ references a scalar many-to-one reference.</p>
 <li>One to Many Collection</li>
 </ul>
 <blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li>When using the default lazy loading, if you load 100 objects, and then access a collection on each of
 them, a total of 101 SQL statements will be emitted, although each statement will typically be a
 simple SELECT without any joins.</li>
@@ -266,12 +271,12 @@ subquery load makes sense when the collections are larger.</li>
 collections will multiply the total number of rows fetched in a cartesian fashion.  Both forms
 of eager loading always join from the original parent class.</li>
 </ul>
-</div></blockquote>
+</blockquote>
 <ul class="simple">
 <li>Many to One Reference</li>
 </ul>
 <blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li>When using the default lazy loading, a load of 100 objects will like in the case of the collection
 emit as many as 101 SQL statements.  However - there is a significant exception to this, in that
 if the many-to-one reference is a simple foreign key reference to the target&#8217;s primary key, each
@@ -291,7 +296,7 @@ there would be two SQL statements emitted.  There&#8217;s probably not much adva
 joined loading, however, except perhaps that subquery loading can use an INNER JOIN in all cases
 whereas joined loading requires that the foreign key is NOT NULL.</li>
 </ul>
-</div></blockquote>
+</blockquote>
 </div>
 <div class="section" id="routing-explicit-joins-statements-into-eagerly-loaded-collections">
 <span id="contains-eager"></span><h2>Routing Explicit Joins/Statements into Eagerly Loaded Collections<a class="headerlink" href="#routing-explicit-joins-statements-into-eagerly-loaded-collections" title="Permalink to this headline">¶</a></h2>
@@ -333,7 +338,7 @@ This is a string alias name or reference to an actual
 
 <span class="c"># construct a Query object which expects the &quot;addresses&quot; results</span>
 <span class="n">query</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
-    <span class="n">outerjoin</span><span class="p">((</span><span class="n">adalias</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">))</span><span class="o">.</span>\
+    <span class="n">outerjoin</span><span class="p">(</span><span class="n">adalias</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span><span class="o">.</span>\
     <span class="n">options</span><span class="p">(</span><span class="n">contains_eager</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="n">adalias</span><span class="p">))</span>
 
 <span class="c"># get results normally</span>
@@ -443,7 +448,7 @@ functionality.</p>
 <dt id="sqlalchemy.orm.joinedload">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">joinedload</tt><big>(</big><em>*keys</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.joinedload" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
-name into an joined eager load.</p>
+name or series of mapped attributes into an joined eager load.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This function is known as <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a> in all versions
@@ -480,7 +485,8 @@ see <a class="reference internal" href="#sqlalchemy.orm.contains_eager" title="s
 <dt id="sqlalchemy.orm.joinedload_all">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">joinedload_all</tt><big>(</big><em>*keys</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.joinedload_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the
-given dot-separated path into an joined eager load.</p>
+given dot-separated path or series of mapped attributes 
+into an joined eager load.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This function is known as <a class="reference internal" href="#sqlalchemy.orm.eagerload_all" title="sqlalchemy.orm.eagerload_all"><tt class="xref py py-func docutils literal"><span class="pre">eagerload_all()</span></tt></a> in all versions
@@ -507,7 +513,7 @@ relationship().</p>
 <dt id="sqlalchemy.orm.lazyload">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">lazyload</tt><big>(</big><em>*keys</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.lazyload" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
-name into a lazy load.</p>
+name or series of mapped attributes into a lazy load.</p>
 <p>Used with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>See also:  <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, <tt class="xref py py-func docutils literal"><span class="pre">immediateload()</span></tt></p>
 </dd></dl>
@@ -516,7 +522,8 @@ name into a lazy load.</p>
 <dt id="sqlalchemy.orm.subqueryload">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">subqueryload</tt><big>(</big><em>*keys</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.subqueryload" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property 
-of the given name into an subquery eager load.</p>
+of the given name or series of mapped attributes 
+into an subquery eager load.</p>
 <p>Used with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>examples:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># subquery-load the &quot;orders&quot; colleciton on &quot;User&quot;</span>
@@ -537,7 +544,8 @@ of the given name into an subquery eager load.</p>
 <dt id="sqlalchemy.orm.subqueryload_all">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">subqueryload_all</tt><big>(</big><em>*keys</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.subqueryload_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the
-given dot-separated path into a subquery eager load.</p>
+given dot-separated path or series of mapped attributes 
+into a subquery eager load.</p>
 <p>Used with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>For example:</p>
 <div class="highlight-python"><pre>query.options(subqueryload_all('orders.items.keywords'))...</pre>
@@ -554,20 +562,28 @@ load in one subquery eager load.</p>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="query.html" title="previous chapter">Querying</a>
+        Next:
+        <a href="events.html" title="next chapter">ORM Events</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="query.html" title="previous chapter">Querying</a>
-            Next:
-            <a href="interfaces.html" title="next chapter">ORM Event Interfaces</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

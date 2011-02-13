@@ -1,4 +1,4 @@
-from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
+from test.lib.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm import interfaces
@@ -6,10 +6,10 @@ from sqlalchemy import exc as sa_exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.engine import default
 
-from sqlalchemy.test import AssertsCompiledSQL, testing
+from test.lib import AssertsCompiledSQL, testing
 from test.orm import _base, _fixtures
-from sqlalchemy.test.testing import eq_
-from sqlalchemy.test.schema import Table, Column
+from test.lib.testing import eq_
+from test.lib.schema import Table, Column
 
 class Company(_fixtures.Base):
     pass
@@ -237,7 +237,7 @@ def _produce_test(select_type):
             e = aliased(Person)
             c = aliased(Company)
 
-            q = sess.query(Company, Person, c, e).join((Person, Company.employees)).join((e, c.employees)).\
+            q = sess.query(Company, Person, c, e).join(Person, Company.employees).join(e, c.employees).\
                     filter(Person.name=='dilbert').filter(e.name=='wally')
 
             eq_(q.count(), 1)
@@ -358,38 +358,68 @@ def _produce_test(select_type):
             )
 
             eq_(
-                sess.query(Manager.name).join((Paperwork, Manager.paperwork)).order_by(Manager.name).all(),
+                sess.query(Manager.name).join(Paperwork, Manager.paperwork).order_by(Manager.name).all(),
                 [(u'dogbert',), (u'dogbert',), (u'pointy haired boss',)]
             )
 
             eq_(
-                sess.query(Person.name).join((Paperwork, Person.paperwork)).order_by(Person.name).all(),
+                sess.query(Person.name).join(Paperwork, Person.paperwork).order_by(Person.name).all(),
                 [(u'dilbert',), (u'dilbert',), (u'dogbert',), (u'dogbert',), (u'pointy haired boss',), (u'vlad',), (u'wally',), (u'wally',)]
             )
 
+            # Load Person.name, joining from Person -> paperwork, get all
+            # the people.
             eq_(
-                sess.query(Person.name).join((paperwork, Manager.person_id==paperwork.c.person_id)).order_by(Person.name).all(),
+                sess.query(Person.name).join(paperwork, Person.person_id==paperwork.c.person_id).order_by(Person.name).all(),
                 [(u'dilbert',), (u'dilbert',), (u'dogbert',), (u'dogbert',), (u'pointy haired boss',), (u'vlad',), (u'wally',), (u'wally',)]
             )
 
+            # same, on manager.  get only managers.
             eq_(
-                sess.query(Manager).join((Paperwork, Manager.paperwork)).order_by(Manager.name).all(),
+                sess.query(Manager.name).join(paperwork, Manager.person_id==paperwork.c.person_id).order_by(Person.name).all(),
+                [(u'dogbert',), (u'dogbert',), (u'pointy haired boss',)]
+            )
+
+            if select_type == '':
+                # this now raises, due to [ticket:1892].  Manager.person_id is now the "person_id" column on Manager.
+                # the SQL is incorrect.
+                assert_raises(
+                    sa_exc.DBAPIError,
+                    sess.query(Person.name).join(paperwork, Manager.person_id==paperwork.c.person_id).order_by(Person.name).all,
+                )
+            elif select_type == 'Unions':
+                # with the union, not something anyone would really be using here, it joins to 
+                # the full result set.  This is 0.6's behavior and is more or less wrong.
+                eq_(
+                    sess.query(Person.name).join(paperwork, Manager.person_id==paperwork.c.person_id).order_by(Person.name).all(),
+                    [(u'dilbert',), (u'dilbert',), (u'dogbert',), (u'dogbert',), (u'pointy haired boss',), (u'vlad',), (u'wally',), (u'wally',)]
+                )
+            else:
+                # when a join is present and managers.person_id is available, you get the managers.
+                eq_(
+                    sess.query(Person.name).join(paperwork, Manager.person_id==paperwork.c.person_id).order_by(Person.name).all(),
+                    [(u'dogbert',), (u'dogbert',), (u'pointy haired boss',)]
+                )
+
+
+            eq_(
+                sess.query(Manager).join(Paperwork, Manager.paperwork).order_by(Manager.name).all(),
                 [m1, b1]
             )
 
             eq_(
-                sess.query(Manager.name).join((paperwork, Manager.person_id==paperwork.c.person_id)).order_by(Manager.name).all(),
+                sess.query(Manager.name).join(paperwork, Manager.person_id==paperwork.c.person_id).order_by(Manager.name).all(),
                 [(u'dogbert',), (u'dogbert',), (u'pointy haired boss',)]
             )
 
             eq_(
-                sess.query(Manager.person_id).join((paperwork, Manager.person_id==paperwork.c.person_id)).order_by(Manager.name).all(),
+                sess.query(Manager.person_id).join(paperwork, Manager.person_id==paperwork.c.person_id).order_by(Manager.name).all(),
                 [(4,), (4,), (3,)]
             )
 
             eq_(
                 sess.query(Manager.name, Paperwork.description).
-                    join((Paperwork, Manager.person_id==Paperwork.person_id)).
+                    join(Paperwork, Manager.person_id==Paperwork.person_id).
                     order_by(Paperwork.paperwork_id).
                     all(),
                 [(u'pointy haired boss', u'review #1'), (u'dogbert', u'review #2'), (u'dogbert', u'review #3')]
@@ -397,7 +427,7 @@ def _produce_test(select_type):
 
             malias = aliased(Manager)
             eq_(
-                sess.query(malias.name).join((paperwork, malias.person_id==paperwork.c.person_id)).all(),
+                sess.query(malias.name).join(paperwork, malias.person_id==paperwork.c.person_id).all(),
                 [(u'pointy haired boss',), (u'dogbert',), (u'dogbert',)]
             )
 
@@ -566,19 +596,19 @@ def _produce_test(select_type):
 
         def test_join_to_subclass(self):
             sess = create_session()
-            eq_(sess.query(Company).join(('employees', people.join(engineers))).filter(Engineer.primary_language=='java').all(), [c1])
+            eq_(sess.query(Company).join(people.join(engineers), 'employees').filter(Engineer.primary_language=='java').all(), [c1])
 
             if select_type == '':
                 eq_(sess.query(Company).select_from(companies.join(people).join(engineers)).filter(Engineer.primary_language=='java').all(), [c1])
-                eq_(sess.query(Company).join(('employees', people.join(engineers))).filter(Engineer.primary_language=='java').all(), [c1])
+                eq_(sess.query(Company).join(people.join(engineers), 'employees').filter(Engineer.primary_language=='java').all(), [c1])
 
                 ealias = aliased(Engineer)
-                eq_(sess.query(Company).join(('employees', ealias)).filter(ealias.primary_language=='java').all(), [c1])
+                eq_(sess.query(Company).join(ealias, 'employees').filter(ealias.primary_language=='java').all(), [c1])
 
                 eq_(sess.query(Person).select_from(people.join(engineers)).join(Engineer.machines).all(), [e1, e2, e3])
                 eq_(sess.query(Person).select_from(people.join(engineers)).join(Engineer.machines).filter(Machine.name.ilike("%ibm%")).all(), [e1, e3])
-                eq_(sess.query(Company).join(('employees', people.join(engineers)), Engineer.machines).all(), [c1, c2])
-                eq_(sess.query(Company).join(('employees', people.join(engineers)), Engineer.machines).filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
+                eq_(sess.query(Company).join(people.join(engineers), 'employees').join(Engineer.machines).all(), [c1, c2])
+                eq_(sess.query(Company).join(people.join(engineers), 'employees').join(Engineer.machines).filter(Machine.name.ilike("%thinkpad%")).all(), [c1])
             else:
                 eq_(sess.query(Company).select_from(companies.join(people).join(engineers)).filter(Engineer.primary_language=='java').all(), [c1])
                 eq_(sess.query(Company).join('employees').filter(Engineer.primary_language=='java').all(), [c1])
@@ -647,10 +677,13 @@ def _produce_test(select_type):
                 c2
             )
 
-            # same, using explicit join condition.  Query.join() must adapt the on clause
-            # here to match the subquery wrapped around "people join engineers".
+            # same, using explicit join condition.  Query.join() must 
+            # adapt the on clause here to match the subquery wrapped around 
+            # "people join engineers".
             eq_(
-                sess.query(Company).join((Engineer, Company.company_id==Engineer.company_id)).filter(Engineer.engineer_name=='vlad').one(),
+                sess.query(Company).
+                    join(Engineer, Company.company_id==Engineer.company_id).
+                    filter(Engineer.engineer_name=='vlad').one(),
                 c2
             )
 
@@ -1167,7 +1200,7 @@ class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
         # test the same again
         self.assert_compile(
             session.query(Child2).join(Child2.right_children).filter(Child1.left_child2==c22).with_labels().statement,
-            "SELECT parent.id AS parent_id, child2.id AS child2_id, parent.cls AS parent_cls FROM "
+            "SELECT child2.id AS child2_id, parent.id AS parent_id, parent.cls AS parent_cls FROM "
             "secondary AS secondary_1, parent JOIN child2 ON parent.id = child2.id JOIN secondary AS secondary_2 "
             "ON parent.id = secondary_2.left_id JOIN (SELECT parent.id AS parent_id, parent.cls AS parent_cls, "
             "child1.id AS child1_id FROM parent JOIN child1 ON parent.id = child1.id) AS anon_1 ON "
@@ -1187,15 +1220,16 @@ class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
 
         # test that the splicing of the join works here, doesnt break in the middle of "parent join child1"
         self.assert_compile(q.limit(1).with_labels().statement, 
-        "SELECT anon_1.parent_id AS anon_1_parent_id, anon_1.child1_id AS anon_1_child1_id, "\
-        "anon_1.parent_cls AS anon_1_parent_cls, anon_2.parent_id AS anon_2_parent_id, "\
-        "anon_2.child2_id AS anon_2_child2_id, anon_2.parent_cls AS anon_2_parent_cls FROM "\
-        "(SELECT parent.id AS parent_id, child1.id AS child1_id, parent.cls AS parent_cls FROM parent "\
-        "JOIN child1 ON parent.id = child1.id  LIMIT 1) AS anon_1 LEFT OUTER JOIN secondary AS secondary_1 "\
+        "SELECT anon_1.child1_id AS anon_1_child1_id, anon_1.parent_id AS anon_1_parent_id, "\
+        "anon_1.parent_cls AS anon_1_parent_cls, anon_2.child2_id AS anon_2_child2_id, "\
+        "anon_2.parent_id AS anon_2_parent_id, anon_2.parent_cls AS anon_2_parent_cls FROM "\
+        "(SELECT child1.id AS child1_id, parent.id AS parent_id, parent.cls AS parent_cls FROM parent "\
+        "JOIN child1 ON parent.id = child1.id LIMIT :param_1) AS anon_1 LEFT OUTER JOIN secondary AS secondary_1 "\
         "ON anon_1.parent_id = secondary_1.right_id LEFT OUTER JOIN (SELECT parent.id AS parent_id, "\
         "parent.cls AS parent_cls, child2.id AS child2_id FROM parent JOIN child2 ON parent.id = child2.id) "\
-        "AS anon_2 ON anon_2.parent_id = secondary_1.left_id"
-        , dialect=default.DefaultDialect())
+        "AS anon_2 ON anon_2.parent_id = secondary_1.left_id",
+        {'param_1':1},
+        dialect=default.DefaultDialect())
 
         # another way to check
         assert q.limit(1).with_labels().subquery().count().scalar() == 1

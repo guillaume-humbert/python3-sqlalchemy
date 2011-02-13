@@ -1,14 +1,16 @@
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 import pickle
 import sqlalchemy as sa
-from sqlalchemy.test import testing
-from sqlalchemy.test.testing import assert_raises_message
+from test.lib import testing
+from test.lib.util import picklers
+from test.lib.testing import assert_raises_message
 from sqlalchemy import Integer, String, ForeignKey, exc, MetaData
-from sqlalchemy.test.schema import Table, Column
+from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session, \
                             sessionmaker, attributes, interfaces,\
                             clear_mappers, exc as orm_exc,\
-                            compile_mappers
+                            configure_mappers, Session, lazyload_all,\
+                            lazyload
 from test.orm import _base, _fixtures
 
 
@@ -128,6 +130,33 @@ class PickleTest(_fixtures.FixtureTest):
         eq_(u2, User(name='ed', addresses=[Address(email_address='ed@bar.com')]))
 
     @testing.resolve_artifact_names
+    def test_instance_lazy_relation_loaders(self):
+        mapper(User, users, properties={
+            'addresses':relationship(Address, lazy='noload')
+        })
+        mapper(Address, addresses)
+
+        sess = Session()
+        u1 = User(name='ed', addresses=[
+                        Address(
+                            email_address='ed@bar.com', 
+                        )
+                ])
+
+        sess.add(u1)
+        sess.commit()
+        sess.close()
+
+        u1 = sess.query(User).options(
+                                lazyload(User.addresses)
+                            ).first()
+        u2 = pickle.loads(pickle.dumps(u1))
+
+        sess = Session()
+        sess.add(u2)
+        assert u2.addresses
+
+    @testing.resolve_artifact_names
     def test_instance_deferred_cols(self):
         mapper(User, users, properties={
             'addresses':relationship(Address, backref="user")
@@ -187,8 +216,9 @@ class PickleTest(_fixtures.FixtureTest):
 
         u1 = sess.query(User).first()
         u1.addresses
-        for protocol in -1, 0, 1, 2:
-            u2 = pickle.loads(pickle.dumps(u1, protocol))
+
+        for loads, dumps in picklers():
+            u2 = loads(dumps(u1))
             eq_(u1, u2)
 
     @testing.resolve_artifact_names

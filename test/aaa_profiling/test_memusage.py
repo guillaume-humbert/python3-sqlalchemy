@@ -1,20 +1,20 @@
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 from sqlalchemy.orm import mapper, relationship, create_session, \
     clear_mappers, sessionmaker, class_mapper
 from sqlalchemy.orm.mapper import _mapper_registry
 from sqlalchemy.orm.session import _sessions
 from sqlalchemy.util import jython
 import operator
-from sqlalchemy.test import testing, engines
+from test.lib import testing, engines
 from sqlalchemy import MetaData, Integer, String, ForeignKey, \
     PickleType, create_engine, Unicode
-from sqlalchemy.test.schema import Table, Column
+from test.lib.schema import Table, Column
 import sqlalchemy as sa
 from sqlalchemy.sql import column
 from sqlalchemy.processors import to_decimal_processor_factory, \
     to_unicode_processor_factory
-from sqlalchemy.test.util import gc_collect
-from decimal import Decimal as _python_Decimal
+from test.lib.util import gc_collect
+from sqlalchemy.util.compat import decimal
 import gc
 import weakref
 from test.orm import _base
@@ -210,6 +210,35 @@ class MemUsageTest(EnsureZeroed):
         metadata.drop_all()
         del m1, m2, m3
         assert_no_mappers()
+
+    def test_ad_hoc_types(self):
+        """test storage of bind processors, result processors
+        in dialect-wide registry."""
+
+        from sqlalchemy.dialects import mysql, postgresql, sqlite
+        from sqlalchemy import types
+
+        eng = engines.testing_engine()
+        for args in (
+            (types.Integer, ),
+            (types.String, ),
+            (types.PickleType, ),
+            (types.Enum, 'a', 'b', 'c'),
+            (sqlite.DATETIME, ),
+            (postgresql.ENUM, 'a', 'b', 'c'),
+            (types.Interval, ),
+            (postgresql.INTERVAL, ),
+            (mysql.VARCHAR, ),
+        ):
+            @profile_memory
+            def go():
+                type_ = args[0](*args[1:])
+                bp = type_._cached_bind_processor(eng.dialect)
+                rp = type_._cached_result_processor(eng.dialect, 0)
+            go()
+
+        assert not eng.dialect._type_memos
+
 
     def test_many_updates(self):
         metadata = MetaData(testing.db)
@@ -517,7 +546,7 @@ class MemUsageTest(EnsureZeroed):
         table1 = Table("mytable", metadata,
             Column('col1', Integer, primary_key=True,
                                 test_needs_autoincrement=True),
-            Column('col2', PickleType(comparator=operator.eq))
+            Column('col2', PickleType(comparator=operator.eq, mutable=True))
             )
 
         class Foo(object):
@@ -580,7 +609,7 @@ class MemUsageTest(EnsureZeroed):
     def test_DecimalResultProcessor_process(self):
         @profile_memory
         def go():
-            to_decimal_processor_factory(_python_Decimal, 10)(1.2)
+            to_decimal_processor_factory(decimal.Decimal, 10)(1.2)
         go()
 
     @testing.requires.cextensions

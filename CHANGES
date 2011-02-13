@@ -3,117 +3,284 @@
 =======
 CHANGES
 =======
-0.6.8
-=====
+0.7.0b1
+=======
+- Detailed descriptions of each change below are 
+  described at:
+  http://www.sqlalchemy.org/trac/wiki/07Migration
+
+- general
+  - New event system, supercedes all extensions, listeners,
+    etc.  [ticket:1902]
+
+  - Logging enhancements
+    [ticket:1926]
+
+  - Setup no longer installs a Nose plugin
+    [ticket:1949]
+
+  - The "sqlalchemy.exceptions" alias in sys.modules
+    has been removed.   Base SQLA exceptions are 
+    available via "from sqlalchemy import exc".
+    The "exceptions" alias for "exc" remains in 
+    "sqlalchemy" for now, it's just not patched into 
+    sys.modules.
+
 - orm
-  - Calling query.get() against a column-based entity is
-    invalid, this condition now raises a deprecation warning.
-    [ticket:2144]
+  - More succinct form of query.join(target, onclause)
+    [ticket:1923]
 
-  - a non_primary mapper will inherit the _identity_class
-    of the primary mapper.  This so that a non_primary
-    established against a class that's normally in an
-    inheritance mapping will produce results that are 
-    identity-map compatible with that of the primary
-    mapper [ticket:2151]
+  - Hybrid Attributes, implements/supercedes synonym()
+    [ticket:1903]
 
-  - Backported 0.7's identity map implementation, which
-    does not use a mutex around removal.  This as some users 
-    were still getting deadlocks despite the adjustments
-    in 0.6.7; the 0.7 approach that doesn't use a mutex
-    does not appear to produce "dictionary changed size"
-    issues, the original rationale for the mutex.  
-    [ticket:2148]
+  - Rewrite of composites [ticket:2008]
 
-  - Fixed the error message emitted for "can't
-    execute syncrule for destination column 'q';
-    mapper 'X' does not map this column" to 
-    reference the correct mapper.  [ticket:2163].
+  - Mutation Event Extension, supercedes "mutable=True"
 
-  - Fixed bug where determination of "self referential"
-    relationship would fail with no workaround
-    for joined-inh subclass related to itself,
-    or joined-inh subclass related to a subclass
-    of that with no cols in the sub-sub class 
-    in the join condition.  [ticket:2149]
+  - PickleType and ARRAY mutability turned off by default
+     [ticket:1980]
 
-  - mapper() will ignore non-configured foreign keys
-    to unrelated tables when determining inherit
-    condition between parent and child class.
-    This is equivalent to behavior already 
-    applied to declarative.  Note that 0.7 has a 
-    more comprehensive solution to this, altering
-    how join() itself determines an FK error.
-    [ticket:2153]
+  - Simplified polymorphic_on assignment
+    [ticket:1895]
 
-  - Fixed bug whereby mapper mapped to an anonymous
-    alias would fail if logging were used, due to 
-    unescaped % sign in the alias name.  [ticket:2171]
+  - Flushing of Orphans that have no parent is allowed
+    [ticket:1912]
 
-  - Modify the text of the message which occurs
-    when the "identity" key isn't detected on 
-    flush, to include the common cause that
-    the Column isn't set up to detect
-    auto-increment correctly; [ticket:2170].
+  - Adjusted flush accounting step to occur before
+    the commit in the case of autocommit=True.  This allows
+    autocommit=True to work appropriately with 
+    expire_on_commit=True, and also allows post-flush session
+    hooks to operate in the same transactional context 
+    as when autocommit=False.  [ticket:2041]
 
-  - Fixed bug where transaction-level "deleted"
-    collection wouldn't be cleared of expunged
-    states, raising an error if they later
-    became transient [ticket:2182]. 
+  - Warnings generated when collection members, scalar referents 
+    not part of the flush
+    [ticket:1973]
+
+  - Non-`Table`-derived constructs can be mapped
+    [ticket:1876]
+
+  - Tuple label names in Query Improved
+    [ticket:1942]
+
+  - Mapped column attributes reference the most specific 
+    column first
+    [ticket:1892]
+
+  - Mapping to joins with two or more same-named columns 
+    requires explicit declaration
+    [ticket:1896]
+
+  - Mapper requires that polymorphic_on column be present 
+    in the mapped selectable
+    [ticket:1875]
+
+  - compile_mappers() renamed configure_mappers(), simplified 
+    configuration internals
+    [ticket:1966]
+
+  - the aliased() function, if passed a SQL FromClause element
+    (i.e. not a mapped class), will return element.alias() 
+    instead of raising an error on AliasedClass.  [ticket:2018]
+
+  - Session.merge() will check the version id of the incoming
+    state against that of the database, assuming the mapping
+    uses version ids and incoming state has a version_id
+    assigned, and raise StaleDataError if they don't 
+    match.  [ticket:2027]
+
+  - Session.connection(), Session.execute() accept 'bind',
+    to allow execute/connection operations to participate
+    in the open transaction of an engine explicitly.
+    [ticket:1996]
+
+  - Query.join(), Query.outerjoin(), eagerload(), 
+    eagerload_all(), others no longer allow lists 
+    of attributes as arguments (i.e. option([x, y, z]) 
+    form, deprecated since 0.5)
+
+  - ScopedSession.mapper is removed (deprecated since 0.5).
+
+  - Horizontal shard query places 'shard_id' in 
+    context.attributes where it's accessible by the 
+    "load()" event. [ticket:2031]
+
+  - A single contains_eager() call across
+    multiple entities will indicate all collections
+    along that path should load, instead of requiring
+    distinct contains_eager() calls for each endpoint
+    (which was never correctly documented).
+    [ticket:2032]
+
+  - The "name" field used in orm.aliased() now renders
+    in the resulting SQL statement.
+
+  - Session weak_instance_dict=False is deprecated.
+    [ticket:1473]
+
+  - An exception is raised in the unusual case that an 
+    append or similar event on a collection occurs after
+    the parent object has been dereferenced, which 
+    prevents the parent from being marked as "dirty" 
+    in the session.  Was a warning in 0.6.6.
+    [ticket:2046]
+
+  - Query.distinct() now accepts column expressions
+    as *args, interpreted by the Postgresql dialect
+    as DISTINCT ON (<expr>). [ticket:1069]
+
+  - Additional tuning to "many-to-one" relationship
+    loads during a flush().   A change in version 0.6.6
+    ([ticket:2002]) required that more "unnecessary" m2o 
+    loads during a flush could occur.   Extra loading modes have
+    been added so that the SQL emitted in this 
+    specific use case is trimmed back, while still
+    retrieving the information the flush needs in order
+    to not miss anything.  [ticket:2049]
+
+  - the value of "passive" as passed to 
+    attributes.get_history() should be one of the 
+    constants defined in the attributes package.  Sending 
+    True or False is deprecated.
 
 - sql
-  - Fixed bug whereby if FetchedValue was passed
-    to column server_onupdate, it would not
-    have its parent "column" assigned, added
-    test coverage for all column default assignment
-    patterns.  [ticket:2147]
+  - Added over() function, method to FunctionElement
+    classes, produces the _Over() construct which 
+    in turn generates "window functions", i.e.
+    "<window function> OVER (PARTITION BY <partition by>,
+    ORDER BY <order by>)".
+    [ticket:1844]
 
-  - Fixed bug whereby nesting a label of a select()
-    with another label in it would produce incorrect
-    exported columns.   Among other things this would
-    break an ORM column_property() mapping against
-    another column_property().  [ticket:2167].
+  - LIMIT/OFFSET clauses now use bind parameters
+    [ticket:805]
 
-- engine
-  - Adjusted the __contains__() method of 
-    a RowProxy result row such that no exception
-    throw is generated internally;  
-    NoSuchColumnError() also will generate its 
-    message regardless of whether or not the column 
-    construct can be coerced to a string.  
-    [ticket:2178].
+  - select.distinct() now accepts column expressions
+    as *args, interpreted by the Postgresql dialect
+    as DISTINCT ON (<expr>).  Note this was already
+    available via passing a list to the `distinct` 
+    keyword argument to select(). [ticket:1069]
 
-- postgresql
+  - select.prefix_with() accepts multiple expressions
+    (i.e. *expr), 'prefix' keyword argument to select()
+    accepts a list or tuple.
 
-  - Fixed bug affecting PG 9 whereby index reflection
-    would fail if against a column whose name
-    had changed.  [ticket:2141].
+  - Passing a string to the `distinct` keyword argument
+    of `select()` for the purpose of emitting special 
+    MySQL keywords (DISTINCTROW etc.) is deprecated - 
+    use `prefix_with()` for this.
 
-  - Some unit test fixes regarding numeric arrays, 
-    MATCH operator.   A potential floating-point
-    inaccuracy issue was fixed, and certain tests 
-    of the MATCH operator only execute within an 
-    EN-oriented locale for now.  [ticket:2175].  
+  - TypeDecorator works with primary key columns
+    [ticket:2005] [ticket:2006]
+
+  - DDL() constructs now escape percent signs
+    [ticket:1897]
+
+  - Table.c / MetaData.tables refined a bit, don't allow direct 
+    mutation  [ticket:1893] [ticket:1917]
+
+  - Callables passed to `bindparam()` don't get evaluated
+    [ticket:1950]
+
+  - types.type_map is now private, types._type_map
+    [ticket:1870]
+
+  - Non-public Pool methods underscored
+    [ticket:1982]
+
+  - Added NULLS FIRST and NULLS LAST support. It's implemented
+    as an extension to the asc() and desc() operators, called
+    nullsfirst() and nullslast().  [ticket:723]
+
+  - The Index() construct can be created inline with a Table
+    definition, using strings as column names, as an alternative
+    to the creation of the index outside of the Table.
+
+  - execution_options() on Connection accepts 
+    "isolation_level" argument, sets transaction isolation
+    level for that connection only until returned to the
+    connection pool, for thsoe backends which support it
+    (SQLite, Postgresql) [ticket:2001]
+
+  - A TypeDecorator of Integer can be used with a primary key
+    column, and the "autoincrement" feature of various dialects
+    as well as the "sqlite_autoincrement" flag will honor
+    the underlying database type as being Integer-based.
+    [ticket:2005]
+
+  - Established consistency when server_default is present
+    on an Integer PK column.  SQLA doesn't pre-fetch these,
+    nor do they come back in cursor.lastrowid (DBAPI).  
+    Ensured all backends consistently return None 
+    in result.inserted_primary_key for these. Regarding
+    reflection for this case, reflection of an int PK col 
+    with a server_default sets the "autoincrement" flag to False, 
+    except in the case of a PG SERIAL col where we detected a 
+    sequence default. [ticket:2020] [ticket:2021]
+
+  - Result-row processors are applied to pre-executed SQL 
+    defaults, as well as cursor.lastrowid, when determining
+    the contents of result.inserted_primary_key.
+    [ticket:2006]
+
+  - Bind parameters present in the "columns clause" of a select
+    are now auto-labeled like other "anonymous" clauses,
+    which among other things allows their "type" to be meaningful
+    when the row is fetched, as in result row processors.
+
+  - TypeDecorator is present in the "sqlalchemy" import space.
+
+  - Non-DBAPI errors which occur in the scope of an `execute()`
+    call are now wrapped in sqlalchemy.exc.StatementError,
+    and the text of the SQL statement and repr() of params
+    is included.  This makes it easier to identify statement
+    executions which fail before the DBAPI becomes 
+    involved.  [ticket:2015]
+
+  - The concept of associating a ".bind" directly with a 
+    ClauseElement has been explicitly moved to Executable,
+    i.e. the mixin that describes ClauseElements which represent
+    engine-executable constructs.  This change is an improvement
+    to internal organization and is unlikely to affect any 
+    real-world usage.  [ticket:2048]
+
+-sqlite
+  - SQLite dialect now uses `NullPool` for file-based databases
+    [ticket:1921]
+
+  - The path given as the location of a sqlite database is now
+    normalized via os.path.abspath(), so that directory changes
+    within the process don't affect the ultimate location
+    of a relative file path.  [ticket:2036]
 
 - mssql
-  - Fixed bug in MSSQL dialect whereby the aliasing
-    applied to a schema-qualified table would leak
-    into enclosing select statements [ticket:2169].
+  - the String/Unicode types, and their counterparts VARCHAR/
+    NVARCHAR, emit "max" as the length when no length is 
+    specified, so that the default length, normally '1' 
+    as per SQL server documentation, is instead
+    'unbounded'.  This also occurs for the VARBINARY type.
+    [ticket:1833].
 
-  - Fixed bug whereby DATETIME2 type would fail on
-    the "adapt" step when used in result sets or 
-    bound parameters.  This issue is not in 0.7.
-    [ticket:2159]
+    This behavior makes these types more closely compatible 
+    with Postgresql's VARCHAR type which is similarly unbounded 
+    when no length is specified.
+
+- mysql
+  - New DBAPI support for pymysql, a pure Python port
+    of MySQL-python.  [ticket:1991]
+
+- firebird
+  - Some adjustments so that Interbase is supported as well.
+    FB/Interbase version idents are parsed into a structure
+    such as (8, 1, 1, 'interbase') or (2, 1, 588, 'firebird')
+    so they can be distinguished. [ticket:1885]
+
+- drizzle
+  - New dialect for Drizzle, a MySQL variant.  Uses MySQL-python
+    for the DBAPI.  [ticket:2003]
 
 0.6.7
 =====
 - orm
-  - Tightened the iterate vs. remove mutex around the 
-    identity map iteration, attempting to reduce the 
-    chance of an (extremely rare) reentrant gc operation 
-    causing a deadlock.  Might remove the mutex in
-    0.7.  [ticket:2087]
-
   - Added a `name` argument to `Query.subquery()`, to allow
     a fixed name to be assigned to the alias object.
     [ticket:2030]
@@ -141,27 +308,6 @@ CHANGES
     in the session.  This will be an exception in 0.7.
     [ticket:2046]
 
-  - Fixed bug in query.options() whereby a path 
-    applied to a lazyload using string keys could 
-    overlap a same named attribute on the wrong 
-    entity.  Note 0.7 has an updated version of this
-    fix.  [ticket:2098]
-
-  - Reworded the exception raised when a flush
-    is attempted of a subclass that is not polymorphic
-    against the supertype.  [ticket:2063]
-
-  - Some fixes to the state handling regarding 
-    backrefs, typically when autoflush=False, where
-    the back-referenced collection wouldn't 
-    properly handle add/removes with no net 
-    change.  Thanks to Richard Murri for the 
-    test case + patch.  [ticket:2123]
-
-  - a "having" clause would be copied from the
-    inside to the outside query if from_self()
-    were used. [ticket:2130].
-
 - sql
   - Column.copy(), as used in table.tometadata(), copies the 
     'doc' attribute.  [ticket:2028]
@@ -176,27 +322,6 @@ CHANGES
     of an insert()/update() statement will also use the new
     compilation rules. [ticket:2042]
 
-  - Added accessors to ResultProxy "returns_rows", "is_insert"
-    [ticket:2089]
-
-  - The limit/offset keywords to select() as well
-    as the value passed to select.limit()/offset()
-    will be coerced to integer.  [ticket:2116]
-
-- engine
-  - Fixed bug in QueuePool, SingletonThreadPool whereby
-    connections that were discarded via overflow or periodic
-    cleanup() were not explicitly closed, leaving garbage 
-    collection to the task instead.   This generally only
-    affects non-reference-counting backends like Jython
-    and Pypy.  Thanks to Jaimy Azle for spotting
-    this.  [ticket:2102]
-
-- sqlite
-  - Fixed bug where reflection of foreign key
-    created as "REFERENCES <tablename>" without
-    col name would fail.  [ticket:2115]
-
 - postgresql
   - When explicit sequence execution derives the name 
     of the auto-generated sequence of a SERIAL column, 
@@ -209,69 +334,15 @@ CHANGES
     exceptions, "could not receive data from server"
     [ticket:2044]
 
-  - Added RESERVED_WORDS for postgresql dialect. [ticket:2092]
-
-  - Fixed the BIT type to allow a "length" parameter, "varying"
-    parameter.  Reflection also fixed.  [ticket:2073]
-
-- informix
-
-  - Added RESERVED_WORDS informix dialect. [ticket:2092]
-
-- mssql
-  - Rewrote the query used to get the definition of a view,
-    typically when using the Inspector interface, to
-    use sys.sql_modules instead of the information schema,
-    thereby allowing views definitions longer than 4000 
-    characters to be fully returned.  [ticket:2071]
-
 - mysql
   - oursql dialect accepts the same "ssl" arguments in 
     create_engine() as that of MySQLdb.  [ticket:2047]
-
-- firebird
-  - The "implicit_returning" flag on create_engine() is
-    honored if set to False.  [ticket:2083]
-
-- oracle
-  - Using column names that would require quotes
-    for the column itself or for a name-generated
-    bind parameter, such as names with special
-    characters, underscores, non-ascii characters,
-    now properly translate bind parameter keys when
-    talking to cx_oracle.  [ticket:2100]
-
-  - Oracle dialect adds use_binds_for_limits=False
-    create_engine() flag, will render the LIMIT/OFFSET
-    values inline instead of as binds, reported to
-    modify the execution plan used by Oracle.
-    [ticket:2116]
-
-- ext
-  - The horizontal_shard ShardedSession class accepts the common
-    Session argument "query_cls" as a constructor argument,
-    to enable further subclassing of ShardedQuery.
-    [ticket:2090]
 
 - declarative
   - Added an explicit check for the case that the name
     'metadata' is used for a column attribute on a 
     declarative class. [ticket:2050]
 
-  - Fix error message referencing old @classproperty
-    name to reference @declared_attr [ticket:2061]
-
-  - Arguments in __mapper_args__ that aren't "hashable"
-    aren't mistaken for always-hashable, possibly-column
-    arguments.  [ticket:2091]
-
-- documentation
-  - Documented SQLite DATE/TIME/DATETIME types.
-    [ticket:2029]
-
-- examples
-  - The Beaker caching example allows a "query_cls" argument
-    to the query_callable() function.  [ticket:2090]
 
 0.6.6
 =====
@@ -2101,7 +2172,7 @@ CHANGES
     hex identifier string.  [ticket:1555]
 
   - The visit_pool() method of Dialect is removed, and replaced with
-    on_connect().  This method returns a callable which receives
+    connect().  This method returns a callable which receives
     the raw DBAPI connection after each one is created.   The callable
     is assembled into a first_connect/connect pool listener by the 
     connection strategy if non-None.   Provides a simpler interface 
@@ -4954,8 +5025,8 @@ CHANGES
       joined-table inheritance subclasses, using explicit join
       criteria (i.e. not on a relation).
 
-    - @orm.attributes.on_reconstitute and
-      MapperExtension.on_reconstitute have been renamed to
+    - @orm.attributes.reconstitute and
+      MapperExtension.reconstitute have been renamed to
       @orm.reconstructor and MapperExtension.reconstruct_instance
 
     - Fixed @reconstructor hook for subclasses which inherit from a

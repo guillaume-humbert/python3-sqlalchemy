@@ -11,23 +11,24 @@ mapped attributes.
 
 """
 
-from sqlalchemy import sql, util, log
-import sqlalchemy.exceptions as sa_exc
+from sqlalchemy import sql, util, log, exc as sa_exc
 from sqlalchemy.sql.util import ClauseAdapter, criterion_as_pairs, \
     join_condition
 from sqlalchemy.sql import operators, expression
 from sqlalchemy.orm import attributes, dependency, mapper, \
-    object_mapper, strategies
+    object_mapper, strategies, configure_mappers
 from sqlalchemy.orm.util import CascadeOptions, _class_to_mapper, \
     _orm_annotate, _orm_deannotate
 from sqlalchemy.orm.interfaces import MANYTOMANY, MANYTOONE, \
     MapperProperty, ONETOMANY, PropComparator, StrategizedProperty
+mapperlib = util.importlater("sqlalchemy.orm", "mapperlib")
 NoneType = type(None)
 
 __all__ = ('ColumnProperty', 'CompositeProperty', 'SynonymProperty',
-           'ComparableProperty', 'RelationshipProperty', 'RelationProperty',
-           'BackRef')
+           'ComparableProperty', 'RelationshipProperty', 'RelationProperty')
 
+from descriptor_props import CompositeProperty, SynonymProperty, \
+            ComparableProperty,ConcreteInheritedProperty
 
 class ColumnProperty(StrategizedProperty):
     """Describes an object attribute that corresponds to a table column."""
@@ -102,7 +103,7 @@ class ColumnProperty(StrategizedProperty):
     def do_init(self):
         super(ColumnProperty, self).do_init()
         if len(self.columns) > 1 and \
-                self.parent.primary_key.issuperset(self.columns):
+                set(self.parent.primary_key).issuperset(self.columns):
             util.warn(
                 ("On mapper %s, primary key column '%s' is being combined "
                  "with distinct primary key column '%s' in attribute '%s'.  "
@@ -117,15 +118,10 @@ class ColumnProperty(StrategizedProperty):
                         active_history=self.active_history,
                         *self.columns)
 
-    def _getattr(self, state, dict_, column, passive=False):
-        return state.get_impl(self.key).get(state, dict_, passive=passive)
-
-    def _getcommitted(self, state, dict_, column, passive=False):
+    def _getcommitted(self, state, dict_, column, 
+                    passive=attributes.PASSIVE_OFF):
         return state.get_impl(self.key).\
                     get_committed_value(state, dict_, passive=passive)
-
-    def _setattr(self, state, dict_, value, column):
-        state.get_impl(self.key).set(state, dict_, value, None)
 
     def merge(self, session, source_state, source_dict, dest_state, 
                                 dest_dict, load, _recursive):
@@ -140,9 +136,6 @@ class ColumnProperty(StrategizedProperty):
         else:
             if dest_state.has_identity and self.key not in dest_dict:
                 dest_state.expire_attributes(dest_dict, [self.key])
-
-    def get_col_value(self, column, value):
-        return value
 
     class Comparator(PropComparator):
         @util.memoized_instancemethod
@@ -169,259 +162,7 @@ class ColumnProperty(StrategizedProperty):
 
 log.class_logger(ColumnProperty)
 
-class CompositeProperty(ColumnProperty):
-    """subclasses ColumnProperty to provide composite type support."""
 
-    def __init__(self, class_, *columns, **kwargs):
-        super(CompositeProperty, self).__init__(*columns, **kwargs)
-        self._col_position_map = util.column_dict(
-                                            (c, i) for i, c 
-                                            in enumerate(columns))
-        self.composite_class = class_
-        self.strategy_class = strategies.CompositeColumnLoader
-
-    def copy(self):
-        return CompositeProperty(
-                        deferred=self.deferred, 
-                        group=self.group,
-                        composite_class=self.composite_class, 
-                        active_history=self.active_history,
-                        *self.columns)
-
-    def do_init(self):
-        # skip over ColumnProperty's do_init(),
-        # which issues assertions that do not apply to CompositeColumnProperty
-        super(ColumnProperty, self).do_init()
-
-    def _getattr(self, state, dict_, column, passive=False):
-        obj = state.get_impl(self.key).get(state, dict_, passive=passive)
-        return self.get_col_value(column, obj)
-
-    def _getcommitted(self, state, dict_, column, passive=False):
-        # TODO: no coverage here
-        obj = state.get_impl(self.key).\
-                        get_committed_value(state, dict_, passive=passive)
-        return self.get_col_value(column, obj)
-
-    def _setattr(self, state, dict_, value, column):
-
-        obj = state.get_impl(self.key).get(state, dict_)
-        if obj is None:
-            obj = self.composite_class(*[None for c in self.columns])
-            state.get_impl(self.key).set(state, state.dict, obj, None)
-
-        if hasattr(obj, '__set_composite_values__'):
-            values = list(obj.__composite_values__())
-            values[self._col_position_map[column]] = value
-            obj.__set_composite_values__(*values)
-        else:
-            setattr(obj, column.key, value)
-
-    def get_col_value(self, column, value):
-        if value is None:
-            return None
-        for a, b in zip(self.columns, value.__composite_values__()):
-            if a.shares_lineage(column): 
-                return b
-
-    class Comparator(PropComparator):
-        def __clause_element__(self):
-            if self.adapter:
-                # TODO: test coverage for adapted composite comparison
-                return expression.ClauseList(
-                            *[self.adapter(x) for x in self.prop.columns])
-            else:
-                return expression.ClauseList(*self.prop.columns)
-
-        __hash__ = None
-
-        def __eq__(self, other):
-            if other is None:
-                values = [None] * len(self.prop.columns)
-            else:
-                values = other.__composite_values__()
-            return sql.and_(
-                    *[a==b for a, b in zip(self.prop.columns, values)])
-
-        def __ne__(self, other):
-            return sql.not_(self.__eq__(other))
-
-    def __str__(self):
-        return str(self.parent.class_.__name__) + "." + self.key
-
-class DescriptorProperty(MapperProperty):
-    """:class:`MapperProperty` which proxies access to a 
-        plain descriptor."""
-
-    def setup(self, context, entity, path, adapter, **kwargs):
-        pass
-
-    def create_row_processor(self, selectcontext, path, mapper, row, adapter):
-        return None, None, None
-
-    def merge(self, session, source_state, source_dict, 
-                dest_state, dest_dict, load, _recursive):
-        pass
-
-
-class ConcreteInheritedProperty(DescriptorProperty):
-    """A 'do nothing' :class:`MapperProperty` that disables 
-    an attribute on a concrete subclass that is only present
-    on the inherited mapper, not the concrete classes' mapper.
-
-    Cases where this occurs include:
-
-    * When the superclass mapper is mapped against a 
-      "polymorphic union", which includes all attributes from 
-      all subclasses.
-    * When a relationship() is configured on an inherited mapper,
-      but not on the subclass mapper.  Concrete mappers require
-      that relationship() is configured explicitly on each 
-      subclass. 
-
-    """
-
-    def instrument_class(self, mapper):
-        def warn():
-            raise AttributeError("Concrete %s does not implement "
-                "attribute %r at the instance level.  Add this "
-                "property explicitly to %s." % 
-                (self.parent, self.key, self.parent))
-
-        class NoninheritedConcreteProp(object):
-            def __set__(s, obj, value):
-                warn()
-            def __delete__(s, obj):
-                warn()
-            def __get__(s, obj, owner):
-                warn()
-
-        comparator_callable = None
-        # TODO: put this process into a deferred callable?
-        for m in self.parent.iterate_to_root():
-            p = m.get_property(self.key, _compile_mappers=False)
-            if not isinstance(p, ConcreteInheritedProperty):
-                comparator_callable = p.comparator_factory
-                break
-
-        attributes.register_descriptor(
-            mapper.class_, 
-            self.key, 
-            comparator=comparator_callable(self, mapper), 
-            parententity=mapper,
-            property_=self,
-            proxy_property=NoninheritedConcreteProp()
-            )
-
-
-class SynonymProperty(DescriptorProperty):
-
-    def __init__(self, name, map_column=None, 
-                            descriptor=None, comparator_factory=None,
-                            doc=None):
-        self.name = name
-        self.map_column = map_column
-        self.descriptor = descriptor
-        self.comparator_factory = comparator_factory
-        self.doc = doc or (descriptor and descriptor.__doc__) or None
-        util.set_creation_order(self)
-
-    def set_parent(self, parent, init):
-        if self.map_column:
-            # implement the 'map_column' option.
-            if self.key not in parent.mapped_table.c:
-                raise sa_exc.ArgumentError(
-                    "Can't compile synonym '%s': no column on table "
-                    "'%s' named '%s'" 
-                     % (self.name, parent.mapped_table.description, self.key))
-            elif parent.mapped_table.c[self.key] in \
-                    parent._columntoproperty and \
-                    parent._columntoproperty[
-                                            parent.mapped_table.c[self.key]
-                                        ].key == self.name:
-                raise sa_exc.ArgumentError(
-                    "Can't call map_column=True for synonym %r=%r, "
-                    "a ColumnProperty already exists keyed to the name "
-                    "%r for column %r" % 
-                    (self.key, self.name, self.name, self.key)
-                )
-            p = ColumnProperty(parent.mapped_table.c[self.key])
-            parent._configure_property(
-                                    self.name, p, 
-                                    init=init, 
-                                    setparent=True)
-            p._mapped_by_synonym = self.key
-
-        self.parent = parent
-
-    def instrument_class(self, mapper):
-
-        if self.descriptor is None:
-            desc = getattr(mapper.class_, self.key, None)
-            if mapper._is_userland_descriptor(desc):
-                self.descriptor = desc
-
-        if self.descriptor is None:
-            class SynonymProp(object):
-                def __set__(s, obj, value):
-                    setattr(obj, self.name, value)
-                def __delete__(s, obj):
-                    delattr(obj, self.name)
-                def __get__(s, obj, owner):
-                    if obj is None:
-                        return s
-                    return getattr(obj, self.name)
-
-            self.descriptor = SynonymProp()
-
-        def comparator_callable(prop, mapper):
-            def comparator():
-                prop = mapper.get_property(
-                                        self.name, resolve_synonyms=True, 
-                                        _compile_mappers=False)
-                if self.comparator_factory:
-                    return self.comparator_factory(prop, mapper)
-                else:
-                    return prop.comparator_factory(prop, mapper)
-            return comparator
-
-        attributes.register_descriptor(
-            mapper.class_, 
-            self.key, 
-            comparator=comparator_callable(self, mapper), 
-            parententity=mapper,
-            property_=self,
-            proxy_property=self.descriptor,
-            doc=self.doc
-            )
-
-
-class ComparableProperty(DescriptorProperty):
-    """Instruments a Python property for use in query expressions."""
-
-    def __init__(self, comparator_factory, descriptor=None, doc=None):
-        self.descriptor = descriptor
-        self.comparator_factory = comparator_factory
-        self.doc = doc or (descriptor and descriptor.__doc__) or None
-        util.set_creation_order(self)
-
-    def instrument_class(self, mapper):
-        """Set up a proxy to the unmanaged descriptor."""
-
-        if self.descriptor is None:
-            desc = getattr(mapper.class_, self.key, None)
-            if mapper._is_userland_descriptor(desc):
-                self.descriptor = desc
-
-        attributes.register_descriptor(
-            mapper.class_, 
-            self.key, 
-            comparator=self.comparator_factory(self, mapper), 
-            parententity=mapper,
-            property_=self,
-            proxy_property=self.descriptor,
-            doc=self.doc,
-            )
 
 
 class RelationshipProperty(StrategizedProperty):
@@ -682,11 +423,11 @@ class RelationshipProperty(StrategizedProperty):
             if self.property.direction == MANYTOONE:
                 state = attributes.instance_state(other)
 
-                def state_bindparam(state, col):
+                def state_bindparam(x, state, col):
                     o = state.obj() # strong ref
-                    return lambda : \
+                    return sql.bindparam(x, unique=True, callable_=lambda : \
                         self.property.mapper._get_committed_attr_by_column(o,
-                            col)
+                            col))
 
                 def adapt(col):
                     if self.adapter:
@@ -697,7 +438,7 @@ class RelationshipProperty(StrategizedProperty):
                 if self.property._use_get:
                     return sql.and_(*[
                         sql.or_(
-                        adapt(x) != state_bindparam(state, y),
+                        adapt(x) != state_bindparam(adapt(x), state, y),
                         adapt(x) == None)
                         for (x, y) in self.property.local_remote_pairs])
 
@@ -726,7 +467,8 @@ class RelationshipProperty(StrategizedProperty):
 
         @util.memoized_property
         def property(self):
-            self.prop.parent.compile()
+            if mapperlib.module._new_mappers:
+                configure_mappers()
             return self.prop
 
     def compare(self, op, value, 
@@ -828,9 +570,8 @@ class RelationshipProperty(StrategizedProperty):
                 dest_state.get_impl(self.key).set(dest_state,
                         dest_dict, obj, None)
 
-    def cascade_iterator(self, type_, state, visited_instances, halt_on=None):
-        if not type_ in self.cascade:
-            return
+    def cascade_iterator(self, type_, state, dict_, visited_states, halt_on=None):
+        #assert type_ in self.cascade
 
         # only actively lazy load on the 'delete' cascade
         if type_ != 'delete' or self.passive_deletes:
@@ -839,40 +580,42 @@ class RelationshipProperty(StrategizedProperty):
             passive = attributes.PASSIVE_OFF
 
         if type_ == 'save-update':
-            instances = attributes.get_state_history(state, self.key,
-                    passive=passive).sum()
+            tuples = state.manager[self.key].impl.\
+                        get_all_pending(state, dict_)
+
         else:
-            instances = state.value_as_iterable(self.key,
-                    passive=passive)
+            tuples = state.value_as_iterable(dict_, self.key,
+                            passive=passive)
+
         skip_pending = type_ == 'refresh-expire' and 'delete-orphan' \
             not in self.cascade
 
-        if instances:
-            for c in instances:
-                if c is not None and \
-                    c is not attributes.PASSIVE_NO_RESULT and \
-                    c not in visited_instances and \
-                    (halt_on is None or not halt_on(c)):
+        for instance_state, c in tuples:
+            if instance_state in visited_states:
+                continue
 
-                    if not isinstance(c, self.mapper.class_):
-                        raise AssertionError("Attribute '%s' on class '%s' "
-                                            "doesn't handle objects "
-                                            "of type '%s'" % (
-                                                self.key, 
-                                                str(self.parent.class_), 
-                                                str(c.__class__)
-                                            ))
-                    instance_state = attributes.instance_state(c)
+            instance_dict = attributes.instance_dict(c)
 
-                    if skip_pending and not instance_state.key:
-                        continue
+            if halt_on and halt_on(instance_state):
+                continue
 
-                    visited_instances.add(c)
+            if skip_pending and not instance_state.key:
+                continue
 
-                    # cascade using the mapper local to this 
-                    # object, so that its individual properties are located
-                    instance_mapper = instance_state.manager.mapper
-                    yield c, instance_mapper, instance_state
+            instance_mapper = instance_state.manager.mapper
+
+            if not instance_mapper.isa(self.mapper.class_manager.mapper):
+                raise AssertionError("Attribute '%s' on class '%s' "
+                                    "doesn't handle objects "
+                                    "of type '%s'" % (
+                                        self.key, 
+                                        self.parent.class_, 
+                                        c.__class__
+                                    ))
+
+            visited_states.add(instance_state)
+
+            yield c, instance_mapper, instance_state, instance_dict
 
 
     def _add_reverse_property(self, key):
@@ -966,7 +709,7 @@ class RelationshipProperty(StrategizedProperty):
                 if inheriting is not self.parent \
                     and inheriting.has_property(self.key):
                     util.warn("Warning: relationship '%s' on mapper "
-                              "'%s' supersedes the same relationship "
+                              "'%s' supercedes the same relationship "
                               "on inherited mapper '%s'; this can "
                               "cause dependency issues during flush"
                               % (self.key, self.parent, inheriting))
@@ -1038,7 +781,7 @@ class RelationshipProperty(StrategizedProperty):
 
     def _sync_pairs_from_join(self, join_condition, primary):
         """Given a join condition, figure out what columns are foreign
-        and are part of a binary "equated" condition to their referenced
+        and are part of a binary "equated" condition to their referecned
         columns, and convert into a list of tuples of (primary col->foreign col).
 
         Make several attempts to determine if cols are compared using 
@@ -1221,8 +964,8 @@ class RelationshipProperty(StrategizedProperty):
             elif manytoone_fk:
                 self.direction = MANYTOONE
             if not self.direction:
-                raise sa_exc.ArgumentError("Can't determine relationshi"
-                        "p direction for relationship '%s' - foreign "
+                raise sa_exc.ArgumentError("Can't determine relationship"
+                        " direction for relationship '%s' - foreign "
                         "key columns are present in both the parent "
                         "and the child's mapped tables.  Specify "
                         "'foreign_keys' argument." % self)
@@ -1236,7 +979,8 @@ class RelationshipProperty(StrategizedProperty):
                       % self)
         if self.direction is MANYTOONE and self.passive_deletes:
             util.warn("On %s, 'passive_deletes' is normally configured "
-                      "on one-to-many, one-to-one, many-to-many relationships only."
+                      "on one-to-many, one-to-one, many-to-many "
+                      "relationships only."
                        % self)
 
     def _determine_local_remote_pairs(self):
@@ -1355,10 +1099,6 @@ class RelationshipProperty(StrategizedProperty):
                 )
             mapper._configure_property(backref_key, relationship)
         if self.back_populates:
-            self.extension = list(util.to_list(self.extension,
-                                  default=[]))
-            self.extension.append(
-                    attributes.GenericBackrefExtension(self.back_populates))
             self._add_reverse_property(self.back_populates)
 
     def _post_init(self):
@@ -1392,15 +1132,8 @@ class RelationshipProperty(StrategizedProperty):
         return strategy.use_get
 
     def _refers_to_parent_table(self):
-        pt = self.parent.mapped_table
-        mt = self.mapper.mapped_table
         for c, f in self.synchronize_pairs:
-            if (
-                pt.is_derived_from(c.table) and \
-                pt.is_derived_from(f.table) and \
-                mt.is_derived_from(c.table) and \
-                mt.is_derived_from(f.table)
-            ):
+            if c.table is f.table:
                 return True
         else:
             return False
@@ -1440,7 +1173,7 @@ class RelationshipProperty(StrategizedProperty):
 
         # adjust the join condition for single table inheritance,
         # in the case that the join is to a subclass
-        # this is analogous to the "_adjust_for_single_table_inheritance()"
+        # this is analgous to the "_adjust_for_single_table_inheritance()"
         # method in Query.
 
         dest_mapper = of_type or self.mapper

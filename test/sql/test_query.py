@@ -1,11 +1,10 @@
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_, assert_raises_message, assert_raises
 import datetime
 from sqlalchemy import *
 from sqlalchemy import exc, sql, util
 from sqlalchemy.engine import default, base
-from sqlalchemy.test import *
-from sqlalchemy.test.testing import eq_, assert_raises_message, assert_raises
-from sqlalchemy.test.schema import Table, Column
+from test.lib import *
+from test.lib.schema import Table, Column
 
 class QueryTest(TestBase):
 
@@ -49,8 +48,8 @@ class QueryTest(TestBase):
     def test_insert_heterogeneous_params(self):
         """test that executemany parameters are asserted to match the parameter set of the first."""
 
-        assert_raises_message(exc.InvalidRequestError, 
-            "A value is required for bind parameter 'user_name', in parameter group 2",
+        assert_raises_message(exc.StatementError, 
+            "A value is required for bind parameter 'user_name', in parameter group 2 'INSERT INTO query_users",
             users.insert().execute,
             {'user_id':7, 'user_name':'jack'},
             {'user_id':8, 'user_name':'ed'},
@@ -341,25 +340,6 @@ class QueryTest(TestBase):
                 assert_raises(exc.NoSuchColumnError, lambda: result[0]['fake key'])
                 assert_raises(exc.NoSuchColumnError, lambda: result[0][addresses.c.address_id])
 
-    def test_column_error_printing(self):
-        row = testing.db.execute(select([1])).first()
-        class unprintable(object):
-            def __str__(self):
-                raise ValueError("nope")
-
-        msg = r"Could not locate column in row for column '%s'"
-
-        for accessor, repl in [
-            ("x", "x"),
-            (Column("q", Integer), "q"),
-            (Column("q", Integer) + 12, r"q \+ :q_1"),
-            (unprintable(), "unprintable element.*"),
-        ]:
-            assert_raises_message(
-                exc.NoSuchColumnError, 
-                msg % repl,
-                lambda: row[accessor]
-            )
 
 
     @testing.requires.boolean_col_expressions
@@ -505,6 +485,27 @@ class QueryTest(TestBase):
         a_eq(prep(r"(\:that$other)"), "(:that$other)")
         a_eq(prep(r".\:that$ :other."), ".:that$ ?.")
 
+    def test_select_from_bindparam(self):
+        """Test result row processing when selecting from a plain bind param."""
+
+        class MyInteger(TypeDecorator):
+            impl = Integer
+            def process_bind_param(self, value, dialect):
+                return int(value[4:])
+
+            def process_result_value(self, value, dialect):
+                return "INT_%d" % value
+
+        eq_(
+            testing.db.scalar(select([literal("INT_5", type_=MyInteger)])),
+            "INT_5"
+        )
+        eq_(
+            testing.db.scalar(select([literal("INT_5", type_=MyInteger).label('foo')])),
+            "INT_5"
+        )
+
+
     def test_delete(self):
         users.insert().execute(user_id = 7, user_name = 'jack')
         users.insert().execute(user_id = 8, user_name = 'fred')
@@ -596,6 +597,62 @@ class QueryTest(TestBase):
                         order_by=[users.c.user_id.desc()]),
                  [(3,), (2,), (1,)])
 
+    @testing.requires.nullsordering
+    def test_order_by_nulls(self):
+        """Exercises ORDER BY clause generation.
+
+        Tests simple, compound, aliased and DESC clauses.
+        """
+
+        users.insert().execute(user_id=1)
+        users.insert().execute(user_id=2, user_name='b')
+        users.insert().execute(user_id=3, user_name='a')
+
+        def a_eq(executable, wanted):
+            got = list(executable.execute())
+            eq_(got, wanted)
+
+        for labels in False, True:
+            a_eq(users.select(order_by=[users.c.user_name.nullsfirst()],
+                              use_labels=labels),
+                 [(1, None), (3, 'a'), (2, 'b')])
+
+            a_eq(users.select(order_by=[users.c.user_name.nullslast()],
+                              use_labels=labels),
+                 [(3, 'a'), (2, 'b'), (1, None)])
+
+            a_eq(users.select(order_by=[asc(users.c.user_name).nullsfirst()],
+                              use_labels=labels),
+                 [(1, None), (3, 'a'), (2, 'b')])
+
+            a_eq(users.select(order_by=[asc(users.c.user_name).nullslast()],
+                              use_labels=labels),
+                 [(3, 'a'), (2, 'b'), (1, None)])
+
+            a_eq(users.select(order_by=[users.c.user_name.desc().nullsfirst()],
+                              use_labels=labels),
+                 [(1, None), (2, 'b'), (3, 'a')])
+
+            a_eq(users.select(order_by=[users.c.user_name.desc().nullslast()],
+                              use_labels=labels),
+                 [(2, 'b'), (3, 'a'), (1, None)])
+
+            a_eq(users.select(order_by=[desc(users.c.user_name).nullsfirst()],
+                              use_labels=labels),
+                 [(1, None), (2, 'b'), (3, 'a')])
+
+            a_eq(users.select(order_by=[desc(users.c.user_name).nullslast()],
+                              use_labels=labels),
+                 [(2, 'b'), (3, 'a'), (1, None)])
+
+            a_eq(users.select(order_by=[users.c.user_name.nullsfirst(), users.c.user_id],
+                              use_labels=labels),
+                 [(1, None), (3, 'a'), (2, 'b')])
+
+            a_eq(users.select(order_by=[users.c.user_name.nullslast(), users.c.user_id],
+                              use_labels=labels),
+                 [(3, 'a'), (2, 'b'), (1, None)])
+
     @testing.fails_on("+pyodbc", "pyodbc row doesn't seem to accept slices")
     def test_column_slices(self):
         users.insert().execute(user_id=1, user_name='john')
@@ -649,36 +706,6 @@ class QueryTest(TestBase):
 
         eq_(r.lastrowid, 1)
 
-    def test_returns_rows_flag_insert(self):
-        r = testing.db.execute(
-            users.insert(),
-            {'user_id':1, 'user_name':'ed'}
-        )
-        assert r.is_insert
-        assert not r.returns_rows
-
-    def test_returns_rows_flag_update(self):
-        r = testing.db.execute(
-            users.update().values(user_name='fred')
-        )
-        assert not r.is_insert
-        assert not r.returns_rows
-
-    def test_returns_rows_flag_select(self):
-        r = testing.db.execute(
-            users.select()
-        )
-        assert not r.is_insert
-        assert r.returns_rows
-
-    @testing.requires.returning
-    def test_returns_rows_flag_insert_returning(self):
-        r = testing.db.execute(
-            users.insert().returning(users.c.user_id),
-            {'user_id':1, 'user_name':'ed'}
-        )
-        assert r.is_insert
-        assert r.returns_rows
 
     def test_graceful_fetch_on_non_rows(self):
         """test that calling fetchone() etc. on a result that doesn't
@@ -703,6 +730,23 @@ class QueryTest(TestBase):
                 getattr(result, meth),
             )
             trans.rollback()
+
+    def test_no_inserted_pk_on_non_insert(self):
+        result = testing.db.execute("select * from query_users")
+        assert_raises_message(
+            exc.InvalidRequestError,
+            r"Statement is not an insert\(\) expression construct.",
+            getattr, result, 'inserted_primary_key'
+        )
+
+    @testing.requires.returning
+    def test_no_inserted_pk_on_returning(self):
+        result = testing.db.execute(users.insert().returning(users.c.user_id, users.c.user_name))
+        assert_raises_message(
+            exc.InvalidRequestError,
+            r"Can't call inserted_primary_key when returning\(\) is used.",
+            getattr, result, 'inserted_primary_key'
+        )
 
     def test_fetchone_til_end(self):
         result = testing.db.execute("select * from query_users")
@@ -808,8 +852,8 @@ class QueryTest(TestBase):
     def test_cant_execute_join(self):
         try:
             users.join(addresses).execute()
-        except exc.ArgumentError, e:
-            assert str(e).startswith('Not an executable clause: ')
+        except exc.StatementError, e:
+            assert str(e).startswith('Not an executable clause ')
 
 
 
@@ -981,7 +1025,6 @@ class PercentSchemaNamesTest(TestBase):
     def teardown_class(cls):
         metadata.drop_all()
 
-    @testing.skip_if(lambda: testing.against('postgresql'), "psycopg2 2.4 no longer accepts % in bind placeholders")
     def test_single_roundtrip(self):
         percent_table.insert().execute(
             {'percent%':5, 'spaces % more spaces':12},
@@ -997,7 +1040,6 @@ class PercentSchemaNamesTest(TestBase):
         )
         self._assert_table()
 
-    @testing.skip_if(lambda: testing.against('postgresql'), "psycopg2 2.4 no longer accepts % in bind placeholders")
     @testing.crashes('mysql+mysqldb', 'MySQLdb handles executemany() inconsistently vs. execute()')
     def test_executemany_roundtrip(self):
         percent_table.insert().execute(
@@ -1720,6 +1762,15 @@ class OperatorTest(TestBase):
             select([flds.c.intcol % 3],
                    order_by=flds.c.idcol).execute().fetchall(),
             [(2,),(1,)]
+        )
+
+    @testing.requires.window_functions
+    def test_over(self):
+        eq_(
+            select([
+                flds.c.intcol, func.row_number().over(order_by=flds.c.strcol)
+            ]).execute().fetchall(),
+            [(13, 1L), (5, 2L)]
         )
 
 

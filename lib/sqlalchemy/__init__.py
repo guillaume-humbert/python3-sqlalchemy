@@ -8,7 +8,6 @@ import inspect
 import sys
 
 import sqlalchemy.exc as exceptions
-sys.modules['sqlalchemy.exceptions'] = exceptions
 
 from sqlalchemy.sql import (
     alias,
@@ -39,6 +38,7 @@ from sqlalchemy.sql import (
     or_,
     outerjoin,
     outparam,
+    over,
     select,
     subquery,
     text,
@@ -83,6 +83,7 @@ from sqlalchemy.types import (
     TIMESTAMP,
     Text,
     Time,
+    TypeDecorator,
     Unicode,
     UnicodeText,
     VARCHAR,
@@ -115,6 +116,6 @@ from sqlalchemy.engine import create_engine, engine_from_config
 __all__ = sorted(name for name, obj in locals().items()
                  if not (name.startswith('_') or inspect.ismodule(obj)))
 
-__version__ = '0.6.8'
+__version__ = '0.7b1'
 
 del inspect, sys

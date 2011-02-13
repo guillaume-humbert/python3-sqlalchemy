@@ -14,8 +14,9 @@ SQLAlchemy ORM
     session
     query
     loading
-    interfaces
+    events
     extensions/index
     examples
+    interfaces
     exceptions
 

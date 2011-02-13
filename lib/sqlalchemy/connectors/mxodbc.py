@@ -21,11 +21,8 @@ For more info on mxODBC, see http://www.egenix.com/
 import sys
 import re
 import warnings
-from decimal import Decimal
 
 from sqlalchemy.connectors import Connector
-from sqlalchemy import types as sqltypes
-import sqlalchemy.processors as processors
 
 class MxODBCConnector(Connector):
     driver='mxodbc'
@@ -109,9 +106,9 @@ class MxODBCConnector(Connector):
         opts.pop('database', None)
         return (args,), opts
 
-    def is_disconnect(self, e):
-        # eGenix recommends checking connection.closed here,
-        # but how can we get a handle on the current connection?
+    def is_disconnect(self, e, connection, cursor):
+        # TODO: eGenix recommends checking connection.closed here
+        # Does that detect dropped connections ?
         if isinstance(e, self.dbapi.ProgrammingError):
             return "connection already closed" in str(e)
         elif isinstance(e, self.dbapi.Error):

@@ -1,21 +1,10 @@
-sqlalchemy (0.6.8-1) unstable; urgency=low
+sqlalchemy (0.7~b1-1) experimental; urgency=low
 
   * New upstream release
-  * Standards-Version bumped to 3.9.2 (no changes needed)
+  * PyDist files: API bumped to 0.7 (all packages built with this package
+    will require python{,3}-sqlalchemy 0.7.X)
 
- -- Piotr Ożarowski <piotr@debian.org>  Mon, 06 Jun 2011 23:56:35 +0200
-
-sqlalchemy (0.6.7-1) unstable; urgency=low
-
-  * New upstream release
-
- -- Piotr Ożarowski <piotr@debian.org>  Thu, 14 Apr 2011 23:37:40 +0200
-
-sqlalchemy (0.6.6-2) unstable; urgency=low
-
-  * Upload to unstable
-
- -- Piotr Ożarowski <piotr@debian.org>  Sun, 27 Mar 2011 14:22:50 +0200
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 13 Feb 2011 20:54:49 +0100
 
 sqlalchemy (0.6.6-1) experimental; urgency=low
 

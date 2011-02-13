@@ -1,17 +1,17 @@
 
-from sqlalchemy.test.testing import eq_, assert_raises, \
+from test.lib.testing import eq_, assert_raises, \
     assert_raises_message
 from sqlalchemy.ext import declarative as decl
 from sqlalchemy import exc
 import sqlalchemy as sa
-from sqlalchemy.test import testing
+from test.lib import testing
 from sqlalchemy import MetaData, Integer, String, ForeignKey, \
-    ForeignKeyConstraint, Index
-from sqlalchemy.test.schema import Table, Column
+    ForeignKeyConstraint, asc, Index
+from test.lib.schema import Table, Column
 from sqlalchemy.orm import relationship, create_session, class_mapper, \
-    joinedload, compile_mappers, backref, clear_mappers, \
+    joinedload, configure_mappers, backref, clear_mappers, \
     polymorphic_union, deferred, column_property
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 from sqlalchemy.util import classproperty
 from test.orm._base import ComparableEntity, MappedTest
 from sqlalchemy.ext.declarative import declared_attr
@@ -230,7 +230,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
         assert_raises_message(exc.InvalidRequestError,
                               "'addresses' is not an instance of "
-                              "ColumnProperty", compile_mappers)
+                              "ColumnProperty", configure_mappers)
 
     def test_string_dependency_resolution_two(self):
 
@@ -248,7 +248,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
         assert_raises_message(exc.InvalidRequestError,
                               "does not have a mapped column named "
-                              "'__table__'", compile_mappers)
+                              "'__table__'", configure_mappers)
 
     def test_string_dependency_resolution_no_magic(self):
         """test that full tinkery expressions work as written"""
@@ -267,7 +267,7 @@ class DeclarativeTest(DeclarativeTestBase):
             id = Column(Integer, primary_key=True)
             user_id = Column(Integer, ForeignKey('users.id'))
 
-        compile_mappers()
+        configure_mappers()
         eq_(str(User.addresses.prop.primaryjoin),
             'users.id = addresses.user_id')
 
@@ -289,7 +289,7 @@ class DeclarativeTest(DeclarativeTestBase):
             email = Column(String(50))
             user_id = Column(Integer, ForeignKey('users.id'))
 
-        compile_mappers()
+        configure_mappers()
         eq_(str(User.addresses.property.primaryjoin),
             str(Address.user.property.primaryjoin))
 
@@ -316,7 +316,39 @@ class DeclarativeTest(DeclarativeTestBase):
                              Column('user_id', Integer,
                              ForeignKey('users.id')), Column('prop_id',
                              Integer, ForeignKey('props.id')))
-        compile_mappers()
+        configure_mappers()
+        assert class_mapper(User).get_property('props').secondary \
+            is user_to_prop
+
+    def test_string_dependency_resolution_schemas(self):
+        Base = decl.declarative_base()
+
+        class User(Base):
+
+            __tablename__ = 'users'
+            __table_args__ = {'schema':'fooschema'}
+
+            id = Column(Integer, primary_key=True)
+            name = Column(String(50))
+            props = relationship('Prop', secondary='fooschema.user_to_prop',
+                         primaryjoin='User.id==fooschema.user_to_prop.c.user_id',
+                         secondaryjoin='fooschema.user_to_prop.c.prop_id==Prop.id', 
+                         backref='users')
+
+        class Prop(Base):
+
+            __tablename__ = 'props'
+            __table_args__ = {'schema':'fooschema'}
+
+            id = Column(Integer, primary_key=True)
+            name = Column(String(50))
+
+        user_to_prop = Table('user_to_prop', Base.metadata,
+                     Column('user_id', Integer, ForeignKey('fooschema.users.id')), 
+                     Column('prop_id',Integer, ForeignKey('fooschema.props.id')),
+                     schema='fooschema')
+        configure_mappers()
+
         assert class_mapper(User).get_property('props').secondary \
             is user_to_prop
 
@@ -377,7 +409,7 @@ class DeclarativeTest(DeclarativeTestBase):
         # this used to raise an error when accessing User.id but that's
         # no longer the case since we got rid of _CompileOnAttr.
 
-        assert_raises(sa.exc.ArgumentError, compile_mappers)
+        assert_raises(sa.exc.ArgumentError, configure_mappers)
 
     def test_nice_dependency_error_works_with_hasattr(self):
 
@@ -398,7 +430,7 @@ class DeclarativeTest(DeclarativeTestBase):
                             "^One or more mappers failed to initialize - "
                             "can't proceed with initialization of other "
                             "mappers.  Original exception was: When initializing.*",
-                            compile_mappers)
+                            configure_mappers)
 
     def test_custom_base(self):
         class MyBase(object):
@@ -427,7 +459,7 @@ class DeclarativeTest(DeclarativeTestBase):
             master = relationship(Master)
 
         Base.metadata.create_all()
-        compile_mappers()
+        configure_mappers()
         assert class_mapper(Detail).get_property('master'
                 ).strategy.use_get
         m1 = Master()
@@ -454,7 +486,7 @@ class DeclarativeTest(DeclarativeTestBase):
         i = Index('my_index', User.name)
 
         # compile fails due to the nonexistent Addresses relationship
-        assert_raises(sa.exc.InvalidRequestError, compile_mappers)
+        assert_raises(sa.exc.InvalidRequestError, configure_mappers)
 
         # index configured
         assert i in User.__table__.indexes
@@ -589,50 +621,36 @@ class DeclarativeTest(DeclarativeTestBase):
         eq_(sess.query(User).all(), [User(name='u1',
             addresses=[Address(email='one'), Address(email='two')])])
 
-    @testing.uses_deprecated()
-    def test_custom_mapper(self):
-
-        class MyExt(sa.orm.MapperExtension):
-
-            def create_instance(self):
-                return 'CHECK'
+    def test_custom_mapper_attribute(self):
 
         def mymapper(cls, tbl, **kwargs):
-            kwargs['extension'] = MyExt()
-            return sa.orm.mapper(cls, tbl, **kwargs)
+            m = sa.orm.mapper(cls, tbl, **kwargs)
+            m.CHECK = True
+            return m
 
-        from sqlalchemy.orm.mapper import Mapper
+        base = decl.declarative_base()
 
-        class MyMapper(Mapper):
+        class Foo(base):
+            __tablename__ = 'foo'
+            __mapper_cls__ = mymapper
+            id = Column(Integer, primary_key=True)
 
-            def __init__(self, *args, **kwargs):
-                kwargs['extension'] = MyExt()
-                Mapper.__init__(self, *args, **kwargs)
+        eq_(Foo.__mapper__.CHECK, True)
 
-        from sqlalchemy.orm import scoping
-        ss = scoping.ScopedSession(create_session)
-        ss.extension = MyExt()
-        ss_mapper = ss.mapper
-        for mapperfunc in mymapper, MyMapper, ss_mapper:
-            base = decl.declarative_base()
+    def test_custom_mapper_argument(self):
 
-            class Foo(base):
+        def mymapper(cls, tbl, **kwargs):
+            m = sa.orm.mapper(cls, tbl, **kwargs)
+            m.CHECK = True
+            return m
 
-                __tablename__ = 'foo'
-                __mapper_cls__ = mapperfunc
-                id = Column(Integer, primary_key=True)
+        base = decl.declarative_base(mapper=mymapper)
 
-            eq_(Foo.__mapper__.compile().extension.create_instance(),
-                'CHECK')
-            base = decl.declarative_base(mapper=mapperfunc)
+        class Foo(base):
+            __tablename__ = 'foo'
+            id = Column(Integer, primary_key=True)
 
-            class Foo(base):
-
-                __tablename__ = 'foo'
-                id = Column(Integer, primary_key=True)
-
-            eq_(Foo.__mapper__.compile().extension.create_instance(),
-                'CHECK')
+        eq_(Foo.__mapper__.CHECK, True)
 
     @testing.emits_warning('Ignoring declarative-like tuple value of '
                            'attribute id')
@@ -877,6 +895,29 @@ class DeclarativeTest(DeclarativeTestBase):
 
         self.assert_sql_count(testing.db, go, 1)
 
+    def test_mapping_to_join(self):
+        users = Table('users', Base.metadata,
+            Column('id', Integer, primary_key=True)
+        )
+        addresses = Table('addresses', Base.metadata,
+            Column('id', Integer, primary_key=True),
+            Column('user_id', Integer, ForeignKey('users.id'))
+        )
+        usersaddresses = sa.join(users, addresses, users.c.id
+                                 == addresses.c.user_id)
+        class User(Base):
+            __table__ = usersaddresses
+            __table_args__ = {'primary_key':[users.c.id]}
+
+            # need to use column_property for now
+            user_id = column_property(users.c.id, addresses.c.user_id)
+            address_id = addresses.c.id
+
+        assert User.__mapper__.get_property('user_id').columns[0] \
+                                is users.c.id
+        assert User.__mapper__.get_property('user_id').columns[1] \
+                                is addresses.c.user_id
+
     def test_synonym_inline(self):
 
         class User(Base, ComparableEntity):
@@ -980,8 +1021,8 @@ class DeclarativeTest(DeclarativeTestBase):
         # the User.id inside the ForeignKey but this is no longer the
         # case
 
-        sa.orm.compile_mappers()
-        eq_(str(Address.user_id.property.columns[0].foreign_keys[0]),
+        sa.orm.configure_mappers()
+        eq_(str(list(Address.user_id.property.columns[0].foreign_keys)[0]),
             "ForeignKey('users.id')")
         Base.metadata.create_all()
         u1 = User(name='u1', addresses=[Address(email='one'),
@@ -1169,28 +1210,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         assert 'inherits' not in Person.__mapper_args__
         assert class_mapper(Engineer).polymorphic_identity is None
         assert class_mapper(Engineer).polymorphic_on is Person.__table__.c.type
-        
-    def test_we_must_only_copy_column_mapper_args(self):
 
-        class Person(Base):
-
-            __tablename__ = 'people'
-            id = Column(Integer, primary_key=True)
-            a=Column(Integer)
-            b=Column(Integer)
-            c=Column(Integer)
-            d=Column(Integer)
-            discriminator = Column('type', String(50))
-            __mapper_args__ = {'polymorphic_on': discriminator,
-                               'polymorphic_identity': 'person',
-                               'version_id_col': 'a',
-                               'column_prefix': 'bar',
-                               'include_properties': ['id', 'a', 'b'],
-                               }
-        assert class_mapper(Person).version_id_col == 'a'
-        assert class_mapper(Person).include_properties == set(['id', 'a', 'b'])
-        
-        
     def test_custom_join_condition(self):
 
         class Foo(Base):
@@ -1207,7 +1227,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
 
         # compile succeeds because inherit_condition is honored
 
-        compile_mappers()
+        configure_mappers()
 
     def test_joined(self):
 
@@ -1264,24 +1284,22 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             any(Engineer.primary_language
             == 'cobol')).first(), c2)
 
-        # ensure that the Manager mapper was compiled with the Person id
-        # column as higher priority. this ensures that "id" will get
-        # loaded from the Person row and not the possibly non-present
-        # Manager row
+        # ensure that the Manager mapper was compiled with the Manager id
+        # column as higher priority. this ensures that "Manager.id" 
+        # is appropriately treated as the "id" column in the "manager"
+        # table (reversed from 0.6's behavior.)
 
-        assert Manager.id.property.columns == [Person.__table__.c.id,
-                Manager.__table__.c.id]
+        assert Manager.id.property.columns == [Manager.__table__.c.id, Person.__table__.c.id]
 
         # assert that the "id" column is available without a second
-        # load. this would be the symptom of the previous step not being
-        # correct.
+        # load. as of 0.7, the ColumnProperty tests all columns
+        # in it's list to see which is present in the row.
 
         sess.expunge_all()
 
         def go():
             assert sess.query(Manager).filter(Manager.name == 'dogbert'
                     ).one().id
-
         self.assert_sql_count(testing.db, go, 1)
         sess.expunge_all()
 
@@ -1414,7 +1432,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         """Test that foreign keys that reference a literal 'id' subclass 
         'id' attribute behave intuitively.
 
-        See ticket 1892.
+        See [ticket:1892].
 
         """
         class Booking(Base):
@@ -1473,7 +1491,42 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             related_child1 = Column('c1', Integer)
             __mapper_args__ = dict(polymorphic_identity='child2')
 
-        sa.orm.compile_mappers()  # no exceptions here
+        sa.orm.configure_mappers()  # no exceptions here
+
+    def test_foreign_keys_with_col(self):
+        """Test that foreign keys that reference a literal 'id' subclass 
+        'id' attribute behave intuitively.
+
+        See [ticket:1892].
+
+        """
+        class Booking(Base):
+            __tablename__ = 'booking'
+            id = Column(Integer, primary_key=True)
+
+        class PlanBooking(Booking):
+            __tablename__ = 'plan_booking'
+            id = Column(Integer, ForeignKey(Booking.id),
+                            primary_key=True)
+
+        # referencing PlanBooking.id gives us the column
+        # on plan_booking, not booking
+        class FeatureBooking(Booking):
+            __tablename__ = 'feature_booking'
+            id = Column(Integer, ForeignKey(Booking.id),
+                                        primary_key=True)
+            plan_booking_id = Column(Integer,
+                                ForeignKey(PlanBooking.id))
+
+            plan_booking = relationship(PlanBooking,
+                        backref='feature_bookings')
+
+        assert FeatureBooking.__table__.c.plan_booking_id.\
+                    references(PlanBooking.__table__.c.id)
+
+        assert FeatureBooking.__table__.c.id.\
+                    references(Booking.__table__.c.id)
+
 
     def test_single_colsonbase(self):
         """test single inheritance where all the columns are on the base
@@ -1981,7 +2034,7 @@ def _produce_test(inline, stringbased):
                                 == user_id, backref='addresses')
 
             if not inline:
-                compile_mappers()
+                configure_mappers()
                 if stringbased:
                     Address.user = relationship('User',
                             primaryjoin='User.id==Address.user_id',
@@ -2537,7 +2590,7 @@ class DeclarativeMixinTest(DeclarativeTestBase):
         class Engineer(Person):
             pass
 
-        compile_mappers()
+        configure_mappers()
         assert class_mapper(Person).polymorphic_on \
             is Person.__table__.c.type
         eq_(class_mapper(Engineer).polymorphic_identity, 'Engineer')
@@ -2564,7 +2617,7 @@ class DeclarativeMixinTest(DeclarativeTestBase):
         class Engineer(Person, ComputedMapperArgs):
             pass
 
-        compile_mappers()
+        configure_mappers()
         assert class_mapper(Person).polymorphic_on \
             is Person.__table__.c.type
         eq_(class_mapper(Engineer).polymorphic_identity, 'Engineer')
@@ -3092,7 +3145,7 @@ class DeclarativeMixinPropertyTest(DeclarativeTestBase):
             __tablename__ = 'test'
             id = Column(Integer, primary_key=True)
 
-        compile_mappers()
+        configure_mappers()
         eq_(MyModel.type_.__doc__, """this is a document.""")
         eq_(MyModel.t2.__doc__, """this is another document.""")
 
@@ -3110,7 +3163,7 @@ class DeclarativeMixinPropertyTest(DeclarativeTestBase):
             __tablename__ = 'test'
             id = Column(Integer, primary_key=True)
 
-        compile_mappers()
+        configure_mappers()
         col = MyModel.__mapper__.polymorphic_on
         eq_(col.name, 'type_')
         assert col.table is not None

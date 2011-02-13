@@ -1,9 +1,11 @@
 from sqlalchemy import *
 from sqlalchemy import sql, schema
 from sqlalchemy.sql import compiler
-from sqlalchemy.test import *
+from test.lib import *
 
 class QuoteTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     @classmethod
     def setup_class(cls):
         # TODO: figure out which databases/which identifiers allow special
@@ -140,7 +142,9 @@ class QuoteTest(TestBase, AssertsCompiledSQL):
         if labels arent quoted, a query in postgresql in particular will fail since it produces:
 
         SELECT LaLa.lowercase, LaLa."UPPERCASE", LaLa."MixedCase", LaLa."ASC"
-        FROM (SELECT DISTINCT "WorstCase1".lowercase AS lowercase, "WorstCase1"."UPPERCASE" AS UPPERCASE, "WorstCase1"."MixedCase" AS MixedCase, "WorstCase1"."ASC" AS ASC \nFROM "WorstCase1") AS LaLa
+        FROM (SELECT DISTINCT "WorstCase1".lowercase AS lowercase, 
+                "WorstCase1"."UPPERCASE" AS UPPERCASE, 
+                "WorstCase1"."MixedCase" AS MixedCase, "WorstCase1"."ASC" AS ASC \nFROM "WorstCase1") AS LaLa
 
         where the "UPPERCASE" column of "LaLa" doesnt exist.
         """
@@ -165,18 +169,6 @@ class QuoteTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(x,
             '''SELECT "SomeLabel" FROM (SELECT 'FooCol' AS "SomeLabel" FROM "ImATable")''')
 
-    def test_reserved_words(self):
-        metadata = MetaData()
-        table = Table("ImATable", metadata,
-            Column("col1", Integer),
-            Column("from", Integer, key="morf"),
-            Column("louisville", Integer),
-            Column("order", Integer))
-        x = select([table.c.col1, table.c.morf, table.c.louisville, table.c.order])
-
-        self.assert_compile(x, 
-            '''SELECT "ImATable".col1, "ImATable"."from", "ImATable".louisville, "ImATable"."order" FROM "ImATable"''')
-        
 
 class PreparerTest(TestBase):
     """Test the db-agnostic quoting services of IdentifierPreparer."""

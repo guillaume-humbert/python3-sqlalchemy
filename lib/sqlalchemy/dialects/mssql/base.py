@@ -130,33 +130,16 @@ which has triggers::
         # ...,
         implicit_returning=False
     )
-
+    
 Declarative form::
 
     class MyClass(Base):
         # ...
         __table_args__ = {'implicit_returning':False}
-
-
+        
+        
 This option can also be specified engine-wide using the
 ``implicit_returning=False`` argument on :func:`.create_engine`.
-
-Enabling Snapshot Isolation
----------------------------
-
-Not necessarily specific to SQLAlchemy, SQL Server has a default transaction 
-isolation mode that locks entire tables, and causes even mildly concurrent
-applications to have long held locks and frequent deadlocks.   
-Enabling snapshot isolation for the database as a whole is recommended 
-for modern levels of concurrency support.  This is accomplished via the 
-following ALTER DATABASE commands executed at the SQL prompt::
-
-    ALTER DATABASE MyDatabase SET ALLOW_SNAPSHOT_ISOLATION ON
-
-    ALTER DATABASE MyDatabase SET READ_COMMITTED_SNAPSHOT ON
-
-Background on SQL Server snapshot isolation is available at
-http://msdn.microsoft.com/en-us/library/ms175095.aspx.
 
 Known Issues
 ------------
@@ -166,19 +149,18 @@ Known Issues
   SQL Server 2005
 
 """
-import datetime, decimal, inspect, operator, sys, re
-import itertools
+import datetime, operator, re
 
 from sqlalchemy import sql, schema as sa_schema, exc, util
 from sqlalchemy.sql import select, compiler, expression, \
                             operators as sql_operators, \
-                            functions as sql_functions, util as sql_util
+                            util as sql_util
 from sqlalchemy.engine import default, base, reflection
 from sqlalchemy import types as sqltypes
-from sqlalchemy import processors
 from sqlalchemy.types import INTEGER, BIGINT, SMALLINT, DECIMAL, NUMERIC, \
                                 FLOAT, TIMESTAMP, DATETIME, DATE, BINARY,\
                                 VARBINARY, BLOB
+
 
 from sqlalchemy.dialects.mssql import information_schema as ischema
 
@@ -223,8 +205,9 @@ class REAL(sqltypes.Float):
 
     __visit_name__ = 'REAL'
 
-    def __init__(self):
-        super(REAL, self).__init__(precision=24)
+    def __init__(self, **kw):
+        kw.setdefault('precision', 24)
+        super(REAL, self).__init__(**kw)
 
 class TINYINT(sqltypes.Integer):
     __visit_name__ = 'TINYINT'
@@ -306,8 +289,8 @@ class SMALLDATETIME(_DateTimeBase, sqltypes.DateTime):
 class DATETIME2(_DateTimeBase, sqltypes.DateTime):
     __visit_name__ = 'DATETIME2'
 
-    def __init__(self, precision=None, **kwargs):
-        super(DATETIME2, self).__init__(**kwargs)
+    def __init__(self, precision=None, **kw):
+        super(DATETIME2, self).__init__(**kw)
         self.precision = precision
 
 
@@ -327,16 +310,15 @@ class _StringType(object):
 class TEXT(_StringType, sqltypes.TEXT):
     """MSSQL TEXT type, for variable-length text up to 2^31 characters."""
 
-    def __init__(self, *args, **kw):
+    def __init__(self, length=None, collation=None, **kw):
         """Construct a TEXT.
 
         :param collation: Optional, a column-level collation for this string
           value. Accepts a Windows Collation Name or a SQL Collation Name.
 
         """
-        collation = kw.pop('collation', None)
         _StringType.__init__(self, collation)
-        sqltypes.Text.__init__(self, *args, **kw)
+        sqltypes.Text.__init__(self, length, **kw)
 
 class NTEXT(_StringType, sqltypes.UnicodeText):
     """MSSQL NTEXT type, for variable-length unicode text up to 2^30
@@ -344,24 +326,22 @@ class NTEXT(_StringType, sqltypes.UnicodeText):
 
     __visit_name__ = 'NTEXT'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, length=None, collation=None, **kw):
         """Construct a NTEXT.
 
         :param collation: Optional, a column-level collation for this string
           value. Accepts a Windows Collation Name or a SQL Collation Name.
 
         """
-        collation = kwargs.pop('collation', None)
         _StringType.__init__(self, collation)
-        length = kwargs.pop('length', None)
-        sqltypes.UnicodeText.__init__(self, length, **kwargs)
+        sqltypes.UnicodeText.__init__(self, length, **kw)
 
 
 class VARCHAR(_StringType, sqltypes.VARCHAR):
     """MSSQL VARCHAR type, for variable-length non-Unicode data with a maximum
     of 8,000 characters."""
 
-    def __init__(self, *args, **kw):
+    def __init__(self, length=None, collation=None, **kw):
         """Construct a VARCHAR.
 
         :param length: Optinal, maximum data length, in characters.
@@ -382,16 +362,15 @@ class VARCHAR(_StringType, sqltypes.VARCHAR):
           value. Accepts a Windows Collation Name or a SQL Collation Name.
 
         """
-        collation = kw.pop('collation', None)
         _StringType.__init__(self, collation)
-        sqltypes.VARCHAR.__init__(self, *args, **kw)
+        sqltypes.VARCHAR.__init__(self, length, **kw)
 
 class NVARCHAR(_StringType, sqltypes.NVARCHAR):
     """MSSQL NVARCHAR type.
 
     For variable-length unicode character data up to 4,000 characters."""
 
-    def __init__(self, *args, **kw):
+    def __init__(self, length=None, collation=None, **kw):
         """Construct a NVARCHAR.
 
         :param length: Optional, Maximum data length, in characters.
@@ -400,15 +379,14 @@ class NVARCHAR(_StringType, sqltypes.NVARCHAR):
           value. Accepts a Windows Collation Name or a SQL Collation Name.
 
         """
-        collation = kw.pop('collation', None)
         _StringType.__init__(self, collation)
-        sqltypes.NVARCHAR.__init__(self, *args, **kw)
+        sqltypes.NVARCHAR.__init__(self, length, **kw)
 
 class CHAR(_StringType, sqltypes.CHAR):
     """MSSQL CHAR type, for fixed-length non-Unicode data with a maximum
     of 8,000 characters."""
 
-    def __init__(self, *args, **kw):
+    def __init__(self, length=None, collation=None, **kw):
         """Construct a CHAR.
 
         :param length: Optinal, maximum data length, in characters.
@@ -429,16 +407,15 @@ class CHAR(_StringType, sqltypes.CHAR):
           value. Accepts a Windows Collation Name or a SQL Collation Name.
 
         """
-        collation = kw.pop('collation', None)
         _StringType.__init__(self, collation)
-        sqltypes.CHAR.__init__(self, *args, **kw)
+        sqltypes.CHAR.__init__(self, length, **kw)
 
 class NCHAR(_StringType, sqltypes.NCHAR):
     """MSSQL NCHAR type.
 
     For fixed-length unicode character data up to 4,000 characters."""
 
-    def __init__(self, *args, **kw):
+    def __init__(self, length=None, collation=None, **kw):
         """Construct an NCHAR.
 
         :param length: Optional, Maximum data length, in characters.
@@ -447,9 +424,8 @@ class NCHAR(_StringType, sqltypes.NCHAR):
           value. Accepts a Windows Collation Name or a SQL Collation Name.
 
         """
-        collation = kw.pop('collation', None)
         _StringType.__init__(self, collation)
-        sqltypes.NCHAR.__init__(self, *args, **kw)
+        sqltypes.NCHAR.__init__(self, length, **kw)
 
 class IMAGE(sqltypes.LargeBinary):
     __visit_name__ = 'IMAGE'
@@ -528,7 +504,7 @@ ischema_names = {
 
 
 class MSTypeCompiler(compiler.GenericTypeCompiler):
-    def _extend(self, spec, type_):
+    def _extend(self, spec, type_, length=None):
         """Extend a string-type declaration with standard SQL
         COLLATE annotations.
 
@@ -539,8 +515,11 @@ class MSTypeCompiler(compiler.GenericTypeCompiler):
         else:
             collation = None
 
-        if type_.length:
-            spec = spec + "(%d)" % type_.length
+        if not length:
+            length = type_.length
+
+        if length:
+            spec = spec + "(%s)" % length
 
         return ' '.join([c for c in (spec, collation)
             if c is not None])
@@ -594,7 +573,8 @@ class MSTypeCompiler(compiler.GenericTypeCompiler):
         return self._extend("TEXT", type_)
 
     def visit_VARCHAR(self, type_):
-        return self._extend("VARCHAR", type_)
+        return self._extend("VARCHAR", type_, 
+                    length = type_.length or 'max')
 
     def visit_CHAR(self, type_):
         return self._extend("CHAR", type_)
@@ -603,7 +583,8 @@ class MSTypeCompiler(compiler.GenericTypeCompiler):
         return self._extend("NCHAR", type_)
 
     def visit_NVARCHAR(self, type_):
-        return self._extend("NVARCHAR", type_)
+        return self._extend("NVARCHAR", type_, 
+                    length = type_.length or 'max')
 
     def visit_date(self, type_):
         if self.dialect.server_version_info < MS_2008_VERSION:
@@ -622,6 +603,12 @@ class MSTypeCompiler(compiler.GenericTypeCompiler):
 
     def visit_IMAGE(self, type_):
         return "IMAGE"
+
+    def visit_VARBINARY(self, type_):
+        return self._extend(
+                        "VARBINARY", 
+                        type_, 
+                        length=type_.length or 'max')
 
     def visit_boolean(self, type_):
         return self.visit_BIT(type_)
@@ -727,8 +714,8 @@ class MSSQLCompiler(compiler.SQLCompiler):
     })
 
     def __init__(self, *args, **kwargs):
-        super(MSSQLCompiler, self).__init__(*args, **kwargs)
         self.tablealiases = {}
+        super(MSSQLCompiler, self).__init__(*args, **kwargs)
 
     def visit_now_func(self, fn, **kw):
         return "CURRENT_TIMESTAMP"
@@ -757,9 +744,12 @@ class MSSQLCompiler(compiler.SQLCompiler):
         if select._distinct or select._limit:
             s = select._distinct and "DISTINCT " or ""
 
+            # ODBC drivers and possibly others
+            # don't support bind params in the SELECT clause on SQL Server.
+            # so have to use literal here.
             if select._limit:
                 if not select._offset:
-                    s += "TOP %s " % (select._limit,)
+                    s += "TOP %d " % select._limit
             return s
         return compiler.SQLCompiler.get_select_precolumns(self, select)
 
@@ -787,12 +777,12 @@ class MSSQLCompiler(compiler.SQLCompiler):
                 % orderby).label("mssql_rn")
                                    ).order_by(None).alias()
 
+            mssql_rn = sql.column('mssql_rn')
             limitselect = sql.select([c for c in select.c if
                                         c.key!='mssql_rn'])
-            limitselect.append_whereclause("mssql_rn>%d" % _offset)
+            limitselect.append_whereclause(mssql_rn> _offset)
             if _limit is not None:
-                limitselect.append_whereclause("mssql_rn<=%d" % 
-                                            (_limit + _offset))
+                limitselect.append_whereclause(mssql_rn<=(_limit + _offset))
             return self.process(limitselect, iswrapper=True, **kwargs)
         else:
             return compiler.SQLCompiler.visit_select(self, select, **kwargs)
@@ -818,6 +808,7 @@ class MSSQLCompiler(compiler.SQLCompiler):
 
     def visit_alias(self, alias, **kwargs):
         # translate for schema-qualified table aliases
+        self.tablealiases[alias.original] = alias
         kwargs['mssql_aliased'] = alias.original
         return super(MSSQLCompiler, self).visit_alias(alias, **kwargs)
 
@@ -1234,25 +1225,14 @@ class MSDialect(default.DefaultDialect):
     @reflection.cache
     def get_view_definition(self, connection, viewname, schema=None, **kw):
         current_schema = schema or self.default_schema_name
-
-        rp = connection.execute(
-            sql.text(
-                "select definition from sys.sql_modules as mod, "
-                "sys.views as views, "
-                "sys.schemas as sch"
-                " where "
-                "mod.object_id=views.object_id and "
-                "views.schema_id=sch.schema_id and "
-                "views.name=:viewname and sch.name=:schname",
-                bindparams=[
-                    sql.bindparam('viewname', viewname, 
-                            sqltypes.String(convert_unicode=True)),
-                    sql.bindparam('schname', current_schema, 
-                            sqltypes.String(convert_unicode=True))
-                ]
-            )
+        views = ischema.views
+        s = sql.select([views.c.view_definition],
+            sql.and_(
+                views.c.table_schema == current_schema,
+                views.c.table_name == viewname
+            ),
         )
-
+        rp = connection.execute(s)
         if rp:
             view_def = rp.scalar()
             return view_def

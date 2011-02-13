@@ -1,23 +1,23 @@
 # coding: utf-8
 """Tests unitofwork operations."""
 
-from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
+from test.lib.testing import eq_, assert_raises, assert_raises_message
 import datetime
 import operator
 from sqlalchemy.orm import mapper as orm_mapper
 
 import sqlalchemy as sa
-from sqlalchemy.test import engines, testing, pickleable
-from sqlalchemy import Integer, String, ForeignKey, literal_column
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from sqlalchemy import Integer, String, ForeignKey, literal_column, event
+from test.lib import engines, testing, pickleable
+from test.lib.schema import Table
+from test.lib.schema import Column
 from sqlalchemy.orm import mapper, relationship, create_session, \
     column_property, attributes, Session, reconstructor, object_session
-from sqlalchemy.test.testing import eq_, ne_
-from sqlalchemy.test.util import gc_collect
+from test.lib.testing import eq_, ne_
+from test.lib.util import gc_collect
 from test.orm import _base, _fixtures
 from test.engine import _base as engine_base
-from sqlalchemy.test.assertsql import AllOf, CompiledSQL
+from test.lib.assertsql import AllOf, CompiledSQL
 import gc
 
 class UnitOfWorkTest(object):
@@ -46,7 +46,7 @@ class HistoryTest(_fixtures.FixtureTest):
         a.user = u
         session.add(u)
 
-        self.assert_(u.addresses == [a])
+        eq_(u.addresses, [a])
         session.commit()
         session.expunge_all()
 
@@ -252,339 +252,8 @@ class BinaryHistTest(_base.MappedTest, testing.AssertsExecutionResults):
             s.flush()
         self.assert_sql_count(testing.db, go, 0)
 
-class MutableTypesTest(_base.MappedTest):
 
-    @classmethod
-    def define_tables(cls, metadata):
-        Table('mutable_t', metadata,
-            Column('id', Integer, primary_key=True,
-                   test_needs_autoincrement=True),
-            Column('data', sa.PickleType),
-            Column('val', sa.Unicode(30)))
 
-    @classmethod
-    def setup_classes(cls):
-        class Foo(_base.BasicEntity):
-            pass
-
-    @classmethod
-    @testing.resolve_artifact_names
-    def setup_mappers(cls):
-        mapper(Foo, mutable_t)
-
-    @testing.resolve_artifact_names
-    def test_modified_status(self):
-        f1 = Foo(data = pickleable.Bar(4,5))
-
-        session = Session()
-        session.add(f1)
-        session.commit()
-
-        f2 = session.query(Foo).first()
-        assert 'data' in sa.orm.attributes.instance_state(f2).unmodified
-        eq_(f2.data, f1.data)
-
-        f2.data.y = 19
-        assert f2 in session.dirty
-        assert 'data' not in sa.orm.attributes.instance_state(f2).unmodified
-
-    @testing.resolve_artifact_names
-    def test_mutations_persisted(self):
-        f1 = Foo(data = pickleable.Bar(4,5))
-
-        session = Session()
-        session.add(f1)
-        session.commit()
-        f1.data
-        session.close()
-
-        f2 = session.query(Foo).first()
-        f2.data.y = 19
-        session.commit()
-        f2.data
-        session.close()
-
-        f3 = session.query(Foo).first()
-        ne_(f3.data,f1.data)
-        eq_(f3.data, pickleable.Bar(4, 19))
-
-    @testing.resolve_artifact_names
-    def test_no_unnecessary_update(self):
-        f1 = Foo(data = pickleable.Bar(4,5), val = u'hi')
-
-        session = Session()
-        session.add(f1)
-        session.commit()
-
-        self.sql_count_(0, session.commit)
-
-        f1.val = u'someothervalue'
-        self.assert_sql(testing.db, session.commit, [
-            ("UPDATE mutable_t SET val=:val "
-             "WHERE mutable_t.id = :mutable_t_id",
-             {'mutable_t_id': f1.id, 'val': u'someothervalue'})])
-
-        f1.val = u'hi'
-        f1.data.x = 9
-        self.assert_sql(testing.db, session.commit, [
-            ("UPDATE mutable_t SET data=:data, val=:val "
-             "WHERE mutable_t.id = :mutable_t_id",
-             {'mutable_t_id': f1.id, 'val': u'hi', 'data':f1.data})])
-
-    @testing.resolve_artifact_names
-    def test_mutated_state_resurrected(self):
-        f1 = Foo(data = pickleable.Bar(4,5), val = u'hi')
-
-        session = Session()
-        session.add(f1)
-        session.commit()
-
-        f1.data.y = 19
-        del f1
-
-        gc_collect()
-        assert len(session.identity_map) == 1
-
-        session.commit()
-
-        assert session.query(Foo).one().data == pickleable.Bar(4, 19)
-
-    @testing.resolve_artifact_names
-    def test_mutated_plus_scalar_state_change_resurrected(self):
-        """test that a non-mutable attribute event subsequent to
-        a mutable event prevents the object from falling into
-        resurrected state.
-
-         """
-        f1 = Foo(data = pickleable.Bar(4, 5), val=u'some val')
-        session = Session()
-        session.add(f1)
-        session.commit()
-        f1.data.x = 10
-        f1.data.y = 15
-        f1.val=u'some new val'
-
-        assert sa.orm.attributes.instance_state(f1)._strong_obj is not None
-
-        del f1
-        session.commit()
-        eq_(
-            session.query(Foo.val).all(),
-            [('some new val', )]
-        )
-
-    @testing.resolve_artifact_names
-    def test_non_mutated_state_not_resurrected(self):
-        f1 = Foo(data = pickleable.Bar(4,5))
-
-        session = Session()
-        session.add(f1)
-        session.commit()
-
-        session = Session()
-        f1 = session.query(Foo).first()
-        del f1
-        gc_collect()
-
-        assert len(session.identity_map) == 0
-        f1 = session.query(Foo).first()
-        assert not attributes.instance_state(f1).modified
-
-    @testing.resolve_artifact_names
-    def test_scalar_no_net_change_no_update(self):
-        """Test that a no-net-change on a scalar attribute event
-        doesn't cause an UPDATE for a mutable state.
-
-         """
-
-        f1 = Foo(val=u'hi')
-
-        session = Session()
-        session.add(f1)
-        session.commit()
-        session.close()
-
-        f1 = session.query(Foo).first()
-        f1.val = u'hi'
-        self.sql_count_(0, session.commit)
-
-    @testing.resolve_artifact_names
-    def test_expire_attribute_set(self):
-        """test one SELECT emitted when assigning to an expired
-        mutable attribute - this will become 0 in 0.7.
-
-        """
-
-        f1 = Foo(data = pickleable.Bar(4, 5), val=u'some val')
-        session = Session()
-        session.add(f1)
-        session.commit()
-
-        assert 'data' not in f1.__dict__
-        def go():
-            f1.data = pickleable.Bar(10, 15)
-        self.sql_count_(1, go)
-        session.commit()
-
-        eq_(f1.data.x, 10)
-
-    @testing.resolve_artifact_names
-    def test_expire_mutate(self):
-        """test mutations are detected on an expired mutable
-        attribute."""
-
-        f1 = Foo(data = pickleable.Bar(4, 5), val=u'some val')
-        session = Session()
-        session.add(f1)
-        session.commit()
-
-        assert 'data' not in f1.__dict__
-        def go():
-            f1.data.x = 10
-        self.sql_count_(1, go)
-        session.commit()
-
-        eq_(f1.data.x, 10)
-
-    @testing.resolve_artifact_names
-    def test_deferred_attribute_set(self):
-        """test one SELECT emitted when assigning to a deferred
-        mutable attribute - this will become 0 in 0.7.
-
-        """
-        sa.orm.clear_mappers()
-        mapper(Foo, mutable_t, properties={
-            'data':sa.orm.deferred(mutable_t.c.data)
-        })
-
-        f1 = Foo(data = pickleable.Bar(4, 5), val=u'some val')
-        session = Session()
-        session.add(f1)
-        session.commit()
-
-        session.close()
-
-        f1 = session.query(Foo).first()
-        def go():
-            f1.data = pickleable.Bar(10, 15)
-        self.sql_count_(1, go)
-        session.commit()
-
-        eq_(f1.data.x, 10)
-
-    @testing.resolve_artifact_names
-    def test_deferred_mutate(self):
-        """test mutations are detected on a deferred mutable
-        attribute."""
-
-        sa.orm.clear_mappers()
-        mapper(Foo, mutable_t, properties={
-            'data':sa.orm.deferred(mutable_t.c.data)
-        })
-
-        f1 = Foo(data = pickleable.Bar(4, 5), val=u'some val')
-        session = Session()
-        session.add(f1)
-        session.commit()
-
-        session.close()
-
-        f1 = session.query(Foo).first()
-        def go():
-            f1.data.x = 10
-        self.sql_count_(1, go)
-        session.commit()
-
-        def go():
-            eq_(f1.data.x, 10)
-        self.sql_count_(1, go)
-
-
-class PickledDictsTest(_base.MappedTest):
-
-    @classmethod
-    def define_tables(cls, metadata):
-        Table('mutable_t', metadata,
-            Column('id', Integer, primary_key=True,
-                   test_needs_autoincrement=True),
-            Column('data', sa.PickleType(comparator=operator.eq)))
-
-    @classmethod
-    def setup_classes(cls):
-        class Foo(_base.BasicEntity):
-            pass
-
-    @classmethod
-    @testing.resolve_artifact_names
-    def setup_mappers(cls):
-        mapper(Foo, mutable_t)
-
-    @testing.resolve_artifact_names
-    def test_dicts(self):
-        """Dictionaries may not pickle the same way twice."""
-
-        f1 = Foo()
-        f1.data = [ {
-            'personne': {'nom': u'Smith',
-                         'pers_id': 1,
-                         'prenom': u'john',
-                         'civilite': u'Mr',
-                         'int_3': False,
-                         'int_2': False,
-                         'int_1': u'23',
-                         'VenSoir': True,
-                         'str_1': u'Test',
-                         'SamMidi': False,
-                         'str_2': u'chien',
-                         'DimMidi': False,
-                         'SamSoir': True,
-                         'SamAcc': False} } ]
-
-        session = create_session(autocommit=False)
-        session.add(f1)
-        session.commit()
-
-        self.sql_count_(0, session.commit)
-
-        f1.data = [ {
-            'personne': {'nom': u'Smith',
-                         'pers_id': 1,
-                         'prenom': u'john',
-                         'civilite': u'Mr',
-                         'int_3': False,
-                         'int_2': False,
-                         'int_1': u'23',
-                         'VenSoir': True,
-                         'str_1': u'Test',
-                         'SamMidi': False,
-                         'str_2': u'chien',
-                         'DimMidi': False,
-                         'SamSoir': True,
-                         'SamAcc': False} } ]
-
-        self.sql_count_(0, session.commit)
-
-        f1.data[0]['personne']['VenSoir']= False
-        self.sql_count_(1, session.commit)
-
-        session.expunge_all()
-        f = session.query(Foo).get(f1.id)
-        eq_(f.data,
-            [ {
-            'personne': {'nom': u'Smith',
-                         'pers_id': 1,
-                         'prenom': u'john',
-                         'civilite': u'Mr',
-                         'int_3': False,
-                         'int_2': False,
-                         'int_1': u'23',
-                         'VenSoir': False,
-                         'str_1': u'Test',
-                         'SamMidi': False,
-                         'str_2': u'chien',
-                         'DimMidi': False,
-                         'SamSoir': True,
-                         'SamAcc': False} } ])
 
 
 class PKTest(_base.MappedTest):
@@ -684,7 +353,7 @@ class ForeignPKTest(_base.MappedTest):
         m2 = mapper(Person, people, properties={
             'sites' : relationship(PersonSite)})
 
-        sa.orm.compile_mappers()
+        sa.orm.configure_mappers()
         eq_(list(m2.get_property('sites').synchronize_pairs),
             [(people.c.person, peoplesites.c.person)])
 
@@ -861,7 +530,7 @@ class PassiveDeletesTest(_base.MappedTest):
             'myclass':relationship(MyClass, cascade="all, delete", passive_deletes=True)
         })
         mapper(MyClass, mytable)
-        assert_raises(sa.exc.SAWarning, sa.orm.compile_mappers)
+        assert_raises(sa.exc.SAWarning, sa.orm.configure_mappers)
 
 class ExtraPassiveDeletesTest(_base.MappedTest):
     __requires__ = ('foreign_keys',)
@@ -1710,14 +1379,19 @@ class SaveTest(_fixtures.FixtureTest):
         """The 'batch=False' flag on mapper()"""
 
         names = []
-        class TestExtension(sa.orm.MapperExtension):
+        class Events(object):
             def before_insert(self, mapper, connection, instance):
                 self.current_instance = instance
                 names.append(instance.name)
             def after_insert(self, mapper, connection, instance):
                 assert instance is self.current_instance
 
-        mapper(User, users, extension=TestExtension(), batch=False)
+        mapper(User, users, batch=False)
+
+        evt = Events()
+        event.listen(User, "before_insert", evt.before_insert)
+        event.listen(User, "after_insert", evt.after_insert)
+
         u1 = User(name='user1')
         u2 = User(name='user2')
 
@@ -1738,7 +1412,11 @@ class SaveTest(_fixtures.FixtureTest):
 
         sa.orm.clear_mappers()
 
-        m = mapper(User, users, extension=TestExtension())
+        m = mapper(User, users)
+        evt = Events()
+        event.listen(User, "before_insert", evt.before_insert)
+        event.listen(User, "after_insert", evt.after_insert)
+
         u1 = User(name='user1')
         u2 = User(name='user2')
         session.add_all((u1, u2))
@@ -2289,7 +1967,7 @@ class DontAllowFlushOnLoadingObjectTest(_base.MappedTest):
             @reconstructor
             def go(self):
                 # blow away 'id', no change event.
-                # this simulates a callable occurring
+                # this simulates a callable occuring
                 # before 'id' was even populated, i.e. a callable
                 # within an attribute_mapped_collection
                 self.__dict__.pop('id', None)
@@ -2320,10 +1998,10 @@ class DontAllowFlushOnLoadingObjectTest(_base.MappedTest):
         # the population process would continue after the erroneous flush
         # and thing would right themselves.
         assert_raises_message(sa.orm.exc.FlushError,
-                        r"Instance \<T1 at .+?\> has a NULL "
-                        "identity key.  If this is an auto-generated value, "
-                        "check that the database table allows generation ",
-                      sess.query(T1).first)
+                              'has a NULL identity key.  Check if this '
+                              'flush is occuring at an inappropriate '
+                              'time, such as during a load operation.',
+                              sess.query(T1).first)
 
 
 

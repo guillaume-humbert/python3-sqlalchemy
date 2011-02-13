@@ -1,14 +1,16 @@
 from sqlalchemy import *
 from sqlalchemy.types import TypeEngine
 from sqlalchemy.sql.expression import ClauseElement, ColumnClause,\
-                                    FunctionElement, Select,\
+                                    FunctionElement, Select, \
                                     _BindParamClause
+
 from sqlalchemy.schema import DDLElement
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql import table, column, visitors
-from sqlalchemy.test import *
+from test.lib import *
 
 class UserDefinedTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     def test_column(self):
 
@@ -265,6 +267,7 @@ class UserDefinedTest(TestBase, AssertsCompiledSQL):
 
 class DefaultOnExistingTest(TestBase, AssertsCompiledSQL):
     """Test replacement of default compilation on existing constructs."""
+    __dialect__ = 'default'
 
     def teardown(self):
         for cls in (Select, _BindParamClause):

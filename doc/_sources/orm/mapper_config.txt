@@ -82,7 +82,7 @@ collections (new feature as of 0.6.4)::
 
 It should be noted that insert and update defaults configured on individal
 :class:`.Column` objects, such as those configured by the "default",
-"on_update", "server_default" and "server_onupdate" arguments, will continue
+"update", "server_default" and "server_onupdate" arguments, will continue
 to function normally even if those :class:`.Column` objects are not mapped.
 This functionality is part of the SQL expression and execution system and
 occurs below the level of the ORM.
@@ -382,6 +382,8 @@ function. The standard SQLAlchemy technique for descriptors is to create a
 plain descriptor, and to have it read/write from a mapped attribute with a
 different name. Below we illustrate this using Python 2.6-style properties::
 
+    from sqlalchemy.orm import mapper
+
     class EmailAddress(object):
 
         @property
@@ -401,33 +403,92 @@ The approach above will work, but there's more we can add. While our
 descriptor and into the ``_email`` mapped attribute, the class level
 ``EmailAddress.email`` attribute does not have the usual expression semantics
 usable with :class:`.Query`. To provide these, we instead use the
-:func:`.synonym` function as follows::
+:mod:`~sqlalchemy.ext.hybrid` extension as follows::
 
-    mapper(EmailAddress, addresses_table, properties={
-        'email': synonym('_email', map_column=True)
-    })
+    from sqlalchemy.ext.hybrid import hybrid_property
 
-The ``email`` attribute is now usable in the same way as any
-other mapped attribute, including filter expressions,
-get/set operations, etc.::
+    class EmailAddress(object):
 
-    address = session.query(EmailAddress).filter(EmailAddress.email == 'some address').one()
+        @hybrid_property
+        def email(self):
+            return self._email
 
-    address.email = 'some other address'
-    session.flush()
+        @email.setter
+        def email(self, email):
+            self._email = email
 
-    q = session.query(EmailAddress).filter_by(email='some other address')
+The ``email`` attribute now provides a SQL expression when used at the class level:
 
-If the mapped class does not provide a property, the :func:`.synonym` construct will create a default getter/setter object automatically.
+.. sourcecode:: python+sql
 
-To use synonyms with :mod:`~sqlalchemy.ext.declarative`, see the section 
-:ref:`declarative_synonyms`.
+    from sqlalchemy.orm import Session
+    session = Session()
 
-Note that the "synonym" feature is eventually to be replaced by the superior
-"hybrid attributes" approach, slated to become a built in feature of SQLAlchemy
-in a future release.  "hybrid" attributes are simply Python properties that evaulate
-at both the class level and at the instance level.  For an example of their usage,
-see the :mod:`derived_attributes` example.
+    {sql}address = session.query(EmailAddress).filter(EmailAddress.email == 'address@example.com').one()
+    SELECT addresses.email AS addresses_email, addresses.id AS addresses_id 
+    FROM addresses 
+    WHERE addresses.email = ?
+    ('address@example.com',)
+    {stop}
+
+    address.email = 'otheraddress@example.com'
+    {sql}session.commit()
+    UPDATE addresses SET email=? WHERE addresses.id = ?
+    ('otheraddress@example.com', 1)
+    COMMIT
+    {stop}
+
+The :class:`~.hybrid_property` also allows us to change the behavior of the attribute, including 
+defining separate behaviors when the attribute is accessed at the instance level versus at 
+the class/expression level, using the :meth:`.hybrid_property.expression` modifier.  Such
+as, if we wanted to add a host name automatically, we might define two sets of string manipulation
+logic::
+
+    class EmailAddress(object):
+        @hybrid_property
+        def email(self):
+            """Return the value of _email up until the last twelve 
+            characters."""
+
+            return self._email[:-12]
+
+        @email.setter
+        def email(self, email):
+            """Set the value of _email, tacking on the twelve character 
+            value @example.com."""
+
+            self._email = email + "@example.com"
+
+        @email.expression
+        def email(cls):
+            """Produce a SQL expression that represents the value 
+            of the _email column, minus the last twelve characters."""
+
+            return func.substr(cls._email, 0, func.length(cls._email) - 12)
+
+Above, accessing the ``email`` property of an instance of ``EmailAddress`` will return the value of 
+the ``_email`` attribute, removing
+or adding the hostname ``@example.com`` from the value.   When we query against the ``email`` attribute,
+a SQL function is rendered which produces the same effect:
+
+.. sourcecode:: python+sql
+
+    {sql}address = session.query(EmailAddress).filter(EmailAddress.email == 'address').one()
+    SELECT addresses.email AS addresses_email, addresses.id AS addresses_id 
+    FROM addresses 
+    WHERE substr(addresses.email, ?, length(addresses.email) - ?) = ?
+    (0, 12, 'address')
+    {stop}
+
+
+
+Read more about Hybrids at :ref:`hybrids_toplevel`.
+
+Synonyms
+~~~~~~~~
+
+Synonyms are a mapper-level construct that applies expression behavior to a descriptor
+based attribute.  The functionality of synonym is superceded as of 0.7 by hybrid attributes.
 
 .. autofunction:: synonym
 
@@ -438,11 +499,16 @@ Custom Comparators
 
 The expressions returned by comparison operations, such as
 ``User.name=='ed'``, can be customized, by implementing an object that
-explicitly defines each comparison method needed. This is a relatively rare
-use case. For most needs, the approach in :ref:`mapper_sql_expressions` will
-often suffice, or alternatively a scheme like that of the 
-:mod:`.derived_attributes` example.  Those approaches should be tried first
-before resorting to custom comparison objects.
+explicitly defines each comparison method needed. 
+
+This is a relatively rare use case which generally applies only to 
+highly customized types.  Usually, custom SQL behaviors can be 
+associated with a mapped class by composing together the classes'
+existing mapped attributes with other expression components, 
+using either mapped SQL expressions as those described in
+:ref:`mapper_sql_expressions`, or so-called "hybrid" attributes
+as described at :ref:`hybrids_toplevel`.  Those approaches should be 
+considered first before resorting to custom comparison objects.
 
 Each of :func:`.column_property`, :func:`~.composite`, :func:`.relationship`,
 and :func:`.comparable_property` accept an argument called
@@ -488,8 +554,15 @@ or aliasing that has been applied in the context of the generated SQL statement.
 Composite Column Types
 -----------------------
 
-Sets of columns can be associated with a single user-defined datatype.  The ORM provides a single attribute which represents the group of columns 
-using the class you provide.
+Sets of columns can be associated with a single user-defined datatype. The ORM
+provides a single attribute which represents the group of columns using the
+class you provide.
+
+.. note::
+    As of SQLAlchemy 0.7, composites have been simplified such that 
+    they no longer "conceal" the underlying column based attributes.  Additionally,
+    in-place mutation is no longer automatic; see the section below on
+    enabling mutability to support tracking of in-place changes.
 
 A simple example represents pairs of columns as a "Point" object.
 Starting with a table that represents two points as x1/y1 and x2/y2::
@@ -511,15 +584,15 @@ pair::
         def __init__(self, x, y):
             self.x = x
             self.y = y
+
         def __composite_values__(self):
             return self.x, self.y
-        def __set_composite_values__(self, x, y):
-            self.x = x
-            self.y = y
+
         def __eq__(self, other):
-            return other is not None and \
-                    other.x == self.x and \
-                    other.y == self.y
+            return isinstance(other, Point) and \
+                other.x == self.x and \
+                other.y == self.y
+
         def __ne__(self, other):
             return not self.__eq__(other)
 
@@ -529,10 +602,6 @@ format, and also provides a method ``__composite_values__()`` which
 returns the state of the object as a list or tuple, in order of its
 column-based attributes. It also should supply adequate ``__eq__()`` and
 ``__ne__()`` methods which test the equality of two instances.
-
-The ``__set_composite_values__()`` method is optional. If it's not
-provided, the names of the mapped columns are taken as the names of
-attributes on the object, and ``setattr()`` is used to set data.
 
 The :func:`.composite` function is then used in the mapping::
 
@@ -546,14 +615,43 @@ The :func:`.composite` function is then used in the mapping::
         'end': composite(Point, vertices.c.x2, vertices.c.y2)
     })
 
-We can now use the ``Vertex`` instances as well as querying as though the
-``start`` and ``end`` attributes are regular scalar attributes::
+When using :mod:`sqlalchemy.ext.declarative`, the individual 
+:class:`.Column` objects may optionally be bundled into the 
+:func:`.composite` call, ensuring that they are named::
+
+    from sqlalchemy.ext.declarative import declarative_base
+    Base = declarative_base()
+
+    class Vertex(Base):
+        __tablename__ = 'vertices'
+        id = Column(Integer, primary_key=True)
+        start = composite(Point, Column('x1', Integer), Column('y1', Integer))
+        end = composite(Point, Column('x2', Integer), Column('y2', Integer))
+
+Using either configurational approach, we can now use the ``Vertex`` instances
+as well as querying as though the ``start`` and ``end`` attributes are regular
+scalar attributes::
 
     session = Session()
     v = Vertex(Point(3, 4), Point(5, 6))
     session.add(v)
 
     v2 = session.query(Vertex).filter(Vertex.start == Point(3, 4))
+
+.. autofunction:: composite
+
+Tracking In-Place Mutations on Composites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As of SQLAlchemy 0.7, in-place changes to an existing composite value are 
+not tracked automatically.  Instead, the composite class needs to provide
+events to its parent object explicitly.   This task is largely automated 
+via the usage of the :class:`.MutableComposite` mixin, which uses events
+to associate each user-defined composite object with all parent associations.
+Please see the example in :ref:`mutable_composites`.
+
+Redefining Comparison Operations for Composites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The "equals" comparison operation by default produces an AND of all
 corresponding columns equated to one another. This can be changed using
@@ -578,9 +676,6 @@ the same expression that the base "greater than" does::
         'end': composite(Point, vertices.c.x2, vertices.c.y2,
                                     comparator_factory=PointComparator)
     })
-
-.. autofunction:: composite
-
 
 .. _maptojoin:
 

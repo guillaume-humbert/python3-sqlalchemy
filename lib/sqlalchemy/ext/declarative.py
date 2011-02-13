@@ -191,67 +191,6 @@ a class, unless the :class:`.relationship` is declared with ``viewonly=True``.
 Otherwise, the unit-of-work system may attempt duplicate INSERT and
 DELETE statements against the underlying table.
 
-.. _declarative_synonyms:
-
-Defining Synonyms
-=================
-
-Synonyms are introduced in :ref:`synonyms`. To define a getter/setter
-which proxies to an underlying attribute, use
-:func:`~.synonym` with the ``descriptor`` argument.  Here we present
-using Python 2.6 style properties::
-
-    class MyClass(Base):
-        __tablename__ = 'sometable'
-
-        id = Column(Integer, primary_key=True)
-
-        _attr = Column('attr', String)
-
-        @property
-        def attr(self):
-            return self._attr
-
-        @attr.setter
-        def attr(self, attr):
-            self._attr = attr
-
-        attr = synonym('_attr', descriptor=attr)
-
-The above synonym is then usable as an instance attribute as well as a
-class-level expression construct::
-
-    x = MyClass()
-    x.attr = "some value"
-    session.query(MyClass).filter(MyClass.attr == 'some other value').all()
-
-For simple getters, the :func:`synonym_for` decorator can be used in
-conjunction with ``@property``::
-
-    class MyClass(Base):
-        __tablename__ = 'sometable'
-
-        id = Column(Integer, primary_key=True)
-        _attr = Column('attr', String)
-
-        @synonym_for('_attr')
-        @property
-        def attr(self):
-            return self._attr
-
-Similarly, :func:`comparable_using` is a front end for the
-:func:`~.comparable_property` ORM function::
-
-    class MyClass(Base):
-        __tablename__ = 'sometable'
-
-        name = Column('name', String)
-
-        @comparable_using(MyUpperCaseComparator)
-        @property
-        def uc_name(self):
-            return self.name.upper()
-
 .. _declarative_sql_expressions:
 
 Defining SQL Expressions
@@ -819,13 +758,32 @@ from multiple collections::
         __tablename__='my_model'
 
         @declared_attr
-        def __table_args__(self):
+        def __table_args__(cls):
             args = dict()
             args.update(MySQLSettings.__table_args__)
             args.update(MyOtherMixin.__table_args__)
             return args
 
         id =  Column(Integer, primary_key=True)
+
+Creating Indexes with Mixins
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To define a named, potentially multicolumn :class:`.Index` that applies to all 
+tables derived from a mixin, use the "inline" form of :class:`.Index` and establish
+it as part of ``__table_args__``::
+
+    class MyMixin(object):
+        a =  Column(Integer)
+        b =  Column(Integer)
+        
+        @declared_attr
+        def __table_args__(cls):
+            return (Index('test_idx_%s' % cls.__tablename__, 'a', 'b'),)
+
+    class MyModel(Base,MyMixin):
+        __tablename__ = 'atable'
+        c =  Column(Integer,primary_key=True)
 
 
 Class Constructor
@@ -856,11 +814,11 @@ Mapped instances then make usage of
 
 """
 
-from sqlalchemy.schema import Table, Column, MetaData
+from sqlalchemy.schema import Table, Column, MetaData, _get_table_key
 from sqlalchemy.orm import synonym as _orm_synonym, mapper,\
                                 comparable_property, class_mapper
 from sqlalchemy.orm.interfaces import MapperProperty
-from sqlalchemy.orm.properties import RelationshipProperty, ColumnProperty
+from sqlalchemy.orm.properties import RelationshipProperty, ColumnProperty, CompositeProperty
 from sqlalchemy.orm.util import _is_mapped_class
 from sqlalchemy import util, exc
 from sqlalchemy.sql import util as sql_util, expression
@@ -946,7 +904,7 @@ def _as_declarative(cls, classname, dict_):
                     if obj.foreign_keys:
                         raise exc.InvalidRequestError(
                         "Columns with foreign keys to other columns "
-                        "must be declared as @declared_attr callables "
+                        "must be declared as @classproperty callables "
                         "on declarative mixin classes. ")
                     if name not in dict_ and not (
                             '__table__' in dict_ and 
@@ -961,7 +919,7 @@ def _as_declarative(cls, classname, dict_):
                     raise exc.InvalidRequestError(
                         "Mapper properties (i.e. deferred,"
                         "column_property(), relationship(), etc.) must "
-                        "be declared as @declared_attr callables "
+                        "be declared as @classproperty callables "
                         "on declarative mixin classes.")
                 elif isinstance(obj, declarative_props):
                     dict_[name] = ret = \
@@ -980,10 +938,9 @@ def _as_declarative(cls, classname, dict_):
 
     # make sure that column copies are used rather 
     # than the original columns from any mixins
-    for k in ('version_id_col', 'polymorphic_on',):
-        if k in mapper_args:
-            v = mapper_args[k]
-            mapper_args[k] = column_copies.get(v,v)
+    for k, v in mapper_args.iteritems():
+        mapper_args[k] = column_copies.get(v,v)
+
 
     if classname in cls._decl_class_registry:
         util.warn("The classname %r is already in the registry of this"
@@ -1022,7 +979,7 @@ def _as_declarative(cls, classname, dict_):
     # extract columns from the class dict
     cols = []
     for key, c in our_stuff.iteritems():
-        if isinstance(c, ColumnProperty):
+        if isinstance(c, (ColumnProperty, CompositeProperty)):
             for col in c.columns:
                 if isinstance(col, Column) and col.table is None:
                     _undefer_column_name(key, col)
@@ -1096,6 +1053,14 @@ def _as_declarative(cls, classname, dict_):
         inherited_mapper = class_mapper(mapper_args['inherits'],
                                             compile=False)
         inherited_table = inherited_mapper.local_table
+        if 'inherit_condition' not in mapper_args and table is not None:
+            # figure out the inherit condition with relaxed rules
+            # about nonexistent tables, to allow for ForeignKeys to
+            # not-yet-defined tables (since we know for sure that our
+            # parent table is defined within the same MetaData)
+            mapper_args['inherit_condition'] = sql_util.join_condition(
+                mapper_args['inherits'].__table__, table,
+                ignore_nonexistent_tables=True)
 
         if table is None:
             # single table inheritance.
@@ -1153,7 +1118,6 @@ def _as_declarative(cls, classname, dict_):
                     # change this ordering when we do [ticket:1892]
                     our_stuff[k] = p.columns + [col]
 
-
     cls.__mapper__ = mapper_cls(cls, 
                                 table, 
                                 properties=our_stuff, 
@@ -1193,22 +1157,32 @@ class DeclarativeMeta(type):
 class _GetColumns(object):
     def __init__(self, cls):
         self.cls = cls
-    def __getattr__(self, key):
 
+    def __getattr__(self, key):
         mapper = class_mapper(self.cls, compile=False)
         if mapper:
-            prop = mapper.get_property(key, raiseerr=False)
-            if prop is None:
+            if not mapper.has_property(key):
                 raise exc.InvalidRequestError(
                             "Class %r does not have a mapped column named %r"
                             % (self.cls, key))
-            elif not isinstance(prop, ColumnProperty):
+
+            prop = mapper.get_property(key)
+            if not isinstance(prop, ColumnProperty):
                 raise exc.InvalidRequestError(
                             "Property %r is not an instance of"
                             " ColumnProperty (i.e. does not correspond"
                             " directly to a Column)." % key)
         return getattr(self.cls, key)
 
+class _GetTable(object):
+    def __init__(self, key, metadata):
+        self.key = key
+        self.metadata = metadata
+
+    def __getattr__(self, key):
+        return self.metadata.tables[
+                _get_table_key(key, self.key)
+            ]
 
 def _deferred_relationship(cls, prop):
     def resolve_arg(arg):
@@ -1219,6 +1193,8 @@ def _deferred_relationship(cls, prop):
                 return _GetColumns(cls._decl_class_registry[key])
             elif key in cls.metadata.tables:
                 return cls.metadata.tables[key]
+            elif key in cls.metadata._schemas:
+                return _GetTable(key, cls.metadata)
             else:
                 return sqlalchemy.__dict__[key]
 

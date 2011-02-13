@@ -19,8 +19,6 @@ valid with MySQL are importable from the top level dialect::
 Types which are specific to MySQL, or have MySQL-specific 
 construction arguments, are as follows:
 
-.. currentmodule:: sqlalchemy.dialects.mysql
-
 .. autoclass:: BIGINT
     :members: __init__
     :show-inheritance:
@@ -163,6 +161,11 @@ OurSQL Notes
 --------------
 
 .. automodule:: sqlalchemy.dialects.mysql.oursql
+
+pymysql Notes
+-------------
+
+.. automodule:: sqlalchemy.dialects.mysql.pymysql
 
 MySQL-Connector Notes
 ----------------------

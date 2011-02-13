@@ -1,28 +1,29 @@
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 import datetime
 from sqlalchemy import *
 from sqlalchemy.sql import table, column
 from sqlalchemy import databases, sql, util
 from sqlalchemy.sql.compiler import BIND_TEMPLATES
 from sqlalchemy.engine import default
-from sqlalchemy.test.engines import all_dialects
+from test.lib.engines import all_dialects
 from sqlalchemy import types as sqltypes
-from sqlalchemy.test import *
+from test.lib import *
 from sqlalchemy.sql.functions import GenericFunction
-from sqlalchemy.test.testing import eq_
-from decimal import Decimal as _python_Decimal
-from sqlalchemy.test import testing
+from test.lib.testing import eq_
+from sqlalchemy.util.compat import decimal
+from test.lib import testing
 from sqlalchemy.databases import *
 
 
 class CompileTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     def test_compile(self):
         for dialect in all_dialects(exclude=('sybase', 'access', 'informix', 'maxdb')):
             bindtemplate = BIND_TEMPLATES[dialect.paramstyle]
             self.assert_compile(func.current_timestamp(), "CURRENT_TIMESTAMP", dialect=dialect)
             self.assert_compile(func.localtime(), "LOCALTIME", dialect=dialect)
-            if isinstance(dialect, (firebird.dialect, maxdb.dialect, oracle.dialect)):
+            if isinstance(dialect, (firebird.dialect, maxdb.dialect)):
                 self.assert_compile(func.nosuchfunction(), "nosuchfunction", dialect=dialect)
             else:
                 self.assert_compile(func.nosuchfunction(), "nosuchfunction()", dialect=dialect)
@@ -66,7 +67,7 @@ class CompileTest(TestBase, AssertsCompiledSQL):
             ('random()', sqlite.dialect()),
             ('random()', postgresql.dialect()),
             ('rand()', mysql.dialect()),
-            ('random', oracle.dialect())
+            ('random()', oracle.dialect())
         ]:
             self.assert_compile(func.random(), ret, dialect=dialect)
 
@@ -107,7 +108,7 @@ class CompileTest(TestBase, AssertsCompiledSQL):
                             ((datetime.date(2007, 10, 5), 
                                 datetime.date(2005, 10, 15)), sqltypes.Date),
                             ((3, 5), sqltypes.Integer),
-                            ((_python_Decimal(3), _python_Decimal(5)), sqltypes.Numeric),
+                            ((decimal.Decimal(3), decimal.Decimal(5)), sqltypes.Numeric),
                             (("foo", "bar"), sqltypes.String),
                             ((datetime.datetime(2007, 10, 5, 8, 3, 34), 
                                 datetime.datetime(2005, 10, 15, 14, 45, 33)), sqltypes.DateTime)

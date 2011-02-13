@@ -43,7 +43,7 @@ SQLAlchemy includes many :class:`~sqlalchemy.engine.base.Dialect` implementation
 backends; each is described as its own package in the :ref:`sqlalchemy.dialects_toplevel` package.  A 
 SQLAlchemy dialect always requires that an appropriate DBAPI driver is installed.
 
-The table below summarizes the state of DBAPI support in SQLAlchemy 0.6.  The values 
+The table below summarizes the state of DBAPI support in SQLAlchemy 0.7.  The values 
 translate as:
 
 * yes / Python platform - The SQLAlchemy dialect is mostly or fully operational on the target platform.
@@ -61,7 +61,9 @@ Driver                     Connect string               Py2K         Py3K       
 =========================  ===========================  ===========  ===========   ===========  =================  ============
 **DB2/Informix IDS**
 ibm-db_                    thirdparty                   thirdparty   thirdparty    thirdparty   thirdparty         thirdparty
-**Firebird**
+**Drizzle**
+mysql-python_              ``drizzle+mysqldb``\*        yes          development   no           yes                yes
+**Firebird / Interbase**
 kinterbasdb_               ``firebird+kinterbasdb``\*   yes          development   no           yes                yes
 **Informix**
 informixdb_                ``informix+informixdb``\*    yes          development   no           unknown            unknown
@@ -80,6 +82,7 @@ pymssql_                   ``mssql+pymssql``            yes          development
 `MySQL Connector/Python`_  ``mysql+mysqlconnector``     yes          yes           no           yes                yes
 mysql-python_              ``mysql+mysqldb``\*          yes          development   no           yes                yes
 OurSQL_                    ``mysql+oursql``             yes          yes           no           yes                yes
+pymysql_                   ``mysql+pymysql``            yes          development   no           yes                yes
 **Oracle**
 cx_oracle_                 ``oracle+cx_oracle``\*       yes          development   no           yes                yes
 `Oracle JDBC Driver`_      ``oracle+zxjdbc``            no           no            yes          yes                yes
@@ -104,6 +107,7 @@ python-sybase_             ``sybase+pysybase``          yes [1]_     development
 .. _mysql-python: http://sourceforge.net/projects/mysql-python
 .. _MySQL Connector/Python: https://launchpad.net/myconnpy
 .. _OurSQL: http://packages.python.org/oursql/
+.. _pymysql: http://code.google.com/p/pymysql/
 .. _PostgreSQL JDBC Driver: http://jdbc.postgresql.org/
 .. _sqlite3: http://docs.python.org/library/sqlite3.html
 .. _pysqlite: http://pypi.python.org/pypi/pysqlite/
@@ -207,18 +211,19 @@ To use a SQLite ``:memory:`` database, specify an empty URL::
 
     sqlite_memory_db = create_engine('sqlite://')
 
-The :class:`~sqlalchemy.engine.base.Engine` will ask the connection pool for a
+The :class:`.Engine` will ask the connection pool for a
 connection when the ``connect()`` or ``execute()`` methods are called. The
-default connection pool, :class:`~sqlalchemy.pool.QueuePool`, as well as the
-default connection pool used with SQLite,
-:class:`~sqlalchemy.pool.SingletonThreadPool`, will open connections to the
+default connection pool, :class:`~.QueuePool`, will open connections to the
 database on an as-needed basis. As concurrent statements are executed,
-:class:`~sqlalchemy.pool.QueuePool` will grow its pool of connections to a
+:class:`.QueuePool` will grow its pool of connections to a
 default size of five, and will allow a default "overflow" of ten. Since the
-:class:`~sqlalchemy.engine.base.Engine` is essentially "home base" for the
+:class:`.Engine` is essentially "home base" for the
 connection pool, it follows that you should keep a single
-:class:`~sqlalchemy.engine.base.Engine` per database established within an
+:class:`.Engine` per database established within an
 application, rather than creating a new one for each connection.
+
+.. note:: :class:`.QueuePool` is not used by default for SQLite engines.  See
+ :ref:`sqlite_toplevel` for details on SQLite connection pool usage.
 
 .. autoclass:: sqlalchemy.engine.url.URL
     :members:
@@ -286,7 +291,7 @@ For example, to log SQL queries using Python logging instead of the ``echo=True`
     logging.basicConfig()
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-By default, the log level is set to ``logging.ERROR`` within the entire
+By default, the log level is set to ``logging.WARN`` within the entire
 ``sqlalchemy`` namespace so that no log operations occur, even within an
 application that has logging enabled otherwise.
 

@@ -13,8 +13,6 @@ URLs are of the form ``postgresql+pypostgresql://user@password@host:port/dbname[
 
 
 """
-from sqlalchemy.engine import default
-import decimal
 from sqlalchemy import util
 from sqlalchemy import types as sqltypes
 from sqlalchemy.dialects.postgresql.base import PGDialect, PGExecutionContext
@@ -69,7 +67,7 @@ class PGDialect_pypostgresql(PGDialect):
         opts.update(url.query)
         return ([], opts)
 
-    def is_disconnect(self, e):
+    def is_disconnect(self, e, connection, cursor):
         return "connection is closed" in str(e)
 
 dialect = PGDialect_pypostgresql

@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                Collection Configuration and Techniques
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Collection Configuration and Techniques
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
         <link rel="prev" title="Relationship Configuration" href="relationships.html" />
+    
 
     </head>
     <body>
@@ -38,52 +39,52 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/orm/collections.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+                » 
+    Collection Configuration and Techniques
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="relationships.html" title="previous chapter">Relationship Configuration</a>
+        Next:
+        <a href="inheritance.html" title="next chapter">Mapping Class Inheritance Hierarchies</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="relationships.html" title="previous chapter">Relationship Configuration</a>
-            </li>
-            <li>Next:
-            <a href="inheritance.html" title="next chapter">Mapping Class Inheritance Hierarchies</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/collections.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                Collection Configuration and Techniques
-             
-
-        <h2>
-            
-                Collection Configuration and Techniques
-            
-        </h2>
-        <ul>
+                <h2>
+                    
+    Collection Configuration and Techniques
+ 
+                </h2>
+            </div>
+                <ul>
 <li><a class="reference internal" href="#">Collection Configuration and Techniques</a><ul>
 <li><a class="reference internal" href="#working-with-large-collections">Working with Large Collections</a><ul>
 <li><a class="reference internal" href="#dynamic-relationship-loaders">Dynamic Relationship Loaders</a></li>
@@ -103,13 +104,12 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="collection-configuration-and-techniques">
 <span id="collections-toplevel"></span><h1>Collection Configuration and Techniques<a class="headerlink" href="#collection-configuration-and-techniques" title="Permalink to this headline">¶</a></h1>
 <p>The <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function defines a linkage between two classes.
@@ -488,7 +488,7 @@ after a session flush.</p>
 <dd><p>Decorators for entity collection classes.</p>
 <p>The decorators fall into two groups: annotations and interception recipes.</p>
 <p>The annotating decorators (appender, remover, iterator,
-internally_instrumented, on_link) indicate the method&#8217;s purpose and take no
+internally_instrumented, link) indicate the method&#8217;s purpose and take no
 arguments.  They are not written with parens:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@collection.appender</span>
 <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">append</span><span class="p">):</span> <span class="o">...</span></pre></div>
@@ -614,8 +614,8 @@ return an iterator over all collection members:</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="sqlalchemy.orm.collections.collection.on_link">
-<em class="property">static </em><tt class="descname">on_link</tt><big>(</big><em>fn</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.collection.on_link" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.orm.collections.collection.link">
+<em class="property">static </em><tt class="descname">link</tt><big>(</big><em>fn</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.collection.link" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tag the method as a the &#8220;linked to attribute&#8221; event handler.</p>
 <p>This optional event handler will be called when the collection class
 is linked to or unlinked from the InstrumentedAttribute.  It is
@@ -761,20 +761,28 @@ unreachable instances &#8220;lost&#8221; in the collection.</p>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="relationships.html" title="previous chapter">Relationship Configuration</a>
+        Next:
+        <a href="inheritance.html" title="next chapter">Mapping Class Inheritance Hierarchies</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="relationships.html" title="previous chapter">Relationship Configuration</a>
-            Next:
-            <a href="inheritance.html" title="next chapter">Mapping Class Inheritance Hierarchies</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

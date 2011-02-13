@@ -1,34 +1,32 @@
 
-from sqlalchemy.test.testing import assert_raises, assert_raises_message
+from test.lib.testing import assert_raises, assert_raises_message
 import sqlalchemy as sa
-from sqlalchemy import MetaData, Integer, ForeignKey, util
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
-from sqlalchemy.orm import mapper, relationship, create_session, attributes, class_mapper, clear_mappers
-from sqlalchemy.test.testing import eq_, ne_
-from sqlalchemy.util import function_named
+from sqlalchemy import MetaData, Integer, ForeignKey, util, event
+from sqlalchemy.orm import mapper, relationship, create_session, \
+    attributes, class_mapper, clear_mappers, instrumentation, events
+from test.lib.schema import Table
+from test.lib.schema import Column
+from test.lib.testing import eq_, ne_
+from test.lib.util import decorator
 from test.orm import _base
 
-
-def modifies_instrumentation_finders(fn):
-    def decorated(*args, **kw):
-        pristine = attributes.instrumentation_finders[:]
-        try:
-            fn(*args, **kw)
-        finally:
-            del attributes.instrumentation_finders[:]
-            attributes.instrumentation_finders.extend(pristine)
-    return function_named(decorated, fn.func_name)
+@decorator
+def modifies_instrumentation_finders(fn, *args, **kw):
+    pristine = instrumentation.instrumentation_finders[:]
+    try:
+        fn(*args, **kw)
+    finally:
+        del instrumentation.instrumentation_finders[:]
+        instrumentation.instrumentation_finders.extend(pristine)
 
 def with_lookup_strategy(strategy):
-    def decorate(fn):
-        def wrapped(*args, **kw):
-            try:
-                attributes._install_lookup_strategy(strategy)
-                return fn(*args, **kw)
-            finally:
-                attributes._install_lookup_strategy(sa.util.symbol('native'))
-        return function_named(wrapped, fn.func_name)
+    @decorator
+    def decorate(fn, *args, **kw):
+        try:
+            instrumentation._install_lookup_strategy(strategy)
+            return fn(*args, **kw)
+        finally:
+            instrumentation._install_lookup_strategy(sa.util.symbol('native'))
     return decorate
 
 
@@ -42,12 +40,12 @@ class InitTest(_base.ORMTest):
 
     def register(self, cls, canary):
         original_init = cls.__init__
-        attributes.register_class(cls)
+        instrumentation.register_class(cls)
         ne_(cls.__init__, original_init)
-        manager = attributes.manager_of_class(cls)
-        def on_init(state, instance, args, kwargs):
-            canary.append((cls, 'on_init', type(instance)))
-        manager.events.add_listener('on_init', on_init)
+        manager = instrumentation.manager_of_class(cls)
+        def init(state, args, kwargs):
+            canary.append((cls, 'init', state.class_))
+        event.listen(manager, 'init', init, raw=True)
 
     def test_ai(self):
         inits = []
@@ -66,7 +64,7 @@ class InitTest(_base.ORMTest):
         self.register(A, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A)])
+        eq_(inits, [(A, 'init', A)])
 
     def test_Ai(self):
         inits = []
@@ -77,7 +75,7 @@ class InitTest(_base.ORMTest):
         self.register(A, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A), (A, '__init__')])
+        eq_(inits, [(A, 'init', A), (A, '__init__')])
 
     def test_ai_B(self):
         inits = []
@@ -95,7 +93,7 @@ class InitTest(_base.ORMTest):
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B), (A, '__init__')])
+        eq_(inits, [(B, 'init', B), (A, '__init__')])
 
     def test_ai_Bi(self):
         inits = []
@@ -116,7 +114,7 @@ class InitTest(_base.ORMTest):
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B), (B, '__init__'), (A, '__init__')])
+        eq_(inits, [(B, 'init', B), (B, '__init__'), (A, '__init__')])
 
     def test_Ai_bi(self):
         inits = []
@@ -132,12 +130,12 @@ class InitTest(_base.ORMTest):
                 super(B, self).__init__()
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A), (A, '__init__')])
+        eq_(inits, [(A, 'init', A), (A, '__init__')])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, '__init__'), (A, 'on_init', B), (A, '__init__')])
+        eq_(inits, [(B, '__init__'), (A, 'init', B), (A, '__init__')])
 
     def test_Ai_Bi(self):
         inits = []
@@ -154,12 +152,12 @@ class InitTest(_base.ORMTest):
         self.register(B, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A), (A, '__init__')])
+        eq_(inits, [(A, 'init', A), (A, '__init__')])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B), (B, '__init__'), (A, '__init__')])
+        eq_(inits, [(B, 'init', B), (B, '__init__'), (A, '__init__')])
 
     def test_Ai_B(self):
         inits = []
@@ -173,12 +171,12 @@ class InitTest(_base.ORMTest):
         self.register(B, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A), (A, '__init__')])
+        eq_(inits, [(A, 'init', A), (A, '__init__')])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B), (A, '__init__')])
+        eq_(inits, [(B, 'init', B), (A, '__init__')])
 
     def test_Ai_Bi_Ci(self):
         inits = []
@@ -201,16 +199,16 @@ class InitTest(_base.ORMTest):
         self.register(C, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A), (A, '__init__')])
+        eq_(inits, [(A, 'init', A), (A, '__init__')])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B), (B, '__init__'), (A, '__init__')])
+        eq_(inits, [(B, 'init', B), (B, '__init__'), (A, '__init__')])
 
         del inits[:]
         obj = C()
-        eq_(inits, [(C, 'on_init', C), (C, '__init__'), (B, '__init__'),
+        eq_(inits, [(C, 'init', C), (C, '__init__'), (B, '__init__'),
                    (A, '__init__')])
 
     def test_Ai_bi_Ci(self):
@@ -233,16 +231,16 @@ class InitTest(_base.ORMTest):
         self.register(C, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A), (A, '__init__')])
+        eq_(inits, [(A, 'init', A), (A, '__init__')])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, '__init__'), (A, 'on_init', B), (A, '__init__')])
+        eq_(inits, [(B, '__init__'), (A, 'init', B), (A, '__init__')])
 
         del inits[:]
         obj = C()
-        eq_(inits, [(C, 'on_init', C), (C, '__init__'),  (B, '__init__'),
+        eq_(inits, [(C, 'init', C), (C, '__init__'),  (B, '__init__'),
                    (A, '__init__')])
 
     def test_Ai_b_Ci(self):
@@ -262,16 +260,16 @@ class InitTest(_base.ORMTest):
         self.register(C, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A), (A, '__init__')])
+        eq_(inits, [(A, 'init', A), (A, '__init__')])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(A, 'on_init', B), (A, '__init__')])
+        eq_(inits, [(A, 'init', B), (A, '__init__')])
 
         del inits[:]
         obj = C()
-        eq_(inits, [(C, 'on_init', C), (C, '__init__'), (A, '__init__')])
+        eq_(inits, [(C, 'init', C), (C, '__init__'), (A, '__init__')])
 
     def test_Ai_B_Ci(self):
         inits = []
@@ -291,16 +289,16 @@ class InitTest(_base.ORMTest):
         self.register(C, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A), (A, '__init__')])
+        eq_(inits, [(A, 'init', A), (A, '__init__')])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B), (A, '__init__')])
+        eq_(inits, [(B, 'init', B), (A, '__init__')])
 
         del inits[:]
         obj = C()
-        eq_(inits, [(C, 'on_init', C), (C, '__init__'), (A, '__init__')])
+        eq_(inits, [(C, 'init', C), (C, '__init__'), (A, '__init__')])
 
     def test_Ai_B_C(self):
         inits = []
@@ -317,16 +315,16 @@ class InitTest(_base.ORMTest):
         self.register(C, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A), (A, '__init__')])
+        eq_(inits, [(A, 'init', A), (A, '__init__')])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B), (A, '__init__')])
+        eq_(inits, [(B, 'init', B), (A, '__init__')])
 
         del inits[:]
         obj = C()
-        eq_(inits, [(C, 'on_init', C), (A, '__init__')])
+        eq_(inits, [(C, 'init', C), (A, '__init__')])
 
     def test_A_Bi_C(self):
         inits = []
@@ -343,16 +341,16 @@ class InitTest(_base.ORMTest):
         self.register(C, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A)])
+        eq_(inits, [(A, 'init', A)])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B), (B, '__init__')])
+        eq_(inits, [(B, 'init', B), (B, '__init__')])
 
         del inits[:]
         obj = C()
-        eq_(inits, [(C, 'on_init', C), (B, '__init__')])
+        eq_(inits, [(C, 'init', C), (B, '__init__')])
 
     def test_A_B_Ci(self):
         inits = []
@@ -369,16 +367,16 @@ class InitTest(_base.ORMTest):
         self.register(C, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A)])
+        eq_(inits, [(A, 'init', A)])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B)])
+        eq_(inits, [(B, 'init', B)])
 
         del inits[:]
         obj = C()
-        eq_(inits, [(C, 'on_init', C), (C, '__init__')])
+        eq_(inits, [(C, 'init', C), (C, '__init__')])
 
     def test_A_B_C(self):
         inits = []
@@ -393,16 +391,16 @@ class InitTest(_base.ORMTest):
         self.register(C, inits)
 
         obj = A()
-        eq_(inits, [(A, 'on_init', A)])
+        eq_(inits, [(A, 'init', A)])
 
         del inits[:]
 
         obj = B()
-        eq_(inits, [(B, 'on_init', B)])
+        eq_(inits, [(B, 'init', B)])
 
         del inits[:]
         obj = C()
-        eq_(inits, [(C, 'on_init', C)])
+        eq_(inits, [(C, 'init', C)])
 
     def test_defaulted_init(self):
         class X(object):
@@ -410,7 +408,7 @@ class InitTest(_base.ORMTest):
                 self_.a = a
                 self_.b = b
                 self_.c = c
-        attributes.register_class(X)
+        instrumentation.register_class(X)
 
         o = X('foo')
         eq_(o.a, 'foo')
@@ -431,7 +429,7 @@ class InitTest(_base.ORMTest):
                 self_.u = u
                 self_.o = o
 
-        attributes.register_class(Y)
+        instrumentation.register_class(Y)
 
         o = Y()
         assert o.u is Y.unique
@@ -469,41 +467,41 @@ class MapperInitTest(_base.ORMTest):
 class InstrumentationCollisionTest(_base.ORMTest):
     def test_none(self):
         class A(object): pass
-        attributes.register_class(A)
+        instrumentation.register_class(A)
 
-        mgr_factory = lambda cls: attributes.ClassManager(cls)
+        mgr_factory = lambda cls: instrumentation.ClassManager(cls)
         class B(object):
             __sa_instrumentation_manager__ = staticmethod(mgr_factory)
-        attributes.register_class(B)
+        instrumentation.register_class(B)
 
         class C(object):
-            __sa_instrumentation_manager__ = attributes.ClassManager
-        attributes.register_class(C)
+            __sa_instrumentation_manager__ = instrumentation.ClassManager
+        instrumentation.register_class(C)
 
     def test_single_down(self):
         class A(object): pass
-        attributes.register_class(A)
+        instrumentation.register_class(A)
 
-        mgr_factory = lambda cls: attributes.ClassManager(cls)
+        mgr_factory = lambda cls: instrumentation.ClassManager(cls)
         class B(A):
             __sa_instrumentation_manager__ = staticmethod(mgr_factory)
 
-        assert_raises_message(TypeError, "multiple instrumentation implementations", attributes.register_class, B)
+        assert_raises_message(TypeError, "multiple instrumentation implementations", instrumentation.register_class, B)
 
     def test_single_up(self):
 
         class A(object): pass
         # delay registration
 
-        mgr_factory = lambda cls: attributes.ClassManager(cls)
+        mgr_factory = lambda cls: instrumentation.ClassManager(cls)
         class B(A):
             __sa_instrumentation_manager__ = staticmethod(mgr_factory)
-        attributes.register_class(B)
+        instrumentation.register_class(B)
 
-        assert_raises_message(TypeError, "multiple instrumentation implementations", attributes.register_class, A)
+        assert_raises_message(TypeError, "multiple instrumentation implementations", instrumentation.register_class, A)
 
     def test_diamond_b1(self):
-        mgr_factory = lambda cls: attributes.ClassManager(cls)
+        mgr_factory = lambda cls: instrumentation.ClassManager(cls)
 
         class A(object): pass
         class B1(A): pass
@@ -511,10 +509,10 @@ class InstrumentationCollisionTest(_base.ORMTest):
             __sa_instrumentation_manager__ = staticmethod(mgr_factory)
         class C(object): pass
 
-        assert_raises_message(TypeError, "multiple instrumentation implementations", attributes.register_class, B1)
+        assert_raises_message(TypeError, "multiple instrumentation implementations", instrumentation.register_class, B1)
 
     def test_diamond_b2(self):
-        mgr_factory = lambda cls: attributes.ClassManager(cls)
+        mgr_factory = lambda cls: instrumentation.ClassManager(cls)
 
         class A(object): pass
         class B1(A): pass
@@ -522,11 +520,11 @@ class InstrumentationCollisionTest(_base.ORMTest):
             __sa_instrumentation_manager__ = staticmethod(mgr_factory)
         class C(object): pass
 
-        attributes.register_class(B2)
-        assert_raises_message(TypeError, "multiple instrumentation implementations", attributes.register_class, B1)
+        instrumentation.register_class(B2)
+        assert_raises_message(TypeError, "multiple instrumentation implementations", instrumentation.register_class, B1)
 
     def test_diamond_c_b(self):
-        mgr_factory = lambda cls: attributes.ClassManager(cls)
+        mgr_factory = lambda cls: instrumentation.ClassManager(cls)
 
         class A(object): pass
         class B1(A): pass
@@ -534,12 +532,12 @@ class InstrumentationCollisionTest(_base.ORMTest):
             __sa_instrumentation_manager__ = staticmethod(mgr_factory)
         class C(object): pass
 
-        attributes.register_class(C)
+        instrumentation.register_class(C)
 
-        assert_raises_message(TypeError, "multiple instrumentation implementations", attributes.register_class, B1)
+        assert_raises_message(TypeError, "multiple instrumentation implementations", instrumentation.register_class, B1)
 
 class OnLoadTest(_base.ORMTest):
-    """Check that Events.on_load is not hit in regular attributes operations."""
+    """Check that Events.load is not hit in regular attributes operations."""
 
     def test_basic(self):
         import pickle
@@ -551,9 +549,9 @@ class OnLoadTest(_base.ORMTest):
         def canary(instance): assert False
 
         try:
-            attributes.register_class(A)
-            manager = attributes.manager_of_class(A)
-            manager.events.add_listener('on_load', canary)
+            instrumentation.register_class(A)
+            manager = instrumentation.manager_of_class(A)
+            event.listen(manager, 'load', canary)
 
             a = A()
             p_a = pickle.dumps(a)
@@ -564,7 +562,7 @@ class OnLoadTest(_base.ORMTest):
     @classmethod
     def teardown_class(cls):
         clear_mappers()
-        attributes._install_lookup_strategy(util.symbol('native'))
+        instrumentation._install_lookup_strategy(util.symbol('native'))
 
 
 class ExtendedEventsTest(_base.ORMTest):
@@ -572,19 +570,18 @@ class ExtendedEventsTest(_base.ORMTest):
 
     @modifies_instrumentation_finders
     def test_subclassed(self):
-        class MyEvents(attributes.Events):
+        class MyEvents(events.InstanceEvents):
             pass
-        class MyClassManager(attributes.ClassManager):
-            event_registry_factory = MyEvents
+        class MyClassManager(instrumentation.ClassManager):
+            dispatch = event.dispatcher(MyEvents)
 
-        attributes.instrumentation_finders.insert(0, lambda cls: MyClassManager)
+        instrumentation.instrumentation_finders.insert(0, lambda cls: MyClassManager)
 
         class A(object): pass
 
-        attributes.register_class(A)
-        manager = attributes.manager_of_class(A)
-        assert isinstance(manager.events, MyEvents)
-
+        instrumentation.register_class(A)
+        manager = instrumentation.manager_of_class(A)
+        assert issubclass(manager.dispatch._parent_cls.__dict__['dispatch'].events, MyEvents)
 
 
 class NativeInstrumentationTest(_base.ORMTest):
@@ -592,11 +589,11 @@ class NativeInstrumentationTest(_base.ORMTest):
     def test_register_reserved_attribute(self):
         class T(object): pass
 
-        attributes.register_class(T)
-        manager = attributes.manager_of_class(T)
+        instrumentation.register_class(T)
+        manager = instrumentation.manager_of_class(T)
 
-        sa = attributes.ClassManager.STATE_ATTR
-        ma = attributes.ClassManager.MANAGER_ATTR
+        sa = instrumentation.ClassManager.STATE_ATTR
+        ma = instrumentation.ClassManager.MANAGER_ATTR
 
         fails = lambda method, attr: assert_raises(
             KeyError, getattr(manager, method), attr, property())
@@ -610,7 +607,7 @@ class NativeInstrumentationTest(_base.ORMTest):
     def test_mapped_stateattr(self):
         t = Table('t', MetaData(),
                   Column('id', Integer, primary_key=True),
-                  Column(attributes.ClassManager.STATE_ATTR, Integer))
+                  Column(instrumentation.ClassManager.STATE_ATTR, Integer))
 
         class T(object): pass
 
@@ -620,7 +617,7 @@ class NativeInstrumentationTest(_base.ORMTest):
     def test_mapped_managerattr(self):
         t = Table('t', MetaData(),
                   Column('id', Integer, primary_key=True),
-                  Column(attributes.ClassManager.MANAGER_ATTR, Integer))
+                  Column(instrumentation.ClassManager.MANAGER_ATTR, Integer))
 
         class T(object): pass
         assert_raises(KeyError, mapper, T, t)
@@ -658,11 +655,11 @@ class MiscTest(_base.ORMTest):
     def test_uninstrument(self):
         class A(object):pass
 
-        manager = attributes.register_class(A)
+        manager = instrumentation.register_class(A)
 
-        assert attributes.manager_of_class(A) is manager
-        attributes.unregister_class(A)
-        assert attributes.manager_of_class(A) is None
+        assert instrumentation.manager_of_class(A) is manager
+        instrumentation.unregister_class(A)
+        assert instrumentation.manager_of_class(A) is None
 
     def test_compileonattr_rel_backref_a(self):
         m = MetaData()
@@ -725,35 +722,35 @@ class FinderTest(_base.ORMTest):
     def test_standard(self):
         class A(object): pass
 
-        attributes.register_class(A)
+        instrumentation.register_class(A)
 
-        eq_(type(attributes.manager_of_class(A)), attributes.ClassManager)
+        eq_(type(instrumentation.manager_of_class(A)), instrumentation.ClassManager)
 
     def test_nativeext_interfaceexact(self):
         class A(object):
             __sa_instrumentation_manager__ = sa.orm.interfaces.InstrumentationManager
 
-        attributes.register_class(A)
-        ne_(type(attributes.manager_of_class(A)), attributes.ClassManager)
+        instrumentation.register_class(A)
+        ne_(type(instrumentation.manager_of_class(A)), instrumentation.ClassManager)
 
     def test_nativeext_submanager(self):
-        class Mine(attributes.ClassManager): pass
+        class Mine(instrumentation.ClassManager): pass
         class A(object):
             __sa_instrumentation_manager__ = Mine
 
-        attributes.register_class(A)
-        eq_(type(attributes.manager_of_class(A)), Mine)
+        instrumentation.register_class(A)
+        eq_(type(instrumentation.manager_of_class(A)), Mine)
 
     @modifies_instrumentation_finders
     def test_customfinder_greedy(self):
-        class Mine(attributes.ClassManager): pass
+        class Mine(instrumentation.ClassManager): pass
         class A(object): pass
         def find(cls):
             return Mine
 
-        attributes.instrumentation_finders.insert(0, find)
-        attributes.register_class(A)
-        eq_(type(attributes.manager_of_class(A)), Mine)
+        instrumentation.instrumentation_finders.insert(0, find)
+        instrumentation.register_class(A)
+        eq_(type(instrumentation.manager_of_class(A)), Mine)
 
     @modifies_instrumentation_finders
     def test_customfinder_pass(self):
@@ -761,8 +758,8 @@ class FinderTest(_base.ORMTest):
         def find(cls):
             return None
 
-        attributes.instrumentation_finders.insert(0, find)
-        attributes.register_class(A)
-        eq_(type(attributes.manager_of_class(A)), attributes.ClassManager)
+        instrumentation.instrumentation_finders.insert(0, find)
+        instrumentation.register_class(A)
+        eq_(type(instrumentation.manager_of_class(A)), instrumentation.ClassManager)
 
 

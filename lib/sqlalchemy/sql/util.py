@@ -4,7 +4,8 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-from sqlalchemy import exc, schema, topological, util, sql, types as sqltypes
+from sqlalchemy import exc, schema, util, sql, types as sqltypes
+from sqlalchemy.util import topological
 from sqlalchemy.sql import expression, operators, visitors
 from itertools import chain
 
@@ -222,7 +223,9 @@ def join_condition(a, b, ignore_nonexistent_tables=False, a_subset=None):
     for left in (a_subset, a):
         if left is None:
             continue
-        for fk in b.foreign_keys:
+        for fk in sorted(
+                    b.foreign_keys, 
+                    key=lambda fk:fk.parent._creation_order):
             try:
                 col = fk.get_referent(left)
             except exc.NoReferencedTableError:
@@ -235,7 +238,9 @@ def join_condition(a, b, ignore_nonexistent_tables=False, a_subset=None):
                 crit.append(col == fk.parent)
                 constraints.add(fk.constraint)
         if left is not b:
-            for fk in left.foreign_keys:
+            for fk in sorted(
+                        left.foreign_keys, 
+                        key=lambda fk:fk.parent._creation_order):
                 try:
                     col = fk.get_referent(b)
                 except exc.NoReferencedTableError:
@@ -252,7 +257,8 @@ def join_condition(a, b, ignore_nonexistent_tables=False, a_subset=None):
 
     if len(crit) == 0:
         if isinstance(b, expression._FromGrouping):
-            hint = " Perhaps you meant to convert the right side to a subquery using alias()?"
+            hint = " Perhaps you meant to convert the right side to a "\
+                                "subquery using alias()?"
         else:
             hint = ""
         raise exc.ArgumentError(
@@ -334,7 +340,7 @@ class Annotated(object):
             # detect immutable, don't change anything
             return self
         else:
-            # update the clone with any changes that have occurred
+            # update the clone with any changes that have occured
             # to this object's __dict__.
             clone.__dict__.update(self.__dict__)
             return Annotated(clone, self._annotations)

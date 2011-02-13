@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                SQL Expression Language Tutorial
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    SQL Expression Language Tutorial
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="SQL Statements and Expressions" href="expression_api.html" />
         <link rel="prev" title="SQLAlchemy Core" href="index.html" />
+    
 
     </head>
     <body>
@@ -38,52 +39,52 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/core/tutorial.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+                » 
+    SQL Expression Language Tutorial
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="index.html" title="previous chapter">SQLAlchemy Core</a>
+        Next:
+        <a href="expression_api.html" title="next chapter">SQL Statements and Expressions</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="index.html" title="previous chapter">SQLAlchemy Core</a>
-            </li>
-            <li>Next:
-            <a href="expression_api.html" title="next chapter">SQL Statements and Expressions</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/tutorial.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-        » 
-                SQL Expression Language Tutorial
-             
-
-        <h2>
-            
-                SQL Expression Language Tutorial
-            
-        </h2>
-        <ul>
+                <h2>
+                    
+    SQL Expression Language Tutorial
+ 
+                </h2>
+            </div>
+                <ul>
 <li><a class="reference internal" href="#">SQL Expression Language Tutorial</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
 <li><a class="reference internal" href="#version-check">Version Check</a></li>
@@ -103,6 +104,7 @@ Search:
 <li><a class="reference internal" href="#everything-else">Everything Else</a><ul>
 <li><a class="reference internal" href="#bind-parameter-objects">Bind Parameter Objects</a></li>
 <li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#window-functions">Window Functions</a></li>
 <li><a class="reference internal" href="#unions-and-other-set-operations">Unions and Other Set Operations</a></li>
 <li><a class="reference internal" href="#scalar-selects">Scalar Selects</a></li>
 <li><a class="reference internal" href="#correlated-subqueries">Correlated Subqueries</a></li>
@@ -119,13 +121,12 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="sql-expression-language-tutorial">
 <span id="sqlexpression-toplevel"></span><h1>SQL Expression Language Tutorial<a class="headerlink" href="#sql-expression-language-tutorial" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
@@ -169,10 +170,10 @@ prerequisites.</p>
 </div>
 <div class="section" id="version-check">
 <h2>Version Check<a class="headerlink" href="#version-check" title="Permalink to this headline">¶</a></h2>
-<p>A quick check to verify that we are on at least <strong>version 0.6</strong> of SQLAlchemy:</p>
+<p>A quick check to verify that we are on at least <strong>version 0.7</strong> of SQLAlchemy:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sqlalchemy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sqlalchemy</span><span class="o">.</span><span class="n">__version__</span> 
-<span class="go">0.6.0</span></pre></div>
+<span class="go">0.7.0</span></pre></div>
 </div>
 </div>
 <div class="section" id="connecting">
@@ -246,18 +247,13 @@ without being instructed. For that, you use the <a class="reference internal" hr
 <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;user_id_seq&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <p>A full, foolproof <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is therefore:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">users</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+<div class="last highlight-python"><div class="highlight"><pre><span class="n">users</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;user_id_seq&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">)),</span>
    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;fullname&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">)),</span>
    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;password&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">12</span><span class="p">))</span>
 <span class="p">)</span></pre></div>
 </div>
-<p class="last">We include this more verbose <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> construct separately
-to highlight the difference between a minimal construct geared primarily
-towards in-Python usage only, versus one that will be used to emit CREATE
-TABLE statements on a particular set of backends with more stringent
-requirements.</p>
 </div>
 </div>
 <div class="section" id="insert-expressions">
@@ -741,7 +737,7 @@ WHERE users.name LIKE ? || '%' OR addresses.email_address LIKE ? || '@%'
 </div>
 <div class="section" id="functions">
 <h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
-<p>SQL functions are created using the <tt class="docutils literal"><span class="pre">func</span></tt> keyword, which generates functions using attribute access:</p>
+<p>SQL functions are created using the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a> keyword, which generates functions using attribute access:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">func</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
 <span class="go">now()</span>
@@ -792,6 +788,16 @@ FROM addresses
 <span class="go">{u&#39;x_2&#39;: 5, u&#39;y_2&#39;: 12, u&#39;y_1&#39;: 45, u&#39;x_1&#39;: 17}</span></pre></div>
 </div>
 <p>See also <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.sql.expression.func</span></tt></a>.</p>
+</div>
+<div class="section" id="window-functions">
+<h3>Window Functions<a class="headerlink" href="#window-functions" title="Permalink to this headline">¶</a></h3>
+<p>Any <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.FunctionElement" title="sqlalchemy.sql.expression.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a>, including functions generated by <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a>, can be turned into a &#8220;window function&#8221;, that is
+an OVER clause, using the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.FunctionElement.over" title="sqlalchemy.sql.expression.FunctionElement.over"><tt class="xref py py-meth docutils literal"><span class="pre">over()</span></tt></a> method:</p>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">row_number</span><span class="p">()</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">order_by</span><span class="o">=</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span> 
+<span class="go">SELECT users.id, row_number() OVER (ORDER BY users.name) AS anon_1</span>
+<span class="go">FROM users</span></pre></div>
+</div>
 </div>
 <div class="section" id="unions-and-other-set-operations">
 <h3>Unions and Other Set Operations<a class="headerlink" href="#unions-and-other-set-operations" title="Permalink to this headline">¶</a></h3>
@@ -850,7 +856,7 @@ WHERE addresses.email_address LIKE ?
 </div>
 <div class="section" id="scalar-selects">
 <h3>Scalar Selects<a class="headerlink" href="#scalar-selects" title="Permalink to this headline">¶</a></h3>
-<p>To embed a SELECT in a column expression, use <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression._SelectBaseMixin.as_scalar" title="sqlalchemy.sql.expression._SelectBaseMixin.as_scalar"><tt class="xref py py-func docutils literal"><span class="pre">as_scalar()</span></tt></a>:</p>
+<p>To embed a SELECT in a column expression, use <tt class="xref py py-func docutils literal"><span class="pre">as_scalar()</span></tt>:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">select</span><span class="p">([</span>   
 <span class="gp">... </span>      <span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
 <span class="gp">... </span>      <span class="n">select</span><span class="p">([</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">)],</span> <span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span><span class="o">.</span><span class="n">as_scalar</span><span class="p">()</span>
@@ -1024,20 +1030,28 @@ COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="index.html" title="previous chapter">SQLAlchemy Core</a>
+        Next:
+        <a href="expression_api.html" title="next chapter">SQL Statements and Expressions</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="index.html" title="previous chapter">SQLAlchemy Core</a>
-            Next:
-            <a href="expression_api.html" title="next chapter">SQL Statements and Expressions</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

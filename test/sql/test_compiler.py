@@ -1,4 +1,4 @@
-from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
+from test.lib.testing import eq_, assert_raises, assert_raises_message
 import datetime, re, operator
 from sqlalchemy import *
 from sqlalchemy import exc, sql, util
@@ -6,8 +6,7 @@ from sqlalchemy.sql import table, column, label, compiler
 from sqlalchemy.sql.expression import ClauseList
 from sqlalchemy.engine import default
 from sqlalchemy.databases import *
-from sqlalchemy.test import *
-import decimal
+from test.lib import *
 
 table1 = table('mytable',
     column('myid', Integer),
@@ -63,6 +62,7 @@ addresses = table('addresses',
 )
 
 class SelectTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     def test_attribute_sanity(self):
         assert hasattr(table1, 'c')
@@ -90,24 +90,6 @@ class SelectTest(TestBase, AssertsCompiledSQL):
     def test_invalid_col_argument(self):
         assert_raises(exc.ArgumentError, select, table1)
         assert_raises(exc.ArgumentError, select, table1.c.myid)
-
-    def test_int_limit_offset_coercion(self):
-        for given, exp in [
-            ("5", 5),
-            (5, 5),
-            (5.2, 5),
-            (decimal.Decimal("5"), 5),
-            (None, None),
-        ]:
-            eq_(select().limit(given)._limit, exp)
-            eq_(select().offset(given)._offset, exp)
-            eq_(select(limit=given)._limit, exp)
-            eq_(select(offset=given)._offset, exp)
-
-        assert_raises(ValueError, select().limit, "foo")
-        assert_raises(ValueError, select().offset, "foo")
-        assert_raises(ValueError, select, offset="foo")
-        assert_raises(ValueError, select, limit="foo")
 
     def test_from_subquery(self):
         """tests placing select statements in the column clause of another select, for the
@@ -263,13 +245,13 @@ class SelectTest(TestBase, AssertsCompiledSQL):
 
         self.assert_compile(
             select([bindparam('a'), bindparam('b'), bindparam('c')]),
-            "SELECT :a, :b, :c"
+            "SELECT :a AS anon_1, :b AS anon_2, :c AS anon_3"
             , dialect=default.DefaultDialect(paramstyle='named')
         )
 
         self.assert_compile(
             select([bindparam('a'), bindparam('b'), bindparam('c')]),
-            "SELECT ?, ?, ?"
+            "SELECT ? AS anon_1, ? AS anon_2, ? AS anon_3"
             , dialect=default.DefaultDialect(paramstyle='qmark'),
         )
 
@@ -940,6 +922,37 @@ class SelectTest(TestBase, AssertsCompiledSQL):
             "OR mytable.myid = :myid_2 OR mytable.myid = :myid_3"
         )
 
+    def test_order_by_nulls(self):
+        self.assert_compile(
+            table2.select(order_by = [table2.c.otherid, table2.c.othername.desc().nullsfirst()]),
+            "SELECT myothertable.otherid, myothertable.othername FROM "
+            "myothertable ORDER BY myothertable.otherid, myothertable.othername DESC NULLS FIRST"
+        )
+
+        self.assert_compile(
+            table2.select(order_by = [table2.c.otherid, table2.c.othername.desc().nullslast()]),
+            "SELECT myothertable.otherid, myothertable.othername FROM "
+            "myothertable ORDER BY myothertable.otherid, myothertable.othername DESC NULLS LAST"
+        )
+
+        self.assert_compile(
+            table2.select(order_by = [table2.c.otherid.nullslast(), table2.c.othername.desc().nullsfirst()]),
+            "SELECT myothertable.otherid, myothertable.othername FROM "
+            "myothertable ORDER BY myothertable.otherid NULLS LAST, myothertable.othername DESC NULLS FIRST"
+        )
+
+        self.assert_compile(
+            table2.select(order_by = [table2.c.otherid.nullsfirst(), table2.c.othername.desc()]),
+            "SELECT myothertable.otherid, myothertable.othername FROM "
+            "myothertable ORDER BY myothertable.otherid NULLS FIRST, myothertable.othername DESC"
+        )
+
+        self.assert_compile(
+            table2.select(order_by = [table2.c.otherid.nullsfirst(), table2.c.othername.desc().nullslast()]),
+            "SELECT myothertable.otherid, myothertable.othername FROM "
+            "myothertable ORDER BY myothertable.otherid NULLS FIRST, myothertable.othername DESC NULLS LAST"
+        )
+
     def test_orderby_groupby(self):
         self.assert_compile(
             table2.select(order_by = [table2.c.otherid, asc(table2.c.othername)]),
@@ -1250,7 +1263,7 @@ class SelectTest(TestBase, AssertsCompiledSQL):
 
         self.assert_compile(
             select([literal("someliteral")]),
-            "SELECT 'someliteral'",
+            "SELECT 'someliteral' AS anon_1",
             dialect=dialect
         )
 
@@ -1286,7 +1299,7 @@ class SelectTest(TestBase, AssertsCompiledSQL):
 
     def test_literal(self):
 
-        self.assert_compile(select([literal('foo')]), "SELECT :param_1")
+        self.assert_compile(select([literal('foo')]), "SELECT :param_1 AS anon_1")
 
         self.assert_compile(select([literal("foo") + literal("bar")], from_obj=[table1]),
             "SELECT :param_1 || :param_2 AS anon_1 FROM mytable")
@@ -1496,7 +1509,6 @@ class SelectTest(TestBase, AssertsCompiledSQL):
 
         assert u1.corresponding_column(table2.c.otherid) is u1.c.myid
 
-        # TODO - why is there an extra space before the LIMIT ?
         self.assert_compile(
             union(
                 select([table1.c.myid, table1.c.name]),
@@ -1507,7 +1519,8 @@ class SelectTest(TestBase, AssertsCompiledSQL):
             ),
             "SELECT mytable.myid, mytable.name "
             "FROM mytable UNION SELECT myothertable.otherid, myothertable.othername "
-            "FROM myothertable ORDER BY myid  LIMIT 5 OFFSET 10"
+            "FROM myothertable ORDER BY myid LIMIT :param_1 OFFSET :param_2",
+            {'param_1':5, 'param_2':10}
         )
 
         self.assert_compile(
@@ -1555,7 +1568,9 @@ class SelectTest(TestBase, AssertsCompiledSQL):
         # self_group() is honored
         self.assert_compile(
             union(s.order_by("foo").self_group(), s.order_by("bar").limit(10).self_group()), 
-            "(SELECT foo, bar ORDER BY foo) UNION (SELECT foo, bar ORDER BY bar  LIMIT 10)"
+            "(SELECT foo, bar ORDER BY foo) UNION (SELECT foo, bar ORDER BY bar LIMIT :param_1)",
+            {'param_1':10}
+
         )
 
     def test_compound_grouping(self):
@@ -1825,6 +1840,14 @@ class SelectTest(TestBase, AssertsCompiledSQL):
 
         assert [str(c) for c in s.c] == ["id", "hoho"]
 
+    def test_bind_callable(self):
+        expr = column('x') == bindparam("key", callable_=lambda: 12)
+        self.assert_compile(
+            expr,
+            "x = :key",
+            {'x':12}
+        )
+
 
     @testing.emits_warning('.*empty sequence.*')
     def test_in(self):
@@ -1932,7 +1955,8 @@ class SelectTest(TestBase, AssertsCompiledSQL):
             ),
             "SELECT mytable.myid, mytable.name, mytable.description, myothertable.otherid, myothertable.othername FROM mytable "\
             "JOIN myothertable ON mytable.myid = myothertable.otherid WHERE myothertable.otherid IN (SELECT myothertable.otherid "\
-            "FROM myothertable ORDER BY myothertable.othername  LIMIT 10) ORDER BY mytable.myid"
+            "FROM myothertable ORDER BY myothertable.othername LIMIT :param_1) ORDER BY mytable.myid",
+            {'param_1':10}
         )
 
     def test_tuple(self):
@@ -2016,6 +2040,79 @@ class SelectTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(cast(literal_column('NULL'), Integer),
                             'CAST(NULL AS INTEGER)',
                             dialect=sqlite.dialect())
+
+    def test_over(self):
+        self.assert_compile(
+            func.row_number().over(
+                order_by=[table1.c.name, table1.c.description]
+            ),
+            "row_number() OVER (ORDER BY mytable.name, mytable.description)"
+        )
+        self.assert_compile(
+            func.row_number().over(
+                partition_by=[table1.c.name, table1.c.description]
+            ),
+            "row_number() OVER (PARTITION BY mytable.name, "
+            "mytable.description)"
+        )
+        self.assert_compile(
+            func.row_number().over(
+                partition_by=[table1.c.name],
+                order_by=[table1.c.description]
+            ),
+            "row_number() OVER (PARTITION BY mytable.name, "
+            "ORDER BY mytable.description)"
+        )
+        self.assert_compile(
+            func.row_number().over(
+                partition_by=table1.c.name,
+                order_by=table1.c.description
+            ),
+            "row_number() OVER (PARTITION BY mytable.name, "
+            "ORDER BY mytable.description)"
+        )
+
+        self.assert_compile(
+            select([func.row_number().over(
+                order_by=table1.c.description
+            ).label('foo')]),
+            "SELECT row_number() OVER (ORDER BY mytable.description) "
+            "AS foo FROM mytable"
+        )
+
+        # test from_obj generation.
+        # from func:
+        self.assert_compile(
+            select([
+                func.max(table1.c.name).over(
+                    partition_by=['foo']
+                )
+            ]),
+            "SELECT max(mytable.name) OVER (PARTITION BY foo) "
+            "AS anon_1 FROM mytable"
+        )
+        # from partition_by
+        self.assert_compile(
+            select([
+                func.row_number().over(
+                    partition_by=[table1.c.name]
+                )
+            ]),
+            "SELECT row_number() OVER (PARTITION BY mytable.name) "
+            "AS anon_1 FROM mytable"
+        )
+        # from order_by
+        self.assert_compile(
+            select([
+                func.row_number().over(
+                    order_by=table1.c.name
+                )
+            ]),
+            "SELECT row_number() OVER (ORDER BY mytable.name) "
+            "AS anon_1 FROM mytable"
+        )
+
+
 
     def test_date_between(self):
         import datetime
@@ -2308,7 +2405,21 @@ class SelectTest(TestBase, AssertsCompiledSQL):
                 dialect=dialect
             )
 
+    def test_literal_as_text_fromstring(self):
+        self.assert_compile(
+            and_("a", "b"),
+            "a AND b"
+        )
+
+    def test_literal_as_text_nonstring_raise(self):
+        assert_raises(exc.ArgumentError,
+            and_, ("a",), ("b",)
+        )
+
+
 class CRUDTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     def test_insert(self):
         # generic insert, will create bind params for all columns
         self.assert_compile(insert(table1), 
@@ -2563,6 +2674,8 @@ class CRUDTest(TestBase, AssertsCompiledSQL):
         )
 
 class InlineDefaultTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     def test_insert(self):
         m = MetaData()
         foo =  Table('foo', m,
@@ -2595,6 +2708,8 @@ class InlineDefaultTest(TestBase, AssertsCompiledSQL):
                         "col3=:col3")
 
 class SchemaTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     def test_select(self):
         self.assert_compile(table4.select(), 
                 "SELECT remote_owner.remotetable.rem_id, remote_owner.remotetable.datatype_id,"

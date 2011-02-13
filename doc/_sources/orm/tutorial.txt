@@ -45,11 +45,11 @@ following text represents the expected return value.
 Version Check
 =============
 
-A quick check to verify that we are on at least **version 0.6** of SQLAlchemy::
+A quick check to verify that we are on at least **version 0.7** of SQLAlchemy::
 
     >>> import sqlalchemy
     >>> sqlalchemy.__version__ # doctest:+SKIP
-    0.6.0
+    0.7.0
 
 Connecting
 ==========
@@ -121,12 +121,6 @@ Next, we can issue CREATE TABLE statements derived from our table metadata, by c
            Column('fullname', String(50)),
            Column('password', String(12))
         )
-
-    We include this more verbose :class:`~.schema.Table` construct separately
-    to highlight the difference between a minimal construct geared primarily
-    towards in-Python usage only, versus one that will be used to emit CREATE
-    TABLE statements on a particular set of backends with more stringent
-    requirements.
 
 Define a Python Class to be Mapped
 ===================================
@@ -892,12 +886,8 @@ from ``Address`` to ``User`` it is **many to one**, and from ``User`` to
 many-to-one/one-to-many based on foreign keys.
 
 .. note:: The :func:`~sqlalchemy.orm.relationship()` function has historically
-    been known as :func:`~sqlalchemy.orm.relation()`, which is the name that's
-    available in all versions of SQLAlchemy prior to 0.6beta2, including the 0.5
-    and 0.4 series. :func:`~sqlalchemy.orm.relationship()` is only available
-    starting with SQLAlchemy 0.6beta2. :func:`~sqlalchemy.orm.relation()` will
-    remain available in SQLAlchemy for the foreseeable future to enable
-    cross-compatibility.
+    been known as :func:`~sqlalchemy.orm.relation()` in the 0.5 series of
+    SQLAlchemy and earlier.
 
 The :func:`~sqlalchemy.orm.relationship()` function is extremely flexible, and
 could just have easily been defined on the ``User`` class:
@@ -1101,14 +1091,19 @@ Or we can make a real JOIN construct; the most common way is to use
     ('jack@google.com',)
     {stop}[<User('jack','Jack Bean', 'gjffdd')>]
 
-:meth:`~sqlalchemy.orm.query.Query.join` knows how to join between ``User`` and ``Address`` because there's only one foreign key between them.  If there were no foreign keys, or several, :meth:`~sqlalchemy.orm.query.Query.join` works better when one of the following forms are used::
+:meth:`~sqlalchemy.orm.query.Query.join` knows how to join between ``User``
+and ``Address`` because there's only one foreign key between them. If there
+were no foreign keys, or several, :meth:`~sqlalchemy.orm.query.Query.join`
+works better when one of the following forms are used::
 
-    query.join((Address, User.id==Address.user_id))  # explicit condition (note the tuple)
+    query.join(Address, User.id==Address.user_id)    # explicit condition
     query.join(User.addresses)                       # specify relationship from left to right
-    query.join((Address, User.addresses))            # same, with explicit target
+    query.join(Address, User.addresses)              # same, with explicit target
     query.join('addresses')                          # same, using a string
 
-Note that when :meth:`~sqlalchemy.orm.query.Query.join` is called with an explicit target as well as an ON clause, we use a tuple as the argument.  This is so that multiple joins can be chained together, as in::
+Note that when :meth:`~sqlalchemy.orm.query.Query.join` is called with an
+explicit target as well as an ON clause, we use a tuple as the argument. This
+is so that multiple joins can be chained together, as in::
 
     session.query(Foo).join(
                             Foo.bars, 
@@ -1196,7 +1191,8 @@ same time:
     >>> adalias2 = aliased(Address)
     {sql}>>> for username, email1, email2 in \
     ...     session.query(User.name, adalias1.email_address, adalias2.email_address).\
-    ...     join((adalias1, User.addresses), (adalias2, User.addresses)).\
+    ...     join(adalias1, User.addresses).\
+    ...     join(adalias2, User.addresses).\
     ...     filter(adalias1.email_address=='jack@google.com').\
     ...     filter(adalias2.email_address=='j25@yahoo.com'):
     ...     print username, email1, email2      # doctest: +NORMALIZE_WHITESPACE
@@ -1244,7 +1240,7 @@ accessible through an attribute called ``c``:
 .. sourcecode:: python+sql
 
     {sql}>>> for u, count in session.query(User, stmt.c.address_count).\
-    ...     outerjoin((stmt, User.id==stmt.c.user_id)).order_by(User.id): # doctest: +NORMALIZE_WHITESPACE
+    ...     outerjoin(stmt, User.id==stmt.c.user_id).order_by(User.id): # doctest: +NORMALIZE_WHITESPACE
     ...     print u, count
     SELECT users.id AS users_id, users.name AS users_name,
     users.fullname AS users_fullname, users.password AS users_password,
@@ -1270,7 +1266,7 @@ to associate an "alias" of a mapped class to a subquery:
 
     {sql}>>> stmt = session.query(Address).filter(Address.email_address != 'j25@yahoo.com').subquery()
     >>> adalias = aliased(Address, stmt)
-    >>> for user, address in session.query(User, adalias).join((adalias, User.addresses)): # doctest: +NORMALIZE_WHITESPACE
+    >>> for user, address in session.query(User, adalias).join(adalias, User.addresses): # doctest: +NORMALIZE_WHITESPACE
     ...     print user, address
     SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname,
     users.password AS users_password, anon_1.id AS anon_1_id,
