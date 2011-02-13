@@ -1,7 +1,7 @@
 sqlalchemy (0.7~b1-1) experimental; urgency=low
 
   * New upstream release
-  * PyDist files: API bumped to 0.7 (all packages generated with this version
+  * PyDist files: API bumped to 0.7 (all packages built with this package
     will require python{,3}-sqlalchemy 0.7.X)
 
  -- Piotr Ożarowski <piotr@debian.org>  Sun, 13 Feb 2011 20:54:49 +0100
