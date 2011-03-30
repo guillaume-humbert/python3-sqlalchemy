@@ -7,7 +7,7 @@
         
         <title>
     Deprecated Event Interfaces
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Exceptions" href="exceptions.html" />
         <link rel="prev" title="Expression Serializer Extension" href="serializer.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -114,7 +114,7 @@ a consistent interface to all events without the need for subclassing.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.interfaces.ConnectionProxy" title="sqlalchemy.interfaces.ConnectionProxy"><tt class="xref py py-class docutils literal"><span class="pre">ConnectionProxy</span></tt></a> is deprecated.   Please
-refer to <a class="reference internal" href="events.html#sqlalchemy.events.EngineEvents" title="sqlalchemy.events.EngineEvents"><tt class="xref py py-class docutils literal"><span class="pre">EngineEvents</span></tt></a>.</p>
+refer to <a class="reference internal" href="events.html#sqlalchemy.events.ConnectionEvents" title="sqlalchemy.events.ConnectionEvents"><tt class="xref py py-class docutils literal"><span class="pre">ConnectionEvents</span></tt></a>.</p>
 </div>
 <p>Either or both of the <tt class="docutils literal"><span class="pre">execute()</span></tt> and <tt class="docutils literal"><span class="pre">cursor_execute()</span></tt>
 may be implemented to intercept compiled statement and
@@ -215,7 +215,7 @@ the <tt class="docutils literal"><span class="pre">proxy</span></tt> argument:</
 <dl class="class">
 <dt id="sqlalchemy.interfaces.PoolListener">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.interfaces.</tt><tt class="descname">PoolListener</tt><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener" title="Permalink to this definition">¶</a></dt>
-<dd><p>Hooks into the lifecycle of connections in a <tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt>.</p>
+<dd><p>Hooks into the lifecycle of connections in a <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.interfaces.PoolListener" title="sqlalchemy.interfaces.PoolListener"><tt class="xref py py-class docutils literal"><span class="pre">PoolListener</span></tt></a> is deprecated.   Please

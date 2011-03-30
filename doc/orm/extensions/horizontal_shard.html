@@ -7,7 +7,7 @@
         
         <title>
     Horizontal Sharding
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Hybrid Attributes" href="hybrid.html" />
         <link rel="prev" title="Ordering List" href="orderinglist.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -109,10 +109,10 @@ the source distrbution.</p>
 <h2>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.ext.horizontal_shard.ShardedSession">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.ext.horizontal_shard.</tt><tt class="descname">ShardedSession</tt><big>(</big><em>shard_chooser</em>, <em>id_chooser</em>, <em>query_chooser</em>, <em>shards=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.horizontal_shard.ShardedSession" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.ext.horizontal_shard.</tt><tt class="descname">ShardedSession</tt><big>(</big><em>shard_chooser</em>, <em>id_chooser</em>, <em>query_chooser</em>, <em>shards=None</em>, <em>query_cls=&lt;class 'sqlalchemy.ext.horizontal_shard.ShardedQuery'&gt;</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.horizontal_shard.ShardedSession" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="sqlalchemy.ext.horizontal_shard.ShardedSession.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>shard_chooser</em>, <em>id_chooser</em>, <em>query_chooser</em>, <em>shards=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.horizontal_shard.ShardedSession.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>shard_chooser</em>, <em>id_chooser</em>, <em>query_chooser</em>, <em>shards=None</em>, <em>query_cls=&lt;class 'sqlalchemy.ext.horizontal_shard.ShardedQuery'&gt;</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.horizontal_shard.ShardedSession.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a ShardedSession.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

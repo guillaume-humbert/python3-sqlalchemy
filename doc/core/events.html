@@ -7,7 +7,7 @@
         
         <title>
     Core Events
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Custom SQL Constructs and Compilation Extension" href="compiler.html" />
         <link rel="prev" title="Events" href="event.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -223,9 +223,9 @@ using the new connection.</p>
 <div class="section" id="connection-events">
 <h2>Connection Events<a class="headerlink" href="#connection-events" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="sqlalchemy.events.EngineEvents">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.events.</tt><tt class="descname">EngineEvents</tt><a class="headerlink" href="#sqlalchemy.events.EngineEvents" title="Permalink to this definition">¶</a></dt>
-<dd><p>Available events for <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
+<dt id="sqlalchemy.events.ConnectionEvents">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.events.</tt><tt class="descname">ConnectionEvents</tt><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Available events for <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</p>
 <p>The methods here define the name of an event as well as the names of members that are passed to listener functions.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span><span class="p">,</span> <span class="n">create_engine</span>
@@ -242,8 +242,8 @@ using the new connection.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>retval=False</strong> &#8211; Applies to the <a class="reference internal" href="#sqlalchemy.events.EngineEvents.before_execute" title="sqlalchemy.events.EngineEvents.before_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_execute()</span></tt></a> and 
-<a class="reference internal" href="#sqlalchemy.events.EngineEvents.before_cursor_execute" title="sqlalchemy.events.EngineEvents.before_cursor_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_cursor_execute()</span></tt></a> events only.  When True, the
+<li><strong>retval=False</strong> &#8211; Applies to the <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_execute" title="sqlalchemy.events.ConnectionEvents.before_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_execute()</span></tt></a> and 
+<a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_cursor_execute" title="sqlalchemy.events.ConnectionEvents.before_cursor_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_cursor_execute()</span></tt></a> events only.  When True, the
 user-defined event function must have a return value, which
 is a tuple of parameters that replace the given statement 
 and parameters.  See those methods for a description of
@@ -254,86 +254,86 @@ specific return arguments.</li>
 </tbody>
 </table>
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.after_cursor_execute">
-<tt class="descname">after_cursor_execute</tt><big>(</big><em>conn</em>, <em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em>, <em>executemany</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.after_cursor_execute" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.after_cursor_execute">
+<tt class="descname">after_cursor_execute</tt><big>(</big><em>conn</em>, <em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em>, <em>executemany</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.after_cursor_execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept low-level cursor execute() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.after_execute">
-<tt class="descname">after_execute</tt><big>(</big><em>conn</em>, <em>clauseelement</em>, <em>multiparams</em>, <em>params</em>, <em>result</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.after_execute" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.after_execute">
+<tt class="descname">after_execute</tt><big>(</big><em>conn</em>, <em>clauseelement</em>, <em>multiparams</em>, <em>params</em>, <em>result</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.after_execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept high level execute() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.before_cursor_execute">
-<tt class="descname">before_cursor_execute</tt><big>(</big><em>conn</em>, <em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em>, <em>executemany</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.before_cursor_execute" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.before_cursor_execute">
+<tt class="descname">before_cursor_execute</tt><big>(</big><em>conn</em>, <em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em>, <em>executemany</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.before_cursor_execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept low-level cursor execute() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.before_execute">
-<tt class="descname">before_execute</tt><big>(</big><em>conn</em>, <em>clauseelement</em>, <em>multiparams</em>, <em>params</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.before_execute" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.before_execute">
+<tt class="descname">before_execute</tt><big>(</big><em>conn</em>, <em>clauseelement</em>, <em>multiparams</em>, <em>params</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.before_execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept high level execute() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.begin">
-<tt class="descname">begin</tt><big>(</big><em>conn</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.begin" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.begin">
+<tt class="descname">begin</tt><big>(</big><em>conn</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.begin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept begin() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.begin_twophase">
-<tt class="descname">begin_twophase</tt><big>(</big><em>conn</em>, <em>xid</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.begin_twophase" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.begin_twophase">
+<tt class="descname">begin_twophase</tt><big>(</big><em>conn</em>, <em>xid</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.begin_twophase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept begin_twophase() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.commit">
-<tt class="descname">commit</tt><big>(</big><em>conn</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.commit" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.commit">
+<tt class="descname">commit</tt><big>(</big><em>conn</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.commit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept commit() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.commit_twophase">
-<tt class="descname">commit_twophase</tt><big>(</big><em>conn</em>, <em>xid</em>, <em>is_prepared</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.commit_twophase" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.commit_twophase">
+<tt class="descname">commit_twophase</tt><big>(</big><em>conn</em>, <em>xid</em>, <em>is_prepared</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.commit_twophase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept commit_twophase() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.prepare_twophase">
-<tt class="descname">prepare_twophase</tt><big>(</big><em>conn</em>, <em>xid</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.prepare_twophase" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.prepare_twophase">
+<tt class="descname">prepare_twophase</tt><big>(</big><em>conn</em>, <em>xid</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.prepare_twophase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept prepare_twophase() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.release_savepoint">
-<tt class="descname">release_savepoint</tt><big>(</big><em>conn</em>, <em>name</em>, <em>context</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.release_savepoint" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.release_savepoint">
+<tt class="descname">release_savepoint</tt><big>(</big><em>conn</em>, <em>name</em>, <em>context</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.release_savepoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept release_savepoint() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.rollback">
-<tt class="descname">rollback</tt><big>(</big><em>conn</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.rollback" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.rollback">
+<tt class="descname">rollback</tt><big>(</big><em>conn</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.rollback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept rollback() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.rollback_savepoint">
-<tt class="descname">rollback_savepoint</tt><big>(</big><em>conn</em>, <em>name</em>, <em>context</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.rollback_savepoint" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.rollback_savepoint">
+<tt class="descname">rollback_savepoint</tt><big>(</big><em>conn</em>, <em>name</em>, <em>context</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.rollback_savepoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept rollback_savepoint() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.rollback_twophase">
-<tt class="descname">rollback_twophase</tt><big>(</big><em>conn</em>, <em>xid</em>, <em>is_prepared</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.rollback_twophase" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.rollback_twophase">
+<tt class="descname">rollback_twophase</tt><big>(</big><em>conn</em>, <em>xid</em>, <em>is_prepared</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.rollback_twophase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept rollback_twophase() events.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sqlalchemy.events.EngineEvents.savepoint">
-<tt class="descname">savepoint</tt><big>(</big><em>conn</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.EngineEvents.savepoint" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.events.ConnectionEvents.savepoint">
+<tt class="descname">savepoint</tt><big>(</big><em>conn</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.savepoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept savepoint() events.</p>
 </dd></dl>
 
@@ -402,7 +402,7 @@ functions.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> or <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 object which is the target of the event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> where the
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> where the
 CREATE statement or statements have been emitted.</li>
 <li><strong>**kw</strong> &#8211; additional keyword arguments relevant
 to the event.  Currently this includes the <tt class="docutils literal"><span class="pre">tables</span></tt>
@@ -427,7 +427,7 @@ CREATE has been emitted.</li>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> or <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 object which is the target of the event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> where the
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> where the
 DROP statement or statements have been emitted.</li>
 <li><strong>**kw</strong> &#8211; additional keyword arguments relevant
 to the event.  Currently this includes the <tt class="docutils literal"><span class="pre">tables</span></tt>
@@ -486,7 +486,7 @@ i.e. those copies that are generated when
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> or <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 object which is the target of the event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> where the
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> where the
 CREATE statement or statements will be emitted.</li>
 <li><strong>**kw</strong> &#8211; additional keyword arguments relevant
 to the event.  Currently this includes the <tt class="docutils literal"><span class="pre">tables</span></tt>
@@ -511,7 +511,7 @@ CREATE will be emitted.</li>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> or <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 object which is the target of the event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> where the
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> where the
 DROP statement or statements will be emitted.</li>
 <li><strong>**kw</strong> &#8211; additional keyword arguments relevant
 to the event.  Currently this includes the <tt class="docutils literal"><span class="pre">tables</span></tt>
@@ -557,6 +557,52 @@ i.e. those copies that are generated when
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.events.DDLEvents.column_reflect">
+<tt class="descname">column_reflect</tt><big>(</big><em>table</em>, <em>column_info</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DDLEvents.column_reflect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called for each unit of &#8216;column info&#8217; retrieved when
+a <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is being reflected.</p>
+<p>The dictionary of column information as returned by the
+dialect is passed, and can be modified.  The dictionary
+is that returned in each element of the list returned 
+by <a class="reference internal" href="schema.html#sqlalchemy.engine.reflection.Inspector.get_columns" title="sqlalchemy.engine.reflection.Inspector.get_columns"><tt class="xref py py-meth docutils literal"><span class="pre">reflection.Inspector.get_columns()</span></tt></a>.</p>
+<p>The event is called before any action is taken against
+this dictionary, and the contents can be modified.
+The <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> specific arguments <tt class="docutils literal"><span class="pre">info</span></tt>, <tt class="docutils literal"><span class="pre">key</span></tt>,
+and <tt class="docutils literal"><span class="pre">quote</span></tt> can also be added to the dictionary and
+will be passed to the constructor of <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</p>
+<p>Note that this event is only meaningful if either
+associated with the <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> class across the 
+board, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
+
+<span class="k">def</span> <span class="nf">listen_for_reflect</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">column_info</span><span class="p">):</span>
+    <span class="s">&quot;receive a column_reflect event&quot;</span>
+    <span class="c"># ...</span>
+    
+<span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span>
+        <span class="n">Table</span><span class="p">,</span> 
+        <span class="s">&#39;column_reflect&#39;</span><span class="p">,</span> 
+        <span class="n">listen_for_reflect</span><span class="p">)</span></pre></div>
+</div>
+<p>...or with a specific <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> instance using
+the <tt class="docutils literal"><span class="pre">listeners</span></tt> argument:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">listen_for_reflect</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">column_info</span><span class="p">):</span>
+    <span class="s">&quot;receive a column_reflect event&quot;</span>
+    <span class="c"># ...</span>
+    
+<span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+    <span class="s">&#39;sometable&#39;</span><span class="p">,</span> 
+    <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">listeners</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;column_reflect&#39;</span><span class="p">,</span> <span class="n">listen_for_reflect</span><span class="p">)</span>
+    <span class="p">])</span></pre></div>
+</div>
+<p>This because the reflection process initiated by <tt class="docutils literal"><span class="pre">autoload=True</span></tt>
+completes within the scope of the constructor for <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
 </dd></dl>
 
 </dd></dl>

@@ -674,7 +674,7 @@ class Session(object):
         :param close_with_result: Passed to :meth:`Engine.connect`, indicating
           the :class:`.Connection` should be considered "single use", automatically
           closing when the first result set is closed.  This flag only has 
-          an effect if this :class:`.Session` is configued with ``autocommit=True``
+          an effect if this :class:`.Session` is configured with ``autocommit=True``
           and does not already have a  transaction in progress.
 
         :param \**kw:
@@ -950,7 +950,7 @@ class Session(object):
     def expire_all(self):
         """Expires all persistent instances within this Session.
 
-        When any attributes on a persitent instance is next accessed, 
+        When any attributes on a persistent instance is next accessed, 
         a query will be issued using the
         :class:`.Session` object's current transactional context in order to
         load all expired attributes for the given instance.   Note that
@@ -961,7 +961,7 @@ class Session(object):
         To expire individual objects and individual attributes 
         on those objects, use :meth:`Session.expire`.
 
-        The :class:`Session` object's default behavior is to 
+        The :class:`.Session` object's default behavior is to 
         expire all state whenever the :meth:`Session.rollback`
         or :meth:`Session.commit` methods are called, so that new
         state can be loaded for the new transaction.   For this reason,
@@ -986,7 +986,7 @@ class Session(object):
         To expire all objects in the :class:`.Session` simultaneously,
         use :meth:`Session.expire_all`.
 
-        The :class:`Session` object's default behavior is to 
+        The :class:`.Session` object's default behavior is to 
         expire all state whenever the :meth:`Session.rollback`
         or :meth:`Session.commit` methods are called, so that new
         state can be loaded for the new transaction.   For this reason,
@@ -1086,7 +1086,7 @@ class Session(object):
                 not mapper.allow_partial_pks or \
                 _none_set.issuperset(instance_key[1]):
                 raise exc.FlushError('Instance %s has a NULL identity '
-                        'key.  Check if this flush is occuring at an '
+                        'key.  Check if this flush is occurring at an '
                         'inappropriate time, such as during a load '
                         'operation.' % mapperutil.state_str(state))
 
@@ -1318,7 +1318,7 @@ class Session(object):
             merged_state.commit_all(merged_dict, self.identity_map)
 
         if new_instance:
-            merged_state.manager.dispatch.load(merged_state)
+            merged_state.manager.dispatch.load(merged_state, None)
         return merged
 
     @classmethod

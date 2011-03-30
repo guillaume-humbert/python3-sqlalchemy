@@ -1,3 +1,9 @@
+sqlalchemy (0.7~b3-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Wed, 30 Mar 2011 22:33:05 +0200
+
 sqlalchemy (0.7~b1-1) experimental; urgency=low
 
   * New upstream release

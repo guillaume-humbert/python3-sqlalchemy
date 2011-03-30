@@ -272,7 +272,7 @@ class Query(object):
 
     @property
     def _mapper_entities(self):
-        # TODO: this is wrong, its hardcoded to "priamry entity" when
+        # TODO: this is wrong, its hardcoded to "primary entity" when
         # for the case of __all_equivs() it should not be
         # the name of this accessor is wrong too
         for ent in self._entities:
@@ -435,7 +435,7 @@ class Query(object):
             this is passed through to :meth:`.FromClause.alias`.
             If ``None``, a name will be deterministically generated
             at compile time.
-        
+
 
         """
         return self.enable_eagerloads(False).statement.alias(name=name)
@@ -444,7 +444,7 @@ class Query(object):
         """Return the full SELECT statement represented by this :class:`.Query`, converted 
         to a scalar subquery with a label of the given name.
 
-        Analagous to :meth:`sqlalchemy.sql._SelectBaseMixin.label`.
+        Analogous to :meth:`sqlalchemy.sql._SelectBaseMixin.label`.
 
         New in 0.6.5.
 
@@ -457,7 +457,7 @@ class Query(object):
         """Return the full SELECT statement represented by this :class:`.Query`, converted 
         to a scalar subquery.
 
-        Analagous to :meth:`sqlalchemy.sql._SelectBaseMixin.as_scalar`.
+        Analogous to :meth:`sqlalchemy.sql._SelectBaseMixin.as_scalar`.
 
         New in 0.6.5.
 
@@ -696,7 +696,7 @@ class Query(object):
 
     @_generative()
     def populate_existing(self):
-        """Return a :class:`Query` that will expire and refresh all instances 
+        """Return a :class:`.Query` that will expire and refresh all instances 
         as they are loaded, or reused from the current :class:`.Session`.
 
         :meth:`.populate_existing` does not improve behavior when 
@@ -856,12 +856,12 @@ class Query(object):
         self._setup_aliasizers(self._entities[l:])
 
     @util.pending_deprecation("0.7", 
-                ":meth:`.add_column` is superceded by :meth:`.add_columns`", 
+                ":meth:`.add_column` is superseded by :meth:`.add_columns`", 
                 False)
     def add_column(self, column):
         """Add a column expression to the list of result columns to be returned.
 
-        Pending deprecation: :meth:`.add_column` will be superceded by 
+        Pending deprecation: :meth:`.add_column` will be superseded by 
         :meth:`.add_columns`.
 
         """
@@ -900,12 +900,12 @@ class Query(object):
     @_generative()
     def with_hint(self, selectable, text, dialect_name='*'):
         """Add an indexing hint for the given entity or selectable to 
-        this :class:`Query`.
+        this :class:`.Query`.
 
         Functionality is passed straight through to 
         :meth:`~sqlalchemy.sql.expression.Select.with_hint`, 
         with the addition that ``selectable`` can be a 
-        :class:`Table`, :class:`Alias`, or ORM entity / mapped class 
+        :class:`.Table`, :class:`.Alias`, or ORM entity / mapped class 
         /etc.
         """
         mapper, selectable, is_aliased_class = _entity_info(selectable)
@@ -1080,14 +1080,14 @@ class Query(object):
 
             SELECT * FROM (SELECT * FROM X UNION SELECT * FROM y UNION 
                             SELECT * FROM Z)
-        
+
         Note that many database backends do not allow ORDER BY to
         be rendered on a query called within UNION, EXCEPT, etc.
         To disable all ORDER BY clauses including those configured
         on mappers, issue ``query.order_by(None)`` - the resulting
         :class:`.Query` object will not render ORDER BY within 
         its SELECT statement.
-        
+
         """
 
 
@@ -1165,7 +1165,7 @@ class Query(object):
         A two-element form of \*props may also be passed.   In this form,
         the first element is a target class or selectable, the second
         is a string property name, class-mapped attribute, or clause
-        construct representing an "ON" clause.   This supercedes the
+        construct representing an "ON" clause.   This supersedes the
         previous "tuple" calling form - multiple join() calls should
         be used for multiple (target, onclause) pairs.
 
@@ -1235,7 +1235,7 @@ class Query(object):
 
     def outerjoin(self, *props, **kwargs):
         """Create a left outer join against this ``Query`` object's criterion
-        and apply generatively, retunring the newly resulting ``Query``.
+        and apply generatively, returning the newly resulting ``Query``.
 
         Usage is the same as the ``join()`` method.
 
@@ -1612,7 +1612,7 @@ class Query(object):
     def distinct(self, *criterion):
         """Apply a ``DISTINCT`` to the query and return the newly resulting
         ``Query``.
-        
+
         :param \*expr: optional column expressions.  When present,
          the Postgresql dialect will render a ``DISTINCT ON (<expressions>>)``
          construct.
@@ -1755,7 +1755,7 @@ class Query(object):
     @property
     def column_descriptions(self):
         """Return metadata about the columns which would be 
-        returned by this :class:`Query`.
+        returned by this :class:`.Query`.
 
         Format is a list of dictionaries::
 
@@ -2035,73 +2035,42 @@ class Query(object):
 
     def count(self):
         """Return a count of rows this Query would return.
+        
+        This generates the SQL for this Query as follows::
+        
+            SELECT count(1) AS count_1 FROM (
+                SELECT <rest of query follows...>
+            ) AS anon_1
 
-        For simple entity queries, count() issues
-        a SELECT COUNT, and will specifically count the primary
-        key column of the first entity only.  If the query uses 
-        LIMIT, OFFSET, or DISTINCT, count() will wrap the statement 
-        generated by this Query in a subquery, from which a SELECT COUNT
-        is issued, so that the contract of "how many rows
-        would be returned?" is honored.
+        Note the above scheme is newly refined in 0.7 
+        (as of 0.7b3).
+        
+        For fine grained control over specific columns 
+        to count, to skip the usage of a subquery or
+        otherwise control of the FROM clause,
+        or to use other aggregate functions,
+        use :attr:`.func` expressions in conjunction
+        with :meth:`~.Session.query`, i.e.::
+        
+            from sqlalchemy import func
+            
+            # count User records, without
+            # using a subquery.
+            session.query(func.count(User.id))
+                        
+            # return count of user "id" grouped
+            # by "name"
+            session.query(func.count(User.id)).\\
+                    group_by(User.name)
 
-        For queries that request specific columns or expressions, 
-        count() again makes no assumptions about those expressions
-        and will wrap everything in a subquery.  Therefore,
-        ``Query.count()`` is usually not what you want in this case.
-        To count specific columns, often in conjunction with 
-        GROUP BY, use ``func.count()`` as an individual column expression
-        instead of ``Query.count()``.  See the ORM tutorial
-        for an example.
-
+            from sqlalchemy import distinct
+            
+            # count distinct "name" values
+            session.query(func.count(distinct(User.name)))
+            
         """
-        should_nest = [self._should_nest_selectable]
-        def ent_cols(ent):
-            if isinstance(ent, _MapperEntity):
-                return ent.mapper.primary_key
-            else:
-                should_nest[0] = True
-                return [ent.column]
-
-        return self._col_aggregate(sql.literal_column('1'), sql.func.count,
-            nested_cols=chain(*[ent_cols(ent) for ent in self._entities]),
-            should_nest = should_nest[0]
-        )
-
-    def _col_aggregate(self, col, func, nested_cols=None, should_nest=False):
-        context = QueryContext(self)
-
-        for entity in self._entities:
-            entity.setup_context(self, context)
-
-        if context.from_clause:
-            from_obj = list(context.from_clause)
-        else:
-            from_obj = context.froms
-
-        if self._enable_single_crit:
-            self._adjust_for_single_inheritance(context)
-
-        whereclause  = context.whereclause
-
-        if should_nest:
-            if not nested_cols:
-                nested_cols = [col]
-            else:
-                nested_cols = list(nested_cols)
-            s = sql.select(nested_cols, whereclause, 
-                        from_obj=from_obj, use_labels=True,
-                        **self._select_args)
-            s = s.alias()
-            s = sql.select(
-                [func(s.corresponding_column(col) or col)]).select_from(s)
-        else:
-            s = sql.select([func(col)], whereclause, from_obj=from_obj,
-            **self._select_args)
-
-        if self._autoflush and not self._populate_existing:
-            self.session._autoflush()
-        return self.session.scalar(s, params=self._params,
-            mapper=self._mapper_zero())
+        col = sql.func.count(sql.literal_column('1'))
+        return self.from_self(col).scalar()
 
     def delete(self, synchronize_session='evaluate'):
         """Perform a bulk delete query.
@@ -2791,7 +2760,7 @@ class _ColumnEntity(_QueryEntity):
 
         # look for ORM entities represented within the
         # given expression.  Try to count only entities
-        # for columns whos FROM object is in the actual list
+        # for columns whose FROM object is in the actual list
         # of FROMs for the overall expression - this helps
         # subqueries which were built from ORM constructs from
         # leaking out their entities into the main select construct

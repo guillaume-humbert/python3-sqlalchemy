@@ -7,7 +7,7 @@
         
         <title>
     Column and Data Types
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Events" href="event.html" />
         <link rel="prev" title="Schema Definition Language" href="schema.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -91,7 +91,8 @@
 <li><a class="reference internal" href="#vendor-specific-types">Vendor-Specific Types</a></li>
 <li><a class="reference internal" href="#custom-types">Custom Types</a><ul>
 <li><a class="reference internal" href="#overriding-type-compilation">Overriding Type Compilation</a></li>
-<li><a class="reference internal" href="#augmenting-existing-types">Augmenting Existing Types</a><ul>
+<li><a class="reference internal" href="#augmenting-existing-types">Augmenting Existing Types</a></li>
+<li><a class="reference internal" href="#typedecorator-recipes">TypeDecorator Recipes</a><ul>
 <li><a class="reference internal" href="#rounding-numerics">Rounding Numerics</a></li>
 <li><a class="reference internal" href="#backend-agnostic-guid-type">Backend-agnostic GUID Type</a></li>
 <li><a class="reference internal" href="#marshal-json-strings">Marshal JSON Strings</a></li>
@@ -492,7 +493,7 @@ behavior. (default changed from <tt class="xref docutils literal"><span class="p
 0.7.0).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This functionality is now superceded by the
+<p class="last">This functionality is now superseded by the
 <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in 
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
 </div>
@@ -1120,7 +1121,7 @@ are serialized into strings are examples of &#8220;mutable&#8221;
 column structures.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This functionality is now superceded by the
+<p class="last">This functionality is now superseded by the
 <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in 
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
 </div>
@@ -1157,6 +1158,9 @@ type per-dialect.</p>
 
 </dd></dl>
 
+</div>
+<div class="section" id="typedecorator-recipes">
+<h3>TypeDecorator Recipes<a class="headerlink" href="#typedecorator-recipes" title="Permalink to this headline">¶</a></h3>
 <p>A few key <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> recipes follow.</p>
 <div class="section" id="rounding-numerics">
 <h4>Rounding Numerics<a class="headerlink" href="#rounding-numerics" title="Permalink to this headline">¶</a></h4>
@@ -1384,7 +1388,7 @@ are serialized into strings are examples of &#8220;mutable&#8221;
 column structures.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This functionality is now superceded by the
+<p class="last">This functionality is now superseded by the
 <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in 
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
 </div>
@@ -1513,7 +1517,7 @@ are serialized into strings are examples of &#8220;mutable&#8221;
 column structures.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This functionality is now superceded by the
+<p class="last">This functionality is now superseded by the
 <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in 
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
 </div>
@@ -1555,7 +1559,7 @@ a mutable Python object type.   This functionality is used
 only by the ORM.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last"><a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> is superceded as of SQLAlchemy 0.7
+<p class="last"><a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> is superseded as of SQLAlchemy 0.7
 by the <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.   This extension provides an event
 driven approach to in-place mutation detection that does not
@@ -1593,7 +1597,7 @@ through all instances in the session which are known to have
 one to its &#8220;clean&#8221;
 value. So for example, if the Session contains 6000 objects (a
 fairly large amount) and autoflush is enabled, every individual
-execution of <tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt> will require a full scan of that subset of
+execution of <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> will require a full scan of that subset of
 the 6000 objects that have mutable attributes, possibly resulting
 in tens of thousands of additional method calls for every query.</p>
 <p class="last">As of SQLAlchemy 0.7, the <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> is provided which

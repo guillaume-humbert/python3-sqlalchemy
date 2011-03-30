@@ -706,6 +706,36 @@ class QueryTest(TestBase):
 
         eq_(r.lastrowid, 1)
 
+    def test_returns_rows_flag_insert(self):
+        r = testing.db.execute(
+            users.insert(),
+            {'user_id':1, 'user_name':'ed'}
+        )
+        assert r.is_insert
+        assert not r.returns_rows
+
+    def test_returns_rows_flag_update(self):
+        r = testing.db.execute(
+            users.update().values(user_name='fred')
+        )
+        assert not r.is_insert
+        assert not r.returns_rows
+
+    def test_returns_rows_flag_select(self):
+        r = testing.db.execute(
+            users.select()
+        )
+        assert not r.is_insert
+        assert r.returns_rows
+
+    @testing.requires.returning
+    def test_returns_rows_flag_insert_returning(self):
+        r = testing.db.execute(
+            users.insert().returning(users.c.user_id),
+            {'user_id':1, 'user_name':'ed'}
+        )
+        assert r.is_insert
+        assert r.returns_rows
 
     def test_graceful_fetch_on_non_rows(self):
         """test that calling fetchone() etc. on a result that doesn't
@@ -1025,6 +1055,7 @@ class PercentSchemaNamesTest(TestBase):
     def teardown_class(cls):
         metadata.drop_all()
 
+    @testing.skip_if(lambda: testing.against('postgresql'), "psycopg2 2.4 no longer accepts % in bind placeholders")
     def test_single_roundtrip(self):
         percent_table.insert().execute(
             {'percent%':5, 'spaces % more spaces':12},
@@ -1040,6 +1071,7 @@ class PercentSchemaNamesTest(TestBase):
         )
         self._assert_table()
 
+    @testing.skip_if(lambda: testing.against('postgresql'), "psycopg2 2.4 no longer accepts % in bind placeholders")
     @testing.crashes('mysql+mysqldb', 'MySQLdb handles executemany() inconsistently vs. execute()')
     def test_executemany_roundtrip(self):
         percent_table.insert().execute(

@@ -7,7 +7,7 @@
         
         <title>
     Collection Configuration and Techniques
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
         <link rel="prev" title="Relationship Configuration" href="relationships.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -130,13 +130,13 @@ collections of child items, there are several strategies to bypass full
 loading of child items both at load time as well as deletion time.</p>
 <div class="section" id="dynamic-relationship-loaders">
 <h3>Dynamic Relationship Loaders<a class="headerlink" href="#dynamic-relationship-loaders" title="Permalink to this headline">¶</a></h3>
-<p>The most useful by far is the <a class="reference internal" href="#sqlalchemy.orm.dynamic_loader" title="sqlalchemy.orm.dynamic_loader"><tt class="xref py py-func docutils literal"><span class="pre">dynamic_loader()</span></tt></a>
-relationship. This is a variant of <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> which
+<p>A key feature to enable management of a large collection is the so-called &#8220;dynamic&#8221;
+relationship.  This is an optional form of <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> which
 returns a <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object in place of a collection
 when accessed. <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-func docutils literal"><span class="pre">filter()</span></tt></a> criterion may be
 applied as well as limits and offsets, either explicitly or via array slices:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;posts&#39;</span><span class="p">:</span> <span class="n">dynamic_loader</span><span class="p">(</span><span class="n">Post</span><span class="p">)</span>
+    <span class="s">&#39;posts&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Post</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s">&quot;dynamic&quot;</span><span class="p">)</span>
 <span class="p">})</span>
 
 <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
@@ -160,47 +160,18 @@ until the data has been flushed.  However, as long as &#8220;autoflush&#8221; is
 enabled on the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> in use, this will occur
 automatically each time the collection is about to emit a
 query.</p>
-<p>To place a dynamic relationship on a backref, use <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt>:</p>
+<p>To place a dynamic relationship on a backref, use the <a class="reference internal" href="relationships.html#sqlalchemy.orm.backref" title="sqlalchemy.orm.backref"><tt class="xref py py-func docutils literal"><span class="pre">backref()</span></tt></a>
+function in conjunction with <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Post</span><span class="p">,</span> <span class="n">posts_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s">&#39;posts&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s">&#39;dynamic&#39;</span><span class="p">))</span>
 <span class="p">})</span></pre></div>
 </div>
 <p>Note that eager/lazy loading options cannot be used in conjunction dynamic relationships at this time.</p>
-<dl class="function">
-<dt id="sqlalchemy.orm.dynamic_loader">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">dynamic_loader</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>primaryjoin=None</em>, <em>secondaryjoin=None</em>, <em>foreign_keys=None</em>, <em>backref=None</em>, <em>post_update=False</em>, <em>cascade=False</em>, <em>remote_side=None</em>, <em>enable_typechecks=True</em>, <em>passive_deletes=False</em>, <em>doc=None</em>, <em>order_by=None</em>, <em>comparator_factory=None</em>, <em>query_class=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.dynamic_loader" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a dynamically-loading mapper property.</p>
-<p>This property is similar to <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, except read
-operations return an active <tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt> object which reads from
-the database when accessed.  Items may be appended to the
-attribute via <tt class="docutils literal"><span class="pre">append()</span></tt>, or removed via <tt class="docutils literal"><span class="pre">remove()</span></tt>; changes
-will be persisted to the database during a <tt class="xref py py-meth docutils literal"><span class="pre">Sesion.flush()</span></tt>.
-However, no other Python list or collection mutation operations
-are available.</p>
-<p>A subset of arguments available to <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> are available
-here.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>argument</strong> &#8211; a class or <tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt> instance, representing the target of
-the relationship.</li>
-<li><strong>secondary</strong> &#8211; for a many-to-many relationship, specifies the intermediary
-table. The <em>secondary</em> keyword argument should generally only
-be used for a table that is not otherwise expressed in any class
-mapping. In particular, using the Association Object Pattern is
-generally mutually exclusive with the use of the <em>secondary</em>
-keyword argument.</li>
-<li><strong>query_class</strong> &#8211; Optional, a custom Query subclass to be used as the basis for
-dynamic collection.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="relationships.html#sqlalchemy.orm.dynamic_loader" title="sqlalchemy.orm.dynamic_loader"><tt class="xref py py-func docutils literal"><span class="pre">dynamic_loader()</span></tt></a> function is essentially the same
+as <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> with the <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt> argument specified.</p>
+</div>
 </div>
 <div class="section" id="setting-noload">
 <h3>Setting Noload<a class="headerlink" href="#setting-noload" title="Permalink to this headline">¶</a></h3>

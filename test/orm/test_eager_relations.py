@@ -4,7 +4,7 @@ from test.lib.testing import eq_, is_, is_not_
 import sqlalchemy as sa
 from test.lib import testing
 from sqlalchemy.orm import joinedload, deferred, undefer, \
-    joinedload_all, backref
+    joinedload_all, backref, eagerload
 from sqlalchemy import Integer, String, Date, ForeignKey, and_, select, \
     func
 from test.lib.schema import Table, Column
@@ -268,15 +268,15 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             ((joinedload("orders.items"), ), 10),
             ((
                 joinedload(User.orders, ), 
-                joinedload(User.orders, Order.items), 
+               joinedload(User.orders, Order.items), 
                 joinedload(User.orders, Order.items, Item.keywords), 
-            ), 1),
+           ), 1),
             ((
                 joinedload(User.orders, Order.items, Item.keywords), 
             ), 10),
             ((
-                joinedload(User.orders, Order.items), 
-                joinedload(User.orders, Order.items, Item.keywords), 
+               joinedload(User.orders, Order.items), 
+               joinedload(User.orders, Order.items, Item.keywords), 
             ), 5),
         ]:
             sess = create_session()
@@ -332,7 +332,6 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
         mapper(Item, items, properties = dict(
                 keywords = relationship(Keyword, secondary=item_keywords, lazy='select',
                                     order_by=keywords.c.id)))
-
         q = create_session().query(Item)
 
         def go():
@@ -341,6 +340,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                  join('keywords').filter(keywords.c.name == 'red')).order_by(Item.id).all())
 
         self.assert_sql_count(testing.db, go, 1)
+
 
     @testing.resolve_artifact_names
     def test_cyclical(self):

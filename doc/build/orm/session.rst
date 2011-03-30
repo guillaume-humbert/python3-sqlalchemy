@@ -1278,14 +1278,6 @@ nested begin/commit-or-rollback pairs where only the outermost begin/commit
 pair actually commits the transaction, or if the outermost block rolls back,
 everything is rolled back.
 
-The :class:`.Session` object and :func:`.sessionmaker` function
-================================================================
-
-.. autofunction:: sessionmaker
-
-.. autoclass:: sqlalchemy.orm.session.Session
-   :members:
-
 .. _unitofwork_contextual:
 
 Contextual/Thread-local Sessions
@@ -1405,7 +1397,7 @@ Doing nothing is an option too, if individual controller methods take responsibi
 for ensuring that no transactions remain open after a request ends.
 
 Contextual Session API
------------------------
+----------------------
 
 .. autofunction:: sqlalchemy.orm.scoped_session
 
@@ -1446,15 +1438,26 @@ tables) across multiple databases.
 
 See the "sharding" example: :ref:`examples_sharding`.
 
-Session Utilities
-=================
+Sessions API
+============
+
+Session and sessionmaker()
+---------------------------
+
+.. autofunction:: sessionmaker
+
+.. autoclass:: sqlalchemy.orm.session.Session
+   :members:
+
+Session Utilites
+----------------
 
 .. autofunction:: make_transient
 
 .. autofunction:: object_session
 
 Attribute and State Management Utilities
-========================================
+-----------------------------------------
 
 These functions are provided by the SQLAlchemy attribute
 instrumentation API to provide a detailed interface for dealing
@@ -1476,13 +1479,13 @@ those described in :ref:`events_orm_toplevel`.
 
 .. function:: instance_state
 
-    Return the :class:`InstanceState` for a given object.
+    Return the :class:`.InstanceState` for a given object.
 
 .. autofunction:: is_instrumented
 
 .. function:: manager_of_class
 
-    Return the :class:`ClassManager` for a given class.
+    Return the :class:`.ClassManager` for a given class.
 
 .. autofunction:: set_attribute
 

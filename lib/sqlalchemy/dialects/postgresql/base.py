@@ -101,6 +101,24 @@ from sqlalchemy.types import INTEGER, BIGINT, SMALLINT, VARCHAR, \
         CHAR, TEXT, FLOAT, NUMERIC, \
         DATE, BOOLEAN
 
+RESERVED_WORDS = set(
+    ["all", "analyse", "analyze", "and", "any", "array", "as", "asc",
+    "asymmetric", "both", "case", "cast", "check", "collate", "column",
+    "constraint", "create", "current_catalog", "current_date",
+    "current_role", "current_time", "current_timestamp", "current_user",
+    "default", "deferrable", "desc", "distinct", "do", "else", "end",
+    "except", "false", "fetch", "for", "foreign", "from", "grant", "group",
+    "having", "in", "initially", "intersect", "into", "leading", "limit",
+    "localtime", "localtimestamp", "new", "not", "null", "off", "offset",
+    "old", "on", "only", "or", "order", "placing", "primary", "references",
+    "returning", "select", "session_user", "some", "symmetric", "table",
+    "then", "to", "trailing", "true", "union", "unique", "user", "using",
+    "variadic", "when", "where", "window", "with", "authorization",
+    "between", "binary", "cross", "current_schema", "freeze", "full",
+    "ilike", "inner", "is", "isnull", "join", "left", "like", "natural",
+    "notnull", "outer", "over", "overlaps", "right", "similar", "verbose"
+    ])
+
 _DECIMAL_TYPES = (1231, 1700)
 _FLOAT_TYPES = (700, 701, 1021, 1022)
 _INT_TYPES = (20, 21, 23, 26, 1005, 1007, 1016)
@@ -160,8 +178,14 @@ PGInterval = INTERVAL
 
 class BIT(sqltypes.TypeEngine):
     __visit_name__ = 'BIT'
-    def __init__(self, length=1):
-        self.length= length
+    def __init__(self, length=None, varying=False):
+        if not varying:
+            # BIT without VARYING defaults to length 1
+            self.length = length or 1
+        else:
+            # but BIT VARYING can be unlimited-length, so no default
+            self.length = length
+        self.varying = varying
 
 PGBit = BIT
 
@@ -249,7 +273,7 @@ class ARRAY(sqltypes.MutableType, sqltypes.Concatenable, sqltypes.TypeEngine):
           performance implications (default changed from ``True`` in 
           0.7.0).
 
-          .. note:: This functionality is now superceded by the
+          .. note:: This functionality is now superseded by the
              ``sqlalchemy.ext.mutable`` extension described in 
              :ref:`mutable_toplevel`.
 
@@ -386,7 +410,8 @@ ischema_names = {
     'inet': INET,
     'cidr': CIDR,
     'uuid': UUID,
-    'bit':BIT,
+    'bit': BIT,
+    'bit varying': BIT,
     'macaddr': MACADDR,
     'double precision' : DOUBLE_PRECISION,
     'timestamp' : TIMESTAMP,
@@ -436,10 +461,7 @@ class PGCompiler(compiler.SQLCompiler):
         return value
 
     def visit_sequence(self, seq):
-        if seq.optional:
-            return None
-        else:
-            return "nextval('%s')" % self.preparer.format_sequence(seq)
+        return "nextval('%s')" % self.preparer.format_sequence(seq)
 
     def limit_clause(self, select):
         text = ""
@@ -505,10 +527,10 @@ class PGCompiler(compiler.SQLCompiler):
 class PGDDLCompiler(compiler.DDLCompiler):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
-        type_affinity = column.type._type_affinity
+        impl_type = column.type.dialect_impl(self.dialect)
         if column.primary_key and \
             column is column.table._autoincrement_column and \
-            not issubclass(type_affinity, sqltypes.SmallInteger) and \
+            not isinstance(impl_type, sqltypes.SmallInteger) and \
             (
                 column.default is None or 
                 (
@@ -516,7 +538,7 @@ class PGDDLCompiler(compiler.DDLCompiler):
                     column.default.optional
                 )
             ):
-            if issubclass(type_affinity, sqltypes.BigInteger):
+            if isinstance(impl_type, sqltypes.BigInteger):
                 colspec += " BIGSERIAL"
             else:
                 colspec += " SERIAL"
@@ -630,7 +652,13 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
             return "INTERVAL"
 
     def visit_BIT(self, type_):
-        return "BIT(%d)" % type_.length
+        if type_.varying:
+            compiled = "BIT VARYING"
+            if type_.length is not None:
+                compiled += "(%d)" % type_.length
+        else:
+            compiled = "BIT(%d)" % type_.length
+        return compiled
 
     def visit_UUID(self, type_):
         return "UUID"
@@ -649,6 +677,9 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
 
 
 class PGIdentifierPreparer(compiler.IdentifierPreparer):
+
+    reserved_words = RESERVED_WORDS
+
     def _unquote_identifier(self, value):
         if value[0] == self.initial_quote:
             value = value[1:-1].\
@@ -683,23 +714,19 @@ class DropEnumType(schema._CreateDropBase):
 
 class PGExecutionContext(default.DefaultExecutionContext):
     def fire_sequence(self, seq, type_):
-        if not seq.optional:
-            return self._execute_scalar(("select nextval('%s')" % \
-                    self.dialect.identifier_preparer.format_sequence(seq)), type_)
-        else:
-            return None
+        return self._execute_scalar(("select nextval('%s')" % \
+                self.dialect.identifier_preparer.format_sequence(seq)), type_)
 
     def get_insert_default(self, column):
         if column.primary_key and column is column.table._autoincrement_column:
-            if (isinstance(column.server_default, schema.DefaultClause) and
-                column.server_default.arg is not None):
+            if column.server_default and column.server_default.has_argument:
 
                 # pre-execute passive defaults on primary key columns
                 return self._execute_scalar("select %s" %
-                                        column.server_default.arg, column.type)
+                                    column.server_default.arg, column.type)
 
             elif (column.default is None or 
-                        (isinstance(column.default, schema.Sequence) and
+                        (column.default.is_sequence and
                         column.default.optional)):
 
                 # execute the sequence associated with a SERIAL primary 
@@ -1103,6 +1130,7 @@ class PGDialect(default.DefaultDialect):
             if charlen:
                 charlen = charlen.group(1)
             kwargs = {}
+            args = None
 
             if attype == 'numeric':
                 if charlen:
@@ -1126,6 +1154,12 @@ class PGDialect(default.DefaultDialect):
                 if charlen:
                     kwargs['precision'] = int(charlen)
                 args = ()
+            elif attype == 'bit varying':
+                kwargs['varying'] = True
+                if charlen:
+                    args = (int(charlen),)
+                else:
+                    args = ()
             elif attype in ('interval','interval year to month',
                                 'interval day to second'):
                 if charlen:

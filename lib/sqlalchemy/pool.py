@@ -36,7 +36,7 @@ def manage(module, **params):
     :param module: a DB-API 2.0 database module
 
     :param poolclass: the class used by the pool module to provide
-      pooling.  Defaults to :class:`QueuePool`.
+      pooling.  Defaults to :class:`.QueuePool`.
 
     :param \*\*params: will be passed through to *poolclass*
 
@@ -59,8 +59,6 @@ def clear_managers():
 
 class Pool(log.Identified):
     """Abstract base class for connection pools."""
-
-    _no_finalize = False
 
     def __init__(self, 
                     creator, recycle=-1, echo=None, 
@@ -117,7 +115,7 @@ class Pool(log.Identified):
           :class:`~sqlalchemy.interfaces.PoolListener`-like objects or
           dictionaries of callables that receive events when DB-API
           connections are created, checked out and checked in to the
-          pool.  This has been superceded by 
+          pool.  This has been superseded by 
           :func:`~sqlalchemy.event.listen`.
 
         """
@@ -324,9 +322,6 @@ class _ConnectionRecord(object):
 def _finalize_fairy(connection, connection_record, pool, ref, echo):
     _refs.discard(connection_record)
 
-    if pool._no_finalize:
-        return
-
     if ref is not None and \
                 connection_record.fairy is not ref:
         return
@@ -496,7 +491,7 @@ class SingletonThreadPool(Pool):
     Maintains one connection per each thread, never moving a connection to a
     thread other than the one which it was created in.
 
-    Options are the same as those of :class:`Pool`, as well as:
+    Options are the same as those of :class:`.Pool`, as well as:
 
     :param pool_size: The number of threads in which to maintain connections 
         at once.  Defaults to five.
@@ -565,7 +560,7 @@ class SingletonThreadPool(Pool):
         return c
 
 class QueuePool(Pool):
-    """A :class:`Pool` that imposes a limit on the number of open connections.
+    """A :class:`.Pool` that imposes a limit on the number of open connections.
 
     :class:`.QueuePool` is the default pooling implementation used for 
     all :class:`.Engine` objects, unless the SQLite dialect is in use.
@@ -826,8 +821,6 @@ class AssertionPool(Pool):
     than desired.
 
     """
-    _no_finalize = True
-
     def __init__(self, *args, **kw):
         self._conn = None
         self._checked_out = False

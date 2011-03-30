@@ -5,12 +5,12 @@ from sqlalchemy.sql import select, text, literal_column
 import sqlalchemy as sa
 from test.lib import testing, engines
 from sqlalchemy import MetaData, Integer, String, ForeignKey, Boolean, exc,\
-                Sequence, func, literal
+                Sequence, func, literal, Unicode
 from sqlalchemy.types import TypeDecorator
 from test.lib.schema import Table, Column
 from test.lib.testing import eq_
 from test.sql import _base
-
+from sqlalchemy.dialects import sqlite
 
 class DefaultTest(testing.TestBase):
 
@@ -303,6 +303,31 @@ class DefaultTest(testing.TestBase):
              (53, 'imthedefault', f, ts, ts, ctexec, True, False,
               12, today, 'py')])
 
+    def test_no_embed_in_sql(self):
+        """Using a DefaultGenerator, Sequence, DefaultClause
+        in the columns, where clause of a select, or in the values 
+        clause of insert, update, raises an informative error"""
+        for const in (
+            sa.Sequence('y'),
+            sa.ColumnDefault('y'),
+            sa.DefaultClause('y')
+        ):
+            assert_raises_message(
+                sa.exc.ArgumentError,
+                "SQL expression object or string expected.",
+                t.select, [const]
+            )
+            assert_raises_message(
+                sa.exc.InvalidRequestError,
+                "cannot be used directly as a column expression.",
+                str, t.insert().values(col4=const)
+            )
+            assert_raises_message(
+                sa.exc.InvalidRequestError,
+                "cannot be used directly as a column expression.",
+                str, t.update().values(col4=const)
+            )
+
     def test_missing_many_param(self):
         assert_raises_message(exc.StatementError, 
             "A value is required for bind parameter 'col7', in parameter group 1",
@@ -536,63 +561,165 @@ class AutoIncrementTest(_base.TablesTest):
 
         nonai.insert().execute(id=1, data='row 1')
 
+class SequenceDDLTest(testing.TestBase, testing.AssertsCompiledSQL):
+    __dialect__ = 'default'
 
-class SequenceTest(testing.TestBase, testing.AssertsCompiledSQL):
-
-    @classmethod
-    @testing.requires.sequences
-    def setup_class(cls):
-        global cartitems, sometable, metadata
-        metadata = MetaData(testing.db)
-        cartitems = Table("cartitems", metadata,
-            Column("cart_id", Integer, Sequence('cart_id_seq'), primary_key=True),
-            Column("description", String(40)),
-            Column("createdate", sa.DateTime())
-        )
-        sometable = Table( 'Manager', metadata,
-               Column('obj_id', Integer, Sequence('obj_id_seq'), ),
-               Column('name', String(128)),
-               Column('id', Integer, Sequence('Manager_id_seq', optional=True),
-                      primary_key=True),
-           )
-
-        metadata.create_all()
-
-
-    def test_compile(self):
+    def test_create_drop_ddl(self):
         self.assert_compile(
             CreateSequence(Sequence('foo_seq')),
             "CREATE SEQUENCE foo_seq",
-            use_default_dialect=True,
         )
 
         self.assert_compile(
             CreateSequence(Sequence('foo_seq', start=5)),
             "CREATE SEQUENCE foo_seq START WITH 5",
-            use_default_dialect=True,
         )
 
         self.assert_compile(
             CreateSequence(Sequence('foo_seq', increment=2)),
             "CREATE SEQUENCE foo_seq INCREMENT BY 2",
-            use_default_dialect=True,
         )
 
         self.assert_compile(
             CreateSequence(Sequence('foo_seq', increment=2, start=5)),
             "CREATE SEQUENCE foo_seq INCREMENT BY 2 START WITH 5",
-            use_default_dialect=True,
         )
 
         self.assert_compile(
             DropSequence(Sequence('foo_seq')),
             "DROP SEQUENCE foo_seq",
-            use_default_dialect=True,
         )
 
+class SequenceExecTest(testing.TestBase):
+    __requires__ = ('sequences',)
+
+    @classmethod
+    def setup_class(cls):
+        cls.seq= Sequence("my_sequence")
+        cls.seq.create(testing.db)
+
+    @classmethod
+    def teardown_class(cls):
+        cls.seq.drop(testing.db)
+
+    def _assert_seq_result(self, ret):
+        """asserts return of next_value is an int"""
+        assert isinstance(ret, (int, long))
+        assert ret > 0
+
+    def test_implicit_connectionless(self):
+        s = Sequence("my_sequence", metadata=MetaData(testing.db))
+        self._assert_seq_result(s.execute())
+
+    def test_explicit(self):
+        s = Sequence("my_sequence")
+        self._assert_seq_result(s.execute(testing.db))
+
+    def test_explicit_optional(self):
+        """test dialect executes a Sequence, returns nextval, whether 
+        or not "optional" is set """
+
+        s = Sequence("my_sequence", optional=True)
+        self._assert_seq_result(s.execute(testing.db))
+
+    def test_func_implicit_connectionless_execute(self):
+        """test func.next_value().execute()/.scalar() works
+        with connectionless execution. """
+
+        s = Sequence("my_sequence", metadata=MetaData(testing.db))
+        self._assert_seq_result(s.next_value().execute().scalar())
+
+    def test_func_explicit(self):
+        s = Sequence("my_sequence")
+        self._assert_seq_result(testing.db.scalar(s.next_value()))
+
+    def test_func_implicit_connectionless_scalar(self):
+        """test func.next_value().execute()/.scalar() works. """
+
+        s = Sequence("my_sequence", metadata=MetaData(testing.db))
+        self._assert_seq_result(s.next_value().scalar())
+
+    def test_func_embedded_select(self):
+        """test can use next_value() in select column expr"""
+
+        s = Sequence("my_sequence")
+        self._assert_seq_result(
+            testing.db.scalar(select([s.next_value()]))
+        )
+
+    @testing.fails_on('oracle', "ORA-02287: sequence number not allowed here")
+    @testing.provide_metadata
+    def test_func_embedded_whereclause(self):
+        """test can use next_value() in whereclause"""
+
+        t1 = Table('t', metadata,
+            Column('x', Integer)
+        )
+        t1.create(testing.db)
+        testing.db.execute(t1.insert(), [{'x':1}, {'x':300}, {'x':301}])
+        s = Sequence("my_sequence")
+        eq_(
+            testing.db.execute(
+                t1.select().where(t1.c.x > s.next_value())
+            ).fetchall(),
+            [(300, ), (301, )]
+        )
+
+    @testing.provide_metadata
+    def test_func_embedded_valuesbase(self):
+        """test can use next_value() in values() of _ValuesBase"""
+
+        t1 = Table('t', metadata,
+            Column('x', Integer)
+        )
+        t1.create(testing.db)
+        s = Sequence("my_sequence")
+        testing.db.execute(
+            t1.insert().values(x=s.next_value())
+        )
+        self._assert_seq_result(
+            testing.db.scalar(t1.select())
+        )
+
+    @testing.provide_metadata
+    def test_inserted_pk_no_returning(self):
+        """test inserted_primary_key contains [None] when 
+        pk_col=next_value(), implicit returning is not used."""
+
+        e = engines.testing_engine(options={'implicit_returning':False})
+        s = Sequence("my_sequence")
+        metadata.bind = e
+        t1 = Table('t', metadata,
+            Column('x', Integer, primary_key=True)
+        )
+        t1.create()
+        r = e.execute(
+            t1.insert().values(x=s.next_value())
+        )
+        eq_(r.inserted_primary_key, [None])
+
+    @testing.requires.returning
+    @testing.provide_metadata
+    def test_inserted_pk_implicit_returning(self):
+        """test inserted_primary_key contains the result when 
+        pk_col=next_value(), when implicit returning is used."""
+
+        e = engines.testing_engine(options={'implicit_returning':True})
+        s = Sequence("my_sequence")
+        metadata.bind = e
+        t1 = Table('t', metadata,
+            Column('x', Integer, primary_key=True)
+        )
+        t1.create()
+        r = e.execute(
+            t1.insert().values(x=s.next_value())
+        )
+        self._assert_seq_result(r.inserted_primary_key[0])
+
+class SequenceTest(testing.TestBase, testing.AssertsCompiledSQL):
+    __requires__ = ('sequences',)
 
     @testing.fails_on('firebird', 'no FB support for start/increment')
-    @testing.requires.sequences
     def test_start_increment(self):
         for seq in (
                 Sequence('foo_seq'), 
@@ -610,7 +737,137 @@ class SequenceTest(testing.TestBase, testing.AssertsCompiledSQL):
             finally:
                 seq.drop(testing.db)
 
-    @testing.requires.sequences
+
+    def _has_sequence(self, name):
+        return testing.db.dialect.has_sequence(testing.db, name)
+
+    def test_nextval_render(self):
+        """test dialect renders the "nextval" construct, 
+        whether or not "optional" is set """
+
+        for s in (
+                Sequence("my_seq"), 
+                Sequence("my_seq", optional=True)):
+            assert str(s.next_value().
+                    compile(dialect=testing.db.dialect)) in (
+                "nextval('my_seq')",
+                "gen_id(my_seq, 1)",
+                "my_seq.nextval",
+            )
+
+    def test_nextval_unsupported(self):
+        """test next_value() used on non-sequence platform 
+        raises NotImplementedError."""
+
+        s = Sequence("my_seq")
+        d = sqlite.dialect()
+        assert_raises_message(
+            NotImplementedError,
+            "Dialect 'sqlite' does not support sequence increments.",
+            s.next_value().compile,
+            dialect=d
+        )
+
+    def test_checkfirst_sequence(self):
+        s = Sequence("my_sequence")
+        s.create(testing.db, checkfirst=False)
+        assert self._has_sequence('my_sequence')
+        s.create(testing.db, checkfirst=True)
+        s.drop(testing.db, checkfirst=False)
+        assert not self._has_sequence('my_sequence')
+        s.drop(testing.db, checkfirst=True)
+
+    def test_checkfirst_metadata(self):
+        m = MetaData()
+        s = Sequence("my_sequence", metadata=m)
+        m.create_all(testing.db, checkfirst=False)
+        assert self._has_sequence('my_sequence')
+        m.create_all(testing.db, checkfirst=True)
+        m.drop_all(testing.db, checkfirst=False)
+        assert not self._has_sequence('my_sequence')
+        m.drop_all(testing.db, checkfirst=True)
+
+    def test_checkfirst_table(self):
+        m = MetaData()
+        s = Sequence("my_sequence")
+        t = Table('t', m, Column('c', Integer, s, primary_key=True))
+        t.create(testing.db, checkfirst=False)
+        assert self._has_sequence('my_sequence')
+        t.create(testing.db, checkfirst=True)
+        t.drop(testing.db, checkfirst=False)
+        assert not self._has_sequence('my_sequence')
+        t.drop(testing.db, checkfirst=True)
+
+    @testing.provide_metadata
+    def test_table_overrides_metadata_create(self):
+        s1 = Sequence("s1", metadata=metadata)
+        s2 = Sequence("s2", metadata=metadata)
+        s3 = Sequence("s3")
+        t = Table('t', metadata, 
+                    Column('c', Integer, s3, primary_key=True))
+        assert s3.metadata is metadata
+
+
+        t.create(testing.db)
+        s3.drop(testing.db)
+
+        # 't' is created, and 's3' won't be
+        # re-created since it's linked to 't'.
+        # 's1' and 's2' are, however.
+        metadata.create_all(testing.db)
+        assert self._has_sequence('s1')
+        assert self._has_sequence('s2')
+        assert not self._has_sequence('s3')
+
+        s2.drop(testing.db)
+        assert self._has_sequence('s1')
+        assert not self._has_sequence('s2')
+
+        metadata.drop_all(testing.db)
+        assert not self._has_sequence('s1')
+        assert not self._has_sequence('s2')
+
+
+class TableBoundSequenceTest(testing.TestBase):
+    __requires__ = ('sequences',)
+
+    @classmethod
+    def setup_class(cls):
+        global cartitems, sometable, metadata
+        metadata = MetaData(testing.db)
+        cartitems = Table("cartitems", metadata,
+            Column("cart_id", Integer, Sequence('cart_id_seq'), primary_key=True),
+            Column("description", String(40)),
+            Column("createdate", sa.DateTime())
+        )
+        sometable = Table( 'Manager', metadata,
+               Column('obj_id', Integer, Sequence('obj_id_seq'), ),
+               Column('name', String(128)),
+               Column('id', Integer, Sequence('Manager_id_seq', optional=True),
+                      primary_key=True),
+           )
+
+        metadata.create_all()
+
+    @classmethod
+    def teardown_class(cls):
+        metadata.drop_all()
+
+    def test_insert_via_seq(self):
+        cartitems.insert().execute(description='hi')
+        cartitems.insert().execute(description='there')
+        r = cartitems.insert().execute(description='lala')
+
+        assert r.inserted_primary_key and r.inserted_primary_key[0] is not None
+        id_ = r.inserted_primary_key[0]
+
+        eq_(1,
+            sa.select([func.count(cartitems.c.cart_id)],
+                      sa.and_(cartitems.c.description == 'lala',
+                              cartitems.c.cart_id == id_)).scalar())
+
+        cartitems.select().execute().fetchall()
+
     def test_seq_nonpk(self):
         """test sequences fire off as defaults on non-pk columns"""
 
@@ -631,72 +888,13 @@ class SequenceTest(testing.TestBase, testing.AssertsCompiledSQL):
              (3, "name3", 3),
              (4, "name4", 4)])
 
-    @testing.requires.sequences
-    def test_sequence(self):
-        cartitems.insert().execute(description='hi')
-        cartitems.insert().execute(description='there')
-        r = cartitems.insert().execute(description='lala')
-
-        assert r.inserted_primary_key and r.inserted_primary_key[0] is not None
-        id_ = r.inserted_primary_key[0]
-
-        eq_(1,
-            sa.select([func.count(cartitems.c.cart_id)],
-                      sa.and_(cartitems.c.description == 'lala',
-                              cartitems.c.cart_id == id_)).scalar())
-
-        cartitems.select().execute().fetchall()
-
-    @testing.fails_on('maxdb', 'FIXME: unknown')
-    # maxdb db-api seems to double-execute NEXTVAL internally somewhere,
-    # throwing off the numbers for these tests...
-    @testing.requires.sequences
-    def test_implicit_sequence_exec(self):
-        s = Sequence("my_sequence", metadata=MetaData(testing.db))
-        s.create()
-        try:
-            x = s.execute()
-            eq_(x, 1)
-        finally:
-            s.drop()
-
-    @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.requires.sequences
-    def teststandalone_explicit(self):
-        s = Sequence("my_sequence")
-        s.create(bind=testing.db)
-        try:
-            x = s.execute(testing.db)
-            eq_(x, 1)
-        finally:
-            s.drop(testing.db)
-
-    @testing.requires.sequences
-    def test_checkfirst(self):
-        s = Sequence("my_sequence")
-        s.create(testing.db, checkfirst=False)
-        s.create(testing.db, checkfirst=True)
-        s.drop(testing.db, checkfirst=False)
-        s.drop(testing.db, checkfirst=True)
-
-    @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.requires.sequences
-    def teststandalone2(self):
-        x = cartitems.c.cart_id.default.execute()
-        self.assert_(1 <= x <= 4)
-
-    @classmethod
-    @testing.requires.sequences
-    def teardown_class(cls):
-        metadata.drop_all()
-
 
 class SpecialTypePKTest(testing.TestBase):
     """test process_result_value in conjunction with primary key columns.
-    
+
     Also tests that "autoincrement" checks are against column.type._type_affinity,
     rather than the class of "type" itself.
-    
+
     """
 
     @classmethod
@@ -778,12 +976,12 @@ class ServerDefaultsOnPKTest(testing.TestBase):
     @testing.provide_metadata
     def test_string_default_none_on_insert(self):
         """Test that without implicit returning, we return None for 
-        a string server default.  
-        
+        a string server default.
+
         That is, we don't want to attempt to pre-execute "server_default"
         generically - the user should use a Python side-default for a case
         like this.   Testing that all backends do the same thing here.
-        
+
         """
         t = Table('x', metadata, 
                 Column('y', String(10), server_default='key_one', primary_key=True),
@@ -894,3 +1092,29 @@ class ServerDefaultsOnPKTest(testing.TestBase):
             [(5, 'data')]
         )
 
+class UnicodeDefaultsTest(testing.TestBase):
+    def test_no_default(self):
+        c = Column(Unicode(32))
+
+    def test_unicode_default(self):
+        # Py3K
+        #default = 'foo'
+        # Py2K
+        default = u'foo'
+        # end Py2K
+        c = Column(Unicode(32), default=default)
+
+
+    def test_nonunicode_default(self):
+        # Py3K
+        #default = b'foo'
+        # Py2K
+        default = 'foo'
+        # end Py2K
+        assert_raises_message(
+            sa.exc.SAWarning,
+            "Unicode column received non-unicode default value.",
+            Column,
+            Unicode(32),
+            default=default
+        )

@@ -7,7 +7,7 @@
         
         <title>
     ORM Events
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Extensions" href="extensions/index.html" />
         <link rel="prev" title="Relationship Loading Techniques" href="loading.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -158,7 +158,7 @@ of that class, as well as all future subclasses of that
 class, using an additional listener that listens for 
 instrumentation events.</li>
 <li><strong>raw=False</strong> &#8211; When True, the &#8220;target&#8221; argument to the
-event will be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> management
+event will be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> management
 object, rather than the mapped instance itself.</li>
 <li><strong>retval=False</strong> &#8211; when True, the user-defined event 
 listening must return the &#8220;value&#8221; argument from the 
@@ -181,7 +181,7 @@ or &#8220;append&#8221; event.</li>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>target</strong> &#8211; the object instance receiving the event.
 If the listener is registered with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will
-be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> object.</li>
+be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> object.</li>
 <li><strong>value</strong> &#8211; the value being appended.  If this listener
 is registered with <tt class="docutils literal"><span class="pre">retval=True</span></tt>, the listener
 function must return this value, or a new value which 
@@ -210,7 +210,7 @@ the given value, or a new effective value, should be returned.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>target</strong> &#8211; the object instance receiving the event.
 If the listener is registered with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will
-be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> object.</li>
+be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> object.</li>
 <li><strong>value</strong> &#8211; the value being removed.</li>
 <li><strong>initiator</strong> &#8211; the attribute implementation object 
 which initiated this event.</li>
@@ -235,7 +235,7 @@ which initiated this event.</li>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>target</strong> &#8211; the object instance receiving the event.
 If the listener is registered with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will
-be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> object.</li>
+be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> object.</li>
 <li><strong>value</strong> &#8211; the value being set.  If this listener
 is registered with <tt class="docutils literal"><span class="pre">retval=True</span></tt>, the listener
 function must return this value, or a new value which 
@@ -319,7 +319,7 @@ be applied to all inheriting mappers as well as the
 mapper which is the target of this listener.</li>
 <li><strong>raw=False</strong> &#8211; When True, the &#8220;target&#8221; argument passed
 to applicable event listener functions will be the 
-instance&#8217;s <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> management
+instance&#8217;s <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> management
 object, rather than the mapped instance itself.</li>
 <li><strong>retval=False</strong> &#8211; <p>when True, the user-defined event function
 must have a return value, the purpose of which is either to
@@ -359,13 +359,13 @@ once in a previous step.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
 emit DELETE statements for this instance.  This
 provides a handle into the current transaction on the 
 target database specific to this instance.</li>
 <li><strong>target</strong> &#8211; the mapped instance being deleted.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 </ul>
 </td>
@@ -401,13 +401,13 @@ event-&gt;persist-&gt;event steps.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
 emit INSERT statements for this instance.  This
 provides a handle into the current transaction on the 
 target database specific to this instance.</li>
 <li><strong>target</strong> &#8211; the mapped instance being persisted.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 </ul>
 </td>
@@ -459,13 +459,13 @@ steps.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
 emit UPDATE statements for this instance.  This
 provides a handle into the current transaction on the 
 target database specific to this instance.</li>
 <li><strong>target</strong> &#8211; the mapped instance being persisted.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 </ul>
 </td>
@@ -491,7 +491,7 @@ the construction of a result list returned by <a class="reference internal" href
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>context</strong> &#8211; the <tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt>, which includes
+<li><strong>context</strong> &#8211; the <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a>, which includes
 a handle to the current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress as well
 as additional state information.</li>
 <li><strong>row</strong> &#8211; the result row being handled.  This may be 
@@ -499,7 +499,7 @@ an actual <a class="reference internal" href="../core/connections.html#sqlalchem
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects as keys.</li>
 <li><strong>target</strong> &#8211; the mapped instance being populated.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 <li><strong>result</strong> &#8211; a list-like object where results are being
 appended.</li>
@@ -544,13 +544,13 @@ use <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.bef
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
 emit DELETE statements for this instance.  This
 provides a handle into the current transaction on the 
 target database specific to this instance.</li>
 <li><strong>target</strong> &#8211; the mapped instance being deleted.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 </ul>
 </td>
@@ -593,13 +593,13 @@ use <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.bef
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
 emit INSERT statements for this instance.  This
 provides a handle into the current transaction on the 
 target database specific to this instance.</li>
 <li><strong>target</strong> &#8211; the mapped instance being persisted.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 </ul>
 </td>
@@ -659,13 +659,13 @@ use <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.bef
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to 
 emit UPDATE statements for this instance.  This
 provides a handle into the current transaction on the 
 target database specific to this instance.</li>
 <li><strong>target</strong> &#8211; the mapped instance being persisted.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 </ul>
 </td>
@@ -692,7 +692,7 @@ This listener is typically registered with <tt class="docutils literal"><span cl
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>context</strong> &#8211; the <tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt>, which includes
+<li><strong>context</strong> &#8211; the <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a>, which includes
 a handle to the current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress as well
 as additional state information.</li>
 <li><strong>row</strong> &#8211; the result row being handled.  This may be 
@@ -777,7 +777,7 @@ generic &#8220;object has been newly created from a row&#8221; hook, use
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>context</strong> &#8211; the <tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt>, which includes
+<li><strong>context</strong> &#8211; the <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a>, which includes
 a handle to the current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress as well
 as additional state information.</li>
 <li><strong>row</strong> &#8211; the result row being handled.  This may be 
@@ -785,7 +785,7 @@ an actual <a class="reference internal" href="../core/connections.html#sqlalchem
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects as keys.</li>
 <li><strong>target</strong> &#8211; the mapped instance.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 </ul>
 </td>
@@ -820,7 +820,7 @@ which recognizes mapped columns as keys.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>context</strong> &#8211; the <tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt>, which includes
+<li><strong>context</strong> &#8211; the <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a>, which includes
 a handle to the current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress as well
 as additional state information.</li>
 <li><strong>row</strong> &#8211; the result row being handled.  This may be 
@@ -883,7 +883,7 @@ be applied to all inheriting mappers as well as the
 mapper which is the target of this listener.</li>
 <li><strong>raw=False</strong> &#8211; When True, the &#8220;target&#8221; argument passed
 to applicable event listener functions will be the 
-instance&#8217;s <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> management
+instance&#8217;s <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> management
 object, rather than the mapped instance itself.</li>
 </ul>
 </td>
@@ -904,7 +904,7 @@ state was expired.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the mapped instance.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 <li><strong>attrs</strong> &#8211; iterable collection of attribute
 names which were expired, or None if all attributes were 
@@ -961,10 +961,12 @@ initialized, depending on what&#8217;s present in the result rows.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the mapped instance.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
-<li><strong>context</strong> &#8211; the <tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt> corresponding to the
-current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress.</li>
+<li><strong>context</strong> &#8211; the <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a> corresponding to the
+current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress.  This argument may be
+<tt class="xref docutils literal"><span class="pre">None</span></tt> if the load does not correspond to a <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>,
+such as during <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">Session.merge()</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -984,7 +986,7 @@ being pickled.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the mapped instance.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 <li><strong>state_dict</strong> &#8211; the dictionary returned by 
 <tt class="xref py py-class docutils literal"><span class="pre">InstanceState.__getstate__</span></tt>, containing the state
@@ -1008,9 +1010,9 @@ been refreshed from a query.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the mapped instance.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
-<li><strong>context</strong> &#8211; the <tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt> corresponding to the
+<li><strong>context</strong> &#8211; the <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a> corresponding to the
 current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress.</li>
 <li><strong>attrs</strong> &#8211; iterable collection of attribute names which 
 were populated, or None if all column-mapped, non-deferred
@@ -1035,7 +1037,7 @@ out of scope.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the mapped instance.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 </ul>
 </td>
@@ -1056,7 +1058,7 @@ been unpickled.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target</strong> &#8211; the mapped instance.  If 
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will 
-instead be the <tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt> state-management
+instead be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> state-management
 object associated with the instance.</li>
 <li><strong>state_dict</strong> &#8211; the dictionary sent to
 <tt class="xref py py-class docutils literal"><span class="pre">InstanceState.__setstate__</span></tt>, containing the state
@@ -1132,7 +1134,7 @@ called on. <cite>query_context</cite> was the query context object.
 <dl class="method">
 <dt id="sqlalchemy.orm.events.SessionEvents.after_commit">
 <tt class="descname">after_commit</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute after a commit has occured.</p>
+<dd><p>Execute after a commit has occurred.</p>
 <p>Note that this may not be per-flush if a longer running
 transaction is ongoing.</p>
 </dd></dl>
@@ -1154,14 +1156,14 @@ as the history settings on instance attributes.</p>
 state occurs.</p>
 <p>This will be when the &#8216;new&#8217;, &#8216;dirty&#8217;, and &#8216;deleted&#8217; lists are in
 their final state.  An actual commit() may or may not have
-occured, depending on whether or not the flush started its own
+occurred, depending on whether or not the flush started its own
 transaction or participated in a larger transaction.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.events.SessionEvents.after_rollback">
 <tt class="descname">after_rollback</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_rollback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute after a rollback has occured.</p>
+<dd><p>Execute after a rollback has occurred.</p>
 <p>Note that this may not be per-flush if a longer running
 transaction is ongoing.</p>
 </dd></dl>
@@ -1207,7 +1209,7 @@ in which case the events fire for all classes.</p>
 <dt id="sqlalchemy.orm.events.InstrumentationEvents.class_instrument">
 <tt class="descname">class_instrument</tt><big>(</big><em>cls</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.InstrumentationEvents.class_instrument" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called after the given class is instrumented.</p>
-<p>To get at the <tt class="xref py py-class docutils literal"><span class="pre">ClassManager</span></tt>, use
+<p>To get at the <a class="reference internal" href="internals.html#sqlalchemy.orm.instrumentation.ClassManager" title="sqlalchemy.orm.instrumentation.ClassManager"><tt class="xref py py-class docutils literal"><span class="pre">ClassManager</span></tt></a>, use
 <a class="reference internal" href="session.html#sqlalchemy.orm.attributes.manager_of_class" title="sqlalchemy.orm.attributes.manager_of_class"><tt class="xref py py-func docutils literal"><span class="pre">manager_of_class()</span></tt></a>.</p>
 </dd></dl>
 
@@ -1215,7 +1217,7 @@ in which case the events fire for all classes.</p>
 <dt id="sqlalchemy.orm.events.InstrumentationEvents.class_uninstrument">
 <tt class="descname">class_uninstrument</tt><big>(</big><em>cls</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.InstrumentationEvents.class_uninstrument" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called before the given class is uninstrumented.</p>
-<p>To get at the <tt class="xref py py-class docutils literal"><span class="pre">ClassManager</span></tt>, use
+<p>To get at the <a class="reference internal" href="internals.html#sqlalchemy.orm.instrumentation.ClassManager" title="sqlalchemy.orm.instrumentation.ClassManager"><tt class="xref py py-class docutils literal"><span class="pre">ClassManager</span></tt></a>, use
 <a class="reference internal" href="session.html#sqlalchemy.orm.attributes.manager_of_class" title="sqlalchemy.orm.attributes.manager_of_class"><tt class="xref py py-func docutils literal"><span class="pre">manager_of_class()</span></tt></a>.</p>
 </dd></dl>
 

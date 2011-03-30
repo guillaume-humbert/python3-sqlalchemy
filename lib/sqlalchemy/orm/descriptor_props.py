@@ -4,7 +4,7 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-"""Descriptor proprerties are more "auxilliary" properties
+"""Descriptor properties are more "auxiliary" properties
 that exist as configurational elements, but don't participate
 as actively in the load/persist ORM loop.
 
@@ -19,7 +19,7 @@ from sqlalchemy.sql import expression
 properties = util.importlater('sqlalchemy.orm', 'properties')
 
 class DescriptorProperty(MapperProperty):
-    """:class:`MapperProperty` which proxies access to a 
+    """:class:`.MapperProperty` which proxies access to a 
         user-defined descriptor."""
 
     doc = None
@@ -164,6 +164,10 @@ class CompositeProperty(DescriptorProperty):
                 prop = attr.property
             props.append(prop)
 
+    @property
+    def columns(self):
+        return [a for a in self.attrs if isinstance(a, schema.Column)]
+
     def _setup_arguments_on_columns(self):
         """Propagate configuration arguments made on this composite
         to the target columns, for those that apply.
@@ -286,7 +290,7 @@ class CompositeProperty(DescriptorProperty):
         return str(self.parent.class_.__name__) + "." + self.key
 
 class ConcreteInheritedProperty(DescriptorProperty):
-    """A 'do nothing' :class:`MapperProperty` that disables 
+    """A 'do nothing' :class:`.MapperProperty` that disables 
     an attribute on a concrete subclass that is only present
     on the inherited mapper, not the concrete classes' mapper.
 

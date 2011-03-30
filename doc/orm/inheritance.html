@@ -7,7 +7,7 @@
         
         <title>
     Mapping Class Inheritance Hierarchies
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Using the Session" href="session.html" />
         <link rel="prev" title="Collection Configuration and Techniques" href="collections.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -328,7 +328,7 @@ what&#8217;s specified in the <a class="reference internal" href="session.html#s
 </div>
 <div class="section" id="creating-joins-to-specific-subtypes">
 <h3>Creating Joins to Specific Subtypes<a class="headerlink" href="#creating-joins-to-specific-subtypes" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt> method is a
+<p>The <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a> method is a
 helper which allows the construction of joins along
 <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> paths while narrowing the criterion to
 specific subclasses. Suppose the <tt class="docutils literal"><span class="pre">employees</span></tt> table represents a collection
@@ -360,14 +360,14 @@ a join from <tt class="docutils literal"><span class="pre">companies</span></tt>
 <tt class="docutils literal"><span class="pre">managers</span></tt> in the mix. If we wish to have criterion which is specifically
 against the <tt class="docutils literal"><span class="pre">Engineer</span></tt> class, we can tell those methods to join or subquery
 against the joined table representing the subclass using the
-<tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt> operator:</p>
+<a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a> operator:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">of_type</span><span class="p">(</span><span class="n">Engineer</span><span class="p">))</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>A longhand version of this would involve spelling out the full target
 selectable within a 2-tuple:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">employees</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engineers</span><span class="p">),</span> <span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="p">))</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>Currently, <tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt> accepts a
+<p>Currently, <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a> accepts a
 single class argument. It may be expanded later on to accept multiple classes.
 For now, to join to any group of subclasses, the longhand notation allows this
 flexibility:</p>
@@ -375,7 +375,7 @@ flexibility:</p>
     <span class="nb">filter</span><span class="p">(</span><span class="n">or_</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">,</span> <span class="n">Manager</span><span class="o">.</span><span class="n">manager_data</span><span class="o">==</span><span class="s">&#39;somedata&#39;</span><span class="p">))</span></pre></div>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">any()</span></tt> and <tt class="docutils literal"><span class="pre">has()</span></tt> operators also can be used with
-<tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt> when the embedded
+<a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a> when the embedded
 criterion is in terms of a subclass:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">of_type</span><span class="p">(</span><span class="n">Engineer</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
 </div>

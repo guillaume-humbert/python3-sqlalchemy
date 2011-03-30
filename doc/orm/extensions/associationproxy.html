@@ -7,7 +7,7 @@
         
         <title>
     Association Proxy
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Declarative" href="declarative.html" />
         <link rel="prev" title="ORM Extensions" href="index.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -375,7 +375,9 @@ SQLAlchemy distribution.</p>
 <dl class="function">
 <dt id="sqlalchemy.ext.associationproxy.association_proxy">
 <tt class="descclassname">sqlalchemy.ext.associationproxy.</tt><tt class="descname">association_proxy</tt><big>(</big><em>target_collection</em>, <em>attr</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.associationproxy.association_proxy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a Python property implementing a view of <em>attr</em> over a collection.</p>
+<dd><p>Return a Python property implementing a view of a target
+attribute which references an attribute on members of the 
+target.</p>
 <p>Implements a read/write view over an instance&#8217;s <em>target_collection</em>,
 extracting <em>attr</em> from each member of the collection.  The property acts
 somewhat like this list comprehension:</p>
@@ -385,8 +387,10 @@ somewhat like this list comprehension:</p>
 <p>Unlike the list comprehension, the collection returned by the property is
 always in sync with <em>target_collection</em>, and mutations made to either
 collection will be reflected in both.</p>
+<p>The association proxy also works with scalar attributes, which in
+turn reference scalar attributes or collections.</p>
 <p>Implements a Python property representing a relationship as a collection of
-simpler values.  The proxied property will mimic the collection type of
+simpler values, or a scalar value.  The proxied property will mimic the collection type of
 the target (list, dict or set), or, in the case of a one to one relationship,
 a simple scalar value.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -396,7 +400,7 @@ a simple scalar value.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target_collection</strong> &#8211; Name of the relationship attribute we&#8217;ll proxy to,
 usually created with <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</li>
-<li><strong>attr</strong> &#8211; <p>Attribute on the associated instances we&#8217;ll proxy for.</p>
+<li><strong>attr</strong> &#8211; <p>Attribute on the associated instance or instances we&#8217;ll proxy for.</p>
 <p>For example, given a target collection of [obj1, obj2], a list created
 by this proxy property would look like [getattr(obj1, <em>attr</em>),
 getattr(obj2, <em>attr</em>)]</p>
@@ -489,6 +493,11 @@ details.</dd>
 <dl class="method">
 <dt id="sqlalchemy.ext.associationproxy.AssociationProxy.has">
 <tt class="descname">has</tt><big>(</big><em>criterion=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy.has" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.ext.associationproxy.AssociationProxy.scalar">
+<tt class="descname">scalar</tt><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy.scalar" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">

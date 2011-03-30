@@ -903,7 +903,9 @@ class CollectionAttributeImpl(AttributeImpl):
 def backref_listeners(attribute, key, uselist):
     """Apply listeners to synchronize a two-way relationship."""
 
-    def set_(state, child, oldchild, initiator):
+    # use easily recognizable names for stack traces
+
+    def emit_backref_from_scalar_set_event(state, child, oldchild, initiator):
         if oldchild is child:
             return child
 
@@ -932,7 +934,7 @@ def backref_listeners(attribute, key, uselist):
                                             passive=PASSIVE_NO_FETCH)
         return child
 
-    def append(state, child, initiator):
+    def emit_backref_from_collection_append_event(state, child, initiator):
         child_state, child_dict = instance_state(child), \
                                     instance_dict(child)
         child_state.manager[key].impl.append(
@@ -943,7 +945,7 @@ def backref_listeners(attribute, key, uselist):
                                             passive=PASSIVE_NO_FETCH)
         return child
 
-    def remove(state, child, initiator):
+    def emit_backref_from_collection_remove_event(state, child, initiator):
         if child is not None:
             child_state, child_dict = instance_state(child),\
                                         instance_dict(child)
@@ -955,15 +957,21 @@ def backref_listeners(attribute, key, uselist):
                                             passive=PASSIVE_NO_FETCH)
 
     if uselist:
-        event.listen(attribute, "append", append, retval=True, raw=True)
+        event.listen(attribute, "append", 
+                    emit_backref_from_collection_append_event, 
+                    retval=True, raw=True)
     else:
-        event.listen(attribute, "set", set_, retval=True, raw=True)
+        event.listen(attribute, "set", 
+                    emit_backref_from_scalar_set_event, 
+                    retval=True, raw=True)
     # TODO: need coverage in test/orm/ of remove event
-    event.listen(attribute, "remove", remove, retval=True, raw=True)
+    event.listen(attribute, "remove", 
+                    emit_backref_from_collection_remove_event, 
+                    retval=True, raw=True)
 
 class History(tuple):
     """A 3-tuple of added, unchanged and deleted values,
-    representing the changes which have occured on an instrumented
+    representing the changes which have occurred on an instrumented
     attribute.
 
     Each tuple member is an iterable sequence.
@@ -992,7 +1000,7 @@ class History(tuple):
         return self != HISTORY_BLANK
 
     def empty(self):
-        """Return True if this :class:`History` has no changes
+        """Return True if this :class:`.History` has no changes
         and no existing, unchanged state.
 
         """
@@ -1022,7 +1030,7 @@ class History(tuple):
                 (self.deleted or [])
 
     def has_changes(self):
-        """Return True if this :class:`History` has changes."""
+        """Return True if this :class:`.History` has changes."""
 
         return bool(self.added or self.deleted)
 
