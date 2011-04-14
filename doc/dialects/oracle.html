@@ -7,7 +7,7 @@
         
         <title>
     Oracle
- &mdash; SQLAlchemy 0.6.6 Documentation</title>
+ &mdash; SQLAlchemy 0.6.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.6',
+          VERSION:     '0.6.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="PostgreSQL" href="postgresql.html" />
         <link rel="prev" title="MySQL" href="mysql.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.6 Documentation</h1>
+        <h1>SQLAlchemy 0.6.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
+            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
         </div>
         <div class="clearboth"></div>
 
@@ -132,6 +132,7 @@ affect the behavior of the dialect regardless of driver in use.</p>
 <li><em>use_ansi</em> - Use ANSI JOIN constructs (see the section on Oracle 8).  Defaults
 to <tt class="xref docutils literal"><span class="pre">True</span></tt>.  If <tt class="xref docutils literal"><span class="pre">False</span></tt>, Oracle-8 compatible constructs are used for joins.</li>
 <li><em>optimize_limits</em> - defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>. see the section on LIMIT/OFFSET.</li>
+<li><em>use_binds_for_limits</em> - defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>.  see the section on LIMIT/OFFSET.</li>
 </ul>
 </div>
 <div class="section" id="auto-increment-behavior">
@@ -180,13 +181,26 @@ requires NLS_LANG to be set.</p>
 </div>
 <div class="section" id="limit-offset-support">
 <h2>LIMIT/OFFSET Support<a class="headerlink" href="#limit-offset-support" title="Permalink to this headline">¶</a></h2>
-<p>Oracle has no support for the LIMIT or OFFSET keywords.  Whereas previous versions of SQLAlchemy
-used the &#8220;ROW NUMBER OVER...&#8221; construct to simulate LIMIT/OFFSET, SQLAlchemy 0.5 now uses 
-a wrapped subquery approach in conjunction with ROWNUM.  The exact methodology is taken from
-<a class="reference external" href="http://www.oracle.com/technology/oramag/oracle/06-sep/o56asktom.html">http://www.oracle.com/technology/oramag/oracle/06-sep/o56asktom.html</a> .  Note that the 
-&#8220;FIRST ROWS()&#8221; optimization keyword mentioned is not used by default, as the user community felt
-this was stepping into the bounds of optimization that is better left on the DBA side, but this
-prefix can be added by enabling the optimize_limits=True flag on create_engine().</p>
+<p>Oracle has no support for the LIMIT or OFFSET keywords.  SQLAlchemy uses 
+a wrapped subquery approach in conjunction with ROWNUM.  The exact methodology 
+is taken from
+<a class="reference external" href="http://www.oracle.com/technology/oramag/oracle/06-sep/o56asktom.html">http://www.oracle.com/technology/oramag/oracle/06-sep/o56asktom.html</a> .</p>
+<p>There are two options which affect its behavior:</p>
+<ul class="simple">
+<li>the &#8220;FIRST ROWS()&#8221; optimization keyword is not used by default.  To enable the usage of this
+optimization directive, specify <tt class="docutils literal"><span class="pre">optimize_limits=True</span></tt> to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</li>
+<li>the values passed for the limit/offset are sent as bound parameters.   Some users have observed
+that Oracle produces a poor query plan when the values are sent as binds and not
+rendered literally.   To render the limit/offset values literally within the SQL 
+statement, specify <tt class="docutils literal"><span class="pre">use_binds_for_limits=False</span></tt> to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</li>
+</ul>
+<p>Some users have reported better performance when the entirely different approach of a 
+window query is used, i.e. ROW_NUMBER() OVER (ORDER BY), to provide LIMIT/OFFSET (note 
+that the majority of users don&#8217;t observe this).  To suit this case the 
+method used for LIMIT/OFFSET can be replaced entirely.  See the recipe at 
+<a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/UsageRecipes/WindowFunctionsByDefault">http://www.sqlalchemy.org/trac/wiki/UsageRecipes/WindowFunctionsByDefault</a>
+which installs a select compiler that overrides the generation of limit/offset with
+a window function.</p>
 </div>
 <div class="section" id="on-update-cascade">
 <h2>ON UPDATE CASCADE<a class="headerlink" href="#on-update-cascade" title="Permalink to this headline">¶</a></h2>
@@ -209,7 +223,7 @@ makes use of Oracle&#8217;s (+) operator.</li>
 the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> is used - VARCHAR2 and CLOB are issued 
 instead.   This because these types don&#8217;t seem to work correctly on Oracle 8
 even though they are available.  The <a class="reference internal" href="../core/types.html#sqlalchemy.types.NVARCHAR" title="sqlalchemy.types.NVARCHAR"><tt class="xref py py-class docutils literal"><span class="pre">NVARCHAR</span></tt></a> 
-and <tt class="xref py py-class docutils literal"><span class="pre">NCLOB</span></tt> types will always generate NVARCHAR2 and NCLOB.</li>
+and <a class="reference internal" href="#sqlalchemy.dialects.oracle.NCLOB" title="sqlalchemy.dialects.oracle.NCLOB"><tt class="xref py py-class docutils literal"><span class="pre">NCLOB</span></tt></a> types will always generate NVARCHAR2 and NCLOB.</li>
 <li>the &#8220;native unicode&#8221; mode is disabled when using cx_oracle, i.e. SQLAlchemy 
 encodes all Python unicode objects to &#8220;string&#8221; before passing in as bind parameters.</li>
 </ul>
@@ -235,12 +249,12 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <p>Types which are specific to Oracle, or have Oracle-specific
 construction arguments, are as follows:</p>
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.base.BFILE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">BFILE</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.BFILE" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.BFILE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">BFILE</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.BFILE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.LargeBinary" title="sqlalchemy.types.LargeBinary"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.base.BFILE.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.BFILE.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.BFILE.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.BFILE.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a LargeBinary type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -265,23 +279,23 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.base.DOUBLE_PRECISION">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.DOUBLE_PRECISION">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.base.DOUBLE_PRECISION.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.DOUBLE_PRECISION.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.DOUBLE_PRECISION.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.DOUBLE_PRECISION.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.base.INTERVAL">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">INTERVAL</tt><big>(</big><em>day_precision=None</em>, <em>second_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.INTERVAL" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.INTERVAL">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">INTERVAL</tt><big>(</big><em>day_precision=None</em>, <em>second_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.INTERVAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.base.INTERVAL.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>day_precision=None</em>, <em>second_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.INTERVAL.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.INTERVAL.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>day_precision=None</em>, <em>second_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.INTERVAL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an INTERVAL.</p>
 <p>Note that only DAY TO SECOND intervals are currently supported.
 This is due to a lack of support for YEAR TO MONTH intervals
@@ -305,12 +319,12 @@ to store for the fractional seconds field.  Defaults to &#8220;6&#8221;.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.base.NCLOB">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">NCLOB</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.NCLOB" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.NCLOB">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">NCLOB</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NCLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.base.NCLOB.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.NCLOB.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.NCLOB.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NCLOB.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a string-holding type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -372,23 +386,23 @@ in the first place (i.e. MySQL.  <em>not</em> PG, Sqlite, etc.)</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.base.NUMBER">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">NUMBER</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.NUMBER" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.NUMBER">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">NUMBER</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NUMBER" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.base.NUMBER.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.NUMBER.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.NUMBER.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NUMBER.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.base.LONG">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">LONG</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.LONG" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.LONG">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">LONG</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.LONG" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.base.LONG.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.LONG.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.LONG.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.LONG.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a string-holding type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -450,12 +464,12 @@ in the first place (i.e. MySQL.  <em>not</em> PG, Sqlite, etc.)</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.base.RAW">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">RAW</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.RAW" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.RAW">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">RAW</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.RAW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.LargeBinary" title="sqlalchemy.types.LargeBinary"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.base.RAW.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.RAW.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.RAW.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.RAW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a LargeBinary type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

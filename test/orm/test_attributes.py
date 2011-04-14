@@ -4,7 +4,7 @@ from sqlalchemy.orm.collections import collection
 from sqlalchemy.orm.interfaces import AttributeExtension
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.test import *
-from sqlalchemy.test.testing import eq_, ne_, assert_raises
+from sqlalchemy.test.testing import eq_, ne_, assert_raises, assert_raises_message
 from test.orm import _base
 from sqlalchemy.test.util import gc_collect
 from sqlalchemy.util import cmp, jython
@@ -125,6 +125,28 @@ class AttributesTest(_base.ORMTest):
         gc_collect()
         assert state.obj() is None
         assert state.dict == {}
+
+    def test_object_dereferenced_error(self):
+        class Foo(object):
+            pass
+        class Bar(object):
+            def __init__(self):
+                gc_collect()
+
+        attributes.register_class(Foo)
+        attributes.register_class(Bar)
+        attributes.register_attribute(Foo, 
+                                    'bars', 
+                                    uselist=True, 
+                                    useobject=True)
+
+        assert_raises_message(
+            sa_exc.SAWarning,
+            "Can't emit change event for attribute "
+            "'Foo.bars' - parent object of type <Foo> "
+            "has been garbage collected.",
+            lambda: Foo().bars.append(Bar())
+        )
 
     def test_deferred(self):
         class Foo(object):pass
@@ -936,24 +958,29 @@ class PendingBackrefTest(_base.ORMTest):
         eq_(attributes.instance_state(b).get_history('posts'), ([p, p4], [p1, p2, p3], []))
         assert called[0] == 1
 
-    def test_lazy_remove(self):
-        global lazy_load
-        called[0] = 0
-        lazy_load = []
-
+    def test_state_on_add_remove(self):
         b = Blog("blog 1")
         p = Post("post 1")
         p.blog = b
-        assert called[0] == 0
-
-        lazy_load = [p]
-
         p.blog = None
+
+        eq_(called[0], 0)
+        eq_(b.posts, [])
+        eq_(called[0], 1)
+
+    def test_pending_combines_with_lazy(self):
+        global lazy_load
+        b = Blog("blog 1")
+        p = Post("post 1")
         p2 = Post("post 2")
-        p2.blog = b
-        assert called[0] == 0
-        assert b.posts == [p2]
-        assert called[0] == 1
+        p.blog = b
+        lazy_load = [p, p2]
+        # lazy loaded + pending get added together.
+        # This isn't seen often with the ORM due
+        # to usual practices surrounding the 
+        # load/flush/load cycle.
+        eq_(b.posts, [p, p2, p])
+        eq_(called[0], 1)
 
     def test_normal_load(self):
         global lazy_load

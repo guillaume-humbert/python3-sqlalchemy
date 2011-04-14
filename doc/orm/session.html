@@ -7,7 +7,7 @@
         
         <title>
     Using the Session
- &mdash; SQLAlchemy 0.6.6 Documentation</title>
+ &mdash; SQLAlchemy 0.6.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.6',
+          VERSION:     '0.6.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Querying" href="query.html" />
         <link rel="prev" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.6 Documentation</h1>
+        <h1>SQLAlchemy 0.6.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
+            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
         </div>
         <div class="clearboth"></div>
 
@@ -1549,22 +1549,35 @@ SQL is actually emitted.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.session.Session.connection">
 <tt class="descname">connection</tt><big>(</big><em>mapper=None</em>, <em>clause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.connection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the active Connection.</p>
-<p>Retrieves the <tt class="docutils literal"><span class="pre">Connection</span></tt> managing the current transaction.  Any
-operations executed on the Connection will take place in the same
-transactional context as <tt class="docutils literal"><span class="pre">Session</span></tt> operations.</p>
-<p>For <tt class="docutils literal"><span class="pre">autocommit</span></tt> Sessions with no active manual transaction,
-<tt class="docutils literal"><span class="pre">connection()</span></tt> is a passthrough to <tt class="docutils literal"><span class="pre">contextual_connect()</span></tt> on the
-underlying engine.</p>
-<p>Ambiguity in multi-bind or unbound Sessions can be resolved through
-any of the optional keyword arguments.  See <tt class="docutils literal"><span class="pre">get_bind()</span></tt> for more
-information.</p>
-<dl class="docutils">
-<dt>mapper</dt>
-<dd>Optional, a <tt class="docutils literal"><span class="pre">mapper</span></tt> or mapped class</dd>
-<dt>clause</dt>
-<dd>Optional, any <tt class="docutils literal"><span class="pre">ClauseElement</span></tt></dd>
-</dl>
+<dd><p>Return a <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object corresponding to this 
+<a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> object&#8217;s transactional state.</p>
+<p>If this <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is configured with <tt class="docutils literal"><span class="pre">autocommit=False</span></tt>,
+either the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> corresponding to the current transaction
+is returned, or if no transaction is in progress, a new one is begun
+and the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> returned.</p>
+<p>Alternatively, if this <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is configured with <tt class="docutils literal"><span class="pre">autocommit=True</span></tt>,
+an ad-hoc <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> is returned using <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine.contextual_connect" title="sqlalchemy.engine.base.Engine.contextual_connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.contextual_connect()</span></tt></a> 
+on the underlying <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
+<p>Ambiguity in multi-bind or unbound <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> objects can be resolved through
+any of the optional keyword arguments.   This ultimately makes usage of the 
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.get_bind" title="sqlalchemy.orm.session.Session.get_bind"><tt class="xref py py-meth docutils literal"><span class="pre">get_bind()</span></tt></a> method for resolution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mapper</strong> &#8211; Optional <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> mapped class, used to identify
+the appropriate bind.  This argument takes precedence over
+<tt class="docutils literal"><span class="pre">clause</span></tt>.</li>
+<li><strong>clause</strong> &#8211; A <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> (i.e. <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>, 
+<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a>, 
+etc.) which will be used to locate a bind, if a bind
+cannot otherwise be identified.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1606,7 +1619,7 @@ attributes, use the is_modified() method.</p>
 results of the statement execution, in the same manner as that of an
 <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or
 <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</p>
-<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.execute" title="sqlalchemy.orm.session.Session.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Session.execute()</span></tt></a> accepts any executable clause construct, such
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.execute" title="sqlalchemy.orm.session.Session.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> accepts any executable clause construct, such
 as <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>,
 <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a>,
 <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a>,
@@ -1617,31 +1630,29 @@ passed, it is first converted to a
 <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct, which here means
 that bind parameters should be specified using the format <tt class="docutils literal"><span class="pre">:param</span></tt>.</p>
 <p>The statement is executed within the current transactional context of
-this <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>. If this <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is set for
-&#8220;autocommit&#8221;, and no transaction is in progress, an ad-hoc transaction
-will be created for the life of the result (i.e., a connection is
-checked out from the connection pool, which is returned when the
-result object is closed).</p>
-<p>If the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is not bound to an
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, the given clause will be
-inspected for binds (i.e., looking for &#8220;bound metadata&#8221;). If the
-session is bound to multiple connectables, the <tt class="docutils literal"><span class="pre">mapper</span></tt> keyword
-argument is typically passed in to specify which bind should be used
-(since the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> keys multiple bind sources to a series of
-<tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt> objects). See <a class="reference internal" href="#sqlalchemy.orm.session.Session.get_bind" title="sqlalchemy.orm.session.Session.get_bind"><tt class="xref py py-meth docutils literal"><span class="pre">get_bind()</span></tt></a> for further details on
-bind resolution.</p>
+this <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>, using the same behavior as that of
+the <a class="reference internal" href="#sqlalchemy.orm.session.Session.connection" title="sqlalchemy.orm.session.Session.connection"><tt class="xref py py-meth docutils literal"><span class="pre">Session.connection()</span></tt></a> method to determine the active
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.   The <tt class="docutils literal"><span class="pre">close_with_result</span></tt> flag is
+set to <tt class="xref docutils literal"><span class="pre">True</span></tt> so that an <tt class="docutils literal"><span class="pre">autocommit=True</span></tt> <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+with no active transaction will produce a result that auto-closes
+the underlying <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>clause</strong> &#8211; A ClauseElement (i.e. select(), text(), etc.) or
-string SQL statement to be executed</li>
-<li><strong>params</strong> &#8211; Optional, a dictionary of bind parameters.</li>
-<li><strong>mapper</strong> &#8211; Optional, a <tt class="docutils literal"><span class="pre">mapper</span></tt> or mapped class</li>
-<li><strong>**kw</strong> &#8211; Additional keyword arguments are sent to <a class="reference internal" href="#sqlalchemy.orm.session.Session.get_bind" title="sqlalchemy.orm.session.Session.get_bind"><tt class="xref py py-meth docutils literal"><span class="pre">get_bind()</span></tt></a>
-which locates a connectable to use for the execution.</li>
+<li><strong>clause</strong> &#8211; A <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> (i.e. <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>, 
+<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a>, etc.) or string SQL statement to be executed.  The clause
+will also be used to locate a bind, if this <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+is not bound to a single engine already, and the <tt class="docutils literal"><span class="pre">mapper</span></tt>
+argument is not passed.</li>
+<li><strong>params</strong> &#8211; Optional dictionary of bind names mapped to values.</li>
+<li><strong>mapper</strong> &#8211; Optional <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> or mapped class, used to identify
+the appropriate bind.  This argument takes precedence over
+<tt class="docutils literal"><span class="pre">clause</span></tt> when locating a bind.</li>
+<li><strong>**kw</strong> &#8211; Additional keyword arguments are sent to <a class="reference internal" href="#sqlalchemy.orm.session.Session.get_bind" title="sqlalchemy.orm.session.Session.get_bind"><tt class="xref py py-meth docutils literal"><span class="pre">get_bind()</span></tt></a>,
+allowing additional arguments to be passed to custom 
+implementations of <a class="reference internal" href="#sqlalchemy.orm.session.Session.get_bind" title="sqlalchemy.orm.session.Session.get_bind"><tt class="xref py py-meth docutils literal"><span class="pre">get_bind()</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -1688,7 +1699,7 @@ indicating a subset of attributes to be expired.</li>
 <dt id="sqlalchemy.orm.session.Session.expire_all">
 <tt class="descname">expire_all</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.expire_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expires all persistent instances within this Session.</p>
-<p>When any attributes on a persitent instance is next accessed, 
+<p>When any attributes on a persistent instance is next accessed, 
 a query will be issued using the
 <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> object&#8217;s current transactional context in order to
 load all expired attributes for the given instance.   Note that
@@ -2357,7 +2368,7 @@ as though it were part of its original loaded state.</p>
 <dt id="sqlalchemy.orm.attributes.History">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.attributes.</tt><tt class="descname">History</tt><a class="headerlink" href="#sqlalchemy.orm.attributes.History" title="Permalink to this definition">¶</a></dt>
 <dd><p>A 3-tuple of added, unchanged and deleted values,
-representing the changes which have occured on an instrumented
+representing the changes which have occurred on an instrumented
 attribute.</p>
 <p>Each tuple member is an iterable sequence.</p>
 <dl class="attribute">

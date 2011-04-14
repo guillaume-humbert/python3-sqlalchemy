@@ -682,6 +682,17 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
 
         eq_(User(id=7), q.one())
 
+    def test_named_subquery(self):
+        session = create_session()
+        a1 = session.query(User.id).filter(User.id==7).subquery('foo1')
+        a2 = session.query(User.id).filter(User.id==7).subquery(name='foo2')
+        a3 = session.query(User.id).filter(User.id==7).subquery()
+
+        eq_(a1.name, 'foo1')
+        eq_(a2.name, 'foo2')
+        eq_(a3.name, '%%(%d anon)s' % id(a3))
+
+
     def test_label(self):
         session = create_session()
 
@@ -987,10 +998,17 @@ class FilterTest(QueryTest):
 class FromSelfTest(QueryTest, AssertsCompiledSQL):
     def test_filter(self):
 
-        assert [User(id=8), User(id=9)] == create_session().query(User).filter(User.id.in_([8,9])).from_self().all()
+        assert [User(id=8), User(id=9)] == \
+                create_session().query(User).\
+                filter(User.id.in_([8,9])).from_self().all()
 
-        assert [User(id=8), User(id=9)] == create_session().query(User).order_by(User.id).slice(1,3).from_self().all()
-        assert [User(id=8)] == list(create_session().query(User).filter(User.id.in_([8,9])).from_self().order_by(User.id)[0:1])
+        assert [User(id=8), User(id=9)] == \
+                create_session().query(User).\
+                order_by(User.id).slice(1,3).from_self().all()
+        assert [User(id=8)] == \
+                list(create_session().query(User).\
+                filter(User.id.in_([8,9])).from_self().\
+                order_by(User.id)[0:1])
 
     def test_join(self):
         assert [
@@ -998,35 +1016,62 @@ class FromSelfTest(QueryTest, AssertsCompiledSQL):
             (User(id=8), Address(id=3)),
             (User(id=8), Address(id=4)),
             (User(id=9), Address(id=5))
-        ] == create_session().query(User).filter(User.id.in_([8,9])).from_self().\
-            join('addresses').add_entity(Address).order_by(User.id, Address.id).all()
+        ] == create_session().query(User).\
+                        filter(User.id.in_([8,9])).from_self().\
+                        join('addresses').add_entity(Address).\
+                        order_by(User.id, Address.id).all()
 
     def test_group_by(self):
         eq_(
-            create_session().query(Address.user_id, func.count(Address.id).label('count')).\
-                            group_by(Address.user_id).order_by(Address.user_id).all(),
+            create_session().query(Address.user_id, 
+                                func.count(Address.id).label('count')).\
+                            group_by(Address.user_id).
+                            order_by(Address.user_id).all(),
             [(7, 1), (8, 3), (9, 1)]
         )
 
         eq_(
-            create_session().query(Address.user_id, Address.id).\
-                            from_self(Address.user_id, func.count(Address.id)).\
-                            group_by(Address.user_id).order_by(Address.user_id).all(),
+            create_session().query(Address.user_id, 
+                            Address.id).\
+                            from_self(Address.user_id, 
+                                func.count(Address.id)).\
+                            group_by(Address.user_id).
+                                order_by(Address.user_id).all(),
             [(7, 1), (8, 3), (9, 1)]
         )
 
+    def test_having(self):
+        s = create_session()
+
+        self.assert_compile(
+            s.query(User.id).group_by(User.id).having(User.id>5).
+                    from_self(),
+            "SELECT anon_1.users_id AS anon_1_users_id FROM "
+            "(SELECT users.id AS users_id FROM users GROUP "
+            "BY users.id HAVING users.id > :id_1) AS anon_1",
+            use_default_dialect=True
+        )
+
     def test_no_joinedload(self):
-        """test that joinedloads are pushed outwards and not rendered in subqueries."""
+        """test that joinedloads are pushed outwards and not 
+        rendered in subqueries."""
 
         s = create_session()
 
         oracle_as = not testing.against('oracle') and "AS " or ""
 
         self.assert_compile(
-            s.query(User).options(joinedload(User.addresses)).from_self().statement,
-            "SELECT anon_1.users_id, anon_1.users_name, addresses_1.id, addresses_1.user_id, "\
-            "addresses_1.email_address FROM (SELECT users.id AS users_id, users.name AS users_name FROM users) %(oracle_as)sanon_1 "\
-            "LEFT OUTER JOIN addresses %(oracle_as)saddresses_1 ON anon_1.users_id = addresses_1.user_id ORDER BY addresses_1.id" % {
+            s.query(User).
+                options(joinedload(User.addresses)).
+                from_self().statement,
+            "SELECT anon_1.users_id, anon_1.users_name, "
+            "addresses_1.id, addresses_1.user_id, "
+            "addresses_1.email_address FROM (SELECT users.id "
+            "AS users_id, users.name AS users_name FROM users) "
+            "%(oracle_as)sanon_1 "
+            "LEFT OUTER JOIN addresses %(oracle_as)saddresses_1 "
+            "ON anon_1.users_id = addresses_1.user_id ORDER "
+            "BY addresses_1.id" % {
                 'oracle_as':oracle_as
             }
         )
@@ -1038,7 +1083,8 @@ class FromSelfTest(QueryTest, AssertsCompiledSQL):
 
         ualias = aliased(User)
         eq_(
-            s.query(User, ualias).filter(User.id > ualias.id).from_self(User.name, ualias.name).
+            s.query(User, ualias).filter(User.id > ualias.id).
+                    from_self(User.name, ualias.name).
                     order_by(User.name, ualias.name).all(),
             [
                 (u'chuck', u'ed'), 
@@ -1051,14 +1097,17 @@ class FromSelfTest(QueryTest, AssertsCompiledSQL):
         )
 
         eq_(
-            s.query(User, ualias).filter(User.id > ualias.id).from_self(User.name, ualias.name).filter(ualias.name=='ed')\
+            s.query(User, ualias).filter(User.id > ualias.id).
+                from_self(User.name, ualias.name).filter(ualias.name=='ed')\
                 .order_by(User.name, ualias.name).all(),
             [(u'chuck', u'ed'), (u'fred', u'ed')]
         )
 
         eq_(
-            s.query(User, ualias).filter(User.id > ualias.id).from_self(ualias.name, Address.email_address).
-                    join(ualias.addresses).order_by(ualias.name, Address.email_address).all(),
+            s.query(User, ualias).filter(User.id > ualias.id).
+                    from_self(ualias.name, Address.email_address).
+                    join(ualias.addresses).
+                    order_by(ualias.name, Address.email_address).all(),
             [
                 (u'ed', u'fred@fred.com'), 
                 (u'jack', u'ed@bettyboop.com'), 
@@ -1072,7 +1121,9 @@ class FromSelfTest(QueryTest, AssertsCompiledSQL):
         sess = create_session()
 
         eq_(
-            sess.query(User, Address).filter(User.id==Address.user_id).filter(Address.id.in_([2, 5])).from_self().all(),
+            sess.query(User, Address).
+                    filter(User.id==Address.user_id).
+                    filter(Address.id.in_([2, 5])).from_self().all(),
             [
                 (User(id=8), Address(id=2)),
                 (User(id=9), Address(id=5))
@@ -1080,7 +1131,10 @@ class FromSelfTest(QueryTest, AssertsCompiledSQL):
         )
 
         eq_(
-            sess.query(User, Address).filter(User.id==Address.user_id).filter(Address.id.in_([2, 5])).from_self().options(joinedload('addresses')).first(),
+            sess.query(User, Address).
+                    filter(User.id==Address.user_id).
+                    filter(Address.id.in_([2, 5])).
+                    from_self().options(joinedload('addresses')).first(),
 
             #    order_by(User.id, Address.id).first(),
             (User(id=8, addresses=[Address(), Address(), Address()]), Address(id=2)),
@@ -4877,3 +4931,233 @@ class StatementOptionsTest(QueryTest):
     # TODO: Test that statement options are passed on to
     # updates/deletes, but currently there are no such options
     # applicable for them.
+
+class OptionsTest(QueryTest):
+    """Test the _get_paths() method of PropertyOption."""
+
+    def _option_fixture(self, *arg):
+        from sqlalchemy.orm import interfaces
+        class Opt(interfaces.PropertyOption):
+            pass
+        return Opt(arg)
+
+    def _make_path(self, path):
+        r = []
+        for i, item in enumerate(path):
+            if i % 2 == 0:
+                if isinstance(item, type):
+                    item = class_mapper(item)
+            r.append(item)
+        return tuple(r)
+
+    def _assert_path_result(self, opt, q, paths, mappers):
+        eq_(
+            opt._get_paths(q, False),
+            ([self._make_path(p) for p in paths], 
+            [class_mapper(c) for c in mappers])
+        )
+
+    def test_get_path_one_level_string(self):
+        sess = Session()
+        q = sess.query(User)
+
+        opt = self._option_fixture("addresses")
+        self._assert_path_result(opt, q, [(User, 'addresses')], [User])
+
+    def test_get_path_one_level_attribute(self):
+        sess = Session()
+        q = sess.query(User)
+
+        opt = self._option_fixture(User.addresses)
+        self._assert_path_result(opt, q, [(User, 'addresses')], [User])
+
+    def test_path_on_entity_but_doesnt_match_currentpath(self):
+        # ensure "current path" is fully consumed before
+        # matching against current entities.
+        # see [ticket:2098]
+        sess = Session()
+        q = sess.query(User)
+        opt = self._option_fixture('email_address', 'id')
+        q = sess.query(Address)._with_current_path([class_mapper(User), 'addresses'])
+        self._assert_path_result(opt, q, [], [])
+
+    def test_get_path_one_level_with_unrelated(self):
+        sess = Session()
+        q = sess.query(Order)
+
+        opt = self._option_fixture("addresses")
+        self._assert_path_result(opt, q, [], [])
+
+    def test_path_multilevel_string(self):
+        sess = Session()
+        q = sess.query(User)
+
+        opt = self._option_fixture("orders.items.keywords")
+        self._assert_path_result(opt, q, [
+            (User, 'orders'), 
+            (User, 'orders', Order, 'items'),
+            (User, 'orders', Order, 'items', Item, 'keywords')
+        ], 
+        [User, Order, Item])
+
+    def test_path_multilevel_attribute(self):
+        sess = Session()
+        q = sess.query(User)
+
+        opt = self._option_fixture(User.orders, Order.items, Item.keywords)
+        self._assert_path_result(opt, q, [
+            (User, 'orders'), 
+            (User, 'orders', Order, 'items'),
+            (User, 'orders', Order, 'items', Item, 'keywords')
+        ], 
+        [User, Order, Item])
+
+    def test_with_current_matching_string(self):
+        sess = Session()
+        q = sess.query(Item)._with_current_path(
+                self._make_path([User, 'orders', Order, 'items'])
+            )
+
+        opt = self._option_fixture("orders.items.keywords")
+        self._assert_path_result(opt, q, [
+            (Item, 'keywords')
+        ], [Item])
+
+    def test_with_current_matching_attribute(self):
+        sess = Session()
+        q = sess.query(Item)._with_current_path(
+                self._make_path([User, 'orders', Order, 'items'])
+            )
+
+        opt = self._option_fixture(User.orders, Order.items, Item.keywords)
+        self._assert_path_result(opt, q, [
+            (Item, 'keywords')
+        ], [Item])
+
+    def test_with_current_nonmatching_string(self):
+        sess = Session()
+        q = sess.query(Item)._with_current_path(
+                self._make_path([User, 'orders', Order, 'items'])
+            )
+
+        opt = self._option_fixture("keywords")
+        self._assert_path_result(opt, q, [], [])
+
+        opt = self._option_fixture("items.keywords")
+        self._assert_path_result(opt, q, [], [])
+
+    def test_with_current_nonmatching_attribute(self):
+        sess = Session()
+        q = sess.query(Item)._with_current_path(
+                self._make_path([User, 'orders', Order, 'items'])
+            )
+
+        opt = self._option_fixture(Item.keywords)
+        self._assert_path_result(opt, q, [], [])
+
+        opt = self._option_fixture(Order.items, Item.keywords)
+        self._assert_path_result(opt, q, [], [])
+
+    def test_from_base_to_subclass_attr(self):
+        sess = Session()
+        class SubAddr(Address):
+            pass
+        mapper(SubAddr, inherits=Address, properties={
+            'flub':relationship(Dingaling)
+        })
+
+        q = sess.query(Address)
+        opt = self._option_fixture(SubAddr.flub)
+
+        self._assert_path_result(opt, q, [(Address, 'flub')], [SubAddr])
+
+    def test_from_subclass_to_subclass_attr(self):
+        sess = Session()
+        class SubAddr(Address):
+            pass
+        mapper(SubAddr, inherits=Address, properties={
+            'flub':relationship(Dingaling)
+        })
+
+        q = sess.query(SubAddr)
+        opt = self._option_fixture(SubAddr.flub)
+
+        self._assert_path_result(opt, q, [(SubAddr, 'flub')], [SubAddr])
+
+    def test_from_base_to_base_attr_via_subclass(self):
+        sess = Session()
+        class SubAddr(Address):
+            pass
+        mapper(SubAddr, inherits=Address, properties={
+            'flub':relationship(Dingaling)
+        })
+
+        q = sess.query(Address)
+        opt = self._option_fixture(SubAddr.user)
+
+        self._assert_path_result(opt, q, [(Address, 'user')], [Address])
+
+    def test_of_type(self):
+        sess = Session()
+        class SubAddr(Address):
+            pass
+        mapper(SubAddr, inherits=Address)
+
+        q = sess.query(User)
+        opt = self._option_fixture(User.addresses.of_type(SubAddr), SubAddr.user)
+
+        self._assert_path_result(opt, q, [
+            (User, 'addresses'),
+            (User, 'addresses', SubAddr, 'user')
+        ], [User, Address])
+
+    def test_of_type_plus_level(self):
+        sess = Session()
+        class SubAddr(Address):
+            pass
+        mapper(SubAddr, inherits=Address, properties={
+            'flub':relationship(Dingaling)
+        })
+
+        q = sess.query(User)
+        opt = self._option_fixture(User.addresses.of_type(SubAddr), SubAddr.flub)
+
+        self._assert_path_result(opt, q, [
+            (User, 'addresses'),
+            (User, 'addresses', SubAddr, 'flub')
+        ], [User, SubAddr])
+
+    def test_aliased_single(self):
+        sess = Session()
+        ualias = aliased(User)
+        q = sess.query(ualias)
+        opt = self._option_fixture(ualias.addresses)
+        self._assert_path_result(opt, q, [(ualias, 'addresses')], [User])
+
+    def test_with_current_aliased_single(self):
+        sess = Session()
+        ualias = aliased(User)
+        q = sess.query(ualias)._with_current_path(
+                        self._make_path([Address, 'user'])
+                )
+        opt = self._option_fixture(Address.user, ualias.addresses)
+        self._assert_path_result(opt, q, [(ualias, 'addresses')], [User])
+
+    def test_with_current_aliased_single_nonmatching_option(self):
+        sess = Session()
+        ualias = aliased(User)
+        q = sess.query(User)._with_current_path(
+                        self._make_path([Address, 'user'])
+                )
+        opt = self._option_fixture(Address.user, ualias.addresses)
+        self._assert_path_result(opt, q, [], [])
+
+    @testing.fails_if(lambda: True, "Broken feature")
+    def test_with_current_aliased_single_nonmatching_entity(self):
+        sess = Session()
+        ualias = aliased(User)
+        q = sess.query(ualias)._with_current_path(
+                        self._make_path([Address, 'user'])
+                )
+        opt = self._option_fixture(Address.user, User.addresses)
+        self._assert_path_result(opt, q, [], [])

@@ -862,7 +862,7 @@ from sqlalchemy.orm import synonym as _orm_synonym, mapper,\
 from sqlalchemy.orm.interfaces import MapperProperty
 from sqlalchemy.orm.properties import RelationshipProperty, ColumnProperty
 from sqlalchemy.orm.util import _is_mapped_class
-from sqlalchemy import util, exceptions
+from sqlalchemy import util, exc
 from sqlalchemy.sql import util as sql_util, expression
 
 
@@ -876,7 +876,7 @@ def instrument_declarative(cls, registry, metadata):
 
     """
     if '_decl_class_registry' in cls.__dict__:
-        raise exceptions.InvalidRequestError(
+        raise exc.InvalidRequestError(
                             "Class %r already has been "
                             "instrumented declaratively" % cls)
     cls._decl_class_registry = registry
@@ -932,7 +932,7 @@ def _as_declarative(cls, classname, dict_):
                                     ):
                     table_args = cls.__table_args__
                     if not isinstance(table_args, (tuple, dict, type(None))):
-                        raise exceptions.ArgumentError(
+                        raise exc.ArgumentError(
                                 "__table_args__ value must be a tuple, "
                                 "dict, or None")
                     if base is not cls:
@@ -944,9 +944,9 @@ def _as_declarative(cls, classname, dict_):
 
                 if isinstance(obj, Column):
                     if obj.foreign_keys:
-                        raise exceptions.InvalidRequestError(
+                        raise exc.InvalidRequestError(
                         "Columns with foreign keys to other columns "
-                        "must be declared as @classproperty callables "
+                        "must be declared as @declared_attr callables "
                         "on declarative mixin classes. ")
                     if name not in dict_ and not (
                             '__table__' in dict_ and 
@@ -958,10 +958,10 @@ def _as_declarative(cls, classname, dict_):
                         column_copies[obj]._creation_order = \
                                 obj._creation_order
                 elif isinstance(obj, MapperProperty):
-                    raise exceptions.InvalidRequestError(
+                    raise exc.InvalidRequestError(
                         "Mapper properties (i.e. deferred,"
                         "column_property(), relationship(), etc.) must "
-                        "be declared as @classproperty callables "
+                        "be declared as @declared_attr callables "
                         "on declarative mixin classes.")
                 elif isinstance(obj, declarative_props):
                     dict_[name] = ret = \
@@ -980,9 +980,10 @@ def _as_declarative(cls, classname, dict_):
 
     # make sure that column copies are used rather 
     # than the original columns from any mixins
-    for k, v in mapper_args.iteritems():
-        mapper_args[k] = column_copies.get(v,v)
-
+    for k in ('version_id_col', 'polymorphic_on',):
+        if k in mapper_args:
+            v = mapper_args[k]
+            mapper_args[k] = column_copies.get(v,v)
 
     if classname in cls._decl_class_registry:
         util.warn("The classname %r is already in the registry of this"
@@ -1006,6 +1007,12 @@ def _as_declarative(cls, classname, dict_):
             continue
         if not isinstance(value, (Column, MapperProperty)):
             continue
+        if k == 'metadata':
+            raise exc.InvalidRequestError(
+                "Attribute name 'metadata' is reserved "
+                "for the MetaData instance when using a "
+                "declarative base class."
+            )
         prop = _deferred_relationship(cls, value)
         our_stuff[k] = prop
 
@@ -1041,7 +1048,7 @@ def _as_declarative(cls, classname, dict_):
                 args = table_args[0:-1]
                 table_kw = table_args[-1]
                 if len(table_args) < 2 or not isinstance(table_kw, dict):
-                    raise exceptions.ArgumentError(
+                    raise exc.ArgumentError(
                         "Tuple form of __table_args__ is "
                         "(arg1, arg2, arg3, ..., {'kw1':val1, "
                         "'kw2':val2, ...})"
@@ -1061,7 +1068,7 @@ def _as_declarative(cls, classname, dict_):
         if cols:
             for c in cols:
                 if not table.c.contains_column(c):
-                    raise exceptions.ArgumentError(
+                    raise exc.ArgumentError(
                         "Can't add additional column %r when "
                         "specifying __table__" % c.key
                     )
@@ -1079,7 +1086,7 @@ def _as_declarative(cls, classname, dict_):
         mapper_cls = mapper
 
     if table is None and 'inherits' not in mapper_args:
-        raise exceptions.InvalidRequestError(
+        raise exc.InvalidRequestError(
             "Class %r does not have a __table__ or __tablename__ "
             "specified and does not inherit from an existing "
             "table-mapped class." % cls
@@ -1102,7 +1109,7 @@ def _as_declarative(cls, classname, dict_):
             # single table inheritance.
             # ensure no table args
             if table_args:
-                raise exceptions.ArgumentError(
+                raise exc.ArgumentError(
                     "Can't place __table_args__ on an inherited class "
                     "with no table."
                     )
@@ -1110,12 +1117,12 @@ def _as_declarative(cls, classname, dict_):
             # add any columns declared here to the inherited table.
             for c in cols:
                 if c.primary_key:
-                    raise exceptions.ArgumentError(
+                    raise exc.ArgumentError(
                         "Can't place primary key columns on an inherited "
                         "class with no table."
                         )
                 if c.name in inherited_table.c:
-                    raise exceptions.ArgumentError(
+                    raise exc.ArgumentError(
                         "Column '%s' on class %s conflicts with "
                         "existing column '%s'" % 
                         (c, cls, inherited_table.c[c.name])
@@ -1153,6 +1160,7 @@ def _as_declarative(cls, classname, dict_):
                     # append() in mapper._configure_property().
                     # change this ordering when we do [ticket:1892]
                     our_stuff[k] = p.columns + [col]
+
 
     cls.__mapper__ = mapper_cls(cls, 
                                 table, 
@@ -1199,11 +1207,11 @@ class _GetColumns(object):
         if mapper:
             prop = mapper.get_property(key, raiseerr=False)
             if prop is None:
-                raise exceptions.InvalidRequestError(
+                raise exc.InvalidRequestError(
                             "Class %r does not have a mapped column named %r"
                             % (self.cls, key))
             elif not isinstance(prop, ColumnProperty):
-                raise exceptions.InvalidRequestError(
+                raise exc.InvalidRequestError(
                             "Property %r is not an instance of"
                             " ColumnProperty (i.e. does not correspond"
                             " directly to a Column)." % key)
@@ -1232,7 +1240,7 @@ def _deferred_relationship(cls, prop):
                 else:
                     return x
             except NameError, n:
-                raise exceptions.InvalidRequestError(
+                raise exc.InvalidRequestError(
                     "When initializing mapper %s, expression %r failed to "
                     "locate a name (%r). If this is a class name, consider "
                     "adding this relationship() to the %r class after "

@@ -122,9 +122,7 @@ python-sybase_             ``sybase+pysybase``          yes [1]_     development
 .. _sapdb: http://www.sapdb.org/sapdbapi.html
 .. _python-sybase: http://python-sybase.sourceforge.net/
 
-Further detail on dialects is available at :ref:`dialect_toplevel`
-as well as additional notes on the wiki at `Database Notes
-<http://www.sqlalchemy.org/trac/wiki/DatabaseNotes>`_
+Further detail on dialects is available at :ref:`dialect_toplevel`.
 
 
 .. _create_engine_args:
@@ -311,3 +309,14 @@ or :class:`~sqlalchemy.pool.Pool` defaults to using a truncated hex identifier
 string. To set this to a specific name, use the "logging_name" and
 "pool_logging_name" keyword arguments with :func:`sqlalchemy.create_engine`.
 
+.. note::
+    The SQLAlchemy :class:`.Engine` conserves Python function call overhead
+    by only emitting log statements when the current logging level is detected
+    as ``logging.INFO`` or ``logging.DEBUG``.  It only checks this level when 
+    a new connection is procured from the connection pool.  Therefore when 
+    changing the logging configuration for an already-running application, any
+    :class:`.Connection` that's currently active, or more commonly a
+    :class:`~.orm.session.Session` object that's active in a transaction, won't log any
+    SQL according to the new configuration until a new :class:`.Connection` 
+    is procured (in the case of :class:`~.orm.session.Session`, this is 
+    after the current transaction ends and a new one begins).

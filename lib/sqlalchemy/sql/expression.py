@@ -617,22 +617,39 @@ def intersect_all(*selects, **kwargs):
     return CompoundSelect(CompoundSelect.INTERSECT_ALL, *selects, **kwargs)
 
 def alias(selectable, alias=None):
-    """Return an :class:`Alias` object.
+    """Return an :class:`.Alias` object.
 
-    An :class:`Alias` represents any :class:`FromClause`
+    An :class:`.Alias` represents any :class:`.FromClause`
     with an alternate name assigned within SQL, typically using the ``AS``
     clause when generated, e.g. ``SELECT * FROM table AS aliasname``.
 
-    Similar functionality is available via the :func:`alias()` method
-    available on all :class:`FromClause` subclasses.
+    Similar functionality is available via the 
+    :meth:`~.FromClause.alias` method
+    available on all :class:`.FromClause` subclasses.
 
-      selectable
-        any :class:`FromClause` subclass, such as a table, select
-        statement, etc..
+    When an :class:`.Alias` is created from a :class:`.Table` object,
+    this has the effect of the table being rendered
+    as ``tablename AS aliasname`` in a SELECT statement.
+    
+    For :func:`.select` objects, the effect is that of creating a named
+    subquery, i.e. ``(select ...) AS aliasname``.
 
-      alias
-        string name to be assigned as the alias.  If ``None``, a
-        random name will be generated.
+    The ``alias`` parameter is optional, and provides the name
+    to use in the rendered SQL.  If blank, an "anonymous" name
+    will be deterministically generated at compile time.  
+    Deterministic means the name is guaranteed to be unique against
+    other constructs used in the same statement, and will also be the
+    same name for each successive compilation of the same statement
+    object.
+
+    :param selectable: any :class:`.FromClause` subclass,
+        such as a table, select statement, etc.
+
+    :param alias: string name to be assigned as the alias.
+        If ``None``, a name will be deterministically generated
+        at compile time.
+        **Deprecated** - this argument is called ``name`` in 
+        0.7 for consistency with the other aliasing methods.
 
     """
     return Alias(selectable, alias=alias)
@@ -970,6 +987,41 @@ class _FunctionGenerator(object):
 
 # "func" global - i.e. func.count()
 func = _FunctionGenerator()
+"""Generate SQL function expressions.
+
+   ``func`` is a special object instance which generates SQL functions based on name-based attributes, e.g.::
+
+        >>> print func.count(1)
+        count(:param_1)
+
+   Any name can be given to `func`. If the function name is unknown to
+   SQLAlchemy, it will be rendered exactly as is. For common SQL functions
+   which SQLAlchemy is aware of, the name may be interpreted as a *generic
+   function* which will be compiled appropriately to the target database::
+
+        >>> print func.current_timestamp()
+        CURRENT_TIMESTAMP
+
+   To call functions which are present in dot-separated packages, specify them in the same manner::
+
+        >>> print func.stats.yield_curve(5, 10)
+        stats.yield_curve(:yield_curve_1, :yield_curve_2)
+
+   SQLAlchemy can be made aware of the return type of functions to enable
+   type-specific lexical and result-based behavior. For example, to ensure
+   that a string-based function returns a Unicode value and is similarly
+   treated as a string in expressions, specify
+   :class:`~sqlalchemy.types.Unicode` as the type:
+
+        >>> print func.my_string(u'hi', type_=Unicode) + ' ' + \
+        ... func.my_string(u'there', type_=Unicode)
+        my_string(:my_string_1) || :my_string_2 || my_string(:my_string_3)
+
+   Functions which are interpreted as "generic" functions know how to
+   calculate their return type automatically. For a listing of known generic
+   functions, see :ref:`generic_functions`.
+
+"""
 
 # "modifier" global - i.e. modifier.distinct
 # TODO: use UnaryExpression for this instead ?
@@ -2141,19 +2193,14 @@ class FromClause(Selectable):
         return Join(self, right, onclause, True)
 
     def alias(self, name=None):
-        """return an alias of this :class:`FromClause`.
-
-        For table objects, this has the effect of the table being rendered
-        as ``tablename AS aliasname`` in a SELECT statement.
-        For select objects, the effect is that of creating a named
-        subquery, i.e. ``(select ...) AS aliasname``.
-        The :func:`alias()` method is the general way to create
-        a "subquery" out of an existing SELECT.
-
-        The ``name`` parameter is optional, and if left blank an 
-        "anonymous" name will be generated at compile time, guaranteed
-        to be unique against other anonymous constructs used in the
-        same statement.
+        """return an alias of this :class:`.FromClause`.
+        
+        This is shorthand for calling::
+        
+            from sqlalchemy import alias
+            a = alias(self, name)
+            
+        See :func:`~.expression.alias` for details.
 
         """
 
@@ -2169,7 +2216,7 @@ class FromClause(Selectable):
         return fromclause in self._cloned_set
 
     def replace_selectable(self, old, alias):
-        """replace all occurences of FromClause 'old' with the given Alias 
+        """replace all occurrences of FromClause 'old' with the given Alias 
         object, returning a copy of this :class:`FromClause`.
 
         """
@@ -3080,6 +3127,13 @@ class Join(FromClause):
     __visit_name__ = 'join'
 
     def __init__(self, left, right, onclause=None, isouter=False):
+        """Construct a new :class:`.Join`.
+        
+        The usual entrypoint here is the :func:`~.expression.join`
+        function or the :meth:`.FromClause.join` method of any
+        :class:`.FromClause` object.
+        
+        """
         self.left = _literal_as_text(left)
         self.right = _literal_as_text(right).self_group()
 
@@ -3136,12 +3190,20 @@ class Join(FromClause):
 
     def select(self, whereclause=None, fold_equivalents=False, **kwargs):
         """Create a :class:`Select` from this :class:`Join`.
-
+        
+        The equivalent long-hand form, given a :class:`.Join` object
+        ``j``, is::
+        
+            from sqlalchemy import select
+            j = select([j.left, j.right], **kw).\\
+                        where(whereclause).\\
+                        select_from(j)
+            
         :param whereclause: the WHERE criterion that will be sent to 
           the :func:`select()` function
 
         :param fold_equivalents: based on the join criterion of this 
-          :class:`Join`, do not include
+          :class:`.Join`, do not include
           repeat column names in the column list of the resulting
           select, for columns that are calculated to be "equivalent"
           based on the join criterion of this :class:`Join`. This will
@@ -3164,11 +3226,32 @@ class Join(FromClause):
         return self.left.bind or self.right.bind
 
     def alias(self, name=None):
-        """Create a :class:`Select` out of this :class:`Join` clause and
-        return an :class:`Alias` of it.
+        """return an alias of this :class:`.Join`.
+        
+        Used against a :class:`.Join` object,
+        :meth:`~.Join.alias` calls the :meth:`~.Join.select`
+        method first so that a subquery against a 
+        :func:`.select` construct is generated.
+        the :func:`~expression.select` construct also has the 
+        ``correlate`` flag set to ``False`` and will not
+        auto-correlate inside an enclosing :func:`~expression.select`
+        construct.
+        
+        The equivalent long-hand form, given a :class:`.Join` object
+        ``j``, is::
+        
+            from sqlalchemy import select, alias
+            j = alias(
+                select([j.left, j.right]).\\
+                    select_from(j).\\
+                    with_labels(True).\\
+                    correlate(False),
+                name
+            )
 
-        The :class:`Select` is not correlating.
-
+        See :func:`~.expression.alias` for further details on 
+        aliases.
+        
         """
         return self.select(use_labels=True, correlate=False).alias(name)
 
@@ -3191,9 +3274,9 @@ class Alias(FromClause):
     sub-select within a SQL statement using the ``AS`` keyword (or
     without the keyword on certain databases such as Oracle).
 
-    This object is constructed from the :func:`alias()` module level
-    function as well as the :func:`alias()` method available on all
-    :class:`FromClause` subclasses.
+    This object is constructed from the :func:`~.expression.alias` module level
+    function as well as the :meth:`.FromClause.alias` method available on all
+    :class:`.FromClause` subclasses.
 
     """
 
@@ -3609,8 +3692,8 @@ class _SelectBaseMixin(Executable):
             self._execution_options = \
                 self._execution_options.union({'autocommit'
                     : autocommit})
-        self._limit = limit
-        self._offset = offset
+        self._limit = util.asint(limit)
+        self._offset = util.asint(offset)
         self._bind = bind
 
         self._order_by_clause = ClauseList(*util.to_list(order_by) or [])
@@ -3677,14 +3760,14 @@ class _SelectBaseMixin(Executable):
         """return a new selectable with the given LIMIT criterion
         applied."""
 
-        self._limit = limit
+        self._limit = util.asint(limit)
 
     @_generative
     def offset(self, offset):
         """return a new selectable with the given OFFSET criterion
         applied."""
 
-        self._offset = offset
+        self._offset = util.asint(offset)
 
     @_generative
     def order_by(self, *clauses):

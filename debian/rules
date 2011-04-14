@@ -63,6 +63,9 @@ install-python3.%:
 	# no extension for 3.X yet...
 	python3.$* ./setup.py install $(py_setup_install_args) \
 		--root $(call pkgdir,3.X)
+	# workaround for Distribute bug
+	([ -d build/lib ] && mv build/lib $(shell python$* -c 'from distutils.command.build import build; from distutils.core import Distribution; b = build(Distribution()); b.finalize_options(); print(b.build_platlib)')) || true
+	touch $@
 
 install-python%: build
 	python$* ./setup.py install --skip-build \
@@ -71,6 +74,8 @@ install-python%: build
 	mkdir -p $(call pkgdir,$*)-ext$(call py_libdir,$*)/sqlalchemy
 	mv $(call pkgdir,$*)$(call py_libdir,$*)/sqlalchemy/*so \
 	   $(call pkgdir,$*)-ext$(call py_libdir,$*)/sqlalchemy/
+	# workaround for Distribute bug
+	([ -d build/lib ] && mv build/lib $(shell python$* -c 'from distutils.command.build import build; from distutils.core import Distribution; b = build(Distribution()); b.finalize_options(); print(b.build_platlib)')) || true
 	touch $@
 	
 install-python2.5: build-python2.5
@@ -79,6 +84,8 @@ install-python2.5: build-python2.5
 		--root $(call pkgdir,2.5) $(py_setup_install_args)
 	# ... and *removes* .so files?
 	python2.5 ./setup.py --with-cextensions build_ext
+	# workaround for Distribute bug
+	([ -d build/lib ] && mv build/lib $(shell python2.5 -c 'from distutils.command.build import build; from distutils.core import Distribution; b = build(Distribution()); b.finalize_options(); print(b.build_platlib)')) || true
 	mkdir -p $(call pkgdir,2.5)-ext$(call py_libdir,2.5)/sqlalchemy
 	mv $(CURDIR)/build/lib.*-2.5/sqlalchemy/*.so \
 	 $(call pkgdir,2.5)-ext$(call py_libdir,2.5)/sqlalchemy/
