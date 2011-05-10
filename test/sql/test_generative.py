@@ -3,11 +3,11 @@ from sqlalchemy.sql import table, column, ClauseElement
 from sqlalchemy.sql.expression import  _clone, _from_objects
 from test.lib import *
 from sqlalchemy.sql.visitors import *
-from sqlalchemy import util
+from sqlalchemy import util, exc
 from sqlalchemy.sql import util as sql_util
-from test.lib.testing import eq_
+from test.lib.testing import eq_, assert_raises
 
-class TraversalTest(TestBase, AssertsExecutionResults):
+class TraversalTest(fixtures.TestBase, AssertsExecutionResults):
     """test ClauseVisitor's traversal, particularly its 
     ability to copy and modify a ClauseElement in place."""
 
@@ -166,7 +166,7 @@ class TraversalTest(TestBase, AssertsExecutionResults):
         s = set(ClauseVisitor().iterate(bin))
         assert set(ClauseVisitor().iterate(bin)) == set([foo, bar, bin])
 
-class ClauseTest(TestBase, AssertsCompiledSQL):
+class ClauseTest(fixtures.TestBase, AssertsCompiledSQL):
     """test copy-in-place behavior of various ClauseElements."""
 
     __dialect__ = 'default'
@@ -472,7 +472,7 @@ class ClauseTest(TestBase, AssertsCompiledSQL):
                             ':col1_1) AS anon_1 WHERE table1.col1 = '
                             'anon_1.col1')
 
-class ClauseAdapterTest(TestBase, AssertsCompiledSQL):
+class ClauseAdapterTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     @classmethod
@@ -861,7 +861,7 @@ class ClauseAdapterTest(TestBase, AssertsCompiledSQL):
             "WHERE c.bid = anon_1.b_aid"
         )
 
-class SpliceJoinsTest(TestBase, AssertsCompiledSQL):
+class SpliceJoinsTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     @classmethod
@@ -932,7 +932,7 @@ class SpliceJoinsTest(TestBase, AssertsCompiledSQL):
                             'table1.col3 = table4_1.col3')
 
 
-class SelectTest(TestBase, AssertsCompiledSQL):
+class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
     """tests the generative capability of Select"""
 
     __dialect__ = 'default'
@@ -1074,6 +1074,18 @@ class SelectTest(TestBase, AssertsCompiledSQL):
         assert s2._execution_options == dict(foo='bar', bar='baz')
         assert s3._execution_options == dict(foo='not bar')
 
+    def test_invalid_options(self):
+        assert_raises(
+            exc.ArgumentError,
+            select().execution_options, compiled_cache={}
+        )
+
+        assert_raises(
+            exc.ArgumentError,
+            select().execution_options, 
+                isolation_level='READ_COMMITTED'
+        )
+
     # this feature not available yet
     def _NOTYET_test_execution_options_in_kwargs(self):
         s = select(execution_options=dict(foo='bar'))
@@ -1088,7 +1100,7 @@ class SelectTest(TestBase, AssertsCompiledSQL):
         s = text('select 42', execution_options=dict(foo='bar'))
         assert s._execution_options == dict(foo='bar')
 
-class InsertTest(TestBase, AssertsCompiledSQL):
+class InsertTest(fixtures.TestBase, AssertsCompiledSQL):
     """Tests the generative capability of Insert"""
 
     __dialect__ = 'default'

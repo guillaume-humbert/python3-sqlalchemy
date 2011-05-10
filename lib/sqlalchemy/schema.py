@@ -89,9 +89,14 @@ class Table(SchemaItem, expression.TableClause):
                         Column('value', String(50))
                    )
 
-    The Table object constructs a unique instance of itself based on its
-    name within the given MetaData object.   Constructor
-    arguments are as follows:
+    The :class:`.Table` object constructs a unique instance of itself based on its
+    name and optionl schema name within the given :class:`.MetaData` object.   
+    Calling the :class:`.Table`
+    constructor with the same name and same :class:`.MetaData` argument 
+    a second time will return the *same* :class:`.Table` object - in this way
+    the :class:`.Table` constructor acts as a registry function.
+    
+    Constructor arguments are as follows:
 
     :param name: The name of this table as represented in the database. 
 
@@ -127,6 +132,14 @@ class Table(SchemaItem, expression.TableClause):
         or Connection instance to be used for the table reflection. If
         ``None``, the underlying MetaData's bound connectable will be used.
 
+    :param extend_existing: When ``True``, indicates that if this Table is already
+        present in the given :class:`.MetaData`, apply further arguments within
+        the constructor to the existing :class:`.Table`.  
+        
+        If extend_existing or keep_existing are not set, an error is
+        raised if additional table modifiers are specified when 
+        the given :class:`.Table` is already present in the :class:`.MetaData`.
+
     :param implicit_returning: True by default - indicates that 
         RETURNING can be used by default to fetch newly inserted primary key 
         values, for backends which support this.  Note that 
@@ -141,6 +154,20 @@ class Table(SchemaItem, expression.TableClause):
     :param info: A dictionary which defaults to ``{}``.  A space to store
         application specific data. This must be a dictionary.
 
+    :param keep_existing: When ``True``, indicates that if this Table 
+        is already present in the given :class:`.MetaData`, ignore
+        further arguments within the constructor to the existing
+        :class:`.Table`, and return the :class:`.Table` object as
+        originally created. This is to allow a function that wishes
+        to define a new :class:`.Table` on first call, but on
+        subsequent calls will return the same :class:`.Table`,
+        without any of the declarations (particularly constraints)
+        being applied a second time. Also see extend_existing.
+        
+        If extend_existing or keep_existing are not set, an error is
+        raised if additional table modifiers are specified when 
+        the given :class:`.Table` is already present in the :class:`.MetaData`.
+        
     :param listeners: A list of tuples of the form ``(<eventname>, <fn>)``
         which will be passed to :func:`.event.listen` upon construction. 
         This alternate hook to :func:`.event.listen` allows the establishment
@@ -149,6 +176,7 @@ class Table(SchemaItem, expression.TableClause):
         the :meth:`.events.column_reflect` event::
         
             def listen_for_reflect(table, column_info):
+                "handle the column reflection event"
                 # ...
                 
             t = Table(
@@ -159,7 +187,8 @@ class Table(SchemaItem, expression.TableClause):
                 ])
 
     :param mustexist: When ``True``, indicates that this Table must already 
-        be present in the given :class:`.MetaData`` collection.
+        be present in the given :class:`.MetaData`` collection, else
+        an exception is raised.
 
     :param prefixes:
         A list of strings to insert after CREATE in the CREATE TABLE
@@ -178,12 +207,8 @@ class Table(SchemaItem, expression.TableClause):
     :param schema: The *schema name* for this table, which is required if 
         the table resides in a schema other than the default selected schema
         for the engine's database connection. Defaults to ``None``.
-
-    :param useexisting: When ``True``, indicates that if this Table is already
-        present in the given :class:`.MetaData`, apply further arguments within
-        the constructor to the existing :class:`.Table`. If this flag is not
-        set, an error is raised when the parameters of an existing
-        :class:`.Table` are overwritten.
+    
+    :param useexisting: Deprecated.  Use extend_existing.
 
     """
 
@@ -200,17 +225,32 @@ class Table(SchemaItem, expression.TableClause):
             raise TypeError("Table() takes at least two arguments")
 
         schema = kw.get('schema', None)
-        useexisting = kw.pop('useexisting', False)
+        keep_existing = kw.pop('keep_existing', False)
+        extend_existing = kw.pop('extend_existing', False)
+        if 'useexisting' in kw:
+            util.warn_deprecated("useexisting is deprecated.  Use extend_existing.")
+            if extend_existing:
+                raise exc.ArgumentError("useexisting is synonymous "
+                            "with extend_existing.")
+            extend_existing = kw.pop('useexisting', False)
+
+        if keep_existing and extend_existing:
+            raise exc.ArgumentError("keep_existing and extend_existing "
+                                "are mutually exclusive.")
+
         mustexist = kw.pop('mustexist', False)
         key = _get_table_key(name, schema)
         if key in metadata.tables:
-            if not useexisting and bool(args):
+            if not keep_existing and not extend_existing and bool(args):
                 raise exc.InvalidRequestError(
                     "Table '%s' is already defined for this MetaData "
-                    "instance.  Specify 'useexisting=True' to redefine "
-                    "options and columns on an existing Table object." % key)
+                    "instance.  Specify 'extend_existing=True' "
+                    "to redefine "
+                    "options and columns on an "
+                    "existing Table object." % key)
             table = metadata.tables[key]
-            table._init_existing(*args, **kw)
+            if extend_existing:
+                table._init_existing(*args, **kw)
             return table
         else:
             if mustexist:
@@ -228,9 +268,15 @@ class Table(SchemaItem, expression.TableClause):
                 raise
 
     def __init__(self, *args, **kw):
+        """Constructor for :class:`~.schema.Table`.
+        
+        This method is a no-op.   See the top-level
+        documentation for :class:`~.schema.Table`
+        for constructor arguments.
+        
+        """
         # __init__ is overridden to prevent __new__ from 
         # calling the superclass constructor.
-        pass
 
     def _init(self, name, metadata, *args, **kwargs):
         super(Table, self).__init__(name)
@@ -239,7 +285,7 @@ class Table(SchemaItem, expression.TableClause):
         self.indexes = set()
         self.constraints = set()
         self._columns = expression.ColumnCollection()
-        self._set_primary_key(PrimaryKeyConstraint())
+        PrimaryKeyConstraint()._set_parent_with_dispatch(self) 
         self.foreign_keys = set()
         self._extra_dependencies = set()
         self.kwargs = {}
@@ -332,14 +378,6 @@ class Table(SchemaItem, expression.TableClause):
     def _init_collections(self):
         pass
 
-    def _set_primary_key(self, pk):
-        if self.primary_key in self.constraints:
-            self.constraints.remove(self.primary_key)
-        self.primary_key = pk
-        self.constraints.add(pk)
-
-        for c in pk.columns:
-            c.primary_key = True
 
     @util.memoized_property
     def _autoincrement_column(self):
@@ -385,12 +423,43 @@ class Table(SchemaItem, expression.TableClause):
         self._extra_dependencies.add(table)
 
     def append_column(self, column):
-        """Append a ``Column`` to this ``Table``."""
+        """Append a :class:`~.schema.Column` to this :class:`~.schema.Table`.
+        
+        The "key" of the newly added :class:`~.schema.Column`, i.e. the
+        value of its ``.key`` attribute, will then be available
+        in the ``.c`` collection of this :class:`~.schema.Table`, and the
+        column definition will be included in any CREATE TABLE, SELECT,
+        UPDATE, etc. statements generated from this :class:`~.schema.Table`
+        construct.
+        
+        Note that this does **not** change the definition of the table 
+        as it exists within any underlying database, assuming that
+        table has already been created in the database.   Relational 
+        databases support the addition of columns to existing tables 
+        using the SQL ALTER command, which would need to be 
+        emitted for an already-existing table that doesn't contain
+        the newly added column.
+        
+        """
 
         column._set_parent_with_dispatch(self)
 
     def append_constraint(self, constraint):
-        """Append a ``Constraint`` to this ``Table``."""
+        """Append a :class:`~.schema.Constraint` to this :class:`~.schema.Table`.
+        
+        This has the effect of the constraint being included in any
+        future CREATE TABLE statement, assuming specific DDL creation 
+        events have not been associated with the given :class:`~.schema.Constraint` 
+        object.
+        
+        Note that this does **not** produce the constraint within the 
+        relational database automatically, for a table that already exists
+        in the database.   To add a constraint to an
+        existing relational database table, the SQL ALTER command must
+        be used.  SQLAlchemy also provides the :class:`.AddConstraint` construct
+        which can produce this SQL when invoked as an executable clause.
+        
+        """
 
         constraint._set_parent_with_dispatch(self)
 
@@ -1486,6 +1555,7 @@ class Sequence(DefaultGenerator):
         self.quote = quote
         self.schema = schema
         self.metadata = metadata
+        self._key = _get_table_key(name, schema)
         if metadata:
             self._set_metadata(metadata)
 
@@ -1520,7 +1590,7 @@ class Sequence(DefaultGenerator):
 
     def _set_metadata(self, metadata):
         self.metadata = metadata
-        self.metadata._sequences.add(self)
+        self.metadata._sequences[self._key] = self
 
     @property
     def bind(self):
@@ -1956,7 +2026,14 @@ class PrimaryKeyConstraint(ColumnCollectionConstraint):
 
     def _set_parent(self, table):
         super(PrimaryKeyConstraint, self)._set_parent(table)
-        table._set_primary_key(self)
+
+        if table.primary_key in table.constraints:
+            table.constraints.remove(table.primary_key)
+        table.primary_key = self
+        table.constraints.add(self)
+
+        for c in self.columns:
+            c.primary_key = True
 
     def _replace(self, col):
         self.columns.replace(col)
@@ -2099,9 +2176,8 @@ class MetaData(SchemaItem):
         """
         self.tables = util.immutabledict()
         self._schemas = set()
-        self._sequences = set()
+        self._sequences = {}
         self.bind = bind
-        self.metadata = self
         if reflect:
             if not bind:
                 raise exc.ArgumentError(
@@ -2132,11 +2208,14 @@ class MetaData(SchemaItem):
                                 if t.schema is not None])
 
     def __getstate__(self):
-        return {'tables': self.tables}
+        return {'tables': self.tables, 'schemas':self._schemas, 
+                'sequences':self._sequences}
 
     def __setstate__(self, state):
         self.tables = state['tables']
         self._bind = None
+        self._sequences = state['sequences']
+        self._schemas = state['schemas']
 
     def is_bound(self):
         """True if this MetaData is bound to an Engine or Connection."""

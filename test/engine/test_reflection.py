@@ -3,17 +3,18 @@ import StringIO, unicodedata
 from sqlalchemy import types as sql_types
 from sqlalchemy import schema, events, event
 from sqlalchemy.engine.reflection import Inspector
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, Integer
 from test.lib.schema import Table, Column
 import sqlalchemy as sa
-from test.lib import TestBase, ComparesTables, \
+from test.lib import ComparesTables, \
                             testing, engines, AssertsCompiledSQL
+from test.lib import fixtures
 
 create_inspector = Inspector.from_engine
 
 metadata, users = None, None
 
-class ReflectionTest(TestBase, ComparesTables):
+class ReflectionTest(fixtures.TestBase, ComparesTables):
 
     @testing.exclude('mssql', '<', (10, 0, 0),
                      'Date is only supported on MSSQL 2008+')
@@ -114,7 +115,7 @@ class ReflectionTest(TestBase, ComparesTables):
             meta3 = MetaData(testing.db)
             foo = Table('foo', meta3, autoload=True)
             foo = Table('foo', meta3, include_columns=['b', 'f', 'e'],
-                        useexisting=True)
+                        extend_existing=True)
             eq_([c.name for c in foo.c], ['b', 'e', 'f'])
             for c in ('b', 'f', 'e'):
                 assert c in foo.c
@@ -331,6 +332,8 @@ class ReflectionTest(TestBase, ComparesTables):
     def test_override_composite_fk(self):
         """Test double-remove of composite foreign key, when replaced."""
 
+        metadata = self.metadata
+
         a = Table('a',
             metadata,
             Column('x', sa.Integer, primary_key=True),
@@ -397,6 +400,7 @@ class ReflectionTest(TestBase, ComparesTables):
         column in its reflection.
 
         """
+
         meta = MetaData(testing.db)
         a1 = Table('a', meta,
             Column('x', sa.Integer, primary_key=True),
@@ -473,46 +477,6 @@ class ReflectionTest(TestBase, ComparesTables):
                 is a2.c.user_id
             assert u2.join(a2).onclause.compare(u2.c.id == a2.c.user_id)
 
-        finally:
-            meta.drop_all()
-
-    @testing.exclude('mysql', '<', (4, 1, 1), 'innodb funkiness')
-    def test_use_existing(self):
-        meta = MetaData(testing.db)
-        users = Table('users', meta, 
-                    Column('id', sa.Integer, primary_key=True), 
-                    Column('name', sa.String(30)),
-                      test_needs_fk=True)
-        addresses = Table(
-            'addresses',
-            meta,
-            Column('id', sa.Integer, primary_key=True),
-            Column('user_id', sa.Integer, sa.ForeignKey('users.id')),
-            Column('data', sa.String(100)),
-            test_needs_fk=True,
-            )
-        meta.create_all()
-        try:
-            meta2 = MetaData(testing.db)
-            addresses = Table('addresses', meta2, Column('data',
-                              sa.Unicode), autoload=True)
-            try:
-                users = Table('users', meta2, Column('name',
-                              sa.Unicode), autoload=True)
-                assert False
-            except sa.exc.InvalidRequestError, err:
-                assert str(err) \
-                    == "Table 'users' is already defined for this "\
-                    "MetaData instance.  Specify 'useexisting=True' "\
-                    "to redefine options and columns on an existing "\
-                    "Table object."
-            users = Table('users', meta2, Column('name', sa.Unicode),
-                          autoload=True, useexisting=True)
-            assert isinstance(users.c.name.type, sa.Unicode)
-            assert not users.quote
-            users = Table('users', meta2, quote=True, autoload=True,
-                          useexisting=True)
-            assert users.quote
         finally:
             meta.drop_all()
 
@@ -764,6 +728,7 @@ class ReflectionTest(TestBase, ComparesTables):
     @testing.requires.views
     @testing.provide_metadata
     def test_views(self):
+        metadata = self.metadata
         users, addresses = createTables(metadata, None)
         try:
             metadata.create_all()
@@ -785,6 +750,7 @@ class ReflectionTest(TestBase, ComparesTables):
     @testing.requires.views
     @testing.provide_metadata
     def test_reflect_all_with_views(self):
+        metadata = self.metadata
         users, addresses = createTables(metadata, None)
         try:
             metadata.create_all()
@@ -807,7 +773,7 @@ class ReflectionTest(TestBase, ComparesTables):
         finally:
             _drop_views(metadata.bind)
 
-class CreateDropTest(TestBase):
+class CreateDropTest(fixtures.TestBase):
 
     @classmethod
     def setup_class(cls):
@@ -892,7 +858,7 @@ class CreateDropTest(TestBase):
                      - set(testing.db.table_names()))
         metadata.drop_all(bind=testing.db)
 
-class SchemaManipulationTest(TestBase):
+class SchemaManipulationTest(fixtures.TestBase):
     def test_append_constraint_unique(self):
         meta = MetaData()
 
@@ -908,7 +874,7 @@ class SchemaManipulationTest(TestBase):
         assert len(addresses.c.user_id.foreign_keys) == 1
         assert addresses.constraints == set([addresses.primary_key, fk])
 
-class UnicodeReflectionTest(TestBase):
+class UnicodeReflectionTest(fixtures.TestBase):
 
     @testing.requires.unicode_connections
     def test_basic(self):
@@ -958,7 +924,7 @@ class UnicodeReflectionTest(TestBase):
             bind.dispose()
 
 
-class SchemaTest(TestBase):
+class SchemaTest(fixtures.TestBase):
 
     def test_iteration(self):
         metadata = MetaData()
@@ -1020,7 +986,7 @@ class SchemaTest(TestBase):
             metadata.drop_all()
 
 
-class HasSequenceTest(TestBase):
+class HasSequenceTest(fixtures.TestBase):
 
     @testing.requires.sequences
     def test_has_sequence(self):
@@ -1132,7 +1098,7 @@ def _drop_views(con, schema=None):
         con.execute(sa.sql.text(query))
 
 
-class ReverseCasingReflectTest(TestBase, AssertsCompiledSQL):
+class ReverseCasingReflectTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     @testing.requires.denormalized_names
@@ -1158,7 +1124,7 @@ class ReverseCasingReflectTest(TestBase, AssertsCompiledSQL):
                             'weird_casing."Col2", weird_casing."col3" '
                             'FROM weird_casing')
 
-class ComponentReflectionTest(TestBase):
+class ComponentReflectionTest(fixtures.TestBase):
 
     @testing.requires.schemas
     def test_get_schema_names(self):
@@ -1430,7 +1396,7 @@ class ComponentReflectionTest(TestBase):
     def test_get_table_oid_with_schema(self):
         self._test_get_table_oid('users', schema='test_schema')
 
-class ColumnEventsTest(TestBase):
+class ColumnEventsTest(fixtures.TestBase):
     @classmethod
     def setup_class(cls):
         cls.metadata = MetaData()

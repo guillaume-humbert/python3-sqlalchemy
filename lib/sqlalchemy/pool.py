@@ -16,11 +16,12 @@ regular DB-API connect() methods to be transparently managed by a
 SQLAlchemy connection pool.
 """
 
-import weakref, time, threading
+import weakref, time, traceback
 
 from sqlalchemy import exc, log, event, events, interfaces, util
 from sqlalchemy.util import queue as sqla_queue
-from sqlalchemy.util import threading, pickle, memoized_property
+from sqlalchemy.util import threading, memoized_property, \
+    chop_traceback
 
 proxies = {}
 
@@ -536,7 +537,8 @@ class SingletonThreadPool(Pool):
 
     def _cleanup(self):
         while len(self._all_conns) > self.size:
-            self._all_conns.pop()
+            c = self._all_conns.pop()
+            c.close()
 
     def status(self):
         return "SingletonThreadPool id:%d size: %d" % \
@@ -655,6 +657,7 @@ class QueuePool(Pool):
         try:
             self._pool.put(conn, False)
         except sqla_queue.Full:
+            conn.close()
             if self._overflow_lock is None:
                 self._overflow -= 1
             else:
@@ -813,17 +816,23 @@ class StaticPool(Pool):
         return self.connection
 
 class AssertionPool(Pool):
-    """A Pool that allows at most one checked out connection at any given
+    """A :class:`.Pool` that allows at most one checked out connection at any given
     time.
 
     This will raise an exception if more than one connection is checked out
     at a time.  Useful for debugging code that is using more connections
     than desired.
+    
+    :class:`.AssertionPool` also logs a traceback of where
+    the original connection was checked out, and reports
+    this in the assertion error raised (new in 0.7).
 
     """
     def __init__(self, *args, **kw):
         self._conn = None
         self._checked_out = False
+        self._store_traceback = kw.pop('store_traceback', True)
+        self._checkout_traceback = None
         Pool.__init__(self, *args, **kw)
 
     def status(self):
@@ -848,12 +857,19 @@ class AssertionPool(Pool):
 
     def _do_get(self):
         if self._checked_out:
-            raise AssertionError("connection is already checked out")
+            if self._checkout_traceback:
+                suffix = ' at:\n%s' % ''.join(
+                    chop_traceback(self._checkout_traceback))
+            else:
+                suffix = ''
+            raise AssertionError("connection is already checked out" + suffix)
 
         if not self._conn:
             self._conn = self._create_connection()
 
         self._checked_out = True
+        if self._store_traceback:
+            self._checkout_traceback = traceback.format_stack()
         return self._conn
 
 class _DBProxy(object):
@@ -936,4 +952,7 @@ class _DBProxy(object):
             pass
 
     def _serialize(self, *args, **kw):
-        return pickle.dumps([args, kw])
+        return tuple(
+            list(args) + 
+            [(k, kw[k]) for k in sorted(kw)]
+        )

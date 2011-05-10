@@ -141,6 +141,23 @@ Declarative form::
 This option can also be specified engine-wide using the
 ``implicit_returning=False`` argument on :func:`.create_engine`.
 
+Enabling Snapshot Isolation
+---------------------------
+
+Not necessarily specific to SQLAlchemy, SQL Server has a default transaction 
+isolation mode that locks entire tables, and causes even mildly concurrent
+applications to have long held locks and frequent deadlocks.   
+Enabling snapshot isolation for the database as a whole is recommended 
+for modern levels of concurrency support.  This is accomplished via the 
+following ALTER DATABASE commands executed at the SQL prompt::
+
+    ALTER DATABASE MyDatabase SET ALLOW_SNAPSHOT_ISOLATION ON
+
+    ALTER DATABASE MyDatabase SET READ_COMMITTED_SNAPSHOT ON
+
+Background on SQL Server snapshot isolation is available at
+http://msdn.microsoft.com/en-us/library/ms175095.aspx.
+  
 Known Issues
 ------------
 
@@ -200,13 +217,12 @@ RESERVED_WORDS = set(
     ])
 
 
-class REAL(sqltypes.Float):
-    """A type for ``real`` numbers."""
-
+class REAL(sqltypes.REAL):
     __visit_name__ = 'REAL'
 
     def __init__(self, **kw):
-        kw.setdefault('precision', 24)
+        # REAL is a synonym for FLOAT(24) on SQL server
+        kw['precision'] = 24
         super(REAL, self).__init__(**kw)
 
 class TINYINT(sqltypes.Integer):
@@ -530,9 +546,6 @@ class MSTypeCompiler(compiler.GenericTypeCompiler):
             return "FLOAT"
         else:
             return "FLOAT(%(precision)s)" % {'precision': precision}
-
-    def visit_REAL(self, type_):
-        return "REAL"
 
     def visit_TINYINT(self, type_):
         return "TINYINT"

@@ -7,11 +7,11 @@ from test.lib.schema import Table, Column
 from test.lib.testing import eq_
 from test.lib.util import picklers
 from test.lib import testing
-from test.orm import _base
+from test.lib import fixtures
 import sys
 import pickle
 
-class Foo(_base.BasicEntity):
+class Foo(fixtures.BasicEntity):
     pass
 
 class _MutableDictTestBase(object):
@@ -49,8 +49,9 @@ class _MutableDictTestBase(object):
                 self.changed()
         return MutationDict
 
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        foo = cls.tables.foo
+
         mapper(Foo, foo)
 
     def teardown(self):
@@ -59,7 +60,6 @@ class _MutableDictTestBase(object):
         ClassManager.dispatch._clear()
         super(_MutableDictTestBase, self).teardown()
 
-    @testing.resolve_artifact_names
     def test_in_place_mutation(self):
         sess = Session()
 
@@ -72,7 +72,6 @@ class _MutableDictTestBase(object):
 
         eq_(f1.data, {'a':'c'})
 
-    @testing.resolve_artifact_names
     def test_pickle_parent(self):
         sess = Session()
 
@@ -89,7 +88,6 @@ class _MutableDictTestBase(object):
             f2.data['a'] = 'c'
             assert f2 in sess.dirty
 
-    @testing.resolve_artifact_names
     def _test_non_mutable(self):
         sess = Session()
 
@@ -102,7 +100,7 @@ class _MutableDictTestBase(object):
 
         eq_(f1.non_mutable_data, {'a':'b'})
 
-class MutableWithScalarPickleTest(_MutableDictTestBase, _base.MappedTest):
+class MutableWithScalarPickleTest(_MutableDictTestBase, fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         MutationDict = cls._type_fixture()
@@ -116,7 +114,7 @@ class MutableWithScalarPickleTest(_MutableDictTestBase, _base.MappedTest):
     def test_non_mutable(self):
         self._test_non_mutable()
 
-class MutableWithScalarJSONTest(_MutableDictTestBase, _base.MappedTest):
+class MutableWithScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
     # json introduced in 2.6
     __skip_if__ = lambda : sys.version_info < (2, 6),
 
@@ -149,7 +147,7 @@ class MutableWithScalarJSONTest(_MutableDictTestBase, _base.MappedTest):
     def test_non_mutable(self):
         self._test_non_mutable()
 
-class MutableAssociationScalarPickleTest(_MutableDictTestBase, _base.MappedTest):
+class MutableAssociationScalarPickleTest(_MutableDictTestBase, fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         MutationDict = cls._type_fixture()
@@ -160,7 +158,7 @@ class MutableAssociationScalarPickleTest(_MutableDictTestBase, _base.MappedTest)
             Column('data', PickleType)
         )
 
-class MutableAssociationScalarJSONTest(_MutableDictTestBase, _base.MappedTest):
+class MutableAssociationScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
     # json introduced in 2.6
     __skip_if__ = lambda : sys.version_info < (2, 6),
 
@@ -206,7 +204,7 @@ class _CompositeTestBase(object):
         ClassManager.dispatch._clear()
         super(_CompositeTestBase, self).teardown()
 
-class MutableCompositesTest(_CompositeTestBase, _base.MappedTest):
+class MutableCompositesTest(_CompositeTestBase, fixtures.MappedTest):
 
     @classmethod
     def _type_fixture(cls):
@@ -243,15 +241,15 @@ class MutableCompositesTest(_CompositeTestBase, _base.MappedTest):
         return Point
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        foo = cls.tables.foo
+
         Point = cls._type_fixture()
 
         mapper(Foo, foo, properties={
             'data':composite(Point, foo.c.x, foo.c.y)
         })
 
-    @testing.resolve_artifact_names
     def test_in_place_mutation(self):
         sess = Session()
         d = Point(3, 4)
@@ -264,7 +262,6 @@ class MutableCompositesTest(_CompositeTestBase, _base.MappedTest):
 
         eq_(f1.data, Point(3, 5))
 
-    @testing.resolve_artifact_names
     def test_pickle_of_parent(self):
         sess = Session()
         d = Point(3, 4)

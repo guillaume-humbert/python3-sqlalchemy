@@ -11,7 +11,7 @@ from sqlalchemy.engine.url import make_url
 from test.lib import *
 import os
 
-class TestTypes(TestBase, AssertsExecutionResults):
+class TestTypes(fixtures.TestBase, AssertsExecutionResults):
 
     __only_on__ = 'sqlite'
 
@@ -101,6 +101,7 @@ class TestTypes(TestBase, AssertsExecutionResults):
 
     @testing.provide_metadata
     def test_type_reflection(self):
+        metadata = self.metadata
 
         # (ask_for, roundtripped_as_if_different)
 
@@ -156,6 +157,7 @@ class TestTypes(TestBase, AssertsExecutionResults):
     @testing.emits_warning('Did not recognize')
     @testing.provide_metadata
     def test_unknown_reflection(self):
+        metadata = self.metadata
         t = Table('t', metadata,
             Column('x', sqltypes.BINARY(16)),
             Column('y', sqltypes.BINARY())
@@ -166,7 +168,7 @@ class TestTypes(TestBase, AssertsExecutionResults):
         assert isinstance(t2.c.y.type, sqltypes.NullType)
 
 
-class TestDefaults(TestBase, AssertsExecutionResults):
+class TestDefaults(fixtures.TestBase, AssertsExecutionResults):
 
     __only_on__ = 'sqlite'
 
@@ -201,6 +203,7 @@ class TestDefaults(TestBase, AssertsExecutionResults):
                      'behavior of default displayed in pragma '
                      'table_info()')
     def test_default_reflection_2(self):
+
         db = testing.db
         m = MetaData(db)
         expected = ['my_default', '0']
@@ -208,7 +211,7 @@ class TestDefaults(TestBase, AssertsExecutionResults):
             """CREATE TABLE r_defaults (
             data VARCHAR(40) DEFAULT 'my_default',
             val INTEGER NOT NULL DEFAULT 0
-        )"""
+            )"""
         try:
             db.execute(table)
             rt = Table('r_defaults', m, autoload=True)
@@ -218,7 +221,7 @@ class TestDefaults(TestBase, AssertsExecutionResults):
             db.execute('DROP TABLE r_defaults')
 
 
-class DialectTest(TestBase, AssertsExecutionResults):
+class DialectTest(fixtures.TestBase, AssertsExecutionResults):
 
     __only_on__ = 'sqlite'
 
@@ -373,7 +376,7 @@ class DialectTest(TestBase, AssertsExecutionResults):
             meta.drop_all()
 
 
-class SQLTest(TestBase, AssertsCompiledSQL):
+class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
 
     """Tests SQLite-dialect specific compilation."""
 
@@ -450,7 +453,7 @@ class SQLTest(TestBase, AssertsCompiledSQL):
         )
 
 
-class InsertTest(TestBase, AssertsExecutionResults):
+class InsertTest(fixtures.TestBase, AssertsExecutionResults):
 
     """Tests inserts and autoincrement."""
 
@@ -533,7 +536,7 @@ def full_text_search_missing():
         return True
 
 
-class MatchTest(TestBase, AssertsCompiledSQL):
+class MatchTest(fixtures.TestBase, AssertsCompiledSQL):
 
     __only_on__ = 'sqlite'
     __skip_if__ = full_text_search_missing,
@@ -616,7 +619,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
         eq_([1, 3], [r.id for r in results])
 
 
-class AutoIncrementTest(TestBase, AssertsCompiledSQL):
+class AutoIncrementTest(fixtures.TestBase, AssertsCompiledSQL):
 
     def test_sqlite_autoincrement(self):
         table = Table('autoinctable', MetaData(), Column('id', Integer,
@@ -664,3 +667,26 @@ class AutoIncrementTest(TestBase, AssertsCompiledSQL):
                             'CREATE TABLE autoinctable (id INTEGER NOT '
                             'NULL PRIMARY KEY AUTOINCREMENT)',
                             dialect=sqlite.dialect())
+
+
+class ReflectHeadlessFKsTest(fixtures.TestBase):
+    __only_on__ = 'sqlite'
+
+    def setup(self):
+        testing.db.execute("CREATE TABLE a (id INTEGER PRIMARY KEY)")
+        # this syntax actually works on other DBs perhaps we'd want to add
+        # tests to test_reflection
+        testing.db.execute("CREATE TABLE b (id INTEGER PRIMARY KEY REFERENCES a)")
+
+    def teardown(self):
+        testing.db.execute("drop table b")
+        testing.db.execute("drop table a")
+
+    def test_reflect_tables_fk_no_colref(self):
+        meta = MetaData()
+        a = Table('a', meta, autoload=True, autoload_with=testing.db)
+        b = Table('b', meta, autoload=True, autoload_with=testing.db)
+
+        assert b.c.id.references(a.c.id)
+
+

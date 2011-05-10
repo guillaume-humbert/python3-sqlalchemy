@@ -11,7 +11,7 @@ from nose import SkipTest
 
 # TODO: ShardTest can be turned into a base for further subclasses
 
-class ShardTest(TestBase):
+class ShardTest(fixtures.TestBase):
     def setUp(self):
         global db1, db2, db3, db4, weather_locations, weather_reports
 
@@ -163,6 +163,7 @@ class ShardTest(TestBase):
             ]:
             sess.add(c)
         sess.commit()
+        sess.close()
         return sess
 
     def test_roundtrip(self):

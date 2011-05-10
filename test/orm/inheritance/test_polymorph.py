@@ -7,9 +7,10 @@ from sqlalchemy.orm import exc as orm_exc
 from sqlalchemy import exc as sa_exc
 from test.lib import Column, testing
 from test.lib.util import function_named
-from test.orm import _fixtures, _base
+from test.orm import _fixtures
+from test.lib import fixtures
 
-class Person(_fixtures.Base):
+class Person(fixtures.ComparableEntity):
     pass
 class Engineer(Person):
     pass
@@ -17,10 +18,10 @@ class Manager(Person):
     pass
 class Boss(Manager):
     pass
-class Company(_fixtures.Base):
+class Company(fixtures.ComparableEntity):
     pass
 
-class PolymorphTest(_base.MappedTest):
+class PolymorphTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         global companies, people, engineers, managers, boss
@@ -59,6 +60,7 @@ class InsertOrderTest(PolymorphTest):
     def test_insert_order(self):
         """test that classes of multiple types mix up mapper inserts
         so that insert order of individual tables is maintained"""
+
         person_join = polymorphic_union(
             {
                 'engineer':people.join(engineers),

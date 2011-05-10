@@ -56,6 +56,11 @@ class _PGNumeric(sqltypes.Numeric):
                 raise exc.InvalidRequestError(
                             "Unknown PG numeric type: %d" % coltype)
 
+
+class _PGNumericNoBind(_PGNumeric):
+    def bind_processor(self, dialect):
+        return None
+
 class PGExecutionContext_pg8000(PGExecutionContext):
     pass
 
@@ -89,11 +94,13 @@ class PGDialect_pg8000(PGDialect):
     execution_ctx_cls = PGExecutionContext_pg8000
     statement_compiler = PGCompiler_pg8000
     preparer = PGIdentifierPreparer_pg8000
+    description_encoding = 'use_encoding'
 
     colspecs = util.update_copy(
         PGDialect.colspecs,
         {
-            sqltypes.Numeric : _PGNumeric,
+            sqltypes.Numeric : _PGNumericNoBind,
+            sqltypes.Float : _PGNumeric
         }
     )
 

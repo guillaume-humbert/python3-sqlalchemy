@@ -426,8 +426,14 @@ class SQLCompiler(engine.Compiled):
              self.post_process_text(textclause.text))
         )
 
-    def visit_null(self, null, **kwargs):
+    def visit_null(self, expr, **kw):
         return 'NULL'
+
+    def visit_true(self, expr, **kw):
+        return 'true'
+
+    def visit_false(self, expr, **kw):
+        return 'false'
 
     def visit_clauselist(self, clauselist, **kwargs):
         sep = clauselist.operator
@@ -468,7 +474,7 @@ class SQLCompiler(engine.Compiled):
             x += "PARTITION BY %s" % \
                 over.partition_by._compiler_dispatch(self, **kwargs)
             if over.order_by is not None:
-                x += ", "
+                x += " "
         if over.order_by is not None:
             x += "ORDER BY %s" % \
                 over.order_by._compiler_dispatch(self, **kwargs)
@@ -489,7 +495,7 @@ class SQLCompiler(engine.Compiled):
             return disp(func, **kwargs)
         else:
             name = FUNCTIONS.get(func.__class__, func.name + "%(expr)s")
-            return ".".join(func.packagenames + [name]) % \
+            return ".".join(list(func.packagenames) + [name]) % \
                             {'expr':self.function_argspec(func, **kwargs)}
 
     def visit_next_value_func(self, next_value, **kw):
@@ -1479,6 +1485,9 @@ class GenericTypeCompiler(engine.TypeCompiler):
     def visit_FLOAT(self, type_):
         return "FLOAT"
 
+    def visit_REAL(self, type_):
+        return "REAL"
+
     def visit_NUMERIC(self, type_):
         if type_.precision is None:
             return "NUMERIC"
@@ -1564,6 +1573,9 @@ class GenericTypeCompiler(engine.TypeCompiler):
 
     def visit_integer(self, type_): 
         return self.visit_INTEGER(type_)
+
+    def visit_real(self, type_):
+        return self.visit_REAL(type_)
 
     def visit_float(self, type_):
         return self.visit_FLOAT(type_)

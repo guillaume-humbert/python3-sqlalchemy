@@ -1,18 +1,13 @@
 from test.lib.testing import eq_, assert_raises, assert_raises_message
 from test.lib import testing
 from test.lib.schema import Table, Column
+from test.orm import _fixtures
+from test.lib import fixtures
 from sqlalchemy import Integer, String, ForeignKey, func
-from test.orm import _fixtures, _base
 from sqlalchemy.orm import mapper, relationship, backref, \
                             create_session, unitofwork, attributes,\
                             Session
 from test.lib.assertsql import AllOf, CompiledSQL
-
-from test.orm._fixtures import keywords, addresses, Base, Keyword,  \
-           Dingaling, item_keywords, dingalings, User, items,\
-           orders, Address, users, nodes, \
-            order_items, Item, Order, Node, \
-            composite_pk_table, CompositePk
 
 class AssertsUOW(object):
     def _get_test_uow(self, session):
@@ -26,10 +21,7 @@ class AssertsUOW(object):
             uow.register_object(d, isdelete=True)
         return uow
 
-    def _assert_uow_size(self,
-        session, 
-        expected
-    ):
+    def _assert_uow_size(self, session, expected ):
         uow = self._get_test_uow(session)
         postsort_actions = uow._generate_actions()
         print postsort_actions
@@ -42,6 +34,11 @@ class UOWTest(_fixtures.FixtureTest,
 class RudimentaryFlushTest(UOWTest):
 
     def test_one_to_many_save(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users, properties={
             'addresses':relationship(Address),
         })
@@ -72,6 +69,11 @@ class RudimentaryFlushTest(UOWTest):
             )
 
     def test_one_to_many_delete_all(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users, properties={
             'addresses':relationship(Address),
         })
@@ -99,6 +101,11 @@ class RudimentaryFlushTest(UOWTest):
         )
 
     def test_one_to_many_delete_parent(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users, properties={
             'addresses':relationship(Address),
         })
@@ -130,6 +137,11 @@ class RudimentaryFlushTest(UOWTest):
         )
 
     def test_many_to_one_save(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
 
         mapper(User, users)
         mapper(Address, addresses, properties={
@@ -162,6 +174,11 @@ class RudimentaryFlushTest(UOWTest):
             )
 
     def test_many_to_one_delete_all(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users)
         mapper(Address, addresses, properties={
             'user':relationship(User)
@@ -191,6 +208,11 @@ class RudimentaryFlushTest(UOWTest):
         )
 
     def test_many_to_one_delete_target(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users)
         mapper(Address, addresses, properties={
             'user':relationship(User)
@@ -225,6 +247,11 @@ class RudimentaryFlushTest(UOWTest):
         )
 
     def test_many_to_one_delete_unloaded(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users)
         mapper(Address, addresses, properties={
             'parent':relationship(User)
@@ -295,6 +322,11 @@ class RudimentaryFlushTest(UOWTest):
         )
 
     def test_many_to_one_delete_childonly_unloaded(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users)
         mapper(Address, addresses, properties={
             'parent':relationship(User)
@@ -348,6 +380,11 @@ class RudimentaryFlushTest(UOWTest):
         )
 
     def test_many_to_one_delete_childonly_unloaded_expired(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users)
         mapper(Address, addresses, properties={
             'parent':relationship(User)
@@ -403,6 +440,12 @@ class RudimentaryFlushTest(UOWTest):
     def test_natural_ordering(self):
         """test that unconnected items take relationship() into account regardless."""
 
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
+
         mapper(User, users)
         mapper(Address, addresses, properties={
             'parent':relationship(User)
@@ -445,6 +488,9 @@ class RudimentaryFlushTest(UOWTest):
     def test_natural_selfref(self):
         """test that unconnected items take relationship() into account regardless."""
 
+        Node, nodes = self.classes.Node, self.tables.nodes
+
+
         mapper(Node, nodes, properties={
             'children':relationship(Node)
         })
@@ -472,6 +518,12 @@ class RudimentaryFlushTest(UOWTest):
         )
 
     def test_many_to_many(self):
+        keywords, items, item_keywords, Keyword, Item = (self.tables.keywords,
+                                self.tables.items,
+                                self.tables.item_keywords,
+                                self.classes.Keyword,
+                                self.classes.Item)
+
         mapper(Item, items, properties={
             'keywords':relationship(Keyword, secondary=item_keywords)
         })
@@ -513,6 +565,11 @@ class RudimentaryFlushTest(UOWTest):
         )
 
     def test_m2o_flush_size(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users)
         mapper(Address, addresses, properties={
             'user':relationship(User, passive_updates=True)
@@ -523,6 +580,11 @@ class RudimentaryFlushTest(UOWTest):
         self._assert_uow_size(sess, 2)
 
     def test_o2m_flush_size(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users, properties={
             'addresses':relationship(Address),
         })
@@ -561,6 +623,8 @@ class RudimentaryFlushTest(UOWTest):
 
 class SingleCycleTest(UOWTest):
     def test_one_to_many_save(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'children':relationship(Node)
         })
@@ -595,6 +659,8 @@ class SingleCycleTest(UOWTest):
             )
 
     def test_one_to_many_delete_all(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'children':relationship(Node)
         })
@@ -619,6 +685,8 @@ class SingleCycleTest(UOWTest):
         )
 
     def test_one_to_many_delete_parent(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'children':relationship(Node)
         })
@@ -647,6 +715,8 @@ class SingleCycleTest(UOWTest):
         )
 
     def test_many_to_one_save(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'parent':relationship(Node, remote_side=nodes.c.id)
         })
@@ -681,6 +751,8 @@ class SingleCycleTest(UOWTest):
             )
 
     def test_many_to_one_delete_all(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'parent':relationship(Node, remote_side=nodes.c.id)
         })
@@ -705,6 +777,8 @@ class SingleCycleTest(UOWTest):
         )
 
     def test_cycle_rowswitch(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'children':relationship(Node)
         })
@@ -721,6 +795,8 @@ class SingleCycleTest(UOWTest):
         sess.flush()
 
     def test_bidirectional_mutations_one(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'children':relationship(Node, 
                                     backref=backref('parent',
@@ -741,6 +817,8 @@ class SingleCycleTest(UOWTest):
         sess.flush()
 
     def test_bidirectional_multilevel_save(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'children':relationship(Node, 
                 backref=backref('parent', remote_side=nodes.c.id)
@@ -797,6 +875,8 @@ class SingleCycleTest(UOWTest):
         )
 
     def test_singlecycle_flush_size(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'children':relationship(Node)
         })
@@ -831,6 +911,8 @@ class SingleCycleTest(UOWTest):
         self._assert_uow_size(sess, 2)
 
     def test_delete_unloaded_m2o(self):
+        Node, nodes = self.classes.Node, self.tables.nodes
+
         mapper(Node, nodes, properties={
             'parent':relationship(Node, remote_side=nodes.c.id)
         })
@@ -900,7 +982,7 @@ class SingleCycleTest(UOWTest):
 
 
 
-class SingleCyclePlusAttributeTest(_base.MappedTest,
+class SingleCyclePlusAttributeTest(fixtures.MappedTest,
                     testing.AssertsExecutionResults, AssertsUOW):
     @classmethod
     def define_tables(cls, metadata):
@@ -917,11 +999,12 @@ class SingleCyclePlusAttributeTest(_base.MappedTest,
             Column('parent_id', Integer, ForeignKey('nodes.id')),
         )
 
-    @testing.resolve_artifact_names
     def test_flush_size(self):
-        class Node(Base):
+        foobars, nodes = self.tables.foobars, self.tables.nodes
+
+        class Node(fixtures.ComparableEntity):
             pass
-        class FooBar(Base):
+        class FooBar(fixtures.ComparableEntity):
             pass
 
         mapper(Node, nodes, properties={
@@ -946,7 +1029,7 @@ class SingleCyclePlusAttributeTest(_base.MappedTest,
 
         sess.flush()
 
-class SingleCycleM2MTest(_base.MappedTest, 
+class SingleCycleM2MTest(fixtures.MappedTest, 
                     testing.AssertsExecutionResults, AssertsUOW):
 
     @classmethod
@@ -966,9 +1049,10 @@ class SingleCycleM2MTest(_base.MappedTest,
                             ForeignKey('nodes.id'),primary_key=True),
             )
 
-    @testing.resolve_artifact_names
     def test_many_to_many_one(self):
-        class Node(Base):
+        nodes, node_to_nodes = self.tables.nodes, self.tables.node_to_nodes
+
+        class Node(fixtures.ComparableEntity):
             pass
 
         mapper(Node, nodes, properties={
@@ -1077,7 +1161,7 @@ class SingleCycleM2MTest(_base.MappedTest,
             ),
         )
 
-class RowswitchAccountingTest(_base.MappedTest):
+class RowswitchAccountingTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('parent', metadata,
@@ -1087,8 +1171,9 @@ class RowswitchAccountingTest(_base.MappedTest):
             Column('id', Integer, ForeignKey('parent.id'), primary_key=True)
         )
 
-    @testing.resolve_artifact_names
     def test_accounting_for_rowswitch(self):
+        parent, child = self.tables.parent, self.tables.child
+
         class Parent(object):
             def __init__(self, id):
                 self.id = id
@@ -1129,7 +1214,7 @@ class RowswitchAccountingTest(_base.MappedTest):
 
         sess.flush()
 
-class BatchInsertsTest(_base.MappedTest, testing.AssertsExecutionResults):
+class BatchInsertsTest(fixtures.MappedTest, testing.AssertsExecutionResults):
     @classmethod
     def define_tables(cls, metadata):
         Table('t', metadata,
@@ -1139,13 +1224,15 @@ class BatchInsertsTest(_base.MappedTest, testing.AssertsExecutionResults):
             Column('def_', String(50), server_default='def1')
         )
 
-    @testing.resolve_artifact_names
     def test_batch_interaction(self):
         """test batching groups same-structured, primary 
         key present statements together.
 
         """
-        class T(Base):
+
+        t = self.tables.t
+
+        class T(fixtures.ComparableEntity):
             pass
         mapper(T, t)
         sess = Session()

@@ -7,14 +7,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.engine import default
 
 from test.lib import AssertsCompiledSQL, testing
-from test.orm import _base, _fixtures
+from test.lib import fixtures
+from test.orm import _fixtures
 from test.lib.testing import eq_
 from test.lib.schema import Table, Column
 
-class Company(_fixtures.Base):
+class Company(fixtures.ComparableEntity):
     pass
 
-class Person(_fixtures.Base):
+class Person(fixtures.ComparableEntity):
     pass
 class Engineer(Person):
     pass
@@ -23,14 +24,14 @@ class Manager(Person):
 class Boss(Manager):
     pass
 
-class Machine(_fixtures.Base):
+class Machine(fixtures.ComparableEntity):
     pass
 
-class Paperwork(_fixtures.Base):
+class Paperwork(fixtures.ComparableEntity):
     pass
 
 def _produce_test(select_type):
-    class PolymorphicQueryTest(_base.MappedTest, AssertsCompiledSQL):
+    class PolymorphicQueryTest(fixtures.MappedTest, AssertsCompiledSQL):
         run_inserts = 'once'
         run_setup_mappers = 'once'
         run_deletes = None
@@ -907,7 +908,7 @@ for select_type in ('', 'Polymorphic', 'Unions', 'AliasedJoins', 'Joins'):
 
 del testclass
 
-class SelfReferentialTestJoinedToBase(_base.MappedTest):
+class SelfReferentialTestJoinedToBase(fixtures.MappedTest):
     run_setup_mappers = 'once'
 
     @classmethod
@@ -924,8 +925,9 @@ class SelfReferentialTestJoinedToBase(_base.MappedTest):
           )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        engineers, people = cls.tables.engineers, cls.tables.people
+
         mapper(Person, people, polymorphic_on=people.c.type, polymorphic_identity='person')
         mapper(Engineer, engineers, inherits=Person, 
           inherit_condition=engineers.c.person_id==people.c.person_id,
@@ -933,7 +935,6 @@ class SelfReferentialTestJoinedToBase(_base.MappedTest):
           'reports_to':relationship(Person, primaryjoin=people.c.person_id==engineers.c.reports_to_id)
         })
 
-    @testing.resolve_artifact_names
     def test_has(self):
 
         p1 = Person(name='dogbert')
@@ -946,7 +947,6 @@ class SelfReferentialTestJoinedToBase(_base.MappedTest):
 
         eq_(sess.query(Engineer).filter(Engineer.reports_to.has(Person.name=='dogbert')).first(), Engineer(name='dilbert'))
 
-    @testing.resolve_artifact_names
     def test_oftype_aliases_in_exists(self):
         e1 = Engineer(name='dilbert', primary_language='java')
         e2 = Engineer(name='wally', primary_language='c++', reports_to=e1)
@@ -956,7 +956,6 @@ class SelfReferentialTestJoinedToBase(_base.MappedTest):
 
         eq_(sess.query(Engineer).filter(Engineer.reports_to.of_type(Engineer).has(Engineer.name=='dilbert')).first(), e2)
 
-    @testing.resolve_artifact_names
     def test_join(self):
         p1 = Person(name='dogbert')
         e1 = Engineer(name='dilbert', primary_language='java', reports_to=p1)
@@ -970,7 +969,7 @@ class SelfReferentialTestJoinedToBase(_base.MappedTest):
             sess.query(Engineer).join('reports_to', aliased=True).filter(Person.name=='dogbert').first(), 
             Engineer(name='dilbert'))
 
-class SelfReferentialJ2JTest(_base.MappedTest):
+class SelfReferentialJ2JTest(fixtures.MappedTest):
     run_setup_mappers = 'once'
 
     @classmethod
@@ -991,8 +990,11 @@ class SelfReferentialJ2JTest(_base.MappedTest):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        engineers, managers, people = (cls.tables.engineers,
+                                cls.tables.managers,
+                                cls.tables.people)
+
         mapper(Person, people, polymorphic_on=people.c.type, polymorphic_identity='person')
         mapper(Manager, managers, inherits=Person, polymorphic_identity='manager')
 
@@ -1001,7 +1003,6 @@ class SelfReferentialJ2JTest(_base.MappedTest):
           'reports_to':relationship(Manager, primaryjoin=managers.c.person_id==engineers.c.reports_to_id, backref='engineers')
         })
 
-    @testing.resolve_artifact_names
     def test_has(self):
 
         m1 = Manager(name='dogbert')
@@ -1014,7 +1015,6 @@ class SelfReferentialJ2JTest(_base.MappedTest):
 
         eq_(sess.query(Engineer).filter(Engineer.reports_to.has(Manager.name=='dogbert')).first(), Engineer(name='dilbert'))
 
-    @testing.resolve_artifact_names
     def test_join(self):
         m1 = Manager(name='dogbert')
         e1 = Engineer(name='dilbert', primary_language='java', reports_to=m1)
@@ -1028,7 +1028,6 @@ class SelfReferentialJ2JTest(_base.MappedTest):
             sess.query(Engineer).join('reports_to', aliased=True).filter(Manager.name=='dogbert').first(), 
             Engineer(name='dilbert'))
 
-    @testing.resolve_artifact_names
     def test_filter_aliasing(self):
         m1 = Manager(name='dogbert')
         m2 = Manager(name='foo')
@@ -1059,7 +1058,6 @@ class SelfReferentialJ2JTest(_base.MappedTest):
             ]
         )
 
-    @testing.resolve_artifact_names
     def test_relationship_compare(self):
         m1 = Manager(name='dogbert')
         m2 = Manager(name='foo')
@@ -1087,7 +1085,7 @@ class SelfReferentialJ2JTest(_base.MappedTest):
 
 
 
-class M2MFilterTest(_base.MappedTest):
+class M2MFilterTest(fixtures.MappedTest):
     run_setup_mappers = 'once'
     run_inserts = 'once'
     run_deletes = None
@@ -1114,9 +1112,13 @@ class M2MFilterTest(_base.MappedTest):
           )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
-        class Organization(_fixtures.Base):
+        organizations, people, engineers, engineers_to_org = (cls.tables.organizations,
+                                cls.tables.people,
+                                cls.tables.engineers,
+                                cls.tables.engineers_to_org)
+
+        class Organization(cls.Comparable):
             pass
 
         mapper(Organization, organizations, properties={
@@ -1127,8 +1129,9 @@ class M2MFilterTest(_base.MappedTest):
         mapper(Engineer, engineers, inherits=Person, polymorphic_identity='engineer')
 
     @classmethod
-    @testing.resolve_artifact_names
     def insert_data(cls):
+        Organization = cls.classes.Organization
+
         e1 = Engineer(name='e1')
         e2 = Engineer(name='e2')
         e3 = Engineer(name='e3')
@@ -1141,8 +1144,9 @@ class M2MFilterTest(_base.MappedTest):
         sess.add(org2)
         sess.flush()
 
-    @testing.resolve_artifact_names
     def test_not_contains(self):
+        Organization = self.classes.Organization
+
         sess = create_session()
 
         e1 = sess.query(Person).filter(Engineer.name == 'e1').one()
@@ -1159,15 +1163,16 @@ class M2MFilterTest(_base.MappedTest):
         eq_(sess.query(Organization).filter(~Organization.engineers.contains(e1)).all(),
             [Organization(name='org2')])
 
-    @testing.resolve_artifact_names
     def test_any(self):
+        Organization = self.classes.Organization
+
         sess = create_session()
         eq_(sess.query(Organization).filter(Organization.engineers.of_type(Engineer).any(Engineer.name
             == 'e1')).all(), [Organization(name='org1')])
         eq_(sess.query(Organization).filter(Organization.engineers.any(Engineer.name
             == 'e1')).all(), [Organization(name='org1')])
 
-class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
+class SelfReferentialM2MTest(fixtures.MappedTest, AssertsCompiledSQL):
     @classmethod
     def define_tables(cls, metadata):
         Table('secondary', metadata,
@@ -1187,7 +1192,7 @@ class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
 
     @classmethod
     def setup_classes(cls):
-        class Parent(_base.BasicEntity):
+        class Parent(cls.Basic):
             pass
         class Child1(Parent):
             pass
@@ -1195,8 +1200,15 @@ class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        child1, child2, Parent, parent, Child1, Child2, secondary = (cls.tables.child1,
+                                cls.tables.child2,
+                                cls.classes.Parent,
+                                cls.tables.parent,
+                                cls.classes.Child1,
+                                cls.classes.Child2,
+                                cls.tables.secondary)
+
         mapper(Parent, parent, polymorphic_on=parent.c.cls)
         mapper(Child1, child1, inherits=Parent, polymorphic_identity='child1', properties={
             'left_child2' : relationship(Child2, 
@@ -1209,8 +1221,9 @@ class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
         })
         mapper(Child2, child2, inherits=Parent, polymorphic_identity = 'child2')
 
-    @testing.resolve_artifact_names
     def test_query_crit(self):
+        Child1, Child2 = self.classes.Child1, self.classes.Child2
+
         session = create_session()
         c11, c12, c13 = Child1(), Child1(), Child1()
         c21, c22, c23 = Child2(), Child2(), Child2()
@@ -1250,8 +1263,9 @@ class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
             dialect=default.DefaultDialect()
         )
 
-    @testing.resolve_artifact_names
     def test_eager_join(self):
+        Child1, Child2 = self.classes.Child1, self.classes.Child2
+
         session = create_session()
 
         c1 = Child1()
@@ -1279,8 +1293,9 @@ class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
 
         assert q.first() is c1
 
-    @testing.resolve_artifact_names
     def test_subquery_load(self):
+        Child1, Child2 = self.classes.Child1, self.classes.Child2
+
         session = create_session()
 
         c1 = Child1()
@@ -1292,7 +1307,7 @@ class SelfReferentialM2MTest(_base.MappedTest, AssertsCompiledSQL):
         for row in session.query(Child1).options(subqueryload('left_child2')).all():
             assert row.left_child2
 
-class EagerToSubclassTest(_base.MappedTest):
+class EagerToSubclassTest(fixtures.MappedTest):
     """Test eager loads to subclass mappers"""
 
     run_setup_classes = 'once'
@@ -1329,23 +1344,30 @@ class EagerToSubclassTest(_base.MappedTest):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_classes(cls):
-        class Parent(_base.ComparableEntity):
+        class Parent(cls.Comparable):
             pass
 
-        class Base(_base.ComparableEntity):
+        class Base(cls.Comparable):
             pass
 
         class Sub(Base):
             pass
 
-        class Related(_base.ComparableEntity):
+        class Related(cls.Comparable):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        Base, sub, parent, related, base, Related, Parent, Sub = (cls.classes.Base,
+                                cls.tables.sub,
+                                cls.tables.parent,
+                                cls.tables.related,
+                                cls.tables.base,
+                                cls.classes.Related,
+                                cls.classes.Parent,
+                                cls.classes.Sub)
+
         mapper(Parent, parent, properties={
             'children':relationship(Sub, order_by=sub.c.data)
         })
@@ -1360,8 +1382,11 @@ class EagerToSubclassTest(_base.MappedTest):
         mapper(Related, related)
 
     @classmethod
-    @testing.resolve_artifact_names
     def insert_data(cls):
+        Parent, Sub, Related = (cls.classes.Parent,
+                                cls.classes.Sub,
+                                cls.classes.Related)
+
         sess = Session()
         r1, r2 = Related(data='r1'), Related(data='r2')
         s1, s2, s3 = Sub(data='s1', related=r1), \
@@ -1375,8 +1400,9 @@ class EagerToSubclassTest(_base.MappedTest):
         sess.add(p2)
         sess.commit()
 
-    @testing.resolve_artifact_names
     def test_joinedload(self):
+        Sub, Parent = self.classes.Sub, self.classes.Parent
+
         sess = Session()
         def go():
             eq_(
@@ -1396,8 +1422,9 @@ class EagerToSubclassTest(_base.MappedTest):
             )
         self.assert_sql_count(testing.db, go, 1)
 
-    @testing.resolve_artifact_names
     def test_contains_eager(self):
+        Sub, Parent = self.classes.Sub, self.classes.Parent
+
         sess = Session()
         def go():
             eq_(
@@ -1418,8 +1445,11 @@ class EagerToSubclassTest(_base.MappedTest):
             )
         self.assert_sql_count(testing.db, go, 1)
 
-    @testing.resolve_artifact_names
     def test_subq_through_related(self):
+        Related, Parent, Sub = (self.classes.Related,
+                                self.classes.Parent,
+                                self.classes.Sub)
+
         sess = Session()
         def go():
             eq_(
@@ -1443,7 +1473,7 @@ class EagerToSubclassTest(_base.MappedTest):
             )
         self.assert_sql_count(testing.db, go, 3)
 
-class SubClassEagerToSubClassTest(_base.MappedTest):
+class SubClassEagerToSubClassTest(fixtures.MappedTest):
     """Test joinedloads from subclass to subclass mappers"""
 
     run_setup_classes = 'once'
@@ -1475,23 +1505,30 @@ class SubClassEagerToSubClassTest(_base.MappedTest):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_classes(cls):
-        class Parent(_base.ComparableEntity):
+        class Parent(cls.Comparable):
             pass
 
         class Subparent(Parent):
             pass
 
-        class Base(_base.ComparableEntity):
+        class Base(cls.Comparable):
             pass
 
         class Sub(Base):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        Sub, parent, subparent, Subparent, Base, base, Parent, sub = (cls.classes.Sub,
+                                cls.tables.parent,
+                                cls.tables.subparent,
+                                cls.classes.Subparent,
+                                cls.classes.Base,
+                                cls.tables.base,
+                                cls.classes.Parent,
+                                cls.tables.sub)
+
         mapper(Parent, parent, polymorphic_on=parent.c.type, polymorphic_identity='b')
         mapper(Subparent, subparent, inherits=Parent, polymorphic_identity='s', properties={
             'children':relationship(Sub, order_by=base.c.id)
@@ -1500,8 +1537,9 @@ class SubClassEagerToSubClassTest(_base.MappedTest):
         mapper(Sub, sub, inherits=Base, polymorphic_identity='s')
 
     @classmethod
-    @testing.resolve_artifact_names
     def insert_data(cls):
+        Sub, Subparent = cls.classes.Sub, cls.classes.Subparent
+
         sess = create_session()
         p1 = Subparent(data='p1', children=[Sub(data='s1'), Sub(data='s2'), Sub(data='s3')])
         p2 = Subparent(data='p2', children=[Sub(data='s4'), Sub(data='s5')])
@@ -1509,8 +1547,9 @@ class SubClassEagerToSubClassTest(_base.MappedTest):
         sess.add(p2)
         sess.flush()
 
-    @testing.resolve_artifact_names
     def test_joinedload(self):
+        Sub, Subparent = self.classes.Sub, self.classes.Subparent
+
         sess = create_session()
         def go():
             eq_(
@@ -1533,8 +1572,9 @@ class SubClassEagerToSubClassTest(_base.MappedTest):
             )
         self.assert_sql_count(testing.db, go, 1)
 
-    @testing.resolve_artifact_names
     def test_contains_eager(self):
+        Sub, Subparent = self.classes.Sub, self.classes.Subparent
+
         sess = create_session()
         def go():
             eq_(
@@ -1557,8 +1597,9 @@ class SubClassEagerToSubClassTest(_base.MappedTest):
             )
         self.assert_sql_count(testing.db, go, 1)
 
-    @testing.resolve_artifact_names
     def test_subqueryload(self):
+        Sub, Subparent = self.classes.Sub, self.classes.Subparent
+
         sess = create_session()
         def go():
             eq_(

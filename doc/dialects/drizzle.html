@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Drizzle
- &mdash; SQLAlchemy 0.7b3 Documentation</title>
+                Drizzle
+             &mdash; SQLAlchemy 0.7b4 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b3',
+          VERSION:     '0.7b4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Firebird" href="firebird.html" />
         <link rel="prev" title="Dialects" href="index.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.7b4 Documentation</h1>
 
-        <h1>SQLAlchemy 0.7b3 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/dialects/drizzle.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="Dialects">Dialects</a>
-                » 
-    Drizzle
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="index.html" title="previous chapter">Dialects</a>
-        Next:
-        <a href="firebird.html" title="next chapter">Firebird</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Drizzle
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="index.html" title="previous chapter">Dialects</a>
+            </li>
+            <li>Next:
+            <a href="firebird.html" title="next chapter">Firebird</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/dialects/drizzle.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+                » <a href="index.html" title="Dialects">Dialects</a>
+        » 
+                Drizzle
+             
+
+        <h2>
+            
+                Drizzle
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Drizzle</a><ul>
 <li><a class="reference internal" href="#supported-versions-and-features">Supported Versions and Features</a></li>
 <li><a class="reference internal" href="#connecting">Connecting</a></li>
@@ -103,12 +102,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.dialects.drizzle.base">
 <span id="drizzle"></span><h1>Drizzle<a class="headerlink" href="#module-sqlalchemy.dialects.drizzle.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the Drizzle database.</p>
@@ -243,26 +243,26 @@ valid with Drizzle are importable from the top level dialect:</p>
 <p>Types which are specific to Drizzle, or have Drizzle-specific
 construction arguments, are as follows:</p>
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.BIGINT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">BIGINT</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.BIGINT" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.BIGINT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">BIGINT</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.BIGINT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.BIGINT" title="sqlalchemy.types.BIGINT"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.BIGINT</span></tt></a></p>
 <p>Drizzle BIGINTEGER type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.BIGINT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.BIGINT.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.BIGINT.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.BIGINT.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a BIGINTEGER.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.CHAR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">CHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.CHAR" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.CHAR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">CHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.CHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.drizzle.base._StringType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.CHAR" title="sqlalchemy.types.CHAR"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.CHAR</span></tt></a></p>
 <p>Drizzle CHAR type, for fixed-length character data.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.CHAR.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.CHAR.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.CHAR.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.CHAR.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a CHAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -285,13 +285,13 @@ compatible with the national character set.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.DECIMAL">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">DECIMAL</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.DECIMAL" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.DECIMAL">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">DECIMAL</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.DECIMAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.drizzle.base._NumericType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.DECIMAL" title="sqlalchemy.types.DECIMAL"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DECIMAL</span></tt></a></p>
 <p>Drizzle DECIMAL type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.DECIMAL.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.DECIMAL.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.DECIMAL.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.DECIMAL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a DECIMAL.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -311,13 +311,13 @@ are both None, values are stored to limits allowed by the server.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.DOUBLE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">DOUBLE</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.DOUBLE" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.DOUBLE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">DOUBLE</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.DOUBLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.drizzle.base._FloatType</span></tt></p>
 <p>Drizzle DOUBLE type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.DOUBLE.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.DOUBLE.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.DOUBLE.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.DOUBLE.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a DOUBLE.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -337,13 +337,13 @@ are both None, values are stored to limits allowed by the server.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.ENUM">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">ENUM</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.ENUM" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="mysql.html#sqlalchemy.dialects.mysql.base.ENUM" title="sqlalchemy.dialects.mysql.base.ENUM"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base.ENUM</span></tt></a></p>
+<dt id="sqlalchemy.dialects.drizzle.ENUM">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">ENUM</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.ENUM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base.ENUM</span></tt></p>
 <p>Drizzle ENUM type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.ENUM.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.ENUM.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.ENUM.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.ENUM.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an ENUM.</p>
 <p>Example:</p>
 <blockquote>
@@ -388,13 +388,13 @@ literals for you.  This is a transitional option.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.FLOAT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">FLOAT</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.FLOAT" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.FLOAT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">FLOAT</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.FLOAT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.drizzle.base._FloatType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.FLOAT" title="sqlalchemy.types.FLOAT"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.FLOAT</span></tt></a></p>
 <p>Drizzle FLOAT type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.FLOAT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.FLOAT.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.FLOAT.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.FLOAT.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a FLOAT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -414,26 +414,26 @@ are both None, values are stored to limits allowed by the server.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.INTEGER">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">INTEGER</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.INTEGER" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.INTEGER">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">INTEGER</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.INTEGER" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.INTEGER" title="sqlalchemy.types.INTEGER"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.INTEGER</span></tt></a></p>
 <p>Drizzle INTEGER type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.INTEGER.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.INTEGER.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.INTEGER.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.INTEGER.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an INTEGER.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.NUMERIC">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">NUMERIC</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.NUMERIC">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">NUMERIC</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.NUMERIC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.drizzle.base._NumericType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.NUMERIC" title="sqlalchemy.types.NUMERIC"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.NUMERIC</span></tt></a></p>
 <p>Drizzle NUMERIC type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.NUMERIC.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.NUMERIC.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.NUMERIC.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.NUMERIC.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a NUMERIC.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -453,13 +453,13 @@ are both None, values are stored to limits allowed by the server.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.REAL">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.REAL" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.drizzle.base._FloatType</span></tt></p>
+<dt id="sqlalchemy.dialects.drizzle.REAL">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.REAL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.drizzle.base._FloatType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.REAL" title="sqlalchemy.types.REAL"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.REAL</span></tt></a></p>
 <p>Drizzle REAL type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.REAL.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.REAL.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.REAL.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.REAL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a REAL.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -479,13 +479,13 @@ are both None, values are stored to limits allowed by the server.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.TEXT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">TEXT</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.TEXT" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.TEXT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">TEXT</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.TEXT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.drizzle.base._StringType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TEXT" title="sqlalchemy.types.TEXT"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TEXT</span></tt></a></p>
 <p>Drizzle TEXT type, for text up to 2^16 characters.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.TEXT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.TEXT.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.TEXT.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.TEXT.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a TEXT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -511,25 +511,25 @@ only the collation of character data.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.TIMESTAMP">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.TIMESTAMP">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TIMESTAMP" title="sqlalchemy.types.TIMESTAMP"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TIMESTAMP</span></tt></a></p>
 <p>Drizzle TIMESTAMP type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.TIMESTAMP.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.TIMESTAMP.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.TIMESTAMP.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.TIMESTAMP.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.drizzle.base.VARCHAR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.base.</tt><tt class="descname">VARCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.VARCHAR" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.VARCHAR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.drizzle.</tt><tt class="descname">VARCHAR</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.VARCHAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.drizzle.base._StringType</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.VARCHAR" title="sqlalchemy.types.VARCHAR"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.VARCHAR</span></tt></a></p>
 <p>Drizzle VARCHAR type, for variable-length character data.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.drizzle.base.VARCHAR.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.base.VARCHAR.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.drizzle.VARCHAR.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.drizzle.VARCHAR.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a VARCHAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -580,28 +580,20 @@ The recommended connection form with SQLAlchemy is:</p>
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="index.html" title="previous chapter">Dialects</a>
-        Next:
-        <a href="firebird.html" title="next chapter">Firebird</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="index.html" title="previous chapter">Dialects</a>
+            Next:
+            <a href="firebird.html" title="next chapter">Firebird</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+        </div>
+    </div>
 
 
 

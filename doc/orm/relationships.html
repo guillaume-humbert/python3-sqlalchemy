@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Relationship Configuration
- &mdash; SQLAlchemy 0.7b3 Documentation</title>
+                Relationship Configuration
+             &mdash; SQLAlchemy 0.7b4 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b3',
+          VERSION:     '0.7b4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Collection Configuration and Techniques" href="collections.html" />
         <link rel="prev" title="Mapper Configuration" href="mapper_config.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.7b4 Documentation</h1>
 
-        <h1>SQLAlchemy 0.7b3 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/orm/relationships.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-                » 
-    Relationship Configuration
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
-        Next:
-        <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Relationship Configuration
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
+            </li>
+            <li>Next:
+            <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/orm/relationships.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+        » 
+                Relationship Configuration
+             
+
+        <h2>
+            
+                Relationship Configuration
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Relationship Configuration</a><ul>
 <li><a class="reference internal" href="#basic-relational-patterns">Basic Relational Patterns</a><ul>
 <li><a class="reference internal" href="#one-to-many">One To Many</a></li>
@@ -112,12 +111,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <span class="target" id="module-sqlalchemy.orm"></span><div class="section" id="relationship-configuration">
 <span id="relationship-config-toplevel"></span><h1>Relationship Configuration<a class="headerlink" href="#relationship-configuration" title="Permalink to this headline">¶</a></h1>
 <p>This section describes the <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function and in depth discussion
@@ -1131,28 +1131,20 @@ accepted here, other than <tt class="docutils literal"><span class="pre">lazy</s
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
-        Next:
-        <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
+            Next:
+            <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+        </div>
+    </div>
 
 
 

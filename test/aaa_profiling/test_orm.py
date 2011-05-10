@@ -4,11 +4,11 @@ from sqlalchemy import exc as sa_exc, util, Integer, String, ForeignKey
 from sqlalchemy.orm import exc as orm_exc, mapper, relationship, \
     sessionmaker, Session
 from test.lib import testing, profiling
-from test.orm import _base
+from test.lib import fixtures
 from test.lib.schema import Table, Column
 import sys
 
-class MergeTest(_base.MappedTest):
+class MergeTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -23,28 +23,34 @@ class MergeTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Parent(_base.BasicEntity):
+        class Parent(cls.Basic):
             pass
 
-        class Child(_base.BasicEntity):
+        class Child(cls.Basic):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        Child, Parent, parent, child = (cls.classes.Child,
+                                cls.classes.Parent,
+                                cls.tables.parent,
+                                cls.tables.child)
+
         mapper(Parent, parent, properties={'children'
                : relationship(Child, backref='parent')})
         mapper(Child, child)
 
     @classmethod
-    @testing.resolve_artifact_names
     def insert_data(cls):
+        parent, child = cls.tables.parent, cls.tables.child
+
         parent.insert().execute({'id': 1, 'data': 'p1'})
         child.insert().execute({'id': 1, 'data': 'p1c1', 'parent_id'
                                : 1})
 
-    @testing.resolve_artifact_names
     def test_merge_no_load(self):
+        Parent = self.classes.Parent
+
         sess = sessionmaker()()
         sess2 = sessionmaker()()
         p1 = sess.query(Parent).get(1)
@@ -68,8 +74,9 @@ class MergeTest(_base.MappedTest):
         p3 = go()
 
     @testing.only_on('sqlite', 'Call counts tailored to pysqlite')
-    @testing.resolve_artifact_names
     def test_merge_load(self):
+        Parent = self.classes.Parent
+
         sess = sessionmaker()()
         sess2 = sessionmaker()()
         p1 = sess.query(Parent).get(1)
@@ -81,7 +88,7 @@ class MergeTest(_base.MappedTest):
 
         @profiling.function_call_count(
                                 versions={'2.5':1050, '2.6':1050,
-                                        '2.6+cextension':1041, 
+                                        '2.6+cextension':988, 
                                         '2.7':1005,
                                         '3':1005}
                             )
@@ -94,7 +101,7 @@ class MergeTest(_base.MappedTest):
         sess2 = sessionmaker()()
         self.assert_sql_count(testing.db, go, 2)
 
-class LoadManyToOneFromIdentityTest(_base.MappedTest):
+class LoadManyToOneFromIdentityTest(fixtures.MappedTest):
     """test overhead associated with many-to-one fetches.
 
     Prior to the refactor of LoadLazyAttribute and 
@@ -126,22 +133,27 @@ class LoadManyToOneFromIdentityTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Parent(_base.BasicEntity):
+        class Parent(cls.Basic):
             pass
 
-        class Child(_base.BasicEntity):
+        class Child(cls.Basic):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        Child, Parent, parent, child = (cls.classes.Child,
+                                cls.classes.Parent,
+                                cls.tables.parent,
+                                cls.tables.child)
+
         mapper(Parent, parent, properties={
             'child': relationship(Child)})
         mapper(Child, child)
 
     @classmethod
-    @testing.resolve_artifact_names
     def insert_data(cls):
+        parent, child = cls.tables.parent, cls.tables.child
+
         child.insert().execute([
             {'id':i, 'data':'c%d' % i}
             for i in xrange(1, 251)
@@ -155,8 +167,9 @@ class LoadManyToOneFromIdentityTest(_base.MappedTest):
             for i in xrange(1, 1000)
         ])
 
-    @testing.resolve_artifact_names
     def test_many_to_one_load_no_identity(self):
+        Parent = self.classes.Parent
+
         sess = Session()
         parents = sess.query(Parent).all()
 
@@ -167,8 +180,9 @@ class LoadManyToOneFromIdentityTest(_base.MappedTest):
                 p.child
         go()
 
-    @testing.resolve_artifact_names
     def test_many_to_one_load_identity(self):
+        Parent, Child = self.classes.Parent, self.classes.Child
+
         sess = Session()
         parents = sess.query(Parent).all()
         children = sess.query(Child).all()

@@ -9,7 +9,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql import table, column, visitors
 from test.lib import *
 
-class UserDefinedTest(TestBase, AssertsCompiledSQL):
+class UserDefinedTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     def test_column(self):
@@ -110,6 +110,7 @@ class UserDefinedTest(TestBase, AssertsCompiledSQL):
         decorated class' compiler.
 
         """
+
         t1 = table('t1', column('c1'), column('c2'))
 
         dispatch = Select._compiler_dispatch
@@ -183,7 +184,7 @@ class UserDefinedTest(TestBase, AssertsCompiledSQL):
         )
 
     def test_functions(self):
-        from sqlalchemy.dialects.postgresql import base as postgresql
+        from sqlalchemy.dialects import postgresql
 
         class MyUtcFunction(FunctionElement):
             pass
@@ -205,6 +206,39 @@ class UserDefinedTest(TestBase, AssertsCompiledSQL):
             MyUtcFunction(),
             "timezone('utc', current_timestamp)",
             dialect=postgresql.dialect()
+        )
+
+    def test_function_calls_base(self):
+        from sqlalchemy.dialects import mssql
+
+        class greatest(FunctionElement):
+            type = Numeric()
+            name = 'greatest'
+
+        @compiles(greatest)
+        def default_greatest(element, compiler, **kw):
+            return compiler.visit_function(element)
+
+        @compiles(greatest, 'mssql')
+        def case_greatest(element, compiler, **kw):
+            arg1, arg2 = list(element.clauses)
+            return "CASE WHEN %s > %s THEN %s ELSE %s END" % (
+                compiler.process(arg1),
+                compiler.process(arg2),
+                compiler.process(arg1),
+                compiler.process(arg2),
+            )
+
+        self.assert_compile(
+            greatest('a', 'b'),
+            'greatest(:greatest_1, :greatest_2)',
+            use_default_dialect=True
+        )
+        self.assert_compile(
+            greatest('a', 'b'),
+            "CASE WHEN :greatest_1 > :greatest_2 "
+            "THEN :greatest_1 ELSE :greatest_2 END",
+            dialect=mssql.dialect()
         )
 
     def test_subclasses_one(self):
@@ -265,7 +299,7 @@ class UserDefinedTest(TestBase, AssertsCompiledSQL):
         )
 
 
-class DefaultOnExistingTest(TestBase, AssertsCompiledSQL):
+class DefaultOnExistingTest(fixtures.TestBase, AssertsCompiledSQL):
     """Test replacement of default compilation on existing constructs."""
     __dialect__ = 'default'
 

@@ -8,7 +8,7 @@ from test.lib.testing import eq_
 from test.lib.assertsql import AllOf, RegexSQL, ExactSQL, CompiledSQL
 from sqlalchemy.dialects.postgresql import base as postgresql
 
-class ConstraintTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
+class ConstraintTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
 
     def setup(self):
         global metadata
@@ -121,6 +121,7 @@ class ConstraintTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
 
     def test_index_create_camelcase(self):
         """test that mixed-case index identifiers are legal"""
+
         employees = Table('companyEmployees', metadata,
                           Column('id', Integer, primary_key=True),
                           Column('firstName', String(30)),
@@ -255,7 +256,7 @@ class ConstraintTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
                 Index('bar', t1.c.x)
         )
 
-class ConstraintCompilationTest(TestBase, AssertsCompiledSQL):
+class ConstraintCompilationTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     def _test_deferrable(self, constraint_factory):

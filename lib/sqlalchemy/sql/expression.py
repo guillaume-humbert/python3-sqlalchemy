@@ -793,20 +793,25 @@ def column(text, type_=None):
     """Return a textual column clause, as would be in the columns clause of a
     ``SELECT`` statement.
 
-    The object returned is an instance of
-    :class:`.ColumnClause`, which represents the
-    "syntactical" portion of the schema-level
-    :class:`~sqlalchemy.schema.Column` object.
+    The object returned is an instance of :class:`.ColumnClause`, which
+    represents the "syntactical" portion of the schema-level
+    :class:`~sqlalchemy.schema.Column` object.  It is often used directly
+    within :func:`~.expression.select` constructs or with lightweight :func:`~.expression.table`
+    constructs.
+    
+    Note that the :func:`~.expression.column` function is not part of
+    the ``sqlalchemy`` namespace.  It must be imported from the ``sql`` package::
+    
+        from sqlalchemy.sql import table, column
 
-    text
-      the name of the column.  Quoting rules will be applied to the
-      clause like any other column name.  For textual column
-      constructs that are not to be quoted, use the
-      :func:`literal_column` function.
+    :param text: the name of the column.  Quoting rules will be applied 
+      to the clause like any other column name. For textual column constructs
+      that are not to be quoted, use the :func:`literal_column` function.
 
-    type\_
-      an optional :class:`~sqlalchemy.types.TypeEngine` object which will
-      provide result-set translation for this column.
+    :param type\_: an optional :class:`~sqlalchemy.types.TypeEngine` object 
+      which will provide result-set translation for this column.
+
+    See :class:`.ColumnClause` for further examples.
 
     """
     return ColumnClause(text, type_=type_)
@@ -821,14 +826,12 @@ def literal_column(text, type_=None):
     (such as, '+' means string concatenation or numerical addition based on
     the type).
 
-    text
-      the text of the expression; can be any SQL expression.  Quoting rules
-      will not be applied.  To specify a column-name expression which should
-      be subject to quoting rules, use the
-      :func:`column` function.
+    :param text: the text of the expression; can be any SQL expression.  
+      Quoting rules will not be applied. To specify a column-name expression
+      which should be subject to quoting rules, use the :func:`column`
+      function.
 
-    type\_
-      an optional :class:`~sqlalchemy.types.TypeEngine` object which will
+    :param type\_: an optional :class:`~sqlalchemy.types.TypeEngine` object which will
       provide result-set translation and additional expression semantics for
       this column. If left as None the type will be NullType.
 
@@ -836,11 +839,23 @@ def literal_column(text, type_=None):
     return ColumnClause(text, type_=type_, is_literal=True)
 
 def table(name, *columns):
-    """Return a :class:`.TableClause` object.
+    """Represent a textual table clause.
 
-    This is a primitive version of the :class:`~sqlalchemy.schema.Table` object,
-    which is a subclass of this object.
-
+    The object returned is an instance of :class:`.TableClause`, which represents the
+    "syntactical" portion of the schema-level :class:`~.schema.Table` object. 
+    It may be used to construct lightweight table constructs. 
+    
+    Note that the :func:`~.expression.table` function is not part of
+    the ``sqlalchemy`` namespace.  It must be imported from the ``sql`` package::
+    
+        from sqlalchemy.sql import table, column
+    
+    :param name: Name of the table.
+    
+    :param columns: A collection of :func:`~.expression.column` constructs.
+    
+    See :class:`.TableClause` for further examples.
+    
     """
     return TableClause(name, *columns)
 
@@ -1031,11 +1046,24 @@ def over(func, partition_by=None, order_by=None):
     return _Over(func, partition_by=partition_by, order_by=order_by)
 
 def null():
-    """Return a :class:`_Null` object, which compiles to ``NULL`` in a sql
-    statement.
+    """Return a :class:`_Null` object, which compiles to ``NULL``.
 
     """
     return _Null()
+
+def true():
+    """Return a :class:`_True` object, which compiles to ``true``, or the 
+    boolean equivalent for the target dialect.
+
+    """
+    return _True()
+
+def false():
+    """Return a :class:`_False` object, which compiles to ``false``, or the 
+    boolean equivalent for the target dialect.
+
+    """
+    return _False()
 
 class _FunctionGenerator(object):
     """Generate :class:`.Function` objects based on getattr calls."""
@@ -1184,9 +1212,23 @@ def _literal_as_text(element):
         return element.__clause_element__()
     elif isinstance(element, basestring):
         return _TextClause(unicode(element))
+    elif isinstance(element, (util.NoneType, bool)):
+        return _const_expr(element)
     else:
         raise exc.ArgumentError(
             "SQL expression object or string expected."
+        )
+
+def _const_expr(element):
+    if element is None:
+        return null()
+    elif element is False:
+        return false()
+    elif element is True:
+        return true()
+    else:
+        raise exc.ArgumentError(
+            "Expected None, False, or True"
         )
 
 def _clause_element_as_expr(element):
@@ -2636,55 +2678,29 @@ class Executable(_Generative):
     def execution_options(self, **kw):
         """ Set non-SQL options for the statement which take effect during
         execution.
-
-        :param autocommit: when True, a COMMIT will be invoked after execution 
-          when executed in 'autocommit' mode, i.e. when an explicit
-          transaction is not begun on the connection. Note that DBAPI
-          connections by default are always in a transaction - SQLAlchemy uses
-          rules applied to different kinds of statements to determine if
-          COMMIT will be invoked in order to provide its "autocommit" feature.
-          Typically, all INSERT/UPDATE/DELETE statements as well as
-          CREATE/DROP statements have autocommit behavior enabled; SELECT
-          constructs do not. Use this option when invoking a SELECT or other
-          specific SQL construct where COMMIT is desired (typically when
-          calling stored procedures and such).
-
-        :param stream_results: indicate to the dialect that results should be 
-          "streamed" and not pre-buffered, if possible.  This is a limitation
-          of many DBAPIs.  The flag is currently understood only by the
-          psycopg2 dialect.
-
-        :param compiled_cache: a dictionary where :class:`.Compiled` objects
-          will be cached when the :class:`.Connection` compiles a clause 
-          expression into a dialect- and parameter-specific 
-          :class:`.Compiled` object.   It is the user's responsibility to
-          manage the size of this dictionary, which will have keys
-          corresponding to the dialect, clause element, the column
-          names within the VALUES or SET clause of an INSERT or UPDATE, 
-          as well as the "batch" mode for an INSERT or UPDATE statement.
-          The format of this dictionary is not guaranteed to stay the
-          same in future releases.
-
-          This option is usually more appropriate
-          to use via the 
-          :meth:`.Connection.execution_options()`
-          method of :class:`.Connection`, rather than upon individual 
-          statement objects, though the effect is the same.
-          
-          Note that the ORM makes use of its own "compiled" caches for 
-          some operations, including flush operations.  The caching
-          used by the ORM internally supersedes a cache dictionary
-          specified here.
+        
+        Execution options can be set on a per-statement or 
+        per :class:`.Connection` basis.   Additionally, the 
+        :class:`.Engine` and ORM :class:`~.orm.query.Query` objects provide access
+        to execution options which they in turn configure upon connections.
+        
+        The :meth:`execution_options` method is generative.  A new 
+        instance of this statement is returned that contains the options::
+        
+            statement = select([table.c.x, table.c.y])
+            statement = statement.execution_options(autocommit=True)
+        
+        Note that only a subset of possible execution options can be applied
+        to a statement - these include "autocommit" and "stream_results",
+        but not "isolation_level" or "compiled_cache".  
+        See :meth:`.Connection.execution_options` for a full list of 
+        possible options.
 
         See also:
 
-            :meth:`.Connection.execution_options()` -
-            includes a connection-only option to specify transaction isolation
-            level.
+            :meth:`.Connection.execution_options()`
 
-            :meth:`.Query.execution_options()` - applies options to 
-                the statement
-            generated by a :class:`.orm.Query` object.
+            :meth:`.Query.execution_options()`
 
         """
         if 'isolation_level' in kw:
@@ -2694,7 +2710,11 @@ class Executable(_Generative):
                 "per-engine using the isolation_level "
                 "argument to create_engine()."
             )
-
+        if 'compiled_cache' in kw:
+            raise exc.ArgumentError(
+                "'compiled_cache' execution option may only be specified "
+                "on Connection.execution_options(), not per statement."
+            )
         self._execution_options = self._execution_options.union(kw)
 
     def execute(self, *multiparams, **params):
@@ -2825,9 +2845,30 @@ class _Null(ColumnElement):
     """
 
     __visit_name__ = 'null'
-
     def __init__(self):
         self.type = sqltypes.NULLTYPE
+
+class _False(ColumnElement):
+    """Represent the ``false`` keyword in a SQL statement.
+
+    Public constructor is the :func:`false()` function.
+
+    """
+
+    __visit_name__ = 'false'
+    def __init__(self):
+        self.type = sqltypes.BOOLEANTYPE
+
+class _True(ColumnElement):
+    """Represent the ``true`` keyword in a SQL statement.
+
+    Public constructor is the :func:`true()` function.
+
+    """
+
+    __visit_name__ = 'true'
+    def __init__(self):
+        self.type = sqltypes.BOOLEANTYPE
 
 
 class ClauseList(ClauseElement):
@@ -3003,6 +3044,8 @@ class _Case(ColumnElement):
 
 class FunctionElement(Executable, ColumnElement, FromClause):
     """Base for SQL function-oriented constructs."""
+
+    packagenames = ()
 
     def __init__(self, *clauses, **kwargs):
         """Construct a :class:`.FunctionElement`.
@@ -3702,11 +3745,11 @@ class _Over(ColumnElement):
 
     @property
     def _from_objects(self):
-        return itertools.chain(
+        return list(itertools.chain(
             *[c._from_objects for c in 
                 (self.func, self.partition_by, self.order_by) 
             if c is not None]
-        )
+        ))
 
 class _Label(ColumnElement):
     """Represents a column label (AS).
@@ -3784,24 +3827,54 @@ class ColumnClause(_Immutable, ColumnElement):
 
     This includes columns associated with tables, aliases and select
     statements, but also any arbitrary text.  May or may not be bound
-    to an underlying :class:`.Selectable`.  :class:`.ColumnClause` is usually
-    created publically via the :func:`column()` function or the
-    :func:`literal_column()` function.
+    to an underlying :class:`.Selectable`.
+    
+    :class:`.ColumnClause` is constructed by itself typically via
+    the :func:`~.expression.column` function.  It may be placed directly
+    into constructs such as :func:`.select` constructs::
+    
+        from sqlalchemy.sql import column, select
+        
+        c1, c2 = column("c1"), column("c2")
+        s = select([c1, c2]).where(c1==5)
+    
+    There is also a variant on :func:`~.expression.column` known
+    as :func:`~.expression.literal_column` - the difference is that 
+    in the latter case, the string value is assumed to be an exact
+    expression, rather than a column name, so that no quoting rules
+    or similar are applied::
+    
+        from sqlalchemy.sql import literal_column, select
+        
+        s = select([literal_column("5 + 7")])
+    
+    :class:`.ColumnClause` can also be used in a table-like 
+    fashion by combining the :func:`~.expression.column` function 
+    with the :func:`~.expression.table` function, to produce
+    a "lightweight" form of table metadata::
+    
+        from sqlalchemy.sql import table, column
 
-    text
-      the text of the element.
+        user = table("user",
+                column("id"),
+                column("name"),
+                column("description"),
+        )
+    
+    The above construct can be created in an ad-hoc fashion and is
+    not associated with any :class:`.schema.MetaData`, unlike it's
+    more full fledged :class:`.schema.Table` counterpart.
 
-    selectable
-      parent selectable.
+    :param text: the text of the element.
 
-    type
-      ``TypeEngine`` object which can associate this :class:`.ColumnClause`
-      with a type.
+    :param selectable: parent selectable.
 
-    is_literal
-      if True, the :class:`.ColumnClause` is assumed to be an exact
-      expression that will be delivered to the output with no quoting
-      rules applied regardless of case sensitive settings.  the
+    :param type: :class:`.types.TypeEngine` object which can associate 
+      this :class:`.ColumnClause` with a type.
+
+    :param is_literal: if True, the :class:`.ColumnClause` is assumed to 
+      be an exact expression that will be delivered to the output with no
+      quoting rules applied regardless of case sensitive settings. the
       :func:`literal_column()` function is usually used to create such a
       :class:`.ColumnClause`.
 
@@ -3889,11 +3962,32 @@ class ColumnClause(_Immutable, ColumnElement):
         return c
 
 class TableClause(_Immutable, FromClause):
-    """Represents a "table" construct.
-
-    Note that this represents tables only as another syntactical
-    construct within SQL expressions; it does not provide schema-level
-    functionality.
+    """Represents a minimal "table" construct.
+    
+    The constructor for :class:`.TableClause` is the
+    :func:`~.expression.table` function.   This produces 
+    a lightweight table object that has only a name and a 
+    collection of columns, which are typically produced
+    by the :func:`~.expression.column` function::
+    
+        from sqlalchemy.sql import table, column
+        
+        user = table("user",
+                column("id"),
+                column("name"),
+                column("description"),
+        )
+        
+    The :class:`.TableClause` construct serves as the base for
+    the more commonly used :class:`~.schema.Table` object, providing
+    the usual set of :class:`~.expression.FromClause` services including
+    the ``.c.`` collection and statement generation methods.
+    
+    It does **not** provide all the additional schema-level services
+    of :class:`~.schema.Table`, including constraints, references to other 
+    tables, or support for :class:`.MetaData`-level services.  It's useful
+    on its own as an ad-hoc construct used to generate quick SQL
+    statements when a more fully fledged :class:`~.schema.Table` is not on hand.
 
     """
 
@@ -3970,6 +4064,8 @@ class _SelectBase(Executable, FromClause):
 
     _order_by_clause = ClauseList()
     _group_by_clause = ClauseList()
+    _limit = None
+    _offset = None
 
     def __init__(self,
             use_labels=False,
@@ -3989,8 +4085,10 @@ class _SelectBase(Executable, FromClause):
             self._execution_options = \
                 self._execution_options.union({'autocommit'
                     : autocommit})
-        self._limit = limit
-        self._offset = offset
+        if limit is not None:
+            self._limit = util.asint(limit)
+        if offset is not None:
+            self._offset = util.asint(offset)
         self._bind = bind
 
         if order_by is not None:
@@ -4059,14 +4157,14 @@ class _SelectBase(Executable, FromClause):
         """return a new selectable with the given LIMIT criterion
         applied."""
 
-        self._limit = limit
+        self._limit = util.asint(limit)
 
     @_generative
     def offset(self, offset):
         """return a new selectable with the given OFFSET criterion
         applied."""
 
-        self._offset = offset
+        self._offset = util.asint(offset)
 
     @_generative
     def order_by(self, *clauses):

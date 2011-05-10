@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Using the Session
- &mdash; SQLAlchemy 0.7b3 Documentation</title>
+                Using the Session
+             &mdash; SQLAlchemy 0.7b4 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b3',
+          VERSION:     '0.7b4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Querying" href="query.html" />
         <link rel="prev" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.7b4 Documentation</h1>
 
-        <h1>SQLAlchemy 0.7b3 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/orm/session.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-                » 
-    Using the Session
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="inheritance.html" title="previous chapter">Mapping Class Inheritance Hierarchies</a>
-        Next:
-        <a href="query.html" title="next chapter">Querying</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Using the Session
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="inheritance.html" title="previous chapter">Mapping Class Inheritance Hierarchies</a>
+            </li>
+            <li>Next:
+            <a href="query.html" title="next chapter">Querying</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/orm/session.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+        » 
+                Using the Session
+             
+
+        <h2>
+            
+                Using the Session
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Using the Session</a><ul>
 <li><a class="reference internal" href="#what-does-the-session-do">What does the Session do ?</a></li>
 <li><a class="reference internal" href="#getting-a-session">Getting a Session</a></li>
@@ -141,12 +140,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.orm.session">
 <span id="using-the-session"></span><span id="session-toplevel"></span><h1>Using the Session<a class="headerlink" href="#module-sqlalchemy.orm.session" title="Permalink to this headline">¶</a></h1>
 <p>The <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">orm.mapper()</span></tt></a> function and <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> extensions
@@ -2047,9 +2047,10 @@ to the database as INSERTs, DELETEs, UPDATEs, etc.  Operations are
 automatically ordered by the Session&#8217;s unit of work dependency
 solver..</p>
 <p>Database operations will be issued in the current transactional
-context and do not affect the state of the transaction.  You may
-flush() as often as you like within a transaction to move changes from
-Python to the database&#8217;s transaction buffer.</p>
+context and do not affect the state of the transaction, unless an
+error occurs, in which case the entire transaction is rolled back. 
+You may flush() as often as you like within a transaction to move
+changes from Python to the database&#8217;s transaction buffer.</p>
 <p>For <tt class="docutils literal"><span class="pre">autocommit</span></tt> Sessions with no active manual transaction, flush()
 will create a transaction on the fly that surrounds the entire set of
 operations int the flush.</p>
@@ -2483,28 +2484,20 @@ normally.</p>
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="inheritance.html" title="previous chapter">Mapping Class Inheritance Hierarchies</a>
-        Next:
-        <a href="query.html" title="next chapter">Querying</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="inheritance.html" title="previous chapter">Mapping Class Inheritance Hierarchies</a>
+            Next:
+            <a href="query.html" title="next chapter">Querying</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+        </div>
+    </div>
 
 
 

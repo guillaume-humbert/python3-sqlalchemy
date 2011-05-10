@@ -1,9 +1,9 @@
 from test.lib.testing import eq_, assert_raises, assert_raises_message
-import datetime, re, operator
+import datetime, re, operator, decimal
 from sqlalchemy import *
 from sqlalchemy import exc, sql, util
 from sqlalchemy.sql import table, column, label, compiler
-from sqlalchemy.sql.expression import ClauseList
+from sqlalchemy.sql.expression import ClauseList, _literal_as_text
 from sqlalchemy.engine import default
 from sqlalchemy.databases import *
 from test.lib import *
@@ -61,7 +61,7 @@ addresses = table('addresses',
     column('zip')
 )
 
-class SelectTest(TestBase, AssertsCompiledSQL):
+class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     def test_attribute_sanity(self):
@@ -105,6 +105,24 @@ class SelectTest(TestBase, AssertsCompiledSQL):
     def test_invalid_col_argument(self):
         assert_raises(exc.ArgumentError, select, table1)
         assert_raises(exc.ArgumentError, select, table1.c.myid)
+
+    def test_int_limit_offset_coercion(self):
+        for given, exp in [
+            ("5", 5),
+            (5, 5),
+            (5.2, 5),
+            (decimal.Decimal("5"), 5),
+            (None, None),
+        ]:
+            eq_(select().limit(given)._limit, exp)
+            eq_(select().offset(given)._offset, exp)
+            eq_(select(limit=given)._limit, exp)
+            eq_(select(offset=given)._offset, exp)
+
+        assert_raises(ValueError, select().limit, "foo")
+        assert_raises(ValueError, select().offset, "foo")
+        assert_raises(ValueError, select, offset="foo")
+        assert_raises(ValueError, select, limit="foo")
 
     def test_from_subquery(self):
         """tests placing select statements in the column clause of another select, for the
@@ -284,6 +302,7 @@ class SelectTest(TestBase, AssertsCompiledSQL):
         essentially tests the ANONYMOUS_LABEL regex.
 
         """
+
         s1 = table1.select()
         s2 = s1.alias()
         s3 = select([s2], use_labels=True)
@@ -2075,7 +2094,7 @@ class SelectTest(TestBase, AssertsCompiledSQL):
                 partition_by=[table1.c.name],
                 order_by=[table1.c.description]
             ),
-            "row_number() OVER (PARTITION BY mytable.name, "
+            "row_number() OVER (PARTITION BY mytable.name "
             "ORDER BY mytable.description)"
         )
         self.assert_compile(
@@ -2083,8 +2102,17 @@ class SelectTest(TestBase, AssertsCompiledSQL):
                 partition_by=table1.c.name,
                 order_by=table1.c.description
             ),
-            "row_number() OVER (PARTITION BY mytable.name, "
+            "row_number() OVER (PARTITION BY mytable.name "
             "ORDER BY mytable.description)"
+        )
+
+        self.assert_compile(
+            func.row_number().over(
+                partition_by=table1.c.name,
+                order_by=[table1.c.name, table1.c.description]
+            ),
+            "row_number() OVER (PARTITION BY mytable.name "
+            "ORDER BY mytable.name, mytable.description)"
         )
 
         self.assert_compile(
@@ -2127,6 +2155,12 @@ class SelectTest(TestBase, AssertsCompiledSQL):
             "AS anon_1 FROM mytable"
         )
 
+        # this tests that _from_objects 
+        # concantenates OK
+        self.assert_compile(
+            select([column("x") + over(func.foo())]),
+            "SELECT x + foo() OVER () AS anon_1"
+        )
 
 
     def test_date_between(self):
@@ -2432,7 +2466,7 @@ class SelectTest(TestBase, AssertsCompiledSQL):
         )
 
 
-class CRUDTest(TestBase, AssertsCompiledSQL):
+class CRUDTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     def test_insert(self):
@@ -2688,7 +2722,7 @@ class CRUDTest(TestBase, AssertsCompiledSQL):
             "UPDATE foo SET id=:id, foo_id=:foo_id WHERE foo.id = :foo_id_1"
         )
 
-class InlineDefaultTest(TestBase, AssertsCompiledSQL):
+class InlineDefaultTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     def test_insert(self):
@@ -2722,7 +2756,7 @@ class InlineDefaultTest(TestBase, AssertsCompiledSQL):
                         "coalesce(max(foo.id)) AS coalesce_1 FROM foo), "
                         "col3=:col3")
 
-class SchemaTest(TestBase, AssertsCompiledSQL):
+class SchemaTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     def test_select(self):
@@ -2777,4 +2811,67 @@ class SchemaTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(table4.insert(values=(2, 5, 'test')), 
                     "INSERT INTO remote_owner.remotetable (rem_id, datatype_id, value) VALUES "
                     "(:rem_id, :datatype_id, :value)")
+
+
+class CoercionTest(fixtures.TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    def _fixture(self):
+        m = MetaData()
+        return Table('foo', m,
+            Column('id', Integer))
+
+    def test_null_constant(self):
+        t = self._fixture()
+        self.assert_compile(_literal_as_text(None), "NULL")
+
+    def test_false_constant(self):
+        t = self._fixture()
+        self.assert_compile(_literal_as_text(False), "false")
+
+    def test_true_constant(self):
+        t = self._fixture()
+        self.assert_compile(_literal_as_text(True), "true")
+
+    def test_val_and_false(self):
+        t = self._fixture()
+        self.assert_compile(and_(t.c.id == 1, False),
+                            "foo.id = :id_1 AND false")
+
+    def test_val_and_true_coerced(self):
+        t = self._fixture()
+        self.assert_compile(and_(t.c.id == 1, True),
+                            "foo.id = :id_1 AND true")
+
+    def test_val_is_null_coerced(self):
+        t = self._fixture()
+        self.assert_compile(and_(t.c.id == None),
+                            "foo.id IS NULL")
+
+    def test_val_and_None(self):
+        # current convention is None in and_() or
+        # other clauselist is ignored.  May want
+        # to revise this at some point.
+        t = self._fixture()
+        self.assert_compile(and_(t.c.id == 1, None),
+                            "foo.id = :id_1")
+
+    def test_None_and_val(self):
+        # current convention is None in and_() or
+        # other clauselist is ignored.  May want
+        # to revise this at some point.
+        t = self._fixture()
+        self.assert_compile(and_(t.c.id == 1, None),
+                            "foo.id = :id_1")
+
+    def test_None_and_nothing(self):
+        # current convention is None in and_()
+        # returns None May want
+        # to revise this at some point.
+        assert and_(None) is None
+
+    def test_val_and_null(self):
+        t = self._fixture()
+        self.assert_compile(and_(t.c.id == 1, null()),
+                            "foo.id = :id_1 AND NULL")
 

@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Connection Pooling
- &mdash; SQLAlchemy 0.7b3 Documentation</title>
+                Connection Pooling
+             &mdash; SQLAlchemy 0.7b4 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b3',
+          VERSION:     '0.7b4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Schema Definition Language" href="schema.html" />
         <link rel="prev" title="Working with Engines and Connections" href="connections.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.7b4 Documentation</h1>
 
-        <h1>SQLAlchemy 0.7b3 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/core/pooling.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » 
-    Connection Pooling
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="connections.html" title="previous chapter">Working with Engines and Connections</a>
-        Next:
-        <a href="schema.html" title="next chapter">Schema Definition Language</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Connection Pooling
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="connections.html" title="previous chapter">Working with Engines and Connections</a>
+            </li>
+            <li>Next:
+            <a href="schema.html" title="next chapter">Schema Definition Language</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/core/pooling.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+        » 
+                Connection Pooling
+             
+
+        <h2>
+            
+                Connection Pooling
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Connection Pooling</a><ul>
 <li><a class="reference internal" href="#connection-pool-configuration">Connection Pool Configuration</a></li>
 <li><a class="reference internal" href="#switching-pool-implementations">Switching Pool Implementations</a></li>
@@ -97,12 +96,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.pool">
 <span id="connection-pooling"></span><span id="pooling-toplevel"></span><h1>Connection Pooling<a class="headerlink" href="#module-sqlalchemy.pool" title="Permalink to this headline">¶</a></h1>
 <p>The establishment of a
@@ -434,11 +434,14 @@ See <a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em>
 <dt id="sqlalchemy.pool.AssertionPool">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">AssertionPool</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.AssertionPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.pool.Pool</span></tt></a></p>
-<p>A Pool that allows at most one checked out connection at any given
+<p>A <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> that allows at most one checked out connection at any given
 time.</p>
 <p>This will raise an exception if more than one connection is checked out
 at a time.  Useful for debugging code that is using more connections
 than desired.</p>
+<p><a class="reference internal" href="#sqlalchemy.pool.AssertionPool" title="sqlalchemy.pool.AssertionPool"><tt class="xref py py-class docutils literal"><span class="pre">AssertionPool</span></tt></a> also logs a traceback of where
+the original connection was checked out, and reports
+this in the assertion error raised (new in 0.7).</p>
 </dd></dl>
 
 <dl class="class">
@@ -541,28 +544,20 @@ pooling.  Defaults to <a class="reference internal" href="#sqlalchemy.pool.Queue
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="connections.html" title="previous chapter">Working with Engines and Connections</a>
-        Next:
-        <a href="schema.html" title="next chapter">Schema Definition Language</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="connections.html" title="previous chapter">Working with Engines and Connections</a>
+            Next:
+            <a href="schema.html" title="next chapter">Schema Definition Language</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+        </div>
+    </div>
 
 
 

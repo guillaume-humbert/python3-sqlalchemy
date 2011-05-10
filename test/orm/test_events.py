@@ -9,7 +9,8 @@ from sqlalchemy.orm import mapper, relationship, \
     Session, sessionmaker
 from sqlalchemy.orm.instrumentation import ClassManager
 from test.lib.testing import eq_
-from test.orm import _base, _fixtures
+from test.lib import fixtures
+from test.orm import _fixtures
 from sqlalchemy import event
 
 
@@ -26,9 +27,11 @@ class _RemoveListeners(object):
 class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
     run_inserts = None
 
-    @testing.resolve_artifact_names
     def test_instance_event_listen(self):
         """test listen targets for instance events"""
+
+        users, addresses = self.tables.users, self.tables.addresses
+
 
         canary = []
         class A(object):
@@ -97,8 +100,9 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
             event.listen(mapper, meth, evt(meth), **kw)
         return canary
 
-    @testing.resolve_artifact_names
     def test_basic(self):
+        User, users = self.classes.User, self.tables.users
+
 
         mapper(User, users)
         canary = self.listen_all(User)
@@ -123,8 +127,9 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
              'populate_instance', 'load', 'append_result',
              'before_update', 'after_update', 'before_delete', 'after_delete'])
 
-    @testing.resolve_artifact_names
     def test_merge(self):
+        users, User = self.tables.users, self.classes.User
+
         mapper(User, users)
 
         canary =[]
@@ -144,8 +149,11 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         s.query(User).first()
         eq_(canary,['load', 'load', 'load'])
 
-    @testing.resolve_artifact_names
     def test_inheritance(self):
+        users, addresses, User = (self.tables.users,
+                                self.tables.addresses,
+                                self.classes.User)
+
         class AdminUser(User):
             pass
 
@@ -181,12 +189,18 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
             'before_update', 'after_update', 'before_delete',
             'after_delete'])
 
-    @testing.resolve_artifact_names
     def test_before_after_only_collection(self):
         """before_update is called on parent for collection modifications,
         after_update is called even if no columns were updated.
 
         """
+
+        keywords, items, item_keywords, Keyword, Item = (self.tables.keywords,
+                                self.tables.items,
+                                self.tables.item_keywords,
+                                self.classes.Keyword,
+                                self.classes.Item)
+
 
         mapper(Item, items, properties={
             'keywords': relationship(Keyword, secondary=item_keywords)})
@@ -217,8 +231,9 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         eq_(canary2, [])
 
 
-    @testing.resolve_artifact_names
     def test_retval(self):
+        User, users = self.classes.User, self.tables.users
+
         def create_instance(mapper, context, row, class_):
             u = User.__new__(User)
             u.foo = True
@@ -235,8 +250,12 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         u = sess.query(User).first()
         assert u.foo
 
-    @testing.resolve_artifact_names
     def test_instrument_event(self):
+        Address, addresses, users, User = (self.classes.Address,
+                                self.tables.addresses,
+                                self.tables.users,
+                                self.classes.User)
+
         canary = []
         def instrument_class(mapper, cls):
             canary.append(cls)
@@ -253,12 +272,14 @@ class LoadTest(_fixtures.FixtureTest):
     run_inserts = None
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        User, users = cls.classes.User, cls.tables.users
+
         mapper(User, users)
 
-    @testing.resolve_artifact_names
     def _fixture(self):
+        User = self.classes.User
+
         canary = []
         def load(target, ctx):
             canary.append("load")
@@ -269,8 +290,9 @@ class LoadTest(_fixtures.FixtureTest):
         event.listen(User, "refresh", refresh)
         return canary
 
-    @testing.resolve_artifact_names
     def test_just_loaded(self):
+        User = self.classes.User
+
         canary = self._fixture()
 
         sess = Session()
@@ -283,8 +305,9 @@ class LoadTest(_fixtures.FixtureTest):
         sess.query(User).first()
         eq_(canary, ['load'])
 
-    @testing.resolve_artifact_names
     def test_repeated_rows(self):
+        User = self.classes.User
+
         canary = self._fixture()
 
         sess = Session()
@@ -303,12 +326,14 @@ class RefreshTest(_fixtures.FixtureTest):
     run_inserts = None
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        User, users = cls.classes.User, cls.tables.users
+
         mapper(User, users)
 
-    @testing.resolve_artifact_names
     def _fixture(self):
+        User = self.classes.User
+
         canary = []
         def load(target, ctx):
             canary.append("load")
@@ -319,8 +344,9 @@ class RefreshTest(_fixtures.FixtureTest):
         event.listen(User, "refresh", refresh)
         return canary
 
-    @testing.resolve_artifact_names
     def test_already_present(self):
+        User = self.classes.User
+
         canary = self._fixture()
 
         sess = Session()
@@ -332,8 +358,9 @@ class RefreshTest(_fixtures.FixtureTest):
         sess.query(User).first()
         eq_(canary, [])
 
-    @testing.resolve_artifact_names
     def test_repeated_rows(self):
+        User = self.classes.User
+
         canary = self._fixture()
 
         sess = Session()
@@ -345,8 +372,9 @@ class RefreshTest(_fixtures.FixtureTest):
         sess.query(User).union_all(sess.query(User)).all()
         eq_(canary, [('refresh', set(['id','name']))])
 
-    @testing.resolve_artifact_names
     def test_via_refresh_state(self):
+        User = self.classes.User
+
         canary = self._fixture()
 
         sess = Session()
@@ -358,8 +386,9 @@ class RefreshTest(_fixtures.FixtureTest):
         u1.name
         eq_(canary, [('refresh', set(['id','name']))])
 
-    @testing.resolve_artifact_names
     def test_was_expired(self):
+        User = self.classes.User
+
         canary = self._fixture()
 
         sess = Session()
@@ -372,8 +401,9 @@ class RefreshTest(_fixtures.FixtureTest):
         sess.query(User).first()
         eq_(canary, [('refresh', set(['id','name']))])
 
-    @testing.resolve_artifact_names
     def test_was_expired_via_commit(self):
+        User = self.classes.User
+
         canary = self._fixture()
 
         sess = Session()
@@ -385,8 +415,9 @@ class RefreshTest(_fixtures.FixtureTest):
         sess.query(User).first()
         eq_(canary, [('refresh', set(['id','name']))])
 
-    @testing.resolve_artifact_names
     def test_was_expired_attrs(self):
+        User = self.classes.User
+
         canary = self._fixture()
 
         sess = Session()
@@ -399,8 +430,9 @@ class RefreshTest(_fixtures.FixtureTest):
         sess.query(User).first()
         eq_(canary, [('refresh', set(['name']))])
 
-    @testing.resolve_artifact_names
     def test_populate_existing(self):
+        User = self.classes.User
+
         canary = self._fixture()
 
         sess = Session()
@@ -517,8 +549,9 @@ class SessionEventsTest(_RemoveListeners, _fixtures.FixtureTest):
 
         return sess, canary
 
-    @testing.resolve_artifact_names
     def test_flush_autocommit_hook(self):
+        User, users = self.classes.User, self.tables.users
+
 
         mapper(User, users)
 
@@ -534,8 +567,9 @@ class SessionEventsTest(_RemoveListeners, _fixtures.FixtureTest):
             'before_commit', 'after_commit',]
         )
 
-    @testing.resolve_artifact_names
     def test_flush_noautocommit_hook(self):
+        User, users = self.classes.User, self.tables.users
+
         sess, canary = self._listener_fixture()
 
         mapper(User, users)
@@ -546,8 +580,9 @@ class SessionEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         eq_(canary, ['after_attach', 'before_flush', 'after_begin',
                        'after_flush', 'after_flush_postexec'])
 
-    @testing.resolve_artifact_names
     def test_flush_in_commit_hook(self):
+        User, users = self.classes.User, self.tables.users
+
         sess, canary = self._listener_fixture()
 
         mapper(User, users)
@@ -566,15 +601,17 @@ class SessionEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         sess.commit()
         eq_(canary, ['before_commit', 'after_commit'])
 
-    @testing.resolve_artifact_names
     def test_on_bulk_update_hook(self):
+        User, users = self.classes.User, self.tables.users
+
         sess, canary = self._listener_fixture()
         mapper(User, users)
         sess.query(User).update({'name': 'foo'})
         eq_(canary, ['after_begin', 'after_bulk_update'])
 
-    @testing.resolve_artifact_names
     def test_on_bulk_delete_hook(self):
+        User, users = self.classes.User, self.tables.users
+
         sess, canary = self._listener_fixture()
         mapper(User, users)
         sess.query(User).delete()
@@ -585,8 +622,9 @@ class SessionEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         conn = sess.connection()
         eq_(canary, ['after_begin'])
 
-    @testing.resolve_artifact_names
     def test_reentrant_flush(self):
+        users, User = self.tables.users, self.classes.User
+
 
         mapper(User, users)
 
@@ -599,8 +637,9 @@ class SessionEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         assert_raises_message(sa.exc.InvalidRequestError,
                               'already flushing', sess.flush)
 
-    @testing.resolve_artifact_names
     def test_before_flush_affects_flush_plan(self):
+        users, User = self.tables.users, self.classes.User
+
 
         mapper(User, users)
 
@@ -653,8 +692,9 @@ class SessionEventsTest(_RemoveListeners, _fixtures.FixtureTest):
             ]
         )
 
-    @testing.resolve_artifact_names
     def test_before_flush_affects_dirty(self):
+        users, User = self.tables.users, self.classes.User
+
         mapper(User, users)
 
         def before_flush(session, flush_context, objects):
@@ -751,9 +791,11 @@ class MapperExtensionTest(_fixtures.FixtureTest):
 
         return Ext, methods
 
-    @testing.resolve_artifact_names
     def test_basic(self):
         """test that common user-defined methods get called."""
+
+        User, users = self.classes.User, self.tables.users
+
         Ext, methods = self.extension()
 
         mapper(User, users, extension=Ext())
@@ -775,8 +817,11 @@ class MapperExtensionTest(_fixtures.FixtureTest):
              'populate_instance', 'reconstruct_instance', 'append_result',
              'before_update', 'after_update', 'before_delete', 'after_delete'])
 
-    @testing.resolve_artifact_names
     def test_inheritance(self):
+        users, addresses, User = (self.tables.users,
+                                self.tables.addresses,
+                                self.classes.User)
+
         Ext, methods = self.extension()
 
         class AdminUser(User):
@@ -804,12 +849,18 @@ class MapperExtensionTest(_fixtures.FixtureTest):
              'append_result', 'before_update', 'after_update', 'before_delete',
              'after_delete'])
 
-    @testing.resolve_artifact_names
     def test_before_after_only_collection(self):
         """before_update is called on parent for collection modifications,
         after_update is called even if no columns were updated.
 
         """
+
+        keywords, items, item_keywords, Keyword, Item = (self.tables.keywords,
+                                self.tables.items,
+                                self.tables.item_keywords,
+                                self.classes.Keyword,
+                                self.classes.Item)
+
 
         Ext1, methods1 = self.extension()
         Ext2, methods2 = self.extension()
@@ -839,9 +890,13 @@ class MapperExtensionTest(_fixtures.FixtureTest):
         eq_(methods2, [])
 
 
-    @testing.resolve_artifact_names
     def test_inheritance_with_dupes(self):
         """Inheritance with the same extension instance on both mappers."""
+
+        users, addresses, User = (self.tables.users,
+                                self.tables.addresses,
+                                self.classes.User)
+
         Ext, methods = self.extension()
 
         class AdminUser(User):
@@ -870,8 +925,9 @@ class MapperExtensionTest(_fixtures.FixtureTest):
              'append_result', 'before_update', 'after_update', 'before_delete',
              'after_delete'])
 
-    @testing.resolve_artifact_names
     def test_create_instance(self):
+        User, users = self.classes.User, self.tables.users
+
         class CreateUserExt(sa.orm.MapperExtension):
             def create_instance(self, mapper, selectcontext, row, class_):
                 return User.__new__(User)
@@ -885,8 +941,9 @@ class MapperExtensionTest(_fixtures.FixtureTest):
         sess.expunge_all()
         assert sess.query(User).first()
 
-    @testing.resolve_artifact_names
     def test_unnecessary_methods_not_evented(self):
+        users = self.tables.users
+
         class MyExtension(sa.orm.MapperExtension):
             def before_insert(self, mapper, connection, instance):
                 pass
@@ -899,7 +956,7 @@ class MapperExtensionTest(_fixtures.FixtureTest):
         assert len(m.dispatch.before_insert) == 1
 
 
-class AttributeExtensionTest(_base.MappedTest):
+class AttributeExtensionTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('t1', 
@@ -910,8 +967,9 @@ class AttributeExtensionTest(_base.MappedTest):
 
         )
 
-    @testing.resolve_artifact_names
     def test_cascading_extensions(self):
+        t1 = self.tables.t1
+
         ext_msg = []
 
         class Ex1(sa.orm.AttributeExtension):
@@ -924,7 +982,7 @@ class AttributeExtensionTest(_base.MappedTest):
                 ext_msg.append("Ex2 %r" % value)
                 return "ex2" + value
 
-        class A(_base.BasicEntity):
+        class A(fixtures.BasicEntity):
             pass
         class B(A):
             pass
@@ -962,8 +1020,9 @@ class AttributeExtensionTest(_base.MappedTest):
 class SessionExtensionTest(_fixtures.FixtureTest):
     run_inserts = None
 
-    @testing.resolve_artifact_names
     def test_extension(self):
+        User, users = self.classes.User, self.tables.users
+
         mapper(User, users)
         log = []
         class MyExt(sa.orm.session.SessionExtension):
@@ -1041,8 +1100,9 @@ class SessionExtensionTest(_fixtures.FixtureTest):
         conn = sess.connection()
         assert log == ['after_begin']
 
-    @testing.resolve_artifact_names
     def test_multiple_extensions(self):
+        User, users = self.classes.User, self.tables.users
+
         log = []
         class MyExt1(sa.orm.session.SessionExtension):
             def before_commit(self, session):
@@ -1063,7 +1123,6 @@ class SessionExtensionTest(_fixtures.FixtureTest):
             'before_commit_two',
             ]
 
-    @testing.resolve_artifact_names
     def test_unnecessary_methods_not_evented(self):
         class MyExtension(sa.orm.session.SessionExtension):
             def before_commit(self, session):

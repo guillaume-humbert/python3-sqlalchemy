@@ -6,7 +6,7 @@ from sqlalchemy.engine import default, base
 from test.lib import *
 from test.lib.schema import Table, Column
 
-class QueryTest(TestBase):
+class QueryTest(fixtures.TestBase):
 
     @classmethod
     def setup_class(cls):
@@ -251,6 +251,7 @@ class QueryTest(TestBase):
         ORDER BY.
 
         """
+
         users.insert().execute(
             {'user_id':7, 'user_name':'jack'},
             {'user_id':8, 'user_name':'ed'},
@@ -446,6 +447,7 @@ class QueryTest(TestBase):
         This should be run for DB-APIs with both positional and named
         paramstyles.
         """
+
         users.insert().execute(user_id = 7, user_name = 'jack')
         users.insert().execute(user_id = 8, user_name = 'fred')
 
@@ -520,6 +522,7 @@ class QueryTest(TestBase):
     @testing.exclude('mysql', '<', (5, 0, 37), 'database bug')
     def test_scalar_select(self):
         """test that scalar subqueries with labels get their type propagated to the result set."""
+
         # mysql and/or mysqldb has a bug here, type isn't propagated for scalar
         # subquery.
         datetable = Table('datetable', metadata,
@@ -980,6 +983,7 @@ class QueryTest(TestBase):
         generate ? = ?.
 
         """
+
         users.insert().execute(user_id = 7, user_name = 'jack')
         users.insert().execute(user_id = 8, user_name = 'fred')
         users.insert().execute(user_id = 9, user_name = None)
@@ -1029,7 +1033,7 @@ class QueryTest(TestBase):
         r = s.execute().fetchall()
         assert len(r) == 1
 
-class PercentSchemaNamesTest(TestBase):
+class PercentSchemaNamesTest(fixtures.TestBase):
     """tests using percent signs, spaces in table and column names.
 
     Doesn't pass for mysql, postgresql, but this is really a 
@@ -1129,7 +1133,7 @@ class PercentSchemaNamesTest(TestBase):
 
 
 
-class LimitTest(TestBase):
+class LimitTest(fixtures.TestBase):
 
     @classmethod
     def setup_class(cls):
@@ -1202,7 +1206,7 @@ class LimitTest(TestBase):
         self.assert_(len(r) == 3, repr(r))
         self.assert_(r[0] != r[1] and r[1] != r[2], repr(r))
 
-class CompoundTest(TestBase):
+class CompoundTest(fixtures.TestBase):
     """test compound statements like UNION, INTERSECT, particularly their ability to nest on
     different databases."""
     @classmethod
@@ -1329,6 +1333,7 @@ class CompoundTest(TestBase):
         more palatable to a wider variety of engines.
 
         """
+
         u = union(
             select([t1.c.col3]),
             select([t1.c.col3]),
@@ -1494,7 +1499,7 @@ class CompoundTest(TestBase):
         eq_(found, wanted)
 
 
-class JoinTest(TestBase):
+class JoinTest(fixtures.TestBase):
     """Tests join execution.
 
     The compiled SQL emitted by the dialect might be ANSI joins or
@@ -1766,7 +1771,7 @@ class JoinTest(TestBase):
             self.assertRows(expr, [(10, 20, 30)])
 
 
-class OperatorTest(TestBase):
+class OperatorTest(fixtures.TestBase):
     @classmethod
     def setup_class(cls):
         global metadata, flds

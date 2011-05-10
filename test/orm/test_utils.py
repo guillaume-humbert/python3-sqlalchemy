@@ -6,15 +6,13 @@ from sqlalchemy import MetaData
 from sqlalchemy import Table
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm import mapper, create_session
-
-
-from test.lib import TestBase, testing
-
+from test.lib import testing
+from test.lib import fixtures
 from test.orm import _fixtures
 from test.lib.testing import eq_
 
 
-class AliasedClassTest(TestBase):
+class AliasedClassTest(fixtures.TestBase):
     def point_map(self, cls):
         table = Table('point', MetaData(),
                     Column('id', Integer(), primary_key=True),
@@ -87,8 +85,9 @@ class AliasedClassTest(TestBase):
         assert Point.max_x is alias.max_x
 
     def test_descriptors(self):
+        """Tortured..."""
+
         class descriptor(object):
-            """Tortured..."""
             def __init__(self, fn):
                 self.fn = fn
             def __get__(self, obj, owner):
@@ -189,8 +188,9 @@ class AliasedClassTest(TestBase):
 class IdentityKeyTest(_fixtures.FixtureTest):
     run_inserts = None
 
-    @testing.resolve_artifact_names
     def test_identity_key_1(self):
+        User, users = self.classes.User, self.tables.users
+
         mapper(User, users)
 
         key = util.identity_key(User, [1])
@@ -198,8 +198,9 @@ class IdentityKeyTest(_fixtures.FixtureTest):
         key = util.identity_key(User, ident=[1])
         eq_(key, (User, (1,)))
 
-    @testing.resolve_artifact_names
     def test_identity_key_2(self):
+        users, User = self.tables.users, self.classes.User
+
         mapper(User, users)
         s = create_session()
         u = User(name='u1')
@@ -208,8 +209,9 @@ class IdentityKeyTest(_fixtures.FixtureTest):
         key = util.identity_key(instance=u)
         eq_(key, (User, (u.id,)))
 
-    @testing.resolve_artifact_names
     def test_identity_key_3(self):
+        User, users = self.classes.User, self.tables.users
+
         mapper(User, users)
 
         row = {users.c.id: 1, users.c.name: "Frank"}

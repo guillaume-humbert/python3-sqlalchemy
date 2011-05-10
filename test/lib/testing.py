@@ -267,7 +267,6 @@ def _is_excluded(db, op, spec):
       _is_excluded('bigdb', '==', (9,0,9))
       _is_excluded('yikesdb', 'in', ((0, 3, 'alpha2'), (0, 3, 'alpha3')))
     """
-
     vendor_spec = db_spec(db)
 
     if not vendor_spec(config.db):
@@ -450,8 +449,6 @@ def global_cleanup_assertions():
     testutil.lazy_gc()
     assert not pool._refs
 
-
-
 def against(*queries):
     """Boolean predicate, compares to testing database configuration.
 
@@ -538,56 +535,20 @@ def assert_raises_message(except_cls, msg, callable_, *args, **kwargs):
 def fail(msg):
     assert False, msg
 
-def fixture(table, columns, *rows):
-    """Insert data into table after creation."""
-    def onload(event, schema_item, connection):
-        insert = table.insert()
-        column_names = [col.key for col in columns]
-        connection.execute(insert, [dict(zip(column_names, column_values))
-                                    for column_values in rows])
-    table.append_ddl_listener('after-create', onload)
 
 @decorator
 def provide_metadata(fn, *args, **kw):
-    """Provides a bound MetaData object for a single test, 
-    drops it afterwards."""
+    """Provide bound MetaData for a single test, dropping afterwards."""
+
     metadata = schema.MetaData(db)
-    context = dict(fn.func_globals)
-    context['metadata'] = metadata
-    # jython bug #1034
-    rebound = types.FunctionType(
-        fn.func_code, context, fn.func_name, fn.func_defaults,
-        fn.func_closure)
+    self = args[0]
+    prev_meta = getattr(self, 'metadata', None)
+    self.metadata = metadata
     try:
-        return rebound(*args, **kw)
+        return fn(*args, **kw)
     finally:
         metadata.drop_all()
-
-@decorator
-def resolve_artifact_names(fn, *args, **kw):
-    """Decorator, augment function globals with tables and classes.
-
-    Swaps out the function's globals at execution time. The 'global' statement
-    will not work as expected inside a decorated function.
-
-    """
-    # This could be automatically applied to framework and test_ methods in
-    # the MappedTest-derived test suites but... *some* explicitness for this
-    # magic is probably good.  Especially as 'global' won't work- these
-    # rebound functions aren't regular Python..
-    #
-    # Also: it's lame that CPython accepts a dict-subclass for globals, but
-    # only calls dict methods.  That would allow 'global' to pass through to
-    # the func_globals.
-    self = args[0]
-    context = dict(fn.func_globals)
-    for source in self._artifact_registries:
-        context.update(getattr(self, source))
-    # jython bug #1034
-    rebound = types.FunctionType(
-        fn.func_code, context, fn.func_name, fn.func_defaults,
-        fn.func_closure)
-    return rebound(*args, **kw)
+        self.metadata = prev_meta
 
 class adict(dict):
     """Dict keys available as attributes.  Shadows."""
@@ -600,30 +561,6 @@ class adict(dict):
     def get_all(self, *keys):
         return tuple([self[key] for key in keys])
 
-
-class TestBase(object):
-    # A sequence of database names to always run, regardless of the
-    # constraints below.
-    __whitelist__ = ()
-
-    # A sequence of requirement names matching testing.requires decorators
-    __requires__ = ()
-
-    # A sequence of dialect names to exclude from the test class.
-    __unsupported_on__ = ()
-
-    # If present, test class is only runnable for the *single* specified
-    # dialect.  If you need multiple, use __unsupported_on__ and invert.
-    __only_on__ = None
-
-    # A sequence of no-arg callables. If any are True, the entire testcase is
-    # skipped.
-    __skip_if__ = None
-
-    _artifact_registries = ()
-
-    def assert_(self, val, msg=None):
-        assert val, msg
 
 class AssertsCompiledSQL(object):
     def assert_compile(self, clause, result, params=None, 

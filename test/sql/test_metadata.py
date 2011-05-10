@@ -6,15 +6,17 @@ import pickle
 from sqlalchemy import Integer, String, UniqueConstraint, \
     CheckConstraint, ForeignKey, MetaData, Sequence, \
     ForeignKeyConstraint, ColumnDefault, Index, event,\
-    events
+    events, Unicode
 from test.lib.schema import Table, Column
 from sqlalchemy import schema, exc
 import sqlalchemy as tsa
-from test.lib import TestBase, ComparesTables, \
-    AssertsCompiledSQL, testing, engines
+from test.lib import fixtures
+from test.lib import testing
+from test.lib import engines
+from test.lib.testing import ComparesTables, AssertsCompiledSQL
 from test.lib.testing import eq_
 
-class MetaDataTest(TestBase, ComparesTables):
+class MetaDataTest(fixtures.TestBase, ComparesTables):
     def test_metadata_connect(self):
         metadata = MetaData()
         t1 = Table('table1', metadata, 
@@ -130,6 +132,7 @@ class MetaDataTest(TestBase, ComparesTables):
 
     @testing.provide_metadata
     def test_dupe_tables(self):
+        metadata = self.metadata
         t1 = Table('table1', metadata, 
             Column('col1', Integer, primary_key=True),
             Column('col2', String(20)))
@@ -143,7 +146,7 @@ class MetaDataTest(TestBase, ComparesTables):
         assert_raises_message(
             tsa.exc.InvalidRequestError,
             "Table 'table1' is already defined for this "\
-            "MetaData instance.  Specify 'useexisting=True' "\
+            "MetaData instance.  Specify 'extend_existing=True' "\
             "to redefine options and columns on an existing "\
             "Table object.",
             go
@@ -239,13 +242,15 @@ class MetaDataTest(TestBase, ComparesTables):
             meta3 = pickle.loads(pickle.dumps(meta2))
             assert meta3.bind is None
             assert meta3.tables['mytable'] is not t1
+
             return (meta3.tables['mytable'], meta3.tables['othertable'])
 
         meta.create_all(testing.db)
         try:
-            for test, has_constraints, reflect in (test_to_metadata,
-                    True, False), (test_pickle, True, False), \
-                (test_pickle_via_reflect, False, True):
+            for test, has_constraints, reflect in \
+                    (test_to_metadata, True, False), \
+                    (test_pickle, True, False), \
+                    (test_pickle_via_reflect, False, True):
                 table_c, table2_c = test()
                 self.assert_tables_equal(table, table_c)
                 self.assert_tables_equal(table2, table2_c)
@@ -281,8 +286,73 @@ class MetaDataTest(TestBase, ComparesTables):
                         assert False
                     assert c.columns.contains_column(table_c.c.name)
                     assert not c.columns.contains_column(table.c.name)
+
+
         finally:
             meta.drop_all(testing.db)
+
+    def test_pickle_metadata_sequence_restated(self):
+        m1 = MetaData()
+        Table('a',m1,
+             Column('id',Integer,primary_key=True),
+             Column('x', Integer, Sequence("x_seq")))
+
+        m2 = pickle.loads(pickle.dumps(m1))
+
+        s2 = Sequence("x_seq")
+        t2 = Table('a', m2, 
+             Column('id',Integer,primary_key=True),
+             Column('x', Integer, s2),
+             extend_existing=True)
+
+        assert m2._sequences['x_seq'] is t2.c.x.default
+        assert m2._sequences['x_seq'] is s2
+
+
+    def test_sequence_restated_replaced(self):
+        """Test restatement of Sequence replaces."""
+
+        m1 = MetaData()
+        s1 = Sequence("x_seq")
+        t = Table('a', m1, 
+             Column('x', Integer, s1)
+        )
+        assert m1._sequences['x_seq'] is s1
+
+        s2 = Sequence('x_seq')
+        t2 = Table('a', m1,
+             Column('x', Integer, s2),
+             extend_existing=True
+        )
+        assert t.c.x.default is s2
+        assert m1._sequences['x_seq'] is s2
+
+
+    def test_pickle_metadata_sequence_implicit(self):
+        m1 = MetaData()
+        Table('a',m1,
+             Column('id',Integer,primary_key=True),
+             Column('x', Integer, Sequence("x_seq")))
+
+        m2 = pickle.loads(pickle.dumps(m1))
+
+        t2 = Table('a', m2, extend_existing=True)
+
+        eq_(m2._sequences, {'x_seq':t2.c.x.default})
+
+    def test_pickle_metadata_schema(self):
+        m1 = MetaData()
+        Table('a',m1,
+             Column('id',Integer,primary_key=True),
+             Column('x', Integer, Sequence("x_seq")),
+             schema='y')
+
+        m2 = pickle.loads(pickle.dumps(m1))
+
+        t2 = Table('a', m2, schema='y',
+             extend_existing=True)
+
+        eq_(m2._schemas, m1._schemas)
 
     def test_tometadata_with_schema(self):
         meta = MetaData()
@@ -447,7 +517,7 @@ class MetaDataTest(TestBase, ComparesTables):
                           MetaData(testing.db), autoload=True)
 
 
-class TableTest(TestBase, AssertsCompiledSQL):
+class TableTest(fixtures.TestBase, AssertsCompiledSQL):
     def test_prefixes(self):
         table1 = Table("temporary_table_1", MetaData(),
                       Column("col1", Integer),
@@ -500,7 +570,223 @@ class TableTest(TestBase, AssertsCompiledSQL):
             assign
         )
 
-class ConstraintTest(TestBase):
+class UseExistingTest(fixtures.TablesTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('users', metadata, 
+                    Column('id', Integer, primary_key=True), 
+                    Column('name', String(30)))
+
+    def _useexisting_fixture(self):
+        meta2 = MetaData(testing.db)
+        Table('users', meta2, autoload=True)
+        return meta2
+
+    def _notexisting_fixture(self):
+        return MetaData(testing.db)
+
+    def test_exception_no_flags(self):
+        meta2 = self._useexisting_fixture()
+        def go():
+            users = Table('users', meta2, Column('name',
+                          Unicode), autoload=True)
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Table 'users' is already defined for this "\
+                "MetaData instance.",
+            go
+        )
+
+    @testing.uses_deprecated
+    def test_deprecated_useexisting(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, Column('name', Unicode),
+                      autoload=True, useexisting=True)
+        assert isinstance(users.c.name.type, Unicode)
+        assert not users.quote
+        users = Table('users', meta2, quote=True, autoload=True,
+                      useexisting=True)
+        assert users.quote
+
+    def test_keep_plus_existing_raises(self):
+        meta2 = self._useexisting_fixture()
+        assert_raises(
+            exc.ArgumentError,
+            Table, 'users', meta2, keep_existing=True, 
+                extend_existing=True
+        )
+
+    @testing.uses_deprecated
+    def test_existing_plus_useexisting_raises(self):
+        meta2 = self._useexisting_fixture()
+        assert_raises(
+            exc.ArgumentError,
+            Table, 'users', meta2, useexisting=True, 
+                extend_existing=True
+        )
+
+    def test_keep_existing_no_dupe_constraints(self):
+        meta2 = self._notexisting_fixture()
+        users = Table('users', meta2, 
+            Column('id', Integer),
+            Column('name', Unicode),
+            UniqueConstraint('name'),
+            keep_existing=True
+        )
+        assert 'name' in users.c
+        assert 'id' in users.c
+        eq_(len(users.constraints), 2)
+
+        u2 = Table('users', meta2, 
+            Column('id', Integer),
+            Column('name', Unicode),
+            UniqueConstraint('name'),
+            keep_existing=True
+        )
+        eq_(len(u2.constraints), 2)
+
+    def test_extend_existing_dupes_constraints(self):
+        meta2 = self._notexisting_fixture()
+        users = Table('users', meta2, 
+            Column('id', Integer),
+            Column('name', Unicode),
+            UniqueConstraint('name'),
+            extend_existing=True
+        )
+        assert 'name' in users.c
+        assert 'id' in users.c
+        eq_(len(users.constraints), 2)
+
+        u2 = Table('users', meta2, 
+            Column('id', Integer),
+            Column('name', Unicode),
+            UniqueConstraint('name'),
+            extend_existing=True
+        )
+        # constraint got duped
+        eq_(len(u2.constraints), 3)
+
+    def test_keep_existing_coltype(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, Column('name', Unicode),
+                      autoload=True, keep_existing=True)
+        assert not isinstance(users.c.name.type, Unicode)
+
+    def test_keep_existing_quote(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, quote=True, autoload=True,
+                      keep_existing=True)
+        assert not users.quote
+
+    def test_keep_existing_add_column(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, 
+                        Column('foo', Integer),
+                        autoload=True,
+                      keep_existing=True)
+        assert "foo" not in users.c
+
+    def test_keep_existing_coltype_no_orig(self):
+        meta2 = self._notexisting_fixture()
+        users = Table('users', meta2, Column('name', Unicode),
+                      autoload=True, keep_existing=True)
+        assert isinstance(users.c.name.type, Unicode)
+
+    def test_keep_existing_quote_no_orig(self):
+        meta2 = self._notexisting_fixture()
+        users = Table('users', meta2, quote=True, 
+                        autoload=True,
+                      keep_existing=True)
+        assert users.quote
+
+    def test_keep_existing_add_column_no_orig(self):
+        meta2 = self._notexisting_fixture()
+        users = Table('users', meta2, 
+                        Column('foo', Integer),
+                        autoload=True,
+                      keep_existing=True)
+        assert "foo" in users.c
+
+    def test_keep_existing_coltype_no_reflection(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, Column('name', Unicode),
+                      keep_existing=True)
+        assert not isinstance(users.c.name.type, Unicode)
+
+    def test_keep_existing_quote_no_reflection(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, quote=True, 
+                      keep_existing=True)
+        assert not users.quote
+
+    def test_keep_existing_add_column_no_reflection(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, 
+                        Column('foo', Integer),
+                      keep_existing=True)
+        assert "foo" not in users.c
+
+    def test_extend_existing_coltype(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, Column('name', Unicode),
+                      autoload=True, extend_existing=True)
+        assert isinstance(users.c.name.type, Unicode)
+
+    def test_extend_existing_quote(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, quote=True, autoload=True,
+                      extend_existing=True)
+        assert users.quote
+
+    def test_extend_existing_add_column(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, 
+                        Column('foo', Integer),
+                        autoload=True,
+                      extend_existing=True)
+        assert "foo" in users.c
+
+    def test_extend_existing_coltype_no_orig(self):
+        meta2 = self._notexisting_fixture()
+        users = Table('users', meta2, Column('name', Unicode),
+                      autoload=True, extend_existing=True)
+        assert isinstance(users.c.name.type, Unicode)
+
+    def test_extend_existing_quote_no_orig(self):
+        meta2 = self._notexisting_fixture()
+        users = Table('users', meta2, quote=True, 
+                        autoload=True,
+                      extend_existing=True)
+        assert users.quote
+
+    def test_extend_existing_add_column_no_orig(self):
+        meta2 = self._notexisting_fixture()
+        users = Table('users', meta2, 
+                        Column('foo', Integer),
+                        autoload=True,
+                      extend_existing=True)
+        assert "foo" in users.c
+
+    def test_extend_existing_coltype_no_reflection(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, Column('name', Unicode),
+                      extend_existing=True)
+        assert isinstance(users.c.name.type, Unicode)
+
+    def test_extend_existing_quote_no_reflection(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, quote=True, 
+                      extend_existing=True)
+        assert users.quote
+
+    def test_extend_existing_add_column_no_reflection(self):
+        meta2 = self._useexisting_fixture()
+        users = Table('users', meta2, 
+                        Column('foo', Integer),
+                      extend_existing=True)
+        assert "foo" in users.c
+
+class ConstraintTest(fixtures.TestBase):
     def _single_fixture(self):
         m = MetaData()
 
@@ -547,7 +833,7 @@ class ConstraintTest(TestBase):
         assert s1.c.a.references(t1.c.a)
         assert not s1.c.a.references(t1.c.b)
 
-class ColumnDefinitionTest(AssertsCompiledSQL, TestBase):
+class ColumnDefinitionTest(AssertsCompiledSQL, fixtures.TestBase):
     """Test Column() construction."""
 
     __dialect__ = 'default'
@@ -671,7 +957,7 @@ class ColumnDefinitionTest(AssertsCompiledSQL, TestBase):
             getattr, select([t1.select().alias()]), 'c'
         )
 
-class ColumnOptionsTest(TestBase):
+class ColumnOptionsTest(fixtures.TestBase):
 
     def test_default_generators(self):
         g1, g2 = Sequence('foo_id_seq'), ColumnDefault('f5')
@@ -708,7 +994,7 @@ class ColumnOptionsTest(TestBase):
             assert c.info['bar'] == 'zip'
 
 
-class CatchAllEventsTest(TestBase):
+class CatchAllEventsTest(fixtures.TestBase):
 
     def teardown(self):
         events.SchemaEventTarget.dispatch._clear()
@@ -721,8 +1007,8 @@ class CatchAllEventsTest(TestBase):
         def after_attach(obj, parent):
             canary.append("%s->%s" % (obj, parent))
 
-        event.listen(events.SchemaEventTarget, "before_parent_attach", before_attach)
-        event.listen(events.SchemaEventTarget, "after_parent_attach", after_attach)
+        event.listen(schema.SchemaItem, "before_parent_attach", before_attach)
+        event.listen(schema.SchemaItem, "after_parent_attach", after_attach)
 
         m = MetaData()
         t1 = Table('t1', m, 
@@ -733,7 +1019,6 @@ class CatchAllEventsTest(TestBase):
             Column('id', Integer, primary_key=True),
         )
 
-        # TODO: test more conditions here, constraints, defaults, etc.
         eq_(
             canary,
             [
@@ -742,12 +1027,57 @@ class CatchAllEventsTest(TestBase):
                 'ForeignKey->Column', 
                 "ForeignKey('t2.id')->bar", 
                 'Table->MetaData', 
+                'PrimaryKeyConstraint->Table', 'PrimaryKeyConstraint()->t1',
                 'Column->Table', 't1.id->t1', 
                 'Column->Table', 't1.bar->t1', 
                 'ForeignKeyConstraint->Table', 
                 'ForeignKeyConstraint()->t1', 
                 't1->MetaData(None)', 
-                'Table->MetaData', 'Column->Table', 
+                'Table->MetaData', 
+                'PrimaryKeyConstraint->Table', 'PrimaryKeyConstraint()->t2', 
+                'Column->Table', 
                 't2.id->t2', 't2->MetaData(None)']
         )
 
+    def test_events_per_constraint(self):
+        canary = []
+
+        def evt(target):
+            def before_attach(obj, parent):
+                canary.append("%s->%s" % (target.__name__, parent.__class__.__name__))
+
+            def after_attach(obj, parent):
+                canary.append("%s->%s" % (target.__name__, parent))
+            event.listen(target, "before_parent_attach", before_attach)
+            event.listen(target, "after_parent_attach", after_attach)
+
+        for target in [
+            schema.ForeignKeyConstraint, schema.PrimaryKeyConstraint, schema.UniqueConstraint,
+            schema.CheckConstraint
+        ]:
+            evt(target)
+
+        m = MetaData()
+        t1 = Table('t1', m, 
+            Column('id', Integer, Sequence('foo_id'), primary_key=True),
+            Column('bar', String, ForeignKey('t2.id')),
+            Column('bat', Integer, unique=True),
+        )
+        t2 = Table('t2', m,
+            Column('id', Integer, primary_key=True),
+            Column('bar', Integer),
+            Column('bat', Integer),
+            CheckConstraint("bar>5"),
+            UniqueConstraint('bar', 'bat')
+        )
+        eq_(
+            canary,
+            [
+            'PrimaryKeyConstraint->Table', 'PrimaryKeyConstraint->t1', 
+            'ForeignKeyConstraint->Table', 'ForeignKeyConstraint->t1',
+            'UniqueConstraint->Table', 'UniqueConstraint->t1',
+            'PrimaryKeyConstraint->Table', 'PrimaryKeyConstraint->t2', 
+            'CheckConstraint->Table', 'CheckConstraint->t2',
+            'UniqueConstraint->Table', 'UniqueConstraint->t2'
+            ]
+        )

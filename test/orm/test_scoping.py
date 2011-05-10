@@ -6,17 +6,14 @@ from sqlalchemy import Integer, String, ForeignKey
 from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, query
 from test.lib.testing import eq_
-from test.orm import _base
+from test.lib import fixtures
 
 
 
-class _ScopedTest(_base.MappedTest):
+class _ScopedTest(fixtures.MappedTest):
     """Adds another lookup bucket to emulate Session globals."""
 
     run_setup_mappers = 'once'
-
-    _artifact_registries = (
-        _base.MappedTest._artifact_registries + ('scoping',))
 
     @classmethod
     def setup_class(cls):
@@ -29,7 +26,7 @@ class _ScopedTest(_base.MappedTest):
         super(_ScopedTest, cls).teardown_class()
 
 
-class ScopedSessionTest(_base.MappedTest):
+class ScopedSessionTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -40,16 +37,17 @@ class ScopedSessionTest(_base.MappedTest):
               Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('someid', None, ForeignKey('table1.id')))
 
-    @testing.resolve_artifact_names
     def test_basic(self):
+        table2, table1 = self.tables.table2, self.tables.table1
+
         Session = scoped_session(sa.orm.sessionmaker())
 
         class CustomQuery(query.Query):
             pass
 
-        class SomeObject(_base.ComparableEntity):
+        class SomeObject(fixtures.ComparableEntity):
             query = Session.query_property()
-        class SomeOtherObject(_base.ComparableEntity):
+        class SomeOtherObject(fixtures.ComparableEntity):
             query = Session.query_property()
             custom_query = Session.query_property(query_cls=CustomQuery)
 
