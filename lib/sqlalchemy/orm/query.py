@@ -32,14 +32,12 @@ from sqlalchemy.orm import (
 from sqlalchemy.orm.util import (
     AliasedClass, ORMAdapter, _entity_descriptor, _entity_info,
     _is_aliased_class, _is_mapped_class, _orm_columns, _orm_selectable,
-    join as orm_join,with_parent, _attr_as_key
+    join as orm_join,with_parent, _attr_as_key, aliased
     )
 
 
 __all__ = ['Query', 'QueryContext', 'aliased']
 
-
-aliased = AliasedClass
 
 def _generative(*assertions):
     """Mark a method as generative."""
@@ -199,34 +197,6 @@ class Query(object):
             if alias:
                 return alias.adapt_clause(element)
 
-    def __replace_element(self, adapters):
-        def replace(elem):
-            if '_halt_adapt' in elem._annotations:
-                return elem
-
-            for adapter in adapters:
-                e = adapter(elem)
-                if e is not None:
-                    return e
-        return replace
-
-    def __replace_orm_element(self, adapters):
-        def replace(elem):
-            if '_halt_adapt' in elem._annotations:
-                return elem
-
-            if "_orm_adapt" in elem._annotations \
-                    or "parententity" in elem._annotations:
-                for adapter in adapters:
-                    e = adapter(elem)
-                    if e is not None:
-                        return e
-        return replace
-
-    @_generative()
-    def _adapt_all_clauses(self):
-        self._disable_orm_filtering = True
-
     def _adapt_col_list(self, cols):
         return [
                     self._adapt_clause(
@@ -235,33 +205,70 @@ class Query(object):
                     for o in cols
                 ]
 
+    @_generative()
+    def _adapt_all_clauses(self):
+        self._orm_only_adapt = False
+
     def _adapt_clause(self, clause, as_filter, orm_only):
+        """Adapt incoming clauses to transformations which have been applied 
+        within this query."""
+
         adapters = []
+
+        # do we adapt all expression elements or only those
+        # tagged as 'ORM' constructs ?
+        orm_only = getattr(self, '_orm_only_adapt', orm_only)
+
         if as_filter and self._filter_aliases:
             for fa in self._filter_aliases._visitor_iterator:
-                adapters.append(fa.replace)
+                adapters.append(
+                    (
+                        orm_only, fa.replace
+                    )
+                )
 
         if self._from_obj_alias:
-            adapters.append(self._from_obj_alias.replace)
+            # for the "from obj" alias, apply extra rule to the
+            # 'ORM only' check, if this query were generated from a 
+            # subquery of itself, i.e. _from_selectable(), apply adaption
+            # to all SQL constructs.
+            adapters.append(
+                (
+                    getattr(self, '_orm_only_from_obj_alias', orm_only), 
+                    self._from_obj_alias.replace
+                )
+            )
 
         if self._polymorphic_adapters:
-            adapters.append(self.__adapt_polymorphic_element)
+            adapters.append(
+                (
+                    orm_only, self.__adapt_polymorphic_element
+                )
+            )
 
         if not adapters:
             return clause
 
-        if getattr(self, '_disable_orm_filtering', not orm_only):
-            return visitors.replacement_traverse(
-                                clause, 
-                                {'column_collections':False}, 
-                                self.__replace_element(adapters)
-                            )
-        else:
-            return visitors.replacement_traverse(
-                                clause, 
-                                {'column_collections':False}, 
-                                self.__replace_orm_element(adapters)
-                            )
+        def replace(elem):
+            if '_halt_adapt' in elem._annotations:
+                return elem
+
+            for _orm_only, adapter in adapters:
+                # if 'orm only', look for ORM annotations
+                # in the element before adapting.
+                if not _orm_only or \
+                    '_orm_adapt' in elem._annotations or \
+                    "parententity" in elem._annotations:
+
+                    e = adapter(elem)
+                    if e is not None:
+                        return e
+
+        return visitors.replacement_traverse(
+                            clause, 
+                            {'column_collections':False}, 
+                            replace
+                        )
 
     def _entity_zero(self):
         return self._entities[0]
@@ -297,6 +304,18 @@ class Query(object):
                     "This operation requires a Query against a single mapper."
                 )
         return self._mapper_zero()
+
+    def _only_full_mapper_zero(self, methname):
+        if len(self._entities) != 1:
+            raise sa_exc.InvalidRequestError(
+                    "%s() can only be used against "
+                    "a single mapped class." % methname)
+        entity = self._entity_zero()
+        if not hasattr(entity, 'primary_entity'):
+            raise sa_exc.InvalidRequestError(
+                    "%s() can only be used against "
+                    "a single mapped class." % methname)
+        return entity.entity_zero
 
     def _only_entity_zero(self, rationale=None):
         if len(self._entities) > 1:
@@ -616,12 +635,20 @@ class Query(object):
 
     def get(self, ident):
         """Return an instance of the object based on the 
-        given identifier, or None if not found.
+        given identifier, or ``None`` if not found.
 
-        The `ident` argument is a scalar or tuple of primary key column values
-        in the order of the mapper's "priamry key" setting, which
+        The ``ident`` argument is a scalar or tuple of 
+        primary key column values
+        in the order of the mapper's "primary key" setting, which
         defaults to the list of primary key columns for the 
         mapped :class:`.Table`.
+        
+        :meth:`get` returns only a single mapped instance, or
+        ``None``.  It is not intended to return rows or scalar
+        column values, therefore the :class:`.Query` must be 
+        constructed only against a single mapper or mapped class,
+        not a SQL expression or multiple entities.
+        Other usages raise an error.
 
         """
 
@@ -631,9 +658,7 @@ class Query(object):
 
         ident = util.to_list(ident)
 
-        mapper = self._only_mapper_zero(
-                    "get() can only be used against a single mapped class."
-                )
+        mapper = self._only_full_mapper_zero("get")
 
         if len(ident) != len(mapper.primary_key):
             raise sa_exc.InvalidRequestError(
@@ -755,6 +780,14 @@ class Query(object):
         m = _MapperEntity(self, entity)
         self._setup_aliasizers([m])
 
+    @_generative()
+    def with_session(self, session):
+        """Return a :class:`Query` that will use the given :class:`.Session`.
+
+        """
+
+        self.session = session
+
     def from_self(self, *entities):
         """return a Query that selects from this Query's 
         SELECT statement.
@@ -786,6 +819,11 @@ class Query(object):
         ):
             self.__dict__.pop(attr, None)
         self._set_select_from(fromclause)
+
+        # this enables clause adaptation for non-ORM
+        # expressions.
+        self._orm_only_from_obj_alias = False
+
         old_entities = self._entities
         self._entities = []
         for e in old_entities:
@@ -1433,7 +1471,7 @@ class Query(object):
         # until reset_joinpoint() is called.
         if need_adapter:
             self._filter_aliases = ORMAdapter(right,
-                        equivalents=right_mapper._equivalent_columns,
+                        equivalents=right_mapper and right_mapper._equivalent_columns or {},
                         chain_to=self._filter_aliases)
 
         # if the onclause is a ClauseElement, adapt it with any 
@@ -1748,13 +1786,18 @@ class Query(object):
             self.session._autoflush()
         return self._execute_and_instances(context)
 
-    def _execute_and_instances(self, querycontext):
+    def _connection_from_session(self, **kw):
         conn = self.session.connection(
+                        **kw)
+        if self._execution_options:
+            conn = conn.execution_options(**self._execution_options)
+        return conn
+
+    def _execute_and_instances(self, querycontext):
+        conn = self._connection_from_session(
                         mapper = self._mapper_zero_or_none(),
                         clause = querycontext.statement,
                         close_with_result=True)
-        if self._execution_options:
-            conn = conn.execution_options(**self._execution_options)
 
         result = conn.execute(querycontext.statement, self._params)
         return self.instances(result, querycontext)
@@ -2076,7 +2119,7 @@ class Query(object):
             session.query(func.count(distinct(User.name)))
             
         """
-        col = sql.func.count(sql.literal_column('1'))
+        col = sql.func.count(sql.literal_column('*'))
         return self.from_self(col).scalar()
 
     def delete(self, synchronize_session='evaluate'):
@@ -2751,11 +2794,11 @@ class _ColumnEntity(_QueryEntity):
                 "expected - got '%r'" % column
             )
 
-        # if the Column is unnamed, give it a
+        # If the Column is unnamed, give it a
         # label() so that mutable column expressions
         # can be located in the result even
         # if the expression's identity has been changed
-        # due to adaption
+        # due to adaption.
         if not column._label:
             column = column.label(None)
 

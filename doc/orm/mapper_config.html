@@ -7,7 +7,7 @@
         
         <title>
                 Mapper Configuration
-             &mdash; SQLAlchemy 0.7b4 Documentation</title>
+             &mdash; SQLAlchemy 0.7.0 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b4',
+          VERSION:     '0.7.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Relationship Configuration" href="relationships.html" />
         <link rel="prev" title="Object Relational Tutorial" href="tutorial.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7b4 Documentation</h1>
+<h1>SQLAlchemy 0.7.0 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Mapper Configuration
@@ -1387,10 +1387,30 @@ set of classes.</p>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.util.polymorphic_union">
-<tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">polymorphic_union</tt><big>(</big><em>table_map</em>, <em>typecolname</em>, <em>aliasname='p_union'</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.polymorphic_union" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">polymorphic_union</tt><big>(</big><em>table_map</em>, <em>typecolname</em>, <em>aliasname='p_union'</em>, <em>cast_nulls=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.polymorphic_union" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <tt class="docutils literal"><span class="pre">UNION</span></tt> statement used by a polymorphic mapper.</p>
 <p>See  <a class="reference internal" href="inheritance.html#concrete-inheritance"><em>Concrete Table Inheritance</em></a> for an example of how
 this is used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>table_map</strong> &#8211; mapping of polymorphic identities to 
+<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects.</li>
+<li><strong>typecolname</strong> &#8211; string name of a &#8220;discriminator&#8221; column, which will be 
+derived from the query, producing the polymorphic identity for each row.  If
+<tt class="xref docutils literal"><span class="pre">None</span></tt>, no polymorphic discriminator is generated.</li>
+<li><strong>aliasname</strong> &#8211; name of the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> 
+construct generated.</li>
+<li><strong>cast_nulls</strong> &#8211; if True, non-existent columns, which are represented as labeled
+NULLs, will be passed into CAST.   This is a legacy behavior that is problematic
+on some backends such as Oracle - in which case it can be set to False.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">

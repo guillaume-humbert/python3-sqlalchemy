@@ -16,7 +16,7 @@ from testing import \
      fails_on_everything_except,\
      fails_if
 from sqlalchemy import util
-
+from test.lib import config
 import testing
 import sys
 
@@ -287,12 +287,17 @@ def cextensions(fn):
     )
 
 def dbapi_lastrowid(fn):
-    return _chain_decorators_on(
-        fn,
-        fails_on_everything_except('mysql+mysqldb', 'mysql+oursql',
-                                   'sqlite+pysqlite', 'mysql+pymysql'),
-        fails_if(lambda: util.pypy),
-    )
+    if util.pypy:
+        return _chain_decorators_on(
+            fn,
+            fails_if(lambda:True)
+        )
+    else:
+        return _chain_decorators_on(
+            fn,
+            fails_on_everything_except('mysql+mysqldb', 'mysql+oursql',
+                                       'sqlite+pysqlite', 'mysql+pymysql'),
+        )
 
 def sane_multi_rowcount(fn):
     return _chain_decorators_on(
@@ -341,6 +346,14 @@ def python25(fn):
         )
     )
 
+def cpython(fn):
+    return _chain_decorators_on(
+         fn,
+         skip_if(lambda: util.jython or util.pypy, 
+           "cPython interpreter needed"
+         )
+    )
+
 def _has_cextensions():
     try:
         from sqlalchemy import cresultproxy, cprocessors
@@ -362,3 +375,15 @@ def sqlite(fn):
         skip_if(lambda: not _has_sqlite())
     )
 
+def ad_hoc_engines(fn):
+    """Test environment must allow ad-hoc engine/connection creation.
+    
+    DBs that scale poorly for many connections, even when closed, i.e.
+    Oracle, may use the "--low-connections" option which flags this requirement
+    as not present.
+    
+    """
+    return _chain_decorators_on(
+        fn,
+        skip_if(lambda: config.options.low_connections)
+    )

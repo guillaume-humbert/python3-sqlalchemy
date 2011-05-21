@@ -7,7 +7,7 @@
         
         <title>
                 Examples
-             &mdash; SQLAlchemy 0.7b4 Documentation</title>
+             &mdash; SQLAlchemy 0.7.0 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b4',
+          VERSION:     '0.7.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Deprecated ORM Event Interfaces" href="interfaces.html" />
         <link rel="prev" title="SqlSoup" href="extensions/sqlsoup.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7b4 Documentation</h1>
+<h1>SQLAlchemy 0.7.0 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Examples
@@ -91,6 +91,7 @@ Search:
 <li><a class="reference internal" href="#beaker-caching">Beaker Caching</a></li>
 <li><a class="reference internal" href="#directed-graphs">Directed Graphs</a></li>
 <li><a class="reference internal" href="#dynamic-relations-as-dictionaries">Dynamic Relations as Dictionaries</a></li>
+<li><a class="reference internal" href="#generic-associations">Generic Associations</a></li>
 <li><a class="reference internal" href="#horizontal-sharding">Horizontal Sharding</a></li>
 <li><a class="reference internal" href="#inheritance-mappings">Inheritance Mappings</a></li>
 <li><a class="reference internal" href="#large-collections">Large Collections</a></li>
@@ -242,6 +243,29 @@ and the cache is gone.</p>
 that dictionary operations (assuming simple string keys) can operate upon a large 
 collection without loading the full collection at once.</p>
 </div>
+<div class="section" id="generic-associations">
+<span id="examples-generic-associations"></span><h2>Generic Associations<a class="headerlink" href="#generic-associations" title="Permalink to this headline">¶</a></h2>
+<p>Location: /examples/generic_associations</p>
+<span class="target" id="module-generic_associations"></span><p>Illustrates various methods of associating multiple types of 
+parents with a particular child object.</p>
+<p>The examples all use the declarative extension along with 
+declarative mixins.   Each one presents the identical use
+case at the end - two classes, <tt class="docutils literal"><span class="pre">Customer</span></tt> and <tt class="docutils literal"><span class="pre">Supplier</span></tt>, both
+subclassing the <tt class="docutils literal"><span class="pre">HasAddresses</span></tt> mixin, which ensures that the
+parent class is provided with an <tt class="docutils literal"><span class="pre">addresses</span></tt> collection
+which contains <tt class="docutils literal"><span class="pre">Address</span></tt> objects.</p>
+<p>The configurations include:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">table_per_related.py</span></tt> - illustrates a distinct table per related collection.</li>
+<li><tt class="docutils literal"><span class="pre">table_per_association.py</span></tt> - illustrates a shared collection table, using a
+table per association.</li>
+<li><tt class="docutils literal"><span class="pre">discriminator_on_association.py</span></tt> - shared collection table and shared
+association table, including a discriminator column.</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">discriminator_on_association.py</span></tt> script in particular is a modernized
+version of the &#8220;polymorphic associations&#8221; example present in older versions of
+SQLAlchemy, originally from the blog post at <a class="reference external" href="http://techspot.zzzeek.org/2007/05/29/polymorphic-associations-with-sqlalchemy/">http://techspot.zzzeek.org/2007/05/29/polymorphic-associations-with-sqlalchemy/</a>.</p>
+</div>
 <div class="section" id="horizontal-sharding">
 <span id="examples-sharding"></span><h2>Horizontal Sharding<a class="headerlink" href="#horizontal-sharding" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/sharding</p>
@@ -294,14 +318,7 @@ database nodes) in an explicit way - described on the wiki at
 </div>
 <div class="section" id="polymorphic-associations">
 <h2>Polymorphic Associations<a class="headerlink" href="#polymorphic-associations" title="Permalink to this headline">¶</a></h2>
-<p>Location: /examples/poly_assoc/</p>
-<span class="target" id="module-poly_assoc"></span><p>Illustrates polymorphic associations, a method of associating a particular child object with many different types of parent object.</p>
-<p>This example is based off the original blog post at <a class="reference external" href="http://techspot.zzzeek.org/?p=13">http://techspot.zzzeek.org/?p=13</a> and illustrates three techniques:</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">poly_assoc.py</span></tt> - imitates the non-foreign-key schema used by Ruby on Rails&#8217; Active Record.</li>
-<li><tt class="docutils literal"><span class="pre">poly_assoc_fk.py</span></tt> - Adds a polymorphic association table so that referential integrity can be maintained.</li>
-<li><tt class="docutils literal"><span class="pre">poly_assoc_generic.py</span></tt> - further automates the approach of <tt class="docutils literal"><span class="pre">poly_assoc_fk.py</span></tt> to also generate the association table definitions automatically.</li>
-</ul>
+<p>See <a class="reference internal" href="#examples-generic-associations"><em>Generic Associations</em></a> for a modern version of polymorphic associations.</p>
 </div>
 <div class="section" id="postgis-integration">
 <h2>PostGIS Integration<a class="headerlink" href="#postgis-integration" title="Permalink to this headline">¶</a></h2>

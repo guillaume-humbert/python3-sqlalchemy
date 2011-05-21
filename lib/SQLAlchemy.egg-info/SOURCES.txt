@@ -237,6 +237,10 @@ examples/elementtree/pickle.py
 examples/elementtree/test.xml
 examples/elementtree/test2.xml
 examples/elementtree/test3.xml
+examples/generic_associations/__init__.py
+examples/generic_associations/discriminator_on_association.py
+examples/generic_associations/table_per_association.py
+examples/generic_associations/table_per_related.py
 examples/graphs/__init__.py
 examples/graphs/directed_graph.py
 examples/inheritance/__init__.py
@@ -247,10 +251,6 @@ examples/large_collection/__init__.py
 examples/large_collection/large_collection.py
 examples/nested_sets/__init__.py
 examples/nested_sets/nested_sets.py
-examples/poly_assoc/__init__.py
-examples/poly_assoc/poly_assoc.py
-examples/poly_assoc/poly_assoc_fk.py
-examples/poly_assoc/poly_assoc_generic.py
 examples/postgis/__init__.py
 examples/postgis/postgis.py
 examples/sharding/__init__.py
@@ -495,6 +495,7 @@ test/orm/test_scoping.py
 test/orm/test_selectable.py
 test/orm/test_session.py
 test/orm/test_subquery_relations.py
+test/orm/test_sync.py
 test/orm/test_transaction.py
 test/orm/test_unitofwork.py
 test/orm/test_unitofworkv2.py

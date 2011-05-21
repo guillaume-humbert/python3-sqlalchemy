@@ -6,7 +6,7 @@ from sqlalchemy.sql import compiler, table, column
 from sqlalchemy.engine import default
 from sqlalchemy.orm import *
 from sqlalchemy.orm import attributes
-
+from test.lib.assertsql import CompiledSQL
 from test.lib.testing import eq_
 
 import sqlalchemy as sa
@@ -65,6 +65,19 @@ class QueryTest(_fixtures.FixtureTest):
         mapper(CompositePk, composite_pk_table)
 
         configure_mappers()
+
+class MiscTest(QueryTest):
+    run_create_tables = None
+    run_inserts = None
+
+    def test_with_session(self):
+        User = self.classes.User
+        s1 = Session()
+        s2 = Session()
+        q1 = s1.query(User)
+        q2 = q1.with_session(s2)
+        assert q2.session is s2
+        assert q1.session is s1
 
 class RowTupleTest(QueryTest):
     run_setup_mappers = None
@@ -188,6 +201,13 @@ class GetTest(QueryTest):
         s = Session()
         q = s.query(CompositePk)
         assert_raises(sa_exc.InvalidRequestError, q.get, (7, 10, 100))
+
+    def test_get_against_col(self):
+        User = self.classes.User
+
+        s = Session()
+        q = s.query(User.id)
+        assert_raises(sa_exc.InvalidRequestError, q.get, (5, ))
 
     def test_get_null_pk(self):
         """test that a mapping which can have None in a 
@@ -1122,6 +1142,7 @@ class FilterTest(QueryTest):
 
 
 class SetOpsTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     def test_union(self):
         User = self.classes.User
@@ -1179,7 +1200,6 @@ class SetOpsTest(QueryTest, AssertsCompiledSQL):
             " anon_1.anon_2 AS anon_1_anon_2 FROM (SELECT users.id AS users_id, users.name AS"
             " users_name, :param_1 AS anon_2 FROM users UNION SELECT users.id AS users_id, "
             "users.name AS users_name, 'y' FROM users) AS anon_1"
-            , use_default_dialect = True
         )
 
     def test_union_literal_expressions_results(self):
@@ -1237,8 +1257,38 @@ class SetOpsTest(QueryTest, AssertsCompiledSQL):
             "FROM (SELECT users.id AS users_id, users.name AS users_name, "
             "c1 AS foo, c1 AS bar FROM users UNION SELECT users.id AS "
             "users_id, users.name AS users_name, c1 AS foo, c2 AS bar "
-            "FROM users) AS anon_1",
-            use_default_dialect=True
+            "FROM users) AS anon_1"
+        )
+
+    def test_order_by_anonymous_col(self):
+        User = self.classes.User
+
+        s = Session()
+
+        c1, c2 = column('c1'), column('c2')
+        f = c1.label('foo')
+        q1 = s.query(User, f, c2.label('bar'))
+        q2 = s.query(User, c1.label('foo'), c2.label('bar'))
+        q3 = q1.union(q2)
+
+        self.assert_compile(
+            q3.order_by(c1),
+            "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS "
+            "anon_1_users_name, anon_1.foo AS anon_1_foo, anon_1.bar AS "
+            "anon_1_bar FROM (SELECT users.id AS users_id, users.name AS "
+            "users_name, c1 AS foo, c2 AS bar FROM users UNION SELECT users.id "
+            "AS users_id, users.name AS users_name, c1 AS foo, c2 AS bar "
+            "FROM users) AS anon_1 ORDER BY anon_1.foo"
+        )
+
+        self.assert_compile(
+            q3.order_by(f),
+            "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS "
+            "anon_1_users_name, anon_1.foo AS anon_1_foo, anon_1.bar AS "
+            "anon_1_bar FROM (SELECT users.id AS users_id, users.name AS "
+            "users_name, c1 AS foo, c2 AS bar FROM users UNION SELECT users.id "
+            "AS users_id, users.name AS users_name, c1 AS foo, c2 AS bar "
+            "FROM users) AS anon_1 ORDER BY anon_1.foo"
         )
 
     def test_union_mapped_colnames_preserved_across_subquery(self):
@@ -1253,8 +1303,7 @@ class SetOpsTest(QueryTest, AssertsCompiledSQL):
             q1.union(q2),
             "SELECT anon_1.users_name AS anon_1_users_name "
             "FROM (SELECT users.name AS users_name FROM users "
-            "UNION SELECT users.name AS users_name FROM users) AS anon_1",
-            use_default_dialect=True
+            "UNION SELECT users.name AS users_name FROM users) AS anon_1"
         )
 
         # but in the returned named tuples,
@@ -1335,6 +1384,24 @@ class CountTest(QueryTest):
         eq_(s.query(User).count(), 4)
 
         eq_(s.query(User).filter(users.c.name.endswith('ed')).count(), 2)
+
+    def test_count_char(self):
+        User = self.classes.User
+        s = create_session()
+        # '*' is favored here as the most common character,
+        # it is reported that Informix doesn't like count(1),
+        # rumors about Oracle preferring count(1) don't appear 
+        # to be well founded.
+        self.assert_sql_execution(
+                testing.db,
+                s.query(User).count,
+                CompiledSQL(
+                    "SELECT count(*) AS count_1 FROM "
+                    "(SELECT users.id AS users_id, users.name "
+                    "AS users_name FROM users) AS anon_1",
+                    {} 
+                )
+        )
 
     def test_multiple_entity(self):
         User, Address = self.classes.User, self.classes.Address
@@ -1810,21 +1877,26 @@ class ExecutionOptionsTest(QueryTest):
         q3_options = dict(foo='not bar', stream_results=True, answer=42)
         assert q3._execution_options == q3_options
 
+
     def test_options_in_connection(self):
         User = self.classes.User
 
         execution_options = dict(foo='bar', stream_results=True)
         class TQuery(Query):
             def instances(self, result, ctx):
-                eq_(
-                    result.connection._execution_options,
-                    execution_options
-                )
+                try:
+                    eq_(
+                    	result.connection._execution_options,
+                    	execution_options
+                    )
+                finally:
+                    result.close()
                 return iter([])
 
         sess = create_session(bind=testing.db, autocommit=False, query_cls=TQuery)
         q1 = sess.query(User).execution_options(**execution_options)
         q1.all()
+
 
 class OptionsTest(QueryTest):
     """Test the _get_paths() method of PropertyOption."""
@@ -1886,7 +1958,6 @@ class OptionsTest(QueryTest):
 
         sess = Session()
         q = sess.query(Order)
-
         opt = self._option_fixture("addresses")
         self._assert_path_result(opt, q, [], [])
 
@@ -2108,64 +2179,239 @@ class OptionsTest(QueryTest):
         opt = self._option_fixture(Address.user, User.addresses)
         self._assert_path_result(opt, q, [], [])
 
+    def test_multi_entity_opt_on_second(self):
+        Item = self.classes.Item
+        Order = self.classes.Order
+        opt = self._option_fixture(Order.items)
+        sess = Session()
+        q = sess.query(Item, Order)
+        self._assert_path_result(opt, q, [(Order, "items")], [Order])
+
+    def test_multi_entity_opt_on_string(self):
+        Item = self.classes.Item
+        Order = self.classes.Order
+        opt = self._option_fixture("items")
+        sess = Session()
+        q = sess.query(Item, Order)
+        self._assert_path_result(opt, q, [], [])
+
+    def test_multi_entity_no_mapped_entities(self):
+        Item = self.classes.Item
+        Order = self.classes.Order
+        opt = self._option_fixture("items")
+        sess = Session()
+        q = sess.query(Item.id, Order.id)
+        self._assert_path_result(opt, q, [], [])
+
+    def test_path_exhausted(self):
+        User = self.classes.User
+        Item = self.classes.Item
+        Order = self.classes.Order
+        opt = self._option_fixture(User.orders)
+        sess = Session()
+        q = sess.query(Item)._with_current_path(
+                        self._make_path([User, 'orders', Order, 'items'])
+                )
+        self._assert_path_result(opt, q, [], [])
+
 class OptionsNoPropTest(_fixtures.FixtureTest):
     """test the error messages emitted when using property
-    options in conjunection with column-only entities.
-    
+    options in conjunection with column-only entities, or
+    for not existing options
+
     """
 
     run_create_tables = False
     run_inserts = None
     run_deletes = None
 
-    def test_option_with_mapper_using_basestring(self):
+    def test_option_with_mapper_basestring(self):
         Item = self.classes.Item
 
         self._assert_option([Item], 'keywords')
 
-    def test_option_with_mapper_using_PropCompatator(self):
+    def test_option_with_mapper_PropCompatator(self):
         Item = self.classes.Item
 
         self._assert_option([Item], Item.keywords)
 
-    def test_option_with_mapper_then_column_using_basestring(self):
+    def test_option_with_mapper_then_column_basestring(self):
         Item = self.classes.Item
 
         self._assert_option([Item, Item.id], 'keywords')
 
-    def test_option_with_mapper_then_column_using_PropComparator(self):
+    def test_option_with_mapper_then_column_PropComparator(self):
         Item = self.classes.Item
 
         self._assert_option([Item, Item.id], Item.keywords)
 
-    def test_option_with_column_then_mapper_using_basestring(self):
+    def test_option_with_column_then_mapper_basestring(self):
         Item = self.classes.Item
 
         self._assert_option([Item.id, Item], 'keywords')
 
-    def test_option_with_column_then_mapper_using_PropComparator(self):
+    def test_option_with_column_then_mapper_PropComparator(self):
         Item = self.classes.Item
 
         self._assert_option([Item.id, Item], Item.keywords)
 
-    def test_option_with_column_using_basestring(self):
+    def test_option_with_column_basestring(self):
         Item = self.classes.Item
 
         message = \
-            "Can't find property named 'keywords' on the first mapped "\
-            "entity in this Query. Consider using an attribute object "\
-            "instead of a string name to target a specific entity."
+            "Query has only expression-based entities - "\
+            "can't find property named 'keywords'."
         self._assert_eager_with_just_column_exception(Item.id,
                 'keywords', message)
 
-    def test_option_with_column_using_PropComparator(self):
+    def test_option_with_column_PropComparator(self):
         Item = self.classes.Item
 
-        message = \
-            "Can't find property 'keywords' on any entity specified "\
-            "in this Query\."
         self._assert_eager_with_just_column_exception(Item.id,
-                Item.keywords, message)
+                Item.keywords,
+                "Query has only expression-based entities "
+                "- can't find property named 'keywords'."
+                )
+
+    def test_option_against_nonexistent_PropComparator(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Keyword],
+            (eagerload(Item.keywords), ),
+            r"Can't find property 'keywords' on any entity specified "
+            r"in this Query.  Note the full path from root "
+            r"\(Mapper\|Keyword\|keywords\) to target entity must be specified."
+        )
+
+    def test_option_against_nonexistent_basestring(self):
+        Item = self.classes.Item
+        self._assert_eager_not_found_exception(
+            [Item],
+            (eagerload("foo"), ),
+            r"Can't find property named 'foo' on the mapped "
+            r"entity Mapper\|Item\|items in this Query."
+        )
+
+    def test_option_against_nonexistent_twolevel_basestring(self):
+        Item = self.classes.Item
+        self._assert_eager_not_found_exception(
+            [Item],
+            (eagerload("keywords.foo"), ),
+            r"Can't find property named 'foo' on the mapped entity "
+            r"Mapper\|Keyword\|keywords in this Query."
+        )
+
+    def test_option_against_nonexistent_twolevel_all(self):
+        Item = self.classes.Item
+        self._assert_eager_not_found_exception(
+            [Item],
+            (eagerload_all("keywords.foo"), ),
+            r"Can't find property named 'foo' on the mapped entity "
+            r"Mapper\|Keyword\|keywords in this Query."
+        )
+
+    @testing.fails_if(lambda:True, 
+        "PropertyOption doesn't yet check for relation/column on end result")
+    def test_option_against_non_relation_basestring(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Keyword, Item],
+            (eagerload_all("keywords"), ),
+            r"Attribute 'keywords' of entity 'Mapper\|Keyword\|keywords' "
+            "does not refer to a mapped entity"
+        )
+
+    @testing.fails_if(lambda:True, 
+            "PropertyOption doesn't yet check for relation/column on end result")
+    def test_option_against_multi_non_relation_basestring(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Keyword, Item],
+            (eagerload_all("keywords"), ),
+            r"Attribute 'keywords' of entity 'Mapper\|Keyword\|keywords' "
+            "does not refer to a mapped entity"
+        )
+
+    def test_option_against_wrong_entity_type_basestring(self):
+        Item = self.classes.Item
+        self._assert_eager_not_found_exception(
+            [Item],
+            (eagerload_all("id", "keywords"), ),
+            r"Attribute 'id' of entity 'Mapper\|Item\|items' does not "
+            r"refer to a mapped entity"
+        )
+
+    def test_option_against_multi_non_relation_twolevel_basestring(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Keyword, Item],
+            (eagerload_all("id", "keywords"), ),
+            r"Attribute 'id' of entity 'Mapper\|Keyword\|keywords' "
+            "does not refer to a mapped entity"
+        )
+
+    def test_option_against_multi_nonexistent_basestring(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Keyword, Item],
+            (eagerload_all("description"), ),
+            r"Can't find property named 'description' on the mapped "
+            r"entity Mapper\|Keyword\|keywords in this Query."
+        )
+
+    def test_option_against_multi_no_entities_basestring(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Keyword.id, Item.id],
+            (eagerload_all("keywords"), ),
+            r"Query has only expression-based entities - can't find property "
+            "named 'keywords'."
+        )
+
+    def test_option_against_wrong_multi_entity_type_attr_one(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Keyword, Item],
+            (eagerload_all(Keyword.id, Item.keywords), ),
+            r"Attribute 'Keyword.id' of entity 'Mapper\|Keyword\|keywords' "
+            "does not refer to a mapped entity"
+        )
+
+    def test_option_against_wrong_multi_entity_type_attr_two(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Keyword, Item],
+            (eagerload_all(Keyword.keywords, Item.keywords), ),
+            r"Attribute 'Keyword.keywords' of entity 'Mapper\|Keyword\|keywords' "
+            "does not refer to a mapped entity"
+        )
+
+    def test_option_against_wrong_multi_entity_type_attr_three(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Keyword.id, Item.id],
+            (eagerload_all(Keyword.keywords, Item.keywords), ),
+            r"Query has only expression-based entities - "
+            "can't find property named 'keywords'."
+        )
+
+    def test_wrong_type_in_option(self):
+        Item = self.classes.Item
+        Keyword = self.classes.Keyword
+        self._assert_eager_not_found_exception(
+            [Item],
+            (eagerload_all(Keyword), ),
+            r"mapper option expects string key or list of attributes"
+        )
 
     @classmethod
     def setup_mappers(cls):
@@ -2174,8 +2420,9 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
                                 cls.tables.item_keywords,
                                 cls.classes.Keyword,
                                 cls.classes.Item)
-
-        mapper(Keyword, keywords)
+        mapper(Keyword, keywords, properties={
+            "keywords":column_property(keywords.c.name + "some keyword")
+        })
         mapper(Item, items,
                properties=dict(keywords=relationship(Keyword,
                secondary=item_keywords)))
@@ -2187,6 +2434,13 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
                             options(eagerload(option))
         key = ('loaderstrategy', (class_mapper(Item), 'keywords'))
         assert key in q._attributes
+
+    def _assert_eager_not_found_exception(self, entity_list, options, 
+                                message):
+        assert_raises_message(sa.exc.ArgumentError, 
+                                message,
+                              create_session().query(*entity_list).options,
+                              *options)
 
     def _assert_eager_with_just_column_exception(self, column,
             eager_option, message):

@@ -56,7 +56,7 @@ the :class:`.Mutable` mixin::
     import collections
     from sqlalchemy.ext.mutable import Mutable
 
-    class MutationDict(Mutable, collections.MutableMapping, dict):
+    class MutationDict(Mutable, dict):
         @classmethod
         def coerce(cls, key, value):
             "Convert plain dictionaries to MutationDict."
@@ -83,11 +83,11 @@ the :class:`.Mutable` mixin::
             self.changed()
 
 The above dictionary class takes the approach of subclassing the Python
-built-ins ``collections.MutableMapping`` and ``dict`` to produce a dict
+built-in ``dict`` to produce a dict
 subclass which routes all mutation events through ``__setitem__``. There are
 many variants on this approach, such as subclassing ``UserDict.UserDict``,
-etc. The part that's important to this example is that the
-:meth:`.Mutable.changed` method is called whenever an in-place change to the
+the newer ``collections.MutableMapping``,  etc. The part that's important to this 
+example is that the :meth:`.Mutable.changed` method is called whenever an in-place change to the
 datastructure takes place.
 
 We also redefine the :meth:`.Mutable.coerce` method which will be used to
@@ -193,7 +193,7 @@ stream::
 With our dictionary example, we need to return the contents of the dict itself
 (and also restore them on __setstate__)::
 
-    class MutationDict(Mutable, collections.MutableMapping, dict):
+    class MutationDict(Mutable, dict):
         # ....
 
         def __getstate__(self):
@@ -378,12 +378,12 @@ class MutableBase(object):
             outgoing.
 
             """
-
             if not isinstance(value, cls):
-                value = cls.coerce(key, value) 
-            value._parents[target.obj()] = key
+                value = cls.coerce(key, value)
+            if value is not None:
+                value._parents[target.obj()] = key
             if isinstance(oldvalue, cls):
-                oldvalue._parents.pop(state.obj(), None)
+                oldvalue._parents.pop(target.obj(), None)
             return value
 
         def pickle(state, state_dict):
@@ -426,7 +426,7 @@ class Mutable(MutableBase):
         """
         if value is None:
             return None
-        raise ValueError("Attribute '%s' accepts objects of type %s" % (key, cls))
+        raise ValueError("Attribute '%s' does not accept objects of type %s" % (key, type(value)))
 
     @classmethod
     def associate_with_attribute(cls, attribute):

@@ -3,6 +3,167 @@
 =======
 CHANGES
 =======
+0.7.0
+=======
+- This section documents those changes from 0.7b4
+  to 0.7.0.  For an overview of what's new in 
+  SQLAlchemy 0.7, see 
+  http://www.sqlalchemy.org/trac/wiki/07Migration
+
+- orm
+  - Fixed regression introduced in 0.7b4 (!) whereby
+    query.options(someoption("nonexistent name")) would
+    fail to raise an error.  Also added additional
+    error catching for cases where the option would
+    try to build off a column-based element, further
+    fixed up some of the error messages tailored
+    in [ticket:2069]
+
+  - query.count() emits "count(*)" instead of 
+    "count(1)".  [ticket:2162]
+
+  - Fine tuning of Query clause adaptation when
+    from_self(), union(), or other "select from
+    myself" operation, such that plain SQL expression
+    elements added to filter(), order_by() etc.
+    which are present in the nested "from myself" 
+    query *will* be adapted in the same way an ORM
+    expression element will, since these
+    elements are otherwise not easily accessible.
+    [ticket:2155]
+
+  - Fixed bug where determination of "self referential"
+    relationship would fail with no workaround
+    for joined-inh subclass related to itself,
+    or joined-inh subclass related to a subclass
+    of that with no cols in the sub-sub class 
+    in the join condition.  [ticket:2149]
+    Also in 0.6.8.
+
+  - mapper() will ignore non-configured foreign keys
+    to unrelated tables when determining inherit
+    condition between parent and child class,
+    but will raise as usual for unresolved
+    columns and table names regarding the inherited
+    table.  This is an enhanced generalization of 
+    behavior that was already applied to declarative
+    previously.  [ticket:2153]   0.6.8 has a more
+    conservative version of this which doesn't
+    fundamentally alter how join conditions
+    are determined.
+
+  - It is an error to call query.get() when the
+    given entity is not a single, full class 
+    entity or mapper (i.e. a column).  This is
+    a deprecation warning in 0.6.8.  
+    [ticket:2144]
+
+  - Fixed a potential KeyError which under some
+    circumstances could occur with the identity 
+    map, part of [ticket:2148]
+
+  - added Query.with_session() method, switches 
+    Query to use a different session.
+
+  - horizontal shard query should use execution
+    options per connection as per [ticket:2131]
+
+  - a non_primary mapper will inherit the _identity_class
+    of the primary mapper.  This so that a non_primary
+    established against a class that's normally in an
+    inheritance mapping will produce results that are 
+    identity-map compatible with that of the primary
+    mapper [ticket:2151] (also in 0.6.8)
+
+  - Fixed the error message emitted for "can't
+    execute syncrule for destination column 'q';
+    mapper 'X' does not map this column" to 
+    reference the correct mapper.  [ticket:2163].
+    Also in 0.6.8.
+
+  - polymorphic_union() gets a "cast_nulls" option,
+    disables the usage of CAST when it renders
+    the labeled NULL columns.  [ticket:1502]
+
+  - polymorphic_union() renders the columns in their
+    original table order, as according to the first
+    table/selectable in the list of polymorphic
+    unions in which they appear.  (which is itself 
+    an unordered mapping unless you pass an OrderedDict).
+
+  - Fixed bug whereby mapper mapped to an anonymous
+    alias would fail if logging were used, due to 
+    unescaped % sign in the alias name.  [ticket:2171]
+    Also in 0.6.8.
+
+- sql
+  - Fixed bug whereby nesting a label of a select()
+    with another label in it would produce incorrect
+    exported columns.   Among other things this would
+    break an ORM column_property() mapping against
+    another column_property().  [ticket:2167].
+    Also in 0.6.8
+
+  - Changed the handling in determination of join
+    conditions such that foreign key errors are
+    only considered between the two given tables.
+    That is, t1.join(t2) will report FK errors
+    that involve 't1' or 't2', but anything 
+    involving 't3' will be skipped.   This affects
+    join(), as well as ORM relationship and
+    inherit condition logic.
+
+  - Some improvements to error handling inside
+    of the execute procedure to ensure auto-close
+    connections are really closed when very 
+    unusual DBAPI errors occur.
+
+  - metadata.reflect() and reflection.Inspector() 
+    had some reliance on GC to close connections
+    which were internally procured, fixed this.
+
+  - Added explicit check for when Column .name
+    is assigned as blank string [ticket:2140]
+
+  - Fixed bug whereby if FetchedValue was passed
+    to column server_onupdate, it would not
+    have its parent "column" assigned, added
+    test coverage for all column default assignment
+    patterns.  [ticket:2147]  also in 0.6.8
+
+- postgresql
+  - Fixed the psycopg2_version parsing in the 
+    psycopg2 dialect.
+
+  - Fixed bug affecting PG 9 whereby index reflection
+    would fail if against a column whose name
+    had changed.  [ticket:2141].  Also in 0.6.8.
+
+- mssql
+  - Fixed bug in MSSQL dialect whereby the aliasing
+    applied to a schema-qualified table would leak
+    into enclosing select statements [ticket:2169].
+    Also in 0.6.8.
+
+- documentation
+  - Removed the usage of the "collections.MutableMapping"
+    abc from the ext.mutable docs as it was being used
+    incorrectly and makes the example more difficult
+    to understand in any case.  [ticket:2152]
+
+- examples
+  - removed the ancient "polymorphic association"
+    examples and replaced with an updated set of
+    examples that use declarative mixins, 
+    "generic_associations".   Each presents an alternative
+    table layout.
+
+- ext
+  - Fixed bugs in sqlalchemy.ext.mutable extension where
+    `None` was not appropriately handled, replacement
+    events were not appropriately handled.
+    [ticket:2143]
+
 0.7.0b4
 =======
 - general
