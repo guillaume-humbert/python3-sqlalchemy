@@ -15,7 +15,7 @@ from sqlalchemy.orm import defer, deferred, synonym, attributes, \
 from sqlalchemy.test.testing import eq_, AssertsCompiledSQL
 from test.orm import _base, _fixtures
 from sqlalchemy.test.assertsql import AllOf, CompiledSQL
-
+import logging
 
 class MapperTest(_fixtures.FixtureTest):
 
@@ -449,6 +449,19 @@ class MapperTest(_fixtures.FixtureTest):
         assert n2.parent is n2._parent is n1
         assert n1.children[0] is n1._children[0] is n2
         eq_(str(Node.parent == n2), ":param_1 = nodes.parent_id")
+
+    @testing.resolve_artifact_names
+    def test_non_primary_identity_class(self):
+        class AddressUser(User):
+            pass
+        m1 = mapper(User, users, polymorphic_identity='user')
+        m2 = mapper(AddressUser, addresses, inherits=User, polymorphic_identity='address')
+        m3 = mapper(AddressUser, addresses, non_primary=True)
+        assert m3._identity_class is m2._identity_class
+        eq_(
+            m2.identity_key_from_instance(AddressUser()),
+            m3.identity_key_from_instance(AddressUser())
+        )
 
     @testing.resolve_artifact_names
     def test_illegal_non_primary(self):
@@ -1268,7 +1281,33 @@ class DocumentTest(testing.TestBase):
         eq_(Bar.col1.__doc__, "primary key column")
         eq_(Bar.foo.__doc__, "foo relationship")
 
+class ORMLoggingTest(_fixtures.FixtureTest):
+    def setup(self):
+        self.buf = logging.handlers.BufferingHandler(100)
+        for log in [
+            logging.getLogger('sqlalchemy.orm'),
+        ]:
+            log.addHandler(self.buf)
 
+    def teardown(self):
+        for log in [
+            logging.getLogger('sqlalchemy.orm'),
+        ]:
+            log.removeHandler(self.buf)
+
+    def _current_messages(self):
+        return [b.getMessage() for b in self.buf.buffer]
+
+    def test_mapper_info_aliased(self):
+        User, users = self.classes.User, self.tables.users
+        tb = users.select().alias()
+        mapper(User, tb)
+        s = Session()
+        s.add(User(name='ed'))
+        s.commit()
+
+        for msg in self._current_messages():
+            assert msg.startswith('(User|%%(%d anon)s) ' % id(tb))
 
 class OptionsTest(_fixtures.FixtureTest):
 

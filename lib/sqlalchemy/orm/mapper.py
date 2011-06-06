@@ -256,7 +256,8 @@ class Mapper(object):
                         # want (allows test/inheritance.InheritTest4 to pass)
                         self.inherit_condition = sqlutil.join_condition(
                                                     self.inherits.local_table,
-                                                    self.local_table)
+                                                    self.local_table,
+                                                    ignore_nonexistent_tables=True)
                     self.mapped_table = sql.join(
                                                 self.inherits.mapped_table, 
                                                 self.local_table,
@@ -376,6 +377,7 @@ class Mapper(object):
                     "a primary mapper first before setting up a non primary "
                     "Mapper." % self.class_)
             self.class_manager = manager
+            self._identity_class = manager.mapper._identity_class
             _mapper_registry[self] = True
             return
 
@@ -874,25 +876,26 @@ class Mapper(object):
         for mapper in self.iterate_to_root():
             _memoized_compiled_property.expire_instance(mapper)
 
-    def _log(self, msg, *args):
-        self.logger.info(
-            "(" + self.class_.__name__ + 
-            "|" + 
+    @property
+    def _log_desc(self):
+        return "(" + self.class_.__name__ + \
+            "|" + \
             (self.local_table is not None and 
                 self.local_table.description or 
-                str(self.local_table)) +
-            (self.non_primary and "|non-primary" or "") + ") " + 
-            msg, *args)
+                str(self.local_table)) +\
+            (self.non_primary and 
+            "|non-primary" or "") + ")"
+
+    def _log(self, msg, *args):
+
+        self.logger.info(
+            "%s " + msg, *((self._log_desc,) + args)
+        )
 
     def _log_debug(self, msg, *args):
         self.logger.debug(
-            "(" + self.class_.__name__ + 
-            "|" + 
-            (self.local_table is not None and 
-                self.local_table.description 
-                or str(self.local_table)) + 
-            (self.non_primary and "|non-primary" or "") + ") " + 
-            msg, *args)
+            "%s " + msg, *((self._log_desc,) + args)
+        )
 
     def __repr__(self):
         return '<Mapper at 0x%x; %s>' % (

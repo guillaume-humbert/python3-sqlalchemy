@@ -302,6 +302,18 @@ class Query(object):
                 )
         return self._mapper_zero()
 
+    def _only_full_mapper_zero(self, methname):
+        if len(self._entities) != 1:
+            raise sa_exc.InvalidRequestError(
+                    "%s() can only be used against "
+                    "a single mapped class." % methname)
+        entity = self._entity_zero()
+        if not hasattr(entity, 'primary_entity'):
+            util.warn("Calling %s() with a "
+                    "column-based entity is deprecated." % 
+                    methname)
+        return entity.entity_zero
+
     def _only_entity_zero(self, rationale=None):
         if len(self._entities) > 1:
             raise sa_exc.InvalidRequestError(
@@ -620,10 +632,21 @@ class Query(object):
 
     def get(self, ident):
         """Return an instance of the object based on the 
-        given identifier, or None if not found.
+        given identifier, or ``None`` if not found.
 
-        The `ident` argument is a scalar or tuple of primary key column values
-        in the order of the table def's primary key columns.
+        The ``ident`` argument is a scalar or tuple of 
+        primary key column values
+        in the order of the mapper's "primary key" setting, which
+        defaults to the list of primary key columns for the 
+        mapped :class:`.Table`.
+        
+        :meth:`get` returns only a single mapped instance, or
+        ``None``.  It is not intended to return rows or scalar
+        column values, therefore the :class:`.Query` must be 
+        constructed only against a single mapper or mapped class,
+        not a SQL expression or multiple entities.
+        Other usages raise an error, or in the case of a single
+        column a deprecation warning is raised as of 0.6.8.
 
         """
 
@@ -631,8 +654,7 @@ class Query(object):
         if hasattr(ident, '__composite_values__'):
             ident = ident.__composite_values__()
 
-        key = self._only_mapper_zero(
-                    "get() can only be used against a single mapped class."
+        key = self._only_full_mapper_zero("get"
                 ).identity_key_from_primary_key(ident)
         return self._get(key, ident)
 
@@ -2721,11 +2743,11 @@ class _ColumnEntity(_QueryEntity):
                 "expected - got '%r'" % column
             )
 
-        # if the Column is unnamed, give it a
+        # If the Column is unnamed, give it a
         # label() so that mutable column expressions
         # can be located in the result even
         # if the expression's identity has been changed
-        # due to adaption
+        # due to adaption.
         if not column._label:
             column = column.label(None)
 

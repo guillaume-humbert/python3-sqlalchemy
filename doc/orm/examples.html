@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Examples
- &mdash; SQLAlchemy 0.6.7 Documentation</title>
+                Examples
+             &mdash; SQLAlchemy 0.6.8 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.7',
+          VERSION:     '0.6.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Exceptions" href="exceptions.html" />
         <link rel="prev" title="SqlSoup" href="extensions/sqlsoup.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-        <h1>SQLAlchemy 0.6.7 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/orm/examples.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-                » 
-    Examples
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="extensions/sqlsoup.html" title="previous chapter">SqlSoup</a>
-        Next:
-        <a href="exceptions.html" title="next chapter">ORM Exceptions</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Examples
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="extensions/sqlsoup.html" title="previous chapter">SqlSoup</a>
+            </li>
+            <li>Next:
+            <a href="exceptions.html" title="next chapter">ORM Exceptions</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/orm/examples.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+        » 
+                Examples
+             
+
+        <h2>
+            
+                Examples
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Examples</a><ul>
 <li><a class="reference internal" href="#adjacency-list">Adjacency List</a></li>
 <li><a class="reference internal" href="#associations">Associations</a></li>
@@ -106,12 +105,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="examples">
 <span id="examples-toplevel"></span><h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
 <p>The SQLAlchemy distribution includes a variety of code examples illustrating a select set of patterns, some typical and some not so typical.   All are runnable and can be found in the <tt class="docutils literal"><span class="pre">/examples</span></tt> directory of the distribution.   Each example contains a README in its <tt class="docutils literal"><span class="pre">__init__.py</span></tt> file, each of which are listed below.</p>
@@ -207,7 +207,7 @@ python examples/beaker_caching/local_session_caching.py</pre>
 </div>
 <p>Listing of files:</p>
 <blockquote>
-<p>environment.py - Establish the Session, the Beaker cache
+<div><p>environment.py - Establish the Session, the Beaker cache
 manager, data / cache file paths, and configurations, 
 bootstrap fixture data if necessary.</p>
 <p>caching_query.py - Represent functions and classes 
@@ -226,7 +226,7 @@ techniques from the first two scripts.</p>
 creates a new Beaker container that will persist data in a dictionary
 which is local to the current session.   remove() the session
 and the cache is gone.</p>
-</blockquote>
+</div></blockquote>
 </div>
 <div class="section" id="derived-attributes">
 <h2>Derived Attributes<a class="headerlink" href="#derived-attributes" title="Permalink to this headline">¶</a></h2>
@@ -475,28 +475,20 @@ the load in a non-recursive fashion and is much more efficient.</li>
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="extensions/sqlsoup.html" title="previous chapter">SqlSoup</a>
-        Next:
-        <a href="exceptions.html" title="next chapter">ORM Exceptions</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="extensions/sqlsoup.html" title="previous chapter">SqlSoup</a>
+            Next:
+            <a href="exceptions.html" title="next chapter">ORM Exceptions</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+        </div>
+    </div>
 
 
 

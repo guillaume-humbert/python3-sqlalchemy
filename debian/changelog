@@ -1,8 +1,9 @@
-sqlalchemy (0.6.7-2) unstable; urgency=low
+sqlalchemy (0.6.8-1) unstable; urgency=low
 
-  * Rebuild to add Python 2.7 and dropPython 2.5 support
+  * New upstream release
+  * Standards-Version bumped to 3.9.2 (no changes needed)
 
- -- Piotr Ożarowski <piotr@debian.org>  Sat, 16 Apr 2011 13:00:19 +0200
+ -- Piotr Ożarowski <piotr@debian.org>  Mon, 06 Jun 2011 23:56:35 +0200
 
 sqlalchemy (0.6.7-1) unstable; urgency=low
 

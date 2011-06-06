@@ -1032,6 +1032,8 @@ class Session(object):
             self.identity_map.discard(state)
             self._deleted.pop(state, None)
             state.detach()
+        elif self.transaction:
+            self.transaction._deleted.pop(state, None)
 
     def _register_newly_persistent(self, state):
         mapper = _state_mapper(state)
@@ -1045,10 +1047,15 @@ class Session(object):
             if _none_set.issubset(instance_key[1]) and \
                 not mapper.allow_partial_pks or \
                 _none_set.issuperset(instance_key[1]):
-                raise exc.FlushError('Instance %s has a NULL identity '
-                        'key.  Check if this flush is occurring at an '
-                        'inappropriate time, such as during a load '
-                        'operation.' % mapperutil.state_str(state))
+                raise exc.FlushError(
+                    "Instance %s has a NULL identity key.  If this is an "
+                    "auto-generated value, check that the database table "
+                    "allows generation of new primary key values, and that "
+                    "the mapped Column object is configured to expect these "
+                    "generated values.  Ensure also that this flush() is "
+                    "not occurring at an inappropriate time, such as within "
+                    "a load() event." % mapperutil.state_str(state)
+                )
 
             if state.key is None:
                 state.key = instance_key
@@ -1362,9 +1369,10 @@ class Session(object):
         solver..
 
         Database operations will be issued in the current transactional
-        context and do not affect the state of the transaction.  You may
-        flush() as often as you like within a transaction to move changes from
-        Python to the database's transaction buffer.
+        context and do not affect the state of the transaction, unless an
+        error occurs, in which case the entire transaction is rolled back. 
+        You may flush() as often as you like within a transaction to move
+        changes from Python to the database's transaction buffer.
 
         For ``autocommit`` Sessions with no active manual transaction, flush()
         will create a transaction on the fly that surrounds the entire set of

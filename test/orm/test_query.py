@@ -164,6 +164,13 @@ class GetTest(QueryTest):
         q = s.query(CompositePk)
         assert_raises(sa_exc.InvalidRequestError, q.get, (7, 10, 100))
 
+    def test_get_against_col(self):
+        User = self.classes.User
+
+        s = Session()
+        q = s.query(User.id)
+        assert_raises(sa_exc.SAWarning, q.get, (5, ))
+
     def test_get_null_pk(self):
         """test that a mapping which can have None in a 
         PK (i.e. map to an outerjoin) works with get()."""
@@ -4509,6 +4516,26 @@ class ExternalColumnsTest(QueryTest):
             o1 = sess.query(Order).options(joinedload_all('address.user')).first()
             eq_(o1.address.user.count, 1)
         self.assert_sql_count(testing.db, go, 1)
+
+    def test_external_columns_compound(self):
+        # see [ticket:2167] for background
+
+        mapper(User, users, properties={
+            'fullname':column_property(users.c.name.label('x'))
+        })
+
+        mapper(Address, addresses, properties={
+            'username':column_property(
+                        select([User.fullname]).\
+                            where(User.id==addresses.c.user_id).label('y'))
+        })
+        sess = create_session()
+        a1 = sess.query(Address).first()
+        eq_(a1.username, "jack")
+
+        sess = create_session()
+        a1 = sess.query(Address).from_self().first()
+        eq_(a1.username, "jack")
 
 class TestOverlyEagerEquivalentCols(_base.MappedTest):
     @classmethod
