@@ -7,7 +7,7 @@
         
         <title>
                 Object Relational Tutorial
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mapper_config.html" />
         <link rel="prev" title="SQLAlchemy ORM" href="index.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Object Relational Tutorial
@@ -302,7 +302,7 @@ a call to <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.
 the highest separation of concerns possible.
 A large number of applications don&#8217;t require this degree of
 separation, and for those SQLAlchemy offers an alternate &#8220;shorthand&#8221;
-configurational style called <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>.
+configurational style called <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>.
 For many applications, this is the only style of configuration needed.
 Our above example using this style is as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
@@ -337,7 +337,7 @@ attribute name.</p>
 <p>The owning <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object is available as well:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span></pre></div>
 </div>
-<p><a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> is covered at <a class="reference internal" href="extensions/declarative.html"><em>Declarative</em></a>
+<p><a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> is covered at <a class="reference internal" href="extensions/declarative.html"><em>Declarative</em></a>
 as well as throughout <a class="reference internal" href="mapper_config.html"><em>Mapper Configuration</em></a>.</p>
 <p>Yet another &#8220;declarative&#8221; method is available for SQLAlchemy as a third party
 library called <a class="reference external" href="http://elixir.ematia.de/">Elixir</a>. This is a full-featured
@@ -679,7 +679,7 @@ WHERE users.name = ? AND users.fullname = ?
 </li>
 </ul>
 <blockquote>
-The contents of the match parameter are database backend specific.</blockquote>
+<div>The contents of the match parameter are database backend specific.</div></blockquote>
 </div>
 <div class="section" id="returning-lists-and-scalars">
 <h3>Returning Lists and Scalars<a class="headerlink" href="#returning-lists-and-scalars" title="Permalink to this headline">¶</a></h3>
@@ -871,16 +871,16 @@ could just have easily been defined on the <tt class="docutils literal"><span cl
 is also possible to define two separate <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
 constructs for either direction, which is generally safe for many-to-one and
 one-to-many relationships, but not for many-to-many relationships.</p>
-<p>When using the <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> extension,
+<p>When using the <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> extension,
 <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> gives us the option to use strings for
 most arguments that concern the target class, in the case that the target
 class has not yet been defined. This <strong>only</strong> works in conjunction with
-<a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>:</p>
+<a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="o">....</span>
     <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s">&quot;Address.id&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;user&quot;</span><span class="p">)</span></pre></div>
 </div>
-<p>When <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> is not in use, you typically define your
+<p>When <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> is not in use, you typically define your
 <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> well after the target classes and
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects have been defined, so string
 expressions are not needed.</p>
@@ -989,7 +989,7 @@ WHERE users.name = ? ORDER BY addresses_1.id
 load in the next section.</p>
 </div>
 <div class="section" id="querying-with-joins">
-<h2>Querying with Joins<a class="headerlink" href="#querying-with-joins" title="Permalink to this headline">¶</a></h2>
+<span id="ormtutorial-joins"></span><h2>Querying with Joins<a class="headerlink" href="#querying-with-joins" title="Permalink to this headline">¶</a></h2>
 <p>While <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> created a JOIN specifically to
 populate a collection, we can also work explicitly with joins in many ways.
 For example, to construct a simple inner join between <tt class="docutils literal"><span class="pre">User</span></tt> and
@@ -1023,6 +1023,10 @@ works better when one of the following forms are used:</p>
 <span class="n">query</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span>                       <span class="c"># specify relationship from left to right</span>
 <span class="n">query</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span>              <span class="c"># same, with explicit target</span>
 <span class="n">query</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">)</span>                          <span class="c"># same, using a string</span></pre></div>
+</div>
+<p>As you would expect, the same idea is used for &#8220;outer&#8221; joins, using the
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.outerjoin" title="sqlalchemy.orm.query.Query.outerjoin"><tt class="xref py py-meth docutils literal"><span class="pre">outerjoin()</span></tt></a> function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span>   <span class="c"># LEFT OUTER JOIN</span></pre></div>
 </div>
 <p>Note that when <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> is called with an
 explicit target as well as an ON clause, we use a tuple as the argument. This
@@ -1228,36 +1232,38 @@ WHERE users.id = addresses.user_id AND users.name = ?))
 </div>
 <div class="section" id="common-relationship-operators">
 <h3>Common Relationship Operators<a class="headerlink" href="#common-relationship-operators" title="Permalink to this headline">¶</a></h3>
-<p>Here&#8217;s all the operators which build on relationships:</p>
+<p>Here&#8217;s all the operators which build on relationships - each one
+is linked to its API documentation which includes full details on usage
+and behavior:</p>
 <ul>
-<li><p class="first">equals (used for many-to-one):</p>
+<li><p class="first"><a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.__eq__" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.__eq__"><tt class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></tt></a> (many-to-one &#8220;equals&#8221; comparison):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user</span> <span class="o">==</span> <span class="n">someuser</span><span class="p">)</span></pre></div>
 </div>
 </li>
-<li><p class="first">not equals (used for many-to-one):</p>
+<li><p class="first"><a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.__ne__" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.__ne__"><tt class="xref py py-meth docutils literal"><span class="pre">__ne__()</span></tt></a> (many-to-one &#8220;not equals&#8221; comparison):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user</span> <span class="o">!=</span> <span class="n">someuser</span><span class="p">)</span></pre></div>
 </div>
 </li>
-<li><p class="first">IS NULL (used for many-to-one):</p>
+<li><p class="first">IS NULL (many-to-one comparison, also uses <a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.__eq__" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.__eq__"><tt class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></tt></a>):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span></pre></div>
 </div>
 </li>
-<li><p class="first">contains (used for one-to-many and many-to-many collections):</p>
+<li><p class="first"><a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.contains" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.contains"><tt class="xref py py-meth docutils literal"><span class="pre">contains()</span></tt></a> (used for one-to-many collections):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">someaddress</span><span class="p">))</span></pre></div>
 </div>
 </li>
-<li><p class="first">any (used for one-to-many and many-to-many collections):</p>
+<li><p class="first"><a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.any" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.any"><tt class="xref py py-meth docutils literal"><span class="pre">any()</span></tt></a> (used for collections):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span> <span class="o">==</span> <span class="s">&#39;bar&#39;</span><span class="p">))</span>
 
 <span class="c"># also takes keyword arguments:</span>
 <span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">email_address</span><span class="o">=</span><span class="s">&#39;bar&#39;</span><span class="p">))</span></pre></div>
 </div>
 </li>
-<li><p class="first">has (used for many-to-one):</p>
+<li><p class="first"><a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.has" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.has"><tt class="xref py py-meth docutils literal"><span class="pre">has()</span></tt></a> (used for scalar references):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">))</span></pre></div>
 </div>
 </li>
-<li><p class="first">with_parent (used for any relationship):</p>
+<li><p class="first"><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.with_parent" title="sqlalchemy.orm.query.Query.with_parent"><tt class="xref py py-meth docutils literal"><span class="pre">Query.with_parent()</span></tt></a> (used for any relationship):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span><span class="o">.</span><span class="n">with_parent</span><span class="p">(</span><span class="n">someuser</span><span class="p">,</span> <span class="s">&#39;addresses&#39;</span><span class="p">)</span></pre></div>
 </div>
 </li>
@@ -1311,7 +1317,7 @@ here so that the tutorial code can be executed as a whole.</p>
 <span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">clear_mappers</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">clear_mappers</span><span class="p">()</span> <span class="c"># remove all class mappings</span></pre></div>
 </div>
-<p>Below, we use <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-class docutils literal"><span class="pre">mapper</span></tt></a> to reconfigure an ORM mapping for <tt class="docutils literal"><span class="pre">User</span></tt> and
+<p>Below, we use <tt class="xref py py-class docutils literal"><span class="pre">mapper</span></tt> to reconfigure an ORM mapping for <tt class="docutils literal"><span class="pre">User</span></tt> and
 <tt class="docutils literal"><span class="pre">Address</span></tt>, on our existing but currently un-mapped classes. The
 <tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship now has <tt class="docutils literal"><span class="pre">delete,</span> <span class="pre">delete-orphan</span></tt> cascade on
 it, which indicates that DELETE operations will cascade to attached
@@ -1559,7 +1565,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
             <a href="mapper_config.html" title="next chapter">Mapper Configuration</a>
         <div class="doc_copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 

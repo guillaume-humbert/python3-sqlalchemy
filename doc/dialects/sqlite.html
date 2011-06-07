@@ -7,7 +7,7 @@
         
         <title>
                 SQLite
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Sybase" href="sybase.html" />
         <link rel="prev" title="PostgreSQL" href="postgresql.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 SQLite
@@ -119,7 +119,7 @@ section regarding that driver.</p>
 out of the box functionality for translating values between Python <cite>datetime</cite> objects
 and a SQLite-supported format.  SQLAlchemy&#8217;s own <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">DateTime</span></tt></a>
 and related types provide date formatting and parsing functionality when SQlite is used.
-The implementation classes are <a class="reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME" title="sqlalchemy.dialects.sqlite.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">DATETIME</span></tt></a>, <a class="reference internal" href="mysql.html#sqlalchemy.dialects.mysql.DATE" title="sqlalchemy.dialects.mysql.DATE"><tt class="xref py py-class docutils literal"><span class="pre">DATE</span></tt></a> and <a class="reference internal" href="mysql.html#sqlalchemy.dialects.mysql.TIME" title="sqlalchemy.dialects.mysql.TIME"><tt class="xref py py-class docutils literal"><span class="pre">TIME</span></tt></a>.
+The implementation classes are <a class="reference internal" href="mysql.html#sqlalchemy.dialects.mysql.DATETIME" title="sqlalchemy.dialects.mysql.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">DATETIME</span></tt></a>, <a class="reference internal" href="mysql.html#sqlalchemy.dialects.mysql.DATE" title="sqlalchemy.dialects.mysql.DATE"><tt class="xref py py-class docutils literal"><span class="pre">DATE</span></tt></a> and <a class="reference internal" href="../core/types.html#sqlalchemy.types.TIME" title="sqlalchemy.types.TIME"><tt class="xref py py-class docutils literal"><span class="pre">TIME</span></tt></a>.
 These types represent dates and times as ISO formatted strings, which also nicely
 support ordering.   There&#8217;s no reliance on typical &#8220;libc&#8221; internals for these functions
 so historical dates are fully supported.</p>
@@ -155,7 +155,7 @@ connection.   Valid values for this parameter are <tt class="docutils literal"><
 <h2>SQLite Data Types<a class="headerlink" href="#sqlite-data-types" title="Permalink to this headline">¶</a></h2>
 <p>As with all SQLAlchemy dialects, all UPPERCASE types that are known to be
 valid with SQLite are importable from the top level dialect, whether
-they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
+they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types" title="sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.sqlite</span> <span class="kn">import</span> \
             <span class="n">BLOB</span><span class="p">,</span> <span class="n">BOOLEAN</span><span class="p">,</span> <span class="n">CHAR</span><span class="p">,</span> <span class="n">DATE</span><span class="p">,</span> <span class="n">DATETIME</span><span class="p">,</span> <span class="n">DECIMAL</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> \
             <span class="n">INTEGER</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">TIMESTAMP</span><span class="p">,</span> \
@@ -422,7 +422,7 @@ always represented by an actual database result string.</p>
             <a href="sybase.html" title="next chapter">Sybase</a>
         <div class="doc_copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 

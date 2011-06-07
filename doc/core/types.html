@@ -7,7 +7,7 @@
         
         <title>
                 Column and Data Types
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Events" href="event.html" />
         <link rel="prev" title="Schema Definition Language" href="schema.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Column and Data Types
@@ -137,7 +137,7 @@ to <tt class="docutils literal"><span class="pre">Integer()</span></tt> with no 
 particular type of Python data.  SQLAlchemy will choose the best
 database column type available on the target database when issuing a
 <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement.  For complete control over which column
-type is emitted in <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>, such as <tt class="docutils literal"><span class="pre">VARCHAR</span></tt> see <a class="reference external" href="#sql-standard-types">SQL
+type is emitted in <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>, such as <tt class="docutils literal"><span class="pre">VARCHAR</span></tt> see <a class="reference internal" href="#sql-standard-types">SQL
 Standard Types</a> and the other sections of this chapter.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.BigInteger">
@@ -195,11 +195,6 @@ module.  Most DBAPIs have built in support for the datetime
 module, with the noted exception of SQLite.  In the case of
 SQLite, date and time types are stored as strings which are then
 converted back to datetime objects when rows are returned.</p>
-<dl class="method">
-<dt id="sqlalchemy.types.DateTime.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.DateTime.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -363,17 +358,14 @@ provided by each DB-API.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
-</ul>
-</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
 </tr>
 </tbody>
 </table>
@@ -537,11 +529,6 @@ constraints, triggers, and other rules.</p>
 <a class="reference internal" href="events.html#sqlalchemy.events.DDLEvents.before_parent_attach" title="sqlalchemy.events.DDLEvents.before_parent_attach"><tt class="xref py py-meth docutils literal"><span class="pre">DDLEvents.before_parent_attach()</span></tt></a> and <a class="reference internal" href="events.html#sqlalchemy.events.DDLEvents.after_parent_attach" title="sqlalchemy.events.DDLEvents.after_parent_attach"><tt class="xref py py-meth docutils literal"><span class="pre">DDLEvents.after_parent_attach()</span></tt></a>
 events, where the events fire off surrounding the association of
 the type object with a parent <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</p>
-<dl class="method">
-<dt id="sqlalchemy.types.SchemaType.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SchemaType.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="attribute">
 <dt id="sqlalchemy.types.SchemaType.bind">
 <tt class="descname">bind</tt><a class="headerlink" href="#sqlalchemy.types.SchemaType.bind" title="Permalink to this definition">¶</a></dt>
@@ -659,11 +646,6 @@ params (and the reverse for result sets.)</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Time</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>A type for <tt class="docutils literal"><span class="pre">datetime.time()</span></tt> objects.</p>
-<dl class="method">
-<dt id="sqlalchemy.types.Time.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Time.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -740,15 +722,12 @@ unicode-capable type being used on the backend, such as NCLOB.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.  Whether the value is
-interpreted as bytes or characters is database specific.</li>
-</ul>
-</td>
+interpreted as bytes or characters is database specific.</td>
 </tr>
 </tbody>
 </table>
@@ -1148,10 +1127,7 @@ to produce a string result.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> instance.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> instance.</td>
 </tr>
 </tbody>
 </table>
@@ -1487,10 +1463,7 @@ send to the DB-API.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; Dialect instance in use.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; Dialect instance in use.</td>
 </tr>
 </tbody>
 </table>
@@ -1512,10 +1485,7 @@ to produce a string result.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> instance.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> instance.</td>
 </tr>
 </tbody>
 </table>
@@ -1538,7 +1508,7 @@ to produce a string result.</p>
 <dd><p>Return the corresponding type object from the underlying DB-API, if
 any.</p>
 <blockquote>
-This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</blockquote>
+<div>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -1636,10 +1606,7 @@ send to the DB-API.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; Dialect instance in use.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; Dialect instance in use.</td>
 </tr>
 </tbody>
 </table>
@@ -1661,10 +1628,7 @@ to produce a string result.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> instance.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> instance.</td>
 </tr>
 </tbody>
 </table>
@@ -1687,7 +1651,7 @@ to produce a string result.</p>
 <dd><p>Return the corresponding type object from the underlying DB-API, if
 any.</p>
 <blockquote>
-This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</blockquote>
+<div>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -1860,7 +1824,7 @@ encountered during a <tt class="xref py py-meth docutils literal"><span class="p
             <a href="event.html" title="next chapter">Events</a>
         <div class="doc_copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 

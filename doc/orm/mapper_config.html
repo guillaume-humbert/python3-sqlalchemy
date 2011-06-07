@@ -7,7 +7,7 @@
         
         <title>
                 Mapper Configuration
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Relationship Configuration" href="relationships.html" />
         <link rel="prev" title="Object Relational Tutorial" href="tutorial.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Mapper Configuration
@@ -133,7 +133,7 @@ with mappers. It assumes you&#8217;ve worked through <a class="reference interna
 know how to construct and use rudimentary mappers and relationships.</p>
 <p>Note that all patterns here apply both to the usage of explicit
 <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects as well as when using the
-<a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.declarative</span></tt></a> extension. Any example in this section which
+<a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.declarative</span></tt></a> extension. Any example in this section which
 takes a form such as:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="p">[</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">])</span></pre></div>
 </div>
@@ -207,7 +207,7 @@ with the desired key:</p>
    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_name</span><span class="p">,</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>When using <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>, the above configuration is more
+<p>When using <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>, the above configuration is more
 succinct - place the full column name in the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> definition,
 using the desired attribute name in the class definition:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
@@ -564,7 +564,7 @@ different name. Below we illustrate this using Python 2.6-style properties:</p>
 descriptor and into the <tt class="docutils literal"><span class="pre">_email</span></tt> mapped attribute, the class level
 <tt class="docutils literal"><span class="pre">EmailAddress.email</span></tt> attribute does not have the usual expression semantics
 usable with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>. To provide these, we instead use the
-<a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension as follows:</p>
+<a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">hybrid_property</span>
 
 <span class="k">class</span> <span class="nc">EmailAddress</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -642,7 +642,7 @@ based attribute.  The functionality of synonym is superceded as of 0.7 by hybrid
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a> is superseded as of 0.7 by 
-the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See 
+the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See 
 the documentation for hybrids at <a class="reference internal" href="extensions/hybrid.html"><em>Hybrid Attributes</em></a>.</p>
 </div>
 <p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to
@@ -697,10 +697,10 @@ as described at <a class="reference internal" href="extensions/hybrid.html"><em>
 considered first before resorting to custom comparison objects.</p>
 <p>Each of <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a>, <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>,
 and <a class="reference internal" href="#sqlalchemy.orm.comparable_property" title="sqlalchemy.orm.comparable_property"><tt class="xref py py-func docutils literal"><span class="pre">comparable_property()</span></tt></a> accept an argument called
-<tt class="docutils literal"><span class="pre">comparator_factory</span></tt>.   A subclass of <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> can be provided
+<tt class="docutils literal"><span class="pre">comparator_factory</span></tt>.   A subclass of <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> can be provided
 for this argument, which can then reimplement basic Python comparison methods
 such as <tt class="docutils literal"><span class="pre">__eq__()</span></tt>, <tt class="docutils literal"><span class="pre">__ne__()</span></tt>, <tt class="docutils literal"><span class="pre">__lt__()</span></tt>, and so on.</p>
-<p>It&#8217;s best to subclass the <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> subclass provided by
+<p>It&#8217;s best to subclass the <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> subclass provided by
 each type of property.  For example, to allow a column-mapped attribute to
 do case-insensitive comparison:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm.properties</span> <span class="kn">import</span> <span class="n">ColumnProperty</span>
@@ -720,46 +720,19 @@ function to produce case-insensitive matching:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">(</span><span class="n">EmailAddress</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="s">&#39;SomeAddress@foo.com&#39;</span><span class="p">)</span>
 <span class="go">lower(addresses.email) = lower(:lower_1)</span></pre></div>
 </div>
-<p>When building a <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a>, the <tt class="docutils literal"><span class="pre">__clause_element__()</span></tt> method
+<p>When building a <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a>, the <tt class="docutils literal"><span class="pre">__clause_element__()</span></tt> method
 should be used in order to acquire the underlying mapped column.  This will
 return a column that is appropriately wrapped in any kind of subquery
 or aliasing that has been applied in the context of the generated SQL statement.</p>
-<dl class="class">
-<dt id="sqlalchemy.orm.interfaces.PropComparator">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">PropComparator</tt><big>(</big><em>prop</em>, <em>mapper</em>, <em>adapter=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.ColumnOperators" title="sqlalchemy.sql.expression.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnOperators</span></tt></a></p>
-<p>Defines comparison operations for MapperProperty objects.</p>
-<p>User-defined subclasses of <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> may be created. The
-built-in Python comparison and math operator methods, such as
-<tt class="docutils literal"><span class="pre">__eq__()</span></tt>, <tt class="docutils literal"><span class="pre">__lt__()</span></tt>, <tt class="docutils literal"><span class="pre">__add__()</span></tt>, can be overridden to provide
-new operator behaivor. The custom <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> is passed to
-the mapper property via the <tt class="docutils literal"><span class="pre">comparator_factory</span></tt> argument. In each case,
-the appropriate subclass of <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> should be used:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm.properties</span> <span class="kn">import</span> \
-                        <span class="n">ColumnProperty</span><span class="p">,</span>\
-                        <span class="n">CompositeProperty</span><span class="p">,</span>\
-                        <span class="n">RelationshipProperty</span>
-
-<span class="k">class</span> <span class="nc">MyColumnComparator</span><span class="p">(</span><span class="n">ColumnProperty</span><span class="o">.</span><span class="n">Comparator</span><span class="p">):</span>
-    <span class="k">pass</span>
-
-<span class="k">class</span> <span class="nc">MyCompositeComparator</span><span class="p">(</span><span class="n">CompositeProperty</span><span class="o">.</span><span class="n">Comparator</span><span class="p">):</span>
-    <span class="k">pass</span>
-
-<span class="k">class</span> <span class="nc">MyRelationshipComparator</span><span class="p">(</span><span class="n">RelationshipProperty</span><span class="o">.</span><span class="n">Comparator</span><span class="p">):</span>
-    <span class="k">pass</span></pre></div>
-</div>
-</dd></dl>
-
 <dl class="function">
 <dt id="sqlalchemy.orm.comparable_property">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">comparable_property</tt><big>(</big><em>comparator_factory</em>, <em>descriptor=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.comparable_property" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provides a method of applying a <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> 
+<dd><p>Provides a method of applying a <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> 
 to any Python descriptor attribute.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.orm.comparable_property" title="sqlalchemy.orm.comparable_property"><tt class="xref py py-func docutils literal"><span class="pre">comparable_property()</span></tt></a> is superseded as of 0.7 by 
-the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See the example 
+the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See the example 
 at <a class="reference internal" href="extensions/hybrid.html#hybrid-custom-comparators"><em>Building Custom Comparators</em></a>.</p>
 </div>
 <p>Allows a regular Python &#64;property (descriptor) to be used in queries and
@@ -879,7 +852,7 @@ column-based attributes. It also should supply adequate <tt class="docutils lite
     <span class="s">&#39;end&#39;</span><span class="p">:</span> <span class="n">composite</span><span class="p">(</span><span class="n">Point</span><span class="p">,</span> <span class="n">vertices</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x2</span><span class="p">,</span> <span class="n">vertices</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">y2</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>When using <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.declarative</span></tt></a>, the individual
+<p>When using <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.declarative</span></tt></a>, the individual
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects may optionally be bundled into the
 <a class="reference internal" href="#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a> call, ensuring that they are named:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
@@ -1229,7 +1202,7 @@ session during a flush will also be refreshed.</p>
 are expected and the database in use doesn&#8217;t support CASCADE (i.e.
 SQLite, MySQL MyISAM tables).</p>
 <blockquote>
-Also see the passive_updates flag on <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</blockquote>
+<div>Also see the passive_updates flag on <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</div></blockquote>
 <p>A future SQLAlchemy release will provide a &#8220;detect&#8221; feature for
 this flag.</p>
 </li>
@@ -1259,7 +1232,7 @@ can be overridden here.</li>
 that will be used to keep a running version id of mapped entities
 in the database. this is used during save operations to ensure that
 no other thread or process has updated the instance during the
-lifetime of the entity, else a <a class="reference internal" href="exceptions.html#sqlalchemy.orm.exc.StaleDataError" title="sqlalchemy.orm.exc.StaleDataError"><tt class="xref py py-class docutils literal"><span class="pre">StaleDataError</span></tt></a> exception is
+lifetime of the entity, else a <tt class="xref py py-class docutils literal"><span class="pre">StaleDataError</span></tt> exception is
 thrown.</li>
 <li><strong>version_id_generator</strong> &#8211; <p>A callable which defines the algorithm
 used to generate new version ids. Defaults to an integer
@@ -1521,8 +1494,8 @@ Behavior is undefined if directly modified.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.common_parent">
 <tt class="descname">common_parent</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.common_parent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return true if the given mapper shares a common inherited parent as
-this mapper.</p>
+<dd><p>Return true if the given mapper shares a 
+common inherited parent as this mapper.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1795,7 +1768,7 @@ Behavior is undefined if directly modified.</p>
             <a href="relationships.html" title="next chapter">Relationship Configuration</a>
         <div class="doc_copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 

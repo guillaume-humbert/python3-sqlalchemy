@@ -7,7 +7,7 @@
         
         <title>
                 Relationship Loading Techniques
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Events" href="events.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Relationship Loading Techniques
@@ -250,7 +250,7 @@ references a scalar many-to-one reference.</p>
 <li>One to Many Collection</li>
 </ul>
 <blockquote>
-<ul class="simple">
+<div><ul class="simple">
 <li>When using the default lazy loading, if you load 100 objects, and then access a collection on each of
 them, a total of 101 SQL statements will be emitted, although each statement will typically be a
 simple SELECT without any joins.</li>
@@ -271,12 +271,12 @@ subquery load makes sense when the collections are larger.</li>
 collections will multiply the total number of rows fetched in a cartesian fashion.  Both forms
 of eager loading always join from the original parent class.</li>
 </ul>
-</blockquote>
+</div></blockquote>
 <ul class="simple">
 <li>Many to One Reference</li>
 </ul>
 <blockquote>
-<ul class="simple">
+<div><ul class="simple">
 <li>When using the default lazy loading, a load of 100 objects will like in the case of the collection
 emit as many as 101 SQL statements.  However - there is a significant exception to this, in that
 if the many-to-one reference is a simple foreign key reference to the target&#8217;s primary key, each
@@ -296,7 +296,7 @@ there would be two SQL statements emitted.  There&#8217;s probably not much adva
 joined loading, however, except perhaps that subquery loading can use an INNER JOIN in all cases
 whereas joined loading requires that the foreign key is NOT NULL.</li>
 </ul>
-</blockquote>
+</div></blockquote>
 </div>
 <div class="section" id="routing-explicit-joins-statements-into-eagerly-loaded-collections">
 <span id="contains-eager"></span><h2>Routing Explicit Joins/Statements into Eagerly Loaded Collections<a class="headerlink" href="#routing-explicit-joins-statements-into-eagerly-loaded-collections" title="Permalink to this headline">¶</a></h2>
@@ -573,7 +573,7 @@ load in one subquery eager load.</p>
             <a href="events.html" title="next chapter">ORM Events</a>
         <div class="doc_copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 

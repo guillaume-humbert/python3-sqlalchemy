@@ -7,7 +7,7 @@
         
         <title>
                 Mutation Tracking
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Ordering List" href="orderinglist.html" />
         <link rel="prev" title="Declarative" href="declarative.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -110,7 +110,7 @@ Search:
 <span id="mutation-tracking"></span><span id="mutable-toplevel"></span><h1>Mutation Tracking<a class="headerlink" href="#module-sqlalchemy.ext.mutable" title="Permalink to this headline">¶</a></h1>
 <p>Provide support for tracking of in-place changes to scalar values,
 which are propagated into ORM change events on owning parent objects.</p>
-<p>The <a class="reference internal" href="#module-sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> extension replaces SQLAlchemy&#8217;s legacy approach to in-place
+<p>The <a class="reference internal" href="#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> extension replaces SQLAlchemy&#8217;s legacy approach to in-place
 mutations of scalar values, established by the <a class="reference internal" href="../../core/types.html#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">types.MutableType</span></tt></a>
 class as well as the <tt class="docutils literal"><span class="pre">mutable=True</span></tt> type flag, with a system that allows
 change events to be propagated from the value to the owning parent, thereby
@@ -141,11 +141,11 @@ JSON strings before being persisted:</p>
             <span class="n">value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span></pre></div>
 </div>
-<p>The usage of <tt class="docutils literal"><span class="pre">json</span></tt> is only for the purposes of example. The <a class="reference internal" href="#module-sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> 
+<p>The usage of <tt class="docutils literal"><span class="pre">json</span></tt> is only for the purposes of example. The <a class="reference internal" href="#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> 
 extension can be used
 with any type whose target Python type may be mutable, including
 <a class="reference internal" href="../../core/types.html#sqlalchemy.types.PickleType" title="sqlalchemy.types.PickleType"><tt class="xref py py-class docutils literal"><span class="pre">PickleType</span></tt></a>, <a class="reference internal" href="../../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a>, etc.</p>
-<p>When using the <a class="reference internal" href="#module-sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> extension, the value itself
+<p>When using the <a class="reference internal" href="#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> extension, the value itself
 tracks all parents which reference it.  Here we will replace the usage
 of plain Python dictionaries with a dict subclass that implements
 the <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable" title="sqlalchemy.ext.mutable.Mutable"><tt class="xref py py-class docutils literal"><span class="pre">Mutable</span></tt></a> mixin:</p>
@@ -258,7 +258,7 @@ the need to declare it individually:</p>
 </div>
 <div class="section" id="supporting-pickling">
 <h3>Supporting Pickling<a class="headerlink" href="#supporting-pickling" title="Permalink to this headline">¶</a></h3>
-<p>The key to the <a class="reference internal" href="#module-sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> extension relies upon the
+<p>The key to the <a class="reference internal" href="#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> extension relies upon the
 placement of a <tt class="docutils literal"><span class="pre">weakref.WeakKeyDictionary</span></tt> upon the value object, which
 stores a mapping of parent mapped objects keyed to the attribute name under
 which they are associated with this value. <tt class="docutils literal"><span class="pre">WeakKeyDictionary</span></tt> objects are
@@ -267,7 +267,7 @@ callbacks. In our case, this is a good thing, since if this dictionary were
 picklable, it could lead to an excessively large pickle size for our value
 objects that are pickled by themselves outside of the context of the parent.
 The developer responsiblity here is only to provide a <tt class="docutils literal"><span class="pre">__getstate__</span></tt> method
-that excludes the <a class="reference internal" href="#sqlalchemy.ext.mutable.MutableBase._parents" title="sqlalchemy.ext.mutable.MutableBase._parents"><tt class="xref py py-meth docutils literal"><span class="pre">_parents()</span></tt></a> collection from the pickle
+that excludes the <tt class="xref py py-meth docutils literal"><span class="pre">_parents()</span></tt> collection from the pickle
 stream:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyMutableType</span><span class="p">(</span><span class="n">Mutable</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -301,7 +301,7 @@ a geometric &#8220;point&#8221;, and is introduced in <a class="reference intern
 <p>As of SQLAlchemy 0.7, the internals of <a class="reference internal" href="../mapper_config.html#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">orm.composite()</span></tt></a> have been
 greatly simplified and in-place mutation detection is no longer enabled by
 default; instead, the user-defined value must detect changes on its own and
-propagate them to all owning parents. The <a class="reference internal" href="#module-sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a>
+propagate them to all owning parents. The <a class="reference internal" href="#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a>
 extension provides the helper class <a class="reference internal" href="#sqlalchemy.ext.mutable.MutableComposite" title="sqlalchemy.ext.mutable.MutableComposite"><tt class="xref py py-class docutils literal"><span class="pre">MutableComposite</span></tt></a>, which is a
 slight variant on the <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable" title="sqlalchemy.ext.mutable.Mutable"><tt class="xref py py-class docutils literal"><span class="pre">Mutable</span></tt></a> class.</p>
 <p>As is the case with <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable" title="sqlalchemy.ext.mutable.Mutable"><tt class="xref py py-class docutils literal"><span class="pre">Mutable</span></tt></a>, the user-defined composite class
@@ -381,7 +381,7 @@ will flag the attribute as &#8220;dirty&#8221; on the parent object:</p>
 <h3>Supporting Pickling<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>As is the case with <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable" title="sqlalchemy.ext.mutable.Mutable"><tt class="xref py py-class docutils literal"><span class="pre">Mutable</span></tt></a>, the <a class="reference internal" href="#sqlalchemy.ext.mutable.MutableComposite" title="sqlalchemy.ext.mutable.MutableComposite"><tt class="xref py py-class docutils literal"><span class="pre">MutableComposite</span></tt></a> helper
 class uses a <tt class="docutils literal"><span class="pre">weakref.WeakKeyDictionary</span></tt> available via the
-<a class="reference internal" href="#sqlalchemy.ext.mutable.MutableBase._parents" title="sqlalchemy.ext.mutable.MutableBase._parents"><tt class="xref py py-meth docutils literal"><span class="pre">MutableBase._parents()</span></tt></a> attribute which isn&#8217;t picklable. If we need to
+<tt class="xref py py-meth docutils literal"><span class="pre">MutableBase._parents()</span></tt> attribute which isn&#8217;t picklable. If we need to
 pickle instances of <tt class="docutils literal"><span class="pre">Point</span></tt> or its owning class <tt class="docutils literal"><span class="pre">Vertex</span></tt>, we at least need
 to define a <tt class="docutils literal"><span class="pre">__getstate__</span></tt> that doesn&#8217;t include the <tt class="docutils literal"><span class="pre">_parents</span></tt> dictionary.
 Below we define both a <tt class="docutils literal"><span class="pre">__getstate__</span></tt> and a <tt class="docutils literal"><span class="pre">__setstate__</span></tt> that package up
@@ -397,7 +397,7 @@ the minimal form of our <tt class="docutils literal"><span class="pre">Point</sp
 </div>
 <p>As with <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable" title="sqlalchemy.ext.mutable.Mutable"><tt class="xref py py-class docutils literal"><span class="pre">Mutable</span></tt></a>, the <a class="reference internal" href="#sqlalchemy.ext.mutable.MutableComposite" title="sqlalchemy.ext.mutable.MutableComposite"><tt class="xref py py-class docutils literal"><span class="pre">MutableComposite</span></tt></a> augments the
 pickling process of the parent&#8217;s object-relational state so that the
-<a class="reference internal" href="#sqlalchemy.ext.mutable.MutableBase._parents" title="sqlalchemy.ext.mutable.MutableBase._parents"><tt class="xref py py-meth docutils literal"><span class="pre">MutableBase._parents()</span></tt></a> collection is restored to all <tt class="docutils literal"><span class="pre">Point</span></tt> objects.</p>
+<tt class="xref py py-meth docutils literal"><span class="pre">MutableBase._parents()</span></tt> collection is restored to all <tt class="docutils literal"><span class="pre">Point</span></tt> objects.</p>
 </div>
 </div>
 <div class="section" id="api-reference">
@@ -442,7 +442,7 @@ is given, and that only columns which are declared specifically with that
 type instance receive additional instrumentation.</p>
 <p>To associate a particular mutable type with all occurrences of a 
 particular type, use the <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.associate_with" title="sqlalchemy.ext.mutable.Mutable.associate_with"><tt class="xref py py-meth docutils literal"><span class="pre">Mutable.associate_with()</span></tt></a> classmethod
-of the particular <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable" title="sqlalchemy.ext.mutable.Mutable"><tt class="xref py py-meth docutils literal"><span class="pre">Mutable()</span></tt></a> subclass to establish a global
+of the particular <tt class="xref py py-meth docutils literal"><span class="pre">Mutable()</span></tt> subclass to establish a global
 association.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -530,7 +530,7 @@ in memory usage.</p>
             <a href="orderinglist.html" title="next chapter">Ordering List</a>
         <div class="doc_copyright">
             &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 

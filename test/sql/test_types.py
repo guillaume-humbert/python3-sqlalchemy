@@ -761,8 +761,9 @@ class EnumTest(fixtures.TestBase):
         eq_(e1.adapt(ENUM).name, 'foo')
         eq_(e1.adapt(ENUM).schema, 'bar')
 
-    @testing.fails_on('mysql+mysqldb', "MySQL seems to issue a 'data truncated' warning.")
-    @testing.fails_on('mysql+pymysql', "MySQL seems to issue a 'data truncated' warning.")
+    @testing.crashes('mysql', 
+                    'Inconsistent behavior across various OS/drivers'
+                )
     def test_constraint(self):
         assert_raises(exc.DBAPIError, 
             enum_table.insert().execute,
@@ -1263,15 +1264,15 @@ class DateTest(fixtures.TestBase, AssertsExecutionResults):
                      'DateTest mismatch: got:%s expected:%s' % (l, insert_data))
 
     def testtextdate(self):
-        x = testing.db.text(
+        x = testing.db.execute(text(
             "select user_datetime from query_users_with_date",
-            typemap={'user_datetime':DateTime}).execute().fetchall()
+            typemap={'user_datetime':DateTime})).fetchall()
 
         self.assert_(isinstance(x[0][0], datetime.datetime))
 
-        x = testing.db.text(
+        x = testing.db.execute(text(
             "select * from query_users_with_date where user_datetime=:somedate",
-            bindparams=[bindparam('somedate', type_=types.DateTime)]).execute(
+            bindparams=[bindparam('somedate', type_=types.DateTime)]),
             somedate=datetime.datetime(2005, 11, 10, 11, 52, 35)).fetchall()
 
     def testdate2(self):

@@ -3,6 +3,106 @@
 =======
 CHANGES
 =======
+0.7.1
+=====
+- general
+  - Added a workaround for Python bug 7511 where
+    failure of C extension build does not 
+    raise an appropriate exception on Windows 64
+    bit + VC express [ticket:2184]
+
+- orm
+  - "delete-orphan" cascade is now allowed on
+    self-referential relationships - this since
+    SQLA 0.7 no longer enforces "parent with no 
+    child" at the ORM level; this check is left
+    up to foreign key nullability.  
+    Related to [ticket:1912]
+
+  - Repaired new "mutable" extension to propagate
+    events to subclasses correctly; don't 
+    create multiple event listeners for 
+    subclasses either.  [ticket:2180]
+
+  - Modify the text of the message which occurs
+    when the "identity" key isn't detected on 
+    flush, to include the common cause that
+    the Column isn't set up to detect
+    auto-increment correctly; [ticket:2170].
+    Also in 0.6.8.
+
+  - Fixed bug where transaction-level "deleted"
+    collection wouldn't be cleared of expunged
+    states, raising an error if they later
+    became transient [ticket:2182]. 
+    Also in 0.6.8.
+
+- sql
+  - Fixed bug whereby metadata.reflect(bind)
+    would close a Connection passed as a
+    bind argument.  Regression from 0.6.
+
+  - Streamlined the process by which a Select
+    determines what's in it's '.c' collection.
+    Behaves identically, except that a 
+    raw ClauseList() passed to select([]) 
+    (which is not a documented case anyway) will
+    now be expanded into its individual column
+    elements instead of being ignored.
+
+- engine
+  - Deprecate schema/SQL-oriented methods on 
+    Connection/Engine that were never well known
+    and are redundant:  reflecttable(), create(), 
+    drop(), text(), engine.func
+
+  - Adjusted the __contains__() method of 
+    a RowProxy result row such that no exception
+    throw is generated internally;  
+    NoSuchColumnError() also will generate its 
+    message regardless of whether or not the column 
+    construct can be coerced to a string.  
+    [ticket:2178].  Also in 0.6.8.
+
+- sqlite
+  - Accept None from cursor.fetchone() when
+    "PRAGMA read_uncommitted" is called to determine
+    current isolation mode at connect time and
+    default to SERIALIZABLE; this to support SQLite 
+    versions pre-3.3.0 that did not have this 
+    feature.  [ticket:2173]
+
+- postgresql
+  - Some unit test fixes regarding numeric arrays, 
+    MATCH operator.   A potential floating-point
+    inaccuracy issue was fixed, and certain tests 
+    of the MATCH operator only execute within an 
+    EN-oriented locale for now.  [ticket:2175].  
+    Also in 0.6.8.
+
+- mysql
+  - Unit tests pass 100% on MySQL installed
+    on windows.
+
+  - Removed the "adjust casing" step that would
+    fail when reflecting a table on MySQL
+    on windows with a mixed case name.  After some
+    experimenting with a windows MySQL server, it's
+    been determined that this step wasn't really 
+    helping the situation much; MySQL does not return
+    FK names with proper casing on non-windows 
+    platforms either, and removing the step at
+    least allows the reflection to act more like
+    it does on other OSes.   A warning here
+    has been considered but its difficult to 
+    determine under what conditions such a warning
+    can be raised, so punted on that for now - 
+    added some docs instead. [ticket:2181]
+
+  - supports_sane_rowcount will be set to False
+    if using MySQLdb and the DBAPI doesn't provide 
+    the constants.CLIENT module.
+
 0.7.0
 =======
 - This section documents those changes from 0.7b4

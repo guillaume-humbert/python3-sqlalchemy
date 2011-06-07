@@ -7,7 +7,7 @@
         
         <title>
                 Microsoft SQL Server
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="MySQL" href="mysql.html" />
         <link rel="prev" title="Microsoft Access" href="access.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 Microsoft SQL Server
@@ -276,7 +276,7 @@ SQL Server 2005</li>
 <h2>SQL Server Data Types<a class="headerlink" href="#sql-server-data-types" title="Permalink to this headline">¶</a></h2>
 <p>As with all SQLAlchemy dialects, all UPPERCASE types that are known to be
 valid with SQL server are importable from the top level dialect, whether
-they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
+they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types" title="sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.mssql</span> <span class="kn">import</span> \
     <span class="n">BIGINT</span><span class="p">,</span> <span class="n">BINARY</span><span class="p">,</span> <span class="n">BIT</span><span class="p">,</span> <span class="n">CHAR</span><span class="p">,</span> <span class="n">DATE</span><span class="p">,</span> <span class="n">DATETIME</span><span class="p">,</span> <span class="n">DATETIME2</span><span class="p">,</span> \
     <span class="n">DATETIMEOFFSET</span><span class="p">,</span> <span class="n">DECIMAL</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> <span class="n">IMAGE</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> <span class="n">MONEY</span><span class="p">,</span> \
@@ -339,22 +339,12 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <dt id="sqlalchemy.dialects.mssql.DATETIME2">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">DATETIME2</tt><big>(</big><em>precision=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.DATETIME2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._DateTimeBase</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mssql.DATETIME2.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.DATETIME2.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mssql.DATETIMEOFFSET">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">DATETIMEOFFSET</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.DATETIMEOFFSET" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mssql.DATETIMEOFFSET.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.DATETIMEOFFSET.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -369,17 +359,14 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
-</ul>
-</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
 </tr>
 </tbody>
 </table>
@@ -440,11 +427,8 @@ characters.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
-value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
 </tr>
 </tbody>
 </table>
@@ -483,22 +467,12 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <dt id="sqlalchemy.dialects.mssql.REAL">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">REAL</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.REAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.REAL" title="sqlalchemy.types.REAL"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.REAL</span></tt></a></p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mssql.REAL.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.REAL.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mssql.SMALLDATETIME">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">SMALLDATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLDATETIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._DateTimeBase</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mssql.SMALLDATETIME.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLDATETIME.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -538,11 +512,8 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
-value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
 </tr>
 </tbody>
 </table>
@@ -554,11 +525,6 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <dt id="sqlalchemy.dialects.mssql.TIME">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">TIME</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TIME" title="sqlalchemy.types.TIME"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TIME</span></tt></a></p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mssql.TIME.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TIME.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -628,7 +594,7 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <p>Support for MS-SQL via pyodbc.</p>
 <p>pyodbc is available at:</p>
 <blockquote>
-<a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></blockquote>
+<div><a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></div></blockquote>
 <div class="section" id="id1">
 <h3>Connecting<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>Examples of pyodbc connection string URLs:</p>
@@ -697,7 +663,7 @@ the python shell. For example:</p>
 <p>Support for MS-SQL via mxODBC.</p>
 <p>mxODBC is available at:</p>
 <blockquote>
-<a class="reference external" href="http://www.egenix.com/">http://www.egenix.com/</a></blockquote>
+<div><a class="reference external" href="http://www.egenix.com/">http://www.egenix.com/</a></div></blockquote>
 <p>This was tested with mxODBC 3.1.2 and the SQL Server Native
 Client connected to MSSQL 2005 and 2008 Express Editions.</p>
 <div class="section" id="id2">
@@ -737,13 +703,13 @@ of <tt class="xref docutils literal"><span class="pre">False</span></tt> will un
 <p>This dialect supports pymssql 1.0 and greater.</p>
 <p>pymssql is available at:</p>
 <blockquote>
-<a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></blockquote>
+<div><a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></div></blockquote>
 <div class="section" id="id3">
 <h3>Connecting<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>Sample connect string:</p>
 <div class="highlight-python"><pre>mssql+pymssql://&lt;username&gt;:&lt;password&gt;@&lt;freetds_name&gt;</pre>
 </div>
-<p>Adding &#8220;?charset=utf8&#8221; or similar will cause pymssql to return
+<p>Adding &#8221;?charset=utf8&#8221; or similar will cause pymssql to return
 strings as Python unicode objects.   This can potentially improve 
 performance in some scenarios as decoding of strings is 
 handled natively.</p>
@@ -795,7 +761,7 @@ properties to the underlying JDBC driver.</p>
             <a href="mysql.html" title="next chapter">MySQL</a>
         <div class="doc_copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
