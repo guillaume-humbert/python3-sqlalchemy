@@ -7,7 +7,7 @@
         
         <title>
                 Schema Definition Language
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Column and Data Types" href="types.html" />
         <link rel="prev" title="Connection Pooling" href="pooling.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Schema Definition Language
@@ -122,6 +122,7 @@ Search:
 </li>
 <li><a class="reference internal" href="#unique-constraint">UNIQUE Constraint</a></li>
 <li><a class="reference internal" href="#check-constraint">CHECK Constraint</a></li>
+<li><a class="reference internal" href="#setting-up-constraints-when-using-the-declarative-orm-extension">Setting up Constraints when using the Declarative ORM Extension</a></li>
 <li><a class="reference internal" href="#constraints-api">Constraints API</a></li>
 <li><a class="reference internal" href="#indexes">Indexes</a></li>
 </ul>
@@ -2132,6 +2133,17 @@ MySQL.</p>
 )</div></pre></div>
 </div>
 </div>
+<div class="section" id="setting-up-constraints-when-using-the-declarative-orm-extension">
+<h3>Setting up Constraints when using the Declarative ORM Extension<a class="headerlink" href="#setting-up-constraints-when-using-the-declarative-orm-extension" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is the SQLAlchemy Core construct that allows one to define
+table metadata, which among other things can be used by the SQLAlchemy ORM
+as a target to map a class.  The <a class="reference internal" href="../orm/extensions/declarative.html"><em>Declarative</em></a>
+extension allows the <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object to be created automatically, given
+the contents of the table primarily as a mapping of <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects.</p>
+<p>To apply table-level constraint objects such as <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
+to a table defined using Declarative, use the <tt class="docutils literal"><span class="pre">__table_args__</span></tt> attribute,
+described at <a class="reference internal" href="../orm/extensions/declarative.html#declarative-table-args"><em>Table Configuration</em></a>.</p>
+</div>
 <div class="section" id="constraints-api">
 <h3>Constraints API<a class="headerlink" href="#constraints-api" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -2373,7 +2385,7 @@ UniqueConstraint.</p>
 
 </div>
 <div class="section" id="indexes">
-<h3>Indexes<a class="headerlink" href="#indexes" title="Permalink to this headline">¶</a></h3>
+<span id="schema-indexes"></span><h3>Indexes<a class="headerlink" href="#indexes" title="Permalink to this headline">¶</a></h3>
 <p>Indexes can be created anonymously (using an auto-generated name <tt class="docutils literal"><span class="pre">ix_&lt;column</span>
 <span class="pre">label&gt;</span></tt>) for a single column using the inline <tt class="docutils literal"><span class="pre">index</span></tt> keyword on
 <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, which also modifies the usage of
@@ -2452,7 +2464,10 @@ identify columns:</p>
 <p>A table-level INDEX.</p>
 <p>Defines a composite (one or more column) INDEX. For a no-frills, single
 column index, adding <tt class="docutils literal"><span class="pre">index=True</span></tt> to the <tt class="docutils literal"><span class="pre">Column</span></tt> definition is
-a shorthand equivalent for an unnamed, single column Index.</p>
+a shorthand equivalent for an unnamed, single column <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="#schema-indexes"><em>Indexes</em></a> - General information on <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>.</p>
+<p><a class="reference internal" href="../dialects/postgresql.html#postgresql-indexes"><em>Postgresql-Specific Index Options</em></a> - PostgreSQL-specific options available for the <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
 <dl class="method">
 <dt id="sqlalchemy.schema.Index.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index.__init__" title="Permalink to this definition">¶</a></dt>

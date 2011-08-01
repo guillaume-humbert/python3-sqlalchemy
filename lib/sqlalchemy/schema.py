@@ -390,6 +390,7 @@ class Table(SchemaItem, expression.TableClause):
     def _autoincrement_column(self):
         for col in self.primary_key:
             if col.autoincrement and \
+                col.type._type_affinity is not None and \
                 issubclass(col.type._type_affinity, sqltypes.Integer) and \
                 not col.foreign_keys and \
                 isinstance(col.default, (type(None), Sequence)) and \
@@ -478,7 +479,7 @@ class Table(SchemaItem, expression.TableClause):
         """
 
         def adapt_listener(target, connection, **kw):
-            listener(event_name, target, connection, **kw)
+            listener(event_name, target, connection)
 
         event.listen(self, "" + event_name.replace('-', '_'), adapt_listener)
 
@@ -2007,7 +2008,13 @@ class ForeignKeyConstraint(Constraint):
             # string-specified column names now get
             # resolved to Column objects
             if isinstance(col, basestring):
-                col = table.c[col]
+                try:
+                    col = table.c[col]
+                except KeyError:
+                    raise exc.ArgumentError(
+                                "Can't create ForeignKeyConstraint "
+                                "on table '%s': no column "
+                                "named '%s' is present." % (table.description, col))
 
             if not hasattr(fk, 'parent') or \
                 fk.parent is not col:
@@ -2078,7 +2085,13 @@ class Index(ColumnCollectionMixin, SchemaItem):
 
     Defines a composite (one or more column) INDEX. For a no-frills, single
     column index, adding ``index=True`` to the ``Column`` definition is
-    a shorthand equivalent for an unnamed, single column Index.
+    a shorthand equivalent for an unnamed, single column :class:`.Index`.
+    
+    See also:
+    
+    :ref:`schema_indexes` - General information on :class:`.Index`.
+
+    :ref:`postgresql_indexes` - PostgreSQL-specific options available for the :class:`.Index` construct.
     """
 
     __visit_name__ = 'index'
@@ -2383,7 +2396,8 @@ class MetaData(SchemaItem):
 
         """
         def adapt_listener(target, connection, **kw):
-            listener(event, target, connection, **kw)
+            tables = kw['tables']
+            listener(event, target, connection, tables=tables)
 
         event.listen(self, "" + event_name.replace('-', '_'), adapt_listener)
 

@@ -7,7 +7,7 @@
         
         <title>
                 Relationship Loading Techniques
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Events" href="events.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Relationship Loading Techniques
@@ -133,7 +133,9 @@ relationship should be loaded at the same time as the parent, within a single
 SQL query.   This option, known as <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a>, connects a JOIN (by default
 a LEFT OUTER join) to the statement and populates the scalar/collection from the
 same result set as that of the parent:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">))</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT addresses_1.id AS addresses_1_id, addresses_1.email_address AS addresses_1_email_address,
 addresses_1.user_id AS addresses_1_user_id, users.id AS users_id, users.name AS users_name,
 users.fullname AS users_fullname, users.password AS users_password
@@ -145,7 +147,9 @@ WHERE users.name = ?
 exists, called &#8220;subquery eager loading&#8221;. This kind of eager loading emits an
 additional SQL statement for each collection requested, aggregated across all
 parent objects:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span><span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">subqueryload</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">options</span><span class="p">(</span><span class="n">subqueryload</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">))</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname,
 users.password AS users_password
 FROM users
@@ -214,7 +218,7 @@ place joinedloads for both:</p>
 loading</strong>; these are described in <a class="reference internal" href="collections.html#largecollections"><em>Working with Large Collections</em></a>.</p>
 </div>
 <div class="section" id="the-zen-of-eager-loading">
-<h2>The Zen of Eager Loading<a class="headerlink" href="#the-zen-of-eager-loading" title="Permalink to this headline">¶</a></h2>
+<span id="zen-of-eager-loading"></span><h2>The Zen of Eager Loading<a class="headerlink" href="#the-zen-of-eager-loading" title="Permalink to this headline">¶</a></h2>
 <p>The philosophy behind loader strategies is that any set of loading schemes can be
 applied to a particular query, and <em>the results don&#8217;t change</em> - only the number
 of SQL statements required to fully load related objects and collections changes. A particular
@@ -224,20 +228,109 @@ efficient to change the loader strategy for these.   The strategy can be changed
 modifications to the query, the results will remain identical, but fewer SQL statements would be emitted.
 In theory (and pretty much in practice), nothing you can do to the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> would make it load
 a different set of primary or related objects based on a change in loader strategy.</p>
-<p>The way eagerloading does this, and in particular how <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a>
-works, is that it creates an anonymous alias of all the joins it adds to your
-query, so that they can&#8217;t be referenced by other parts of the query. If the
-query contains a DISTINCT, or a limit or offset, the statement is first
-wrapped inside a subquery, and joins are applied to that. As the user, you
-don&#8217;t have access to these aliases or subqueries, and you cannot affect what
-data they will load at query time - a typical beginner misunderstanding is
-that adding a <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.order_by" title="sqlalchemy.orm.query.Query.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Query.order_by()</span></tt></a>, naming the joined relationship, would
-change the order of the collection, or that the entries in the collection as
-it is loaded could be affected by <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter()</span></tt></a>. Not the case ! If
-you&#8217;d like to join from one table to another, filtering or ordering on the
-joined result, you&#8217;d use <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>. If you then wanted that joined
-result to populate itself into a related collection, this is also available,
-via <a class="reference internal" href="#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">contains_eager()</span></tt></a> option - see <a class="reference internal" href="#contains-eager"><em>Routing Explicit Joins/Statements into Eagerly Loaded Collections</em></a>.</p>
+<p>How <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> in particular achieves this result of not impacting
+entity rows returned in any way is that it creates an anonymous alias of the joins it adds to your
+query, so that they can&#8217;t be referenced by other parts of the query.   For example,
+the query below uses <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> to create a LEFT OUTER JOIN from <tt class="docutils literal"><span class="pre">users</span></tt>
+to <tt class="docutils literal"><span class="pre">addresses</span></tt>, however the <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> added against <tt class="docutils literal"><span class="pre">Address.email_address</span></tt>
+is not valid - the <tt class="docutils literal"><span class="pre">Address</span></tt> entity is not named in the query:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">))</span><span class="o">.</span>\
+<span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">order_by</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<div class='show_sql'>SELECT addresses_1.id AS addresses_1_id, addresses_1.email_address AS addresses_1_email_address,
+addresses_1.user_id AS addresses_1_user_id, users.id AS users_id, users.name AS users_name,
+users.fullname AS users_fullname, users.password AS users_password
+FROM users LEFT OUTER JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id
+WHERE users.name = ? ORDER BY addresses.email_address   <-- this part is wrong !
+['jack']</div></pre></div>
+</div>
+<p>Above, <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span> <span class="pre">addresses.email_address</span></tt> is not valid since <tt class="docutils literal"><span class="pre">addresses</span></tt> is not in the
+FROM list.   The correct way to load the <tt class="docutils literal"><span class="pre">User</span></tt> records and order by email
+address is to use <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">order_by</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<div class='show_sql'>
+SELECT users.id AS users_id, users.name AS users_name,
+users.fullname AS users_fullname, users.password AS users_password
+FROM users JOIN addresses ON users.id = addresses.user_id
+WHERE users.name = ? ORDER BY addresses.email_address
+['jack']</div></pre></div>
+</div>
+<p>The statement above is of course not the same as the previous one, in that the columns from <tt class="docutils literal"><span class="pre">addresses</span></tt>
+are not included in the result at all.   We can add <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> back in, so that
+there are two joins - one is that which we are ordering on, the other is used anonymously to
+load the contents of the <tt class="docutils literal"><span class="pre">User.addresses</span></tt> collection:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">))</span><span class="o">.</span>\
+<span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">order_by</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<div class='show_sql'>SELECT addresses_1.id AS addresses_1_id, addresses_1.email_address AS addresses_1_email_address,
+addresses_1.user_id AS addresses_1_user_id, users.id AS users_id, users.name AS users_name,
+users.fullname AS users_fullname, users.password AS users_password
+FROM users JOIN addresses ON users.id = addresses.user_id
+LEFT OUTER JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id
+WHERE users.name = ? ORDER BY addresses.email_address
+['jack']</div></pre></div>
+</div>
+<p>What we see above is that our usage of <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a> is to supply JOIN clauses we&#8217;d like
+to use in subsequent query criterion, whereas our usage of <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> only concerns
+itself with the loading of the <tt class="docutils literal"><span class="pre">User.addresses</span></tt> collection, for each <tt class="docutils literal"><span class="pre">User</span></tt> in the result.
+In this case, the two joins most probably appear redundant - which they are.  If we
+wanted to use just one JOIN for collection loading as well as ordering, we use the
+<a class="reference internal" href="#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">contains_eager()</span></tt></a> option, described in <a class="reference internal" href="#contains-eager"><em>Routing Explicit Joins/Statements into Eagerly Loaded Collections</em></a> below.   But
+to see why <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> does what it does, consider if we were <strong>filtering</strong> on a
+particular <tt class="docutils literal"><span class="pre">Address</span></tt>:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">))</span><span class="o">.</span>\
+<span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="o">==</span><span class="s">&#39;someaddress@foo.com&#39;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="nb">all</span><span class="p">()</span>
+<div class='show_sql'>SELECT addresses_1.id AS addresses_1_id, addresses_1.email_address AS addresses_1_email_address,
+addresses_1.user_id AS addresses_1_user_id, users.id AS users_id, users.name AS users_name,
+users.fullname AS users_fullname, users.password AS users_password
+FROM users JOIN addresses ON users.id = addresses.user_id
+LEFT OUTER JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id
+WHERE users.name = ? AND addresses.email_address = ?
+['jack', 'someaddress@foo.com']</div></pre></div>
+</div>
+<p>Above, we can see that the two JOINs have very different roles.  One will match exactly
+one row, that of the join of <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt> where <tt class="docutils literal"><span class="pre">Address.email_address=='someaddress&#64;foo.com'</span></tt>.
+The other LEFT OUTER JOIN will match <em>all</em> <tt class="docutils literal"><span class="pre">Address</span></tt> rows related to <tt class="docutils literal"><span class="pre">User</span></tt>,
+and is only used to populate the <tt class="docutils literal"><span class="pre">User.addresses</span></tt> collection, for those <tt class="docutils literal"><span class="pre">User</span></tt> objects
+that are returned.</p>
+<p>By changing the usage of <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> to another style of loading, we can change
+how the collection is loaded completely independently of SQL used to retrieve
+the actual <tt class="docutils literal"><span class="pre">User</span></tt> rows we want.  Below we change <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> into
+<a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">options</span><span class="p">(</span><span class="n">subqueryload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">))</span><span class="o">.</span>\
+<span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="o">==</span><span class="s">&#39;someaddress@foo.com&#39;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="nb">all</span><span class="p">()</span>
+<div class='show_sql'>SELECT users.id AS users_id, users.name AS users_name,
+users.fullname AS users_fullname, users.password AS users_password
+FROM users JOIN addresses ON users.id = addresses.user_id
+WHERE users.name = ? AND addresses.email_address = ?
+['jack', 'someaddress@foo.com']
+
+# ... subqueryload() emits a SELECT in order
+# to load all address records ...</div></pre></div>
+</div>
+<p>When using joined eager loading, if the
+query contains a modifier that impacts the rows returned
+externally to the joins, such as when using DISTINCT, LIMIT, OFFSET
+or equivalent, the completed statement is first
+wrapped inside a subquery, and the joins used specifically for joined eager
+loading are applied to the subquery.   SQLAlchemy&#8217;s
+joined eager loading goes the extra mile, and then ten miles further, to
+absolutely ensure that it does not affect the end result of the query, only
+the way collections and related objects are loaded, no matter what the format of the query is.</p>
 </div>
 <div class="section" id="what-kind-of-loading-to-use">
 <h2>What Kind of Loading to Use ?<a class="headerlink" href="#what-kind-of-loading-to-use" title="Permalink to this headline">¶</a></h2>
@@ -280,7 +373,7 @@ of eager loading always join from the original parent class.</li>
 <li>When using the default lazy loading, a load of 100 objects will like in the case of the collection
 emit as many as 101 SQL statements.  However - there is a significant exception to this, in that
 if the many-to-one reference is a simple foreign key reference to the target&#8217;s primary key, each
-reference will be checked first in the current identity map using <tt class="docutils literal"><span class="pre">query.get()</span></tt>.  So here,
+reference will be checked first in the current identity map using <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">Query.get()</span></tt></a>.  So here,
 if the collection of objects references a relatively small set of target objects, or the full set
 of possible target objects have already been loaded into the session and are strongly referenced,
 using the default of <cite>lazy=&#8217;select&#8217;</cite> is by far the most efficient way to go.</li>
@@ -299,9 +392,10 @@ whereas joined loading requires that the foreign key is NOT NULL.</li>
 </div></blockquote>
 </div>
 <div class="section" id="routing-explicit-joins-statements-into-eagerly-loaded-collections">
-<span id="contains-eager"></span><h2>Routing Explicit Joins/Statements into Eagerly Loaded Collections<a class="headerlink" href="#routing-explicit-joins-statements-into-eagerly-loaded-collections" title="Permalink to this headline">¶</a></h2>
+<span id="contains-eager"></span><span id="joinedload-and-join"></span><h2>Routing Explicit Joins/Statements into Eagerly Loaded Collections<a class="headerlink" href="#routing-explicit-joins-statements-into-eagerly-loaded-collections" title="Permalink to this headline">¶</a></h2>
 <p>The behavior of <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> is such that joins are
-created automatically, the results of which are routed into collections and
+created automatically, using anonymous aliases as targets, the results of which
+are routed into collections and
 scalar references on loaded objects. It is often the case that a query already
 includes the necessary joins which represent a particular collection or scalar
 reference, and the joins added by the joinedload feature are redundant - yet
@@ -473,11 +567,19 @@ future in order to enable cross-compatibility.</p>
 indicates using an inner join instead of an outer:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></pre></div>
 </div>
-<p>Note that the join created by <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> is aliased such that no
-other aspects of the query will affect what it loads. To use joined eager
-loading with a join that is constructed manually using
-<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> or <a class="reference internal" href="query.html#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a>,
-see <a class="reference internal" href="#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">contains_eager()</span></tt></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The join created by <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> is anonymously aliased such that
+it <strong>does not affect the query results</strong>.   An <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.order_by" title="sqlalchemy.orm.query.Query.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Query.order_by()</span></tt></a>
+or <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter()</span></tt></a> call <strong>cannot</strong> reference these aliased
+tables - so-called &#8220;user space&#8221; joins are constructed using 
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>.   The rationale for this is that <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> is only
+applied in order to affect how related objects or collections are loaded
+as an optimizing detail - it can be added or removed with no impact
+on actual results.   See the section <a class="reference internal" href="#zen-of-eager-loading"><em>The Zen of Eager Loading</em></a> for 
+a detailed description of how this is used, including how to use a single 
+explicit JOIN for filtering/ordering and eager loading simultaneously.</p>
+</div>
 <p>See also:  <a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">lazyload()</span></tt></a></p>
 </dd></dl>
 

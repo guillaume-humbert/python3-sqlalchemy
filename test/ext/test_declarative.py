@@ -1272,7 +1272,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         assert 'inherits' not in Person.__mapper_args__
         assert class_mapper(Engineer).polymorphic_identity is None
         assert class_mapper(Engineer).polymorphic_on is Person.__table__.c.type
-        
+
     def test_we_must_only_copy_column_mapper_args(self):
 
         class Person(Base):
@@ -1292,8 +1292,8 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
                                }
         assert class_mapper(Person).version_id_col == 'a'
         assert class_mapper(Person).include_properties == set(['id', 'a', 'b'])
-        
-        
+
+
     def test_custom_join_condition(self):
 
         class Foo(Base):
@@ -2000,6 +2000,19 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
 
         assert_raises_message(sa.exc.ArgumentError,
                               'place __table_args__', go)
+
+    @testing.emits_warning("The classname")
+    def test_dupe_name_in_hierarchy(self):
+        class A(Base):
+           __tablename__ = "a"
+           id = Column( Integer, primary_key=True)
+        a_1 = A
+        class A(a_1):
+           __tablename__ = 'b'
+
+           id = Column(Integer(),ForeignKey(a_1.id), primary_key = True)
+
+        assert A.__mapper__.inherits is a_1.__mapper__
 
     def test_concrete(self):
         engineers = Table('engineers', Base.metadata, Column('id',
@@ -3162,6 +3175,41 @@ class DeclarativeMixinTest(DeclarativeTestBase):
 
         eq_(Model.__table__.c.keys(), ['col1', 'col3', 'col2', 'col4',
             'id'])
+
+    def test_honor_class_mro_one(self):
+        class HasXMixin(object):
+            @declared_attr
+            def x(self):
+                return Column(Integer)
+
+        class Parent(HasXMixin, Base):
+            __tablename__ = 'parent'
+            id = Column(Integer, primary_key=True)
+
+        class Child(Parent):
+            __tablename__ = 'child'
+            id = Column(Integer, ForeignKey('parent.id'), primary_key=True)
+
+        assert "x" not in Child.__table__.c
+
+    def test_honor_class_mro_two(self):
+        class HasXMixin(object):
+            @declared_attr
+            def x(self):
+                return Column(Integer)
+
+        class Parent(HasXMixin, Base):
+            __tablename__ = 'parent'
+            id = Column(Integer, primary_key=True)
+            def x(self):
+                return "hi"
+
+        class C(Parent):
+            __tablename__ = 'c'
+            id = Column(Integer, ForeignKey('parent.id'), primary_key=True)
+
+        assert C().x() == 'hi'
+
 
 class DeclarativeMixinPropertyTest(DeclarativeTestBase):
 

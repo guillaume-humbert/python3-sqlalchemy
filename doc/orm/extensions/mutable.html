@@ -7,7 +7,7 @@
         
         <title>
                 Mutation Tracking
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Ordering List" href="orderinglist.html" />
         <link rel="prev" title="Declarative" href="declarative.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -185,13 +185,13 @@ many variants on this approach, such as subclassing <tt class="docutils literal"
 the newer <tt class="docutils literal"><span class="pre">collections.MutableMapping</span></tt>,  etc. The part that&#8217;s important to this 
 example is that the <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.changed" title="sqlalchemy.ext.mutable.Mutable.changed"><tt class="xref py py-meth docutils literal"><span class="pre">Mutable.changed()</span></tt></a> method is called whenever an in-place change to the
 datastructure takes place.</p>
-<p>We also redefine the <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.coerce" title="sqlalchemy.ext.mutable.Mutable.coerce"><tt class="xref py py-meth docutils literal"><span class="pre">Mutable.coerce()</span></tt></a> method which will be used to
+<p>We also redefine the <tt class="xref py py-meth docutils literal"><span class="pre">Mutable.coerce()</span></tt> method which will be used to
 convert any values that are not instances of <tt class="docutils literal"><span class="pre">MutationDict</span></tt>, such
 as the plain dictionaries returned by the <tt class="docutils literal"><span class="pre">json</span></tt> module, into the
 appropriate type.  Defining this method is optional; we could just as well created our
 <tt class="docutils literal"><span class="pre">JSONEncodedDict</span></tt> such that it always returns an instance of <tt class="docutils literal"><span class="pre">MutationDict</span></tt>,
 and additionally ensured that all calling code uses <tt class="docutils literal"><span class="pre">MutationDict</span></tt> 
-explicitly.  When <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.coerce" title="sqlalchemy.ext.mutable.Mutable.coerce"><tt class="xref py py-meth docutils literal"><span class="pre">Mutable.coerce()</span></tt></a> is not overridden, any values
+explicitly.  When <tt class="xref py py-meth docutils literal"><span class="pre">Mutable.coerce()</span></tt> is not overridden, any values
 applied to a parent object which are not instances of the mutable type
 will raise a <tt class="docutils literal"><span class="pre">ValueError</span></tt>.</p>
 <p>Our new <tt class="docutils literal"><span class="pre">MutationDict</span></tt> type offers a class method
@@ -481,13 +481,6 @@ mapped descriptor.</p>
 <dt id="sqlalchemy.ext.mutable.Mutable.changed">
 <tt class="descname">changed</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.ext.mutable.Mutable.changed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclasses should call this method whenever change events occur.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="sqlalchemy.ext.mutable.Mutable.coerce">
-<em class="property">classmethod </em><tt class="descname">coerce</tt><big>(</big><em>key</em>, <em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.mutable.Mutable.coerce" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a value, coerce it into this type.</p>
-<p>By default raises ValueError.</p>
 </dd></dl>
 
 </dd></dl>

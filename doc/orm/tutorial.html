@@ -7,7 +7,7 @@
         
         <title>
                 Object Relational Tutorial
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mapper_config.html" />
         <link rel="prev" title="SQLAlchemy ORM" href="index.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Object Relational Tutorial
@@ -941,9 +941,11 @@ INSERT INTO addresses (email_address, user_id) VALUES (?, ?)
 COMMIT</div></pre></div>
 </div>
 <p>Querying for Jack, we get just Jack back.  No SQL is yet issued for Jack&#8217;s addresses:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span> 
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span> <span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span> 
 <div class='popup_sql'>BEGIN (implicit)
-SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
+SELECT users.id AS users_id, users.name AS users_name,
+users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.name = ?
 ('jack',)</div><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span>
@@ -951,7 +953,8 @@ WHERE users.name = ?
 </div>
 <p>Let&#8217;s look at the <tt class="docutils literal"><span class="pre">addresses</span></tt> collection.  Watch the SQL:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span> 
-<div class='popup_sql'>SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id
+<div class='popup_sql'>SELECT addresses.id AS addresses_id, addresses.email_address AS
+addresses_email_address, addresses.user_id AS addresses_user_id
 FROM addresses
 WHERE ? = addresses.user_id ORDER BY addresses.id
 (5,)</div><span class="p">[</span><span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
@@ -987,10 +990,24 @@ WHERE users.name = ? ORDER BY addresses_1.id
 <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> and its new brother,
 <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>. We&#8217;ll also see another way to &#8220;eagerly&#8221;
 load in the next section.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The join created by <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> is anonymously aliased such that
+it <strong>does not affect the query results</strong>.   An <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.order_by" title="sqlalchemy.orm.query.Query.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Query.order_by()</span></tt></a>
+or <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter()</span></tt></a> call <strong>cannot</strong> reference these aliased
+tables - so-called &#8220;user space&#8221; joins are constructed using
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>.   The rationale for this is that <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> is only
+applied in order to affect how related objects or collections are loaded
+as an optimizing detail - it can be added or removed with no impact
+on actual results.   See the section <a class="reference internal" href="loading.html#zen-of-eager-loading"><em>The Zen of Eager Loading</em></a> for
+a detailed description of how this is used, including how to use a single
+explicit JOIN for filtering/ordering and eager loading simultaneously.</p>
+</div>
 </div>
 <div class="section" id="querying-with-joins">
 <span id="ormtutorial-joins"></span><h2>Querying with Joins<a class="headerlink" href="#querying-with-joins" title="Permalink to this headline">¶</a></h2>
-<p>While <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> created a JOIN specifically to
+<p>While <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> created an anonymous, non-accessible JOIN
+specifically to
 populate a collection, we can also work explicitly with joins in many ways.
 For example, to construct a simple inner join between <tt class="docutils literal"><span class="pre">User</span></tt> and
 <tt class="docutils literal"><span class="pre">Address</span></tt>, we can just <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">filter()</span></tt></a> their
@@ -1333,7 +1350,7 @@ their parent:</p>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">addresses_table</span><span class="p">)</span> 
 <span class="o">&lt;</span><span class="n">Mapper</span> <span class="n">at</span> <span class="mi">0</span><span class="n">x</span><span class="o">...</span><span class="p">;</span> <span class="n">Address</span><span class="o">&gt;</span></pre></div>
 </div>
-<p>Now when we load Jack (below using <tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt>, which loads by primary key),
+<p>Now when we load Jack (below using <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt></a>, which loads by primary key),
 removing an address from his <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will result in that
 <tt class="docutils literal"><span class="pre">Address</span></tt> being deleted:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># load Jack by primary key</span>

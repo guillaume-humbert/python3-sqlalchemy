@@ -7,7 +7,7 @@
         
         <title>
                 Core Exceptions
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Internals" href="internals.html" />
         <link rel="prev" title="Deprecated Event Interfaces" href="interfaces.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Core Exceptions
@@ -160,6 +160,35 @@ Its type and properties are DB-API implementation specific.</p>
 <p>A disconnect is detected on a raw DB-API connection.</p>
 <p>This error is raised and consumed internally by a connection pool.  It can
 be raised by a <tt class="docutils literal"><span class="pre">PoolListener</span></tt> so that the host pool forces a disconnect.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.exc.DontWrapMixin">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.exc.</tt><tt class="descname">DontWrapMixin</tt><a class="headerlink" href="#sqlalchemy.exc.DontWrapMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A mixin class which, when applied to a user-defined Exception class,
+will not be wrapped inside of <tt class="xref py py-class docutils literal"><span class="pre">StatementError</span></tt> if the error is
+emitted within the process of executing a statement.</p>
+<dl class="docutils">
+<dt>E.g.::</dt>
+<dd><p class="first">from sqlalchemy.exc import DontWrapMixin</p>
+<dl class="last docutils">
+<dt>class MyCustomException(Exception, DontWrapMixin):</dt>
+<dd>pass</dd>
+<dt>class MySpecialType(TypeDecorator):</dt>
+<dd><p class="first">impl = String</p>
+<dl class="last docutils">
+<dt>def process_bind_param(self, value, dialect):</dt>
+<dd><dl class="first last docutils">
+<dt>if value == &#8216;invalid&#8217;:</dt>
+<dd>raise MyCustomException(&#8220;invalid!&#8221;)</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="exception">

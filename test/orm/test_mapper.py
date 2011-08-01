@@ -11,6 +11,7 @@ from sqlalchemy.orm import mapper, relationship, backref, \
     validates, aliased, defer, deferred, synonym, attributes, \
     column_property, composite, dynamic_loader, \
     comparable_property, Session
+from sqlalchemy.orm.mapper import _sort_states
 from test.lib.testing import eq_, AssertsCompiledSQL
 from test.lib import fixtures
 from test.orm import _fixtures
@@ -110,7 +111,7 @@ class MapperTest(_fixtures.FixtureTest):
         })
 
         # test that QueryableAttribute.__str__() doesn't 
-        # cause a compile.  
+        # cause a compile.
         eq_(str(User.addresses), "User.addresses")
 
     def test_exceptions_sticky(self):
@@ -240,6 +241,43 @@ class MapperTest(_fixtures.FixtureTest):
         mapper(Bar, addresses)
         assert_raises(TypeError, Foo, x=5)
         assert_raises(TypeError, Bar, x=5)
+
+    def test_sort_states_comparisons(self):
+        """test that _sort_states() doesn't compare 
+        insert_order to state.key, for set of mixed
+        persistent/pending.  In particular Python 3 disallows
+        this.  
+        
+        """
+        class Foo(object):
+            def __init__(self, id):
+                self.id = id
+        m = MetaData()
+        foo_t = Table('foo', m, 
+                        Column('id', String, primary_key=True)
+                    )
+        m = mapper(Foo, foo_t)
+        class DontCompareMeToString(int):
+        # Py3K
+        #    pass
+        # Py2K
+            def __lt__(self, other):
+                assert not isinstance(other, basestring)
+                return int(self) < other
+        # end Py2K
+        foos = [Foo(id='f%d' % i) for i in range(5)]
+        states = [attributes.instance_state(f) for f in foos]
+
+        for s in states[0:3]:
+            s.key = m._identity_key_from_state(s)
+        states[3].insert_order = DontCompareMeToString(5)
+        states[4].insert_order = DontCompareMeToString(1)
+        states[2].insert_order = DontCompareMeToString(3)
+        eq_(
+            _sort_states(states),
+            [states[4], states[3], states[0], states[1], states[2]]
+        )
+
 
     def test_props(self):
         users, Address, addresses, User = (self.tables.users,
@@ -1796,7 +1834,6 @@ class ValidatorTest(_fixtures.FixtureTest):
         sess.expunge_all()
         eq_(sess.query(User).filter_by(name='ed modified').one(), User(name='ed'))
 
-
     def test_collection(self):
         users, addresses, Address = (self.tables.users,
                                 self.tables.addresses,
@@ -1820,6 +1857,37 @@ class ValidatorTest(_fixtures.FixtureTest):
         eq_(
             sess.query(User).filter_by(name='edward').one(), 
             User(name='edward', addresses=[Address(email_address='foo@bar.com')])
+        )
+
+    def test_validators_dict(self):
+        users, addresses, Address = (self.tables.users,
+                                     self.tables.addresses,
+                                     self.classes.Address)
+
+        class User(fixtures.ComparableEntity):
+
+            @validates('name')
+            def validate_name(self, key, name):
+                assert name != 'fred'
+                return name + ' modified'
+
+            @validates('addresses')
+            def validate_address(self, key, ad):
+                assert '@' in ad.email_address
+                return ad
+
+            def simple_function(self, key, value):
+                return key, value
+
+        u_m = mapper(User,
+                      users,
+                      properties={'addresses':relationship(Address)})
+        mapper(Address, addresses)
+
+        eq_(
+            dict((k, v.__name__) for k, v in u_m.validators.items()),
+            {'name':'validate_name', 
+            'addresses':'validate_address'}
         )
 
 class ComparatorFactoryTest(_fixtures.FixtureTest, AssertsCompiledSQL):
@@ -2207,7 +2275,7 @@ class DeferredTest(_fixtures.FixtureTest):
     def test_map_selectable_wo_deferred(self):
         """test mapping to a selectable with deferred cols,
         the selectable doesn't include the deferred col.
-        
+
         """
 
         Order, orders = self.classes.Order, self.tables.orders
@@ -2637,6 +2705,19 @@ class RequirementsTest(fixtures.MappedTest):
         #self.assertRaises(sa.exc.ArgumentError, mapper, NoWeakrefSupport, t2)
     # end Py2K
 
+    class _ValueBase(object):
+        def __init__(self, value='abc', id=None):
+            self.id = id
+            self.value = value
+        def __nonzero__(self):
+            return False
+        def __hash__(self):
+            return hash(self.value)
+        def __eq__(self, other):
+            if isinstance(other, type(self)):
+                return self.value == other.value
+            return False
+
     def test_comparison_overrides(self):
         """Simple tests to ensure users can supply comparison __methods__.
 
@@ -2655,27 +2736,13 @@ class RequirementsTest(fixtures.MappedTest):
                                 self.tables.ht1)
 
 
-        # adding these methods directly to each class to avoid decoration
-        # by the testlib decorators.
-        class _Base(object):
-            def __init__(self, value='abc'):
-                self.value = value
-            def __nonzero__(self):
-                return False
-            def __hash__(self):
-                return hash(self.value)
-            def __eq__(self, other):
-                if isinstance(other, type(self)):
-                    return self.value == other.value
-                return False
-
-        class H1(_Base):
+        class H1(self._ValueBase):
             pass
-        class H2(_Base):
+        class H2(self._ValueBase):
             pass
-        class H3(_Base):
+        class H3(self._ValueBase):
             pass
-        class H6(_Base):
+        class H6(self._ValueBase):
             pass
 
         mapper(H1, ht1, properties={
@@ -2692,11 +2759,13 @@ class RequirementsTest(fixtures.MappedTest):
         mapper(H6, ht6)
 
         s = create_session()
-        for i in range(3):
-            h1 = H1()
-            s.add(h1)
-
-        h1.h2s.append(H2())
+        s.add_all([
+            H1('abc'),
+            H1('def'),
+        ])
+        h1 = H1('ghi')
+        s.add(h1)
+        h1.h2s.append(H2('abc'))
         h1.h3s.extend([H3(), H3()])
         h1.h1s.append(H1())
 
@@ -2712,11 +2781,11 @@ class RequirementsTest(fixtures.MappedTest):
         h6.h1b = x = H1()
         assert x in s
 
-        h6.h1b.h2s.append(H2())
+        h6.h1b.h2s.append(H2('def'))
 
         s.flush()
 
-        h1.h2s.extend([H2(), H2()])
+        h1.h2s.extend([H2('abc'), H2('def')])
         s.flush()
 
         h1s = s.query(H1).options(sa.orm.joinedload('h2s')).all()
@@ -2726,10 +2795,10 @@ class RequirementsTest(fixtures.MappedTest):
                                      {'h2s': []},
                                      {'h2s': []},
                                      {'h2s': (H2, [{'value': 'abc'},
-                                                   {'value': 'abc'},
+                                                   {'value': 'def'},
                                                    {'value': 'abc'}])},
                                      {'h2s': []},
-                                     {'h2s': (H2, [{'value': 'abc'}])})
+                                     {'h2s': (H2, [{'value': 'def'}])})
 
         h1s = s.query(H1).options(sa.orm.joinedload('h3s')).all()
 
@@ -2738,6 +2807,54 @@ class RequirementsTest(fixtures.MappedTest):
                                   sa.orm.joinedload('h2s'),
                                   sa.orm.joinedload_all('h3s.h1s')).all()
         eq_(len(h1s), 5)
+
+
+    def test_composite_results(self):
+        ht2, ht1 = (self.tables.ht2,
+                        self.tables.ht1)
+
+
+        class H1(self._ValueBase):
+            def __init__(self, value, id, h2s):
+                self.value = value
+                self.id = id
+                self.h2s = h2s
+        class H2(self._ValueBase):
+            def __init__(self, value, id):
+                self.value = value
+                self.id = id
+
+        mapper(H1, ht1, properties={
+            'h2s': relationship(H2, backref='h1'),
+        })
+        mapper(H2, ht2)
+        s = Session()
+        s.add_all([
+            H1('abc', 1, h2s=[
+                H2('abc', id=1),
+                H2('def', id=2),
+                H2('def', id=3),
+            ]),
+            H1('def', 2, h2s=[
+                H2('abc', id=4),
+                H2('abc', id=5),
+                H2('def', id=6),
+            ]),
+        ])
+        s.commit()
+        eq_(
+            [(h1.value, h1.id, h2.value, h2.id) 
+            for h1, h2 in 
+            s.query(H1, H2).join(H1.h2s).order_by(H1.id, H2.id)],
+            [
+                ('abc', 1, 'abc', 1),
+                ('abc', 1, 'def', 2),
+                ('abc', 1, 'def', 3),
+                ('def', 2, 'abc', 4),
+                ('def', 2, 'abc', 5),
+                ('def', 2, 'def', 6),
+            ]
+        )
 
     def test_nonzero_len_recursion(self):
         ht1 = self.tables.ht1

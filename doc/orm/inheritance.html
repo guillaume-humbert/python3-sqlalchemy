@@ -7,7 +7,7 @@
         
         <title>
                 Mapping Class Inheritance Hierarchies
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Using the Session" href="session.html" />
         <link rel="prev" title="Collection Configuration and Techniques" href="collections.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Mapping Class Inheritance Hierarchies
@@ -133,14 +133,20 @@ return objects of multiple types.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">manager_data</span> <span class="o">=</span> <span class="n">manager_data</span>
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">manager_data</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">manager_data</span>
+        <span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">Engineer</span><span class="p">(</span><span class="n">Employee</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">engineer_info</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">engineer_info</span> <span class="o">=</span> <span class="n">engineer_info</span>
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">engineer_info</span></pre></div>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">engineer_info</span>
+        <span class="p">)</span></pre></div>
 </div>
 <div class="section" id="joined-table-inheritance">
 <h2>Joined Table Inheritance<a class="headerlink" href="#joined-table-inheritance" title="Permalink to this headline">¶</a></h2>
@@ -175,12 +181,16 @@ and parent-relationship, the column may be named differently than that of the
 parent, and even a custom join condition can be specified between parent and
 child tables instead of using a foreign key:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engineers</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;engineers&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
-   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;employee_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;employees.employee_id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;employee_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                    <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;employees.employee_id&#39;</span><span class="p">),</span>
+                    <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;engineer_info&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">)),</span>
 <span class="p">)</span>
 
 <span class="n">managers</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;managers&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
-   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;employee_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;employees.employee_id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;employee_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                    <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;employees.employee_id&#39;</span><span class="p">),</span>
+                    <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;manager_data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">)),</span>
 <span class="p">)</span></pre></div>
 </div>
@@ -201,9 +211,12 @@ JOIN.</p>
 indicate the inheritance relationship, the polymorphic discriminator column,
 and the <strong>polymorphic identity</strong> of each class; this is the value that will be
 stored in the polymorphic discriminator column.</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Employee</span><span class="p">,</span> <span class="n">employees</span><span class="p">,</span> <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">employees</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;employee&#39;</span><span class="p">)</span>
-<span class="n">mapper</span><span class="p">(</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">engineers</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">Employee</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;engineer&#39;</span><span class="p">)</span>
-<span class="n">mapper</span><span class="p">(</span><span class="n">Manager</span><span class="p">,</span> <span class="n">managers</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">Employee</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;manager&#39;</span><span class="p">)</span></pre></div>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Employee</span><span class="p">,</span> <span class="n">employees</span><span class="p">,</span> <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">employees</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                            <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;employee&#39;</span><span class="p">)</span>
+<span class="n">mapper</span><span class="p">(</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">engineers</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">Employee</span><span class="p">,</span>
+                            <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;engineer&#39;</span><span class="p">)</span>
+<span class="n">mapper</span><span class="p">(</span><span class="n">Manager</span><span class="p">,</span> <span class="n">managers</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">Employee</span><span class="p">,</span>
+                            <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;manager&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>And that&#8217;s it. Querying against <tt class="docutils literal"><span class="pre">Employee</span></tt> will return a combination of
 <tt class="docutils literal"><span class="pre">Employee</span></tt>, <tt class="docutils literal"><span class="pre">Engineer</span></tt> and <tt class="docutils literal"><span class="pre">Manager</span></tt> objects. Newly saved <tt class="docutils literal"><span class="pre">Engineer</span></tt>,
@@ -221,7 +234,8 @@ which the Query selects from. Normally, a query such as this:</p>
 database, our joined-table setup will query from the parent table only, using
 SQL such as this:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><div class='show_sql'>
-SELECT employees.employee_id AS employees_employee_id, employees.name AS employees_name, employees.type AS employees_type
+SELECT employees.employee_id AS employees_employee_id,
+    employees.name AS employees_name, employees.type AS employees_type
 FROM employees
 []</div></pre></div>
 </div>
@@ -231,11 +245,13 @@ load is issued for the columns in that related row, if the data was not
 already loaded. So above, after accessing the objects you&#8217;d see further SQL
 issued along the lines of:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><div class='show_sql'>
-SELECT managers.employee_id AS managers_employee_id, managers.manager_data AS managers_manager_data
+SELECT managers.employee_id AS managers_employee_id,
+    managers.manager_data AS managers_manager_data
 FROM managers
 WHERE ? = managers.employee_id
 [5]
-SELECT engineers.employee_id AS engineers_employee_id, engineers.engineer_info AS engineers_engineer_info
+SELECT engineers.employee_id AS engineers_employee_id,
+    engineers.engineer_info AS engineers_engineer_info
 FROM engineers
 WHERE ? = engineers.employee_id
 [2]</div></pre></div>
@@ -253,8 +269,18 @@ objects:</p>
 <p>produces a query which joins the <tt class="docutils literal"><span class="pre">employees</span></tt> table to both the <tt class="docutils literal"><span class="pre">engineers</span></tt> and <tt class="docutils literal"><span class="pre">managers</span></tt> tables like the following:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <div class='show_sql'>
-SELECT employees.employee_id AS employees_employee_id, engineers.employee_id AS engineers_employee_id, managers.employee_id AS managers_employee_id, employees.name AS employees_name, employees.type AS employees_type, engineers.engineer_info AS engineers_engineer_info, managers.manager_data AS managers_manager_data
-FROM employees LEFT OUTER JOIN engineers ON employees.employee_id = engineers.employee_id LEFT OUTER JOIN managers ON employees.employee_id = managers.employee_id
+SELECT employees.employee_id AS employees_employee_id,
+    engineers.employee_id AS engineers_employee_id,
+    managers.employee_id AS managers_employee_id,
+    employees.name AS employees_name,
+    employees.type AS employees_type,
+    engineers.engineer_info AS engineers_engineer_info,
+    managers.manager_data AS managers_manager_data
+FROM employees
+    LEFT OUTER JOIN engineers
+    ON employees.employee_id = engineers.employee_id
+    LEFT OUTER JOIN managers
+    ON employees.employee_id = managers.employee_id
 []</div></pre></div>
 </div>
 <p><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.with_polymorphic" title="sqlalchemy.orm.query.Query.with_polymorphic"><tt class="xref py py-func docutils literal"><span class="pre">with_polymorphic()</span></tt></a> accepts a single class or
@@ -275,7 +301,10 @@ feature is normally used with &#8220;concrete&#8221; inheritance, described late
 be used with any kind of inheritance setup in the case that specialized SQL
 should be used to load polymorphically:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># custom selectable</span>
-<span class="n">query</span><span class="o">.</span><span class="n">with_polymorphic</span><span class="p">([</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">Manager</span><span class="p">],</span> <span class="n">employees</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">managers</span><span class="p">)</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">engineers</span><span class="p">))</span></pre></div>
+<span class="n">query</span><span class="o">.</span><span class="n">with_polymorphic</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">Manager</span><span class="p">],</span>
+            <span class="n">employees</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">managers</span><span class="p">)</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">engineers</span><span class="p">)</span>
+        <span class="p">)</span></pre></div>
 </div>
 <p><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.with_polymorphic" title="sqlalchemy.orm.query.Query.with_polymorphic"><tt class="xref py py-func docutils literal"><span class="pre">with_polymorphic()</span></tt></a> is also needed
 when you wish to add filter criteria that are specific to one or more
@@ -290,10 +319,13 @@ not needed since you would query against the <tt class="docutils literal"><span 
 that the joined-style load will be issued automatically. This argument may be
 the string <tt class="docutils literal"><span class="pre">'*'</span></tt>, a list of classes, or a tuple consisting of either,
 followed by a selectable.</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Employee</span><span class="p">,</span> <span class="n">employees</span><span class="p">,</span> <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">employees</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> \
-    <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;employee&#39;</span><span class="p">,</span> <span class="n">with_polymorphic</span><span class="o">=</span><span class="s">&#39;*&#39;</span><span class="p">)</span>
-<span class="n">mapper</span><span class="p">(</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">engineers</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">Employee</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;engineer&#39;</span><span class="p">)</span>
-<span class="n">mapper</span><span class="p">(</span><span class="n">Manager</span><span class="p">,</span> <span class="n">managers</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">Employee</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;manager&#39;</span><span class="p">)</span></pre></div>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Employee</span><span class="p">,</span> <span class="n">employees</span><span class="p">,</span> <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">employees</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                            <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;employee&#39;</span><span class="p">,</span>
+                            <span class="n">with_polymorphic</span><span class="o">=</span><span class="s">&#39;*&#39;</span><span class="p">)</span>
+<span class="n">mapper</span><span class="p">(</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">engineers</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">Employee</span><span class="p">,</span>
+                            <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;engineer&#39;</span><span class="p">)</span>
+<span class="n">mapper</span><span class="p">(</span><span class="n">Manager</span><span class="p">,</span> <span class="n">managers</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">Employee</span><span class="p">,</span>
+                            <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;manager&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>The above mapping will produce a query similar to that of
 <tt class="docutils literal"><span class="pre">with_polymorphic('*')</span></tt> for every query of <tt class="docutils literal"><span class="pre">Employee</span></tt> objects.</p>
@@ -323,7 +355,8 @@ what&#8217;s specified in the <a class="reference internal" href="session.html#s
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a> methods:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Manager</span><span class="o">.</span><span class="n">manager_data</span><span class="p">)</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
 
-<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">engineer</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">engineer</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="n">manager</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">manager_data</span><span class="p">)</span></pre></div>
+<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">engineer</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span>\
+        <span class="nb">filter</span><span class="p">(</span><span class="n">engineer</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="n">manager</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">manager_data</span><span class="p">)</span></pre></div>
 </div>
 </div>
 <div class="section" id="creating-joins-to-specific-subtypes">
@@ -361,29 +394,45 @@ a join from <tt class="docutils literal"><span class="pre">companies</span></tt>
 against the <tt class="docutils literal"><span class="pre">Engineer</span></tt> class, we can tell those methods to join or subquery
 against the joined table representing the subclass using the
 <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a> operator:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">of_type</span><span class="p">(</span><span class="n">Engineer</span><span class="p">))</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span>\
+    <span class="n">join</span><span class="p">(</span><span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">of_type</span><span class="p">(</span><span class="n">Engineer</span><span class="p">))</span><span class="o">.</span>\
+    <span class="nb">filter</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>A longhand version of this would involve spelling out the full target
 selectable within a 2-tuple:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">employees</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engineers</span><span class="p">),</span> <span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="p">))</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span>\
+    <span class="n">join</span><span class="p">((</span><span class="n">employees</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engineers</span><span class="p">),</span> <span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="p">))</span><span class="o">.</span>\
+    <span class="nb">filter</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>Currently, <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a> accepts a
 single class argument. It may be expanded later on to accept multiple classes.
 For now, to join to any group of subclasses, the longhand notation allows this
 flexibility:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">employees</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">engineers</span><span class="p">)</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">managers</span><span class="p">),</span> <span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="p">))</span><span class="o">.</span>\
-    <span class="nb">filter</span><span class="p">(</span><span class="n">or_</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">,</span> <span class="n">Manager</span><span class="o">.</span><span class="n">manager_data</span><span class="o">==</span><span class="s">&#39;somedata&#39;</span><span class="p">))</span></pre></div>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span>\
+    <span class="n">join</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">employees</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">engineers</span><span class="p">)</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">managers</span><span class="p">),</span>
+        <span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span>\
+    <span class="nb">filter</span><span class="p">(</span>
+        <span class="n">or_</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">,</span>
+            <span class="n">Manager</span><span class="o">.</span><span class="n">manager_data</span><span class="o">==</span><span class="s">&#39;somedata&#39;</span><span class="p">)</span>
+    <span class="p">)</span></pre></div>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">any()</span></tt> and <tt class="docutils literal"><span class="pre">has()</span></tt> operators also can be used with
 <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a> when the embedded
 criterion is in terms of a subclass:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">of_type</span><span class="p">(</span><span class="n">Engineer</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span>\
+        <span class="nb">filter</span><span class="p">(</span>
+            <span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">of_type</span><span class="p">(</span><span class="n">Engineer</span><span class="p">)</span><span class="o">.</span>
+                <span class="nb">any</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
 </div>
 <p>Note that the <tt class="docutils literal"><span class="pre">any()</span></tt> and <tt class="docutils literal"><span class="pre">has()</span></tt> are both shorthand for a correlated
 EXISTS query. To build one by hand looks like:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
     <span class="n">exists</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span>
-        <span class="n">and_</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">,</span> <span class="n">employees</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">company_id</span><span class="o">==</span><span class="n">companies</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">company_id</span><span class="p">),</span>
+        <span class="n">and_</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">engineer_info</span><span class="o">==</span><span class="s">&#39;someinfo&#39;</span><span class="p">,</span>
+            <span class="n">employees</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">company_id</span><span class="o">==</span><span class="n">companies</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">company_id</span><span class="p">),</span>
         <span class="n">from_obj</span><span class="o">=</span><span class="n">employees</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engineers</span><span class="p">)</span>
     <span class="p">)</span>
 <span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
@@ -413,8 +462,10 @@ for the inheriting classes, leave their <tt class="docutils literal"><span class
 
 <span class="n">employee_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Employee</span><span class="p">,</span> <span class="n">employees_table</span><span class="p">,</span> \
     <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">employees_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;employee&#39;</span><span class="p">)</span>
-<span class="n">manager_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Manager</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">employee_mapper</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;manager&#39;</span><span class="p">)</span>
-<span class="n">engineer_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">employee_mapper</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;engineer&#39;</span><span class="p">)</span></pre></div>
+<span class="n">manager_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Manager</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">employee_mapper</span><span class="p">,</span>
+                                    <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;manager&#39;</span><span class="p">)</span>
+<span class="n">engineer_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">employee_mapper</span><span class="p">,</span>
+                                    <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;engineer&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>Note that the mappers for the derived classes Manager and Engineer omit the
 specification of their associated table, as it is inherited from the
@@ -461,28 +512,39 @@ each subselect:</p>
     <span class="s">&#39;engineer&#39;</span><span class="p">:</span> <span class="n">engineers_table</span>
 <span class="p">},</span> <span class="s">&#39;type&#39;</span><span class="p">,</span> <span class="s">&#39;pjoin&#39;</span><span class="p">)</span>
 
-<span class="n">employee_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Employee</span><span class="p">,</span> <span class="n">employees_table</span><span class="p">,</span> <span class="n">with_polymorphic</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="n">pjoin</span><span class="p">),</span> \
-    <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">pjoin</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;employee&#39;</span><span class="p">)</span>
-<span class="n">manager_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Manager</span><span class="p">,</span> <span class="n">managers_table</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">employee_mapper</span><span class="p">,</span> \
-    <span class="n">concrete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;manager&#39;</span><span class="p">)</span>
-<span class="n">engineer_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">engineers_table</span><span class="p">,</span> <span class="n">inherits</span><span class="o">=</span><span class="n">employee_mapper</span><span class="p">,</span> \
-    <span class="n">concrete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;engineer&#39;</span><span class="p">)</span></pre></div>
+<span class="n">employee_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Employee</span><span class="p">,</span> <span class="n">employees_table</span><span class="p">,</span>
+                                    <span class="n">with_polymorphic</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="n">pjoin</span><span class="p">),</span>
+                                    <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">pjoin</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                                    <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;employee&#39;</span><span class="p">)</span>
+<span class="n">manager_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Manager</span><span class="p">,</span> <span class="n">managers_table</span><span class="p">,</span>
+                                    <span class="n">inherits</span><span class="o">=</span><span class="n">employee_mapper</span><span class="p">,</span>
+                                    <span class="n">concrete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;manager&#39;</span><span class="p">)</span>
+<span class="n">engineer_mapper</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">Engineer</span><span class="p">,</span> <span class="n">engineers_table</span><span class="p">,</span>
+                                    <span class="n">inherits</span><span class="o">=</span><span class="n">employee_mapper</span><span class="p">,</span>
+                                    <span class="n">concrete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;engineer&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>Upon select, the polymorphic union produces a query like this:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Employee</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <div class='show_sql'>
-SELECT pjoin.type AS pjoin_type, pjoin.manager_data AS pjoin_manager_data, pjoin.employee_id AS pjoin_employee_id,
+SELECT pjoin.type AS pjoin_type,
+        pjoin.manager_data AS pjoin_manager_data,
+        pjoin.employee_id AS pjoin_employee_id,
 pjoin.name AS pjoin_name, pjoin.engineer_info AS pjoin_engineer_info
 FROM (
-    SELECT employees.employee_id AS employee_id, CAST(NULL AS VARCHAR(50)) AS manager_data, employees.name AS name,
-    CAST(NULL AS VARCHAR(50)) AS engineer_info, 'employee' AS type
+    SELECT employees.employee_id AS employee_id,
+        CAST(NULL AS VARCHAR(50)) AS manager_data, employees.name AS name,
+        CAST(NULL AS VARCHAR(50)) AS engineer_info, 'employee' AS type
     FROM employees
 UNION ALL
-    SELECT managers.employee_id AS employee_id, managers.manager_data AS manager_data, managers.name AS name,
-    CAST(NULL AS VARCHAR(50)) AS engineer_info, 'manager' AS type
+    SELECT managers.employee_id AS employee_id,
+        managers.manager_data AS manager_data, managers.name AS name,
+        CAST(NULL AS VARCHAR(50)) AS engineer_info, 'manager' AS type
     FROM managers
 UNION ALL
-    SELECT engineers.employee_id AS employee_id, CAST(NULL AS VARCHAR(50)) AS manager_data, engineers.name AS name,
+    SELECT engineers.employee_id AS employee_id,
+        CAST(NULL AS VARCHAR(50)) AS manager_data, engineers.name AS name,
     engineers.engineer_info AS engineer_info, 'engineer' AS type
     FROM engineers
 ) AS pjoin
@@ -592,7 +654,8 @@ bidirectionally reference <tt class="docutils literal"><span class="pre">C</span
         <span class="s">&#39;some_c&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s">&#39;many_a&#39;</span><span class="p">)</span>
 <span class="p">})</span>
 <span class="n">mapper</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">c_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;many_a&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">collection_class</span><span class="o">=</span><span class="nb">set</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s">&#39;some_c&#39;</span><span class="p">),</span>
+    <span class="s">&#39;many_a&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">collection_class</span><span class="o">=</span><span class="nb">set</span><span class="p">,</span>
+                                <span class="n">back_populates</span><span class="o">=</span><span class="s">&#39;some_c&#39;</span><span class="p">),</span>
 <span class="p">})</span></pre></div>
 </div>
 </div>

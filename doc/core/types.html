@@ -7,7 +7,7 @@
         
         <title>
                 Column and Data Types
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Events" href="event.html" />
         <link rel="prev" title="Schema Definition Language" href="schema.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Column and Data Types
@@ -92,6 +92,7 @@ Search:
 <li><a class="reference internal" href="#overriding-type-compilation">Overriding Type Compilation</a></li>
 <li><a class="reference internal" href="#augmenting-existing-types">Augmenting Existing Types</a></li>
 <li><a class="reference internal" href="#typedecorator-recipes">TypeDecorator Recipes</a><ul>
+<li><a class="reference internal" href="#coercing-encoded-strings-to-unicode">Coercing Encoded Strings to Unicode</a></li>
 <li><a class="reference internal" href="#rounding-numerics">Rounding Numerics</a></li>
 <li><a class="reference internal" href="#backend-agnostic-guid-type">Backend-agnostic GUID Type</a></li>
 <li><a class="reference internal" href="#marshal-json-strings">Marshal JSON Strings</a></li>
@@ -1150,7 +1151,7 @@ has local state that should be deep-copied.</p>
 <p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.copy_value" title="sqlalchemy.types.TypeEngine.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.copy_value()</span></tt></a> 
 of the underlying &#8220;impl&#8221;.</p>
 <p><a class="reference internal" href="#sqlalchemy.types.TypeDecorator.copy_value" title="sqlalchemy.types.TypeDecorator.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">copy_value()</span></tt></a> will return the object
-itself, assuming &#8220;mutability&#8221; is not enabled.  
+itself, assuming &#8220;mutability&#8221; is not enabled.
 Only the <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> mixin provides a copy 
 function that actually produces a new object.
 The copying function is used by the ORM when
@@ -1276,12 +1277,74 @@ into wrapped <a class="reference internal" href="#sqlalchemy.types.TypeDecorator
 Behavior can be customized here by overriding <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="sqlalchemy.types.TypeDecorator.load_dialect_impl"><tt class="xref py py-meth docutils literal"><span class="pre">load_dialect_impl()</span></tt></a>.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="sqlalchemy.types.TypeDecorator.with_variant">
+<tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.with_variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a new type object that will utilize the given 
+type when applied to the dialect of the given name.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">String</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects</span> <span class="kn">import</span> <span class="n">mysql</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">with_variant</span><span class="p">(</span><span class="n">mysql</span><span class="o">.</span><span class="n">VARCHAR</span><span class="p">(</span><span class="n">collation</span><span class="o">=</span><span class="s">&#39;foo&#39;</span><span class="p">),</span> <span class="s">&#39;mysql&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>The construction of <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> is always
+from the &#8220;fallback&#8221; type to that which is dialect specific.
+The returned type is an instance of <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>, which
+itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> that can 
+be called repeatedly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>type</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> that will be selected
+as a variant from the originating type, when a dialect
+of the given name is in use.</li>
+<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses 
+this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</span></tt>, <tt class="docutils literal"><span class="pre">'mysql'</span></tt>, etc.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>New in 0.7.2.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="typedecorator-recipes">
 <h3>TypeDecorator Recipes<a class="headerlink" href="#typedecorator-recipes" title="Permalink to this headline">¶</a></h3>
 <p>A few key <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> recipes follow.</p>
+<div class="section" id="coercing-encoded-strings-to-unicode">
+<h4>Coercing Encoded Strings to Unicode<a class="headerlink" href="#coercing-encoded-strings-to-unicode" title="Permalink to this headline">¶</a></h4>
+<p>A common source of confusion regarding the <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> type
+is that it is intended to deal <em>only</em> with Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects
+on the Python side, meaning values passed to it as bind parameters
+must be of the form <tt class="docutils literal"><span class="pre">u'some</span> <span class="pre">string'</span></tt> if using Python 2 and not 3.
+The encoding/decoding functions it performs are only to suit what the
+DBAPI in use requires, and are primarily a private implementation detail.</p>
+<p>The use case of a type that can safely receive Python bytestrings,
+that is strings that contain non-ASCII characters and are not <tt class="docutils literal"><span class="pre">u''</span></tt>
+objects in Python 2, can be achieved using a <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>
+which coerces as needed:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">TypeDecorator</span><span class="p">,</span> <span class="n">Unicode</span>
+
+<span class="k">class</span> <span class="nc">CoerceUTF8</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Safely coerce Python bytestrings to Unicode</span>
+<span class="sd">    before passing off to the database.&quot;&quot;&quot;</span>
+
+    <span class="n">impl</span> <span class="o">=</span> <span class="n">Unicode</span>
+
+    <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></pre></div>
+</div>
+</div>
 <div class="section" id="rounding-numerics">
 <h4>Rounding Numerics<a class="headerlink" href="#rounding-numerics" title="Permalink to this headline">¶</a></h4>
 <p>Some database connectors like those of SQL Server choke if a Decimal is passed with too
@@ -1553,6 +1616,42 @@ to return to the user.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sqlalchemy.types.UserDefinedType.with_variant">
+<tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UserDefinedType.with_variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a new type object that will utilize the given 
+type when applied to the dialect of the given name.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">String</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects</span> <span class="kn">import</span> <span class="n">mysql</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">with_variant</span><span class="p">(</span><span class="n">mysql</span><span class="o">.</span><span class="n">VARCHAR</span><span class="p">(</span><span class="n">collation</span><span class="o">=</span><span class="s">&#39;foo&#39;</span><span class="p">),</span> <span class="s">&#39;mysql&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>The construction of <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> is always
+from the &#8220;fallback&#8221; type to that which is dialect specific.
+The returned type is an instance of <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>, which
+itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> that can 
+be called repeatedly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>type</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> that will be selected
+as a variant from the originating type, when a dialect
+of the given name is in use.</li>
+<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses 
+this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</span></tt>, <tt class="docutils literal"><span class="pre">'mysql'</span></tt>, etc.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>New in 0.7.2.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -1696,6 +1795,42 @@ to return to the user.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sqlalchemy.types.TypeEngine.with_variant">
+<tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.with_variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a new type object that will utilize the given 
+type when applied to the dialect of the given name.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">String</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects</span> <span class="kn">import</span> <span class="n">mysql</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">with_variant</span><span class="p">(</span><span class="n">mysql</span><span class="o">.</span><span class="n">VARCHAR</span><span class="p">(</span><span class="n">collation</span><span class="o">=</span><span class="s">&#39;foo&#39;</span><span class="p">),</span> <span class="s">&#39;mysql&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>The construction of <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> is always
+from the &#8220;fallback&#8221; type to that which is dialect specific.
+The returned type is an instance of <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>, which
+itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> that can 
+be called repeatedly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>type</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> that will be selected
+as a variant from the originating type, when a dialect
+of the given name is in use.</li>
+<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses 
+this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</span></tt>, <tt class="docutils literal"><span class="pre">'mysql'</span></tt>, etc.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>New in 0.7.2.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1808,6 +1943,60 @@ handle all translation to and from the database data type.</p>
 <p>NullType does not have sufficient information to particpate in a
 <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement and will raise an exception if
 encountered during a <tt class="xref py py-meth docutils literal"><span class="pre">create()</span></tt> operation.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.types.Variant">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Variant</tt><big>(</big><em>base</em>, <em>mapping</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></a></p>
+<p>A wrapping type that selects among a variety of
+implementations based on dialect in use.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a> type is typically constructed
+using the <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> method.</p>
+<p>New in 0.7.2.</p>
+<dl class="method">
+<dt id="sqlalchemy.types.Variant.with_variant">
+<tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Variant.with_variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a> which adds the given
+type + dialect name to the mapping, in addition to the 
+mapping present in this <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>type</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> that will be selected
+as a variant from the originating type, when a dialect
+of the given name is in use.</li>
+<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses 
+this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</span></tt>, <tt class="docutils literal"><span class="pre">'mysql'</span></tt>, etc.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>New in 0.7.2.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.types.Variant.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>base</em>, <em>mapping</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Variant.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a new <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>base</strong> &#8211; the base &#8216;fallback&#8217; type</li>
+<li><strong>mapping</strong> &#8211; dictionary of string dialect names to <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> 
+instances.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>

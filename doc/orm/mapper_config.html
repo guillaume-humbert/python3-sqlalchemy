@@ -7,7 +7,7 @@
         
         <title>
                 Mapper Configuration
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Relationship Configuration" href="relationships.html" />
         <link rel="prev" title="Object Relational Tutorial" href="tutorial.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Mapper Configuration
@@ -454,7 +454,21 @@ used.  Unlike older versions of SQLAlchemy, there is no <a class="reference inte
         <span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>The declarative form of the above is described in <a class="reference internal" href="extensions/declarative.html#declarative-sql-expressions"><em>Defining SQL Expressions</em></a>.</p>
+<p>For many-to-many relationships, use <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a> to join the fields of the
+association table to both tables in a relation:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">and_</span>
+
+<span class="n">mapper</span><span class="p">(</span><span class="n">Author</span><span class="p">,</span> <span class="n">authors</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+    <span class="s">&#39;book_count&#39;</span><span class="p">:</span> <span class="n">column_property</span><span class="p">(</span>
+                        <span class="n">select</span><span class="p">([</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">books</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">)],</span>
+                            <span class="n">and_</span><span class="p">(</span>
+                                <span class="n">book_authors</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">author_id</span><span class="o">==</span><span class="n">authors</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                <span class="n">book_authors</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">book_id</span><span class="o">==</span><span class="n">books</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span>
+                            <span class="p">)))</span>
+    <span class="p">})</span></pre></div>
+</div>
+<p>For examples of <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a> using Declarative, see
+<a class="reference internal" href="extensions/declarative.html#declarative-sql-expressions"><em>Defining SQL Expressions</em></a>.</p>
 <p>Note that <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a> is used to provide the effect of a SQL
 expression that is actively rendered into the SELECT generated for a
 particular mapped class.  Alternatively, for the typical attribute that
@@ -518,6 +532,10 @@ issued when the ORM is populating the object.</p>
         <span class="k">assert</span> <span class="s">&#39;@&#39;</span> <span class="ow">in</span> <span class="n">address</span><span class="o">.</span><span class="n">email</span>
         <span class="k">return</span> <span class="n">address</span></pre></div>
 </div>
+<p>Note that the <a class="reference internal" href="#sqlalchemy.orm.validates" title="sqlalchemy.orm.validates"><tt class="xref py py-func docutils literal"><span class="pre">validates()</span></tt></a> decorator is a convenience function built on
+top of attribute events.   An application that requires more control over
+configuration of attribute change behavior can make use of this system,
+described at <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.validates">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">validates</tt><big>(</big><em>*names</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.validates" title="Permalink to this definition">¶</a></dt>
@@ -1750,6 +1768,15 @@ representing a <a class="reference internal" href="../core/expression_api.html#s
 objects that comprise the full construct will be represented here.</p>
 <p>This is a <em>read only</em> attribute determined during mapper construction.
 Behavior is undefined if directly modified.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.orm.mapper.Mapper.validators">
+<tt class="descname">validators</tt><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.validators" title="Permalink to this definition">¶</a></dt>
+<dd><p>An immutable dictionary of attributes which have been decorated
+using the <a class="reference internal" href="#sqlalchemy.orm.validates" title="sqlalchemy.orm.validates"><tt class="xref py py-func docutils literal"><span class="pre">validates()</span></tt></a> decorator.</p>
+<p>The dictionary contains string attribute names as keys
+mapped to the actual validation method.</p>
 </dd></dl>
 
 </dd></dl>
