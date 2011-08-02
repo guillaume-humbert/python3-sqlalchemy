@@ -1,6 +1,7 @@
 sqlalchemy (0.7.2-1) unstable; urgency=low
 
   * New upstream release
+  * Bump minimum required python-mako version to 0.4.1 (closes: 635898)
 
  -- Piotr Ożarowski <piotr@debian.org>  Mon, 01 Aug 2011 23:18:16 +0200
 
