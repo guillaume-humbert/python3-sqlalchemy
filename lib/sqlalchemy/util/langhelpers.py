@@ -15,7 +15,7 @@ import re
 import sys
 import types
 import warnings
-from compat import update_wrapper, set_types, threading
+from compat import update_wrapper, set_types, threading, callable, inspect_getfullargspec, py3k
 from sqlalchemy import exc
 
 def _unique_symbols(used, *bases):
@@ -38,7 +38,7 @@ def decorator(target):
     def decorate(fn):
         if not inspect.isfunction(fn):
             raise Exception("not a decoratable function")
-        spec = inspect.getargspec(fn)
+        spec = inspect_getfullargspec(fn)
         names = tuple(spec[0]) + spec[1:3] + (fn.func_name,)
         targ_name, fn_name = _unique_symbols(names, 'target', 'fn')
 
@@ -149,7 +149,11 @@ def format_argspec_plus(fn, grouped=True):
        'apply_pos': '(self, a, b, c, **d)'}
 
     """
-    spec = callable(fn) and inspect.getargspec(fn) or fn
+    if callable(fn):
+        spec = inspect_getfullargspec(fn)
+    else:
+        # we accept an existing argspec...
+        spec = fn
     args = inspect.formatargspec(*spec)
     if spec[0]:
         self_arg = spec[0][0]
@@ -157,9 +161,28 @@ def format_argspec_plus(fn, grouped=True):
         self_arg = '%s[0]' % spec[1]
     else:
         self_arg = None
-    apply_pos = inspect.formatargspec(spec[0], spec[1], spec[2])
-    defaulted_vals = spec[3] is not None and spec[0][0-len(spec[3]):] or ()
-    apply_kw = inspect.formatargspec(spec[0], spec[1], spec[2], defaulted_vals,
+
+    if py3k:
+        apply_pos = inspect.formatargspec(spec[0], spec[1], spec[2], None, spec[4])
+        num_defaults = 0
+        if spec[3]:
+            num_defaults += len(spec[3])
+        if spec[4]:
+            num_defaults += len(spec[4])
+        name_args = spec[0] + spec[4]
+    else:
+        apply_pos = inspect.formatargspec(spec[0], spec[1], spec[2])
+        num_defaults = 0
+        if spec[3]:
+            num_defaults += len(spec[3])
+        name_args = spec[0]
+
+    if num_defaults:
+        defaulted_vals = name_args[0-num_defaults:]
+    else:
+        defaulted_vals = ()
+
+    apply_kw = inspect.formatargspec(name_args, spec[1], spec[2], defaulted_vals,
                                      formatvalue=lambda x: '=' + x)
     if grouped:
         return dict(args=args, self_arg=self_arg,
@@ -237,9 +260,12 @@ def generic_repr(obj):
             for arg in args[1:-default_len]:
                 yield repr(getattr(obj, arg, None))
             for (arg, defval) in zip(args[-default_len:], defaults):
-                val = getattr(obj, arg, None)
-                if val != defval:
-                    yield '%s=%r' % (arg, val)
+                try:
+                    val = getattr(obj, arg, None)
+                    if val != defval:
+                        yield '%s=%r' % (arg, val)
+                except:
+                    pass
     return "%s(%s)" % (obj.__class__.__name__, ", ".join(genargs()))
 
 class portable_instancemethod(object):
@@ -493,8 +519,10 @@ def reset_memoized(instance, name):
 class group_expirable_memoized_property(object):
     """A family of @memoized_properties that can be expired in tandem."""
 
-    def __init__(self):
+    def __init__(self, attributes=()):
         self.attributes = []
+        if attributes:
+            self.attributes.extend(attributes)
 
     def expire_instance(self, instance):
         """Expire all memoized properties for *instance*."""
@@ -505,6 +533,10 @@ class group_expirable_memoized_property(object):
     def __call__(self, fn):
         self.attributes.append(fn.__name__)
         return memoized_property(fn)
+
+    def method(self, fn):
+        self.attributes.append(fn.__name__)
+        return memoized_instancemethod(fn)
 
 class importlater(object):
     """Deferred import object.
@@ -518,37 +550,67 @@ class importlater(object):
         from mypackage.somemodule import somesubmod
 
     except evaluted upon attribute access to "somesubmod".
+    
+    importlater() currently requires that resolve_all() be
+    called, typically at the bottom of a package's __init__.py.
+    This is so that __import__ still called only at 
+    module import time, and not potentially within
+    a non-main thread later on.
 
     """
+
+    _unresolved = set()
+
     def __init__(self, path, addtl=None):
         self._il_path = path
         self._il_addtl = addtl
+        importlater._unresolved.add(self)
+
+    @classmethod
+    def resolve_all(cls):
+        for m in list(importlater._unresolved):
+            m._resolve()
+
+    @property
+    def _full_path(self):
+        if self._il_addtl:
+            return self._il_path + "." + self._il_addtl
+        else:
+            return self._il_path
 
     @memoized_property
     def module(self):
+        if self in importlater._unresolved:
+            raise ImportError(
+                    "importlater.resolve_all() hasn't been called")
+
+        m = self._initial_import
         if self._il_addtl:
-            m = __import__(self._il_path, globals(), locals(),
-                                [self._il_addtl])
-            try:
-                return getattr(m, self._il_addtl)
-            except AttributeError:
-                raise ImportError(
-                        "Module %s has no attribute '%s'" %
-                        (self._il_path, self._il_addtl)
-                    )
+            m = getattr(m, self._il_addtl)
         else:
-            m = __import__(self._il_path)
             for token in self._il_path.split(".")[1:]:
                 m = getattr(m, token)
-            return m
+        return m
+
+    def _resolve(self):
+        importlater._unresolved.discard(self)
+        if self._il_addtl:
+            self._initial_import = __import__(
+                                self._il_path, globals(), locals(), 
+                                [self._il_addtl])
+        else:
+            self._initial_import = __import__(self._il_path)
 
     def __getattr__(self, key):
+        if key == 'module':
+            raise ImportError("Could not resolve module %s" 
+                                % self._full_path)
         try:
             attr = getattr(self.module, key)
         except AttributeError:
             raise AttributeError(
                         "Module %s has no attribute '%s'" %
-                        (self._il_path, key)
+                        (self._full_path, key)
                     )
         self.__dict__[key] = attr
         return attr
@@ -609,6 +671,22 @@ def constructor_copy(obj, cls, **kw):
     kw.update((k, obj.__dict__[k]) for k in names if k in obj.__dict__)
     return cls(**kw)
 
+
+def counter():
+    """Return a threadsafe counter function."""
+
+    lock = threading.Lock()
+    counter = itertools.count(1L)
+
+    # avoid the 2to3 "next" transformation...
+    def _next():
+        lock.acquire()
+        try:
+            return counter.next()
+        finally:
+            lock.release()
+
+    return _next
 
 def duck_type_collection(specimen, default=None):
     """Given an instance or class, guess if it is or is acting as one of

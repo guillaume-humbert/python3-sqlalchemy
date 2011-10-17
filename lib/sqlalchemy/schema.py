@@ -68,7 +68,7 @@ class SchemaItem(events.SchemaEventTarget, visitors.Visitable):
         return []
 
     def __repr__(self):
-        return "%s()" % self.__class__.__name__
+        return util.generic_repr(self)
 
     @util.memoized_property
     def info(self):
@@ -92,11 +92,15 @@ class Table(SchemaItem, expression.TableClause):
                    )
 
     The :class:`.Table` object constructs a unique instance of itself based on its
-    name and optionl schema name within the given :class:`.MetaData` object.   
+    name and optional schema name within the given :class:`.MetaData` object.   
     Calling the :class:`.Table`
     constructor with the same name and same :class:`.MetaData` argument 
     a second time will return the *same* :class:`.Table` object - in this way
     the :class:`.Table` constructor acts as a registry function.
+    
+    See also:
+    
+    :ref:`metadata_describing` - Introduction to database metadata
     
     Constructor arguments are as follows:
 
@@ -914,7 +918,7 @@ class Column(SchemaItem, expression.ColumnClause):
             [repr(x) for x in self.foreign_keys if x is not None] +
             [repr(x) for x in self.constraints] +
             [(self.table is not None and "table=<%s>" % 
-                    self.table.description or "")] +
+                    self.table.description or "table=None")] +
             ["%s=%s" % (k, repr(getattr(self, k))) for k in kwarg])
 
     def _set_parent(self, table):
@@ -986,7 +990,7 @@ class Column(SchemaItem, expression.ColumnClause):
             [c.copy(**kw) for c in self.constraints] + \
             [c.copy(**kw) for c in self.foreign_keys if not c.constraint]
 
-        c = Column(
+        c = self._constructor(
                 name=self.name, 
                 type_=self.type, 
                 key = self.key, 
@@ -1397,9 +1401,6 @@ class DefaultGenerator(_NotAColumnExpr, SchemaItem):
         else:
             return None
 
-    def __repr__(self):
-        return "DefaultGenerator()"
-
 
 class ColumnDefault(DefaultGenerator):
     """A plain default value on a column.
@@ -1596,12 +1597,6 @@ class Sequence(DefaultGenerator):
         """
         return expression.func.next_value(self, bind=self.bind)
 
-    def __repr__(self):
-        return "Sequence(%s)" % ', '.join(
-            [repr(self.name)] +
-            ["%s=%s" % (k, repr(getattr(self, k)))
-             for k in ['start', 'increment', 'optional']])
-
     def _set_parent(self, column):
         super(Sequence, self)._set_parent(column)
         column._on_table_attach(self._set_table)
@@ -1677,8 +1672,7 @@ class FetchedValue(_NotAColumnExpr, events.SchemaEventTarget):
             self.column.server_default = self
 
     def __repr__(self):
-        return 'FetchedValue(for_update=%r)' % self.for_update
-
+        return util.generic_repr(self)
 
 class DefaultClause(FetchedValue):
     """A DDL-specified DEFAULT column value.
@@ -2092,6 +2086,8 @@ class Index(ColumnCollectionMixin, SchemaItem):
     :ref:`schema_indexes` - General information on :class:`.Index`.
 
     :ref:`postgresql_indexes` - PostgreSQL-specific options available for the :class:`.Index` construct.
+
+    :ref:`mysql_indexes` - MySQL-specific options available for the :class:`.Index` construct.
     """
 
     __visit_name__ = 'index'
@@ -2174,20 +2170,23 @@ class Index(ColumnCollectionMixin, SchemaItem):
         bind._run_visitor(ddl.SchemaDropper, self)
 
     def __repr__(self):
-        return 'Index("%s", %s%s)' % (
-                    self.name,
-                      ', '.join(repr(c) for c in self.columns),
-                      (self.unique and ', unique=True') or '')
+        return 'Index(%s)' % (
+                    ", ".join(
+                        [repr(self.name)] + 
+                        [repr(c) for c in self.columns] +
+                        (self.unique and ["unique=True"] or [])
+                    ))
 
 class MetaData(SchemaItem):
-    """A collection of Tables and their associated schema constructs.
+    """A collection of :class:`.Table` objects and their associated schema constructs.
 
-    Holds a collection of Tables and an optional binding to an ``Engine`` or
-    ``Connection``.  If bound, the :class:`~sqlalchemy.schema.Table` objects
+    Holds a collection of :class:`.Table` objects as well as 
+    an optional binding to an :class:`.Engine` or
+    :class:`.Connection`.  If bound, the :class:`.Table` objects
     in the collection and their columns may participate in implicit SQL
     execution.
 
-    The `Table` objects themselves are stored in the `metadata.tables`
+    The :class:`.Table` objects themselves are stored in the ``metadata.tables``
     dictionary.
 
     The ``bind`` property may be assigned to dynamically.  A common pattern is
@@ -2202,6 +2201,12 @@ class MetaData(SchemaItem):
 
     MetaData is a thread-safe object after tables have been explicitly defined
     or loaded via reflection.
+    
+    See also:
+    
+    :ref:`metadata_describing` - Introduction to database metadata
+    
+    :ref:`metadata_binding` - Information on binding connectables to :class:`.MetaData`
 
     .. index::
       single: thread safety; MetaData
@@ -2237,7 +2242,7 @@ class MetaData(SchemaItem):
             self.reflect()
 
     def __repr__(self):
-        return 'MetaData(%r)' % self.bind
+        return 'MetaData(bind=%r)' % self.bind
 
     def __contains__(self, table_or_key):
         if not isinstance(table_or_key, basestring):

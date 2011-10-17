@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.2',
+          VERSION:     '0.7.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
+    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -93,6 +93,11 @@ Search:
 <li><a class="reference internal" href="#keys">Keys</a></li>
 <li><a class="reference internal" href="#sql-mode">SQL Mode</a></li>
 <li><a class="reference internal" href="#mysql-sql-extensions">MySQL SQL Extensions</a></li>
+<li><a class="reference internal" href="#cast-support">CAST Support</a></li>
+<li><a class="reference internal" href="#mysql-specific-index-options">MySQL Specific Index Options</a><ul>
+<li><a class="reference internal" href="#index-length">Index Length</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#mysql-data-types">MySQL Data Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mysql.mysqldb">MySQL-Python Notes</a><ul>
 <li><a class="reference internal" href="#id1">Connecting</a></li>
@@ -304,6 +309,52 @@ available.</p>
 </div>
 </li>
 </ul>
+</div>
+<div class="section" id="cast-support">
+<h2>CAST Support<a class="headerlink" href="#cast-support" title="Permalink to this headline">¶</a></h2>
+<p>MySQL documents the CAST operator as available in version 4.0.2.  When using the
+SQLAlchemy <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> function, SQLAlchemy
+will not render the CAST token on MySQL before this version, based on server version
+detection, instead rendering the internal expression directly.</p>
+<p>CAST may still not be desirable on an early MySQL version post-4.0.2, as it didn&#8217;t
+add all datatype support until 4.1.1.   If your application falls into this
+narrow area, the behavior of CAST can be controlled using the <a class="reference internal" href="../core/compiler.html"><em>Custom SQL Constructs and Compilation Extension</em></a>
+system, as per the recipe below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">_Cast</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">_Cast</span><span class="p">,</span> <span class="s">&#39;mysql&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_check_mysql_version</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">compiler</span><span class="o">.</span><span class="n">dialect</span><span class="o">.</span><span class="n">server_version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">compiler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">clause</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">compiler</span><span class="o">.</span><span class="n">visit_cast</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span></pre></div>
+</div>
+<p>The above function, which only needs to be declared once
+within an application, overrides the compilation of the
+<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> construct to check for version 4.1.0 before
+fully rendering CAST; else the internal element of the
+construct is rendered directly.</p>
+</div>
+<div class="section" id="mysql-specific-index-options">
+<span id="mysql-indexes"></span><h2>MySQL Specific Index Options<a class="headerlink" href="#mysql-specific-index-options" title="Permalink to this headline">¶</a></h2>
+<p>MySQL-specific extensions to the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct are available.</p>
+<div class="section" id="index-length">
+<h3>Index Length<a class="headerlink" href="#index-length" title="Permalink to this headline">¶</a></h3>
+<p>MySQL provides an option to create index entries with a certain length, where
+&#8220;length&#8221; refers to the number of characters or bytes in each value which will
+become part of the index. SQLAlchemy provides this feature via the
+<tt class="docutils literal"><span class="pre">mysql_length</span></tt> parameter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mysql_length</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span></pre></div>
+</div>
+<p>Prefix lengths are given in characters for nonbinary string types and in bytes
+for binary string types. The value passed to the keyword argument will be
+simply passed through to the underlying CREATE INDEX command, so it <em>must</em> be
+an integer. MySQL only allows a length for an index if it is for a CHAR,
+VARCHAR, TEXT, BINARY, VARBINARY and BLOB.</p>
+<p>More information can be found at:
+<a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/create-index.html">http://dev.mysql.com/doc/refman/5.0/en/create-index.html</a></p>
+</div>
 </div>
 <div class="section" id="mysql-data-types">
 <h2>MySQL Data Types<a class="headerlink" href="#mysql-data-types" title="Permalink to this headline">¶</a></h2>

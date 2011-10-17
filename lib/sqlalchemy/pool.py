@@ -189,9 +189,10 @@ class Pool(log.Identified):
         """Dispose of this pool.
 
         This method leaves the possibility of checked-out connections
-        remaining open, It is advised to not reuse the pool once dispose()
-        is called, and to instead use a new pool constructed by the
-        recreate() method.
+        remaining open, as it only affects connections that are
+        idle in the pool.
+        
+        See also the :meth:`Pool.recreate` method.
 
         """
 
@@ -512,7 +513,7 @@ class SingletonThreadPool(Pool):
 
     def recreate(self):
         self.logger.info("Pool recreating")
-        return SingletonThreadPool(self._creator, 
+        return self.__class__(self._creator, 
             pool_size=self.size, 
             recycle=self._recycle, 
             echo=self.echo, 
@@ -645,7 +646,7 @@ class QueuePool(Pool):
 
     def recreate(self):
         self.logger.info("Pool recreating")
-        return QueuePool(self._creator, pool_size=self._pool.maxsize, 
+        return self.__class__(self._creator, pool_size=self._pool.maxsize, 
                           max_overflow=self._max_overflow,
                           timeout=self._timeout, 
                           recycle=self._recycle, echo=self.echo, 
@@ -759,7 +760,7 @@ class NullPool(Pool):
     def recreate(self):
         self.logger.info("Pool recreating")
 
-        return NullPool(self._creator, 
+        return self.__class__(self._creator, 
             recycle=self._recycle, 
             echo=self.echo, 
             logging_name=self._orig_logging_name,
@@ -851,7 +852,7 @@ class AssertionPool(Pool):
 
     def recreate(self):
         self.logger.info("Pool recreating")
-        return AssertionPool(self._creator, echo=self.echo, 
+        return self.__class__(self._creator, echo=self.echo, 
                             logging_name=self._orig_logging_name,
                             _dispatch=self.dispatch)
 
@@ -917,6 +918,7 @@ class _DBProxy(object):
             self._create_pool_mutex.acquire()
             try:
                 if key not in self.pools:
+                    kw.pop('sa_pool_key', None)
                     pool = self.poolclass(lambda: 
                                 self.module.connect(*args, **kw), **self.kw)
                     self.pools[key] = pool
@@ -952,6 +954,9 @@ class _DBProxy(object):
             pass
 
     def _serialize(self, *args, **kw):
+        if "sa_pool_key" in kw:
+            return kw['sa_pool_key']
+
         return tuple(
             list(args) + 
             [(k, kw[k]) for k in sorted(kw)]

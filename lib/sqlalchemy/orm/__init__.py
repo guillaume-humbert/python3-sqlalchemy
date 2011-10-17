@@ -186,23 +186,64 @@ def relationship(argument, secondary=None, **kwargs):
     This corresponds to a parent-child or associative table relationship.  The
     constructed class is an instance of :class:`.RelationshipProperty`.
 
-    A typical :func:`relationship`::
+    A typical :func:`.relationship`, used in a classical mapping::
 
        mapper(Parent, properties={
-         'children': relationship(Children)
+         'children': relationship(Child)
        })
 
+    Some arguments accepted by :func:`.relationship` optionally accept a 
+    callable function, which when called produces the desired value.
+    The callable is invoked by the parent :class:`.Mapper` at "mapper initialization"
+    time, which happens only when mappers are first used, and is assumed
+    to be after all mappings have been constructed.  This can be used
+    to resolve order-of-declaration and other dependency issues, such as 
+    if ``Child`` is declared below ``Parent`` in the same file::
+    
+        mapper(Parent, properties={
+            "children":relationship(lambda: Child, 
+                                order_by=lambda: Child.id)
+        })
+    
+    When using the :ref:`declarative_toplevel` extension, the Declarative
+    initializer allows string arguments to be passed to :func:`.relationship`.
+    These string arguments are converted into callables that evaluate 
+    the string as Python code, using the Declarative
+    class-registry as a namespace.  This allows the lookup of related
+    classes to be automatic via their string name, and removes the need to import
+    related classes at all into the local module space::
+    
+        from sqlalchemy.ext.declarative import declarative_base
+
+        Base = declarative_base()
+        
+        class Parent(Base):
+            __tablename__ = 'parent'
+            id = Column(Integer, primary_key=True)
+            children = relationship("Child", order_by="Child.id")
+    
+    A full array of examples and reference documentation regarding
+    :func:`.relationship` is at :ref:`relationship_config_toplevel`.
+    
     :param argument:
-      a class or :class:`.Mapper` instance, representing the target of
-      the relationship.
+      a mapped class, or actual :class:`.Mapper` instance, representing the target of
+      the relationship.  
+      
+      ``argument`` may also be passed as a callable function
+      which is evaluated at mapper initialization time, and may be passed as a 
+      Python-evaluable string when using Declarative.
 
     :param secondary:
       for a many-to-many relationship, specifies the intermediary
-      table. The *secondary* keyword argument should generally only
+      table, and is an instance of :class:`.Table`.  The ``secondary`` keyword 
+      argument should generally only
       be used for a table that is not otherwise expressed in any class
-      mapping. In particular, using the Association Object Pattern is
-      generally mutually exclusive with the use of the *secondary*
-      keyword argument.
+      mapping, unless this relationship is declared as view only, otherwise
+      conflicting persistence operations can occur.   
+      
+      ``secondary`` may
+      also be passed as a callable function which is evaluated at 
+      mapper initialization time.
 
     :param active_history=False:
       When ``True``, indicates that the "previous" value for a
@@ -212,7 +253,7 @@ def relationship(argument, secondary=None, **kwargs):
       value in order to perform a flush. This flag is available
       for applications that make use of
       :func:`.attributes.get_history` which also need to know
-      the "previous" value of the attribute. (New in 0.6.6)
+      the "previous" value of the attribute.
 
     :param backref:
       indicates the string name of a property to be placed on the related
@@ -333,6 +374,10 @@ def relationship(argument, secondary=None, **kwargs):
       rare and exotic composite foreign key setups where some columns
       should artificially not be considered as foreign.
 
+      ``foreign_keys`` may also be passed as a callable function
+      which is evaluated at mapper initialization time, and may be passed as a 
+      Python-evaluable string when using Declarative.
+      
     :param innerjoin=False:
       when ``True``, joined eager loads will use an inner join to join
       against related tables instead of an outer join.  The purpose
@@ -423,8 +468,15 @@ def relationship(argument, secondary=None, **kwargs):
 
     :param order_by:
       indicates the ordering that should be applied when loading these
-      items.
+      items.  ``order_by`` is expected to refer to one of the :class:`.Column`
+      objects to which the target class is mapped, or 
+      the attribute itself bound to the target class which refers
+      to the column.
 
+      ``order_by`` may also be passed as a callable function
+      which is evaluated at mapper initialization time, and may be passed as a 
+      Python-evaluable string when using Declarative.
+      
     :param passive_deletes=False:
        Indicates loading behavior during delete operations.
 
@@ -496,16 +548,24 @@ def relationship(argument, secondary=None, **kwargs):
       use ``post_update`` to "break" the cycle.
 
     :param primaryjoin:
-      a ColumnElement (i.e. WHERE criterion) that will be used as the primary
+      a SQL expression that will be used as the primary
       join of this child object against the parent object, or in a
       many-to-many relationship the join of the primary object to the
       association table. By default, this value is computed based on the
       foreign key relationships of the parent and child tables (or association
       table).
 
+      ``primaryjoin`` may also be passed as a callable function
+      which is evaluated at mapper initialization time, and may be passed as a 
+      Python-evaluable string when using Declarative.
+
     :param remote_side:
       used for self-referential relationships, indicates the column or
       list of columns that form the "remote side" of the relationship.
+
+      ``remote_side`` may also be passed as a callable function
+      which is evaluated at mapper initialization time, and may be passed as a 
+      Python-evaluable string when using Declarative.
 
     :param query_class:
       a :class:`.Query` subclass that will be used as the base of the
@@ -515,10 +575,14 @@ def relationship(argument, secondary=None, **kwargs):
       function.
       
     :param secondaryjoin:
-      a ColumnElement (i.e. WHERE criterion) that will be used as the join of
+      a SQL expression that will be used as the join of
       an association table to the child object. By default, this value is
       computed based on the foreign key relationships of the association and
       child tables.
+
+      ``secondaryjoin`` may also be passed as a callable function
+      which is evaluated at mapper initialization time, and may be passed as a 
+      Python-evaluable string when using Declarative.
 
     :param single_parent=(True|False):
       when True, installs a validator which will prevent objects
@@ -526,7 +590,7 @@ def relationship(argument, secondary=None, **kwargs):
       This is used for many-to-one or many-to-many relationships that
       should be treated either as one-to-one or one-to-many.  Its
       usage is optional unless delete-orphan cascade is also 
-      set on this relationship(), in which case its required (new in 0.5.2).
+      set on this relationship(), in which case its required.
 
     :param uselist=(True|False):
       a boolean that indicates if this property should be loaded as a
@@ -622,6 +686,22 @@ def column_property(*args, **kwargs):
     :param doc:
           optional string that will be applied as the doc on the
           class-bound descriptor.
+    
+    :param expire_on_flush=True:
+        Disable expiry on flush.   A column_property() which refers
+        to a SQL expression (and not a single table-bound column)
+        is considered to be a "read only" property; populating it
+        has no effect on the state of data, and it can only return
+        database state.   For this reason a column_property()'s value
+        is expired whenever the parent object is involved in a 
+        flush, that is, has any kind of "dirty" state within a flush.
+        Setting this parameter to ``False`` will have the effect of
+        leaving any existing value present after the flush proceeds.
+        Note however that the :class:`.Session` with default expiration
+        settings still expires 
+        all attributes after a :meth:`.Session.commit` call, however.
+        New in 0.7.3.
+        
 
     :param extension:
         an
@@ -698,7 +778,11 @@ def deferred(*columns, **kwargs):
     object attributes should only be loaded from its corresponding
     table column when first accessed.
 
-    Used with the `properties` dictionary sent to :func:`mapper`.
+    Used with the "properties" dictionary sent to :func:`mapper`.
+
+    See also:
+    
+    :ref:`deferred`
 
     """
     return ColumnProperty(deferred=True, *columns, **kwargs)
@@ -1279,29 +1363,117 @@ def contains_eager(*keys, **kwargs):
             propagate_to_loaders=False, chained=True), \
         strategies.LoadEagerFromAliasOption(keys, alias=alias, chained=True)
 
-def defer(*keys):
-    """Return a ``MapperOption`` that will convert the column property of the
-    given name into a deferred load.
+def defer(*key):
+    """Return a :class:`.MapperOption` that will convert the column property
+    of the given name into a deferred load.
 
-    Used with :meth:`~sqlalchemy.orm.query.Query.options`.
+    Used with :meth:`.Query.options`.
+    
+    e.g.::
+    
+        from sqlalchemy.orm import defer
+
+        query(MyClass).options(defer("attribute_one"), 
+                            defer("attribute_two"))
+    
+    A class bound descriptor is also accepted::
+        
+        query(MyClass).options(
+                            defer(MyClass.attribute_one), 
+                            defer(MyClass.attribute_two))
+    
+    A "path" can be specified onto a related or collection object using a
+    dotted name. The :func:`.orm.defer` option will be applied to that object
+    when loaded::
+    
+        query(MyClass).options(
+                            defer("related.attribute_one"), 
+                            defer("related.attribute_two"))
+    
+    To specify a path via class, send multiple arguments::
+
+        query(MyClass).options(
+                            defer(MyClass.related, MyOtherClass.attribute_one), 
+                            defer(MyClass.related, MyOtherClass.attribute_two))
+    
+    See also:
+    
+    :ref:`deferred`
+
+    :param \*key: A key representing an individual path.   Multiple entries
+     are accepted to allow a multiple-token path for a single target, not
+     multiple targets.
 
     """
-    return strategies.DeferredOption(keys, defer=True)
+    return strategies.DeferredOption(key, defer=True)
 
-def undefer(*keys):
-    """Return a ``MapperOption`` that will convert the column property of the
-    given name into a non-deferred (regular column) load.
+def undefer(*key):
+    """Return a :class:`.MapperOption` that will convert the column property
+    of the given name into a non-deferred (regular column) load.
 
-    Used with :meth:`~sqlalchemy.orm.query.Query.options`.
+    Used with :meth:`.Query.options`.
+    
+    e.g.::
+    
+        from sqlalchemy.orm import undefer
+
+        query(MyClass).options(undefer("attribute_one"), 
+                                undefer("attribute_two"))
+    
+    A class bound descriptor is also accepted::
+        
+        query(MyClass).options(
+                            undefer(MyClass.attribute_one), 
+                            undefer(MyClass.attribute_two))
+    
+    A "path" can be specified onto a related or collection object using a
+    dotted name. The :func:`.orm.undefer` option will be applied to that
+    object when loaded::
+    
+        query(MyClass).options(
+                            undefer("related.attribute_one"), 
+                            undefer("related.attribute_two"))
+    
+    To specify a path via class, send multiple arguments::
+
+        query(MyClass).options(
+                            undefer(MyClass.related, MyOtherClass.attribute_one), 
+                            undefer(MyClass.related, MyOtherClass.attribute_two))
+    
+    See also:
+    
+    :func:`.orm.undefer_group` as a means to "undefer" a group
+    of attributes at once.
+    
+    :ref:`deferred`
+    
+    :param \*key: A key representing an individual path.   Multiple entries
+     are accepted to allow a multiple-token path for a single target, not
+     multiple targets.
 
     """
-    return strategies.DeferredOption(keys, defer=False)
+    return strategies.DeferredOption(key, defer=False)
 
 def undefer_group(name):
-    """Return a ``MapperOption`` that will convert the given group of deferred
+    """Return a :class:`.MapperOption` that will convert the given group of deferred
     column properties into a non-deferred (regular column) load.
 
-    Used with :meth:`~sqlalchemy.orm.query.Query.options`.
+    Used with :meth:`.Query.options`.
+    
+    e.g.::
+    
+        query(MyClass).options(undefer("group_one"))
+
+    See also:
+    
+    :ref:`deferred`
+    
+    :param name: String name of the deferred group.   This name is 
+     established using the "group" name to the :func:`.orm.deferred` 
+     configurational function.
 
     """
     return strategies.UndeferGroupOption(name)
+
+from sqlalchemy import util as _sa_util
+_sa_util.importlater.resolve_all()

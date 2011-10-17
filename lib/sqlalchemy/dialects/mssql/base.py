@@ -157,7 +157,30 @@ following ALTER DATABASE commands executed at the SQL prompt::
 
 Background on SQL Server snapshot isolation is available at
 http://msdn.microsoft.com/en-us/library/ms175095.aspx.
-  
+
+Scalar Select Comparisons
+-------------------------
+
+The MSSQL dialect contains a legacy behavior whereby comparing
+a scalar select to a value using the ``=`` or ``!=`` operator
+will resolve to IN or NOT IN, respectively.  This behavior is 
+deprecated and will be removed in 0.8 - the ``s.in_()``/``~s.in_()`` operators 
+should be used when IN/NOT IN are desired.
+
+For the time being, the existing behavior prevents a comparison
+between scalar select and another value that actually wants to use ``=``.  
+To remove this behavior in a forwards-compatible way, apply this
+compilation rule by placing the following code at the module import
+level::
+
+    from sqlalchemy.ext.compiler import compiles
+    from sqlalchemy.sql.expression import _BinaryExpression
+    from sqlalchemy.sql.compiler import SQLCompiler
+    
+    @compiles(_BinaryExpression, 'mssql')
+    def override_legacy_binary(element, compiler, **kw):
+        return SQLCompiler.visit_binary(compiler, element, **kw)
+
 Known Issues
 ------------
 
@@ -171,7 +194,7 @@ import datetime, operator, re
 from sqlalchemy import sql, schema as sa_schema, exc, util
 from sqlalchemy.sql import select, compiler, expression, \
                             operators as sql_operators, \
-                            util as sql_util
+                            util as sql_util, cast
 from sqlalchemy.engine import default, base, reflection
 from sqlalchemy import types as sqltypes
 from sqlalchemy.types import INTEGER, BIGINT, SMALLINT, DECIMAL, NUMERIC, \
@@ -754,13 +777,13 @@ class MSSQLCompiler(compiler.SQLCompiler):
 
     def get_select_precolumns(self, select):
         """ MS-SQL puts TOP, it's version of LIMIT here """
-        if select._distinct or select._limit:
+        if select._distinct or select._limit is not None:
             s = select._distinct and "DISTINCT " or ""
 
             # ODBC drivers and possibly others
             # don't support bind params in the SELECT clause on SQL Server.
             # so have to use literal here.
-            if select._limit:
+            if select._limit is not None:
                 if not select._offset:
                     s += "TOP %d " % select._limit
             return s
@@ -889,6 +912,10 @@ class MSSQLCompiler(compiler.SQLCompiler):
                     )
                ):
                 op = binary.operator == operator.eq and "IN" or "NOT IN"
+                util.warn_deprecated("Comparing a scalar select using ``=``/``!=`` will "
+                                    "no longer produce IN/NOT IN in 0.8.  To remove this "
+                                    "behavior immediately, use the recipe at "
+                        "http://www.sqlalchemy.org/docs/07/dialects/mssql.html#scalar-select-comparisons")
                 return self.process(
                         expression._BinaryExpression(binary.left,
                                                      binary.right, op),
@@ -1135,11 +1162,10 @@ class MSDialect(default.DefaultDialect):
     def has_table(self, connection, tablename, schema=None):
         current_schema = schema or self.default_schema_name
         columns = ischema.columns
+        whereclause = cast(columns.c.table_name, NVARCHAR(_warn_on_bytestring=False))==tablename
         if current_schema:
-            whereclause = sql.and_(columns.c.table_name==tablename,
+            whereclause = sql.and_(whereclause,
                                    columns.c.table_schema==current_schema)
-        else:
-            whereclause = columns.c.table_name==tablename
         s = sql.select([columns], whereclause)
         c = connection.execute(s)
         return c.first() is not None

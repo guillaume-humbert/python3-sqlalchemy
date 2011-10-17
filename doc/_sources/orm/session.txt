@@ -105,7 +105,7 @@ into a **registry** that maintains a single :class:`.Session` per
 application thread.   Information on using contextual sessions
 is at :ref:`unitofwork_contextual`.
 
-Adding additional configuration to an Existing sessionmaker()
+Adding Additional Configuration to an Existing sessionmaker()
 --------------------------------------------------------------
 
 A common scenario is where the :func:`.sessionmaker` is invoked 
@@ -161,6 +161,8 @@ transaction - see :ref:`session_external_transaction` for an example of this.
 Using the Session
 ==================
 
+.. _session_object_states:
+
 Quickie Intro to Object States
 ------------------------------
 
@@ -192,8 +194,10 @@ Knowing these states is important, since the
 operations (such as trying to save the same object to two different sessions
 at the same time).
 
-Frequently Asked Questions
---------------------------
+.. _session_faq:
+
+Session Frequently Asked Questions
+-----------------------------------
 
 * When do I make a :func:`.sessionmaker` ?
 
@@ -1531,6 +1535,9 @@ Session and sessionmaker()
 .. autofunction:: sessionmaker
 
 .. autoclass:: sqlalchemy.orm.session.Session
+   :members:
+
+.. autoclass:: sqlalchemy.orm.session.SessionTransaction
    :members:
 
 Session Utilites

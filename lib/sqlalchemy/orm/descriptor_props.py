@@ -13,7 +13,7 @@ as actively in the load/persist ORM loop.
 from sqlalchemy.orm.interfaces import \
     MapperProperty, PropComparator, StrategizedProperty
 from sqlalchemy.orm.mapper import _none_set
-from sqlalchemy.orm import attributes
+from sqlalchemy.orm import attributes, strategies
 from sqlalchemy import util, sql, exc as sa_exc, event, schema
 from sqlalchemy.sql import expression
 properties = util.importlater('sqlalchemy.orm', 'properties')
@@ -67,7 +67,6 @@ class DescriptorProperty(MapperProperty):
                         lambda: self._comparator_factory(mapper),
                         doc=self.doc
                     )
-        proxy_attr.property = self
         proxy_attr.impl = _ProxyImpl(self.key)
         mapper.class_manager.instrument_attribute(self.key, proxy_attr)
 
@@ -80,6 +79,8 @@ class CompositeProperty(DescriptorProperty):
         self.active_history = kwargs.get('active_history', False)
         self.deferred = kwargs.get('deferred', False)
         self.group = kwargs.get('group', None)
+        self.comparator_factory = kwargs.pop('comparator_factory',
+                                            self.__class__.Comparator)
         util.set_creation_order(self)
         self._create_descriptor()
 
@@ -258,11 +259,11 @@ class CompositeProperty(DescriptorProperty):
             )
 
     def _comparator_factory(self, mapper):
-        return CompositeProperty.Comparator(self)
+        return self.comparator_factory(self)
 
     class Comparator(PropComparator):
         def __init__(self, prop, adapter=None):
-            self.prop = prop
+            self.prop = self.property = prop
             self.adapter = adapter
 
         def __clause_element__(self):

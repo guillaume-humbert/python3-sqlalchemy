@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.2',
+          VERSION:     '0.7.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
+    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -274,7 +274,7 @@ table include:</p>
 </div>
 </div>
 <div class="section" id="creating-and-dropping-database-tables">
-<span id="metadata-binding"></span><h3>Creating and Dropping Database Tables<a class="headerlink" href="#creating-and-dropping-database-tables" title="Permalink to this headline">¶</a></h3>
+<h3>Creating and Dropping Database Tables<a class="headerlink" href="#creating-and-dropping-database-tables" title="Permalink to this headline">¶</a></h3>
 <p>Once you&#8217;ve defined some <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects, assuming
 you&#8217;re working with a brand new database one thing you might want to do is
 issue CREATE statements for those tables and their related constructs (as an
@@ -363,7 +363,7 @@ employee_dept INTEGER REFERENCES departments(department_id)
 </div>
 </div>
 <div class="section" id="binding-metadata-to-an-engine-or-connection">
-<h3>Binding MetaData to an Engine or Connection<a class="headerlink" href="#binding-metadata-to-an-engine-or-connection" title="Permalink to this headline">¶</a></h3>
+<span id="metadata-binding"></span><h3>Binding MetaData to an Engine or Connection<a class="headerlink" href="#binding-metadata-to-an-engine-or-connection" title="Permalink to this headline">¶</a></h3>
 <p>Notice in the previous section the creator/dropper methods accept an argument
 for the database engine in use. When a schema construct is combined with an
 <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> object, or an individual
@@ -690,12 +690,13 @@ key.</p>
 <dt id="sqlalchemy.schema.MetaData">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">MetaData</tt><big>(</big><em>bind=None</em>, <em>reflect=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
-<p>A collection of Tables and their associated schema constructs.</p>
-<p>Holds a collection of Tables and an optional binding to an <tt class="docutils literal"><span class="pre">Engine</span></tt> or
-<tt class="docutils literal"><span class="pre">Connection</span></tt>.  If bound, the <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects
+<p>A collection of <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and their associated schema constructs.</p>
+<p>Holds a collection of <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects as well as 
+an optional binding to an <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.  If bound, the <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects
 in the collection and their columns may participate in implicit SQL
 execution.</p>
-<p>The <cite>Table</cite> objects themselves are stored in the <cite>metadata.tables</cite>
+<p>The <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects themselves are stored in the <tt class="docutils literal"><span class="pre">metadata.tables</span></tt>
 dictionary.</p>
 <p>The <tt class="docutils literal"><span class="pre">bind</span></tt> property may be assigned to dynamically.  A common pattern is
 to start unbound and then bind later when an engine is available:</p>
@@ -708,6 +709,9 @@ to start unbound and then bind later when an engine is available:</p>
 </div>
 <p>MetaData is a thread-safe object after tables have been explicitly defined
 or loaded via reflection.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="#metadata-describing"><em>Describing Databases with MetaData</em></a> - Introduction to database metadata</p>
+<p><a class="reference internal" href="#metadata-binding"><em>Binding MetaData to an Engine or Connection</em></a> - Information on binding connectables to <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a></p>
 <span class="target" id="index-0"></span><dl class="method">
 <dt id="sqlalchemy.schema.MetaData.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>bind=None</em>, <em>reflect=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData.__init__" title="Permalink to this definition">¶</a></dt>
@@ -880,11 +884,13 @@ dependency.</p>
            <span class="p">)</span></pre></div>
 </div>
 <p>The <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object constructs a unique instance of itself based on its
-name and optionl schema name within the given <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object.   
+name and optional schema name within the given <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object.   
 Calling the <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 constructor with the same name and same <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> argument 
 a second time will return the <em>same</em> <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object - in this way
 the <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> constructor acts as a registry function.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="#metadata-describing"><em>Describing Databases with MetaData</em></a> - Introduction to database metadata</p>
 <p>Constructor arguments are as follows:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2009,7 +2015,7 @@ would not be aware that these two values should be paired together - it would
 be two individual foreign key constraints instead of a single composite
 foreign key referencing two columns.</p>
 <div class="section" id="creating-dropping-foreign-key-constraints-via-alter">
-<h4>Creating/Dropping Foreign Key Constraints via ALTER<a class="headerlink" href="#creating-dropping-foreign-key-constraints-via-alter" title="Permalink to this headline">¶</a></h4>
+<span id="use-alter"></span><h4>Creating/Dropping Foreign Key Constraints via ALTER<a class="headerlink" href="#creating-dropping-foreign-key-constraints-via-alter" title="Permalink to this headline">¶</a></h4>
 <p>In all the above examples, the <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> object
 causes the &#8220;REFERENCES&#8221; keyword to be added inline to a column definition
 within a &#8220;CREATE TABLE&#8221; statement when
@@ -2468,6 +2474,7 @@ a shorthand equivalent for an unnamed, single column <a class="reference interna
 <p>See also:</p>
 <p><a class="reference internal" href="#schema-indexes"><em>Indexes</em></a> - General information on <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>.</p>
 <p><a class="reference internal" href="../dialects/postgresql.html#postgresql-indexes"><em>Postgresql-Specific Index Options</em></a> - PostgreSQL-specific options available for the <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
+<p><a class="reference internal" href="../dialects/mysql.html#mysql-indexes"><em>MySQL Specific Index Options</em></a> - MySQL-specific options available for the <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
 <dl class="method">
 <dt id="sqlalchemy.schema.Index.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index.__init__" title="Permalink to this definition">¶</a></dt>

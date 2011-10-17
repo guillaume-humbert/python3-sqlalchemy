@@ -352,6 +352,7 @@ class InheritedJoinTest(fixtures.MappedTest, AssertsCompiledSQL):
 
 
 class JoinTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     def test_single_name(self):
         User = self.classes.User
@@ -362,7 +363,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             sess.query(User).join("orders"),
             "SELECT users.id AS users_id, users.name AS users_name "
             "FROM users JOIN orders ON users.id = orders.user_id"
-            , use_default_dialect = True
         )
 
         assert_raises(
@@ -375,7 +375,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "SELECT users.id AS users_id, users.name AS users_name FROM users "
             "JOIN orders ON users.id = orders.user_id JOIN order_items AS order_items_1 "
             "ON orders.id = order_items_1.order_id JOIN items ON items.id = order_items_1.item_id"
-            , use_default_dialect=True
         )
 
         # test overlapping paths.   User->orders is used by both joins, but rendered once.
@@ -385,11 +384,29 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "ON users.id = orders.user_id JOIN order_items AS order_items_1 ON orders.id = "
             "order_items_1.order_id JOIN items ON items.id = order_items_1.item_id JOIN addresses "
             "ON addresses.id = orders.address_id"
-            , use_default_dialect=True
+        )
+
+    def test_join_on_synonym(self):
+
+        class User(object):
+            pass
+        class Address(object):
+            pass
+        users, addresses = (self.tables.users, self.tables.addresses)
+        mapper(User, users, properties={
+            'addresses':relationship(Address),
+            'ad_syn':synonym("addresses")
+        })
+        mapper(Address, addresses)
+        self.assert_compile(
+            Session().query(User).join(User.ad_syn),
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users JOIN addresses ON users.id = addresses.user_id"
         )
 
     def test_multi_tuple_form(self):
-        """test the 'tuple' form of join, now superseded by the two-element join() form.
+        """test the 'tuple' form of join, now superseded 
+        by the two-element join() form.
 
         Not deprecating this style as of yet.
 
@@ -411,7 +428,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             sess.query(User).join((Order, User.id==Order.user_id)),
             "SELECT users.id AS users_id, users.name AS users_name "
             "FROM users JOIN orders ON users.id = orders.user_id",
-            use_default_dialect=True
         )
 
         self.assert_compile(
@@ -423,7 +439,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "JOIN order_items AS order_items_1 ON orders.id = "
             "order_items_1.order_id JOIN items ON items.id = "
             "order_items_1.item_id",
-            use_default_dialect=True
         )
 
         # the old "backwards" form
@@ -431,7 +446,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             sess.query(User).join(("orders", Order)),
             "SELECT users.id AS users_id, users.name AS users_name "
             "FROM users JOIN orders ON users.id = orders.user_id",
-            use_default_dialect=True
         )
 
     def test_single_prop(self):
@@ -445,14 +459,12 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             sess.query(User).join(User.orders),
             "SELECT users.id AS users_id, users.name AS users_name "
             "FROM users JOIN orders ON users.id = orders.user_id"
-            , use_default_dialect=True
         )
 
         self.assert_compile(
             sess.query(User).join(Order.user),
             "SELECT users.id AS users_id, users.name AS users_name "
             "FROM orders JOIN users ON users.id = orders.user_id"
-            , use_default_dialect=True
         )
 
         oalias1 = aliased(Order)
@@ -462,7 +474,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             sess.query(User).join(oalias1.user),
             "SELECT users.id AS users_id, users.name AS users_name "
             "FROM orders AS orders_1 JOIN users ON users.id = orders_1.user_id"
-            , use_default_dialect=True
         )
 
         # another nonsensical query.  (from [ticket:1537]).
@@ -472,7 +483,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "SELECT users.id AS users_id, users.name AS users_name "
             "FROM orders AS orders_1 JOIN users ON users.id = orders_1.user_id, "
             "orders AS orders_2 JOIN users ON users.id = orders_2.user_id"
-            , use_default_dialect=True
         )
 
         self.assert_compile(
@@ -480,7 +490,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "SELECT users.id AS users_id, users.name AS users_name FROM users "
             "JOIN orders ON users.id = orders.user_id JOIN order_items AS order_items_1 "
             "ON orders.id = order_items_1.order_id JOIN items ON items.id = order_items_1.item_id"
-            , use_default_dialect=True
         )
 
         ualias = aliased(User)
@@ -488,7 +497,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             sess.query(ualias).join(ualias.orders),
             "SELECT users_1.id AS users_1_id, users_1.name AS users_1_name "
             "FROM users AS users_1 JOIN orders ON users_1.id = orders.user_id"
-            , use_default_dialect=True
         )
 
         # this query is somewhat nonsensical.  the old system didn't render a correct
@@ -502,7 +510,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "JOIN orders ON users.id = orders.user_id, "
             "orders AS orders_1 JOIN order_items AS order_items_1 ON orders_1.id = order_items_1.order_id "
             "JOIN items ON items.id = order_items_1.item_id"
-            , use_default_dialect=True
         )
 
         # same as before using an aliased() for User as well
@@ -513,7 +520,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "JOIN orders ON users_1.id = orders.user_id, "
             "orders AS orders_1 JOIN order_items AS order_items_1 ON orders_1.id = order_items_1.order_id "
             "JOIN items ON items.id = order_items_1.item_id"
-            , use_default_dialect=True
         )
 
         self.assert_compile(
@@ -522,7 +528,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "FROM (SELECT users.id AS users_id, users.name AS users_name "
             "FROM users "
             "WHERE users.name = :name_1) AS anon_1 JOIN orders ON anon_1.users_id = orders.user_id"
-            , use_default_dialect=True
         )
 
         self.assert_compile(
@@ -530,7 +535,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "SELECT users.id AS users_id, users.name AS users_name "
             "FROM users JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id "
             "WHERE addresses_1.email_address = :email_address_1"
-            , use_default_dialect=True
         )
 
         self.assert_compile(
@@ -540,7 +544,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "JOIN order_items AS order_items_1 ON orders_1.id = order_items_1.order_id "
             "JOIN items AS items_1 ON items_1.id = order_items_1.item_id "
             "WHERE items_1.id = :id_1"
-            , use_default_dialect=True
         )
 
         # test #1 for [ticket:1706]
@@ -553,7 +556,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "users_1_name FROM users AS users_1 JOIN orders AS orders_1 "
             "ON users_1.id = orders_1.user_id JOIN addresses ON users_1.id "
             "= addresses.user_id"
-            , use_default_dialect=True
         )
 
         # test #2 for [ticket:1706]
@@ -566,7 +568,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "SELECT users_1.id AS users_1_id, users_1.name AS users_1_name FROM users "
             "AS users_1 JOIN addresses ON users_1.id = addresses.user_id JOIN users AS users_2 "
             "ON users_2.id = addresses.user_id JOIN orders ON users_1.id = orders.user_id"
-            , use_default_dialect=True
         )
 
     def test_overlapping_paths(self):
@@ -577,6 +578,27 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             result = create_session().query(User).join('orders', 'items', aliased=aliased).\
                     filter_by(id=3).join('orders','address', aliased=aliased).filter_by(id=1).all()
             assert [User(id=7, name='jack')] == result
+
+    def test_overlapping_paths_multilevel(self):
+        User = self.classes.User
+
+        s = Session()
+        q = s.query(User).\
+                    join('orders').\
+                    join('addresses').\
+                    join('orders', 'items').\
+                    join('addresses', 'dingaling')
+        self.assert_compile(
+            q,
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users JOIN orders ON users.id = orders.user_id "
+            "JOIN addresses ON users.id = addresses.user_id "
+            "JOIN order_items AS order_items_1 ON orders.id = "
+            "order_items_1.order_id "
+            "JOIN items ON items.id = order_items_1.item_id "
+            "JOIN dingalings ON addresses.id = dingalings.address_id"
+
+        )
 
     def test_overlapping_paths_outerjoin(self):
         User = self.classes.User
@@ -640,10 +662,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             sess.query(User.id, literal_column('foo')).join(Order.user),
             "SELECT users.id AS users_id, foo FROM "
             "orders JOIN users ON users.id = orders.user_id"
-            , use_default_dialect=True
         )
-
-
 
     def test_backwards_join(self):
         User, Address = self.classes.User, self.classes.Address
@@ -862,7 +881,11 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
 
         sess = create_session()
 
-        assert_raises_message(sa.exc.InvalidRequestError, "Could not find a FROM clause to join from", sess.query(users).join, addresses)
+        self.assert_compile(
+            sess.query(users).join(addresses),
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users JOIN addresses ON users.id = addresses.user_id"
+        )
 
 
     def test_orderby_arg_bug(self):
@@ -1242,13 +1265,19 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
 
         assert_raises_message(
             sa_exc.InvalidRequestError,
-            "Could not find a FROM",
+            "Could not find a FROM clause to join from.  Tried joining "
+            "to .*?, but got: "
+            "Can't find any foreign key relationships "
+            "between 'users' and 'users'.",
             sess.query(users.c.id).join, User
         )
 
         assert_raises_message(
             sa_exc.InvalidRequestError,
-            "Could not find a FROM",
+            "Could not find a FROM clause to join from.  Tried joining "
+            "to .*?, but got: "
+            "Can't find any foreign key relationships "
+            "between 'users' and 'users'.",
             sess.query(users.c.id).select_from(users).join, User
         )
 
@@ -1303,6 +1332,151 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             use_default_dialect=True
         )
 
+class JoinFromSelectableTest(fixtures.MappedTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
+    run_setup_mappers = 'once'
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('table1', metadata, 
+            Column('id', Integer, primary_key=True)
+        )
+        Table('table2', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('t1_id', Integer)
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        table1, table2 = cls.tables.table1, cls.tables.table2
+        class T1(cls.Comparable):
+            pass
+
+        class T2(cls.Comparable):
+            pass
+
+        mapper(T1, table1)
+        mapper(T2, table2)
+
+    def test_select_mapped_to_mapped_explicit_left(self):
+        T1, T2 = self.classes.T1, self.classes.T2
+
+        sess = Session()
+        subq = sess.query(T2.t1_id, func.count(T2.id).label('count')).\
+                    group_by(T2.t1_id).subquery()
+
+        self.assert_compile(
+            sess.query(subq.c.count, T1.id).select_from(subq).join(T1, subq.c.t1_id==T1.id),
+            "SELECT anon_1.count AS anon_1_count, table1.id AS table1_id "
+            "FROM (SELECT table2.t1_id AS t1_id, "
+            "count(table2.id) AS count FROM table2 "
+            "GROUP BY table2.t1_id) AS anon_1 JOIN table1 ON anon_1.t1_id = table1.id"
+        )
+
+    def test_select_mapped_to_mapped_implicit_left(self):
+        T1, T2 = self.classes.T1, self.classes.T2
+
+        sess = Session()
+        subq = sess.query(T2.t1_id, func.count(T2.id).label('count')).\
+                    group_by(T2.t1_id).subquery()
+
+        self.assert_compile(
+            sess.query(subq.c.count, T1.id).join(T1, subq.c.t1_id==T1.id),
+            "SELECT anon_1.count AS anon_1_count, table1.id AS table1_id "
+            "FROM (SELECT table2.t1_id AS t1_id, "
+            "count(table2.id) AS count FROM table2 "
+            "GROUP BY table2.t1_id) AS anon_1 JOIN table1 ON anon_1.t1_id = table1.id"
+        )
+
+    def test_select_mapped_to_select_explicit_left(self):
+        T1, T2 = self.classes.T1, self.classes.T2
+
+        sess = Session()
+        subq = sess.query(T2.t1_id, func.count(T2.id).label('count')).\
+                    group_by(T2.t1_id).subquery()
+
+        self.assert_compile(
+            sess.query(subq.c.count, T1.id).select_from(T1).join(subq, subq.c.t1_id==T1.id),
+            "SELECT anon_1.count AS anon_1_count, table1.id AS table1_id "
+            "FROM table1 JOIN (SELECT table2.t1_id AS t1_id, "
+            "count(table2.id) AS count FROM table2 GROUP BY table2.t1_id) "
+            "AS anon_1 ON anon_1.t1_id = table1.id"
+        )
+
+    def test_select_mapped_to_select_implicit_left(self):
+        T1, T2 = self.classes.T1, self.classes.T2
+
+        sess = Session()
+        subq = sess.query(T2.t1_id, func.count(T2.id).label('count')).\
+                    group_by(T2.t1_id).subquery()
+
+        assert_raises_message(
+            sa_exc.InvalidRequestError,
+            r"Can't construct a join from ",
+            sess.query(subq.c.count, T1.id).join, subq, subq.c.t1_id==T1.id,
+        )
+
+    def test_mapped_select_to_mapped_implicit_left(self):
+        T1, T2 = self.classes.T1, self.classes.T2
+
+        sess = Session()
+        subq = sess.query(T2.t1_id, func.count(T2.id).label('count')).\
+                    group_by(T2.t1_id).subquery()
+
+        # this query is wrong, but verifying behavior stays the same
+        # (or improves, like an error message)
+        self.assert_compile(
+            sess.query(T1.id, subq.c.count).join(T1, subq.c.t1_id==T1.id),
+            "SELECT table1.id AS table1_id, anon_1.count AS anon_1_count FROM "
+            "(SELECT table2.t1_id AS t1_id, count(table2.id) AS count FROM "
+            "table2 GROUP BY table2.t1_id) AS anon_1, table1 JOIN table1 "
+            "ON anon_1.t1_id = table1.id"
+        )
+
+    def test_mapped_select_to_mapped_explicit_left(self):
+        T1, T2 = self.classes.T1, self.classes.T2
+
+        sess = Session()
+        subq = sess.query(T2.t1_id, func.count(T2.id).label('count')).\
+                    group_by(T2.t1_id).subquery()
+
+        self.assert_compile(
+            sess.query(T1.id, subq.c.count).select_from(subq).join(T1, subq.c.t1_id==T1.id),
+            "SELECT table1.id AS table1_id, anon_1.count AS anon_1_count "
+            "FROM (SELECT table2.t1_id AS t1_id, count(table2.id) AS count "
+            "FROM table2 GROUP BY table2.t1_id) AS anon_1 JOIN table1 "
+            "ON anon_1.t1_id = table1.id"
+        )
+
+    def test_mapped_select_to_select_explicit_left(self):
+        T1, T2 = self.classes.T1, self.classes.T2
+
+        sess = Session()
+        subq = sess.query(T2.t1_id, func.count(T2.id).label('count')).\
+                    group_by(T2.t1_id).subquery()
+
+        self.assert_compile(
+            sess.query(T1.id, subq.c.count).select_from(T1).join(subq, subq.c.t1_id==T1.id),
+            "SELECT table1.id AS table1_id, anon_1.count AS anon_1_count "
+            "FROM table1 JOIN (SELECT table2.t1_id AS t1_id, count(table2.id) AS count "
+            "FROM table2 GROUP BY table2.t1_id) AS anon_1 "
+            "ON anon_1.t1_id = table1.id"
+        )
+
+    def test_mapped_select_to_select_implicit_left(self):
+        T1, T2 = self.classes.T1, self.classes.T2
+
+        sess = Session()
+        subq = sess.query(T2.t1_id, func.count(T2.id).label('count')).\
+                    group_by(T2.t1_id).subquery()
+
+        self.assert_compile(
+            sess.query(T1.id, subq.c.count).join(subq, subq.c.t1_id==T1.id),
+            "SELECT table1.id AS table1_id, anon_1.count AS anon_1_count "
+            "FROM table1 JOIN (SELECT table2.t1_id AS t1_id, count(table2.id) AS count "
+            "FROM table2 GROUP BY table2.t1_id) AS anon_1 "
+            "ON anon_1.t1_id = table1.id"
+        )
 
 class MultiplePathTest(fixtures.MappedTest, AssertsCompiledSQL):
     @classmethod

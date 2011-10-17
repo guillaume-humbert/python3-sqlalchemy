@@ -71,7 +71,7 @@ Package: python-sqlalchemy-doc
 Section: doc
 Architecture: all
 Priority: extra
-Depends: ${misc:Depends}, libjs-jquery
+Depends: ${misc:Depends}, libjs-jquery, libjs-underscore
 Recommends: python-sqlalchemy
 Conflicts: python-sqlalchemy (<= 0.3.0-1)
 Description: documentation for the SQLAlchemy Python library

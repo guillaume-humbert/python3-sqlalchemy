@@ -24,7 +24,7 @@ import inspect, StringIO, sys, operator
 from itertools import izip
 from sqlalchemy import exc, schema, util, types, log, interfaces, \
     event, events
-from sqlalchemy.sql import expression
+from sqlalchemy.sql import expression, util as sql_util
 from sqlalchemy import processors
 import collections
 
@@ -1617,7 +1617,7 @@ class Connection(Connectable):
 
         if self._echo:
             self.engine.logger.info(statement)
-            self.engine.logger.info("%r", parameters)
+            self.engine.logger.info("%r", sql_util._repr_params(parameters, batches=10))
         try:
             if context.executemany:
                 self.dialect.do_executemany(
@@ -2068,6 +2068,12 @@ class Engine(Connectable, log.Identified):
     An :class:`.Engine` object is instantiated publically using the 
     :func:`~sqlalchemy.create_engine` function.
 
+    See also:
+    
+    :ref:`engines_toplevel`
+
+    :ref:`connections_toplevel`
+    
     """
 
     _execution_options = util.immutabledict()
@@ -2194,7 +2200,7 @@ class Engine(Connectable, log.Identified):
 
     @property
     @util.deprecated("0.7", 
-                "Use :attr:`.expression.func` to create function constructs.")
+                "Use :attr:`~sqlalchemy.sql.expression.func` to create function constructs.")
     def func(self):
         return expression._FunctionGenerator(bind=self)
 

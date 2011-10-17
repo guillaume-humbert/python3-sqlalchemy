@@ -168,6 +168,61 @@ available.
 
     update(..., mysql_limit=10)
 
+CAST Support
+------------
+
+MySQL documents the CAST operator as available in version 4.0.2.  When using the
+SQLAlchemy :func:`.cast` function, SQLAlchemy
+will not render the CAST token on MySQL before this version, based on server version
+detection, instead rendering the internal expression directly.
+
+CAST may still not be desirable on an early MySQL version post-4.0.2, as it didn't
+add all datatype support until 4.1.1.   If your application falls into this
+narrow area, the behavior of CAST can be controlled using the :ref:`sqlalchemy.ext.compiler_toplevel`
+system, as per the recipe below::
+
+    from sqlalchemy.sql.expression import _Cast
+    from sqlalchemy.ext.compiler import compiles
+
+    @compiles(_Cast, 'mysql')
+    def _check_mysql_version(element, compiler, **kw):
+        if compiler.dialect.server_version_info < (4, 1, 0):
+            return compiler.process(element.clause, **kw)
+        else:
+            return compiler.visit_cast(element, **kw)
+
+The above function, which only needs to be declared once
+within an application, overrides the compilation of the
+:func:`.cast` construct to check for version 4.1.0 before
+fully rendering CAST; else the internal element of the
+construct is rendered directly.
+
+
+.. _mysql_indexes:
+
+MySQL Specific Index Options
+----------------------------
+
+MySQL-specific extensions to the :class:`.Index` construct are available.
+
+Index Length
+~~~~~~~~~~~~~
+
+MySQL provides an option to create index entries with a certain length, where
+"length" refers to the number of characters or bytes in each value which will
+become part of the index. SQLAlchemy provides this feature via the
+``mysql_length`` parameter::
+
+    Index('my_index', my_table.c.data, mysql_length=10)
+
+Prefix lengths are given in characters for nonbinary string types and in bytes
+for binary string types. The value passed to the keyword argument will be
+simply passed through to the underlying CREATE INDEX command, so it *must* be
+an integer. MySQL only allows a length for an index if it is for a CHAR,
+VARCHAR, TEXT, BINARY, VARBINARY and BLOB.
+
+More information can be found at:
+http://dev.mysql.com/doc/refman/5.0/en/create-index.html
 """
 
 import datetime, inspect, re, sys
@@ -182,7 +237,7 @@ from array import array as _array
 from sqlalchemy.engine import reflection
 from sqlalchemy.engine import base as engine_base, default
 from sqlalchemy import types as sqltypes
-
+from sqlalchemy.util import topological
 from sqlalchemy.types import DATE, DATETIME, BOOLEAN, TIME, \
                                 BLOB, BINARY, VARBINARY
 
@@ -1334,27 +1389,61 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
         """Build table-level CREATE options like ENGINE and COLLATE."""
 
         table_opts = []
-        for k in table.kwargs:
-            if k.startswith('%s_' % self.dialect.name):
-                opt = k[len(self.dialect.name)+1:].upper()
 
-                arg = table.kwargs[k]
-                if opt in _options_of_type_string:
-                    arg = "'%s'" % arg.replace("\\", "\\\\").replace("'", "''")
+        opts = dict(
+            (
+                k[len(self.dialect.name)+1:].upper(), 
+                v
+            )
+            for k, v in table.kwargs.items()
+            if k.startswith('%s_' % self.dialect.name)
+        )
 
-                if opt in ('DATA_DIRECTORY', 'INDEX_DIRECTORY',
-                           'DEFAULT_CHARACTER_SET', 'CHARACTER_SET', 
-                           'DEFAULT_CHARSET',
-                           'DEFAULT_COLLATE'):
-                    opt = opt.replace('_', ' ')
+        for opt in topological.sort([
+            ('DEFAULT_CHARSET', 'COLLATE'),
+            ('DEFAULT_CHARACTER_SET', 'COLLATE')
+        ], opts):
+            arg = opts[opt]
+            if opt in _options_of_type_string:
+                arg = "'%s'" % arg.replace("\\", "\\\\").replace("'", "''")
 
-                joiner = '='
-                if opt in ('TABLESPACE', 'DEFAULT CHARACTER SET',
-                           'CHARACTER SET', 'COLLATE'):
-                    joiner = ' '
+            if opt in ('DATA_DIRECTORY', 'INDEX_DIRECTORY',
+                       'DEFAULT_CHARACTER_SET', 'CHARACTER_SET', 
+                       'DEFAULT_CHARSET',
+                       'DEFAULT_COLLATE'):
+                opt = opt.replace('_', ' ')
 
-                table_opts.append(joiner.join((opt, arg)))
+            joiner = '='
+            if opt in ('TABLESPACE', 'DEFAULT CHARACTER SET',
+                       'CHARACTER SET', 'COLLATE'):
+                joiner = ' '
+
+            table_opts.append(joiner.join((opt, arg)))
         return ' '.join(table_opts)
+
+    def visit_create_index(self, create):
+        index = create.element
+        preparer = self.preparer
+        text = "CREATE "
+        if index.unique:
+            text += "UNIQUE "
+        text += "INDEX %s ON %s " \
+                    % (preparer.quote(self._index_identifier(index.name), 
+                        index.quote),preparer.format_table(index.table))
+        if 'mysql_length' in index.kwargs:
+            length = index.kwargs['mysql_length']
+        else:
+            length = None
+        if length is not None:
+            text+= "(%s(%d))" \
+                    % (', '.join(preparer.quote(c.name, c.quote)
+                                 for c in index.columns), length)
+        else:
+            text+= "(%s)" \
+                    % (', '.join(preparer.quote(c.name, c.quote)
+                                 for c in index.columns))
+        return text
+
 
     def visit_drop_index(self, drop):
         index = drop.element

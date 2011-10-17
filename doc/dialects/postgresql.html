@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.2',
+          VERSION:     '0.7.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
+    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -87,10 +87,12 @@ Search:
 <li><a class="reference internal" href="#">PostgreSQL</a><ul>
 <li><a class="reference internal" href="#sequences-serial">Sequences/SERIAL</a></li>
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
+<li><a class="reference internal" href="#remote-cross-schema-table-introspection">Remote / Cross-Schema Table Introspection</a></li>
 <li><a class="reference internal" href="#insert-update-returning">INSERT/UPDATE...RETURNING</a></li>
 <li><a class="reference internal" href="#postgresql-specific-index-options">Postgresql-Specific Index Options</a><ul>
 <li><a class="reference internal" href="#partial-indexes">Partial Indexes</a></li>
 <li><a class="reference internal" href="#operator-classes">Operator Classes</a></li>
+<li><a class="reference internal" href="#index-types">Index Types</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#postgresql-data-types">PostgreSQL Data Types</a></li>
@@ -100,6 +102,7 @@ Search:
 <li><a class="reference internal" href="#per-statement-connection-execution-options">Per-Statement/Connection Execution Options</a></li>
 <li><a class="reference internal" href="#unicode">Unicode</a></li>
 <li><a class="reference internal" href="#transactions">Transactions</a></li>
+<li><a class="reference internal" href="#client-encoding">Client Encoding</a></li>
 <li><a class="reference internal" href="#id1">Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#notice-logging">NOTICE logging</a></li>
 </ul>
@@ -171,6 +174,30 @@ parameter are <tt class="docutils literal"><span class="pre">READ_COMMITTED</spa
 and <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>.  Note that the psycopg2 dialect does <em>not</em> use this
 technique and uses psycopg2-specific APIs (see that dialect for details).</p>
 </div>
+<div class="section" id="remote-cross-schema-table-introspection">
+<h2>Remote / Cross-Schema Table Introspection<a class="headerlink" href="#remote-cross-schema-table-introspection" title="Permalink to this headline">¶</a></h2>
+<p>Tables can be introspected from any accessible schema, including
+inter-schema foreign key relationships.   However, care must be taken
+when specifying the &#8220;schema&#8221; argument for a given <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, when
+the given schema is also present in PostgreSQL&#8217;s <tt class="docutils literal"><span class="pre">search_path</span></tt> variable
+for the current connection.</p>
+<p>If a FOREIGN KEY constraint reports that the remote table&#8217;s schema is within
+the current <tt class="docutils literal"><span class="pre">search_path</span></tt>, the &#8220;schema&#8221; attribute of the resulting
+<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be set to <tt class="xref docutils literal"><span class="pre">None</span></tt>, unless the actual schema of the
+remote table matches that of the referencing table, and the &#8220;schema&#8221; argument
+was explicitly stated on the referencing table.</p>
+<p>The best practice here is to not use the <tt class="docutils literal"><span class="pre">schema</span></tt> argument 
+on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> for any schemas that are present in <tt class="docutils literal"><span class="pre">search_path</span></tt>.
+<tt class="docutils literal"><span class="pre">search_path</span></tt> defaults to &#8220;public&#8221;, but care should be taken
+to inspect the actual value using:</p>
+<div class="highlight-python"><pre>SHOW search_path;</pre>
+</div>
+<p>Prior to version 0.7.3, cross-schema foreign keys when the schemas
+were also in the <tt class="docutils literal"><span class="pre">search_path</span></tt> could make an incorrect assumption
+if the schemas were explicitly stated on each <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
+<p>Background on PG&#8217;s <tt class="docutils literal"><span class="pre">search_path</span></tt> is at: 
+<a class="reference external" href="http://www.postgresql.org/docs/9.0/static/ddl-schemas.html#DDL-SCHEMAS-PATH">http://www.postgresql.org/docs/9.0/static/ddl-schemas.html#DDL-SCHEMAS-PATH</a></p>
+</div>
 <div class="section" id="insert-update-returning">
 <h2>INSERT/UPDATE...RETURNING<a class="headerlink" href="#insert-update-returning" title="Permalink to this headline">¶</a></h2>
 <p>The dialect supports PG 8.2&#8217;s <tt class="docutils literal"><span class="pre">INSERT..RETURNING</span></tt>, <tt class="docutils literal"><span class="pre">UPDATE..RETURNING</span></tt> and
@@ -222,6 +249,18 @@ keyword argument (new as of SQLAlchemy 0.7.2):</p>
 the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, i.e. the name used to access it from the <tt class="docutils literal"><span class="pre">.c</span></tt> collection
 of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, which can be configured to be different than the actual
 name of the column as expressed in the database.</p>
+</div>
+<div class="section" id="index-types">
+<h3>Index Types<a class="headerlink" href="#index-types" title="Permalink to this headline">¶</a></h3>
+<p>PostgreSQL provides several index types: B-Tree, Hash, GiST, and GIN, as well as
+the ability for users to create their own (see
+<a class="reference external" href="http://www.postgresql.org/docs/8.3/static/indexes-types.html">http://www.postgresql.org/docs/8.3/static/indexes-types.html</a>). These can be
+specified on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> using the <tt class="docutils literal"><span class="pre">postgresql_using</span></tt> keyword argument:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">postgresql_using</span><span class="o">=</span><span class="s">&#39;gin&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>The value passed to the keyword argument will be simply passed through to the
+underlying CREATE INDEX command, so it <em>must</em> be a valid index type for your
+version of PostgreSQL.</p>
 </div>
 </div>
 <div class="section" id="postgresql-data-types">
@@ -354,6 +393,10 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <li><strong>asdecimal</strong> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
 defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="xref docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
+<li><strong>**kwargs</strong> &#8211; deprecated.  Additional arguments here are ignored
+by the default <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific 
+floats that support additional arguments, see that dialect&#8217;s 
+documentation for details, such as <a class="reference internal" href="mysql.html#sqlalchemy.dialects.mysql.FLOAT" title="sqlalchemy.dialects.mysql.FLOAT"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mysql.FLOAT</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -469,6 +512,10 @@ It is known to work on psycopg2 and not pg8000 or zxjdbc.</p>
 <li><strong>asdecimal</strong> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
 defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="xref docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
+<li><strong>**kwargs</strong> &#8211; deprecated.  Additional arguments here are ignored
+by the default <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific 
+floats that support additional arguments, see that dialect&#8217;s 
+documentation for details, such as <a class="reference internal" href="mysql.html#sqlalchemy.dialects.mysql.FLOAT" title="sqlalchemy.dialects.mysql.FLOAT"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mysql.FLOAT</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -574,6 +621,17 @@ within the Psycopg2 driver natively.</p>
 <div class="section" id="transactions">
 <h3>Transactions<a class="headerlink" href="#transactions" title="Permalink to this headline">¶</a></h3>
 <p>The psycopg2 dialect fully supports SAVEPOINT and two-phase commit operations.</p>
+</div>
+<div class="section" id="client-encoding">
+<h3>Client Encoding<a class="headerlink" href="#client-encoding" title="Permalink to this headline">¶</a></h3>
+<p>The psycopg2 dialect accepts a parameter <tt class="docutils literal"><span class="pre">client_encoding</span></tt> via <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>
+which will call the psycopg2 <tt class="docutils literal"><span class="pre">set_client_encoding()</span></tt> method for each new 
+connection:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://user:pass@host/dbname&quot;</span><span class="p">,</span> <span class="n">client_encoding</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>This overrides the encoding specified in the Postgresql client configuration.</p>
+<p>See: <a class="reference external" href="http://initd.org/psycopg/docs/connection.html#connection.set_client_encoding">http://initd.org/psycopg/docs/connection.html#connection.set_client_encoding</a></p>
+<p>New in 0.7.3.</p>
 </div>
 <div class="section" id="id1">
 <h3>Transaction Isolation Level<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>

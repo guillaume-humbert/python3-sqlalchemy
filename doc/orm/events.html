@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.2',
+          VERSION:     '0.7.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
+    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -342,6 +342,20 @@ such as <a class="reference internal" href="#sqlalchemy.orm.events.MapperEvents.
 </tbody>
 </table>
 <dl class="method">
+<dt id="sqlalchemy.orm.events.MapperEvents.after_configured">
+<tt class="descname">after_configured</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.MapperEvents.after_configured" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called after a series of mappers have been configured.</p>
+<p>This corresponds to the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.configure_mappers" title="sqlalchemy.orm.configure_mappers"><tt class="xref py py-func docutils literal"><span class="pre">orm.configure_mappers()</span></tt></a> call, which
+note is usually called automatically as mappings are first
+used.</p>
+<p>Theoretically this event is called once per
+application, but is actually called any time new mappers
+have been affected by a <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.configure_mappers" title="sqlalchemy.orm.configure_mappers"><tt class="xref py py-func docutils literal"><span class="pre">orm.configure_mappers()</span></tt></a> call.   If new mappings
+are constructed after existing ones have already been used, 
+this event can be called again.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.orm.events.MapperEvents.after_delete">
 <tt class="descname">after_delete</tt><big>(</big><em>mapper</em>, <em>connection</em>, <em>target</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.MapperEvents.after_delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive an object instance after a DELETE statement
@@ -352,6 +366,13 @@ specific bookkeeping related to a deletion event.</p>
 <p>The event is often called for a batch of objects of the
 same class after their DELETE statements have been emitted at
 once in a previous step.</p>
+<p>Handlers should <strong>not</strong> alter mapped attributes on the objects
+just flushed or on other objects of the same class, nor
+should any other ORM-based operation such as <tt class="xref py py-class docutils literal"><span class="pre">Session.add</span></tt>
+take place here.   Attribute changes on objects that were
+already flushed will be discarded, and changes to the flush
+plan will also not take place.  Use <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.before_flush()</span></tt></a>
+to change the flush plan on flush.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -394,6 +415,13 @@ rare case that this is not desirable, the
 which will cause batches of instances to be broken up
 into individual (and more poorly performing)
 event-&gt;persist-&gt;event steps.</p>
+<p>Handlers should <strong>not</strong> alter mapped attributes on the objects
+just flushed or on other objects of the same class, nor
+should any other ORM-based operation such as <tt class="xref py py-class docutils literal"><span class="pre">Session.add</span></tt>
+take place here.   Attribute changes on objects that were
+already flushed will be discarded, and changes to the flush
+plan will also not take place.  Use <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.before_flush()</span></tt></a>
+to change the flush plan on flush.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -452,6 +480,13 @@ configured with <tt class="docutils literal"><span class="pre">batch=False</span
 batches of instances to be broken up into individual
 (and more poorly performing) event-&gt;persist-&gt;event
 steps.</p>
+<p>Handlers should <strong>not</strong> alter mapped attributes on the objects
+just flushed or on other objects of the same class, nor
+should any other ORM-based operation such as <tt class="xref py py-class docutils literal"><span class="pre">Session.add</span></tt>
+take place here.   Attribute changes on objects that were
+already flushed will be discarded, and changes to the flush
+plan will also not take place.  Use <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.before_flush()</span></tt></a>
+to change the flush plan on flush.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1106,6 +1141,20 @@ globally.</p>
 <dd><p>Execute after a transaction is begun on a connection</p>
 <p><cite>transaction</cite> is the SessionTransaction. This method is called
 after an engine level transaction is begun on a connection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</li>
+<li><strong>transaction</strong> &#8211; The <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a>.</li>
+<li><strong>connection</strong> &#8211; The <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object 
+which will be used for SQL statements.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1134,6 +1183,14 @@ called on. <cite>query_context</cite> was the query context object.
 <dd><p>Execute after a commit has occurred.</p>
 <p>Note that this may not be per-flush if a longer running
 transaction is ongoing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1144,6 +1201,19 @@ called.</p>
 <p>Note that the session&#8217;s state is still in pre-flush, i.e. &#8216;new&#8217;,
 &#8216;dirty&#8217;, and &#8216;deleted&#8217; lists still show pre-flush state as well
 as the history settings on instance attributes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</li>
+<li><strong>flush_context</strong> &#8211; Internal <tt class="xref py py-class docutils literal"><span class="pre">UOWTransaction</span></tt> object
+which handles the details of the flush.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1155,14 +1225,78 @@ state occurs.</p>
 their final state.  An actual commit() may or may not have
 occurred, depending on whether or not the flush started its own
 transaction or participated in a larger transaction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</li>
+<li><strong>flush_context</strong> &#8211; Internal <tt class="xref py py-class docutils literal"><span class="pre">UOWTransaction</span></tt> object
+which handles the details of the flush.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.events.SessionEvents.after_rollback">
 <tt class="descname">after_rollback</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_rollback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute after a rollback has occurred.</p>
-<p>Note that this may not be per-flush if a longer running
-transaction is ongoing.</p>
+<dd><p>Execute after a real DBAPI rollback has occurred.</p>
+<p>Note that this event only fires when the <em>actual</em> rollback against
+the database occurs - it does <em>not</em> fire each time the 
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> method is called, if the underlying 
+DBAPI transaction has already been rolled back.  In many
+cases, the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> will not be in 
+an &#8220;active&#8221; state during this event, as the current
+transaction is not valid.   To acquire a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+which is active after the outermost rollback has proceeded,
+use the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_soft_rollback" title="sqlalchemy.orm.events.SessionEvents.after_soft_rollback"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.after_soft_rollback()</span></tt></a> event, checking the
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.is_active" title="sqlalchemy.orm.session.Session.is_active"><tt class="xref py py-attr docutils literal"><span class="pre">Session.is_active</span></tt></a> flag.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.events.SessionEvents.after_soft_rollback">
+<tt class="descname">after_soft_rollback</tt><big>(</big><em>session</em>, <em>previous_transaction</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_soft_rollback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute after any rollback has occurred, including &#8220;soft&#8221; 
+rollbacks that don&#8217;t actually emit at the DBAPI level.</p>
+<p>This corresponds to both nested and outer rollbacks, i.e.
+the innermost rollback that calls the DBAPI&#8217;s 
+rollback() method, as well as the enclosing rollback 
+calls that only pop themselves from the transaction stack.</p>
+<p>The given <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> can be used to invoke SQL and 
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-meth docutils literal"><span class="pre">Session.query()</span></tt></a> operations after an outermost rollback 
+by first checking the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.is_active" title="sqlalchemy.orm.session.Session.is_active"><tt class="xref py py-attr docutils literal"><span class="pre">Session.is_active</span></tt></a> flag:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">Session</span><span class="p">,</span> <span class="s">&quot;after_soft_rollback&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">do_something</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">previous_transaction</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">session</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select * from some_table&quot;</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</li>
+<li><strong>previous_transaction</strong> &#8211; The <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> transactional
+marker object which was just closed.   The current <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a>
+for the given <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is available via the
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.transaction" title="sqlalchemy.orm.session.Session.transaction"><tt class="xref py py-attr docutils literal"><span class="pre">Session.transaction</span></tt></a> attribute.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>New in 0.7.3.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1171,6 +1305,14 @@ transaction is ongoing.</p>
 <dd><p>Execute before commit is called.</p>
 <p>Note that this may not be per-flush if a longer running
 transaction is ongoing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1179,6 +1321,22 @@ transaction is ongoing.</p>
 <dd><p>Execute before flush process has started.</p>
 <p><cite>instances</cite> is an optional list of objects which were passed to
 the <tt class="docutils literal"><span class="pre">flush()</span></tt> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</li>
+<li><strong>flush_context</strong> &#8211; Internal <tt class="xref py py-class docutils literal"><span class="pre">UOWTransaction</span></tt> object
+which handles the details of the flush.</li>
+<li><strong>instances</strong> &#8211; Usually <tt class="xref docutils literal"><span class="pre">None</span></tt>, this is the collection of
+objects which can be passed to the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-meth docutils literal"><span class="pre">Session.flush()</span></tt></a> method
+(note this usage is deprecated).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

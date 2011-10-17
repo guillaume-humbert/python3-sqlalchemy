@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.2',
+          VERSION:     '0.7.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
+    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -258,22 +258,32 @@ one exists.</p>
 </div>
 </div>
 <div class="section" id="understanding-autocommit">
-<span id="index-0"></span><h2>Understanding Autocommit<a class="headerlink" href="#understanding-autocommit" title="Permalink to this headline">¶</a></h2>
+<span id="autocommit"></span><span id="index-0"></span><h2>Understanding Autocommit<a class="headerlink" href="#understanding-autocommit" title="Permalink to this headline">¶</a></h2>
 <p>The previous transaction example illustrates how to use <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>
 so that several executions can take part in the same transaction. What happens
 when we issue an INSERT, UPDATE or DELETE call without using
-<a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>? The answer is <strong>autocommit</strong>. While many DBAPI
-implementation provide various special &#8220;non-transactional&#8221; modes, the current
-SQLAlchemy behavior is such that it implements its own &#8220;autocommit&#8221; which
+<a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>?  While some DBAPI
+implementations provide various special &#8220;non-transactional&#8221; modes, the core
+behavior of DBAPI per PEP-0249 is that a <em>transaction is always in progress</em>,
+providing only <tt class="docutils literal"><span class="pre">rollback()</span></tt> and <tt class="docutils literal"><span class="pre">commit()</span></tt> methods but no <tt class="docutils literal"><span class="pre">begin()</span></tt>.
+SQLAlchemy assumes this is the case for any given DBAPI.</p>
+<p>Given this requirement, SQLAlchemy implements its own &#8220;autocommit&#8221; feature which
 works completely consistently across all backends. This is achieved by
 detecting statements which represent data-changing operations, i.e. INSERT,
 UPDATE, DELETE, as well as data definition language (DDL) statements such as
 CREATE TABLE, ALTER TABLE, and then issuing a COMMIT automatically if no
-transaction is in progress. The detection is based on compiled statement
-attributes, or in the case of a text-only statement via regular expressions:</p>
+transaction is in progress. The detection is based on the presence of the
+<tt class="docutils literal"><span class="pre">autocommit=True</span></tt> execution option on the statement.   If the statement
+is a text-only statement and the flag is not set, a regular expression is used
+to detect INSERT, UPDATE, DELETE, as well as a variety of other commands
+for a particular backend:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">conn</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;INSERT INTO users VALUES (1, &#39;john&#39;)&quot;</span><span class="p">)</span>  <span class="c"># autocommits</span></pre></div>
 </div>
+<p>The &#8220;autocommit&#8221; feature is only in effect when no <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> has
+otherwise been declared.   This means the feature is not generally used with
+the ORM, as the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> object by default always maintains an
+ongoing <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>.</p>
 <p>Full control of the &#8220;autocommit&#8221; behavior is available using the generative
 <a class="reference internal" href="#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> method provided on <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>,
 <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a>, using the &#8220;autocommit&#8221; flag which will
@@ -888,6 +898,9 @@ of <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sq
 of database connectivity and behavior.</p>
 <p>An <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> object is instantiated publically using the 
 <a class="reference internal" href="engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> function.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="engines.html"><em>Engine Configuration</em></a></p>
+<p><a class="reference internal" href="#"><em>Working with Engines and Connections</em></a></p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.connect">
 <tt class="descname">connect</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.connect" title="Permalink to this definition">¶</a></dt>
@@ -999,7 +1012,7 @@ resource to be returned to the connection pool.</p>
 <dt id="sqlalchemy.engine.base.Engine.func">
 <tt class="descname">func</tt><a class="headerlink" href="#sqlalchemy.engine.base.Engine.func" title="Permalink to this definition">¶</a></dt>
 <dd><p class="deprecated">
-<span class="versionmodified">Deprecated since version 0.7: </span>Use <tt class="xref py py-attr docutils literal"><span class="pre">expression.func</span></tt> to create function constructs.</p>
+<span class="versionmodified">Deprecated since version 0.7: </span>Use <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a> to create function constructs.</p>
 </dd></dl>
 
 <dl class="attribute">

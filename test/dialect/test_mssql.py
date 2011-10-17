@@ -63,6 +63,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         ]:
             self.assert_compile(expr, compile, dialect=mxodbc_dialect)
 
+    @testing.uses_deprecated
     def test_in_with_subqueries(self):
         """Test that when using subqueries in a binary expression
         the == and != are changed to IN and NOT IN respectively.
@@ -117,7 +118,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'DELETE FROM paj.test WHERE paj.test.id = '
                             ':id_1')
         s = select([tbl.c.id]).where(tbl.c.id == 1)
-        self.assert_compile(tbl.delete().where(tbl.c.id == s),
+        self.assert_compile(tbl.delete().where(tbl.c.id.in_(s)),
                             'DELETE FROM paj.test WHERE paj.test.id IN '
                             '(SELECT test_1.id FROM paj.test AS test_1 '
                             'WHERE test_1.id = :id_1)')
@@ -130,7 +131,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'DELETE FROM banana.paj.test WHERE '
                             'banana.paj.test.id = :id_1')
         s = select([tbl.c.id]).where(tbl.c.id == 1)
-        self.assert_compile(tbl.delete().where(tbl.c.id == s),
+        self.assert_compile(tbl.delete().where(tbl.c.id.in_(s)),
                             'DELETE FROM banana.paj.test WHERE '
                             'banana.paj.test.id IN (SELECT test_1.id '
                             'FROM banana.paj.test AS test_1 WHERE '
@@ -144,7 +145,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'DELETE FROM [banana split].paj.test WHERE '
                             '[banana split].paj.test.id = :id_1')
         s = select([tbl.c.id]).where(tbl.c.id == 1)
-        self.assert_compile(tbl.delete().where(tbl.c.id == s),
+        self.assert_compile(tbl.delete().where(tbl.c.id.in_(s)),
                             'DELETE FROM [banana split].paj.test WHERE '
                             '[banana split].paj.test.id IN (SELECT '
                             'test_1.id FROM [banana split].paj.test AS '
@@ -160,7 +161,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'space].test WHERE [banana split].[paj '
                             'with a space].test.id = :id_1')
         s = select([tbl.c.id]).where(tbl.c.id == 1)
-        self.assert_compile(tbl.delete().where(tbl.c.id == s),
+        self.assert_compile(tbl.delete().where(tbl.c.id.in_(s)),
                             'DELETE FROM [banana split].[paj with a '
                             'space].test WHERE [banana split].[paj '
                             'with a space].test.id IN (SELECT '
@@ -287,7 +288,18 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             s,
             "SELECT TOP 10 t.x, t.y FROM t WHERE t.x = :x_1 ORDER BY t.y",
-            {u'x_1': 5}
+            checkparams={u'x_1': 5}
+        )
+
+    def test_limit_zero_using_top(self):
+        t = table('t', column('x', Integer), column('y', Integer))
+
+        s = select([t]).where(t.c.x==5).order_by(t.c.y).limit(0)
+
+        self.assert_compile(
+            s,
+            "SELECT TOP 0 t.x, t.y FROM t WHERE t.x = :x_1 ORDER BY t.y",
+            checkparams={u'x_1': 5}
         )
 
     def test_offset_using_window(self):
@@ -301,7 +313,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             "AS y, ROW_NUMBER() OVER (ORDER BY t.y) AS "
             "mssql_rn FROM t WHERE t.x = :x_1) AS "
             "anon_1 WHERE mssql_rn > :mssql_rn_1",
-            {u'mssql_rn_1': 20, u'x_1': 5}
+            checkparams={u'mssql_rn_1': 20, u'x_1': 5}
         )
 
     def test_limit_offset_using_window(self):
@@ -317,7 +329,21 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             "FROM t "
             "WHERE t.x = :x_1) AS anon_1 "
             "WHERE mssql_rn > :mssql_rn_1 AND mssql_rn <= :mssql_rn_2",
-            {u'mssql_rn_1': 20, u'mssql_rn_2': 30, u'x_1': 5}
+            checkparams={u'mssql_rn_1': 20, u'mssql_rn_2': 30, u'x_1': 5}
+        )
+
+    def test_limit_zero_offset_using_window(self):
+        t = table('t', column('x', Integer), column('y', Integer))
+
+        s = select([t]).where(t.c.x==5).order_by(t.c.y).limit(0).offset(0)
+
+        # render the LIMIT of zero, but not the OFFSET
+        # of zero, so produces TOP 0
+        self.assert_compile(
+            s,
+            "SELECT TOP 0 t.x, t.y FROM t "
+            "WHERE t.x = :x_1 ORDER BY t.y",
+            checkparams={u'x_1': 5}
         )
 
 

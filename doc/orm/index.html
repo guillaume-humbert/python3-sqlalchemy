@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.2',
+          VERSION:     '0.7.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -49,7 +49,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
+    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -96,12 +96,10 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#version-check">Version Check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#connecting">Connecting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#define-and-create-a-table">Define and Create a Table</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#define-a-python-class-to-be-mapped">Define a Python Class to be Mapped</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#setting-up-the-mapping">Setting up the Mapping</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#creating-table-class-and-mapper-all-at-once-declaratively">Creating Table, Class and Mapper All at Once Declaratively</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#declare-a-mapping">Declare a Mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#create-an-instance-of-the-mapped-class">Create an Instance of the Mapped Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#creating-a-session">Creating a Session</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#adding-new-objects">Adding new Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#adding-new-objects">Adding New Objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#rolling-back">Rolling Back</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#querying">Querying</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#common-filter-operators">Common Filter Operators</a></li>
@@ -113,12 +111,17 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#building-a-relationship">Building a Relationship</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#working-with-related-objects">Working with Related Objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#querying-with-joins">Querying with Joins</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tutorial.html#using-join-to-eagerly-load-collections-attributes">Using join() to Eagerly Load Collections/Attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#using-aliases">Using Aliases</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#using-subqueries">Using Subqueries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#selecting-entities-from-subqueries">Selecting Entities from Subqueries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#using-exists">Using EXISTS</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#common-relationship-operators">Common Relationship Operators</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#eager-loading">Eager Loading</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial.html#subquery-load">Subquery Load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial.html#joined-load">Joined Load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial.html#explicit-join-eagerload">Explicit Join + Eagerload</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#deleting">Deleting</a><ul>
@@ -130,22 +133,26 @@ Search:
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mapper_config.html">Mapper Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mapper_config.html#classical-mappings">Classical Mappings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#customizing-column-properties">Customizing Column Properties</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#mapping-a-subset-of-table-columns">Mapping a Subset of Table Columns</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#attribute-names-for-mapped-columns">Attribute Names for Mapped Columns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#naming-columns-distinctly-from-attribute-names">Naming Columns Distinctly from Attribute Names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#mapping-multiple-columns-to-a-single-attribute">Mapping Multiple Columns to a Single Attribute</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#using-column-property-for-column-level-options">Using column_property for column level options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#mapping-a-subset-of-table-columns">Mapping a Subset of Table Columns</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#deferred-column-loading">Deferred Column Loading</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#column-deferral-api">Column Deferral API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="mapper_config.html#sql-expressions-as-mapped-attributes">SQL Expressions as Mapped Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mapper_config.html#sql-expressions-as-mapped-attributes">SQL Expressions as Mapped Attributes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#alternatives-to-column-property">Alternatives to column_property()</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#changing-attribute-behavior">Changing Attribute Behavior</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#simple-validators">Simple Validators</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#using-descriptors">Using Descriptors</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#id1">Synonyms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#id2">Synonyms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#custom-comparators">Custom Comparators</a></li>
 </ul>
 </li>
@@ -173,10 +180,10 @@ Search:
 </li>
 <li class="toctree-l2"><a class="reference internal" href="relationships.html#adjacency-list-relationships">Adjacency List Relationships</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#self-referential-query-strategies">Self-Referential Query Strategies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="relationships.html#configuring-eager-loading">Configuring Eager Loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#configuring-self-referential-eager-loading">Configuring Self-Referential Eager Loading</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="relationships.html#linking-relationships-with-backref">Linking relationships with Backref</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="relationships.html#linking-relationships-with-backref">Linking Relationships with Backref</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#backref-arguments">Backref Arguments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#one-way-backrefs">One Way Backrefs</a></li>
 </ul>
@@ -201,10 +208,8 @@ Search:
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="collections.html#customizing-collection-access">Customizing Collection Access</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="collections.html#dictionary-collections">Dictionary Collections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="collections.html#custom-collection-implementations">Custom Collection Implementations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collections.html#annotating-custom-collections-via-decorators">Annotating Custom Collections via Decorators</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collections.html#dictionary-based-collections">Dictionary-Based Collections</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collections.html#instrumentation-and-custom-types">Instrumentation and Custom Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="collections.html#collections-api">Collections API</a></li>
 </ul>
 </li>
@@ -218,7 +223,10 @@ Search:
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="inheritance.html#single-table-inheritance">Single Table Inheritance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inheritance.html#concrete-table-inheritance">Concrete Table Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inheritance.html#concrete-table-inheritance">Concrete Table Inheritance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inheritance.html#concrete-inheritance-with-declarative">Concrete Inheritance with Declarative</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="inheritance.html#using-relationships-with-inheritance">Using Relationships with Inheritance</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="inheritance.html#relationships-with-concrete-inheritance">Relationships with Concrete Inheritance</a></li>
 </ul>
@@ -229,13 +237,13 @@ Search:
 <li class="toctree-l1"><a class="reference internal" href="session.html">Using the Session</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="session.html#what-does-the-session-do">What does the Session do ?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="session.html#getting-a-session">Getting a Session</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="session.html#adding-additional-configuration-to-an-existing-sessionmaker">Adding additional configuration to an Existing sessionmaker()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="session.html#adding-additional-configuration-to-an-existing-sessionmaker">Adding Additional Configuration to an Existing sessionmaker()</a></li>
 <li class="toctree-l3"><a class="reference internal" href="session.html#creating-ad-hoc-session-objects-with-alternate-arguments">Creating Ad-Hoc Session Objects with Alternate Arguments</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="session.html#id1">Using the Session</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="session.html#quickie-intro-to-object-states">Quickie Intro to Object States</a></li>
-<li class="toctree-l3"><a class="reference internal" href="session.html#frequently-asked-questions">Frequently Asked Questions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="session.html#session-frequently-asked-questions">Session Frequently Asked Questions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="session.html#querying">Querying</a></li>
 <li class="toctree-l3"><a class="reference internal" href="session.html#adding-new-or-existing-items">Adding New or Existing Items</a></li>
 <li class="toctree-l3"><a class="reference internal" href="session.html#merging">Merging</a></li>
@@ -302,10 +310,13 @@ Search:
 </li>
 <li class="toctree-l1"><a class="reference internal" href="extensions/index.html">ORM Extensions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="extensions/associationproxy.html">Association Proxy</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#simplifying-relationships">Simplifying Relationships</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#simplifying-association-object-relationships">Simplifying Association Object Relationships</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#building-complex-views">Building Complex Views</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#api">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#simplifying-scalar-collections">Simplifying Scalar Collections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#creation-of-new-values">Creation of New Values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#simplifying-association-objects">Simplifying Association Objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#proxying-to-dictionary-based-collections">Proxying to Dictionary Based Collections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#composite-association-proxies">Composite Association Proxies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#querying-with-association-proxies">Querying with Association Proxies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#api-documentation">API Documentation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="extensions/declarative.html">Declarative</a><ul>
@@ -319,7 +330,8 @@ Search:
 <li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#using-a-hybrid-approach-with-table">Using a Hybrid Approach with __table__</a></li>
 <li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#mapper-configuration">Mapper Configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#inheritance-configuration">Inheritance Configuration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#mixin-classes">Mixin Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#mixin-and-custom-base-classes">Mixin and Custom Base Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#special-directives">Special Directives</a></li>
 <li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#class-constructor">Class Constructor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#sessions">Sessions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#api-reference">API Reference</a></li>

@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.2',
+          VERSION:     '0.7.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
+    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -87,13 +87,13 @@ Search:
 <li><a class="reference internal" href="#">Using the Session</a><ul>
 <li><a class="reference internal" href="#what-does-the-session-do">What does the Session do ?</a></li>
 <li><a class="reference internal" href="#getting-a-session">Getting a Session</a><ul>
-<li><a class="reference internal" href="#adding-additional-configuration-to-an-existing-sessionmaker">Adding additional configuration to an Existing sessionmaker()</a></li>
+<li><a class="reference internal" href="#adding-additional-configuration-to-an-existing-sessionmaker">Adding Additional Configuration to an Existing sessionmaker()</a></li>
 <li><a class="reference internal" href="#creating-ad-hoc-session-objects-with-alternate-arguments">Creating Ad-Hoc Session Objects with Alternate Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#id1">Using the Session</a><ul>
 <li><a class="reference internal" href="#quickie-intro-to-object-states">Quickie Intro to Object States</a></li>
-<li><a class="reference internal" href="#frequently-asked-questions">Frequently Asked Questions</a></li>
+<li><a class="reference internal" href="#session-frequently-asked-questions">Session Frequently Asked Questions</a></li>
 <li><a class="reference internal" href="#querying">Querying</a></li>
 <li><a class="reference internal" href="#adding-new-or-existing-items">Adding New or Existing Items</a></li>
 <li><a class="reference internal" href="#merging">Merging</a><ul>
@@ -242,7 +242,7 @@ into a <strong>registry</strong> that maintains a single <a class="reference int
 application thread.   Information on using contextual sessions
 is at <a class="reference internal" href="#unitofwork-contextual"><em>Contextual/Thread-local Sessions</em></a>.</p>
 <div class="section" id="adding-additional-configuration-to-an-existing-sessionmaker">
-<h3>Adding additional configuration to an Existing sessionmaker()<a class="headerlink" href="#adding-additional-configuration-to-an-existing-sessionmaker" title="Permalink to this headline">¶</a></h3>
+<h3>Adding Additional Configuration to an Existing sessionmaker()<a class="headerlink" href="#adding-additional-configuration-to-an-existing-sessionmaker" title="Permalink to this headline">¶</a></h3>
 <p>A common scenario is where the <a class="reference internal" href="#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> is invoked
 at module import time, however the generation of one or more <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>
 instances to be associated with the <a class="reference internal" href="#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> has not yet proceeded.
@@ -294,7 +294,7 @@ transaction - see <a class="reference internal" href="#session-external-transact
 <div class="section" id="id1">
 <h2>Using the Session<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="quickie-intro-to-object-states">
-<h3>Quickie Intro to Object States<a class="headerlink" href="#quickie-intro-to-object-states" title="Permalink to this headline">¶</a></h3>
+<span id="session-object-states"></span><h3>Quickie Intro to Object States<a class="headerlink" href="#quickie-intro-to-object-states" title="Permalink to this headline">¶</a></h3>
 <p>It&#8217;s helpful to know the states which an instance can have within a session:</p>
 <ul class="simple">
 <li><em>Transient</em> - an instance that&#8217;s not in a session, and is not saved to the
@@ -320,8 +320,8 @@ or were marked as &#8220;expired&#8221;.</li>
 operations (such as trying to save the same object to two different sessions
 at the same time).</p>
 </div>
-<div class="section" id="frequently-asked-questions">
-<h3>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="session-frequently-asked-questions">
+<span id="session-faq"></span><h3>Session Frequently Asked Questions<a class="headerlink" href="#session-frequently-asked-questions" title="Permalink to this headline">¶</a></h3>
 <ul>
 <li><p class="first">When do I make a <a class="reference internal" href="#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> ?</p>
 <blockquote>
@@ -2132,7 +2132,7 @@ will be applied according to the <em>expunge</em> cascade rule.</p>
 <p>Writes out all pending object creations, deletions and modifications
 to the database as INSERTs, DELETEs, UPDATEs, etc.  Operations are
 automatically ordered by the Session&#8217;s unit of work dependency
-solver..</p>
+solver.</p>
 <p>Database operations will be issued in the current transactional
 context and do not affect the state of the transaction, unless an
 error occurs, in which case the entire transaction is rolled back. 
@@ -2160,6 +2160,29 @@ explicitly bound directly to a <a class="reference internal" href="../core/conne
 <p>For a multiply-bound or unbound <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>, the 
 <tt class="docutils literal"><span class="pre">mapper</span></tt> or <tt class="docutils literal"><span class="pre">clause</span></tt> arguments are used to determine the 
 appropriate bind to return.</p>
+<p>Note that the &#8220;mapper&#8221; argument is usually present
+when <a class="reference internal" href="#sqlalchemy.orm.session.Session.get_bind" title="sqlalchemy.orm.session.Session.get_bind"><tt class="xref py py-meth docutils literal"><span class="pre">Session.get_bind()</span></tt></a> is called via an ORM
+operation such as a <a class="reference internal" href="#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-meth docutils literal"><span class="pre">Session.query()</span></tt></a>, each 
+individual INSERT/UPDATE/DELETE operation within a 
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-meth docutils literal"><span class="pre">Session.flush()</span></tt></a>, call, etc.</p>
+<p>The order of resolution is:</p>
+<ol class="arabic simple">
+<li>if mapper given and session.binds is present,
+locate a bind based on mapper.</li>
+<li>if clause given and session.binds is present,
+locate a bind based on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects
+found in the given clause present in session.binds.</li>
+<li>if session.bind is present, return that.</li>
+<li>if clause given, attempt to return a bind 
+linked to the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> ultimately
+associated with the clause.</li>
+<li>if mapper given, attempt to return a bind
+linked to the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> ultimately 
+associated with the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or other
+selectable to which the mapper is mapped.</li>
+<li>No bind can be found, <tt class="xref py py-class docutils literal"><span class="pre">UnboundExecutionError</span></tt>
+is raised.</li>
+</ol>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2187,7 +2210,15 @@ element, typically a <a class="reference internal" href="../core/schema.html#sql
 <dl class="attribute">
 <dt id="sqlalchemy.orm.session.Session.is_active">
 <tt class="descname">is_active</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.is_active" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if this Session has an active transaction.</p>
+<dd><p>True if this <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> has an active transaction.</p>
+<p>This indicates if the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is capable of emitting
+SQL, as from the <a class="reference internal" href="#sqlalchemy.orm.session.Session.execute" title="sqlalchemy.orm.session.Session.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Session.execute()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-meth docutils literal"><span class="pre">Session.query()</span></tt></a>,
+or <a class="reference internal" href="#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-meth docutils literal"><span class="pre">Session.flush()</span></tt></a> methods.   If False, it indicates 
+that the innermost transaction has been rolled back, but enclosing
+<a class="reference internal" href="#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> objects remain in the transactional
+stack, which also must be rolled back.</p>
+<p>This flag is generally only useful with a <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+configured in its default mode of <tt class="docutils literal"><span class="pre">autocommit=False</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2337,11 +2368,41 @@ begin() is called multiple times.</p>
 <dd><p>Like <a class="reference internal" href="#sqlalchemy.orm.session.Session.execute" title="sqlalchemy.orm.session.Session.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> but return a scalar result.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.orm.session.Session.transaction">
+<tt class="descname">transaction</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.transaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>The current active or inactive <a class="reference internal" href="#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.orm.session.SessionTransaction">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.session.</tt><tt class="descname">SessionTransaction</tt><big>(</big><em>session</em>, <em>parent=None</em>, <em>nested=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.SessionTransaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Session-level transaction.</p>
+<p>This corresponds to one or more Core <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>
+instances behind the scenes, with one <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>
+per <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> in use.</p>
+<p>Direct usage of <a class="reference internal" href="#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> is not typically 
+necessary as of SQLAlchemy 0.4; use the <a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> and 
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a> methods on <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> itself to 
+control the transaction.</p>
+<p>The current instance of <a class="reference internal" href="#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> for a given
+<a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is available via the <a class="reference internal" href="#sqlalchemy.orm.session.Session.transaction" title="sqlalchemy.orm.session.Session.transaction"><tt class="xref py py-attr docutils literal"><span class="pre">Session.transaction</span></tt></a>
+attribute.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> object is <strong>not</strong> thread-safe.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.is_active" title="sqlalchemy.orm.session.Session.is_active"><tt class="xref py py-attr docutils literal"><span class="pre">Session.is_active</span></tt></a></p>
+<p><a class="reference internal" href="events.html#sqlalchemy.orm.events.SessionEvents.after_commit" title="sqlalchemy.orm.events.SessionEvents.after_commit"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.after_commit()</span></tt></a></p>
+<p><a class="reference internal" href="events.html#sqlalchemy.orm.events.SessionEvents.after_rollback" title="sqlalchemy.orm.events.SessionEvents.after_rollback"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.after_rollback()</span></tt></a></p>
+<p><a class="reference internal" href="events.html#sqlalchemy.orm.events.SessionEvents.after_soft_rollback" title="sqlalchemy.orm.events.SessionEvents.after_soft_rollback"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.after_soft_rollback()</span></tt></a></p>
 </dd></dl>
 
 </div>
 <div class="section" id="session-utilites">
-<h3>Session Utilites<a class="headerlink" href="#session-utilites" title="Permalink to this headline">¶</a></h3>
+<span id="index-1"></span><h3>Session Utilites<a class="headerlink" href="#session-utilites" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="sqlalchemy.orm.session.make_transient">
 <tt class="descclassname">sqlalchemy.orm.session.</tt><tt class="descname">make_transient</tt><big>(</big><em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.make_transient" title="Permalink to this definition">¶</a></dt>

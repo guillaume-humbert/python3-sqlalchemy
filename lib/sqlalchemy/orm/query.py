@@ -1241,81 +1241,246 @@ class Query(object):
                 )
 
     def join(self, *props, **kwargs):
-        """Create a join against this ``Query`` object's criterion
-        and apply generatively, returning the newly resulting ``Query``.
-
-        Each element in \*props may be:
-
-          * a string property name, i.e. "rooms".  This will join along the
-            relationship of the same name from this Query's "primary" mapper,
-            if one is present.
-
-          * a class-mapped attribute, i.e. Houses.rooms.  This will create a
-            join from "Houses" table to that of the "rooms" relationship.
-
-        A two-element form of \*props may also be passed.   In this form,
-        the first element is a target class or selectable, the second
-        is a string property name, class-mapped attribute, or clause
-        construct representing an "ON" clause.   This supersedes the
-        previous "tuple" calling form - multiple join() calls should
-        be used for multiple (target, onclause) pairs.
-
-        e.g.::
-
-            # join along string attribute names
-            session.query(Company).join('employees')
-            session.query(Company).join('employees', 'tasks')
-
-            # join the Person entity to an alias of itself,
-            # along the "friends" relationship
-            PAlias = aliased(Person)
-            session.query(Person).join(Palias, Person.friends)
-
-            # join from Houses to the "rooms" attribute on the
-            # "Colonials" subclass of Houses, then join to the
-            # "closets" relationship on Room
-            session.query(Houses).join(Colonials.rooms, Room.closets)
-
-            # join from Company entities to the "employees" collection,
-            # using "people JOIN engineers" as the target.  Then join
-            # to the "computers" collection on the Engineer entity.
-            session.query(Company).\\
-                        join(people.join(engineers), 'employees').\\
-                        join(Engineer.computers)
-
-            # join from Articles to Keywords, using the "keywords" attribute.
-            # assume this is a many-to-many relationship.
-            session.query(Article).join(Article.keywords)
-
-            # same thing, but spelled out entirely explicitly
-            # including the association table.
-            session.query(Article).join(article_keywords,
-                        Articles.id==article_keywords.c.article_id).\\
-                    join(Keyword, 
-                        Keyword.id==article_keywords.c.keyword_id)
-
-        \**kwargs include:
-
-            aliased - when joining, create anonymous aliases of each table.
-            This is used for self-referential joins or multiple joins to the
-            same table. Consider usage of the aliased(SomeClass) construct as
-            a more explicit approach to this.
-
-            from_joinpoint - the given join conditions will attempt 
-            to join from the right endpoint of the most recent join(),
-            instead of from the query's root entity.  I.e. any chain 
-            of joins, such as::
-
-                query.join(a, b, c) 
-
-            is equivalent to::
-
-                query.join(a).\\
-                        join(b, from_joinpoint=True).\\
-                        join(c, from_joinpoint=True)
+        """Create a SQL JOIN against this :class:`.Query` object's criterion
+        and apply generatively, returning the newly resulting :class:`.Query`.
         
-        See also :ref:`ormtutorial_joins` in the ORM tutorial.
+        **Simple Relationship Joins**
         
+        Consider a mapping between two classes ``User`` and ``Address``,
+        with a relationship ``User.addresses`` representing a collection 
+        of ``Address`` objects associated with each ``User``.   The most common 
+        usage of :meth:`~.Query.join` is to create a JOIN along this
+        relationship, using the ``User.addresses`` attribute as an indicator
+        for how this should occur::
+            
+            q = session.query(User).join(User.addresses)
+        
+        Where above, the call to :meth:`~.Query.join` along ``User.addresses`` 
+        will result in SQL equivalent to::
+        
+            SELECT user.* FROM user JOIN address ON user.id = address.user_id
+        
+        In the above example we refer to ``User.addresses`` as passed to
+        :meth:`~.Query.join` as the *on clause*, that is, it indicates
+        how the "ON" portion of the JOIN should be constructed.  For a 
+        single-entity query such as the one above (i.e. we start by selecting only from
+        ``User`` and nothing else), the relationship can also be specified by its 
+        string name::
+        
+            q = session.query(User).join("addresses")
+            
+        :meth:`~.Query.join` can also accommodate multiple 
+        "on clause" arguments to produce a chain of joins, such as below
+        where a join across four related entities is constructed::
+        
+            q = session.query(User).join("orders", "items", "keywords")
+            
+        The above would be shorthand for three separate calls to :meth:`~.Query.join`,
+        each using an explicit attribute to indicate the source entity::
+        
+            q = session.query(User).\\
+                    join(User.orders).\\
+                    join(Order.items).\\
+                    join(Item.keywords)
+        
+        **Joins to a Target Entity or Selectable**
+        
+        A second form of :meth:`~.Query.join` allows any mapped entity
+        or core selectable construct as a target.   In this usage, 
+        :meth:`~.Query.join` will attempt
+        to create a JOIN along the natural foreign key relationship between
+        two entities::
+        
+            q = session.query(User).join(Address)
+            
+        The above calling form of :meth:`.join` will raise an error if 
+        either there are no foreign keys between the two entities, or if 
+        there are multiple foreign key linkages between them.   In the
+        above calling form, :meth:`~.Query.join` is called upon to 
+        create the "on clause" automatically for us.  The target can
+        be any mapped entity or selectable, such as a :class:`.Table`::
+        
+            q = session.query(User).join(addresses_table)
+        
+        **Joins to a Target with an ON Clause**
+        
+        The third calling form allows both the target entity as well
+        as the ON clause to be passed explicitly.   Suppose for 
+        example we wanted to join to ``Address`` twice, using
+        an alias the second time.  We use :func:`~sqlalchemy.orm.aliased` 
+        to create a distinct alias of ``Address``, and join
+        to it using the ``target, onclause`` form, so that the 
+        alias can be specified explicitly as the target along with
+        the relationship to instruct how the ON clause should proceed::
+        
+            a_alias = aliased(Address)
+            
+            q = session.query(User).\\
+                    join(User.addresses).\\
+                    join(a_alias, User.addresses).\\
+                    filter(Address.email_address=='ed@foo.com').\\
+                    filter(a_alias.email_address=='ed@bar.com')
+        
+        Where above, the generated SQL would be similar to::
+        
+            SELECT user.* FROM user 
+                JOIN address ON user.id = address.user_id
+                JOIN address AS address_1 ON user.id=address_1.user_id
+                WHERE address.email_address = :email_address_1
+                AND address_1.email_address = :email_address_2
+        
+        The two-argument calling form of :meth:`~.Query.join` 
+        also allows us to construct arbitrary joins with SQL-oriented
+        "on clause" expressions, not relying upon configured relationships
+        at all.  Any SQL expression can be passed as the ON clause
+        when using the two-argument form, which should refer to the target
+        entity in some way as well as an applicable source entity::
+        
+            q = session.query(User).join(Address, User.id==Address.user_id)
+        
+        .. note:: In SQLAlchemy 0.6 and earlier, the two argument form of 
+           :meth:`~.Query.join` requires the usage of a tuple::
+           
+               query(User).join((Address, User.id==Address.user_id))
+           
+           This calling form is accepted in 0.7 and further, though
+           is not necessary unless multiple join conditions are passed to
+           a single :meth:`~.Query.join` call, which itself is also not
+           generally necessary as it is now equivalent to multiple
+           calls (this wasn't always the case).
+           
+        **Advanced Join Targeting and Adaption**
+
+        There is a lot of flexibility in what the "target" can be when using 
+        :meth:`~.Query.join`.   As noted previously, it also accepts 
+        :class:`.Table` constructs and other selectables such as :func:`.alias` 
+        and :func:`.select` constructs, with either the one or two-argument forms::
+
+            addresses_q = select([Address.user_id]).\\
+                            filter(Address.email_address.endswith("@bar.com")).\\
+                            alias()
+
+            q = session.query(User).\\
+                        join(addresses_q, addresses_q.c.user_id==User.id)
+        
+        :meth:`~.Query.join` also features the ability to *adapt* a 
+        :meth:`~sqlalchemy.orm.relationship` -driven ON clause to the target selectable.
+        Below we construct a JOIN from ``User`` to a subquery against ``Address``, allowing
+        the relationship denoted by ``User.addresses`` to *adapt* itself
+        to the altered target::
+        
+            address_subq = session.query(Address).\\
+                                filter(Address.email_address == 'ed@foo.com').\\
+                                subquery()
+
+            q = session.query(User).join(address_subq, User.addresses)
+        
+        Producing SQL similar to::
+        
+            SELECT user.* FROM user 
+                JOIN (
+                    SELECT address.id AS id, 
+                            address.user_id AS user_id, 
+                            address.email_address AS email_address 
+                    FROM address 
+                    WHERE address.email_address = :email_address_1
+                ) AS anon_1 ON user.id = anon_1.user_id
+        
+        The above form allows one to fall back onto an explicit ON
+        clause at any time::
+        
+            q = session.query(User).\\
+                    join(address_subq, User.id==address_subq.c.user_id)
+        
+        **Controlling what to Join From**
+        
+        While :meth:`~.Query.join` exclusively deals with the "right"
+        side of the JOIN, we can also control the "left" side, in those
+        cases where it's needed, using :meth:`~.Query.select_from`.
+        Below we construct a query against ``Address`` but can still
+        make usage of ``User.addresses`` as our ON clause by instructing
+        the :class:`.Query` to select first from the ``User`` 
+        entity::
+        
+            q = session.query(Address).select_from(User).\\
+                            join(User.addresses).\\
+                            filter(User.name == 'ed')
+        
+        Which will produce SQL similar to::
+        
+            SELECT address.* FROM user 
+                JOIN address ON user.id=address.user_id 
+                WHERE user.name = :name_1
+        
+        **Constructing Aliases Anonymously**
+        
+        :meth:`~.Query.join` can construct anonymous aliases
+        using the ``aliased=True`` flag.  This feature is useful
+        when a query is being joined algorithmically, such as
+        when querying self-referentially to an arbitrary depth::
+        
+            q = session.query(Node).\\
+                    join("children", "children", aliased=True)
+        
+        When ``aliased=True`` is used, the actual "alias" construct
+        is not explicitly available.  To work with it, methods such as 
+        :meth:`.Query.filter` will adapt the incoming entity to 
+        the last join point::
+        
+            q = session.query(Node).\\
+                    join("children", "children", aliased=True).\\
+                    filter(Node.name == 'grandchild 1')
+        
+        When using automatic aliasing, the ``from_joinpoint=True``
+        argument can allow a multi-node join to be broken into
+        multiple calls to :meth:`~.Query.join`, so that
+        each path along the way can be further filtered::
+        
+            q = session.query(Node).\\
+                    join("children", aliased=True).\\
+                    filter(Node.name='child 1').\\
+                    join("children", aliased=True, from_joinpoint=True).\\
+                    filter(Node.name == 'grandchild 1')
+        
+        The filtering aliases above can then be reset back to the
+        original ``Node`` entity using :meth:`~.Query.reset_joinpoint`::
+        
+            q = session.query(Node).\\
+                    join("children", "children", aliased=True).\\
+                    filter(Node.name == 'grandchild 1').\\
+                    reset_joinpoint().\\
+                    filter(Node.name == 'parent 1)
+        
+        For an example of ``aliased=True``, see the distribution 
+        example :ref:`examples_xmlpersistence` which illustrates
+        an XPath-like query system using algorithmic joins.
+        
+        :param *props: A collection of one or more join conditions, 
+         each consisting of a relationship-bound attribute or string 
+         relationship name representing an "on clause", or a single 
+         target entity, or a tuple in the form of ``(target, onclause)``.
+         A special two-argument calling form of the form ``target, onclause``
+         is also accepted.
+        :param aliased=False: If True, indicate that the JOIN target should be 
+         anonymously aliased.  Subsequent calls to :class:`~.Query.filter`
+         and similar will adapt the incoming criterion to the target 
+         alias, until :meth:`~.Query.reset_joinpoint` is called.
+        :param from_joinpoint=False: When using ``aliased=True``, a setting
+         of True here will cause the join to be from the most recent
+         joined target, rather than starting back from the original 
+         FROM clauses of the query.
+         
+        See also:
+        
+            :ref:`ormtutorial_joins` in the ORM tutorial.
+
+            :ref:`inheritance_toplevel` for details on how :meth:`~.Query.join`
+            is used for inheritance relationships.
+        
+            :func:`.orm.join` - a standalone ORM-level join function,
+            used internally by :meth:`.Query.join`, which in previous 
+            SQLAlchemy versions was the primary ORM-level joining interface.
+             
         """
         aliased, from_joinpoint = kwargs.pop('aliased', False),\
                                     kwargs.pop('from_joinpoint', False)
@@ -1341,6 +1506,18 @@ class Query(object):
         return self._join(props, 
                             outerjoin=True, create_aliases=aliased, 
                             from_joinpoint=from_joinpoint)
+
+    def _update_joinpoint(self, jp):
+        self._joinpoint = jp
+        # copy backwards to the root of the _joinpath
+        # dict, so that no existing dict in the path is mutated
+        while 'prev' in jp:
+            f, prev = jp['prev']
+            prev = prev.copy()
+            prev[f] = jp
+            jp['prev'] = (f, prev)
+            jp = prev
+        self._joinpath = jp
 
     @_generative(_no_statement_condition, _no_limit_offset)
     def _join(self, keys, outerjoin, create_aliases, from_joinpoint):
@@ -1421,11 +1598,18 @@ class Query(object):
                 if not create_aliases:
                     # check for this path already present.
                     # don't render in that case.
-                    if (left_entity, right_entity, prop.key) in \
-                                    self._joinpoint:
-                        self._joinpoint = \
-                                    self._joinpoint[
-                                    (left_entity, right_entity, prop.key)]
+                    edge = (left_entity, right_entity, prop.key)
+                    if edge in self._joinpoint:
+                        # The child's prev reference might be stale --
+                        # it could point to a parent older than the
+                        # current joinpoint.  If this is the case,
+                        # then we need to update it and then fix the
+                        # tree's spine with _update_joinpoint.  Copy
+                        # and then mutate the child, which might be
+                        # shared by a different query object.
+                        jp = self._joinpoint[edge].copy()
+                        jp['prev'] = (edge, self._joinpoint)
+                        self._update_joinpoint(jp)
                         continue
 
             elif onclause is not None and right_entity is None:
@@ -1442,7 +1626,10 @@ class Query(object):
         """append a JOIN to the query's from clause."""
 
         if left is None:
-            left = self._joinpoint_zero()
+            if self._from_obj:
+                left = self._from_obj[0]
+            elif self._entities:
+                left = self._entities[0].entity_zero_or_selectable
 
         if left is right and \
                 not create_aliases:
@@ -1496,23 +1683,10 @@ class Query(object):
         # if joining on a MapperProperty path,
         # track the path to prevent redundant joins
         if not create_aliases and prop:
-
-            self._joinpoint = jp = {
+            self._update_joinpoint({
                 '_joinpoint_entity':right,
                 'prev':((left, right, prop.key), self._joinpoint)
-            }
-
-            # copy backwards to the root of the _joinpath
-            # dict, so that no existing dict in the path is mutated
-            while 'prev' in jp:
-                f, prev = jp['prev']
-                prev = prev.copy()
-                prev[f] = jp
-                jp['prev'] = (f, prev)
-                jp = prev
-
-            self._joinpath = jp
-
+            })
         else:
             self._joinpoint = {
                 '_joinpoint_entity':right
@@ -1571,10 +1745,15 @@ class Query(object):
                     sql_util.clause_is_present(left_selectable, clause):
                     join_to_left = False
 
-                clause = orm_join(clause, 
+                try:
+                    clause = orm_join(clause, 
                                     right, 
                                     onclause, isouter=outerjoin, 
                                     join_to_left=join_to_left)
+                except sa_exc.ArgumentError, ae:
+                    raise sa_exc.InvalidRequestError(
+                            "Could not find a FROM clause to join from.  "
+                            "Tried joining to %s, but got: %s" % (right, ae))
 
                 self._from_obj = \
                         self._from_obj[:replace_clause_index] + \
@@ -1589,6 +1768,8 @@ class Query(object):
                     break
             else:
                 clause = left
+        elif left_selectable is not None:
+            clause = left_selectable
         else:
             clause = None
 
@@ -1596,8 +1777,13 @@ class Query(object):
             raise sa_exc.InvalidRequestError(
                     "Could not find a FROM clause to join from")
 
-        clause = orm_join(clause, right, onclause, 
+        try:
+            clause = orm_join(clause, right, onclause, 
                                 isouter=outerjoin, join_to_left=join_to_left)
+        except sa_exc.ArgumentError, ae:
+            raise sa_exc.InvalidRequestError(
+                    "Could not find a FROM clause to join from.  "
+                    "Tried joining to %s, but got: %s" % (right, ae))
 
         self._from_obj = self._from_obj + (clause,)
 
@@ -1607,12 +1793,13 @@ class Query(object):
 
     @_generative(_no_statement_condition)
     def reset_joinpoint(self):
-        """return a new Query reset the 'joinpoint' of this Query reset
-        back to the starting mapper.  Subsequent generative calls will
-        be constructed from the new joinpoint.
-
-        Note that each call to join() or outerjoin() also starts from
-        the root.
+        """Return a new :class:`.Query`, where the "join point" has
+        been reset back to the base FROM entities of the query.
+        
+        This method is usually used in conjunction with the
+        ``aliased=True`` feature of the :meth:`~.Query.join`
+        method.  See the example in :meth:`~.Query.join` for how 
+        this is used.
 
         """
         self._reset_joinpoint()
@@ -1622,13 +1809,16 @@ class Query(object):
         """Set the FROM clause of this :class:`.Query` explicitly.
 
         Sending a mapped class or entity here effectively replaces the
-        "left edge" of any calls to :meth:`.Query.join`, when no 
+        "left edge" of any calls to :meth:`~.Query.join`, when no 
         joinpoint is otherwise established - usually, the default "join
-        point" is the leftmost entity in the :class:`.Query` object's
+        point" is the leftmost entity in the :class:`~.Query` object's
         list of entities to be selected.
 
-        Mapped entities or plain :class:`.Table` or other selectables
+        Mapped entities or plain :class:`~.Table` or other selectables
         can be sent here which will form the default FROM clause.
+        
+        See the example in :meth:`~.Query.join` for a typical 
+        usage of :meth:`~.Query.select_from`.
 
         """
         obj = []
@@ -1683,6 +1873,9 @@ class Query(object):
             self._limit = stop
         elif start is not None and stop is None:
             self._offset = (self._offset or 0) + start
+
+        if self._offset == 0:
+            self._offset = None
 
     @_generative(_no_statement_condition)
     def limit(self, limit):
@@ -1983,20 +2176,25 @@ class Query(object):
                 break
 
     def merge_result(self, iterator, load=True):
-        """Merge a result into this Query's Session.
+        """Merge a result into this :class:`.Query` object's Session.
 
-        Given an iterator returned by a Query of the same structure as this
+        Given an iterator returned by a :class:`.Query` of the same structure as this
         one, return an identical iterator of results, with all mapped
-        instances merged into the session using Session.merge(). This is an
+        instances merged into the session using :meth:`.Session.merge`. This is an
         optimized method which will merge all mapped instances, preserving the
         structure of the result rows and unmapped columns with less method
-        overhead than that of calling Session.merge() explicitly for each
+        overhead than that of calling :meth:`.Session.merge` explicitly for each
         value.
 
         The structure of the results is determined based on the column list of
-        this Query - if these do not correspond, unchecked errors will occur.
+        this :class:`.Query` - if these do not correspond, unchecked errors will occur.
 
-        The 'load' argument is the same as that of Session.merge().
+        The 'load' argument is the same as that of :meth:`.Session.merge`.
+        
+        For an example of how :meth:`~.Query.merge_result` is used, see
+        the source code for the example :ref:`examples_caching`, where
+        :meth:`~.Query.merge_result` is used to efficiently restore state
+        from a cache back into a target :class:`.Session`.
 
         """
 
@@ -2153,7 +2351,7 @@ class Query(object):
         to count, to skip the usage of a subquery or
         otherwise control of the FROM clause,
         or to use other aggregate functions,
-        use :attr:`.func` expressions in conjunction
+        use :attr:`~sqlalchemy.sql.expression.func` expressions in conjunction
         with :meth:`~.Session.query`, i.e.::
         
             from sqlalchemy import func
@@ -2707,6 +2905,10 @@ class _MapperEntity(_QueryEntity):
     def type(self):
         return self.mapper.class_
 
+    @property
+    def entity_zero_or_selectable(self):
+        return self.entity_zero
+
     def corresponds_to(self, entity):
         if _is_aliased_class(entity) or self.is_aliased_class:
             return entity is self.path_entity
@@ -2872,7 +3074,7 @@ class _ColumnEntity(_QueryEntity):
         # of FROMs for the overall expression - this helps
         # subqueries which were built from ORM constructs from
         # leaking out their entities into the main select construct
-        actual_froms = set(column._from_objects)
+        self.actual_froms = actual_froms = set(column._from_objects)
 
         self.entities = util.OrderedSet(
             elem._annotations['parententity']
@@ -2885,6 +3087,15 @@ class _ColumnEntity(_QueryEntity):
             self.entity_zero = list(self.entities)[0]
         else:
             self.entity_zero = None
+
+    @property
+    def entity_zero_or_selectable(self):
+        if self.entity_zero:
+            return self.entity_zero
+        elif self.actual_froms:
+            return list(self.actual_froms)[0]
+        else:
+            return None
 
     @property
     def type(self):
@@ -2987,14 +3198,4 @@ class AliasOption(interfaces.MapperOption):
         query._from_obj_alias = sql_util.ColumnAdapter(alias)
 
 
-_runid = 1L
-_id_lock = util.threading.Lock()
-
-def _new_runid():
-    global _runid
-    _id_lock.acquire()
-    try:
-        _runid += 1
-        return _runid
-    finally:
-        _id_lock.release()
+_new_runid = util.counter()
