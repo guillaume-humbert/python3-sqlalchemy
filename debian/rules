@@ -18,7 +18,7 @@ clean:
 		$(PYVERS:%=install-python%) $(PYVERS:%=build-python%) \
 		$(PYVERS:%=install-debug-python%) $(PYVERS:%=build-debug-python%)
 
-build: build-arch build-indep
+build: build-arch
 
 build-arch: $(PYVERS:%=build-python%)
 
