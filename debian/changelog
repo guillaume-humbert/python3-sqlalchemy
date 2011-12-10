@@ -1,3 +1,9 @@
+sqlalchemy (0.7.4-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sat, 10 Dec 2011 19:36:41 +0100
+
 sqlalchemy (0.7.3-2) unstable; urgency=low
 
   * remove build-indep from build target's dependencies (closes: 645697)
