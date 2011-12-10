@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="access.html" title="previous chapter">Microsoft Access</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 Microsoft SQL Server
@@ -83,7 +95,15 @@ Search:
                 Microsoft SQL Server
             
         </h2>
-        <ul>
+    </div>
+
+</div>
+
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">Microsoft SQL Server</a><ul>
 <li><a class="reference internal" href="#connecting">Connecting</a></li>
 <li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
@@ -121,12 +141,28 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
 
-<div class="document">
-    <div class="body">
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="access.html" title="previous chapter">Microsoft Access</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="mysql.html" title="next chapter">MySQL</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.dialects.mssql.base">
 <span id="microsoft-sql-server"></span><h1>Microsoft SQL Server<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.base" title="Permalink to this headline">¶</a></h1>
@@ -495,6 +531,23 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <dt id="sqlalchemy.dialects.mssql.SMALLDATETIME">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">SMALLDATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLDATETIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mssql.base._DateTimeBase</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
+<dl class="method">
+<dt id="sqlalchemy.dialects.mssql.SMALLDATETIME.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLDATETIME.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a new <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">DateTime</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
+</tr>
+</tbody>
+</table>
+<p>backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
+that don&#8217;t support timezone aware timestamps, has no
+effect.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -640,25 +693,29 @@ like:</p>
 <div class="highlight-python"><pre>dsn=mydsn;UID=user;PWD=pass;LANGUAGE=us_english</pre>
 </div>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db</span></tt> - connects using a connection string
-dynamically created that would appear like:</p>
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db</span></tt> - connects using a connection 
+that would appear like:</p>
 <div class="highlight-python"><pre>DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass</pre>
 </div>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host:123/db</span></tt> - connects using a connection
-string that is dynamically created, which also includes the port
-information using the comma syntax. If your connection string
-requires the port information to be passed as a <tt class="docutils literal"><span class="pre">port</span></tt> keyword
-see the next example. This will create the following connection
-string:</p>
+string which includes the port
+information using the comma syntax. This will create the following 
+connection string:</p>
 <div class="highlight-python"><pre>DRIVER={SQL Server};Server=host,123;Database=db;UID=user;PWD=pass</pre>
 </div>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db?port=123</span></tt> - connects using a connection
-string that is dynamically created that includes the port
+string that includes the port
 information as a separate <tt class="docutils literal"><span class="pre">port</span></tt> keyword. This will create the
 following connection string:</p>
 <div class="highlight-python"><pre>DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass;port=123</pre>
+</div>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db?driver=MyDriver</span></tt> - connects using a connection
+string that includes a custom
+ODBC driver name.  This will create the following connection string:</p>
+<div class="highlight-python"><pre>DRIVER={MyDriver};Server=host;Database=db;UID=user;PWD=pass</pre>
 </div>
 </li>
 </ul>
@@ -773,22 +830,24 @@ properties to the underlying JDBC driver.</p>
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="access.html" title="previous chapter">Microsoft Access</a>
             Next:
             <a href="mysql.html" title="next chapter">MySQL</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

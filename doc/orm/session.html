@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="inheritance.html" title="previous chapter">Mapping Class Inheritance Hierarchies</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Using the Session
@@ -83,7 +95,15 @@ Search:
                 Using the Session
             
         </h2>
-        <ul>
+    </div>
+
+</div>
+
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">Using the Session</a><ul>
 <li><a class="reference internal" href="#what-does-the-session-do">What does the Session do ?</a></li>
 <li><a class="reference internal" href="#getting-a-session">Getting a Session</a><ul>
@@ -114,7 +134,10 @@ Search:
 <li><a class="reference internal" href="#session-attributes">Session Attributes</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#cascades">Cascades</a></li>
+<li><a class="reference internal" href="#cascades">Cascades</a><ul>
+<li><a class="reference internal" href="#controlling-cascade-on-backrefs">Controlling Cascade on Backrefs</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#managing-transactions">Managing Transactions</a><ul>
 <li><a class="reference internal" href="#using-savepoint">Using SAVEPOINT</a></li>
 <li><a class="reference internal" href="#autocommit-mode">Autocommit Mode</a><ul>
@@ -148,12 +171,28 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
 
-<div class="document">
-    <div class="body">
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="inheritance.html" title="previous chapter">Mapping Class Inheritance Hierarchies</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="query.html" title="next chapter">Querying</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.orm.session">
 <span id="using-the-session"></span><span id="session-toplevel"></span><h1>Using the Session<a class="headerlink" href="#module-sqlalchemy.orm.session" title="Permalink to this headline">¶</a></h1>
@@ -623,8 +662,8 @@ would mean removing the <tt class="docutils literal"><span class="pre">save-upda
 is extremely convenient.  The solution here would usually be to not assign
 <tt class="docutils literal"><span class="pre">a1.user</span></tt> to an object already persistent in the target
 session.</p>
-<p>Note that a new <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> option introduced in 0.6.5,
-<tt class="docutils literal"><span class="pre">cascade_backrefs=False</span></tt>, will also prevent the <tt class="docutils literal"><span class="pre">Address</span></tt> from
+<p>The <tt class="docutils literal"><span class="pre">cascade_backrefs=False</span></tt> option of <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
+will also prevent the <tt class="docutils literal"><span class="pre">Address</span></tt> from
 being added to the session via the <tt class="docutils literal"><span class="pre">a1.user</span> <span class="pre">=</span> <span class="pre">u1</span></tt> assignment.</p>
 <p>Further detail on cascade operation is at <a class="reference internal" href="#unitofwork-cascades"><em>Cascades</em></a>.</p>
 <p>Another example of unexpected state:</p>
@@ -997,7 +1036,7 @@ is already present in a session will also be added to that same session.
 relationship()-based attribute, meaning that objects which were removed from a
 scalar or collection attribute whose changes have not yet been flushed are
 also placed into the new session - this so that foreign key clear operations
-and deletions will take place (new in 0.6).</p>
+and deletions will take place.</p>
 <p>Note that the <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade only functions for relationships where
 the target object can have a single parent at a time, meaning it is only
 appropriate for one-to-one or one-to-many relationships. For a
@@ -1009,7 +1048,9 @@ specify the <tt class="docutils literal"><span class="pre">single_parent=True</s
 objects to allow attachment to only one parent at a time.</p>
 <p>The default value for <tt class="docutils literal"><span class="pre">cascade</span></tt> on <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> is
 <tt class="docutils literal"><span class="pre">save-update,</span> <span class="pre">merge</span></tt>.</p>
-<p><tt class="docutils literal"><span class="pre">save-update</span></tt> cascade also takes place on backrefs by default.   This means
+<div class="section" id="controlling-cascade-on-backrefs">
+<h3>Controlling Cascade on Backrefs<a class="headerlink" href="#controlling-cascade-on-backrefs" title="Permalink to this headline">¶</a></h3>
+<p>The <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade takes place on backrefs by default.   This means
 that, given a mapping such as this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Order</span><span class="p">,</span> <span class="n">order_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="s">&#39;items&#39;</span> <span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Item</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;order&#39;</span><span class="p">)</span>
@@ -1031,7 +1072,7 @@ place:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span> <span class="ow">in</span> <span class="n">session</span>
 <span class="go">True</span></pre></div>
 </div>
-<p>This behavior can be disabled as of 0.6.5 using the <tt class="docutils literal"><span class="pre">cascade_backrefs</span></tt> flag:</p>
+<p>This behavior can be disabled using the <tt class="docutils literal"><span class="pre">cascade_backrefs</span></tt> flag:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Order</span><span class="p">,</span> <span class="n">order_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="s">&#39;items&#39;</span> <span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Item</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;order&#39;</span><span class="p">,</span>
                                 <span class="n">cascade_backrefs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -1043,6 +1084,7 @@ course, <tt class="xref py py-func docutils literal"><span class="pre">add()</sp
 may be helpful for situations where an object needs to be kept out of a
 session until it&#8217;s construction is completed, but still needs to be given
 associations to objects which are already persistent in the target session.</p>
+</div>
 </div>
 <div class="section" id="managing-transactions">
 <span id="unitofwork-transaction"></span><h2>Managing Transactions<a class="headerlink" href="#managing-transactions" title="Permalink to this headline">¶</a></h2>
@@ -1982,6 +2024,9 @@ implementations of <a class="reference internal" href="#sqlalchemy.orm.session.S
 <dt id="sqlalchemy.orm.session.Session.dirty">
 <tt class="descname">dirty</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.dirty" title="Permalink to this definition">¶</a></dt>
 <dd><p>The set of all persistent instances considered dirty.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">some_mapped_object</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">dirty</span></pre></div>
+</div>
 <p>Instances are considered dirty when they were modified but not
 deleted.</p>
 <p>Note that this &#8216;dirty&#8217; calculation is &#8216;optimistic&#8217;; most
@@ -1993,7 +2038,7 @@ previously saved value, and if there&#8217;s no net change, no SQL
 operation will occur (this is a more expensive operation so
 it&#8217;s only done at flush time).</p>
 <p>To check if an instance has actionable net changes to its
-attributes, use the is_modified() method.</p>
+attributes, use the <a class="reference internal" href="#sqlalchemy.orm.session.Session.is_modified" title="sqlalchemy.orm.session.Session.is_modified"><tt class="xref py py-meth docutils literal"><span class="pre">Session.is_modified()</span></tt></a> method.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2224,26 +2269,40 @@ configured in its default mode of <tt class="docutils literal"><span class="pre"
 <dl class="method">
 <dt id="sqlalchemy.orm.session.Session.is_modified">
 <tt class="descname">is_modified</tt><big>(</big><em>instance</em>, <em>include_collections=True</em>, <em>passive=&lt;symbol 'PASSIVE_OFF&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.is_modified" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <tt class="xref docutils literal"><span class="pre">True</span></tt> if instance has modified attributes.</p>
-<p>This method retrieves a history instance for each instrumented
+<dd><p>Return <tt class="xref docutils literal"><span class="pre">True</span></tt> if the given instance has locally 
+modified attributes.</p>
+<p>This method retrieves the history for each instrumented
 attribute on the instance and performs a comparison of the current
-value to its previously committed value.</p>
-<p><tt class="docutils literal"><span class="pre">include_collections</span></tt> indicates if multivalued collections should be
-included in the operation.  Setting this to False is a way to detect
-only local-column based properties (i.e. scalar columns or many-to-one
-foreign keys) that would result in an UPDATE for this instance upon
-flush.</p>
-<p>The <tt class="docutils literal"><span class="pre">passive</span></tt> flag indicates if unloaded attributes and collections
-should not be loaded in the course of performing this test.
-Allowed values include <tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_OFF</span></tt>, <tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_NO_INITIALIZE</span></tt>.</p>
+value to its previously committed value, if any.</p>
+<p>It is in effect a more expensive and accurate
+version of checking for the given instance in the 
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.dirty" title="sqlalchemy.orm.session.Session.dirty"><tt class="xref py py-attr docutils literal"><span class="pre">Session.dirty</span></tt></a> collection; a full test for 
+each attribute&#8217;s net &#8220;dirty&#8221; status is performed.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="n">is_modified</span><span class="p">(</span><span class="n">someobject</span><span class="p">,</span> <span class="n">passive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In SQLAlchemy 0.7 and earlier, the <tt class="docutils literal"><span class="pre">passive</span></tt> 
+flag should <strong>always</strong> be explicitly set to <tt class="xref docutils literal"><span class="pre">True</span></tt>. 
+The current default value of <a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_OFF" title="sqlalchemy.orm.attributes.PASSIVE_OFF"><tt class="xref py py-data docutils literal"><span class="pre">attributes.PASSIVE_OFF</span></tt></a>
+for this flag is incorrect, in that it loads unloaded
+collections and attributes which by definition 
+have no modified state, and furthermore trips off 
+autoflush which then causes all subsequent, possibly
+modified attributes to lose their modified state.   
+The default value of the flag will be changed in 0.8.</p>
+</div>
 <p>A few caveats to this method apply:</p>
 <ul>
-<li><p class="first">Instances present in the &#8216;dirty&#8217; collection may result in a value 
-of <tt class="xref docutils literal"><span class="pre">False</span></tt> when tested with this method.  This because while
-the object may have received attribute set events, there may be
-no net changes on its state.</p>
+<li><p class="first">Instances present in the <a class="reference internal" href="#sqlalchemy.orm.session.Session.dirty" title="sqlalchemy.orm.session.Session.dirty"><tt class="xref py py-attr docutils literal"><span class="pre">Session.dirty</span></tt></a> collection may report 
+<tt class="xref docutils literal"><span class="pre">False</span></tt> when tested with this method.  This is because 
+the object may have received change events via attribute
+mutation, thus placing it in <a class="reference internal" href="#sqlalchemy.orm.session.Session.dirty" title="sqlalchemy.orm.session.Session.dirty"><tt class="xref py py-attr docutils literal"><span class="pre">Session.dirty</span></tt></a>, 
+but ultimately the state is the same as that loaded from
+the database, resulting in no net change here.</p>
 </li>
-<li><p class="first">Scalar attributes may not have recorded the &#8220;previously&#8221; set
+<li><p class="first">Scalar attributes may not have recorded the previously set
 value when a new value was applied, if the attribute was not loaded,
 or was expired, at the time the new value was received - in these
 cases, the attribute is assumed to have a change, even if there is
@@ -2254,11 +2313,43 @@ based on the assumption that an UPDATE of the scalar value is
 usually needed, and in those few cases where it isn&#8217;t, is less
 expensive on average than issuing a defensive SELECT.</p>
 <p>The &#8220;old&#8221; value is fetched unconditionally only if the attribute
-container has the &#8220;active_history&#8221; flag set to <tt class="xref docutils literal"><span class="pre">True</span></tt>. This flag
-is set typically for primary key attributes and scalar references
-that are not a simple many-to-one.</p>
+container has the <tt class="docutils literal"><span class="pre">active_history</span></tt> flag set to <tt class="xref docutils literal"><span class="pre">True</span></tt>. This flag
+is set typically for primary key attributes and scalar object references
+that are not a simple many-to-one.  To set this flag for 
+any arbitrary mapped column, use the <tt class="docutils literal"><span class="pre">active_history</span></tt> argument
+with <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>.</p>
 </li>
 </ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>instance</strong> &#8211; mapped instance to be tested for pending changes.</li>
+<li><strong>include_collections</strong> &#8211; Indicates if multivalued collections should be
+included in the operation.  Setting this to <tt class="xref docutils literal"><span class="pre">False</span></tt> is a way to detect
+only local-column based properties (i.e. scalar columns or many-to-one
+foreign keys) that would result in an UPDATE for this instance upon
+flush.</li>
+<li><strong>passive</strong> &#8211; Indicates if unloaded attributes and 
+collections should be loaded in the course of performing 
+this test.  If set to <tt class="xref docutils literal"><span class="pre">False</span></tt>, or left at its default
+value of <a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_OFF" title="sqlalchemy.orm.attributes.PASSIVE_OFF"><tt class="xref py py-data docutils literal"><span class="pre">PASSIVE_OFF</span></tt></a>, unloaded attributes
+will be loaded.  If set to <tt class="xref docutils literal"><span class="pre">True</span></tt> or 
+<a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_NO_INITIALIZE" title="sqlalchemy.orm.attributes.PASSIVE_NO_INITIALIZE"><tt class="xref py py-data docutils literal"><span class="pre">PASSIVE_NO_INITIALIZE</span></tt></a>, unloaded 
+collections and attributes will remain unloaded.  As 
+noted previously, the existence of this flag here
+is a bug, as unloaded attributes by definition have 
+no changes, and the load operation also triggers an
+autoflush which then cancels out subsequent changes.
+This flag should <strong>always be set to 
+True</strong>.  In 0.8 the flag will be deprecated and the default
+set to <tt class="xref docutils literal"><span class="pre">True</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2654,22 +2745,24 @@ normally.</p>
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="inheritance.html" title="previous chapter">Mapping Class Inheritance Hierarchies</a>
             Next:
             <a href="query.html" title="next chapter">Querying</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

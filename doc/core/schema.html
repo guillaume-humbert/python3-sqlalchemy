@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="pooling.html" title="previous chapter">Connection Pooling</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Schema Definition Language
@@ -83,7 +95,15 @@ Search:
                 Schema Definition Language
             
         </h2>
-        <ul>
+    </div>
+
+</div>
+
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">Schema Definition Language</a><ul>
 <li><a class="reference internal" href="#describing-databases-with-metadata">Describing Databases with MetaData</a><ul>
 <li><a class="reference internal" href="#accessing-tables-and-columns">Accessing Tables and Columns</a></li>
@@ -137,12 +157,28 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
 
-<div class="document">
-    <div class="body">
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="pooling.html" title="previous chapter">Connection Pooling</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="types.html" title="next chapter">Column and Data Types</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.schema">
 <span id="schema-definition-language"></span><span id="metadata-toplevel"></span><h1>Schema Definition Language<a class="headerlink" href="#module-sqlalchemy.schema" title="Permalink to this headline">¶</a></h1>
@@ -548,7 +584,8 @@ column that should be considered &#8220;autoincrement&#8221;.</p>
 <ul>
 <li>Integer derived (i.e. INT, SMALLINT, BIGINT).</li>
 <li>Part of the primary key</li>
-<li>Are not referenced by any foreign keys</li>
+<li>Are not referenced by any foreign keys, unless
+the value is specified as <tt class="docutils literal"><span class="pre">'ignore_fk'</span></tt> (new in 0.7.4)</li>
 <li>have no server side or client side defaults (with the exception
 of Postgresql SERIAL).</li>
 </ul>
@@ -571,6 +608,11 @@ any effect in this regard for databases that use sequences
 to generate primary key identifiers (i.e. Firebird, Postgresql, 
 Oracle).</li>
 </ul>
+<p>As of 0.7.4, <tt class="docutils literal"><span class="pre">autoincrement</span></tt> accepts a special value <tt class="docutils literal"><span class="pre">'ignore_fk'</span></tt>
+to indicate that autoincrementing status regardless of foreign key
+references.  This applies to certain composite foreign key
+setups, such as the one demonstrated in the ORM documentation
+at <a class="reference internal" href="../orm/relationships.html#post-update"><em>Rows that point to themselves / Mutually Dependent Rows</em></a>.</p>
 </li>
 <li><strong>default</strong> &#8211; <p>A scalar, Python callable, or
 <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> representing the
@@ -688,7 +730,7 @@ key.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.MetaData">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">MetaData</tt><big>(</big><em>bind=None</em>, <em>reflect=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">MetaData</tt><big>(</big><em>bind=None</em>, <em>reflect=False</em>, <em>schema=None</em>, <em>quote_schema=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>A collection of <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and their associated schema constructs.</p>
 <p>Holds a collection of <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects as well as 
@@ -714,7 +756,7 @@ or loaded via reflection.</p>
 <p><a class="reference internal" href="#metadata-binding"><em>Binding MetaData to an Engine or Connection</em></a> - Information on binding connectables to <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a></p>
 <span class="target" id="index-0"></span><dl class="method">
 <dt id="sqlalchemy.schema.MetaData.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>bind=None</em>, <em>reflect=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>bind=None</em>, <em>reflect=False</em>, <em>schema=None</em>, <em>quote_schema=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.MetaData.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new MetaData object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -728,6 +770,12 @@ be bound to the resulting engine.</li>
 Defaults to False. <tt class="docutils literal"><span class="pre">bind</span></tt> is required when this option is set.
 For finer control over loaded tables, use the <tt class="docutils literal"><span class="pre">reflect</span></tt> method of
 <tt class="docutils literal"><span class="pre">MetaData</span></tt>.</li>
+<li><strong>schema</strong> &#8211; The default schema to use for the <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a>, and other
+objects associated with this <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>.
+Defaults to <tt class="xref docutils literal"><span class="pre">None</span></tt>.  New in 0.7.4.</li>
+<li><strong>quote_schema</strong> &#8211; Sets the <tt class="docutils literal"><span class="pre">quote_schema</span></tt> flag for those <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a>,
+and other objects which make usage of the local <tt class="docutils literal"><span class="pre">schema</span></tt> name.
+New in 0.7.4.</li>
 </ul>
 </td>
 </tr>
@@ -830,7 +878,9 @@ in this <tt class="docutils literal"><span class="pre">MetaData</span></tt> no l
 <li><strong>bind</strong> &#8211; A <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> used to access the
 database; if None, uses the existing bind on this <tt class="docutils literal"><span class="pre">MetaData</span></tt>, if
 any.</li>
-<li><strong>schema</strong> &#8211; Optional, query and reflect tables from an alterate schema.</li>
+<li><strong>schema</strong> &#8211; Optional, query and reflect tables from an alterate schema.
+If None, the schema associated with this <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>
+is used, if any.</li>
 <li><strong>views</strong> &#8211; If True, also reflect views.</li>
 <li><strong>only</strong> &#8211; <p>Optional.  Load only a sub-set of available named tables.  May be
 specified as a sequence of names or a callable.</p>
@@ -925,12 +975,31 @@ objects in the constructor if this property is set.</li>
 <li><strong>autoload_with</strong> &#8211; If autoload==True, this is an optional Engine 
 or Connection instance to be used for the table reflection. If
 <tt class="xref docutils literal"><span class="pre">None</span></tt>, the underlying MetaData&#8217;s bound connectable will be used.</li>
-<li><strong>extend_existing</strong> &#8211; <p>When <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that if this Table is already
+<li><strong>extend_existing</strong> &#8211; <p>When <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that if this <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is already
 present in the given <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>, apply further arguments within
 the constructor to the existing <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
-<p>If extend_existing or keep_existing are not set, an error is
+<p>If <tt class="docutils literal"><span class="pre">extend_existing</span></tt> or <tt class="docutils literal"><span class="pre">keep_existing</span></tt> are not set, an error is
 raised if additional table modifiers are specified when 
 the given <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is already present in the <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>.</p>
+<p>As of version 0.7.4, <tt class="docutils literal"><span class="pre">extend_existing</span></tt> will work in conjunction
+with <tt class="docutils literal"><span class="pre">autoload=True</span></tt> to run a new reflection operation against
+the database; new <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects will be produced
+from database metadata to replace those existing with the same
+name, and additional <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects not present
+in the <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be added.
+As is always the case with <tt class="docutils literal"><span class="pre">autoload=True</span></tt>, <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
+objects can be specified in the same <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> constructor,
+which will take precedence.  I.e.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&quot;mytable&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+            <span class="n">extend_existing</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">autoload_with</span><span class="o">=</span><span class="n">engine</span>
+        <span class="p">)</span></pre></div>
+</div>
+<p>The above will overwrite all columns within <tt class="docutils literal"><span class="pre">mytable</span></tt> which are present
+in the database, except for <tt class="docutils literal"><span class="pre">y</span></tt> which will be used as is
+from the above definition.</p>
 </li>
 <li><strong>implicit_returning</strong> &#8211; True by default - indicates that 
 RETURNING can be used by default to fetch newly inserted primary key 
@@ -1166,8 +1235,8 @@ with <tt class="docutils literal"><span class="pre">create_engine()</span></tt>.
 <span id="metadata-reflection"></span><h2>Reflecting Database Objects<a class="headerlink" href="#reflecting-database-objects" title="Permalink to this headline">¶</a></h2>
 <p>A <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object can be instructed to load
 information about itself from the corresponding database schema object already
-existing within the database. This process is called <em>reflection</em>. Most simply
-you need only specify the table name, a <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>
+existing within the database. This process is called <em>reflection</em>. In the
+most simple case you need only specify the table name, a <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>
 object, and the <tt class="docutils literal"><span class="pre">autoload=True</span></tt> flag. If the
 <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> is not persistently bound, also add the
 <tt class="docutils literal"><span class="pre">autoload_with</span></tt> argument:</p>
@@ -1841,7 +1910,7 @@ Use <a class="reference internal" href="#sqlalchemy.schema.DefaultClause" title=
 
 <dl class="class">
 <dt id="sqlalchemy.schema.Sequence">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Sequence</tt><big>(</big><em>name</em>, <em>start=None</em>, <em>increment=None</em>, <em>schema=None</em>, <em>optional=False</em>, <em>quote=None</em>, <em>metadata=None</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Sequence</tt><big>(</big><em>name</em>, <em>start=None</em>, <em>increment=None</em>, <em>schema=None</em>, <em>optional=False</em>, <em>quote=None</em>, <em>metadata=None</em>, <em>quote_schema=None</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.DefaultGenerator" title="sqlalchemy.schema.DefaultGenerator"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.DefaultGenerator</span></tt></a></p>
 <p>Represents a named database sequence.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> object represents the name and configurational
@@ -1861,7 +1930,7 @@ the <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqla
 <p>See also: <a class="reference internal" href="#sqlalchemy.schema.CreateSequence" title="sqlalchemy.schema.CreateSequence"><tt class="xref py py-class docutils literal"><span class="pre">CreateSequence</span></tt></a> <a class="reference internal" href="#sqlalchemy.schema.DropSequence" title="sqlalchemy.schema.DropSequence"><tt class="xref py py-class docutils literal"><span class="pre">DropSequence</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.schema.Sequence.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>start=None</em>, <em>increment=None</em>, <em>schema=None</em>, <em>optional=False</em>, <em>quote=None</em>, <em>metadata=None</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>start=None</em>, <em>increment=None</em>, <em>schema=None</em>, <em>optional=False</em>, <em>quote=None</em>, <em>metadata=None</em>, <em>quote_schema=None</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2176,7 +2245,7 @@ described at <a class="reference internal" href="../orm/extensions/declarative.h
 
 <dl class="class">
 <dt id="sqlalchemy.schema.ForeignKey">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKey</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKey</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>schema=None</em>, <em>initially=None</em>, <em>link_to_name=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>Defines a dependency between two columns.</p>
 <p><tt class="docutils literal"><span class="pre">ForeignKey</span></tt> is specified as an argument to a <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object,
@@ -2208,7 +2277,7 @@ of that column.</p>
 <a class="reference internal" href="#metadata-foreignkeys"><em>Defining Foreign Keys</em></a>.</p>
 <dl class="method">
 <dt id="sqlalchemy.schema.ForeignKey.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>schema=None</em>, <em>initially=None</em>, <em>link_to_name=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a column-level FOREIGN KEY.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> object when constructed generates a
 <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> which is associated with the parent
@@ -2218,12 +2287,16 @@ of that column.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>column</strong> &#8211; A single target column for the key relationship. A
+<li><strong>column</strong> &#8211; <p>A single target column for the key relationship. A
 <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object or a column name as a string:
 <tt class="docutils literal"><span class="pre">tablename.columnkey</span></tt> or <tt class="docutils literal"><span class="pre">schema.tablename.columnkey</span></tt>.
 <tt class="docutils literal"><span class="pre">columnkey</span></tt> is the <tt class="docutils literal"><span class="pre">key</span></tt> which has been assigned to the column
 (defaults to the column name itself), unless <tt class="docutils literal"><span class="pre">link_to_name</span></tt> is
-<tt class="xref docutils literal"><span class="pre">True</span></tt> in which case the rendered name of the column is used.</li>
+<tt class="xref docutils literal"><span class="pre">True</span></tt> in which case the rendered name of the column is used.</p>
+<p>Note that if the schema name is not included, and the underlying
+<a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> has a &#8220;schema&#8221;, that value will be used.
+(new in 0.7.4)</p>
+</li>
 <li><strong>name</strong> &#8211; Optional string. An in-database name for the key if
 <cite>constraint</cite> is not provided.</li>
 <li><strong>onupdate</strong> &#8211; Optional string. If set, emit ON UPDATE &lt;value&gt; when
@@ -3037,27 +3110,59 @@ default when <tt class="docutils literal"><span class="pre">execute()</span></tt
 <p>Represent an ALTER TABLE DROP CONSTRAINT statement.</p>
 </dd></dl>
 
+<dl class="class">
+<dt id="sqlalchemy.schema.CreateSchema">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CreateSchema</tt><big>(</big><em>name</em>, <em>quote=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CreateSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
+<p>Represent a CREATE SCHEMA statement.</p>
+<p>New in 0.7.4.</p>
+<p>The argument here is the string name of the schema.</p>
+<dl class="method">
+<dt id="sqlalchemy.schema.CreateSchema.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>quote=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CreateSchema.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new <a class="reference internal" href="#sqlalchemy.schema.CreateSchema" title="sqlalchemy.schema.CreateSchema"><tt class="xref py py-class docutils literal"><span class="pre">CreateSchema</span></tt></a> construct.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.schema.DropSchema">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DropSchema</tt><big>(</big><em>name</em>, <em>quote=None</em>, <em>cascade=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema._CreateDropBase</span></tt></p>
+<p>Represent a DROP SCHEMA statement.</p>
+<p>The argument here is the string name of the schema.</p>
+<p>New in 0.7.4.</p>
+<dl class="method">
+<dt id="sqlalchemy.schema.DropSchema.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>quote=None</em>, <em>cascade=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DropSchema.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new <a class="reference internal" href="#sqlalchemy.schema.DropSchema" title="sqlalchemy.schema.DropSchema"><tt class="xref py py-class docutils literal"><span class="pre">DropSchema</span></tt></a> construct.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="pooling.html" title="previous chapter">Connection Pooling</a>
             Next:
             <a href="types.html" title="next chapter">Column and Data Types</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

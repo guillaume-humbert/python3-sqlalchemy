@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="tutorial.html" title="previous chapter">SQL Expression Language Tutorial</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 SQL Statements and Expressions API
@@ -83,7 +95,15 @@ Search:
                 SQL Statements and Expressions API
             
         </h2>
-        <ul>
+    </div>
+
+</div>
+
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">SQL Statements and Expressions API</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 <li><a class="reference internal" href="#classes">Classes</a></li>
@@ -92,12 +112,28 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
 
-<div class="document">
-    <div class="body">
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="tutorial.html" title="previous chapter">SQL Expression Language Tutorial</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="engines.html" title="next chapter">Engine Configuration</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.sql.expression">
 <span id="sql-statements-and-expressions-api"></span><span id="expression-api-toplevel"></span><h1>SQL Statements and Expressions API<a class="headerlink" href="#module-sqlalchemy.sql.expression" title="Permalink to this headline">¶</a></h1>
@@ -322,8 +358,9 @@ which will provide result-set translation for this column.</li>
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.delete">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">delete</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.delete" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Delete" title="sqlalchemy.sql.expression.Delete"><tt class="xref py py-class docutils literal"><span class="pre">Delete</span></tt></a> clause element.</p>
-<p>Similar functionality is available via the <a class="reference internal" href="#sqlalchemy.sql.expression.delete" title="sqlalchemy.sql.expression.delete"><tt class="xref py py-func docutils literal"><span class="pre">delete()</span></tt></a> method on
+<dd><p>Represent a <tt class="docutils literal"><span class="pre">DELETE</span></tt> statement via the <a class="reference internal" href="#sqlalchemy.sql.expression.Delete" title="sqlalchemy.sql.expression.Delete"><tt class="xref py py-class docutils literal"><span class="pre">Delete</span></tt></a> SQL 
+construct.</p>
+<p>Similar functionality is available via the <a class="reference internal" href="#sqlalchemy.sql.expression.TableClause.delete" title="sqlalchemy.sql.expression.TableClause.delete"><tt class="xref py py-meth docutils literal"><span class="pre">delete()</span></tt></a> method on
 <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -339,6 +376,9 @@ condition of the <tt class="docutils literal"><span class="pre">UPDATE</span></t
 </tr>
 </tbody>
 </table>
+<p>See also:</p>
+<blockquote>
+<div><a class="reference internal" href="tutorial.html#deletes"><em>Deletes</em></a> - SQL Expression Tutorial</div></blockquote>
 </dd></dl>
 
 <dl class="function">
@@ -480,11 +520,10 @@ functions, see <a class="reference internal" href="#generic-functions"><em>Gener
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.insert">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">insert</tt><big>(</big><em>table</em>, <em>values=None</em>, <em>inline=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.insert" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an <a class="reference internal" href="#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> clause element.</p>
-<p>Similar functionality is available via the <tt class="xref py py-meth docutils literal"><span class="pre">insert()</span></tt> method on
+<dd><p>Represent an <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement via the <a class="reference internal" href="#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> SQL 
+construct.</p>
+<p>Similar functionality is available via the <a class="reference internal" href="#sqlalchemy.sql.expression.TableClause.insert" title="sqlalchemy.sql.expression.TableClause.insert"><tt class="xref py py-meth docutils literal"><span class="pre">insert()</span></tt></a> method on
 <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
-<p>See also:</p>
-<p><a class="reference internal" href="tutorial.html#coretutorial-insert-expressions"><em>Insert Expressions</em></a> - Core Tutorial description of the <a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> construct.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -521,6 +560,11 @@ objects or their string identifiers. Each key may reference one of:</p>
 <p>If a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement is specified which references this
 <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement&#8217;s table, the statement will be correlated
 against the <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement.</p>
+<p>See also:</p>
+<blockquote>
+<div><p><a class="reference internal" href="tutorial.html#coretutorial-insert-expressions"><em>Insert Expressions</em></a> - SQL Expression Tutorial</p>
+<p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression Tutorial</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="function">
@@ -1037,7 +1081,7 @@ boolean equivalent for the target dialect.</p>
 <dt id="sqlalchemy.sql.expression.type_coerce">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">type_coerce</tt><big>(</big><em>expr</em>, <em>type_</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.type_coerce" title="Permalink to this definition">¶</a></dt>
 <dd><p>Coerce the given expression into the given type, on the Python side only.</p>
-<p><a class="reference internal" href="#sqlalchemy.sql.expression.type_coerce" title="sqlalchemy.sql.expression.type_coerce"><tt class="xref py py-func docutils literal"><span class="pre">type_coerce()</span></tt></a> is roughly similar to :func:.`cast`, except no
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.type_coerce" title="sqlalchemy.sql.expression.type_coerce"><tt class="xref py py-func docutils literal"><span class="pre">type_coerce()</span></tt></a> is roughly similar to <a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a>, except no
 &#8220;CAST&#8221; expression is rendered - the given type is only applied towards
 expression typing and against received result values.</p>
 <p>e.g.:</p>
@@ -1106,47 +1150,100 @@ expression typing and against received result values.</p>
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.update">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">update</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>values=None</em>, <em>inline=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an <a class="reference internal" href="#sqlalchemy.sql.expression.Update" title="sqlalchemy.sql.expression.Update"><tt class="xref py py-class docutils literal"><span class="pre">Update</span></tt></a> clause element.</p>
-<p>Similar functionality is available via the <a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> method on
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
+<dd><p>Represent an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement via the <a class="reference internal" href="#sqlalchemy.sql.expression.Update" title="sqlalchemy.sql.expression.Update"><tt class="xref py py-class docutils literal"><span class="pre">Update</span></tt></a> SQL 
+construct.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">update</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">update</span><span class="p">(</span><span class="n">users</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span>\
+        <span class="n">values</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;user #5&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>Similar functionality is available via the <a class="reference internal" href="#sqlalchemy.sql.expression.TableClause.update" title="sqlalchemy.sql.expression.TableClause.update"><tt class="xref py py-meth docutils literal"><span class="pre">update()</span></tt></a> method on
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span>\
+            <span class="n">where</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span>\
+            <span class="n">values</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;user #5&#39;</span><span class="p">)</span></pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>table</strong> &#8211; The table to be updated.</li>
-<li><strong>whereclause</strong> &#8211; A <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> describing the <tt class="docutils literal"><span class="pre">WHERE</span></tt>
-condition of the <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement. Note that the
-<a class="reference internal" href="#sqlalchemy.sql.expression.Update.where" title="sqlalchemy.sql.expression.Update.where"><tt class="xref py py-meth docutils literal"><span class="pre">where()</span></tt></a> generative method may also be used for this.</li>
-<li><strong>values</strong> &#8211; A dictionary which specifies the <tt class="docutils literal"><span class="pre">SET</span></tt> conditions of the
-<tt class="docutils literal"><span class="pre">UPDATE</span></tt>, and is optional. If left as None, the <tt class="docutils literal"><span class="pre">SET</span></tt>
-conditions are determined from the bind parameters used during
-the compile phase of the <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement.  If the bind
-parameters also are None during the compile phase, then the
-<tt class="docutils literal"><span class="pre">SET</span></tt> conditions will be generated from the full list of table
-columns.  Note that the <a class="reference internal" href="#sqlalchemy.sql.expression.Update.values" title="sqlalchemy.sql.expression.Update.values"><tt class="xref py py-meth docutils literal"><span class="pre">values()</span></tt></a> generative method may
-also be used for this.</li>
-<li><strong>inline</strong> &#8211; if True, SQL defaults will be compiled &#8216;inline&#8217; into the statement
-and not pre-executed.</li>
+<li><strong>table</strong> &#8211; A <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object representing the database
+table to be updated.</li>
+<li><strong>whereclause</strong> &#8211; <p>Optional SQL expression describing the <tt class="docutils literal"><span class="pre">WHERE</span></tt>
+condition of the <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement.   Modern applications
+may prefer to use the generative <a class="reference internal" href="#sqlalchemy.sql.expression.Update.where" title="sqlalchemy.sql.expression.Update.where"><tt class="xref py py-meth docutils literal"><span class="pre">where()</span></tt></a> 
+method to specify the <tt class="docutils literal"><span class="pre">WHERE</span></tt> clause.</p>
+<p>The WHERE clause can refer to multiple tables as of version 0.7.4.
+For databases which support this, an <tt class="docutils literal"><span class="pre">UPDATE</span> <span class="pre">FROM</span></tt> clause will
+be generated, or on MySQL, a multi-table update.  The statement 
+will fail on databases that don&#8217;t have support for multi-table
+update statements.  A SQL-standard method of referring to
+additional tables in the WHERE clause is to use a correlated
+subquery:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="n">select</span><span class="p">([</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">email_address</span><span class="p">])</span><span class="o">.</span>\
+                    <span class="n">where</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span>\
+                    <span class="n">as_scalar</span><span class="p">()</span>
+        <span class="p">)</span></pre></div>
+</div>
+</li>
+<li><strong>values</strong> &#8211; <p>Optional dictionary which specifies the <tt class="docutils literal"><span class="pre">SET</span></tt> conditions of the
+<tt class="docutils literal"><span class="pre">UPDATE</span></tt>.  If left as <tt class="xref docutils literal"><span class="pre">None</span></tt>, the <tt class="docutils literal"><span class="pre">SET</span></tt>
+conditions are determined from those parameters passed to the 
+statement during the execution and/or compilation of the 
+statement.   When compiled standalone without any parameters,
+the <tt class="docutils literal"><span class="pre">SET</span></tt> clause generates for all columns.</p>
+<p>Modern applications may prefer to use the generative 
+<a class="reference internal" href="#sqlalchemy.sql.expression.Update.values" title="sqlalchemy.sql.expression.Update.values"><tt class="xref py py-meth docutils literal"><span class="pre">Update.values()</span></tt></a> method to set the values of the 
+UPDATE statement.</p>
+</li>
+<li><strong>inline</strong> &#8211; if True, SQL defaults present on <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects via 
+the <tt class="docutils literal"><span class="pre">default</span></tt> keyword will be compiled &#8216;inline&#8217; into the statement
+and not pre-executed.  This means that their values will not
+be available in the dictionary returned from 
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.ResultProxy.last_updated_params" title="sqlalchemy.engine.base.ResultProxy.last_updated_params"><tt class="xref py py-meth docutils literal"><span class="pre">ResultProxy.last_updated_params()</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>If both <cite>values</cite> and compile-time bind parameters are present, the
+<p>If both <tt class="docutils literal"><span class="pre">values</span></tt> and compile-time bind parameters are present, the
 compile-time bind parameters override the information specified
-within <cite>values</cite> on a per-key basis.</p>
-<p>The keys within <cite>values</cite> can be either <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
-objects or their
-string identifiers. Each key may reference one of:</p>
+within <tt class="docutils literal"><span class="pre">values</span></tt> on a per-key basis.</p>
+<p>The keys within <tt class="docutils literal"><span class="pre">values</span></tt> can be either <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
+objects or their string identifiers (specifically the &#8220;key&#8221; of the
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, normally but not necessarily equivalent to
+its &#8220;name&#8221;).  Normally, the
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects used here are expected to be
+part of the target <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that is the table 
+to be updated.  However when using MySQL, a multiple-table
+UPDATE statement can refer to columns from any of
+the tables referred to in the WHERE clause.</p>
+<p>The values referred to in <tt class="docutils literal"><span class="pre">values</span></tt> are typically:</p>
 <ul class="simple">
-<li>a literal data value (i.e. string, number, etc.);</li>
-<li>a Column object;</li>
-<li>a SELECT statement.</li>
+<li>a literal data value (i.e. string, number, etc.)</li>
+<li>a SQL expression, such as a related <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>,
+a scalar-returning <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct, 
+etc.</li>
 </ul>
-<p>If a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement is specified which references this
-<tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement&#8217;s table, the statement will be correlated
-against the <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement.</p>
+<p>When combining <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> constructs within the values
+clause of an <a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> construct,
+the subquery represented by the <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> should be 
+<em>correlated</em> to the parent table, that is, providing criterion
+which links the table inside the subquery to the outer table
+being updated:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">select</span><span class="p">([</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">email_address</span><span class="p">])</span><span class="o">.</span>\
+                <span class="n">where</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span>\
+                <span class="n">as_scalar</span><span class="p">()</span>
+    <span class="p">)</span></pre></div>
+</div>
+<p>See also:</p>
+<blockquote>
+<div><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression 
+Language Tutorial</div></blockquote>
 </dd></dl>
 
 </div>
@@ -2363,6 +2460,13 @@ objects, to be used:</p>
 </tr>
 </tbody>
 </table>
+<p>See also:</p>
+<blockquote>
+<div><p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression 
+Language Tutorial</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -2795,8 +2899,16 @@ keywords.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Select.select_from">
 <tt class="descname">select_from</tt><big>(</big><em>fromclause</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.select_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>return a new <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> construct with the given FROM expression
+<dd><p>return a new <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct with the given FROM expression
 merged into its list of FROM objects.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">table1</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t1&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">))</span>
+<span class="n">table2</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t2&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;b&#39;</span><span class="p">))</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="p">])</span><span class="o">.</span>\
+    <span class="n">select_from</span><span class="p">(</span>
+        <span class="n">table1</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">table2</span><span class="p">,</span> <span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="o">==</span><span class="n">table2</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
+    <span class="p">)</span></pre></div>
+</div>
 <p>The &#8220;from&#8221; list is a unique set on the identity of each element,
 so adding an already present <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or other selectable
 will have no effect.   Passing a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> that refers
@@ -2804,6 +2916,12 @@ to an already present <a class="reference internal" href="schema.html#sqlalchemy
 the effect of concealing the presence of that selectable as 
 an individual element in the rendered FROM list, instead rendering it into a
 JOIN clause.</p>
+<p>While the typical purpose of <a class="reference internal" href="#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Select.select_from()</span></tt></a> is to replace
+the default, derived FROM clause with a join, it can also be called with
+individual table elements, multiple times if desired, in the case that the 
+FROM clause cannot be fully derived from the columns clause:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">)])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">table1</span><span class="p">)</span></pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2811,10 +2929,9 @@ JOIN clause.</p>
 <tt class="descname">self_group</tt><big>(</big><em>against=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.self_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a &#8216;grouping&#8217; construct as per the ClauseElement
 specification.</p>
-<blockquote>
-<div>This produces an element that can be embedded in an expression. Note</div></blockquote>
-<p>that this method is called automatically as needed when constructing
-expressions.</p>
+<p>This produces an element that can be embedded in an expression. Note
+that this method is called automatically as needed when constructing
+expressions and should not require explicit use.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2869,8 +2986,82 @@ and Sybase simultaneously:</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Select.with_only_columns">
 <tt class="descname">with_only_columns</tt><big>(</big><em>columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.with_only_columns" title="Permalink to this definition">¶</a></dt>
-<dd><p>return a new select() construct with its columns clause replaced 
-with the given columns.</p>
+<dd><p>Return a new <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct with its columns 
+clause replaced with the given columns.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Due to a bug fix, this method has a slight 
+behavioral change as of version 0.7.3.  
+Prior to version 0.7.3, the FROM clause of 
+a <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> was calculated upfront and as new columns
+were added; in 0.7.3 and later it&#8217;s calculated 
+at compile time, fixing an issue regarding late binding
+of columns to parent tables.  This changes the behavior of 
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.with_only_columns" title="sqlalchemy.sql.expression.Select.with_only_columns"><tt class="xref py py-meth docutils literal"><span class="pre">Select.with_only_columns()</span></tt></a> in that FROM clauses no
+longer represented in the new list are dropped, 
+but this behavior is more consistent in 
+that the FROM clauses are consistently derived from the
+current columns clause.  The original intent of this method
+is to allow trimming of the existing columns list to be fewer
+columns than originally present; the use case of replacing
+the columns list with an entirely different one hadn&#8217;t
+been anticipated until 0.7.3 was released; the usage
+guidelines below illustrate how this should be done.</p>
+</div>
+<p>This method is exactly equivalent to as if the original 
+<a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> had been called with the given columns 
+clause.   I.e. a statement:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">with_only_columns</span><span class="p">([</span><span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span></pre></div>
+</div>
+<p>should be exactly equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span></pre></div>
+</div>
+<p>This means that FROM clauses which are only derived 
+from the column list will be discarded if the new column 
+list no longer contains that FROM:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">table1</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t1&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">),</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;b&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table2</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t2&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">),</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;b&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">table2</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s1</span>
+<span class="go">SELECT t1.a, t2.b FROM t1, t2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">with_only_columns</span><span class="p">([</span><span class="n">table2</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s2</span>
+<span class="go">SELECT t2.b FROM t1</span></pre></div>
+</div>
+<p>The preferred way to maintain a specific FROM clause
+in the construct, assuming it won&#8217;t be represented anywhere
+else (i.e. not in the WHERE clause, etc.) is to set it using 
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Select.select_from()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">table2</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span><span class="o">.</span>\
+<span class="gp">... </span>        <span class="n">select_from</span><span class="p">(</span><span class="n">table1</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">table2</span><span class="p">,</span> <span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="o">==</span><span class="n">table2</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">with_only_columns</span><span class="p">([</span><span class="n">table2</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s2</span>
+<span class="go">SELECT t2.b FROM t1 JOIN t2 ON t1.a=t2.a</span></pre></div>
+</div>
+<p>Care should also be taken to use the correct
+set of column objects passed to <a class="reference internal" href="#sqlalchemy.sql.expression.Select.with_only_columns" title="sqlalchemy.sql.expression.Select.with_only_columns"><tt class="xref py py-meth docutils literal"><span class="pre">Select.with_only_columns()</span></tt></a>.
+Since the method is essentially equivalent to calling the
+<a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct in the first place with the given 
+columns, the columns passed to <a class="reference internal" href="#sqlalchemy.sql.expression.Select.with_only_columns" title="sqlalchemy.sql.expression.Select.with_only_columns"><tt class="xref py py-meth docutils literal"><span class="pre">Select.with_only_columns()</span></tt></a> 
+should usually be a subset of those which were passed 
+to the <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct, not those which are available
+from the <tt class="docutils literal"><span class="pre">.c</span></tt> collection of that <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>.  That
+is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">table1</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">with_only_columns</span><span class="p">([</span><span class="n">table1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span></pre></div>
+</div>
+<p>and <strong>not</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># usually incorrect</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">with_only_columns</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">])</span></pre></div>
+</div>
+<p>The latter would produce the SQL:</p>
+<div class="highlight-python"><pre>SELECT b 
+FROM (SELECT t1.a AS a, t1.b AS b 
+FROM t1), t1</pre>
+</div>
+<p>Since the <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct is essentially being
+asked to select both from <tt class="docutils literal"><span class="pre">table1</span></tt> as well as itself.</p>
 </dd></dl>
 
 </dd></dl>
@@ -3011,19 +3202,34 @@ statements when a more fully fledged <a class="reference internal" href="schema.
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.TableClause.delete">
 <tt class="descname">delete</tt><big>(</big><em>whereclause=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TableClause.delete" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a <a class="reference internal" href="#sqlalchemy.sql.expression.delete" title="sqlalchemy.sql.expression.delete"><tt class="xref py py-func docutils literal"><span class="pre">delete()</span></tt></a> construct.</p>
+<dd><p>Generate a <a class="reference internal" href="#sqlalchemy.sql.expression.delete" title="sqlalchemy.sql.expression.delete"><tt class="xref py py-func docutils literal"><span class="pre">delete()</span></tt></a> construct against this
+<a class="reference internal" href="#sqlalchemy.sql.expression.TableClause" title="sqlalchemy.sql.expression.TableClause"><tt class="xref py py-class docutils literal"><span class="pre">TableClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">table</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="mi">7</span><span class="p">)</span></pre></div>
+</div>
+<p>See <a class="reference internal" href="#sqlalchemy.sql.expression.delete" title="sqlalchemy.sql.expression.delete"><tt class="xref py py-func docutils literal"><span class="pre">delete()</span></tt></a> for argument and usage information.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.TableClause.insert">
 <tt class="descname">insert</tt><big>(</big><em>values=None</em>, <em>inline=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TableClause.insert" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate an <a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> construct.</p>
+<dd><p>Generate an <a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> construct against this
+<a class="reference internal" href="#sqlalchemy.sql.expression.TableClause" title="sqlalchemy.sql.expression.TableClause"><tt class="xref py py-class docutils literal"><span class="pre">TableClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">table</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;foo&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>See <a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> for argument and usage information.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.TableClause.update">
 <tt class="descname">update</tt><big>(</big><em>whereclause=None</em>, <em>values=None</em>, <em>inline=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TableClause.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate an <a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> construct.</p>
+<dd><p>Generate an <a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> construct against this
+<a class="reference internal" href="#sqlalchemy.sql.expression.TableClause" title="sqlalchemy.sql.expression.TableClause"><tt class="xref py py-class docutils literal"><span class="pre">TableClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">table</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;foo&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>See <a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> for argument and usage information.</p>
 </dd></dl>
 
 </dd></dl>
@@ -3072,6 +3278,13 @@ objects, to be used:</p>
 </tr>
 </tbody>
 </table>
+<p>See also:</p>
+<blockquote>
+<div><p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression 
+Language Tutorial</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement</p>
+</div></blockquote>
 </dd></dl>
 
 </dd></dl>
@@ -3164,6 +3377,13 @@ objects, to be used:</p>
 </tr>
 </tbody>
 </table>
+<p>See also:</p>
+<blockquote>
+<div><p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression 
+Language Tutorial</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement</p>
+</div></blockquote>
 </dd></dl>
 
 </dd></dl>
@@ -3324,22 +3544,24 @@ that does not provide support for sequences.</p>
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="tutorial.html" title="previous chapter">SQL Expression Language Tutorial</a>
             Next:
             <a href="engines.html" title="next chapter">Engine Configuration</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

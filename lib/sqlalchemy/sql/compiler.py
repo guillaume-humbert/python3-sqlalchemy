@@ -177,26 +177,36 @@ class SQLCompiler(engine.Compiled):
 
     compound_keywords = COMPOUND_KEYWORDS
 
-    # class-level defaults which can be set at the instance
-    # level to define if this Compiled instance represents
-    # INSERT/UPDATE/DELETE
     isdelete = isinsert = isupdate = False
+    """class-level defaults which can be set at the instance
+    level to define if this Compiled instance represents
+    INSERT/UPDATE/DELETE
+    """
 
-    # holds the "returning" collection of columns if
-    # the statement is CRUD and defines returning columns
-    # either implicitly or explicitly
     returning = None
+    """holds the "returning" collection of columns if
+    the statement is CRUD and defines returning columns
+    either implicitly or explicitly
+    """
 
-    # set to True classwide to generate RETURNING
-    # clauses before the VALUES or WHERE clause (i.e. MSSQL)
     returning_precedes_values = False
+    """set to True classwide to generate RETURNING
+    clauses before the VALUES or WHERE clause (i.e. MSSQL)
+    """
 
-    # SQL 92 doesn't allow bind parameters to be used
-    # in the columns clause of a SELECT, nor does it allow
-    # ambiguous expressions like "? = ?".  A compiler
-    # subclass can set this flag to False if the target
-    # driver/DB enforces this
+    render_table_with_column_in_update_from = False
+    """set to True classwide to indicate the SET clause
+    in a multi-table UPDATE statement should qualify
+    columns with the table name (i.e. MySQL only)
+    """
+
     ansi_bind_rules = False
+    """SQL 92 doesn't allow bind parameters to be used
+    in the columns clause of a SELECT, nor does it allow
+    ambiguous expressions like "? = ?".  A compiler
+    subclass can set this flag to False if the target
+    driver/DB enforces this
+    """
 
     def __init__(self, dialect, statement, column_keys=None, 
                     inline=False, **kwargs):
@@ -965,7 +975,7 @@ class SQLCompiler(engine.Compiled):
         if colparams or not supports_default_values:
             text += " (%s)" % ', '.join([preparer.format_column(c[0])
                        for c in colparams])
-        
+
         if self.returning or insert_stmt._returning:
             self.returning = self.returning or insert_stmt._returning
             returning_clause = self.returning_clause(
@@ -985,20 +995,56 @@ class SQLCompiler(engine.Compiled):
 
         return text
 
-    def visit_update(self, update_stmt):
+    def update_limit_clause(self, update_stmt):
+        """Provide a hook for MySQL to add LIMIT to the UPDATE"""
+        return None
+
+    def update_tables_clause(self, update_stmt, from_table, 
+                                            extra_froms, **kw):
+        """Provide a hook to override the initial table clause
+        in an UPDATE statement.
+        
+        MySQL overrides this.
+
+        """
+        return self.preparer.format_table(from_table)
+
+    def update_from_clause(self, update_stmt, from_table, extra_froms, **kw):
+        """Provide a hook to override the generation of an 
+        UPDATE..FROM clause.
+        
+        MySQL overrides this.
+
+        """
+        return "FROM " + ', '.join(
+                    t._compiler_dispatch(self, asfrom=True, **kw) 
+                    for t in extra_froms)
+
+    def visit_update(self, update_stmt, **kw):
         self.stack.append({'from': set([update_stmt.table])})
 
         self.isupdate = True
-        colparams = self._get_colparams(update_stmt)
 
-        text = "UPDATE " + self.preparer.format_table(update_stmt.table)
+        extra_froms = update_stmt._extra_froms
 
-        text += ' SET ' + \
-                ', '.join(
+        colparams = self._get_colparams(update_stmt, extra_froms)
+
+        text = "UPDATE " + self.update_tables_clause(
+                                        update_stmt, 
+                                        update_stmt.table, 
+                                        extra_froms, **kw)
+
+        text += ' SET '
+        if extra_froms and self.render_table_with_column_in_update_from:
+            text += ', '.join(
+                            self.visit_column(c[0]) + 
+                            '=' + c[1] for c in colparams
+                            )
+        else:
+            text += ', '.join(
                         self.preparer.quote(c[0].name, c[0].quote) + 
-                        '=' + c[1]
-                      for c in colparams
-                )
+                        '=' + c[1] for c in colparams
+                            )
 
         if update_stmt._returning:
             self.returning = update_stmt._returning
@@ -1006,8 +1052,20 @@ class SQLCompiler(engine.Compiled):
                 text += " " + self.returning_clause(
                                     update_stmt, update_stmt._returning)
 
+        if extra_froms:
+            extra_from_text = self.update_from_clause(
+                                        update_stmt, 
+                                        update_stmt.table, 
+                                        extra_froms, **kw)
+            if extra_from_text:
+                text += " " + extra_from_text
+
         if update_stmt._whereclause is not None:
             text += " WHERE " + self.process(update_stmt._whereclause)
+
+        limit_clause = self.update_limit_clause(update_stmt)
+        if limit_clause:
+            text += " " + limit_clause
 
         if self.returning and not self.returning_precedes_values:
             text += " " + self.returning_clause(
@@ -1024,7 +1082,7 @@ class SQLCompiler(engine.Compiled):
         return bindparam._compiler_dispatch(self)
 
 
-    def _get_colparams(self, stmt):
+    def _get_colparams(self, stmt, extra_tables=None):
         """create a set of tuples representing column/string pairs for use
         in an INSERT or UPDATE statement.
 
@@ -1064,6 +1122,7 @@ class SQLCompiler(engine.Compiled):
             for k, v in stmt.parameters.iteritems():
                 parameters.setdefault(sql._column_as_key(k), v)
 
+
         # create a list of column assignment clauses as tuples
         values = []
 
@@ -1077,11 +1136,51 @@ class SQLCompiler(engine.Compiled):
 
         postfetch_lastrowid = need_pks and self.dialect.postfetch_lastrowid
 
+        check_columns = {}
+        # special logic that only occurs for multi-table UPDATE 
+        # statements
+        if extra_tables and stmt.parameters:
+            assert self.isupdate
+            affected_tables = set()
+            for t in extra_tables:
+                for c in t.c:
+                    if c in stmt.parameters:
+                        affected_tables.add(t)
+                        check_columns[c.key] = c
+                        value = stmt.parameters[c]
+                        if sql._is_literal(value):
+                            value = self._create_crud_bind_param(
+                                            c, value, required=value is required)
+                        else:
+                            self.postfetch.append(c)
+                            value = self.process(value.self_group())
+                        values.append((c, value))
+            # determine tables which are actually
+            # to be updated - process onupdate and 
+            # server_onupdate for these
+            for t in affected_tables:
+                for c in t.c:
+                    if c in stmt.parameters:
+                        continue
+                    elif c.onupdate is not None and not c.onupdate.is_sequence:
+                        if c.onupdate.is_clause_element:
+                            values.append(
+                                (c, self.process(c.onupdate.arg.self_group()))
+                            )
+                            self.postfetch.append(c)
+                        else:
+                            values.append(
+                                (c, self._create_crud_bind_param(c, None))
+                            )
+                            self.prefetch.append(c)
+                    elif c.server_onupdate is not None:
+                        self.postfetch.append(c)
+
         # iterating through columns at the top to maintain ordering.
         # otherwise we might iterate through individual sets of 
         # "defaults", "primary key cols", etc.
         for c in stmt.table.columns:
-            if c.key in parameters:
+            if c.key in parameters and c.key not in check_columns:
                 value = parameters[c.key]
                 if sql._is_literal(value):
                     value = self._create_crud_bind_param(
@@ -1247,6 +1346,15 @@ class DDLCompiler(engine.Compiled):
 
         return self.sql_compiler.post_process_text(ddl.statement % context)
 
+    def visit_create_schema(self, create):
+        return "CREATE SCHEMA " + self.preparer.format_schema(create.element, create.quote)
+
+    def visit_drop_schema(self, drop):
+        text = "DROP SCHEMA " + self.preparer.format_schema(drop.element, drop.quote)
+        if drop.cascade:
+            text += " CASCADE"
+        return text
+
     def visit_create_table(self, create):
         table = create.element
         preparer = self.dialect.identifier_preparer
@@ -1403,7 +1511,11 @@ class DDLCompiler(engine.Compiled):
         return text
 
     def visit_column_check_constraint(self, constraint):
-        text = "CHECK (%s)" % constraint.sqltext
+        text = ""
+        if constraint.name is not None:
+            text += "CONSTRAINT %s " % \
+                        self.preparer.format_constraint(constraint)
+        text += "CHECK (%s)" % constraint.sqltext
         text += self.define_constraint_deferrability(constraint)
         return text
 
@@ -1731,6 +1843,11 @@ class IdentifierPreparer(object):
             result = self.quote_schema(table.schema, table.quote_schema) + \
                                 "." + result
         return result
+
+    def format_schema(self, name, quote):
+        """Prepare a quoted schema name."""
+
+        return self.quote(name, quote)
 
     def format_column(self, column, use_table=False, 
                             name=None, table_name=None):

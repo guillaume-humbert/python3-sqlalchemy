@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="exceptions.html" title="previous chapter">Core Exceptions</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Core Internals
@@ -84,11 +96,39 @@ Search:
             
         </h2>
     </div>
-    <div class="clearboth"></div>
+
 </div>
 
-<div class="document">
-    <div class="body">
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Core Internals</a></li>
+</ul>
+
+
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="exceptions.html" title="previous chapter">Core Exceptions</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="../dialects/index.html" title="next chapter">Dialects</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="core-internals">
 <span id="core-internal-toplevel"></span><h1>Core Internals<a class="headerlink" href="#core-internals" title="Permalink to this headline">¶</a></h1>
@@ -1073,6 +1113,12 @@ not support schemae.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="sqlalchemy.sql.compiler.IdentifierPreparer.format_schema">
+<tt class="descname">format_schema</tt><big>(</big><em>name</em>, <em>quote</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.IdentifierPreparer.format_schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare a quoted schema name.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.sql.compiler.IdentifierPreparer.format_table">
 <tt class="descname">format_table</tt><big>(</big><em>table</em>, <em>use_schema=True</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.IdentifierPreparer.format_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prepare a quoted table and schema name.</p>
@@ -1130,6 +1176,16 @@ statement.</dd>
 </dl>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.ansi_bind_rules">
+<tt class="descname">ansi_bind_rules</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.ansi_bind_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>SQL 92 doesn&#8217;t allow bind parameters to be used
+in the columns clause of a SELECT, nor does it allow
+ambiguous expressions like &#8221;? = ?&#8221;.  A compiler
+subclass can set this flag to False if the target
+driver/DB enforces this</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.construct_params">
 <tt class="descname">construct_params</tt><big>(</big><em>params=None</em>, <em>_group_number=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.construct_params" title="Permalink to this definition">¶</a></dt>
@@ -1157,6 +1213,30 @@ to be appended.</p>
 before column list.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.isdelete">
+<tt class="descname">isdelete</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.isdelete" title="Permalink to this definition">¶</a></dt>
+<dd><p>class-level defaults which can be set at the instance
+level to define if this Compiled instance represents
+INSERT/UPDATE/DELETE</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.isinsert">
+<tt class="descname">isinsert</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.isinsert" title="Permalink to this definition">¶</a></dt>
+<dd><p>class-level defaults which can be set at the instance
+level to define if this Compiled instance represents
+INSERT/UPDATE/DELETE</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.isupdate">
+<tt class="descname">isupdate</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.isupdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>class-level defaults which can be set at the instance
+level to define if this Compiled instance represents
+INSERT/UPDATE/DELETE</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.label_select_column">
 <tt class="descname">label_select_column</tt><big>(</big><em>select</em>, <em>column</em>, <em>asfrom</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.label_select_column" title="Permalink to this definition">¶</a></dt>
@@ -1179,27 +1259,74 @@ on the target driver/database.</p>
 of the DBAPI.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.render_table_with_column_in_update_from">
+<tt class="descname">render_table_with_column_in_update_from</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.render_table_with_column_in_update_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>set to True classwide to indicate the SET clause
+in a multi-table UPDATE statement should qualify
+columns with the table name (i.e. MySQL only)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.returning">
+<tt class="descname">returning</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.returning" title="Permalink to this definition">¶</a></dt>
+<dd><p>holds the &#8220;returning&#8221; collection of columns if
+the statement is CRUD and defines returning columns
+either implicitly or explicitly</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.returning_precedes_values">
+<tt class="descname">returning_precedes_values</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.returning_precedes_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>set to True classwide to generate RETURNING
+clauses before the VALUES or WHERE clause (i.e. MSSQL)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.update_from_clause">
+<tt class="descname">update_from_clause</tt><big>(</big><em>update_stmt</em>, <em>from_table</em>, <em>extra_froms</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.update_from_clause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a hook to override the generation of an 
+UPDATE..FROM clause.</p>
+<p>MySQL overrides this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.update_limit_clause">
+<tt class="descname">update_limit_clause</tt><big>(</big><em>update_stmt</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.update_limit_clause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a hook for MySQL to add LIMIT to the UPDATE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.sql.compiler.SQLCompiler.update_tables_clause">
+<tt class="descname">update_tables_clause</tt><big>(</big><em>update_stmt</em>, <em>from_table</em>, <em>extra_froms</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.update_tables_clause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a hook to override the initial table clause
+in an UPDATE statement.</p>
+<p>MySQL overrides this.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="exceptions.html" title="previous chapter">Core Exceptions</a>
             Next:
             <a href="../dialects/index.html" title="next chapter">Dialects</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

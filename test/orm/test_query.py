@@ -2,7 +2,7 @@ from test.lib.testing import eq_, assert_raises, assert_raises_message
 import operator
 from sqlalchemy import MetaData, null, exists, text, union, literal, \
     literal_column, func, between, Unicode, desc, and_, bindparam, \
-    select, distinct, or_
+    select, distinct, or_, collate
 from sqlalchemy import exc as sa_exc, util
 from sqlalchemy.sql import compiler, table, column
 from sqlalchemy.sql import expression
@@ -432,6 +432,13 @@ class InvalidGenerationsTest(QueryTest, AssertsCompiledSQL):
         q = s.query(User)
         assert_raises(sa_exc.InvalidRequestError, q.add_column, object())
 
+    def test_invalid_column_tuple(self):
+        User = self.classes.User
+
+        s = create_session()
+        q = s.query(User)
+        assert_raises(sa_exc.InvalidRequestError, q.add_column, (1, 1))
+
     def test_distinct(self):
         """test that a distinct() call is not valid before 'clauseelement' conditions."""
 
@@ -717,6 +724,15 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
 
         self._test(User.id.between('a', 'b'),
                    "users.id BETWEEN :id_1 AND :id_2")
+
+    def test_collate(self):
+        User = self.classes.User
+
+        self._test(collate(User.id, 'binary'),
+                   "users.id COLLATE binary")
+
+        self._test(User.id.collate('binary'),
+                   "users.id COLLATE binary")
 
     def test_selfref_between(self):
         User = self.classes.User

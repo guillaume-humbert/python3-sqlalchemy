@@ -96,6 +96,14 @@ def independent_connections(fn):
                 'SQL Server 2005+ is required for independent connections'),
         )
 
+def updateable_autoincrement_pks(fn):
+    """Target must support UPDATE on autoincrement/integer primary key."""
+    return _chain_decorators_on(
+        fn,
+        no_support('mssql', "IDENTITY cols can't be updated"),
+        no_support('sybase', "IDENTITY cols can't be updated"),
+    )
+
 def isolation_level(fn):
     return _chain_decorators_on(
         fn,
@@ -124,11 +132,18 @@ def correlated_outer_joins(fn):
         no_support('oracle', 'Raises "ORA-01799: a column may not be outer-joined to a subquery"')
     )
 
+def update_from(fn):
+    """Target must support UPDATE..FROM syntax"""
+    return _chain_decorators_on(
+        fn,
+        only_on(('postgresql', 'mssql', 'mysql'), 
+            "Backend does not support UPDATE..FROM")
+    )
+
 def savepoints(fn):
     """Target database must support savepoints."""
     return _chain_decorators_on(
         fn,
-        emits_warning_on('mssql', 'Savepoint support in mssql is experimental and may lead to data loss.'),
         no_support('access', 'savepoints not supported'),
         no_support('sqlite', 'savepoints not supported'),
         no_support('sybase', 'savepoints not supported'),

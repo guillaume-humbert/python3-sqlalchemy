@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Relationship Configuration
@@ -83,7 +95,15 @@ Search:
                 Relationship Configuration
             
         </h2>
-        <ul>
+    </div>
+
+</div>
+
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">Relationship Configuration</a><ul>
 <li><a class="reference internal" href="#basic-relational-patterns">Basic Relational Patterns</a><ul>
 <li><a class="reference internal" href="#one-to-many">One To Many</a></li>
@@ -103,11 +123,11 @@ Search:
 <li><a class="reference internal" href="#one-way-backrefs">One Way Backrefs</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#specifying-alternate-join-conditions-to-relationship">Specifying Alternate Join Conditions to relationship()</a><ul>
+<li><a class="reference internal" href="#setting-the-primaryjoin-and-secondaryjoin">Setting the primaryjoin and secondaryjoin</a><ul>
+<li><a class="reference internal" href="#specifying-alternate-join-conditions">Specifying Alternate Join Conditions</a></li>
 <li><a class="reference internal" href="#self-referential-many-to-many-relationship">Self-Referential Many-to-Many Relationship</a></li>
 <li><a class="reference internal" href="#specifying-foreign-keys">Specifying Foreign Keys</a></li>
 <li><a class="reference internal" href="#building-query-enabled-properties">Building Query-Enabled Properties</a></li>
-<li><a class="reference internal" href="#multiple-relationships-against-the-same-parent-child">Multiple Relationships against the Same Parent/Child</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#rows-that-point-to-themselves-mutually-dependent-rows">Rows that point to themselves / Mutually Dependent Rows</a></li>
@@ -117,12 +137,28 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
 
-<div class="document">
-    <div class="body">
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <span class="target" id="module-sqlalchemy.orm"></span><div class="section" id="relationship-configuration">
 <span id="relationship-config-toplevel"></span><h1>Relationship Configuration<a class="headerlink" href="#relationship-configuration" title="Permalink to this headline">¶</a></h1>
@@ -278,17 +314,21 @@ is complete:</p>
 </div>
 <div class="section" id="association-object">
 <span id="association-pattern"></span><h3>Association Object<a class="headerlink" href="#association-object" title="Permalink to this headline">¶</a></h3>
-<p>The association object pattern is a variant on many-to-many: it specifically
-is used when your association table contains additional columns beyond those
+<p>The association object pattern is a variant on many-to-many: it&#8217;s
+used when your association table contains additional columns beyond those
 which are foreign keys to the left and right tables. Instead of using the
 <tt class="docutils literal"><span class="pre">secondary</span></tt> argument, you map a new class directly to the association table.
 The left side of the relationship references the association object via
 one-to-many, and the association class references the right side via
-many-to-one:</p>
+many-to-one.  Below we illustrate an association table mapped to the
+<tt class="docutils literal"><span class="pre">Association</span></tt> class which includes a column called <tt class="docutils literal"><span class="pre">extra_data</span></tt>,
+which is a string value that is stored along with each association
+between <tt class="docutils literal"><span class="pre">Parent</span></tt> and <tt class="docutils literal"><span class="pre">Child</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Association</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;association&#39;</span>
     <span class="n">left_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;left.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">right_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;right.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">extra_data</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
     <span class="n">child</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Child&quot;</span><span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">Parent</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -305,6 +345,7 @@ many-to-one:</p>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;association&#39;</span>
     <span class="n">left_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;left.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">right_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;right.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">extra_data</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
     <span class="n">child</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Child&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;parent_assocs&quot;</span><span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">Parent</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -322,14 +363,14 @@ the parent; similarly, access from parent to child goes through the
 association object:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># create parent, append a child via association</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">Parent</span><span class="p">()</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">Association</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Association</span><span class="p">(</span><span class="n">extra_data</span><span class="o">=</span><span class="s">&quot;some data&quot;</span><span class="p">)</span>
 <span class="n">a</span><span class="o">.</span><span class="n">child</span> <span class="o">=</span> <span class="n">Child</span><span class="p">()</span>
 <span class="n">p</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 
 <span class="c"># iterate through child objects via association, including association</span>
 <span class="c"># attributes</span>
 <span class="k">for</span> <span class="n">assoc</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-    <span class="k">print</span> <span class="n">assoc</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">print</span> <span class="n">assoc</span><span class="o">.</span><span class="n">extra_data</span>
     <span class="k">print</span> <span class="n">assoc</span><span class="o">.</span><span class="n">child</span></pre></div>
 </div>
 <p>To enhance the association object pattern such that direct
@@ -649,7 +690,7 @@ the relationship at a schema level, and are unlikely to be different in the reve
 direction.  The usual case
 here is a many-to-many <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> that has a <tt class="docutils literal"><span class="pre">secondary</span></tt> argument,
 or a one-to-many or many-to-one which has a <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument (the
-<tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument is discussed in <a class="reference internal" href="#relationship-primaryjoin"><em>Specifying Alternate Join Conditions to relationship()</em></a>).  Such
+<tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument is discussed in <a class="reference internal" href="#relationship-primaryjoin"><em>Setting the primaryjoin and secondaryjoin</em></a>).  Such
 as if we limited the list of <tt class="docutils literal"><span class="pre">Address</span></tt> objects to those which start with &#8220;tony&#8221;:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
@@ -784,35 +825,83 @@ itself is only a slight transgression of this philosophy - SQLAlchemy tries to k
 these to a minimum overall.</p>
 </div>
 </div>
-<div class="section" id="specifying-alternate-join-conditions-to-relationship">
-<span id="relationship-primaryjoin"></span><h2>Specifying Alternate Join Conditions to relationship()<a class="headerlink" href="#specifying-alternate-join-conditions-to-relationship" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function uses the foreign key
-relationship between the parent and child tables to formulate the <strong>primary
-join condition</strong> between parent and child; in the case of a many-to-many
-relationship it also formulates the <strong>secondary join condition</strong>:</p>
-<div class="highlight-python"><pre>one to many/many to one:
-------------------------
+<div class="section" id="setting-the-primaryjoin-and-secondaryjoin">
+<span id="relationship-primaryjoin"></span><h2>Setting the primaryjoin and secondaryjoin<a class="headerlink" href="#setting-the-primaryjoin-and-secondaryjoin" title="Permalink to this headline">¶</a></h2>
+<p>A common scenario arises when we attempt to relate two
+classes together, where there exist multiple ways to join the
+two tables.</p>
+<p>Consider a <tt class="docutils literal"><span class="pre">Customer</span></tt> class that contains two foreign keys to an <tt class="docutils literal"><span class="pre">Address</span></tt>
+class:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span>
 
-parent_table --&gt;  parent_table.c.id == child_table.c.parent_id --&gt;  child_table
-                               primaryjoin
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
 
-many to many:
--------------
+<span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;customer&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
 
-parent_table --&gt;  parent_table.c.id == secondary_table.c.parent_id --&gt;
-                               primaryjoin
+    <span class="n">billing_address_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;address.id&quot;</span><span class="p">))</span>
+    <span class="n">shipping_address_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;address.id&quot;</span><span class="p">))</span>
 
-                  secondary_table.c.child_id == child_table.c.id --&gt; child_table
-                              secondaryjoin</pre>
+    <span class="n">billing_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">)</span>
+    <span class="n">shipping_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;address&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">street</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">city</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="nb">zip</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span></pre></div>
 </div>
-<p>If you are working with a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> which has no
-<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> metadata established (which can be the case
-when using reflected tables with MySQL), or if the join condition cannot be
-expressed by a simple foreign key relationship, use the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt>, and
-for many-to-many relationships <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt>, directives
-to create the appropriate relationship.</p>
-<p>In this example, using the <tt class="docutils literal"><span class="pre">User</span></tt> class as well as an <tt class="docutils literal"><span class="pre">Address</span></tt> class
-which stores a street address,  we create a relationship <tt class="docutils literal"><span class="pre">boston_addresses</span></tt> which will only
+<p>The above mapping, when we attempt to use it, will produce the error:</p>
+<div class="highlight-python"><pre>sqlalchemy.exc.ArgumentError: Could not determine join condition between
+parent/child tables on relationship Customer.billing_address. Specify a
+'primaryjoin' expression. If 'secondary' is present, 'secondaryjoin' is
+needed as well.</pre>
+</div>
+<p>What this error means is that if you have a <tt class="docutils literal"><span class="pre">Customer</span></tt> object, and wish
+to load in an associated <tt class="docutils literal"><span class="pre">Address</span></tt>, there is the choice of retrieving
+the <tt class="docutils literal"><span class="pre">Address</span></tt> referred to by the <tt class="docutils literal"><span class="pre">billing_address_id</span></tt> column or the one
+referred to by the <tt class="docutils literal"><span class="pre">shipping_address_id</span></tt> column.  The <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>,
+as it is, cannot determine its full configuration.   The examples at
+<a class="reference internal" href="#relationship-patterns"><em>Basic Relational Patterns</em></a> didn&#8217;t have this issue, because in each of those examples
+there was only <strong>one</strong> way to refer to the related table.</p>
+<p>To resolve this issue, <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> accepts an argument named
+<tt class="docutils literal"><span class="pre">primaryjoin</span></tt> which accepts a Python-based SQL expression, using the system described
+at <a class="reference internal" href="../core/tutorial.html"><em>SQL Expression Language Tutorial</em></a>, that describes how the two tables should be joined
+together.  When using the declarative system, we often will specify this Python
+expression within a string, which is late-evaluated by the mapping configuration
+system so that it has access to the full namespace of available classes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;customer&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+
+    <span class="n">billing_address_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;address.id&quot;</span><span class="p">))</span>
+    <span class="n">shipping_address_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;address.id&quot;</span><span class="p">))</span>
+
+    <span class="n">billing_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span>
+                    <span class="n">primaryjoin</span><span class="o">=</span><span class="s">&quot;Address.id==Customer.billing_address_id&quot;</span><span class="p">)</span>
+    <span class="n">shipping_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span>
+                    <span class="n">primaryjoin</span><span class="o">=</span><span class="s">&quot;Address.id==Customer.shipping_address_id&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>Above, loading the <tt class="docutils literal"><span class="pre">Customer.billing_address</span></tt> relationship from a <tt class="docutils literal"><span class="pre">Customer</span></tt>
+object will use the value present in <tt class="docutils literal"><span class="pre">billing_address_id</span></tt> in order to
+identify the row in <tt class="docutils literal"><span class="pre">Address</span></tt> to be loaded; similarly, <tt class="docutils literal"><span class="pre">shipping_address_id</span></tt>
+is used for the <tt class="docutils literal"><span class="pre">shipping_address</span></tt> relationship.   The linkage of the two
+columns also plays a role during persistence; the newly generated primary key
+of a just-inserted <tt class="docutils literal"><span class="pre">Address</span></tt> object will be copied into the appropriate
+foreign key column of an associated <tt class="docutils literal"><span class="pre">Customer</span></tt> object during a flush.</p>
+<div class="section" id="specifying-alternate-join-conditions">
+<h3>Specifying Alternate Join Conditions<a class="headerlink" href="#specifying-alternate-join-conditions" title="Permalink to this headline">¶</a></h3>
+<p>The open-ended nature of <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> also allows us to customize how
+related items are loaded.   In the example below, using the <tt class="docutils literal"><span class="pre">User</span></tt> class
+as well as an <tt class="docutils literal"><span class="pre">Address</span></tt> class which stores a street address,  we
+create a relationship <tt class="docutils literal"><span class="pre">boston_addresses</span></tt> which will only
 load those <tt class="docutils literal"><span class="pre">Address</span></tt> objects which specify a city of &#8220;Boston&#8221;:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
@@ -838,17 +927,11 @@ load those <tt class="docutils literal"><span class="pre">Address</span></tt> ob
     <span class="n">state</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
     <span class="nb">zip</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span></pre></div>
 </div>
-<p>Note above we specified the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument as a string - this feature
-is available only when the mapping is constructed using the Declarative extension,
-and allows us to specify a full SQL expression
-between two entities before those entities have been fully constructed.   When
-all mappings have been defined, an automatic &#8220;mapper configuration&#8221; step interprets
-these string arguments when first needed.</p>
-<p>Within this string SQL expression, we also made usage of the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a> conjunction construct to establish
+<p>Within this string SQL expression, we made use of the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a> conjunction construct to establish
 two distinct predicates for the join condition - joining both the <tt class="docutils literal"><span class="pre">User.id</span></tt> and
 <tt class="docutils literal"><span class="pre">Address.user_id</span></tt> columns to each other, as well as limiting rows in <tt class="docutils literal"><span class="pre">Address</span></tt>
 to just <tt class="docutils literal"><span class="pre">city='Boston'</span></tt>.   When using Declarative, rudimentary SQL functions like
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a> are automatically available in the evaulated namespace of a string
+<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a> are automatically available in the evaluated namespace of a string
 <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> argument.</p>
 <p>When using classical mappings, we have the advantage of the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects
 already being present when the mapping is defined, so that the SQL expression
@@ -880,10 +963,13 @@ a flush occurs, the objects inside of <tt class="docutils literal"><span class="
 value of the primary key <tt class="docutils literal"><span class="pre">user.id</span></tt> column onto the foreign-key-holding <tt class="docutils literal"><span class="pre">address.user_id</span></tt> column
 for each row.  The <tt class="docutils literal"><span class="pre">city</span></tt> criteria has no effect here, as the flush process only cares about synchronizing primary
 key values into referencing foreign key values.</p>
+</div>
 <div class="section" id="self-referential-many-to-many-relationship">
 <span id="self-referential-many-to-many"></span><h3>Self-Referential Many-to-Many Relationship<a class="headerlink" href="#self-referential-many-to-many-relationship" title="Permalink to this headline">¶</a></h3>
 <p>Many to many relationships can be customized by one or both of <tt class="docutils literal"><span class="pre">primaryjoin</span></tt>
-and <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt>.    A common situation for custom primary and secondary joins
+and <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> - the latter is significant for a relationship that
+specifies a many-to-many reference using the <tt class="docutils literal"><span class="pre">secondary</span></tt> argument.
+A common situation which involves the usage of <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> and <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt>
 is when establishing a many-to-many relationship from a class to itself, as shown below:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Table</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
@@ -955,12 +1041,15 @@ FKs (like MySQL ISAM) or when using join conditions on columns that don&#8217;t 
 foreign keys, the <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> needs to be told
 specifically which columns are &#8220;foreign&#8221; using the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt>
 collection:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">addresses_table</span><span class="p">)</span>
-<span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;addresses&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span>
-                <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
-                <span class="n">foreign_keys</span><span class="o">=</span><span class="p">[</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">])</span>
-<span class="p">})</span></pre></div>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__table__</span> <span class="o">=</span> <span class="n">addresses_table</span>
+
+<span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__table__</span> <span class="o">=</span> <span class="n">users_table</span>
+    <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span>
+                    <span class="n">primaryjoin</span><span class="o">=</span>
+                    <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+                    <span class="n">foreign_keys</span><span class="o">=</span><span class="p">[</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">])</span></pre></div>
 </div>
 </div>
 <div class="section" id="building-query-enabled-properties">
@@ -972,26 +1061,13 @@ the equation, use the flag <tt class="docutils literal"><span class="pre">viewon
 attribute (data written to the collection will be ignored on flush()).
 However, in extreme cases, consider using a regular Python property in
 conjunction with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> as follows:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_get_addresses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">object_session</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span><span class="o">.</span><span class="n">with_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
     <span class="n">addresses</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_addresses</span><span class="p">)</span></pre></div>
-</div>
-</div>
-<div class="section" id="multiple-relationships-against-the-same-parent-child">
-<h3>Multiple Relationships against the Same Parent/Child<a class="headerlink" href="#multiple-relationships-against-the-same-parent-child" title="Permalink to this headline">¶</a></h3>
-<p>Theres no restriction on how many times you can relate from parent to child.
-SQLAlchemy can usually figure out what you want, particularly if the join
-conditions are straightforward. Below we add a <tt class="docutils literal"><span class="pre">newyork_addresses</span></tt> attribute
-to complement the <tt class="docutils literal"><span class="pre">boston_addresses</span></tt> attribute:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;boston_addresses&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span>
-                <span class="n">and_</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
-                <span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">city</span><span class="o">==</span><span class="s">&#39;Boston&#39;</span><span class="p">)),</span>
-    <span class="s">&#39;newyork_addresses&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span>
-                <span class="n">and_</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
-                <span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">city</span><span class="o">==</span><span class="s">&#39;New York&#39;</span><span class="p">)),</span>
-<span class="p">})</span></pre></div>
 </div>
 </div>
 </div>
@@ -1001,12 +1077,12 @@ to complement the <tt class="docutils literal"><span class="pre">boston_addresse
 second UPDATE in order to properly populate a row (and vice versa an UPDATE
 and DELETE in order to delete without violating foreign key constraints). The
 two use cases are:</p>
-<blockquote>
-<div><ul class="simple">
-<li>A table contains a foreign key to itself, and a single row will have a foreign key value pointing to its own primary key.</li>
-<li>Two tables each contain a foreign key referencing the other table, with a row in each table referencing the other.</li>
+<ul class="simple">
+<li>A table contains a foreign key to itself, and a single row will
+have a foreign key value pointing to its own primary key.</li>
+<li>Two tables each contain a foreign key referencing the other
+table, with a row in each table referencing the other.</li>
 </ul>
-</div></blockquote>
 <p>For example:</p>
 <div class="highlight-python"><pre>          user
 ---------------------------------
@@ -1035,22 +1111,120 @@ constraints fulfilled. The exception is if the foreign keys are configured as
 &#8220;deferred until commit&#8221; (a feature some databases support) and if the
 identifiers were populated manually (again essentially bypassing
 <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>).</p>
-<p>To enable the UPDATE after INSERT / UPDATE before DELETE behavior on
-<a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, use the <tt class="docutils literal"><span class="pre">post_update</span></tt> flag on <em>one</em> of
-the relationships, preferably the many-to-one side:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Widget</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;entries&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span><span class="n">widget</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">widget_id</span><span class="o">==</span><span class="n">entry</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">widget_id</span><span class="p">),</span>
-    <span class="s">&#39;favorite_entry&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span><span class="n">widget</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">favorite_entry_id</span><span class="o">==</span><span class="n">entry</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">entry_id</span><span class="p">,</span> <span class="n">post_update</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="p">})</span></pre></div>
+<p>To enable the usage of a supplementary UPDATE statement,
+we use the <tt class="docutils literal"><span class="pre">post_update</span></tt> option
+of <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.  This specifies that the linkage between the
+two rows should be created using an UPDATE statement after both rows
+have been INSERTED; it also causes the rows to be de-associated with
+each other via UPDATE before a DELETE is emitted.  The flag should
+be placed on just <em>one</em> of the relationships, preferably the
+many-to-one side.  Below we illustrate
+a complete example, including two <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> constructs, one which
+specifies <tt class="docutils literal"><span class="pre">use_alter=True</span></tt> to help with emitting CREATE TABLE statements:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">Column</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span>
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Entry</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;entry&#39;</span>
+    <span class="n">entry_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">widget_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;widget.widget_id&#39;</span><span class="p">))</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">Widget</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;widget&#39;</span>
+
+    <span class="n">widget_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">favorite_entry_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                            <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;entry.entry_id&#39;</span><span class="p">,</span>
+                            <span class="n">use_alter</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">name</span><span class="o">=</span><span class="s">&quot;fk_favorite_entry&quot;</span><span class="p">))</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
+
+    <span class="n">entries</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span>
+                                    <span class="n">widget_id</span><span class="o">==</span><span class="n">Entry</span><span class="o">.</span><span class="n">widget_id</span><span class="p">)</span>
+    <span class="n">favorite_entry</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span>
+                                <span class="n">primaryjoin</span><span class="o">=</span>
+                                    <span class="n">favorite_entry_id</span><span class="o">==</span><span class="n">Entry</span><span class="o">.</span><span class="n">entry_id</span><span class="p">,</span>
+                                <span class="n">post_update</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
-<p>When a structure using the above mapping is flushed, the &#8220;widget&#8221; row will be
+<p>When a structure against the above configuration is flushed, the &#8220;widget&#8221; row will be
 INSERTed minus the &#8220;favorite_entry_id&#8221; value, then all the &#8220;entry&#8221; rows will
 be INSERTed referencing the parent &#8220;widget&#8221; row, and then an UPDATE statement
 will populate the &#8220;favorite_entry_id&#8221; column of the &#8220;widget&#8221; table (it&#8217;s one
-row at a time for the time being).</p>
+row at a time for the time being):</p>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">w1</span> <span class="o">=</span> <span class="n">Widget</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;somewidget&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e1</span> <span class="o">=</span> <span class="n">Entry</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;someentry&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w1</span><span class="o">.</span><span class="n">favorite_entry</span> <span class="o">=</span> <span class="n">e1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w1</span><span class="o">.</span><span class="n">entries</span> <span class="o">=</span> <span class="p">[</span><span class="n">e1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">([</span><span class="n">w1</span><span class="p">,</span> <span class="n">e1</span><span class="p">])</span>
+<a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<div class='popup_sql'>BEGIN (implicit)
+INSERT INTO widget (favorite_entry_id, name) VALUES (?, ?)
+(None, 'somewidget')
+INSERT INTO entry (widget_id, name) VALUES (?, ?)
+(1, 'someentry')
+UPDATE widget SET favorite_entry_id=? WHERE widget.widget_id = ?
+(1, 1)
+COMMIT</div></pre></div>
+</div>
+<p>An additional configuration we can specify is to supply a more
+comprehensive foreign key constraint on <tt class="docutils literal"><span class="pre">Widget</span></tt>, such that
+it&#8217;s guaranteed that <tt class="docutils literal"><span class="pre">favorite_entry_id</span></tt> refers to an <tt class="docutils literal"><span class="pre">Entry</span></tt>
+that also refers to this <tt class="docutils literal"><span class="pre">Widget</span></tt>.  We can use a composite foreign key,
+as illustrated below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> \
+        <span class="n">Column</span><span class="p">,</span> <span class="n">UniqueConstraint</span><span class="p">,</span> <span class="n">ForeignKeyConstraint</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span>
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Entry</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;entry&#39;</span>
+    <span class="n">entry_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">widget_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;widget.widget_id&#39;</span><span class="p">))</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s">&quot;entry_id&quot;</span><span class="p">,</span> <span class="s">&quot;widget_id&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Widget</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;widget&#39;</span>
+
+    <span class="n">widget_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">autoincrement</span><span class="o">=</span><span class="s">&#39;ignore_fk&#39;</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">favorite_entry_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
+
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ForeignKeyConstraint</span><span class="p">(</span>
+            <span class="p">[</span><span class="s">&quot;widget_id&quot;</span><span class="p">,</span> <span class="s">&quot;favorite_entry_id&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s">&quot;entry.widget_id&quot;</span><span class="p">,</span> <span class="s">&quot;entry.entry_id&quot;</span><span class="p">],</span>
+            <span class="n">name</span><span class="o">=</span><span class="s">&quot;fk_favorite_entry&quot;</span><span class="p">,</span> <span class="n">use_alter</span><span class="o">=</span><span class="bp">True</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">entries</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span>
+                                    <span class="n">widget_id</span><span class="o">==</span><span class="n">Entry</span><span class="o">.</span><span class="n">widget_id</span><span class="p">,</span>
+                                    <span class="n">foreign_keys</span><span class="o">=</span><span class="n">Entry</span><span class="o">.</span><span class="n">widget_id</span><span class="p">)</span>
+    <span class="n">favorite_entry</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span>
+                                <span class="n">primaryjoin</span><span class="o">=</span>
+                                    <span class="n">favorite_entry_id</span><span class="o">==</span><span class="n">Entry</span><span class="o">.</span><span class="n">entry_id</span><span class="p">,</span>
+                                <span class="n">foreign_keys</span><span class="o">=</span><span class="n">favorite_entry_id</span><span class="p">,</span>
+                                <span class="n">post_update</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<p>The above mapping features a composite <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
+bridging the <tt class="docutils literal"><span class="pre">widget_id</span></tt> and <tt class="docutils literal"><span class="pre">favorite_entry_id</span></tt> columns.  To ensure
+that <tt class="docutils literal"><span class="pre">Widget.widget_id</span></tt> remains an &#8220;autoincrementing&#8221; column we specify
+<tt class="docutils literal"><span class="pre">autoincrement='ignore_fk'</span></tt> on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> (new in 0.7.4), and additionally on each
+<a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> we must limit those columns considered as part of
+the foreign key for the purposes of joining and cross-population.</p>
 </div>
 <div class="section" id="mutable-primary-keys-update-cascades">
-<h2>Mutable Primary Keys / Update Cascades<a class="headerlink" href="#mutable-primary-keys-update-cascades" title="Permalink to this headline">¶</a></h2>
+<span id="passive-updates"></span><h2>Mutable Primary Keys / Update Cascades<a class="headerlink" href="#mutable-primary-keys-update-cascades" title="Permalink to this headline">¶</a></h2>
 <p>When the primary key of an entity changes, related items
 which reference the primary key must also be updated as
 well. For databases which enforce referential integrity,
@@ -1071,26 +1245,23 @@ conjunction with ON UPDATE CASCADE functionality,
 although in that case the unit of work will be issuing
 extra SELECT and UPDATE statements unnecessarily.</p>
 <p>A typical mutable primary key setup might look like:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">users</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;fullname&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">100</span><span class="p">)))</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user&#39;</span>
 
-<span class="n">addresses</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;email&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;users.username&#39;</span><span class="p">,</span> <span class="n">onupdate</span><span class="o">=</span><span class="s">&quot;cascade&quot;</span><span class="p">)))</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">fullname</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
 
-<span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">pass</span>
-<span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">pass</span>
+    <span class="c"># passive_updates=False *only* needed if the database</span>
+    <span class="c"># does not implement ON UPDATE CASCADE</span>
+    <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span> <span class="n">passive_updates</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
-<span class="c"># passive_updates=False *only* needed if the database</span>
-<span class="c"># does not implement ON UPDATE CASCADE</span>
+<span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;address&#39;</span>
 
-<span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;addresses&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">passive_updates</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="p">})</span>
-<span class="n">mapper</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">addresses</span><span class="p">)</span></pre></div>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span>
+                <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.username&#39;</span><span class="p">,</span> <span class="n">onupdate</span><span class="o">=</span><span class="s">&quot;cascade&quot;</span><span class="p">)</span>
+            <span class="p">)</span></pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">passive_updates</span></tt> is set to <tt class="xref docutils literal"><span class="pre">True</span></tt> by default,
 indicating that ON UPDATE CASCADE is expected to be in
@@ -1194,11 +1365,11 @@ except the complementing property is <strong>not</strong> created automatically,
 and instead must be configured explicitly on the other mapper.  The 
 complementing property should also indicate <tt class="docutils literal"><span class="pre">back_populates</span></tt> 
 to this relationship to ensure proper functioning.</li>
-<li><strong>cascade</strong> &#8211; <p>a comma-separated list of cascade rules which determines how
+<li><strong>cascade</strong> &#8211; <blockquote>
+<div>a comma-separated list of cascade rules which determines how
 Session operations should be &#8220;cascaded&#8221; from parent to child.
 This defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>, which means the default cascade
-should be used.  The default value is <tt class="docutils literal"><span class="pre">&quot;save-update,</span> <span class="pre">merge&quot;</span></tt>.</p>
-<p>Available cascades are:</p>
+should be used.  The default value is <tt class="docutils literal"><span class="pre">&quot;save-update,</span> <span class="pre">merge&quot;</span></tt>.<p>Available cascades are:</p>
 <ul>
 <li><tt class="docutils literal"><span class="pre">save-update</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a> 
 operation.  This cascade applies both to future and
@@ -1213,15 +1384,21 @@ operation</li>
 operation</li>
 <li><tt class="docutils literal"><span class="pre">delete</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a>
 operation</li>
-<li><tt class="docutils literal"><span class="pre">delete-orphan</span></tt> - if an item of the child&#8217;s type with no
-parent is detected, mark it for deletion.  Note that this
-option prevents a pending item of the child&#8217;s class from being
-persisted without a parent present.</li>
+<li><tt class="docutils literal"><span class="pre">delete-orphan</span></tt> - if an item of the child&#8217;s type is 
+detached from its parent, mark it for deletion.  
+As of version 0.7, this option does not prevent
+a new instance of the child object from being persisted
+without a parent to start with; to constrain against
+that case, ensure the child&#8217;s foreign key column(s)
+is configured as NOT NULL</li>
 <li><tt class="docutils literal"><span class="pre">refresh-expire</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a> 
 and <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> operations</li>
 <li><tt class="docutils literal"><span class="pre">all</span></tt> - shorthand for &#8220;save-update,merge, refresh-expire,
 expunge, delete&#8221;</li>
 </ul>
+</div></blockquote>
+<p>See the section <a class="reference internal" href="session.html#unitofwork-cascades"><em>Cascades</em></a> for more background
+on configuring cascades.</p>
 </li>
 <li><strong>cascade_backrefs=True</strong> &#8211; <p>a boolean value indicating if the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade should
 operate along an assignment event intercepted by a backref.   
@@ -1245,7 +1422,8 @@ a transient <tt class="docutils literal"><span class="pre">A()</span></tt> into 
         <span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">cascade_backrefs</span></tt> is new in 0.6.5.</p>
+<p>See the section <a class="reference internal" href="session.html#unitofwork-cascades"><em>Cascades</em></a> for more background
+on configuring cascades.</p>
 </li>
 <li><strong>collection_class</strong> &#8211; a class or callable that returns a new list-holding object. will
 be used in place of a plain list for storing elements.
@@ -1320,11 +1498,8 @@ populated in some manner specific to the application.</li>
 <li><tt class="docutils literal"><span class="pre">dynamic</span></tt> - the attribute will return a pre-configured
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object for all read 
 operations, onto which further filtering operations can be
-applied before iterating the results.  The dynamic 
-collection supports a limited set of mutation operations,
-allowing <tt class="docutils literal"><span class="pre">append()</span></tt> and <tt class="docutils literal"><span class="pre">remove()</span></tt>.  Changes to the
-collection will not be visible until flushed 
-to the database, where it is then refetched upon iteration.</li>
+applied before iterating the results.  See
+the section <a class="reference internal" href="collections.html#dynamic-relationship"><em>Dynamic Relationship Loaders</em></a> for more details.</li>
 <li>True - a synonym for &#8216;select&#8217;</li>
 <li>False - a synonyn for &#8216;joined&#8217;</li>
 <li>None - a synonym for &#8216;noload&#8217;</li>
@@ -1501,40 +1676,36 @@ place of a string argument, e.g.:</p>
 using the <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt> argument with <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">dynamic_loader</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">)</span>
 
-<span class="c"># vs.</span>
+<span class="c"># is the same as</span>
 
 <span class="n">relationship</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s">&quot;dynamic&quot;</span><span class="p">)</span></pre></div>
 </div>
-<p>A <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> that is &#8220;dynamic&#8221; features the behavior
-that read operations return an active <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object which 
-reads from the database when accessed. Items may be appended to the
-attribute via <tt class="docutils literal"><span class="pre">append()</span></tt>, or removed via <tt class="docutils literal"><span class="pre">remove()</span></tt>; changes will be
-persisted to the database during a <tt class="xref py py-meth docutils literal"><span class="pre">Sesion.flush()</span></tt>. However, no other
-Python list or collection mutation operations are available.</p>
-<p>All arguments accepted by <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> are
-accepted here, other than <tt class="docutils literal"><span class="pre">lazy</span></tt> which is fixed at <tt class="docutils literal"><span class="pre">dynamic</span></tt>.</p>
+<p>See the section <a class="reference internal" href="collections.html#dynamic-relationship"><em>Dynamic Relationship Loaders</em></a> for more details
+on dynamic loading.</p>
 </dd></dl>
 
 </div>
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
             Next:
             <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

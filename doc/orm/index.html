@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -37,24 +37,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="../intro.html" title="previous chapter">Overview</a>
@@ -70,8 +81,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
         » 
                 SQLAlchemy ORM
              
@@ -82,18 +94,51 @@ Search:
             
         </h2>
     </div>
-    <div class="clearboth"></div>
+
 </div>
 
-<div class="document">
-    <div class="body">
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">SQLAlchemy ORM</a><ul>
+</ul>
+</li>
+</ul>
+
+
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="../intro.html" title="previous chapter">Overview</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="tutorial.html" title="next chapter">Object Relational Tutorial</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="sqlalchemy-orm">
 <span id="orm-toplevel"></span><h1>SQLAlchemy ORM<a class="headerlink" href="#sqlalchemy-orm" title="Permalink to this headline">¶</a></h1>
+<p>Here, the Object Relational Mapper is introduced and fully described. If you
+want to work with higher-level SQL which is constructed automatically for you,
+as well as automated persistence of Python objects, proceed first to the
+tutorial.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Object Relational Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#version-check">Version Check</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#connecting">Connecting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#declare-a-mapping">Declare a Mapping</a></li>
@@ -136,7 +181,7 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#classical-mappings">Classical Mappings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#customizing-column-properties">Customizing Column Properties</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#naming-columns-distinctly-from-attribute-names">Naming Columns Distinctly from Attribute Names</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#mapping-multiple-columns-to-a-single-attribute">Mapping Multiple Columns to a Single Attribute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#naming-all-columns-with-a-prefix">Naming All Columns with a Prefix</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#using-column-property-for-column-level-options">Using column_property for column level options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#mapping-a-subset-of-table-columns">Mapping a Subset of Table Columns</a></li>
 </ul>
@@ -164,7 +209,6 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#mapping-a-class-against-multiple-tables">Mapping a Class against Multiple Tables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#mapping-a-class-against-arbitrary-selects">Mapping a Class against Arbitrary Selects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#multiple-mappers-for-one-class">Multiple Mappers for One Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mapper_config.html#multiple-persistence-mappers-for-one-class">Multiple &#8220;Persistence&#8221; Mappers for One Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#constructors-and-object-initialization">Constructors and Object Initialization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#class-mapping-api">Class Mapping API</a></li>
 </ul>
@@ -188,11 +232,11 @@ Search:
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#one-way-backrefs">One Way Backrefs</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="relationships.html#specifying-alternate-join-conditions-to-relationship">Specifying Alternate Join Conditions to relationship()</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="relationships.html#setting-the-primaryjoin-and-secondaryjoin">Setting the primaryjoin and secondaryjoin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#specifying-alternate-join-conditions">Specifying Alternate Join Conditions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#self-referential-many-to-many-relationship">Self-Referential Many-to-Many Relationship</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#specifying-foreign-keys">Specifying Foreign Keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#building-query-enabled-properties">Building Query-Enabled Properties</a></li>
-<li class="toctree-l3"><a class="reference internal" href="relationships.html#multiple-relationships-against-the-same-parent-child">Multiple Relationships against the Same Parent/Child</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="relationships.html#rows-that-point-to-themselves-mutually-dependent-rows">Rows that point to themselves / Mutually Dependent Rows</a></li>
@@ -209,10 +253,15 @@ Search:
 </li>
 <li class="toctree-l2"><a class="reference internal" href="collections.html#customizing-collection-access">Customizing Collection Access</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="collections.html#dictionary-collections">Dictionary Collections</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collections.html#custom-collection-implementations">Custom Collection Implementations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collections.html#collections-api">Collections API</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="collections.html#custom-collection-implementations">Custom Collection Implementations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="collections.html#annotating-custom-collections-via-decorators">Annotating Custom Collections via Decorators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collections.html#custom-dictionary-based-collections">Custom Dictionary-Based Collections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collections.html#instrumentation-and-custom-types">Instrumentation and Custom Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="collections.html#collection-internals">Collection Internals</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="inheritance.html">Mapping Class Inheritance Hierarchies</a><ul>
@@ -257,7 +306,10 @@ Search:
 <li class="toctree-l3"><a class="reference internal" href="session.html#session-attributes">Session Attributes</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="session.html#cascades">Cascades</a></li>
+<li class="toctree-l2"><a class="reference internal" href="session.html#cascades">Cascades</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="session.html#controlling-cascade-on-backrefs">Controlling Cascade on Backrefs</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="session.html#managing-transactions">Managing Transactions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="session.html#using-savepoint">Using SAVEPOINT</a></li>
 <li class="toctree-l3"><a class="reference internal" href="session.html#autocommit-mode">Autocommit Mode</a></li>
@@ -357,6 +409,7 @@ Search:
 <li class="toctree-l3"><a class="reference internal" href="extensions/hybrid.html#working-with-relationships">Working with Relationships</a></li>
 <li class="toctree-l3"><a class="reference internal" href="extensions/hybrid.html#building-custom-comparators">Building Custom Comparators</a></li>
 <li class="toctree-l3"><a class="reference internal" href="extensions/hybrid.html#hybrid-value-objects">Hybrid Value Objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/hybrid.html#building-transformers">Building Transformers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="extensions/hybrid.html#api-reference">API Reference</a></li>
 </ul>
 </li>
@@ -404,22 +457,24 @@ Search:
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="../intro.html" title="previous chapter">Overview</a>
             Next:
             <a href="tutorial.html" title="next chapter">Object Relational Tutorial</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>
