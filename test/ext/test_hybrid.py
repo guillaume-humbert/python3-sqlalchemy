@@ -1,9 +1,9 @@
-from sqlalchemy import func, Integer, String
+from sqlalchemy import func, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship, Session, aliased
 from test.lib.schema import Column
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext import hybrid
-from test.lib.testing import eq_, AssertsCompiledSQL
+from test.lib.testing import eq_, AssertsCompiledSQL, assert_raises_message
 from test.lib import fixtures
 
 class PropertyComparatorTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -23,6 +23,7 @@ class PropertyComparatorTest(fixtures.TestBase, AssertsCompiledSQL):
         class A(Base):
             __tablename__ = 'a'
             id = Column(Integer, primary_key=True)
+
             _value = Column("value", String)
 
             @hybrid.hybrid_property
@@ -106,6 +107,39 @@ class PropertyExpressionTest(fixtures.TestBase, AssertsCompiledSQL):
 
         return A
 
+    def _relationship_fixture(self):
+        Base = declarative_base()
+
+        class A(Base):
+            __tablename__ = 'a'
+            id = Column(Integer, primary_key=True)
+            b_id = Column('bid', Integer, ForeignKey('b.id'))
+            _value = Column("value", String)
+
+            @hybrid.hybrid_property
+            def value(self):
+                return int(self._value) - 5
+
+            @value.expression
+            def value(cls):
+                return func.foo(cls._value) + cls.bar_value
+
+            @value.setter
+            def value(self, v):
+                self._value = v + 5
+
+            @hybrid.hybrid_property
+            def bar_value(cls):
+                return func.bar(cls._value)
+
+        class B(Base):
+            __tablename__ = 'b'
+            id = Column(Integer, primary_key=True)
+
+            as_ = relationship("A")
+
+        return A, B
+
     def test_set_get(self):
         A = self._fixture()
         a1 = A(value=5)
@@ -118,6 +152,17 @@ class PropertyExpressionTest(fixtures.TestBase, AssertsCompiledSQL):
             A.value,
             "foo(a.value) + bar(a.value)"
         )
+
+    def test_any(self):
+        A, B = self._relationship_fixture()
+        sess = Session()
+        self.assert_compile(
+            sess.query(B).filter(B.as_.any(value=5)),
+            "SELECT b.id AS b_id FROM b WHERE EXISTS "
+            "(SELECT 1 FROM a WHERE b.id = a.bid "
+            "AND foo(a.value) + bar(a.value) = :param_1)"
+        )
+
 
     def test_aliased_expression(self):
         A = self._fixture()
@@ -146,7 +191,7 @@ class PropertyExpressionTest(fixtures.TestBase, AssertsCompiledSQL):
 
 class PropertyValueTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
-    def _fixture(self):
+    def _fixture(self, assignable):
         Base = declarative_base()
 
         class A(Base):
@@ -158,14 +203,34 @@ class PropertyValueTest(fixtures.TestBase, AssertsCompiledSQL):
             def value(self):
                 return self._value - 5
 
-            @value.setter
-            def value(self, v):
-                self._value = v + 5
+            if assignable:
+                @value.setter
+                def value(self, v):
+                    self._value = v + 5
 
         return A
 
+    def test_nonassignable(self):
+        A = self._fixture(False)
+        a1 = A(_value=5)
+        assert_raises_message(
+            AttributeError, 
+            "can't set attribute",
+            setattr, a1, 'value', 10
+        )
+
+    def test_nondeletable(self):
+        A = self._fixture(False)
+        a1 = A(_value=5)
+        assert_raises_message(
+            AttributeError, 
+            "can't delete attribute",
+            delattr, a1, 'value'
+        )
+
+
     def test_set_get(self):
-        A = self._fixture()
+        A = self._fixture(True)
         a1 = A(value=5)
         eq_(a1.value, 5)
         eq_(a1._value, 10)

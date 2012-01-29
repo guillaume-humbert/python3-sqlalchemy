@@ -364,6 +364,19 @@ class UserDefinedTest(fixtures.TablesTest, AssertsCompiledSQL):
             "MYTYPE foo TWO"
         )
 
+    def test_user_defined_dialect_specific_args(self):
+        class MyType(types.UserDefinedType):
+            def __init__(self, foo='foo', **kwargs):
+                super(MyType, self).__init__()
+                self.foo = foo
+                self.dialect_specific_args = kwargs
+            def adapt(self, cls):
+                return cls(foo=self.foo, **self.dialect_specific_args)
+        t = MyType(bar='bar')
+        a = t.dialect_impl(testing.db.dialect)
+        eq_(a.foo, 'foo')
+        eq_(a.dialect_specific_args['bar'], 'bar')
+
     @testing.provide_metadata
     def test_type_coerce(self):
         """test ad-hoc usage of custom types with type_coerce()."""
@@ -785,10 +798,11 @@ class UnicodeTest(fixtures.TestBase, AssertsExecutionResults):
 
         eq_(uni(unicodedata), unicodedata.encode('utf-8'))
 
-    @testing.fails_if(
-                        lambda: testing.db_spec("postgresql+pg8000")(testing.db) and util.py3k,
-                        "pg8000 appropriately does not accept 'bytes' for a VARCHAR column."
-                        )
+    # Py3K
+    #@testing.fails_if(
+    #                    lambda: testing.db_spec("postgresql+pg8000")(testing.db),
+    #                    "pg8000 appropriately does not accept 'bytes' for a VARCHAR column."
+    #                    )
     def test_ignoring_unicode_error(self):
         """checks String(unicode_error='ignore') is passed to underlying codec."""
 

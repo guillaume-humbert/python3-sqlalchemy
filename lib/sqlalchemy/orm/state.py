@@ -1,5 +1,5 @@
 # orm/state.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -187,6 +187,10 @@ class InstanceState(object):
         if 'load_path' in state:
             self.load_path = interfaces.deserialize_path(state['load_path'])
 
+        # setup _sa_instance_state ahead of time so that 
+        # unpickle events can access the object normally.
+        # see [ticket:2362]
+        manager.setup_instance(inst, self)
         manager.dispatch.unpickle(self, state)
 
     def initialize(self, key):

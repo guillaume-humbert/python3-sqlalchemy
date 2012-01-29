@@ -1,5 +1,5 @@
 # orm/interfaces.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -306,16 +306,24 @@ class StrategizedProperty(MapperProperty):
 
     """
 
+    strategy_wildcard_key = None
+
     def _get_context_strategy(self, context, reduced_path):
         key = ('loaderstrategy', reduced_path)
+        cls = None
         if key in context.attributes:
             cls = context.attributes[key]
+        elif self.strategy_wildcard_key:
+            key = ('loaderstrategy', (self.strategy_wildcard_key,))
+            if key in context.attributes:
+                cls = context.attributes[key]
+
+        if cls:
             try:
                 return self._strategies[cls]
             except KeyError:
                 return self.__init_strategy(cls)
-        else:
-            return self.strategy
+        return self.strategy
 
     def _get_strategy(self, cls):
         try:
@@ -494,6 +502,9 @@ class PropertyOption(MapperOption):
         while tokens:
             token = tokens.popleft()
             if isinstance(token, basestring):
+                # wildcard token
+                if token.endswith(':*'):
+                    return [(token,)], []
                 sub_tokens = token.split(".", 1)
                 token = sub_tokens[0]
                 tokens.extendleft(sub_tokens[1:])
@@ -557,7 +568,12 @@ class PropertyOption(MapperOption):
                         "mapper option expects "
                         "string key or list of attributes")
             assert prop is not None
+            if raiseerr and not prop.parent.common_parent(mapper):
+                raise sa_exc.ArgumentError("Attribute '%s' does not "
+                            "link from element '%s'" % (token, path_element))
+
             path = build_path(path_element, prop.key, path)
+
             l.append(path)
             if getattr(token, '_of_type', None):
                 path_element = mapper = token._of_type
@@ -569,8 +585,6 @@ class PropertyOption(MapperOption):
                         "refer to a mapped entity" %
                         (token, entity)
                     )
-            if path_element:
-                path_element = path_element
 
         if current_path:
             # ran out of tokens before 

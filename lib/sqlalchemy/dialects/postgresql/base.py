@@ -1,5 +1,5 @@
 # postgresql/base.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -342,7 +342,9 @@ class ARRAY(sqltypes.MutableType, sqltypes.Concatenable, sqltypes.TypeEngine):
           performance implications (default changed from ``True`` in 
           0.7.0).
 
-          .. note:: This functionality is now superseded by the
+          .. note:: 
+          
+             This functionality is now superseded by the
              ``sqlalchemy.ext.mutable`` extension described in 
              :ref:`mutable_toplevel`.
 
@@ -872,7 +874,7 @@ class PGIdentifierPreparer(compiler.IdentifierPreparer):
 
     def format_type(self, type_, use_schema=True):
         if not type_.name:
-            raise exc.ArgumentError("Postgresql ENUM type requires a name.")
+            raise exc.CompileError("Postgresql ENUM type requires a name.")
 
         name = self.quote(type_.name, type_.quote)
         if not self.omit_schema and use_schema and type_.schema is not None:

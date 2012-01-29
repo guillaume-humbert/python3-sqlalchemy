@@ -2,8 +2,8 @@ CHANGES
 CHANGES_PRE_06
 LICENSE
 MANIFEST.in
-README
 README.py3k
+README.rst
 README.unittests
 distribute_setup.py
 ez_setup.py
@@ -75,9 +75,14 @@ doc/_sources/orm/extensions/mutable.txt
 doc/_sources/orm/extensions/orderinglist.txt
 doc/_sources/orm/extensions/sqlsoup.txt
 doc/_static/basic.css
+doc/_static/comment-bright.png
+doc/_static/comment-close.png
+doc/_static/comment.png
 doc/_static/default.css
 doc/_static/docs.css
 doc/_static/doctools.js
+doc/_static/down-pressed.png
+doc/_static/down.png
 doc/_static/file.png
 doc/_static/init.js
 doc/_static/jquery.js
@@ -87,6 +92,9 @@ doc/_static/pygments.css
 doc/_static/searchtools.js
 doc/_static/sidebar.js
 doc/_static/underscore.js
+doc/_static/up-pressed.png
+doc/_static/up.png
+doc/_static/websupport.js
 doc/build/Makefile
 doc/build/conf.py
 doc/build/contents.rst
@@ -155,8 +163,8 @@ doc/build/static/init.js
 doc/build/templates/genindex.mako
 doc/build/templates/layout.mako
 doc/build/templates/page.mako
+doc/build/templates/rtd_layout.mako
 doc/build/templates/search.mako
-doc/build/templates/site_base.mako
 doc/build/templates/static_base.mako
 doc/build/texinputs/Makefile
 doc/build/texinputs/sphinx.sty
@@ -229,6 +237,8 @@ examples/beaker_caching/relation_caching.py
 examples/custom_attributes/__init__.py
 examples/custom_attributes/custom_management.py
 examples/custom_attributes/listen_for_events.py
+examples/declarative_reflection/__init__.py
+examples/declarative_reflection/declarative_reflection.py
 examples/dynamic_dict/__init__.py
 examples/dynamic_dict/dynamic_dict.py
 examples/elementtree/__init__.py
@@ -430,6 +440,7 @@ test/engine/test_ddlevents.py
 test/engine/test_execute.py
 test/engine/test_parseconnect.py
 test/engine/test_pool.py
+test/engine/test_processors.py
 test/engine/test_reconnect.py
 test/engine/test_reflection.py
 test/engine/test_transaction.py
@@ -469,6 +480,7 @@ test/orm/test_collection.py
 test/orm/test_compile.py
 test/orm/test_composites.py
 test/orm/test_cycles.py
+test/orm/test_default_strategies.py
 test/orm/test_defaults.py
 test/orm/test_deprecations.py
 test/orm/test_descriptor.py

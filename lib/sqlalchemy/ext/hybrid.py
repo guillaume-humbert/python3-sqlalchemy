@@ -1,5 +1,5 @@
 # ext/hybrid.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -613,9 +613,13 @@ class hybrid_property(object):
             return self.fget(instance)
 
     def __set__(self, instance, value):
+        if self.fset is None:
+            raise AttributeError("can't set attribute")
         self.fset(instance, value)
 
     def __delete__(self, instance):
+        if self.fdel is None:
+            raise AttributeError("can't delete attribute")
         self.fdel(instance)
 
     def setter(self, fset):

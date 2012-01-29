@@ -1,5 +1,5 @@
 # mssql/base.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -296,7 +296,7 @@ class TIME(sqltypes.TIME):
             return value
         return process
 
-    _reg = re.compile(r"(\d+):(\d+):(\d+)(?:\.(\d+))?")
+    _reg = re.compile(r"(\d+):(\d+):(\d+)(?:\.(\d{0,6}))?")
     def result_processor(self, dialect, coltype):
         def process(value):
             if isinstance(value, datetime.datetime):
@@ -804,7 +804,7 @@ class MSSQLCompiler(compiler.SQLCompiler):
             # to use ROW_NUMBER(), an ORDER BY is required.
             orderby = self.process(select._order_by_clause)
             if not orderby:
-                raise exc.InvalidRequestError('MSSQL requires an order_by when '
+                raise exc.CompileError('MSSQL requires an order_by when '
                                               'using an offset.')
 
             _offset = select._offset
@@ -1029,7 +1029,7 @@ class MSDDLCompiler(compiler.DDLCompiler):
                 colspec += " NULL"
 
         if column.table is None:
-            raise exc.InvalidRequestError(
+            raise exc.CompileError(
                             "mssql requires Table-bound columns " 
                             "in order to generate DDL")
 

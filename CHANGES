@@ -3,7 +3,221 @@
 =======
 CHANGES
 =======
-0.7.4
+0.7.5 (January 28, 2012)
+=====
+- orm
+  - [bug] Fixed issue where modified session state
+    established after a failed flush would be committed
+    as part of the subsequent transaction that 
+    begins automatically after manual call 
+    to rollback().   The state of the session is
+    checked within rollback(), and if new state
+    is present, a warning is emitted and 
+    restore_snapshot() is called a second time,
+    discarding those changes. [ticket:2389]
+
+  - [bug] Fixed regression from 0.7.4 whereby
+    using an already instrumented column from a
+    superclass as "polymorphic_on" failed to resolve
+    the underlying Column.  [ticket:2345]
+
+  - [bug] Raise an exception if xyzload_all() is
+    used inappropriately with two non-connected
+    relationships.  [ticket:2370]
+
+  - [feature] Added "class_registry" argument to
+    declarative_base().  Allows two or more declarative
+    bases to share the same registry of class names.
+
+  - [feature] query.filter() accepts multiple 
+    criteria which will join via AND, i.e.
+    query.filter(x==y, z>q, ...)
+
+  - [feature] Added new capability to relationship
+    loader options to allow "default" loader strategies.
+    Pass '*' to any of joinedload(), lazyload(),
+    subqueryload(), or noload() and that becomes the
+    loader strategy used for all relationships,
+    except for those explicitly stated in the
+    Query.  Thanks to up-and-coming contributor
+    Kent Bower for an exhaustive and well 
+    written test suite !  [ticket:2351]
+
+  - [bug] Fixed bug whereby event.listen(SomeClass)
+    forced an entirely unnecessary compile of the 
+    mapper, making events very hard to set up
+    at module import time (nobody noticed this ??)  
+    [ticket:2367]
+
+  - [bug] Fixed bug whereby hybrid_property didn't 
+    work as a kw arg in any(), has().
+
+  - Fixed regression from 0.6 whereby if 
+    "load_on_pending" relationship() flag were used
+    where a non-"get()" lazy clause needed to be 
+    emitted on a pending object, it would fail 
+    to load.
+
+  - [bug] ensure pickleability of all ORM exceptions
+    for multiprocessing compatibility. [ticket:2371]
+
+  - [bug] implemented standard "can't set attribute" / 
+    "can't delete attribute" AttributeError when 
+    setattr/delattr used on a hybrid that doesn't 
+    define fset or fdel. [ticket:2353]
+
+  - [bug] Fixed bug where unpickled object didn't 
+    have enough of its state set up to work
+    correctly within the unpickle() event established
+    by the mutable object extension, if the object
+    needed ORM attribute access within 
+    __eq__() or similar. [ticket:2362]
+
+  - [bug] Fixed bug where "merge" cascade could
+    mis-interpret an unloaded attribute, if the
+    load_on_pending flag were used with 
+    relationship().  Thanks to Kent Bower
+    for tests.  [ticket:2374]
+
+  - [feature] New declarative reflection example
+    added, illustrates how best to mix table reflection
+    with declarative as well as uses some new features
+    from [ticket:2356].
+
+- sql
+  - [feature] New reflection feature "autoload_replace";
+    when set to False on Table, the Table can be autoloaded
+    without existing columns being replaced.  Allows
+    more flexible chains of Table construction/reflection
+    to be constructed, including that it helps with 
+    combining Declarative with table reflection.
+    See the new example on the wiki.  [ticket:2356]
+
+  - [bug] Improved the API for add_column() such that
+    if the same column is added to its own table, 
+    an error is not raised and the constraints
+    don't get doubled up.  Also helps with some
+    reflection/declarative patterns. [ticket:2356]
+
+  - [feature] Added "false()" and "true()" expression
+    constructs to sqlalchemy.sql namespace, though
+    not part of __all__ as of yet.
+
+  - [feature] Dialect-specific compilers now raise
+    CompileException for all type/statement compilation 
+    issues, instead of InvalidRequestError or ArgumentError. 
+    The DDL for CREATE TABLE will re-raise 
+    CompileExceptions to include table/column information
+    for the problematic column.  [ticket:2361]
+
+  - [bug] Fixed issue where the "required" exception
+    would not be raised for bindparam() with required=True,
+    if the statement were given no parameters at all.
+    [ticket:2381]
+
+- engine
+  - [bug] Added __reduce__ to StatementError, 
+    DBAPIError, column errors so that exceptions 
+    are pickleable, as when using multiprocessing.  
+    However, not 
+    all DBAPIs support this yet, such as 
+    psycopg2. [ticket:2371]
+
+  - [bug] Improved error messages when a non-string
+    or invalid string is passed to any of the
+    date/time processors used by SQLite, including
+    C and Python versions.  [ticket:2382]
+
+  - [bug] Fixed bug whereby a table-bound Column 
+    object named "<a>_<b>" which matched a column 
+    labeled as "<tablename>_<colname>" could match 
+    inappropriately when targeting in a result
+    set row.  [ticket:2377]
+
+  - [bug] Fixed bug in "mock" strategy whereby
+    correct DDL visit method wasn't called, resulting
+    in "CREATE/DROP SEQUENCE" statements being 
+    duplicated [ticket:2384]
+
+- sqlite
+  - [bug] the "name" of an FK constraint in SQLite
+    is reflected as "None", not "0" or other 
+    integer value [ticket:2364].
+    SQLite does not appear to support constraint
+    naming in any case.
+
+  - [bug] sql.false() and sql.true() compile to
+    0 and 1, respectively in sqlite [ticket:2368]
+
+  - [bug] removed an erroneous "raise" in the 
+    SQLite dialect when getting table names
+    and view names, where logic is in place
+    to fall back to an older version of 
+    SQLite that doesn't have the 
+    "sqlite_temp_master" table.
+
+- mysql
+  - [bug] fixed regexp that filters out warnings
+    for non-reflected "PARTITION" directives,
+    thanks to George Reilly [ticket:2376]
+
+- mssql
+  - [bug] Adjusted the regexp used in the
+    mssql.TIME type to ensure only six digits
+    are received for the "microseconds" portion
+    of the value, which is expected by 
+    Python's datetime.time().  Note that
+    support for sending microseconds doesn't
+    seem to be possible yet with pyodbc
+    at least.  [ticket:2340]
+
+  - [bug] Dropped the "30 char" limit on pymssql,
+    based on reports that it's doing things
+    better these days.  pymssql hasn't been
+    well tested and as the DBAPI is in flux
+    it's still not clear what the status
+    is on this driver and how SQLAlchemy's
+    implementation should adapt.  [ticket:2347]
+
+- oracle
+  - [bug] Added ORA-03135 to the never ending
+    list of oracle "connection lost" errors
+    [ticket:2388]
+
+- core
+  - [bug] Changed LRUCache, used by the mapper
+    to cache INSERT/UPDATE/DELETE statements,
+    to use an incrementing counter instead
+    of a timestamp to track entries, for greater
+    reliability versus using time.time(), which
+    can cause test failures on some platforms.
+    [ticket:2379]
+
+  - [bug] Added a boolean check for the "finalize"
+    function within the pool connection proxy's
+    weakref callback before calling it, so that a 
+    warning isn't emitted that this function is None 
+    when the application is exiting and gc has
+    removed the function from the module before the 
+    weakref callback was invoked.  [ticket:2383]
+
+- Py3K
+  - [bug] Fixed inappropriate usage of util.py3k
+    flag and renamed it to util.py3k_warning, since 
+    this flag is intended to detect the -3 flag
+    series of import restrictions only.
+    [ticket:2348]
+
+- examples
+  - [feature] Simplified the versioning example
+    a bit to use a declarative mixin as well 
+    as an event listener, instead of a metaclass +
+    SessionExtension.  [ticket:2313]
+
+  - [bug] Fixed large_collection.py to close the
+    session before dropping tables. [ticket:2346]
+
+0.7.4 (December 9, 2011)
 =====
 - orm
   - [bug] Fixed backref behavior when "popping" the 

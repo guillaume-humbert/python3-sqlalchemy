@@ -1,5 +1,5 @@
 # orm/unitofwork.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -66,7 +66,10 @@ def track_cascade_events(descriptor, prop):
                     not sess._contains_state(newvalue_state):
                     sess._save_or_update_state(newvalue_state)
 
-            if oldvalue is not None and prop.cascade.delete_orphan:
+            if oldvalue is not None and \
+                oldvalue is not attributes.PASSIVE_NO_RESULT and \
+                prop.cascade.delete_orphan:
+                # possible to reach here with attributes.NEVER_SET ?
                 oldvalue_state = attributes.instance_state(oldvalue)
 
                 if oldvalue_state in sess._new and \

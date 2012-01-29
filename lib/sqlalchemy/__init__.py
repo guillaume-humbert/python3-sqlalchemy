@@ -1,5 +1,5 @@
 # sqlalchemy/__init__.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -117,7 +117,7 @@ from sqlalchemy.engine import create_engine, engine_from_config
 __all__ = sorted(name for name, obj in locals().items()
                  if not (name.startswith('_') or inspect.ismodule(obj)))
 
-__version__ = '0.7.4'
+__version__ = '0.7.5'
 
 del inspect, sys
 

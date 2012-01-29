@@ -1,5 +1,5 @@
 # orm/__init__.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -180,7 +180,9 @@ def create_session(bind=None, **kwargs):
 def relationship(argument, secondary=None, **kwargs):
     """Provide a relationship of a primary Mapper to a secondary Mapper.
 
-    .. note:: :func:`relationship` is historically known as
+    .. note:: 
+    
+       :func:`relationship` is historically known as
        :func:`relation` prior to version 0.6.
 
     This corresponds to a parent-child or associative table relationship.  The
@@ -1117,7 +1119,9 @@ def synonym(name, map_column=False, descriptor=None,
                         comparator_factory=None, doc=None):
     """Denote an attribute name as a synonym to a mapped property.
 
-    .. note:: :func:`.synonym` is superseded as of 0.7 by 
+    .. note:: 
+    
+       :func:`.synonym` is superseded as of 0.7 by 
        the :mod:`~sqlalchemy.ext.hybrid` extension.  See 
        the documentation for hybrids at :ref:`hybrids_toplevel`.
 
@@ -1159,7 +1163,9 @@ def comparable_property(comparator_factory, descriptor=None):
     """Provides a method of applying a :class:`.PropComparator` 
     to any Python descriptor attribute.
 
-    .. note:: :func:`.comparable_property` is superseded as of 0.7 by 
+    .. note:: 
+    
+       :func:`.comparable_property` is superseded as of 0.7 by 
        the :mod:`~sqlalchemy.ext.hybrid` extension.  See the example 
        at :ref:`hybrid_custom_comparators`.
     
@@ -1261,10 +1267,12 @@ def joinedload(*keys, **kw):
     """Return a ``MapperOption`` that will convert the property of the given
     name or series of mapped attributes into an joined eager load.
 
-    .. note:: This function is known as :func:`eagerload` in all versions
-          of SQLAlchemy prior to version 0.6beta3, including the 0.5 and 0.4
-          series. :func:`eagerload` will remain available for the foreseeable
-          future in order to enable cross-compatibility.
+    .. note:: 
+    
+       This function is known as :func:`eagerload` in all versions
+       of SQLAlchemy prior to version 0.6beta3, including the 0.5 and 0.4
+       series. :func:`eagerload` will remain available for the foreseeable
+       future in order to enable cross-compatibility.
 
     Used with :meth:`~sqlalchemy.orm.query.Query.options`.
 
@@ -1281,12 +1289,17 @@ def joinedload(*keys, **kw):
         # to joined-load across both, use joinedload_all()
         query(Order).options(joinedload_all(Order.items, Item.keywords))
 
+        # set the default strategy to be 'joined'
+        query(Order).options(joinedload('*'))
+
     :func:`joinedload` also accepts a keyword argument `innerjoin=True` which
     indicates using an inner join instead of an outer::
 
         query(Order).options(joinedload(Order.user, innerjoin=True))
 
-    .. note:: The join created by :func:`joinedload` is anonymously aliased such that
+    .. note:: 
+    
+       The join created by :func:`joinedload` is anonymously aliased such that
        it **does not affect the query results**.   An :meth:`.Query.order_by`
        or :meth:`.Query.filter` call **cannot** reference these aliased
        tables - so-called "user space" joins are constructed using 
@@ -1314,10 +1327,12 @@ def joinedload_all(*keys, **kw):
     given dot-separated path or series of mapped attributes 
     into an joined eager load.
 
-    .. note:: This function is known as :func:`eagerload_all` in all versions
-        of SQLAlchemy prior to version 0.6beta3, including the 0.5 and 0.4
-        series. :func:`eagerload_all` will remain available for the
-        foreseeable future in order to enable cross-compatibility.
+    .. note:: 
+    
+       This function is known as :func:`eagerload_all` in all versions
+       of SQLAlchemy prior to version 0.6beta3, including the 0.5 and 0.4
+       series. :func:`eagerload_all` will remain available for the
+       foreseeable future in order to enable cross-compatibility.
 
     Used with :meth:`~sqlalchemy.orm.query.Query.options`.
 
@@ -1348,6 +1363,7 @@ def joinedload_all(*keys, **kw):
     else:
         return strategies.EagerLazyOption(keys, lazy='joined', chained=True)
 
+
 def eagerload(*args, **kwargs):
     """A synonym for :func:`joinedload()`."""
     return joinedload(*args, **kwargs)
@@ -1375,6 +1391,9 @@ def subqueryload(*keys):
 
         # to subquery-load across both, use subqueryload_all()
         query(Order).options(subqueryload_all(Order.items, Item.keywords))
+
+        # set the default strategy to be 'subquery'
+        query(Order).options(subqueryload('*'))
 
     See also:  :func:`joinedload`, :func:`lazyload`
 

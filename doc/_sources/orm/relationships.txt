@@ -174,6 +174,16 @@ is complete::
                         secondary=lambda: association_table, 
                         backref="parents")
 
+With the declarative extension in use, the traditional "string name of the table"
+is accepted as well, matching the name of the table as stored in ``Base.metadata.tables``::
+
+    class Parent(Base):
+        __tablename__ = 'left'
+        id = Column(Integer, primary_key=True)
+        children = relationship("Child", 
+                        secondary="association", 
+                        backref="parents")
+
 .. _association_pattern:
 
 Association Object
@@ -248,7 +258,9 @@ extension allows the configuration of attributes which will
 access two "hops" with a single access, one "hop" to the
 associated object, and a second to a target attribute.
 
-.. note:: When using the association object pattern, it is
+.. note::
+
+  When using the association object pattern, it is
   advisable that the association-mapped table not be used
   as the ``secondary`` argument on a :func:`.relationship`
   elsewhere, unless that :func:`.relationship` contains

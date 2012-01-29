@@ -1,5 +1,5 @@
 # engine/reflection.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -317,7 +317,7 @@ class Inspector(object):
                                             info_cache=self.info_cache, **kw)
         return indexes
 
-    def reflecttable(self, table, include_columns):
+    def reflecttable(self, table, include_columns, exclude_columns=None):
         """Given a Table object, load its internal constructs based on introspection.
 
         This is the underlying method used by most dialects to produce 
@@ -373,6 +373,8 @@ class Inspector(object):
 
             name = col_d['name']
             if include_columns and name not in include_columns:
+                continue
+            if exclude_columns and name in exclude_columns:
                 continue
 
             coltype = col_d['type']

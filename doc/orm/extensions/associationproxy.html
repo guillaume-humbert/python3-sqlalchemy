@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Association Proxy
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -126,6 +135,7 @@
     <p>
     <a href="declarative.html" title="next chapter">Declarative</a>
     </p>
+
 
     <h4>Quick Search</h4>
     <p>
@@ -357,7 +367,7 @@ the <tt class="docutils literal"><span class="pre">Keyword</span></tt> object as
 assigned as the <tt class="docutils literal"><span class="pre">UserKeyword</span></tt> object is appended to the <tt class="docutils literal"><span class="pre">User.user_keywords</span></tt>
 collection, where the bidirectional relationship configured between <tt class="docutils literal"><span class="pre">User.user_keywords</span></tt>
 and <tt class="docutils literal"><span class="pre">UserKeyword.user</span></tt> results in a population of the <tt class="docutils literal"><span class="pre">UserKeyword.user</span></tt> attribute.
-The <tt class="docutils literal"><span class="pre">special_key</span></tt> argument above is left at its default value of <tt class="xref docutils literal"><span class="pre">None</span></tt>.</p>
+The <tt class="docutils literal"><span class="pre">special_key</span></tt> argument above is left at its default value of <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
 <p>For those cases where we do want <tt class="docutils literal"><span class="pre">special_key</span></tt> to have a value, we
 create the <tt class="docutils literal"><span class="pre">UserKeyword</span></tt> object explicitly.  Below we assign all three
 attributes, where the assignment of <tt class="docutils literal"><span class="pre">.user</span></tt> has the effect of the <tt class="docutils literal"><span class="pre">UserKeyword</span></tt>
@@ -611,7 +621,7 @@ a simple scalar value.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target_collection</strong> &#8211; Name of the attribute we&#8217;ll proxy to.  
 This attribute is typically mapped by
 <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> to link to a target collection, but
@@ -664,7 +674,7 @@ and/or subclassed directly.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>target_collection</strong> &#8211; Name of the collection we&#8217;ll proxy to, 
 usually created with <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</li>
 <li><strong>attr</strong> &#8211; Attribute on the collected instances we&#8217;ll proxy for.  For example,
@@ -771,7 +781,7 @@ operators of the underlying proxied attributes.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.ext.associationproxy.AssociationProxy.scalar">
 <tt class="descname">scalar</tt><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy.scalar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <tt class="xref docutils literal"><span class="pre">True</span></tt> if this <a class="reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy" title="sqlalchemy.ext.associationproxy.AssociationProxy"><tt class="xref py py-class docutils literal"><span class="pre">AssociationProxy</span></tt></a> proxies a scalar
+<dd><p>Return <tt class="docutils literal"><span class="pre">True</span></tt> if this <a class="reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy" title="sqlalchemy.ext.associationproxy.AssociationProxy"><tt class="xref py py-class docutils literal"><span class="pre">AssociationProxy</span></tt></a> proxies a scalar
 relationship on the local side.</p>
 </dd></dl>
 
@@ -792,24 +802,22 @@ in the generation of new instances of this class.</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="index.html" title="previous chapter">ORM Extensions</a>
+        Next:
+        <a href="declarative.html" title="next chapter">Declarative</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="index.html" title="previous chapter">ORM Extensions</a>
-            Next:
-            <a href="declarative.html" title="next chapter">Declarative</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

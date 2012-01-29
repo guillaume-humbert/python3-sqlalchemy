@@ -1,8 +1,9 @@
 from test.lib.testing import eq_, assert_raises, assert_raises_message, config
 import re
+from test.lib.util import picklers
 from sqlalchemy.interfaces import ConnectionProxy
 from sqlalchemy import MetaData, Integer, String, INT, VARCHAR, func, \
-    bindparam, select, event, TypeDecorator
+    bindparam, select, event, TypeDecorator, create_engine, Sequence
 from sqlalchemy.sql import column, literal
 from test.lib.schema import Table, Column
 import sqlalchemy as tsa
@@ -13,6 +14,7 @@ from sqlalchemy.dialects.oracle.zxjdbc import ReturningParam
 from sqlalchemy.engine import base, default
 from sqlalchemy.engine.base import Connection, Engine
 from test.lib import fixtures
+import StringIO
 
 users, metadata = None, None
 class ExecuteTest(fixtures.TestBase):
@@ -187,6 +189,54 @@ class ExecuteTest(fixtures.TestBase):
             _go(conn)
         finally:
             conn.close()
+
+    def test_stmt_exception_pickleable_no_dbapi(self):
+        self._test_stmt_exception_pickleable(Exception("hello world"))
+
+    @testing.fails_on("postgresql+psycopg2", 
+                "Packages the cursor in the exception")
+    @testing.fails_on("mysql+oursql", 
+                "Exception doesn't come back exactly the same from pickle")
+    @testing.fails_on("oracle+cx_oracle", 
+                        "cx_oracle exception seems to be having "
+                        "some issue with pickling")
+    def test_stmt_exception_pickleable_plus_dbapi(self):
+        raw = testing.db.raw_connection()
+        the_orig = None
+        try:
+            try:
+                cursor = raw.cursor()
+                cursor.execute("SELECTINCORRECT")
+            except testing.db.dialect.dbapi.DatabaseError, orig:
+                # py3k has "orig" in local scope...
+                the_orig = orig
+        finally:
+            raw.close()
+        self._test_stmt_exception_pickleable(the_orig)
+
+    def _test_stmt_exception_pickleable(self, orig):
+        for sa_exc in (
+            tsa.exc.StatementError("some error", 
+                            "select * from table", 
+                           {"foo":"bar"}, 
+                            orig),
+            tsa.exc.InterfaceError("select * from table", 
+                            {"foo":"bar"}, 
+                            orig),
+            tsa.exc.NoReferencedTableError("message", "tname"),
+            tsa.exc.NoReferencedColumnError("message", "tname", "cname"),
+            tsa.exc.CircularDependencyError("some message", [1, 2, 3], [(1, 2), (3, 4)]),
+        ):
+            for loads, dumps in picklers():
+                repickled = loads(dumps(sa_exc))
+                eq_(repickled.args[0], sa_exc.args[0])
+                if isinstance(sa_exc, tsa.exc.StatementError):
+                    eq_(repickled.params, {"foo":"bar"})
+                    eq_(repickled.statement, sa_exc.statement)
+                    if hasattr(sa_exc, "connection_invalidated"):
+                        eq_(repickled.connection_invalidated, 
+                            sa_exc.connection_invalidated)
+                    eq_(repickled.orig.args[0], orig.args[0])
 
     def test_dont_wrap_mixin(self):
         class MyException(Exception, tsa.exc.DontWrapMixin):
@@ -522,6 +572,34 @@ class EchoTest(fixtures.TestBase):
         assert self.buf.buffer[2].getMessage().startswith("SELECT 6")
         assert len(self.buf.buffer) == 4
 
+class MockStrategyTest(fixtures.TestBase):
+    def _engine_fixture(self):
+        buf = StringIO.StringIO()
+        def dump(sql, *multiparams, **params):
+            buf.write(unicode(sql.compile(dialect=engine.dialect)))
+        engine = create_engine('postgresql://', strategy='mock', executor=dump)
+        return engine, buf
+
+    def test_sequence_not_duped(self):
+        engine, buf = self._engine_fixture()
+        metadata = MetaData()
+        t = Table('testtable', metadata,
+           Column('pk', Integer, Sequence('testtable_pk_seq'), primary_key=True)
+        )
+
+        t.create(engine)
+        t.drop(engine)
+
+        eq_(
+            re.findall(r'CREATE (\w+)', buf.getvalue()),
+            ["SEQUENCE", "TABLE"]
+        )
+
+        eq_(
+            re.findall(r'DROP (\w+)', buf.getvalue()),
+            ["SEQUENCE", "TABLE"]
+        )
+
 class ResultProxyTest(fixtures.TestBase):
 
     def test_nontuple_row(self):
@@ -541,7 +619,7 @@ class ResultProxyTest(fixtures.TestBase):
                 return list.__getitem__(self.l, i)
 
         proxy = RowProxy(object(), MyList(['value']), [None], {'key'
-                         : (None, 0), 0: (None, 0)})
+                         : (None, None, 0), 0: (None, None, 0)})
         eq_(list(proxy), ['value'])
         eq_(proxy[0], 'value')
         eq_(proxy['key'], 'value')
@@ -594,7 +672,7 @@ class ResultProxyTest(fixtures.TestBase):
         from sqlalchemy.engine import RowProxy
 
         row = RowProxy(object(), ['value'], [None], {'key'
-                         : (None, 0), 0: (None, 0)})
+                         : (None, None, 0), 0: (None, None, 0)})
         assert isinstance(row, collections.Sequence)
 
     @testing.requires.cextensions

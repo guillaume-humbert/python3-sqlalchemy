@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Querying
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -120,6 +129,7 @@
     <p>
     <a href="loading.html" title="next chapter">Relationship Loading Techniques</a>
     </p>
+
 
     <h4>Quick Search</h4>
     <p>
@@ -303,9 +313,9 @@ with <a class="reference internal" href="session.html#sqlalchemy.orm.session.Ses
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>synchronize_session</strong> &#8211; <p>chooses the strategy for the removal of
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>synchronize_session</strong> &#8211; <p>chooses the strategy for the removal of
 matched objects from the session. Valid values are:</p>
-<p><tt class="xref docutils literal"><span class="pre">False</span></tt> - don&#8217;t synchronize the session. This option is the most
+<p><tt class="docutils literal"><span class="pre">False</span></tt> - don&#8217;t synchronize the session. This option is the most
 efficient and is reliable once the session is expired, which
 typically occurs after a commit(), or explicitly using
 expire_all(). Before the expiration, objects may still remain in
@@ -348,7 +358,7 @@ invokes <a class="reference internal" href="events.html#sqlalchemy.orm.events.Se
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>*expr</strong> &#8211; optional column expressions.  When present,
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>*expr</strong> &#8211; optional column expressions.  When present,
 the Postgresql dialect will render a <tt class="docutils literal"><span class="pre">DISTINCT</span> <span class="pre">ON</span> <span class="pre">(&lt;expressions&gt;&gt;)</span></tt>
 construct.</td>
 </tr>
@@ -419,18 +429,40 @@ method is used.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.filter">
-<tt class="descname">filter</tt><big>(</big><em>criterion</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>apply the given filtering criterion to the query and return 
-the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
-<p>the criterion is any sql.ClauseElement applicable to the WHERE clause
-of a select.</p>
+<tt class="descname">filter</tt><big>(</big><em>*criterion</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>apply the given filtering criterion to a copy
+of this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, using SQL expressions.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;some name&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>Multiple criteria are joined together by AND (new in 0.7.5):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span>\
+    <span class="nb">filter</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;some name&#39;</span><span class="p">,</span> <span class="n">MyClass</span><span class="o">.</span><span class="n">id</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">)</span></pre></div>
+</div>
+<p>The criterion is any SQL expression object applicable to the 
+WHERE clause of a select.   String expressions are coerced
+into SQL expression constructs via the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.filter_by" title="sqlalchemy.orm.query.Query.filter_by"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter_by()</span></tt></a> - filter on keyword expressions.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.filter_by">
 <tt class="descname">filter_by</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.filter_by" title="Permalink to this definition">¶</a></dt>
-<dd><p>apply the given filtering criterion to the query and return 
-the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<dd><p>apply the given filtering criterion to a copy
+of this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, using keyword expressions.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;some name&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>Multiple criteria are joined together by AND:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span>\
+    <span class="n">filter_by</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;some name&#39;</span><span class="p">,</span> <span class="nb">id</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span></pre></div>
+</div>
+<p>The keyword expressions are extracted from the primary 
+entity of the query, or the last entity that was the 
+target of a call to <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter()</span></tt></a> - filter on SQL expressions.</p>
 </dd></dl>
 
 <dl class="method">
@@ -469,7 +501,7 @@ appropriate to the entity class represented by this <tt class="docutils literal"
 <dt id="sqlalchemy.orm.query.Query.get">
 <tt class="descname">get</tt><big>(</big><em>ident</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an instance based on the given primary key identifier, 
-or <tt class="xref docutils literal"><span class="pre">None</span></tt> if not found.</p>
+or <tt class="docutils literal"><span class="pre">None</span></tt> if not found.</p>
 <p>E.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">my_user</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
@@ -510,7 +542,7 @@ for further details on relationship loading.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ident</strong> &#8211; A scalar or tuple value representing
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ident</strong> &#8211; A scalar or tuple value representing
 the primary key.   For a composite primary key,
 the order of identifiers corresponds in most cases
 to that of the mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object&#8217;s 
@@ -519,7 +551,7 @@ was given the <tt class="docutils literal"><span class="pre">primary</span> <spa
 construction, the order of identifiers corresponds 
 to the elements present in this collection.</td>
 </tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body">The object instance, or <tt class="xref docutils literal"><span class="pre">None</span></tt>.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The object instance, or <tt class="docutils literal"><span class="pre">None</span></tt>.</td>
 </tr>
 </tbody>
 </table>
@@ -761,7 +793,7 @@ an XPath-like query system using algorithmic joins.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>*props</strong> &#8211; <p>A collection of one or more join conditions, 
 each consisting of a relationship-bound attribute or string 
 relationship name representing an &#8220;on clause&#8221;, or a single 
@@ -808,6 +840,11 @@ to a scalar subquery with a label of the given name.</p>
 <dd><p>Apply a <tt class="docutils literal"><span class="pre">LIMIT</span></tt> to the query and return the newly resulting</p>
 <p><tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.orm.query.Query.logger">
+<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x104b57690&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.merge_result">
@@ -872,10 +909,10 @@ documentation.</p>
 <dd><p>apply one or more ORDER BY criterion to the query and return 
 the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
 <p>All existing ORDER BY settings can be suppressed by 
-passing <tt class="xref docutils literal"><span class="pre">None</span></tt> - this will suppress any ORDER BY configured
+passing <tt class="docutils literal"><span class="pre">None</span></tt> - this will suppress any ORDER BY configured
 on mappers as well.</p>
 <p>Alternatively, an existing ORDER BY setting on the Query
-object can be entirely cancelled by passing <tt class="xref docutils literal"><span class="pre">False</span></tt> 
+object can be entirely cancelled by passing <tt class="docutils literal"><span class="pre">False</span></tt> 
 as the value - use this before calling methods where
 an ORDER BY is invalid.</p>
 </dd></dl>
@@ -987,9 +1024,9 @@ applied to the list of selected columns unless the
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; string name to be assigned as the alias; 
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; string name to be assigned as the alias; 
 this is passed through to <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a>.
-If <tt class="xref docutils literal"><span class="pre">None</span></tt>, a name will be deterministically generated
+If <tt class="docutils literal"><span class="pre">None</span></tt>, a name will be deterministically generated
 at compile time.</td>
 </tr>
 </tbody>
@@ -1046,12 +1083,12 @@ that method for usage examples.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>values</strong> &#8211; a dictionary with attributes names as keys and literal
 values or sql expressions as values.</li>
 <li><strong>synchronize_session</strong> &#8211; <p>chooses the strategy to update the
 attributes on objects in the session. Valid values are:</p>
-<p><tt class="xref docutils literal"><span class="pre">False</span></tt> - don&#8217;t synchronize the session. This option is the most
+<p><tt class="docutils literal"><span class="pre">False</span></tt> - don&#8217;t synchronize the session. This option is the most
 efficient and is reliable once the session is expired, which
 typically occurs after a commit(), or explicitly using
 expire_all(). Before the expiration, updated objects may still
@@ -1102,7 +1139,7 @@ to the given list of columns</p>
 <dt id="sqlalchemy.orm.query.Query.whereclause">
 <tt class="descname">whereclause</tt><a class="headerlink" href="#sqlalchemy.orm.query.Query.whereclause" title="Permalink to this definition">¶</a></dt>
 <dd><p>A readonly attribute which returns the current WHERE criterion for this Query.</p>
-<p>This returned value is a SQL expression construct, or <tt class="xref docutils literal"><span class="pre">None</span></tt> if no 
+<p>This returned value is a SQL expression construct, or <tt class="docutils literal"><span class="pre">None</span></tt> if no 
 criterion has been established.</p>
 </dd></dl>
 
@@ -1189,7 +1226,7 @@ no &#8220;post fetch&#8221; of those columns will be required.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>cls_or_mappers</strong> &#8211; a single class or mapper, or list of
 class/mappers, which inherit from this Query&#8217;s mapper.
 Alternatively, it may also be the string <tt class="docutils literal"><span class="pre">'*'</span></tt>, in which case
@@ -1256,7 +1293,7 @@ defeats the purpose of <a class="reference internal" href="#sqlalchemy.orm.query
 all rows before making them available, including mysql-python and 
 psycopg2.  <a class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per" title="sqlalchemy.orm.query.Query.yield_per"><tt class="xref py py-meth docutils literal"><span class="pre">yield_per()</span></tt></a> will also 
 set the <tt class="docutils literal"><span class="pre">stream_results</span></tt> execution
-option to <tt class="xref docutils literal"><span class="pre">True</span></tt>, which currently is only understood by psycopg2
+option to <tt class="docutils literal"><span class="pre">True</span></tt>, which currently is only understood by psycopg2
 and causes server side cursors to be used.</p>
 </dd></dl>
 
@@ -1297,11 +1334,11 @@ when classmethods are called.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>cls</strong> &#8211; ORM mapped entity which will be &#8220;wrapped&#8221; around an alias.</li>
 <li><strong>alias</strong> &#8211; a selectable, such as an <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> or <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>
 construct, which will be rendered in place of the mapped table of the
-ORM entity.  If left as <tt class="xref docutils literal"><span class="pre">None</span></tt>, an ordinary <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> of the 
+ORM entity.  If left as <tt class="docutils literal"><span class="pre">None</span></tt>, an ordinary <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> of the 
 ORM entity&#8217;s mapped table will be generated.</li>
 <li><strong>name</strong> &#8211; A name which will be applied both to the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a>
 if one is generated, as well as the name present in the &#8220;named tuple&#8221;
@@ -1405,7 +1442,7 @@ instances.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>instance</strong> &#8211; An instance which has some <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</li>
 <li><strong>property</strong> &#8211; String property name, or class-bound attribute, which indicates
 what relationship from the instance should be used to reconcile the 
@@ -1424,24 +1461,22 @@ parent/child relationship.</li>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="session.html" title="previous chapter">Using the Session</a>
+        Next:
+        <a href="loading.html" title="next chapter">Relationship Loading Techniques</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="session.html" title="previous chapter">Using the Session</a>
-            Next:
-            <a href="loading.html" title="next chapter">Relationship Loading Techniques</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

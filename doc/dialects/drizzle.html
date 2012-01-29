@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Drizzle
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -132,6 +141,7 @@
     <a href="firebird.html" title="next chapter">Firebird</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -159,30 +169,30 @@ with capabilities increasing with more modern servers.</p>
 <col width="29%" />
 </colgroup>
 <thead valign="bottom">
-<tr><th class="head">Feature</th>
+<tr class="row-odd"><th class="head">Feature</th>
 <th class="head">Minimum Version</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td>sqlalchemy.orm</td>
+<tr class="row-even"><td>sqlalchemy.orm</td>
 <td>2010.08</td>
 </tr>
-<tr><td>Table Reflection</td>
+<tr class="row-odd"><td>Table Reflection</td>
 <td>2010.08</td>
 </tr>
-<tr><td>DDL Generation</td>
+<tr class="row-even"><td>DDL Generation</td>
 <td>2010.08</td>
 </tr>
-<tr><td>utf8/Full Unicode Connections</td>
+<tr class="row-odd"><td>utf8/Full Unicode Connections</td>
 <td>2010.08</td>
 </tr>
-<tr><td>Transactions</td>
+<tr class="row-even"><td>Transactions</td>
 <td>2010.08</td>
 </tr>
-<tr><td>Two-Phase Transactions</td>
+<tr class="row-odd"><td>Two-Phase Transactions</td>
 <td>2010.08</td>
 </tr>
-<tr><td>Nested Transactions</td>
+<tr class="row-even"><td>Nested Transactions</td>
 <td>2010.08</td>
 </tr>
 </tbody>
@@ -304,7 +314,7 @@ construction arguments, are as follows:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Maximum data length, in characters.</li>
 <li><strong>binary</strong> &#8211; Optional, use the default binary collation for the
 national character set.  This does not affect the type of data
@@ -333,7 +343,7 @@ compatible with the national character set.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -359,7 +369,7 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -388,7 +398,7 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>enums</strong> &#8211; The range of valid values for this ENUM.  Values will be
 quoted when generating the schema according to the quoting flag (see
 below).</li>
@@ -436,7 +446,7 @@ literals for you.  This is a transitional option.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -475,7 +485,7 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -501,7 +511,7 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -527,7 +537,7 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Optional, if provided the server may optimize storage
 by substituting the smallest TEXT type sufficient to store
 <tt class="docutils literal"><span class="pre">length</span></tt> characters.</li>
@@ -559,7 +569,7 @@ only the collation of character data.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
 </tr>
 </tbody>
 </table>
@@ -583,7 +593,7 @@ effect.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
 <li><strong>binary</strong> &#8211; Defaults to False: short-hand, pick the binary
@@ -633,24 +643,22 @@ The recommended connection form with SQLAlchemy is:</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="index.html" title="previous chapter">Dialects</a>
+        Next:
+        <a href="firebird.html" title="next chapter">Firebird</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="index.html" title="previous chapter">Dialects</a>
-            Next:
-            <a href="firebird.html" title="next chapter">Firebird</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

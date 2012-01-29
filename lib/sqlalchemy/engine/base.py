@@ -1,5 +1,5 @@
 # engine/base.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -2461,9 +2461,9 @@ except ImportError:
 
         def __getitem__(self, key):
             try:
-                processor, index = self._keymap[key]
+                processor, obj, index = self._keymap[key]
             except KeyError:
-                processor, index = self._parent._key_fallback(key)
+                processor, obj, index = self._parent._key_fallback(key)
             except TypeError:
                 if isinstance(key, slice):
                     l = []
@@ -2596,7 +2596,7 @@ class ResultMetaData(object):
             processor = type_._cached_result_processor(dialect, coltype)
 
             processors.append(processor)
-            rec = (processor, i)
+            rec = (processor, obj, i)
 
             # indexes as keys. This is only needed for the Python version of
             # RowProxy (the C version uses a faster path for integer indexes).
@@ -2608,7 +2608,7 @@ class ResultMetaData(object):
                 # columns colliding by name is not a problem as long as the
                 # user does not try to access them (ie use an index directly,
                 # or the more precise ColumnElement)
-                keymap[name.lower()] = (processor, None)
+                keymap[name.lower()] = (processor, obj, None)
 
             if dialect.requires_name_normalize:
                 colname = dialect.normalize_name(colname)
@@ -2630,9 +2630,9 @@ class ResultMetaData(object):
         row.
 
         """
-        rec = (processor, i) = self._keymap[origname.lower()]
+        rec = (processor, obj, i) = self._keymap[origname.lower()]
         if self._keymap.setdefault(name, rec) is not rec:
-            self._keymap[name] = (processor, None)
+            self._keymap[name] = (processor, obj, None)
 
     def _key_fallback(self, key, raiseerr=True):
         map = self._keymap
@@ -2641,12 +2641,25 @@ class ResultMetaData(object):
             result = map.get(key.lower())
         # fallback for targeting a ColumnElement to a textual expression
         # this is a rare use case which only occurs when matching text()
-        # constructs to ColumnElements, and after a pickle/unpickle roundtrip
+        # or colummn('name') constructs to ColumnElements, or after a 
+        # pickle/unpickle roundtrip
         elif isinstance(key, expression.ColumnElement):
             if key._label and key._label.lower() in map:
                 result = map[key._label.lower()]
             elif hasattr(key, 'name') and key.name.lower() in map:
+                # match is only on name.  
                 result = map[key.name.lower()]
+            # search extra hard to make sure this 
+            # isn't a column/label name overlap.
+            # this check isn't currently available if the row
+            # was unpickled.
+            if result is not None and \
+                result[1] is not None:
+                for obj in result[1]:
+                    if key._compare_name_for_result(obj):
+                        break
+                else:
+                    result = None
         if result is None:
             if raiseerr:
                 raise exc.NoSuchColumnError(
@@ -2668,7 +2681,7 @@ class ResultMetaData(object):
         return {
             '_pickled_keymap': dict(
                 (key, index)
-                for key, (processor, index) in self._keymap.iteritems()
+                for key, (processor, obj, index) in self._keymap.iteritems()
                 if isinstance(key, (basestring, int))
             ),
             'keys': self.keys
@@ -2680,7 +2693,9 @@ class ResultMetaData(object):
         self._processors = [None for _ in xrange(len(state['keys']))]
         self._keymap = keymap = {}
         for key, index in state['_pickled_keymap'].iteritems():
-            keymap[key] = (None, index)
+            # not preserving "obj" here, unfortunately our
+            # proxy comparison fails with the unpickle
+            keymap[key] = (None, None, index)
         self.keys = state['keys']
         self._echo = False
 
@@ -3213,8 +3228,8 @@ class BufferedColumnResultProxy(ResultProxy):
         # replace the all type processors by None processors.
         metadata._processors = [None for _ in xrange(len(metadata.keys))]
         keymap = {}
-        for k, (func, index) in metadata._keymap.iteritems():
-            keymap[k] = (None, index)
+        for k, (func, obj, index) in metadata._keymap.iteritems():
+            keymap[k] = (None, obj, index)
         self._metadata._keymap = keymap
 
     def fetchall(self):

@@ -1,5 +1,5 @@
 # orm/session.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -343,6 +343,16 @@ class SessionTransaction(object):
 
         sess = self.session
 
+        if self.session._enable_transaction_accounting and \
+            not sess._is_clean():
+            # if items were added, deleted, or mutated
+            # here, we need to re-restore the snapshot
+            util.warn(
+                    "Session's state has been changed on "
+                    "a non-active transaction - this state "
+                    "will be discarded.")
+            self._restore_snapshot()
+
         self.close()
         if self._parent and _capture_exception:
             self._parent._rollback_exception = sys.exc_info()[1]
@@ -575,7 +585,7 @@ class Session(object):
         if self.transaction is not None:
             if subtransactions or nested:
                 self.transaction = self.transaction._begin(
-                    nested=nested)
+                                        nested=nested)
             else:
                 raise sa_exc.InvalidRequestError(
                     "A transaction is already begun.  Use subtransactions=True "
@@ -1542,16 +1552,20 @@ class Session(object):
         if self._flushing:
             raise sa_exc.InvalidRequestError("Session is already flushing")
 
+        if self._is_clean():
+            return
         try:
             self._flushing = True
             self._flush(objects)
         finally:
             self._flushing = False
 
+    def _is_clean(self):
+        return not self.identity_map.check_modified() and \
+                not self._deleted and \
+                not self._new
+
     def _flush(self, objects=None):
-        if (not self.identity_map.check_modified() and
-            not self._deleted and not self._new):
-            return
 
         dirty = self._dirty_states
         if not dirty and not self._deleted and not self._new:
@@ -1653,7 +1667,9 @@ class Session(object):
         
             return session.is_modified(someobject, passive=True)
             
-        .. note:: In SQLAlchemy 0.7 and earlier, the ``passive`` 
+        .. note:: 
+          
+           In SQLAlchemy 0.7 and earlier, the ``passive`` 
            flag should **always** be explicitly set to ``True``. 
            The current default value of :data:`.attributes.PASSIVE_OFF`
            for this flag is incorrect, in that it loads unloaded

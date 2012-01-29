@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Declarative
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -114,6 +123,7 @@
 <li><a class="reference internal" href="#defining-sql-expressions">Defining SQL Expressions</a></li>
 <li><a class="reference internal" href="#table-configuration">Table Configuration</a></li>
 <li><a class="reference internal" href="#using-a-hybrid-approach-with-table">Using a Hybrid Approach with __table__</a></li>
+<li><a class="reference internal" href="#using-reflection-with-declarative">Using Reflection with Declarative</a></li>
 <li><a class="reference internal" href="#mapper-configuration">Mapper Configuration</a></li>
 <li><a class="reference internal" href="#inheritance-configuration">Inheritance Configuration</a><ul>
 <li><a class="reference internal" href="#joined-table-inheritance">Joined Table Inheritance</a></li>
@@ -155,6 +165,7 @@
     <p>
     <a href="mutable.html" title="next chapter">Mutation Tracking</a>
     </p>
+
 
     <h4>Quick Search</h4>
     <p>
@@ -332,6 +343,14 @@ the <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">keywords</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Keyword&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">keywords</span><span class="p">)</span></pre></div>
 </div>
+<p>Like other <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> arguments, a string is accepted as well, 
+passing the string name of the table as defined in the <tt class="docutils literal"><span class="pre">Base.metadata.tables</span></tt>
+collection:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Author</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;authors&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">keywords</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Keyword&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="s">&quot;keywords&quot;</span><span class="p">)</span></pre></div>
+</div>
 <p>As with traditional mapping, its generally not a good idea to use 
 a <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> as the &#8220;secondary&#8221; argument which is also mapped to
 a class, unless the <tt class="xref py py-class docutils literal"><span class="pre">relationship</span></tt> is declared with <tt class="docutils literal"><span class="pre">viewonly=True</span></tt>.
@@ -392,7 +411,7 @@ to a table:</p>
 <p><tt class="docutils literal"><span class="pre">__table__</span></tt> provides a more focused point of control for establishing
 table metadata, while still getting most of the benefits of using declarative.
 An application that uses reflection might want to load table metadata elsewhere
-and simply pass it to declarative classes:</p>
+and pass it to declarative classes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
 
 <span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
@@ -436,6 +455,37 @@ a synonym for <tt class="docutils literal"><span class="pre">name</span></tt>:</
     <span class="nd">@synonym_for</span><span class="p">(</span><span class="s">&quot;_name&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s">&quot;Name: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">_name</span></pre></div>
+</div>
+</div>
+<div class="section" id="using-reflection-with-declarative">
+<h2>Using Reflection with Declarative<a class="headerlink" href="#using-reflection-with-declarative" title="Permalink to this headline">¶</a></h2>
+<p>It&#8217;s easy to set up a <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that uses <tt class="docutils literal"><span class="pre">autoload=True</span></tt>
+in conjunction with a mapped class:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__table__</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> 
+                    <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">some_engine</span><span class="p">)</span></pre></div>
+</div>
+<p>However, one improvement that can be made here is to not 
+require the <a class="reference internal" href="../../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> to be available when classes are 
+being first declared.   To achieve this, use the example
+described at <a class="reference internal" href="../examples.html#examples-declarative-reflection"><em>Declarative Reflection</em></a> to build a 
+declarative base that sets up mappings only after a special 
+<tt class="docutils literal"><span class="pre">prepare(engine)</span></tt> step is called:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="n">DeclarativeReflectedBase</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;foo&#39;</span>
+    <span class="n">bars</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Bar&quot;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;bar&#39;</span>
+
+    <span class="c"># illustrate overriding of &quot;bar.foo_id&quot; to have </span>
+    <span class="c"># a foreign key constraint otherwise not</span>
+    <span class="c"># reflected, such as when using MySQL</span>
+    <span class="n">foo_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;foo.id&#39;</span><span class="p">))</span>
+
+<span class="n">Base</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></pre></div>
 </div>
 </div>
 <div class="section" id="mapper-configuration">
@@ -534,7 +584,7 @@ collection (empty or otherwise) to the <tt class="docutils literal"><span class=
 <div class="section" id="concrete-table-inheritance">
 <h3>Concrete Table Inheritance<a class="headerlink" href="#concrete-table-inheritance" title="Permalink to this headline">¶</a></h3>
 <p>Concrete is defined as a subclass which has its own table and sets the
-<tt class="docutils literal"><span class="pre">concrete</span></tt> keyword argument to <tt class="xref docutils literal"><span class="pre">True</span></tt>:</p>
+<tt class="docutils literal"><span class="pre">concrete</span></tt> keyword argument to <tt class="docutils literal"><span class="pre">True</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;people&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -839,7 +889,7 @@ control which classes get the computed attribute in order to get the
 type of table inheritance you require.</p>
 <p>For example, if you had a mixin that computes <tt class="docutils literal"><span class="pre">__tablename__</span></tt> but
 where you wanted to use that mixin in a single table inheritance
-hierarchy, you can explicitly specify <tt class="docutils literal"><span class="pre">__tablename__</span></tt> as <tt class="xref docutils literal"><span class="pre">None</span></tt> to
+hierarchy, you can explicitly specify <tt class="docutils literal"><span class="pre">__tablename__</span></tt> as <tt class="docutils literal"><span class="pre">None</span></tt> to
 indicate that the class should not have a table mapped:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declared_attr</span>
 
@@ -862,7 +912,7 @@ indicate that the class should not have a table mapped:</p>
 return a <tt class="docutils literal"><span class="pre">__tablename__</span></tt> in the event that no table is already
 mapped in the inheritance hierarchy. To help with this, a
 <a class="reference internal" href="#sqlalchemy.ext.declarative.has_inherited_table" title="sqlalchemy.ext.declarative.has_inherited_table"><tt class="xref py py-func docutils literal"><span class="pre">has_inherited_table()</span></tt></a> helper
-function is provided that returns <tt class="xref docutils literal"><span class="pre">True</span></tt> if a parent class already
+function is provided that returns <tt class="docutils literal"><span class="pre">True</span></tt> if a parent class already
 has a mapped table.</p>
 <p>As an example, here&#8217;s a mixin that will only allow single table
 inheritance:</p>
@@ -982,7 +1032,7 @@ has finished:</p>
 </div>
 </div>
 <div class="section" id="abstract">
-<h3><tt class="docutils literal"><span class="pre">__abstract__</span></tt><a class="headerlink" href="#abstract" title="Permalink to this headline">¶</a></h3>
+<span id="declarative-abstract"></span><h3><tt class="docutils literal"><span class="pre">__abstract__</span></tt><a class="headerlink" href="#abstract" title="Permalink to this headline">¶</a></h3>
 <p><tt class="docutils literal"><span class="pre">__abstract__</span></tt> is introduced in 0.7.3 and causes declarative to skip the production
 of a table or mapper for the class entirely.  A class can be added within a hierarchy
 in the same way as mixin (see <a class="reference internal" href="#declarative-mixins"><em>Mixin and Custom Base Classes</em></a>), allowing subclasses to extend
@@ -999,6 +1049,24 @@ just from the special class:</p>
 
 <span class="k">class</span> <span class="nc">MyMappedClass</span><span class="p">(</span><span class="n">SomeAbstractBase</span><span class="p">):</span>
     <span class="s">&quot;&quot;</span></pre></div>
+</div>
+<p>One possible use of <tt class="docutils literal"><span class="pre">__abstract__</span></tt> is to use a distinct <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> for different
+bases:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">DefaultBase</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__abstract__</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">OtherBase</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__abstract__</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span></pre></div>
+</div>
+<p>Above, classes which inherit from <tt class="docutils literal"><span class="pre">DefaultBase</span></tt> will use one <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> as the 
+registry of tables, and those which inherit from <tt class="docutils literal"><span class="pre">OtherBase</span></tt> will use a different one.  
+The tables themselves can then be created perhaps within distinct databases:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">DefaultBase</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">some_engine</span><span class="p">)</span>
+<span class="n">OtherBase</span><span class="o">.</span><span class="n">metadata_create_all</span><span class="p">(</span><span class="n">some_other_engine</span><span class="p">)</span></pre></div>
 </div>
 </div>
 </div>
@@ -1029,7 +1097,7 @@ setup using <a class="reference internal" href="../session.html#sqlalchemy.orm.s
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x107d71668&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x108ac3de8&gt;</em>, <em>class_registry=None</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that produces
 appropriate <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and makes
@@ -1040,7 +1108,7 @@ of the class.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>bind</strong> &#8211; An optional
 <a class="reference internal" href="../../core/connections.html#sqlalchemy.engine.base.Connectable" title="sqlalchemy.engine.base.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a>, will be assigned
 the <tt class="docutils literal"><span class="pre">bind</span></tt> attribute on the <tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt> 
@@ -1061,9 +1129,15 @@ tracebacks and debugging.</li>
 <li><strong>constructor</strong> &#8211; Defaults to
 <a class="reference internal" href="#sqlalchemy.ext.declarative._declarative_constructor" title="sqlalchemy.ext.declarative._declarative_constructor"><tt class="xref py py-func docutils literal"><span class="pre">_declarative_constructor()</span></tt></a>, an
 __init__ implementation that assigns **kwargs for declared
-fields and relationships to an instance.  If <tt class="xref docutils literal"><span class="pre">None</span></tt> is supplied,
+fields and relationships to an instance.  If <tt class="docutils literal"><span class="pre">None</span></tt> is supplied,
 no __init__ will be provided and construction will fall back to
 cls.__init__ by way of the normal Python semantics.</li>
+<li><strong>class_registry</strong> &#8211; optional dictionary that will serve as the 
+registry of class names-&gt; mapped classes when string names
+are used to identify classes inside of <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> 
+and others.  Allows two or more declarative base classes
+to share the same registry of class names for simplified 
+inter-base relationships.</li>
 <li><strong>metaclass</strong> &#8211; Defaults to <tt class="xref py py-class docutils literal"><span class="pre">DeclarativeMeta</span></tt>.  A metaclass or __metaclass__
 compatible callable to use as the meta type of the generated
 declarative base class.</li>
@@ -1256,24 +1330,22 @@ which does not.</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
+        Next:
+        <a href="mutable.html" title="next chapter">Mutation Tracking</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
-            Next:
-            <a href="mutable.html" title="next chapter">Mutation Tracking</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

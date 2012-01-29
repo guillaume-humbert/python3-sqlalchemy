@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 MySQL
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -164,6 +173,7 @@
     <a href="oracle.html" title="next chapter">Oracle</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -196,30 +206,30 @@ example, they won&#8217;t work in SQLAlchemy either.</p>
 <col width="29%" />
 </colgroup>
 <thead valign="bottom">
-<tr><th class="head">Feature</th>
+<tr class="row-odd"><th class="head">Feature</th>
 <th class="head">Minimum Version</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td>sqlalchemy.orm</td>
+<tr class="row-even"><td>sqlalchemy.orm</td>
 <td>4.1.1</td>
 </tr>
-<tr><td>Table Reflection</td>
+<tr class="row-odd"><td>Table Reflection</td>
 <td>3.23.x</td>
 </tr>
-<tr><td>DDL Generation</td>
+<tr class="row-even"><td>DDL Generation</td>
 <td>4.1.1</td>
 </tr>
-<tr><td>utf8/Full Unicode Connections</td>
+<tr class="row-odd"><td>utf8/Full Unicode Connections</td>
 <td>4.1.1</td>
 </tr>
-<tr><td>Transactions</td>
+<tr class="row-even"><td>Transactions</td>
 <td>3.23.15</td>
 </tr>
-<tr><td>Two-Phase Transactions</td>
+<tr class="row-odd"><td>Two-Phase Transactions</td>
 <td>5.0.3</td>
 </tr>
-<tr><td>Nested Transactions</td>
+<tr class="row-even"><td>Nested Transactions</td>
 <td>5.0.3</td>
 </tr>
 </tbody>
@@ -418,7 +428,7 @@ construction arguments, are as follows:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
 <li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
 <li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
@@ -457,7 +467,7 @@ type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; Optional, number of bits.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; Optional, number of bits.</td>
 </tr>
 </tbody>
 </table>
@@ -478,7 +488,7 @@ type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
@@ -506,7 +516,7 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>create_constraint</strong> &#8211; defaults to True.  If the boolean 
 is generated as an int/smallint, also create a CHECK constraint
 on the table that ensures 1 or 0 as a value.</li>
@@ -534,7 +544,7 @@ the name of the constraint.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Maximum data length, in characters.</li>
 <li><strong>binary</strong> &#8211; Optional, use the default binary collation for the
 national character set.  This does not affect the type of data
@@ -576,7 +586,7 @@ compatible with the national character set.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
 </tr>
 </tbody>
 </table>
@@ -600,7 +610,7 @@ effect.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -631,7 +641,7 @@ numeric.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -665,7 +675,7 @@ numeric.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>enums</strong> &#8211; The range of valid values for this ENUM.  Values will be
 quoted when generating the schema according to the quoting flag (see
 below).</li>
@@ -719,7 +729,7 @@ literals for you.  This is a transitional option.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -750,7 +760,7 @@ numeric.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
 <li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
 <li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
@@ -786,7 +796,7 @@ numeric.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
 <li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
@@ -830,7 +840,7 @@ only the collation of character data.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
 <li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
 <li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
@@ -859,7 +869,7 @@ numeric.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
 <li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
@@ -898,7 +908,7 @@ character set.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Maximum data length, in characters.</li>
 <li><strong>binary</strong> &#8211; Optional, use the default binary collation for the
 national character set.  This does not affect the type of data
@@ -927,7 +937,7 @@ compatible with the national character set.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -960,7 +970,7 @@ character set.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Maximum data length, in characters.</li>
 <li><strong>binary</strong> &#8211; Optional, use the default binary collation for the
 national character set.  This does not affect the type of data
@@ -989,7 +999,7 @@ compatible with the national character set.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
 <li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
@@ -1023,7 +1033,7 @@ numeric.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>values</strong> &#8211; The range of valid values for this SET.  Values will be
 used exactly as they appear when generating schemas.  Strings must
 be quoted, as in the example above.  Single-quotes are suggested for
@@ -1063,7 +1073,7 @@ only the collation of character data.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
 <li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
 <li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
@@ -1092,7 +1102,7 @@ numeric.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Optional, if provided the server may optimize storage
 by substituting the smallest TEXT type sufficient to store
 <tt class="docutils literal"><span class="pre">length</span></tt> characters.</li>
@@ -1139,7 +1149,7 @@ only the collation of character data.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
 </tr>
 </tbody>
 </table>
@@ -1173,7 +1183,7 @@ Boolean columns.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
 <li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
 <li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
@@ -1202,7 +1212,7 @@ numeric.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
 <li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
@@ -1246,7 +1256,7 @@ only the collation of character data.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
 <li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
@@ -1433,24 +1443,22 @@ overriden via a <tt class="docutils literal"><span class="pre">create_engine</sp
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="mssql.html" title="previous chapter">Microsoft SQL Server</a>
+        Next:
+        <a href="oracle.html" title="next chapter">Oracle</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="mssql.html" title="previous chapter">Microsoft SQL Server</a>
-            Next:
-            <a href="oracle.html" title="next chapter">Oracle</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

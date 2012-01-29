@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 ORM Exceptions
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -117,6 +126,7 @@
     <a href="internals.html" title="next chapter">ORM Internals</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -163,7 +173,7 @@ mapped instance that is detached.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.orm.exc.NO_STATE">
-<tt class="descclassname">sqlalchemy.orm.exc.</tt><tt class="descname">NO_STATE</tt><a class="headerlink" href="#sqlalchemy.orm.exc.NO_STATE" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.exc.</tt><tt class="descname">NO_STATE</tt><em class="property"> = (&lt;type 'exceptions.AttributeError'&gt;, &lt;type 'exceptions.KeyError'&gt;)</em><a class="headerlink" href="#sqlalchemy.orm.exc.NO_STATE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exception types that may be raised by instrumentation implementations.</p>
 </dd></dl>
 
@@ -176,7 +186,7 @@ mapped instance that is detached.</p>
 
 <dl class="exception">
 <dt id="sqlalchemy.orm.exc.ObjectDeletedError">
-<em class="property">exception </em><tt class="descclassname">sqlalchemy.orm.exc.</tt><tt class="descname">ObjectDeletedError</tt><big>(</big><em>state</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.exc.ObjectDeletedError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">sqlalchemy.orm.exc.</tt><tt class="descname">ObjectDeletedError</tt><big>(</big><em>state</em>, <em>msg=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.exc.ObjectDeletedError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/exceptions.html#sqlalchemy.exc.InvalidRequestError" title="sqlalchemy.exc.InvalidRequestError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.InvalidRequestError</span></tt></a></p>
 <p>A refresh operation failed to retrieve the database
 row corresponding to an object&#8217;s known primary key identity.</p>
@@ -259,24 +269,22 @@ recent &#8220;parent&#8221; (new in 0.7.4).</li>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="interfaces.html" title="previous chapter">Deprecated ORM Event Interfaces</a>
+        Next:
+        <a href="internals.html" title="next chapter">ORM Internals</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="interfaces.html" title="previous chapter">Deprecated ORM Event Interfaces</a>
-            Next:
-            <a href="internals.html" title="next chapter">ORM Internals</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

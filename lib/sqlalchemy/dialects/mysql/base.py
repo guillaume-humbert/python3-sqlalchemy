@@ -1,5 +1,5 @@
 # mysql/base.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -1252,7 +1252,9 @@ class MySQLCompiler(compiler.SQLCompiler):
     def get_select_precolumns(self, select):
         """Add special MySQL keywords in place of DISTINCT.
         
-        .. note:: this usage is deprecated.  :meth:`.Select.prefix_with`
+        .. note:: 
+        
+          this usage is deprecated.  :meth:`.Select.prefix_with`
           should be used for special keywords at the start
           of a SELECT.
           
@@ -1649,7 +1651,7 @@ class MySQLTypeCompiler(compiler.GenericTypeCompiler):
         if type_.length:
             return self._extend_string(type_, {}, "VARCHAR(%d)" % type_.length)
         else:
-            raise exc.InvalidRequestError(
+            raise exc.CompileError(
                     "VARCHAR requires a length on dialect %s" % 
                     self.dialect.name)
 
@@ -1665,7 +1667,7 @@ class MySQLTypeCompiler(compiler.GenericTypeCompiler):
         if type_.length:
             return self._extend_string(type_, {'national':True}, "VARCHAR(%(length)s)" % {'length': type_.length})
         else:
-            raise exc.InvalidRequestError(
+            raise exc.CompileError(
                     "NVARCHAR requires a length on dialect %s" % 
                     self.dialect.name)
 
@@ -2557,9 +2559,7 @@ class MySQLTableDefinitionParser(object):
         # PARTITION
         #
         # punt!
-        self._re_partition = _re_compile(
-            r'  '
-            r'(?:SUB)?PARTITION')
+        self._re_partition = _re_compile(r'(?:.*)(?:SUB)?PARTITION(?:.*)')
 
         # Table-level options (COLLATE, ENGINE, etc.)
         # Do the string options first, since they have quoted strings we need to get rid of.

@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Core Internals
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -117,6 +126,7 @@
     <a href="../dialects/index.html" title="next chapter">Dialects</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -154,7 +164,7 @@ defaults.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>dialect</strong> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
 <li><strong>statement</strong> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
 <li><strong>bind</strong> &#8211; Optional Engine or Connection to compile this 
@@ -182,7 +192,7 @@ statement against.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> &#8211; a dict of string/object pairs whos values will
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> &#8211; a dict of string/object pairs whos values will
 override bind values compiled in to the
 statement.</td>
 </tr>
@@ -240,6 +250,11 @@ scalar value.</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.default.</tt><tt class="descname">DefaultDialect</tt><big>(</big><em>convert_unicode=False</em>, <em>assert_unicode=False</em>, <em>encoding='utf-8'</em>, <em>paramstyle=None</em>, <em>dbapi=None</em>, <em>implicit_returning=None</em>, <em>label_length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect</span></tt></a></p>
 <p>Default implementation of Dialect</p>
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.colspecs">
+<tt class="descname">colspecs</tt><em class="property"> = {}</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.colspecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.connect">
 <tt class="descname">connect</tt><big>(</big><em>*cargs</em>, <em>**cparams</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.connect" title="Permalink to this definition">¶</a></dt>
@@ -259,10 +274,25 @@ do_commit_twophase().  Its format is unspecified.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.dbapi_type_map">
+<tt class="descname">dbapi_type_map</tt><em class="property"> = {}</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.dbapi_type_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.ddl_compiler">
 <tt class="descname">ddl_compiler</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.ddl_compiler" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">DDLCompiler</span></tt></p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.default_paramstyle">
+<tt class="descname">default_paramstyle</tt><em class="property"> = 'named'</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.default_paramstyle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.description_encoding">
+<tt class="descname">description_encoding</tt><em class="property"> = 'use_encoding'</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.description_encoding" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.dialect_description">
@@ -339,6 +369,11 @@ for those dialects which don&#8217;t implement get_pk_constraint().</p>
 <em class="property">classmethod </em><tt class="descname">get_pool_class</tt><big>(</big><em>url</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.get_pool_class" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.implicit_returning">
+<tt class="descname">implicit_returning</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.implicit_returning" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.initialize">
 <tt class="descname">initialize</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.initialize" title="Permalink to this definition">¶</a></dt>
@@ -347,6 +382,21 @@ for those dialects which don&#8217;t implement get_pk_constraint().</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.is_disconnect">
 <tt class="descname">is_disconnect</tt><big>(</big><em>e</em>, <em>connection</em>, <em>cursor</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.is_disconnect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.max_identifier_length">
+<tt class="descname">max_identifier_length</tt><em class="property"> = 9999</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.max_identifier_length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.max_index_name_length">
+<tt class="descname">max_index_name_length</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.max_index_name_length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.name">
+<tt class="descname">name</tt><em class="property"> = 'default'</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -361,14 +411,34 @@ that receives the direct DBAPI connection, with all wrappers removed.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.postfetch_lastrowid">
+<tt class="descname">postfetch_lastrowid</tt><em class="property"> = True</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.postfetch_lastrowid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.preexecute_autoincrement_sequences">
+<tt class="descname">preexecute_autoincrement_sequences</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.preexecute_autoincrement_sequences" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.preparer">
 <tt class="descname">preparer</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.preparer" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">IdentifierPreparer</span></tt></p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.reflection_options">
+<tt class="descname">reflection_options</tt><em class="property"> = ()</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.reflection_options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.reflecttable">
-<tt class="descname">reflecttable</tt><big>(</big><em>connection</em>, <em>table</em>, <em>include_columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.reflecttable" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reflecttable</tt><big>(</big><em>connection</em>, <em>table</em>, <em>include_columns</em>, <em>exclude_columns=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.reflecttable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.requires_name_normalize">
+<tt class="descname">requires_name_normalize</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.requires_name_normalize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -377,10 +447,85 @@ that receives the direct DBAPI connection, with all wrappers removed.</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.returns_unicode_strings">
+<tt class="descname">returns_unicode_strings</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.returns_unicode_strings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.sequences_optional">
+<tt class="descname">sequences_optional</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.sequences_optional" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.server_version_info">
+<tt class="descname">server_version_info</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.server_version_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.statement_compiler">
 <tt class="descname">statement_compiler</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.statement_compiler" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">SQLCompiler</span></tt></p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_alter">
+<tt class="descname">supports_alter</tt><em class="property"> = True</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_alter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_default_values">
+<tt class="descname">supports_default_values</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_default_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_empty_insert">
+<tt class="descname">supports_empty_insert</tt><em class="property"> = True</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_empty_insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_native_boolean">
+<tt class="descname">supports_native_boolean</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_native_boolean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_native_decimal">
+<tt class="descname">supports_native_decimal</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_native_decimal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_native_enum">
+<tt class="descname">supports_native_enum</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_native_enum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_sane_multi_rowcount">
+<tt class="descname">supports_sane_multi_rowcount</tt><em class="property"> = True</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_sane_multi_rowcount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_sane_rowcount">
+<tt class="descname">supports_sane_rowcount</tt><em class="property"> = True</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_sane_rowcount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_sequences">
+<tt class="descname">supports_sequences</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_sequences" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_unicode_binds">
+<tt class="descname">supports_unicode_binds</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_unicode_binds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_unicode_statements">
+<tt class="descname">supports_unicode_statements</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_unicode_statements" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.supports_views">
+<tt class="descname">supports_views</tt><em class="property"> = True</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.supports_views" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultDialect.type_compiler">
@@ -455,7 +600,7 @@ accepts for the second argument (they vary).</dd>
 <dd>a <a class="reference internal" href="#sqlalchemy.sql.compiler.IdentifierPreparer" title="sqlalchemy.sql.compiler.IdentifierPreparer"><tt class="xref py py-class docutils literal"><span class="pre">IdentifierPreparer</span></tt></a> class used to
 quote identifiers.</dd>
 <dt>supports_alter</dt>
-<dd><tt class="xref docutils literal"><span class="pre">True</span></tt> if the database supports <tt class="docutils literal"><span class="pre">ALTER</span> <span class="pre">TABLE</span></tt>.</dd>
+<dd><tt class="docutils literal"><span class="pre">True</span></tt> if the database supports <tt class="docutils literal"><span class="pre">ALTER</span> <span class="pre">TABLE</span></tt>.</dd>
 <dt>max_identifier_length</dt>
 <dd>The maximum length of identifier names.</dd>
 <dt>supports_unicode_statements</dt>
@@ -856,6 +1001,11 @@ contain no dialect-instance state.</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.default.</tt><tt class="descname">DefaultExecutionContext</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.base.ExecutionContext" title="sqlalchemy.engine.base.ExecutionContext"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.base.ExecutionContext</span></tt></a></p>
 <dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.compiled">
+<tt class="descname">compiled</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.compiled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext.connection">
 <tt class="descname">connection</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.connection" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -863,6 +1013,11 @@ contain no dialect-instance state.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext.create_cursor">
 <tt class="descname">create_cursor</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.create_cursor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.executemany">
+<tt class="descname">executemany</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.executemany" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -914,6 +1069,26 @@ in all cases.</p>
 <tt class="descname">is_crud</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.is_crud" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.isddl">
+<tt class="descname">isddl</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.isddl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.isdelete">
+<tt class="descname">isdelete</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.isdelete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.isinsert">
+<tt class="descname">isinsert</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.isinsert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.isupdate">
+<tt class="descname">isupdate</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.isupdate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext.lastrow_has_defaults">
 <tt class="descname">lastrow_has_defaults</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.lastrow_has_defaults" title="Permalink to this definition">¶</a></dt>
@@ -932,6 +1107,11 @@ in all cases.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext.pre_exec">
 <tt class="descname">pre_exec</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.pre_exec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.result_map">
+<tt class="descname">result_map</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.result_map" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -957,6 +1137,11 @@ currently cx_oracle.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext.should_autocommit_text">
 <tt class="descname">should_autocommit_text</tt><big>(</big><em>statement</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.should_autocommit_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.statement">
+<tt class="descname">statement</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.statement" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1178,7 +1363,7 @@ statement.</dd>
 
 <dl class="attribute">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.ansi_bind_rules">
-<tt class="descname">ansi_bind_rules</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.ansi_bind_rules" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">ansi_bind_rules</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.ansi_bind_rules" title="Permalink to this definition">¶</a></dt>
 <dd><p>SQL 92 doesn&#8217;t allow bind parameters to be used
 in the columns clause of a SELECT, nor does it allow
 ambiguous expressions like &#8221;? = ?&#8221;.  A compiler
@@ -1188,7 +1373,7 @@ driver/DB enforces this</p>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.construct_params">
-<tt class="descname">construct_params</tt><big>(</big><em>params=None</em>, <em>_group_number=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.construct_params" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">construct_params</tt><big>(</big><em>params=None</em>, <em>_group_number=None</em>, <em>_check=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.construct_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a dictionary of bind parameter keys and values</p>
 </dd></dl>
 
@@ -1215,7 +1400,7 @@ before column list.</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.isdelete">
-<tt class="descname">isdelete</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.isdelete" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">isdelete</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.isdelete" title="Permalink to this definition">¶</a></dt>
 <dd><p>class-level defaults which can be set at the instance
 level to define if this Compiled instance represents
 INSERT/UPDATE/DELETE</p>
@@ -1223,7 +1408,7 @@ INSERT/UPDATE/DELETE</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.isinsert">
-<tt class="descname">isinsert</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.isinsert" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">isinsert</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.isinsert" title="Permalink to this definition">¶</a></dt>
 <dd><p>class-level defaults which can be set at the instance
 level to define if this Compiled instance represents
 INSERT/UPDATE/DELETE</p>
@@ -1231,7 +1416,7 @@ INSERT/UPDATE/DELETE</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.isupdate">
-<tt class="descname">isupdate</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.isupdate" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">isupdate</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.isupdate" title="Permalink to this definition">¶</a></dt>
 <dd><p>class-level defaults which can be set at the instance
 level to define if this Compiled instance represents
 INSERT/UPDATE/DELETE</p>
@@ -1246,7 +1431,8 @@ INSERT/UPDATE/DELETE</p>
 <dl class="attribute">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.params">
 <tt class="descname">params</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the bind params for this compiled object.</p>
+<dd><p>Return the bind param dictionary embedded into this 
+compiled object, for those values that are present.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1261,7 +1447,7 @@ of the DBAPI.</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.render_table_with_column_in_update_from">
-<tt class="descname">render_table_with_column_in_update_from</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.render_table_with_column_in_update_from" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">render_table_with_column_in_update_from</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.render_table_with_column_in_update_from" title="Permalink to this definition">¶</a></dt>
 <dd><p>set to True classwide to indicate the SET clause
 in a multi-table UPDATE statement should qualify
 columns with the table name (i.e. MySQL only)</p>
@@ -1269,7 +1455,7 @@ columns with the table name (i.e. MySQL only)</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.returning">
-<tt class="descname">returning</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.returning" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">returning</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.returning" title="Permalink to this definition">¶</a></dt>
 <dd><p>holds the &#8220;returning&#8221; collection of columns if
 the statement is CRUD and defines returning columns
 either implicitly or explicitly</p>
@@ -1277,7 +1463,7 @@ either implicitly or explicitly</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.returning_precedes_values">
-<tt class="descname">returning_precedes_values</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.returning_precedes_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">returning_precedes_values</tt><em class="property"> = False</em><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.returning_precedes_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>set to True classwide to generate RETURNING
 clauses before the VALUES or WHERE clause (i.e. MSSQL)</p>
 </dd></dl>
@@ -1312,24 +1498,22 @@ in an UPDATE statement.</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="exceptions.html" title="previous chapter">Core Exceptions</a>
+        Next:
+        <a href="../dialects/index.html" title="next chapter">Dialects</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="exceptions.html" title="previous chapter">Core Exceptions</a>
-            Next:
-            <a href="../dialects/index.html" title="next chapter">Dialects</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

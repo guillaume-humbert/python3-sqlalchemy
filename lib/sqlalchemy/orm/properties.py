@@ -1,5 +1,5 @@
 # orm/properties.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -184,6 +184,8 @@ class RelationshipProperty(StrategizedProperty):
     and collection-referencing mapped attributes.
     
     """
+
+    strategy_wildcard_key = 'relationship:*'
 
     def __init__(self, argument,
         secondary=None, primaryjoin=None,
@@ -428,7 +430,7 @@ class RelationshipProperty(StrategizedProperty):
                         source_selectable=source_selectable)
 
             for k in kwargs:
-                crit = self.property.mapper.class_manager[k] == kwargs[k]
+                crit = getattr(self.property.mapper.class_, k) == kwargs[k]
                 if criterion is None:
                     criterion = crit
                 else:

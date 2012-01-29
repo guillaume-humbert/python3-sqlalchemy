@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 PostgreSQL
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -154,6 +163,7 @@
     <a href="sqlite.html" title="next chapter">SQLite</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -218,7 +228,7 @@ the given schema is also present in PostgreSQL&#8217;s <tt class="docutils liter
 for the current connection.</p>
 <p>If a FOREIGN KEY constraint reports that the remote table&#8217;s schema is within
 the current <tt class="docutils literal"><span class="pre">search_path</span></tt>, the &#8220;schema&#8221; attribute of the resulting
-<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be set to <tt class="xref docutils literal"><span class="pre">None</span></tt>, unless the actual schema of the
+<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be set to <tt class="docutils literal"><span class="pre">None</span></tt>, unless the actual schema of the
 remote table matches that of the referencing table, and the &#8220;schema&#8221; argument
 was explicitly stated on the referencing table.</p>
 <p>The best practice here is to not use the <tt class="docutils literal"><span class="pre">schema</span></tt> argument 
@@ -331,7 +341,7 @@ It is known to work on psycopg2 and not pg8000.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>item_type</strong> &#8211; The data type of items of this array. Note that
 dimensionality is irrelevant here, so multi-dimensional arrays like
 <tt class="docutils literal"><span class="pre">INTEGER[][]</span></tt>, are constructed as <tt class="docutils literal"><span class="pre">ARRAY(Integer)</span></tt>, not as
@@ -341,7 +351,7 @@ the fly</li>
 class should be considered mutable - this enables 
 &#8220;mutable types&#8221; mode in the ORM.  Be sure to read the 
 notes for <a class="reference internal" href="../core/types.html#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> regarding ORM 
-performance implications (default changed from <tt class="xref docutils literal"><span class="pre">True</span></tt> in 
+performance implications (default changed from <tt class="docutils literal"><span class="pre">True</span></tt> in 
 0.7.0).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -354,8 +364,8 @@ performance implications (default changed from <tt class="xref docutils literal"
 should be converted to tuples from lists. DBAPIs such
 as psycopg2 return lists by default. When tuples are
 returned, the results are hashable. This flag can only
-be set to <tt class="xref docutils literal"><span class="pre">True</span></tt> when <tt class="docutils literal"><span class="pre">mutable</span></tt> is set to
-<tt class="xref docutils literal"><span class="pre">False</span></tt>. (new in 0.6.5)</li>
+be set to <tt class="docutils literal"><span class="pre">True</span></tt> when <tt class="docutils literal"><span class="pre">mutable</span></tt> is set to
+<tt class="docutils literal"><span class="pre">False</span></tt>. (new in 0.6.5)</li>
 </ul>
 </td>
 </tr>
@@ -383,7 +393,7 @@ be set to <tt class="xref docutils literal"><span class="pre">True</span></tt> w
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
@@ -422,11 +432,11 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt>.</li>
 <li><strong>asdecimal</strong> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
-defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="xref docutils literal"><span class="pre">True</span></tt>
+defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
 <li><strong>**kwargs</strong> &#8211; deprecated.  Additional arguments here are ignored
 by the default <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific 
@@ -450,7 +460,7 @@ documentation for details, such as <a class="reference internal" href="mysql.htm
 support for PG&#8217;s <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TYPE</span></tt>.</p>
 <p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ENUM" title="sqlalchemy.dialects.postgresql.ENUM"><tt class="xref py py-class docutils literal"><span class="pre">ENUM</span></tt></a> is used automatically when 
 using the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">types.Enum</span></tt></a> type on PG assuming
-the <tt class="docutils literal"><span class="pre">native_enum</span></tt> is left as <tt class="xref docutils literal"><span class="pre">True</span></tt>.   However, the 
+the <tt class="docutils literal"><span class="pre">native_enum</span></tt> is left as <tt class="docutils literal"><span class="pre">True</span></tt>.   However, the 
 <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ENUM" title="sqlalchemy.dialects.postgresql.ENUM"><tt class="xref py py-class docutils literal"><span class="pre">ENUM</span></tt></a> class can also be instantiated
 directly in order to access some additional Postgresql-specific
 options, namely finer control over whether or not 
@@ -471,19 +481,19 @@ the following parameters.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>create_type</strong> &#8211; Defaults to True.  
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>create_type</strong> &#8211; Defaults to True.  
 Indicates that <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TYPE</span></tt> should be 
 emitted, after optionally checking for the 
 presence of the type, when the parent 
 table is being created; and additionally
 that <tt class="docutils literal"><span class="pre">DROP</span> <span class="pre">TYPE</span></tt> is called when the table
-is dropped.    When <tt class="xref docutils literal"><span class="pre">False</span></tt>, no check
+is dropped.    When <tt class="docutils literal"><span class="pre">False</span></tt>, no check
 will be performed and no <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TYPE</span></tt>
 or <tt class="docutils literal"><span class="pre">DROP</span> <span class="pre">TYPE</span></tt> is emitted, unless
 <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.create" title="sqlalchemy.dialects.postgresql.ENUM.create"><tt class="xref py py-meth docutils literal"><span class="pre">create()</span></tt></a>
 or <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.drop" title="sqlalchemy.dialects.postgresql.ENUM.drop"><tt class="xref py py-meth docutils literal"><span class="pre">drop()</span></tt></a>
 are called directly.
-Setting to <tt class="xref docutils literal"><span class="pre">False</span></tt> is helpful
+Setting to <tt class="docutils literal"><span class="pre">False</span></tt> is helpful
 when invoking a creation scheme to a SQL file
 without access to the actual database - 
 the <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.create" title="sqlalchemy.dialects.postgresql.ENUM.create"><tt class="xref py py-meth docutils literal"><span class="pre">create()</span></tt></a> and
@@ -506,11 +516,11 @@ Postgresql CREATE TYPE, no action is taken.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>bind</strong> &#8211; a connectable <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
 <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, or similar object to emit
 SQL.</li>
-<li><strong>checkfirst</strong> &#8211; if <tt class="xref docutils literal"><span class="pre">True</span></tt>, a query against 
+<li><strong>checkfirst</strong> &#8211; if <tt class="docutils literal"><span class="pre">True</span></tt>, a query against 
 the PG catalog will be first performed to see
 if the type does not exist already before
 creating.</li>
@@ -532,11 +542,11 @@ Postgresql DROP TYPE, no action is taken.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>bind</strong> &#8211; a connectable <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
 <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, or similar object to emit
 SQL.</li>
-<li><strong>checkfirst</strong> &#8211; if <tt class="xref docutils literal"><span class="pre">True</span></tt>, a query against 
+<li><strong>checkfirst</strong> &#8211; if <tt class="docutils literal"><span class="pre">True</span></tt>, a query against 
 the PG catalog will be first performed to see
 if the type actually exists before dropping.</li>
 </ul>
@@ -594,11 +604,11 @@ It is known to work on psycopg2 and not pg8000 or zxjdbc.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>precision</strong> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt>.</li>
 <li><strong>asdecimal</strong> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
-defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="xref docutils literal"><span class="pre">True</span></tt>
+defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
 <li><strong>**kwargs</strong> &#8211; deprecated.  Additional arguments here are ignored
 by the default <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific 
@@ -631,7 +641,7 @@ It is known to work on psycopg2 and not pg8000.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>as_uuid=False</strong> &#8211; if True, values will be interpreted
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>as_uuid=False</strong> &#8211; if True, values will be interpreted
 as Python uuid objects, converting to/from string via the
 DBAPI.</td>
 </tr>
@@ -685,7 +695,7 @@ per connection. True by default.</li>
 This includes the options <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>, <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt>,
 <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt> and <tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt>.</li>
 <li>stream_results - Enable or disable usage of server side cursors.
-If <tt class="xref docutils literal"><span class="pre">None</span></tt> or not set, the <tt class="docutils literal"><span class="pre">server_side_cursors</span></tt> option of the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is used.</li>
+If <tt class="docutils literal"><span class="pre">None</span></tt> or not set, the <tt class="docutils literal"><span class="pre">server_side_cursors</span></tt> option of the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is used.</li>
 </ul>
 </div>
 <div class="section" id="unicode">
@@ -788,24 +798,22 @@ yet.</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="oracle.html" title="previous chapter">Oracle</a>
+        Next:
+        <a href="sqlite.html" title="next chapter">SQLite</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="oracle.html" title="previous chapter">Oracle</a>
-            Next:
-            <a href="sqlite.html" title="next chapter">SQLite</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

@@ -1,6 +1,7 @@
 from sphinx.application import TemplateBridge
 from sphinx.builders.html import StandaloneHTMLBuilder
 from sphinx.highlighting import PygmentsBridge
+from sphinx.jinja2glue import BuiltinTemplateLoader
 from pygments import highlight
 from pygments.lexer import RegexLexer, bygroups, using
 from pygments.token import *
@@ -11,16 +12,17 @@ import re
 from mako.lookup import TemplateLookup
 from mako.template import Template
 from mako import __version__
+import os
 
-if __version__ < "0.4.1":
-    raise Exception("Mako 0.4.1 or greater is required for "
-                        "documentation build.")
+rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 class MakoBridge(TemplateBridge):
     def init(self, builder, *args, **kw):
-        self.layout = builder.config.html_context.get('mako_layout', 'html')
+        self.jinja2_fallback = BuiltinTemplateLoader()
+        self.jinja2_fallback.init(builder, *args, **kw)
+
         builder.config.html_context['release_date'] = builder.config['release_date']
-        builder.config.html_context['versions'] = builder.config['versions']
+        builder.config.html_context['site_base'] = builder.config['site_base']
 
         self.lookup = TemplateLookup(directories=builder.config.templates_path,
             #format_exceptions=True, 
@@ -29,28 +31,59 @@ class MakoBridge(TemplateBridge):
             ]
         )
 
+        if rtd:
+            import urllib2
+            template_url = builder.config['site_base'] + "/docs_base.mako"
+            template = urllib2.urlopen(template_url).read()
+            self.lookup.put_string("/rtd_base.mako", template)
+
     def render(self, template, context):
         template = template.replace(".html", ".mako")
         context['prevtopic'] = context.pop('prev', None)
         context['nexttopic'] = context.pop('next', None)
-        context['mako_layout'] = self.layout == 'html' and 'static_base.mako' or 'site_base.mako'
-        # sphinx 1.0b2 doesn't seem to be providing _ for some reason...
+        version = context['version']
+        pathto = context['pathto']
+
+        # RTD layout
+        if rtd:
+            # add variables if not present, such 
+            # as if local test of READTHEDOCS variable
+            if 'MEDIA_URL' not in context:
+                context['MEDIA_URL'] = "http://media.readthedocs.org/"
+            if 'slug' not in context:
+                context['slug'] = context['project'].lower()
+            if 'url' not in context:
+                context['url'] = "/some/test/url"
+            if 'current_version' not in context:
+                context['current_version'] = "latest"
+
+            if 'name' not in context:
+                context['name'] = context['project'].lower()
+
+            context['rtd'] = True
+            context['toolbar'] = True
+            context['layout'] = "rtd_layout.mako"
+            context['base'] = "rtd_base.mako"
+            context['pdf_url'] = "%spdf/%s/%s/%s.pdf" % (
+                    context['MEDIA_URL'],
+                    context['slug'],
+                    context['current_version'],
+                    context['slug']
+            )
+        # local docs layout
+        else:
+            context['rtd'] = False
+            context['toolbar'] = False
+            context['layout'] = "layout.mako"
+            context['base'] = "static_base.mako"
+
         context.setdefault('_', lambda x:x)
         return self.lookup.get_template(template).render_unicode(**context)
 
-
     def render_string(self, template, context):
-        context['prevtopic'] = context.pop('prev', None)
-        context['nexttopic'] = context.pop('next', None)
-        context['mako_layout'] = self.layout == 'html' and 'static_base.mako' or 'site_base.mako'
-        # sphinx 1.0b2 doesn't seem to be providing _ for some reason...
-        context.setdefault('_', lambda x:x)
-        return Template(template, lookup=self.lookup,
-            format_exceptions=True, 
-            imports=[
-                "from builder import util"
-            ]
-        ).render_unicode(**context)
+        # this is used for  .js, .css etc. and we don't have
+        # local copies of that stuff here so use the jinja render.
+        return self.jinja2_fallback.render_string(template, context)
 
 class StripDocTestFilter(Filter):
     def filter(self, lexer, stream):
@@ -169,7 +202,8 @@ def setup(app):
     app.add_lexer('pycon+sql', PyConWithSQLLexer())
     app.add_lexer('python+sql', PythonWithSQLLexer())
     app.add_config_value('release_date', "", True)
-    app.add_config_value('versions', "", True)
+    app.add_config_value('site_base', "", True)
+    app.add_config_value('build_number', "", 1)
     app.connect('autodoc-skip-member', autodoc_skip_member)
     PygmentsBridge.html_formatter = PopupSQLFormatter
     PygmentsBridge.latex_formatter = PopupLatexFormatter

@@ -1,5 +1,5 @@
 # ext/mutable.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -448,7 +448,9 @@ class Mutable(MutableBase):
 
         This is a convenience method that calls ``associate_with_attribute`` automatically.
 
-        .. warning:: The listeners established by this method are *global*
+        .. warning:: 
+        
+           The listeners established by this method are *global*
            to all mappers, and are *not* garbage collected.   Only use 
            :meth:`.associate_with` for types that are permanent to an application,
            not with ad-hoc types else this will cause unbounded growth
@@ -488,7 +490,9 @@ class Mutable(MutableBase):
         of the particular :meth:`.Mutable` subclass to establish a global
         association.
 
-        .. warning:: The listeners established by this method are *global*
+        .. warning:: 
+        
+           The listeners established by this method are *global*
            to all mappers, and are *not* garbage collected.   Only use 
            :meth:`.as_mutable` for types that are permanent to an application,
            not with ad-hoc types else this will cause unbounded growth
@@ -519,7 +523,9 @@ class MutableComposite(MutableBase):
     
     See the example in :ref:`mutable_composites` for usage information.
     
-    .. warning:: The listeners established by the :class:`.MutableComposite`
+    .. warning:: 
+    
+       The listeners established by the :class:`.MutableComposite`
        class are *global* to all mappers, and are *not* garbage collected.   Only use 
        :class:`.MutableComposite` for types that are permanent to an application,
        not with ad-hoc types else this will cause unbounded growth

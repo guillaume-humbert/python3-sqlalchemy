@@ -1,5 +1,5 @@
 # engine/strategies.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -234,19 +234,19 @@ class MockEngineStrategy(EngineStrategy):
             kwargs['checkfirst'] = False
             from sqlalchemy.engine import ddl
 
-            ddl.SchemaGenerator(self.dialect, self, **kwargs).traverse(entity)
+            ddl.SchemaGenerator(self.dialect, self, **kwargs).traverse_single(entity)
 
         def drop(self, entity, **kwargs):
             kwargs['checkfirst'] = False
             from sqlalchemy.engine import ddl
-            ddl.SchemaDropper(self.dialect, self, **kwargs).traverse(entity)
+            ddl.SchemaDropper(self.dialect, self, **kwargs).traverse_single(entity)
 
         def _run_visitor(self, visitorcallable, element, 
                                         connection=None, 
                                         **kwargs):
             kwargs['checkfirst'] = False
             visitorcallable(self.dialect, self,
-                                **kwargs).traverse(element)
+                                **kwargs).traverse_single(element)
 
         def execute(self, object, *multiparams, **params):
             raise NotImplementedError()

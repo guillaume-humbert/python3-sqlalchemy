@@ -160,6 +160,27 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
             set(['z'])
         )
 
+        m4 = MetaData()
+        old_z = Column('z', String, primary_key=True)
+        old_y = Column('y', String)
+        old_q = Column('q', Integer)
+        t4 = Table('t', m4, old_z, old_q)
+        eq_(t4.primary_key.columns, (t4.c.z, ))
+        t4 = Table('t', m4, old_y,
+                        extend_existing=True, 
+                        autoload=True, 
+                        autoload_replace=False,
+                        autoload_with=testing.db)
+        eq_(
+            set(t4.columns.keys()), 
+            set(['x', 'y', 'z', 'q', 'id'])
+        )
+        eq_(t4.primary_key.columns, (t4.c.id, ))
+        assert t4.c.z is old_z
+        assert t4.c.y is old_y
+        assert t4.c.z.type._type_affinity is String
+        assert t4.c.q is old_q
+
     @testing.emits_warning(r".*omitted columns")
     @testing.provide_metadata
     def test_include_columns_indexes(self):
@@ -180,6 +201,27 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         m2 = MetaData(testing.db)
         t2 = Table('t1', m2, autoload=True, include_columns=['a', 'b'])
         assert len(t2.indexes) == 2
+
+    @testing.provide_metadata
+    def test_autoload_replace(self):
+        a = Table('a', self.metadata, Column('id', Integer, primary_key=True))
+        b = Table('b', self.metadata, Column('id', Integer, primary_key=True),
+                                    Column('a_id', Integer))
+        self.metadata.create_all()
+
+        m2 = MetaData()
+        b2 = Table('b', m2, Column('a_id', Integer, sa.ForeignKey('a.id')))
+        a2 = Table('a', m2, autoload=True, autoload_with=testing.db)
+        b2 = Table('b', m2, extend_existing=True, autoload=True, 
+                                autoload_with=testing.db, 
+                                autoload_replace=False)
+
+        assert b2.c.id is not None
+        assert b2.c.a_id.references(a2.c.id)
+        eq_(len(b2.constraints), 2)
+
+    def test_autoload_replace_arg(self):
+        Table('t', MetaData(), autoload_replace=False)
 
     @testing.provide_metadata
     def test_autoincrement_col(self):
@@ -1469,7 +1511,12 @@ class ComponentReflectionTest(fixtures.TestBase):
         users_fkeys = insp.get_foreign_keys(users.name,
                                             schema=schema)
         fkey1 = users_fkeys[0]
-        self.assert_(fkey1['name'] is not None)
+
+        @testing.fails_on('sqlite', 'no support for constraint names')
+        def go():
+            self.assert_(fkey1['name'] is not None)
+        go()
+
         eq_(fkey1['referred_schema'], expected_schema)
         eq_(fkey1['referred_table'], users.name)
         eq_(fkey1['referred_columns'], ['user_id', ])
@@ -1478,7 +1525,10 @@ class ComponentReflectionTest(fixtures.TestBase):
         addr_fkeys = insp.get_foreign_keys(addresses.name,
                                            schema=schema)
         fkey1 = addr_fkeys[0]
-        self.assert_(fkey1['name'] is not None)
+        @testing.fails_on('sqlite', 'no support for constraint names')
+        def go():
+            self.assert_(fkey1['name'] is not None)
+        go()
         eq_(fkey1['referred_schema'], expected_schema)
         eq_(fkey1['referred_table'], users.name)
         eq_(fkey1['referred_columns'], ['user_id', ])
