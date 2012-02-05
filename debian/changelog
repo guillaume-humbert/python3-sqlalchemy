@@ -1,4 +1,4 @@
-sqlalchemy (0.7.5-1) UNRELEASED; urgency=low
+sqlalchemy (0.7.5-1) unstable; urgency=low
 
   * New upstream release
     - minumum required python-sphinx version bumped to 1.1.2
