@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -1057,7 +1057,7 @@ in which case it will produce <tt class="docutils literal"><span class="pre">BLO
 <h3>Augmenting Existing Types<a class="headerlink" href="#augmenting-existing-types" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> allows the creation of custom types which
 add bind-parameter and result-processing behavior to an existing
-type object.  It is used when additional in-Python marshalling of data
+type object.  It is used when additional in-Python marshaling of data
 to and from the database is required.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.TypeDecorator">
@@ -1087,7 +1087,7 @@ the underlying type is kept in place.</p>
     <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">MyType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">length</span><span class="p">)</span></pre></div>
 </div>
-<p>The class-level &#8220;impl&#8221; variable is required, and can reference any
+<p>The class-level &#8220;impl&#8221; attribute is required, and can reference any
 TypeEngine class.  Alternatively, the load_dialect_impl() method
 can be used to provide different type classes based on the dialect
 given; in this case, the &#8220;impl&#8221; variable can reference
@@ -1138,12 +1138,14 @@ value is assumed to be a date and will be treated as a <tt class="docutils liter
 <dd><p>Construct a <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
 <p>Arguments sent here are passed to the constructor 
 of the class assigned to the <tt class="docutils literal"><span class="pre">impl</span></tt> class level attribute,
-where the <tt class="docutils literal"><span class="pre">self.impl</span></tt> attribute is assigned an instance
-of the implementation type.  If <tt class="docutils literal"><span class="pre">impl</span></tt> at the class level
-is already an instance, then it&#8217;s assigned to <tt class="docutils literal"><span class="pre">self.impl</span></tt>
-as is.</p>
+assuming the <tt class="docutils literal"><span class="pre">impl</span></tt> is a callable, and the resulting
+object is assigned to the <tt class="docutils literal"><span class="pre">self.impl</span></tt> instance attribute
+(thus overriding the class attribute of the same name).</p>
+<p>If the class level <tt class="docutils literal"><span class="pre">impl</span></tt> is not a callable (the unusual case),
+it will be assigned to the same instance attribute &#8216;as-is&#8217;, 
+ignoring those arguments passed to the constructor.</p>
 <p>Subclasses can override this to customize the generation
-of <tt class="docutils literal"><span class="pre">self.impl</span></tt>.</p>
+of <tt class="docutils literal"><span class="pre">self.impl</span></tt> entirely.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1159,7 +1161,8 @@ dialect.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.bind_processor">
 <tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_processor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide a bound value processing function for the given <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
+<dd><p>Provide a bound value processing function for the 
+given <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
 <p>This is the method that fulfills the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> 
 contract for bound value conversion.   <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>
 will wrap a user-defined implementation of 
@@ -1167,6 +1170,16 @@ will wrap a user-defined implementation of
 <p>User-defined code can override this method directly,
 though its likely best to use <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="sqlalchemy.types.TypeDecorator.process_bind_param"><tt class="xref py py-meth docutils literal"><span class="pre">process_bind_param()</span></tt></a> so that
 the processing provided by <tt class="docutils literal"><span class="pre">self.impl</span></tt> is maintained.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; Dialect instance in use.</td>
+</tr>
+</tbody>
+</table>
+<p>This method is the reverse counterpart to the
+<a class="reference internal" href="#sqlalchemy.types.TypeDecorator.result_processor" title="sqlalchemy.types.TypeDecorator.result_processor"><tt class="xref py py-meth docutils literal"><span class="pre">result_processor()</span></tt></a> method of this class.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1296,12 +1309,19 @@ for a given <a class="reference internal" href="#sqlalchemy.types.TypeDecorator"
 value that should be passed along to the underlying
 <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object, and from there to the 
 DBAPI <tt class="docutils literal"><span class="pre">execute()</span></tt> method.</p>
+<p>The operation could be anything desired to perform custom
+behavior, such as transforming or serializing data. 
+This could also be used as a hook for validating logic.</p>
+<p>This operation should be designed with the reverse operation
+in mind, which would be the process_result_value method of
+this class.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>value</strong> &#8211; the value.  Can be None.</li>
+<li><strong>value</strong> &#8211; Data to operate upon, of any type expected by
+this method in the subclass.  Can be <tt class="docutils literal"><span class="pre">None</span></tt>.</li>
 <li><strong>dialect</strong> &#8211; the <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> in use.</li>
 </ul>
 </td>
@@ -1314,23 +1334,31 @@ DBAPI <tt class="docutils literal"><span class="pre">execute()</span></tt> metho
 <dt id="sqlalchemy.types.TypeDecorator.process_result_value">
 <tt class="descname">process_result_value</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive a result-row column value to be converted.</p>
+<p>Subclasses should implement this method to operate on data
+fetched from the database.</p>
 <p>Subclasses override this method to return the
 value that should be passed back to the application,
 given a value that is already processed by
 the underlying <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object, originally
 from the DBAPI cursor method <tt class="docutils literal"><span class="pre">fetchone()</span></tt> or similar.</p>
+<p>The operation could be anything desired to perform custom
+behavior, such as transforming or serializing data. 
+This could also be used as a hook for validating logic.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>value</strong> &#8211; the value.  Can be None.</li>
+<li><strong>value</strong> &#8211; Data to operate upon, of any type expected by
+this method in the subclass.  Can be <tt class="docutils literal"><span class="pre">None</span></tt>.</li>
 <li><strong>dialect</strong> &#8211; the <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> in use.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<p>This operation should be designed to be reversible by
+the &#8220;process_bind_param&#8221; method of this class.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1359,6 +1387,20 @@ will wrap a user-defined implementation of
 <p>User-defined code can override this method directly,
 though its likely best to use <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="sqlalchemy.types.TypeDecorator.process_result_value"><tt class="xref py py-meth docutils literal"><span class="pre">process_result_value()</span></tt></a> so that
 the processing provided by <tt class="docutils literal"><span class="pre">self.impl</span></tt> is maintained.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dialect</strong> &#8211; Dialect instance in use.</li>
+<li><strong>coltype</strong> &#8211; An SQLAlchemy data type</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This method is the reverse counterpart to the
+<a class="reference internal" href="#sqlalchemy.types.TypeDecorator.bind_processor" title="sqlalchemy.types.TypeDecorator.bind_processor"><tt class="xref py py-meth docutils literal"><span class="pre">bind_processor()</span></tt></a> method of this class.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1550,7 +1592,9 @@ extension - see the example in <a class="reference internal" href="../orm/extens
 <div class="section" id="creating-new-types">
 <h3>Creating New Types<a class="headerlink" href="#creating-new-types" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference internal" href="#sqlalchemy.types.UserDefinedType" title="sqlalchemy.types.UserDefinedType"><tt class="xref py py-class docutils literal"><span class="pre">UserDefinedType</span></tt></a> class is provided as a simple base class
-for defining entirely new database types:</p>
+for defining entirely new database types.   Use this to represent native
+database types not known by SQLAlchemy.   If only Python translation behavior
+is needed, use <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> instead.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.UserDefinedType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">UserDefinedType</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UserDefinedType" title="Permalink to this definition">¶</a></dt>

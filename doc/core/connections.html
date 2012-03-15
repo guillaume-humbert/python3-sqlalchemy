@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -496,14 +496,28 @@ connection is not in use.</p>
 <dt id="sqlalchemy.engine.base.Connection.begin">
 <tt class="descname">begin</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.begin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Begin a transaction and return a transaction handle.</p>
-<p>The returned object is an instance of <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>.</p>
-<p>Repeated calls to <tt class="docutils literal"><span class="pre">begin</span></tt> on the same Connection will create
-a lightweight, emulated nested transaction.  Only the
-outermost transaction may <tt class="docutils literal"><span class="pre">commit</span></tt>.  Calls to <tt class="docutils literal"><span class="pre">commit</span></tt> on
-inner transactions are ignored.  Any transaction in the
-hierarchy may <tt class="docutils literal"><span class="pre">rollback</span></tt>, however.</p>
-<p>See also <a class="reference internal" href="#sqlalchemy.engine.base.Connection.begin_nested" title="sqlalchemy.engine.base.Connection.begin_nested"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin_nested()</span></tt></a>, 
-<a class="reference internal" href="#sqlalchemy.engine.base.Connection.begin_twophase" title="sqlalchemy.engine.base.Connection.begin_twophase"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin_twophase()</span></tt></a>.</p>
+<p>The returned object is an instance of <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>.
+This object represents the &#8220;scope&#8221; of the transaction,
+which completes when either the <a class="reference internal" href="#sqlalchemy.engine.base.Transaction.rollback" title="sqlalchemy.engine.base.Transaction.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Transaction.rollback()</span></tt></a>
+or <a class="reference internal" href="#sqlalchemy.engine.base.Transaction.commit" title="sqlalchemy.engine.base.Transaction.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Transaction.commit()</span></tt></a> method is called.</p>
+<p>Nested calls to <a class="reference internal" href="#sqlalchemy.engine.base.Connection.begin" title="sqlalchemy.engine.base.Connection.begin"><tt class="xref py py-meth docutils literal"><span class="pre">begin()</span></tt></a> on the same <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
+will return new <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> objects that represent
+an emulated transaction within the scope of the enclosing 
+transaction, that is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">trans</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>   <span class="c"># outermost transaction</span>
+<span class="n">trans2</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>  <span class="c"># &quot;nested&quot; </span>
+<span class="n">trans2</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>        <span class="c"># does nothing</span>
+<span class="n">trans</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>         <span class="c"># actually commits</span></pre></div>
+</div>
+<p>Calls to <a class="reference internal" href="#sqlalchemy.engine.base.Transaction.commit" title="sqlalchemy.engine.base.Transaction.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Transaction.commit()</span></tt></a> only have an effect 
+when invoked via the outermost <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> object, though the
+<a class="reference internal" href="#sqlalchemy.engine.base.Transaction.rollback" title="sqlalchemy.engine.base.Transaction.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Transaction.rollback()</span></tt></a> method of any of the
+<a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> objects will roll back the
+transaction.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="#sqlalchemy.engine.base.Connection.begin_nested" title="sqlalchemy.engine.base.Connection.begin_nested"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin_nested()</span></tt></a> - use a SAVEPOINT</p>
+<p><a class="reference internal" href="#sqlalchemy.engine.base.Connection.begin_twophase" title="sqlalchemy.engine.base.Connection.begin_twophase"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin_twophase()</span></tt></a> - use a two phase /XID transaction</p>
+<p><a class="reference internal" href="#sqlalchemy.engine.base.Engine.begin" title="sqlalchemy.engine.base.Engine.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.begin()</span></tt></a> - context manager available from <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -729,7 +743,7 @@ transaction is not in progress.</li>
 <li><strong>compiled_cache</strong> &#8211; <p>Available on: Connection.
 A dictionary where <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Compiled" title="sqlalchemy.engine.base.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> objects
 will be cached when the <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> compiles a clause 
-expression into a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Compiled" title="sqlalchemy.engine.base.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> object.   
+expression into a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Compiled" title="sqlalchemy.engine.base.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> object.
 It is the user&#8217;s responsibility to
 manage the size of this dictionary, which will have keys
 corresponding to the dialect, clause element, the column
@@ -757,6 +771,17 @@ setting is not removed until the underying DBAPI connection
 is returned to the connection pool, i.e.
 the <a class="reference internal" href="#sqlalchemy.engine.base.Connection.close" title="sqlalchemy.engine.base.Connection.close"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.close()</span></tt></a> method is called.</p>
 </li>
+<li><strong>no_parameters</strong> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, if the final parameter 
+list or dictionary is totally empty, will invoke the 
+statement on the cursor as <tt class="docutils literal"><span class="pre">cursor.execute(statement)</span></tt>,
+not passing the parameter collection at all.
+Some DBAPIs such as psycopg2 and mysql-python consider
+percent signs as significant only when parameters are 
+present; this option allows code to generate SQL
+containing percent signs (and possibly other characters)
+that is neutral regarding whether it&#8217;s executed by the DBAPI
+or piped into a script that&#8217;s later invoked by 
+command line tools.  New in 0.7.6.</li>
 <li><strong>stream_results</strong> &#8211; Available on: Connection, statement.
 Indicate to the dialect that results should be 
 &#8220;streamed&#8221; and not pre-buffered, if possible.  This is a limitation
@@ -846,30 +871,38 @@ which one is being dealt with.</p>
 <tt class="descname">transaction</tt><big>(</big><em>callable_</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.transaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the given function within a transaction boundary.</p>
 <p>The function is passed this <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> 
-as the first argument, followed by the given *args and **kwargs.</p>
-<p>This is a shortcut for explicitly invoking 
-<a class="reference internal" href="#sqlalchemy.engine.base.Connection.begin" title="sqlalchemy.engine.base.Connection.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin()</span></tt></a>, calling <a class="reference internal" href="#sqlalchemy.engine.base.Transaction.commit" title="sqlalchemy.engine.base.Transaction.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Transaction.commit()</span></tt></a>
-upon success or <a class="reference internal" href="#sqlalchemy.engine.base.Transaction.rollback" title="sqlalchemy.engine.base.Transaction.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Transaction.rollback()</span></tt></a> upon an 
-exception raise:</p>
+as the first argument, followed by the given *args and **kwargs,
+e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">do_something</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;some statement&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;x&#39;</span><span class="p">:</span><span class="n">x</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">:</span><span class="n">y</span><span class="p">})</span>
 
 <span class="n">conn</span><span class="o">.</span><span class="n">transaction</span><span class="p">(</span><span class="n">do_something</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span></pre></div>
 </div>
-<p>Note that context managers (i.e. the <tt class="docutils literal"><span class="pre">with</span></tt> statement)
-present a more modern way of accomplishing the above,
-using the <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> object as a base:</p>
+<p>The operations inside the function are all invoked within the
+context of a single <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>.   
+Upon success, the transaction is committed.  If an 
+exception is raised, the transaction is rolled back
+before propagating the exception.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The <a class="reference internal" href="#sqlalchemy.engine.base.Connection.transaction" title="sqlalchemy.engine.base.Connection.transaction"><tt class="xref py py-meth docutils literal"><span class="pre">transaction()</span></tt></a> method is superseded by
+the usage of the Python <tt class="docutils literal"><span class="pre">with:</span></tt> statement, which can
+be used with <a class="reference internal" href="#sqlalchemy.engine.base.Connection.begin" title="sqlalchemy.engine.base.Connection.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">begin</span><span class="p">():</span>
     <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;some statement&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;x&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">})</span></pre></div>
 </div>
-<p>One advantage to the <a class="reference internal" href="#sqlalchemy.engine.base.Connection.transaction" title="sqlalchemy.engine.base.Connection.transaction"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.transaction()</span></tt></a>
-method is that the same method is also available
-on <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> as <a class="reference internal" href="#sqlalchemy.engine.base.Engine.transaction" title="sqlalchemy.engine.base.Engine.transaction"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.transaction()</span></tt></a> - 
-this method procures a <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> and then
-performs the same operation, allowing equivalent
-usage with either a <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> or <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>
-without needing to know what kind of object 
-it is.</p>
+<p>As well as with <a class="reference internal" href="#sqlalchemy.engine.base.Engine.begin" title="sqlalchemy.engine.base.Engine.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.begin()</span></tt></a>:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;some statement&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;x&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">})</span></pre></div>
+</div>
+</div>
+<p>See also:</p>
+<blockquote>
+<div><p><a class="reference internal" href="#sqlalchemy.engine.base.Engine.begin" title="sqlalchemy.engine.base.Engine.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.begin()</span></tt></a> - engine-level transactional 
+context</p>
+<p><a class="reference internal" href="#sqlalchemy.engine.base.Engine.transaction" title="sqlalchemy.engine.base.Engine.transaction"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.transaction()</span></tt></a> - engine-level version of
+<a class="reference internal" href="#sqlalchemy.engine.base.Connection.transaction" title="sqlalchemy.engine.base.Connection.transaction"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.transaction()</span></tt></a></p>
+</div></blockquote>
 </dd></dl>
 
 </dd></dl>
@@ -947,6 +980,34 @@ of database connectivity and behavior.</p>
 <p>See also:</p>
 <p><a class="reference internal" href="engines.html"><em>Engine Configuration</em></a></p>
 <p><a class="reference internal" href="#"><em>Working with Engines and Connections</em></a></p>
+<dl class="method">
+<dt id="sqlalchemy.engine.base.Engine.begin">
+<tt class="descname">begin</tt><big>(</big><em>close_with_result=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.begin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a context manager delivering a <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
+with a <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> established.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;insert into table (x, y, z) values (1, 2, 3)&quot;</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;my_special_procedure(5)&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>Upon successful operation, the <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> 
+is committed.  If an error is raised, the <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>
+is rolled back.</p>
+<p>The <tt class="docutils literal"><span class="pre">close_with_result</span></tt> flag is normally <tt class="docutils literal"><span class="pre">False</span></tt>, and indicates
+that the <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> will be closed when the operation
+is complete.   When set to <tt class="docutils literal"><span class="pre">True</span></tt>, it indicates the <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
+is in &#8220;single use&#8221; mode, where the <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a>
+returned by the first call to <a class="reference internal" href="#sqlalchemy.engine.base.Connection.execute" title="sqlalchemy.engine.base.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execute()</span></tt></a> will
+close the <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> when that <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a>
+has exhausted all result rows.</p>
+<p>New in 0.7.6.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="#sqlalchemy.engine.base.Engine.connect" title="sqlalchemy.engine.base.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a> - procure a <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> from
+an <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
+<p><a class="reference internal" href="#sqlalchemy.engine.base.Connection.begin" title="sqlalchemy.engine.base.Connection.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin()</span></tt></a> - start a <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>
+for a particular <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.connect">
 <tt class="descname">connect</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.connect" title="Permalink to this definition">¶</a></dt>
@@ -1135,15 +1196,36 @@ the <tt class="docutils literal"><span class="pre">contextual_connect</span></tt
 <dt id="sqlalchemy.engine.base.Engine.transaction">
 <tt class="descname">transaction</tt><big>(</big><em>callable_</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.transaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the given function within a transaction boundary.</p>
-<p>The function is passed a newly procured
-<a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> as the first argument, followed by
-the given *args and **kwargs. The <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
-is then closed (returned to the pool) when the operation
-is complete.</p>
-<p>This method can be used interchangeably with
-<a class="reference internal" href="#sqlalchemy.engine.base.Connection.transaction" title="sqlalchemy.engine.base.Connection.transaction"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.transaction()</span></tt></a>. See that method for
-more details on usage as well as a modern alternative
-using context managers (i.e. the <tt class="docutils literal"><span class="pre">with</span></tt> statement).</p>
+<p>The function is passed a <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> newly procured
+from <a class="reference internal" href="#sqlalchemy.engine.base.Engine.contextual_connect" title="sqlalchemy.engine.base.Engine.contextual_connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.contextual_connect()</span></tt></a> as the first argument, 
+followed by the given *args and **kwargs.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">do_something</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;some statement&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;x&#39;</span><span class="p">:</span><span class="n">x</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">:</span><span class="n">y</span><span class="p">})</span>
+
+<span class="n">engine</span><span class="o">.</span><span class="n">transaction</span><span class="p">(</span><span class="n">do_something</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span></pre></div>
+</div>
+<p>The operations inside the function are all invoked within the
+context of a single <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>.   
+Upon success, the transaction is committed.  If an 
+exception is raised, the transaction is rolled back
+before propagating the exception.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The <a class="reference internal" href="#sqlalchemy.engine.base.Engine.transaction" title="sqlalchemy.engine.base.Engine.transaction"><tt class="xref py py-meth docutils literal"><span class="pre">transaction()</span></tt></a> method is superseded by
+the usage of the Python <tt class="docutils literal"><span class="pre">with:</span></tt> statement, which can
+be used with <a class="reference internal" href="#sqlalchemy.engine.base.Engine.begin" title="sqlalchemy.engine.base.Engine.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.begin()</span></tt></a>:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;some statement&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;x&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">})</span></pre></div>
+</div>
+</div>
+<p>See also:</p>
+<blockquote>
+<div><p><a class="reference internal" href="#sqlalchemy.engine.base.Engine.begin" title="sqlalchemy.engine.base.Engine.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.begin()</span></tt></a> - engine-level transactional 
+context</p>
+<p><a class="reference internal" href="#sqlalchemy.engine.base.Connection.transaction" title="sqlalchemy.engine.base.Connection.transaction"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.transaction()</span></tt></a> - connection-level version of
+<a class="reference internal" href="#sqlalchemy.engine.base.Engine.transaction" title="sqlalchemy.engine.base.Engine.transaction"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.transaction()</span></tt></a></p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">

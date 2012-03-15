@@ -11,7 +11,7 @@ from sqlalchemy.orm import mapper, relationship, backref, \
     validates, aliased, defer, deferred, synonym, attributes, \
     column_property, composite, dynamic_loader, \
     comparable_property, Session
-from sqlalchemy.orm.mapper import _sort_states
+from sqlalchemy.orm.persistence import _sort_states
 from test.lib.testing import eq_, AssertsCompiledSQL
 from test.lib import fixtures
 from test.orm import _fixtures
@@ -327,6 +327,14 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         mapper(Foo, addresses, inherits=User)
         assert getattr(Foo().__class__, 'name').impl is not None
 
+    def test_check_descriptor_as_method(self):
+        User, users = self.classes.User, self.tables.users
+
+        m = mapper(User, users)
+        class MyClass(User):
+            def foo(self):
+                pass
+        m._is_userland_descriptor(MyClass.foo)
 
     def test_configure_on_get_props_1(self):
         User, users = self.classes.User, self.tables.users

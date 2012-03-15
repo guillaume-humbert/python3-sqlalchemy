@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -552,10 +552,46 @@ returned yet.  Offers a slight performance advantage at the
 cost of individual transactions by default.  The
 <tt class="xref py py-meth docutils literal"><span class="pre">unique_connection()</span></tt> method is provided to bypass the
 threadlocal behavior installed into <tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt>.</li>
-<li><strong>reset_on_return</strong> &#8211; If true, reset the database state of
-connections returned to the pool.  This is typically a
-ROLLBACK to release locks and transaction resources.
-Disable at your own peril.  Defaults to True.</li>
+<li><strong>reset_on_return</strong> &#8211; <p>Determine steps to take on 
+connections as they are returned to the pool.   
+As of SQLAlchemy 0.7.6, reset_on_return can have any 
+of these values:</p>
+<ul>
+<li>&#8216;rollback&#8217; - call rollback() on the connection,
+to release locks and transaction resources.
+This is the default value.  The vast majority
+of use cases should leave this value set.</li>
+<li>True - same as &#8216;rollback&#8217;, this is here for 
+backwards compatibility.</li>
+<li>&#8216;commit&#8217; - call commit() on the connection,
+to release locks and transaction resources. 
+A commit here may be desirable for databases that
+cache query plans if a commit is emitted,
+such as Microsoft SQL Server.  However, this
+value is more dangerous than &#8216;rollback&#8217; because
+any data changes present on the transaction
+are committed unconditionally.</li>
+</ul>
+<blockquote>
+<div><ul>
+<li>None - don&#8217;t do anything on the connection.
+This setting should only be made on a database
+that has no transaction support at all,
+namely MySQL MyISAM.   By not doing anything,
+performance can be improved.   This
+setting should <strong>never be selected</strong> for a 
+database that supports transactions,
+as it will lead to deadlocks and stale
+state.</li>
+</ul>
+<blockquote>
+<div><ul>
+<li>False - same as None, this is here for
+backwards compatibility.</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</li>
 <li><strong>listeners</strong> &#8211; A list of
 <a class="reference internal" href="interfaces.html#sqlalchemy.interfaces.PoolListener" title="sqlalchemy.interfaces.PoolListener"><tt class="xref py py-class docutils literal"><span class="pre">PoolListener</span></tt></a>-like objects or
 dictionaries of callables that receive events when DB-API

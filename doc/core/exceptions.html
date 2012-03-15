@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -187,19 +187,19 @@ see <a class="reference internal" href="schema.html#use-alter"><em>Creating/Drop
 <em class="property">exception </em><tt class="descclassname">sqlalchemy.exc.</tt><tt class="descname">DBAPIError</tt><big>(</big><em>statement</em>, <em>params</em>, <em>orig</em>, <em>connection_invalidated=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.exc.DBAPIError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.exc.StatementError" title="sqlalchemy.exc.StatementError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.StatementError</span></tt></a></p>
 <p>Raised when the execution of a database operation fails.</p>
-<p><tt class="docutils literal"><span class="pre">DBAPIError</span></tt> wraps exceptions raised by the DB-API underlying the
+<p>Wraps exceptions raised by the DB-API underlying the
 database operation.  Driver-specific implementations of the standard
 DB-API exception types are wrapped by matching sub-types of SQLAlchemy&#8217;s
-<tt class="docutils literal"><span class="pre">DBAPIError</span></tt> when possible.  DB-API&#8217;s <tt class="docutils literal"><span class="pre">Error</span></tt> type maps to
-<tt class="docutils literal"><span class="pre">DBAPIError</span></tt> in SQLAlchemy, otherwise the names are identical.  Note
+<a class="reference internal" href="#sqlalchemy.exc.DBAPIError" title="sqlalchemy.exc.DBAPIError"><tt class="xref py py-class docutils literal"><span class="pre">DBAPIError</span></tt></a> when possible.  DB-API&#8217;s <tt class="docutils literal"><span class="pre">Error</span></tt> type maps to
+<a class="reference internal" href="#sqlalchemy.exc.DBAPIError" title="sqlalchemy.exc.DBAPIError"><tt class="xref py py-class docutils literal"><span class="pre">DBAPIError</span></tt></a> in SQLAlchemy, otherwise the names are identical.  Note
 that there is no guarantee that different DB-API implementations will
 raise the same exception type for any given error condition.</p>
-<p><tt class="xref py py-class docutils literal"><span class="pre">DBAPIError</span></tt> features <a class="reference internal" href="internals.html#sqlalchemy.engine.default.DefaultExecutionContext.statement" title="sqlalchemy.engine.default.DefaultExecutionContext.statement"><tt class="xref py py-attr docutils literal"><span class="pre">statement</span></tt></a>
-and <a class="reference internal" href="internals.html#sqlalchemy.sql.compiler.SQLCompiler.params" title="sqlalchemy.sql.compiler.SQLCompiler.params"><tt class="xref py py-attr docutils literal"><span class="pre">params</span></tt></a> attributes which supply context regarding
+<p><a class="reference internal" href="#sqlalchemy.exc.DBAPIError" title="sqlalchemy.exc.DBAPIError"><tt class="xref py py-class docutils literal"><span class="pre">DBAPIError</span></tt></a> features <a class="reference internal" href="#sqlalchemy.exc.StatementError.statement" title="sqlalchemy.exc.StatementError.statement"><tt class="xref py py-attr docutils literal"><span class="pre">statement</span></tt></a>
+and <a class="reference internal" href="#sqlalchemy.exc.StatementError.params" title="sqlalchemy.exc.StatementError.params"><tt class="xref py py-attr docutils literal"><span class="pre">params</span></tt></a> attributes which supply context regarding
 the specifics of the statement which had an issue, for the 
 typical case when the error was raised within the context of
 emitting a SQL statement.</p>
-<p>The wrapped exception object is available in the <tt class="xref py py-attr docutils literal"><span class="pre">orig</span></tt> attribute.
+<p>The wrapped exception object is available in the <a class="reference internal" href="#sqlalchemy.exc.StatementError.orig" title="sqlalchemy.exc.StatementError.orig"><tt class="xref py py-attr docutils literal"><span class="pre">orig</span></tt></a> attribute.
 Its type and properties are DB-API implementation specific.</p>
 </dd></dl>
 
@@ -391,12 +391,30 @@ object that&#8217;s in a closed state.</p>
 <em class="property">exception </em><tt class="descclassname">sqlalchemy.exc.</tt><tt class="descname">StatementError</tt><big>(</big><em>message</em>, <em>statement</em>, <em>params</em>, <em>orig</em><big>)</big><a class="headerlink" href="#sqlalchemy.exc.StatementError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.exc.SQLAlchemyError" title="sqlalchemy.exc.SQLAlchemyError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.SQLAlchemyError</span></tt></a></p>
 <p>An error occurred during execution of a SQL statement.</p>
-<p><tt class="xref py py-class docutils literal"><span class="pre">StatementError</span></tt> wraps the exception raised
-during execution, and features <a class="reference internal" href="internals.html#sqlalchemy.engine.default.DefaultExecutionContext.statement" title="sqlalchemy.engine.default.DefaultExecutionContext.statement"><tt class="xref py py-attr docutils literal"><span class="pre">statement</span></tt></a>
-and <a class="reference internal" href="internals.html#sqlalchemy.sql.compiler.SQLCompiler.params" title="sqlalchemy.sql.compiler.SQLCompiler.params"><tt class="xref py py-attr docutils literal"><span class="pre">params</span></tt></a> attributes which supply context regarding
+<p><a class="reference internal" href="#sqlalchemy.exc.StatementError" title="sqlalchemy.exc.StatementError"><tt class="xref py py-class docutils literal"><span class="pre">StatementError</span></tt></a> wraps the exception raised
+during execution, and features <a class="reference internal" href="#sqlalchemy.exc.StatementError.statement" title="sqlalchemy.exc.StatementError.statement"><tt class="xref py py-attr docutils literal"><span class="pre">statement</span></tt></a>
+and <a class="reference internal" href="#sqlalchemy.exc.StatementError.params" title="sqlalchemy.exc.StatementError.params"><tt class="xref py py-attr docutils literal"><span class="pre">params</span></tt></a> attributes which supply context regarding
 the specifics of the statement which had an issue.</p>
 <p>The wrapped exception object is available in 
-the <tt class="xref py py-attr docutils literal"><span class="pre">orig</span></tt> attribute.</p>
+the <a class="reference internal" href="#sqlalchemy.exc.StatementError.orig" title="sqlalchemy.exc.StatementError.orig"><tt class="xref py py-attr docutils literal"><span class="pre">orig</span></tt></a> attribute.</p>
+<dl class="attribute">
+<dt id="sqlalchemy.exc.StatementError.orig">
+<tt class="descname">orig</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.exc.StatementError.orig" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DBAPI exception object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.exc.StatementError.params">
+<tt class="descname">params</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.exc.StatementError.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>The parameter list being used when this exception occurred.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.exc.StatementError.statement">
+<tt class="descname">statement</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.exc.StatementError.statement" title="Permalink to this definition">¶</a></dt>
+<dd><p>The string SQL statement being invoked when this exception occurred.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="exception">

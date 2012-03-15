@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -1414,7 +1414,7 @@ WHERE users.id = addresses.id AND
 addresses.email_address LIKE :email_address_1 || '%%'</pre>
 </div>
 <p>When using MySQL, columns from each table can be assigned to in the
-SET clause directly, using the dictionary form passed to <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Update.values" title="sqlalchemy.sql.expression.Update.values"><tt class="xref py py-meth docutils literal"><span class="pre">Update.values()</span></tt></a>:</p>
+SET clause directly, using the dictionary form passed to <tt class="xref py py-meth docutils literal"><span class="pre">Update.values()</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span>\
         <span class="n">values</span><span class="p">({</span>
             <span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="s">&#39;ed wood&#39;</span><span class="p">,</span>

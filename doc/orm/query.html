@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -302,6 +302,57 @@ with <a class="reference internal" href="session.html#sqlalchemy.orm.session.Ses
 <span class="c"># count distinct &quot;name&quot; values</span>
 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">distinct</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)))</span></pre></div>
 </div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.cte">
+<tt class="descname">cte</tt><big>(</big><em>name=None</em>, <em>recursive=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.cte" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the full SELECT statement represented by this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>
+represented as a common table expression (CTE).</p>
+<p>The <a class="reference internal" href="#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">Query.cte()</span></tt></a> method is new in 0.7.6.</p>
+<p>Parameters and usage are the same as those of the 
+<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression._SelectBase.cte" title="sqlalchemy.sql.expression._SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">_SelectBase.cte()</span></tt></a> method; see that method for 
+further details.</p>
+<p>Here is the <a class="reference external" href="http://www.postgresql.org/docs/8.4/static/queries-with.html">Postgresql WITH 
+RECURSIVE example</a>.
+Note that, in this example, the <tt class="docutils literal"><span class="pre">included_parts</span></tt> cte and the <tt class="docutils literal"><span class="pre">incl_alias</span></tt> alias
+of it are Core selectables, which
+means the columns are accessed via the <tt class="docutils literal"><span class="pre">.c.</span></tt> attribute.  The <tt class="docutils literal"><span class="pre">parts_alias</span></tt>
+object is an <tt class="xref py py-func docutils literal"><span class="pre">orm.aliased()</span></tt> instance of the <tt class="docutils literal"><span class="pre">Part</span></tt> entity, so column-mapped
+attributes are available directly:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">aliased</span>
+
+<span class="k">class</span> <span class="nc">Part</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;part&#39;</span>
+    <span class="n">part</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">sub_part</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">quantity</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+
+<span class="n">included_parts</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+                    <span class="n">Part</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span> 
+                    <span class="n">Part</span><span class="o">.</span><span class="n">part</span><span class="p">,</span> 
+                    <span class="n">Part</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span>\
+                        <span class="nb">filter</span><span class="p">(</span><span class="n">Part</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="s">&quot;our part&quot;</span><span class="p">)</span><span class="o">.</span>\
+                        <span class="n">cte</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;included_parts&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">incl_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">included_parts</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;pr&quot;</span><span class="p">)</span>
+<span class="n">parts_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">Part</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;p&quot;</span><span class="p">)</span>
+<span class="n">included_parts</span> <span class="o">=</span> <span class="n">included_parts</span><span class="o">.</span><span class="n">union_all</span><span class="p">(</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">part</span><span class="p">,</span> 
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span> 
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span>\
+            <span class="nb">filter</span><span class="p">(</span><span class="n">parts_alias</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">incl_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+        <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
+        <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;total_quantity&#39;</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span>\
+    <span class="n">group_by</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span></pre></div>
+</div>
+<p>See also:</p>
+<p><a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression._SelectBase.cte" title="sqlalchemy.sql.expression._SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">_SelectBase.cte()</span></tt></a></p>
 </dd></dl>
 
 <dl class="method">
@@ -843,7 +894,7 @@ to a scalar subquery with a label of the given name.</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.orm.query.Query.logger">
-<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x104b57690&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x104e03650&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1197,6 +1248,24 @@ uses column labeling.</p>
 <dt id="sqlalchemy.orm.query.Query.with_lockmode">
 <tt class="descname">with_lockmode</tt><big>(</big><em>mode</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.with_lockmode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new Query object with the specified locking mode.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mode</strong> &#8211; <p>a string representing the desired locking mode. A
+corresponding value is passed to the <tt class="docutils literal"><span class="pre">for_update</span></tt> parameter of
+<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-meth docutils literal"><span class="pre">select()</span></tt></a> when the query is
+executed. Valid values are:</p>
+<p><tt class="docutils literal"><span class="pre">'update'</span></tt> - passes <tt class="docutils literal"><span class="pre">for_update=True</span></tt>, which translates to
+<tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> (standard SQL, supported by most dialects)</p>
+<p><tt class="docutils literal"><span class="pre">'update_nowait'</span></tt> - passes <tt class="docutils literal"><span class="pre">for_update='nowait'</span></tt>, which
+translates to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt> (supported by Oracle)</p>
+<p><tt class="docutils literal"><span class="pre">'read'</span></tt> - passes <tt class="docutils literal"><span class="pre">for_update='read'</span></tt>, which translates to
+<tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt> (supported by MySQL).</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">

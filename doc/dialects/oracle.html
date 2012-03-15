@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -165,7 +165,7 @@
     <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.dialects.oracle.base">
-<span id="oracle"></span><h1>Oracle<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.base" title="Permalink to this headline">¶</a></h1>
+<span id="oracle"></span><span id="oracle-toplevel"></span><h1>Oracle<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the Oracle database.</p>
 <p>Oracle version 8 through current (11g at the time of this writing) are supported.</p>
 <p>For information on connecting via specific drivers, see the documentation
@@ -570,7 +570,7 @@ with this feature but it should be regarded as experimental.</p>
 </div>
 <div class="section" id="precision-numerics">
 <h3>Precision Numerics<a class="headerlink" href="#precision-numerics" title="Permalink to this headline">¶</a></h3>
-<p>The SQLAlchemy dialect goes thorugh a lot of steps to ensure
+<p>The SQLAlchemy dialect goes through a lot of steps to ensure
 that decimal numbers are sent and received with full accuracy.
 An &#8220;outputtypehandler&#8221; callable is associated with each
 cx_oracle connection object which detects numeric types and
@@ -581,6 +581,18 @@ receives them as string values, instead of receiving a Python
 this behavior, and will coerce the <tt class="docutils literal"><span class="pre">Decimal</span></tt> to <tt class="docutils literal"><span class="pre">float</span></tt> if
 the <tt class="docutils literal"><span class="pre">asdecimal</span></tt> flag is <tt class="docutils literal"><span class="pre">False</span></tt> (default on <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a>,
 optional on <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>).</p>
+<p>Because the handler coerces to <tt class="docutils literal"><span class="pre">Decimal</span></tt> in all cases first,
+the feature can detract significantly from performance.
+If precision numerics aren&#8217;t required, the decimal handling
+can be disabled by passing the flag <tt class="docutils literal"><span class="pre">coerce_to_decimal=False</span></tt>
+to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;oracle+cx_oracle://dsn&quot;</span><span class="p">,</span> 
+                    <span class="n">coerce_to_decimal</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">coerce_to_decimal</span></tt> flag is new in 0.7.6.</p>
+<p>Another alternative to performance is to use the 
+<a class="reference external" href="http://pypi.python.org/pypi/cdecimal/">cdecimal</a> library; 
+see <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a> for additional notes.</p>
 <p>The handler attempts to use the &#8220;precision&#8221; and &#8220;scale&#8221;
 attributes of the result set column to best determine if
 subsequent incoming values should be received as <tt class="docutils literal"><span class="pre">Decimal</span></tt> as
