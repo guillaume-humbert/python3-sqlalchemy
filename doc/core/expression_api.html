@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -478,7 +478,7 @@ boolean equivalent for the target dialect.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x101879150&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x101873350&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><tt class="docutils literal"><span class="pre">func</span></tt> is a special object instance which generates SQL functions based on name-based attributes, e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -898,12 +898,20 @@ argument for usage with MySQL is deprecated.  Use
 the <tt class="docutils literal"><span class="pre">prefixes</span></tt> argument or <a class="reference internal" href="#sqlalchemy.sql.expression.Select.prefix_with" title="sqlalchemy.sql.expression.Select.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">prefix_with()</span></tt></a>.</p>
 </div>
 </li>
-<li><strong>for_update=False</strong> &#8211; when <tt class="docutils literal"><span class="pre">True</span></tt>, applies <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> to the end of the
-resulting statement.  Certain database dialects also support
-alternate values for this parameter, for example mysql
-supports &#8220;read&#8221; which translates to <tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt>,
-and oracle supports &#8220;nowait&#8221; which translates to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span>
-<span class="pre">NOWAIT</span></tt>.</li>
+<li><strong>for_update=False</strong> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, applies <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> to the end of the
+resulting statement.</p>
+<p>Certain database dialects also support
+alternate values for this parameter:</p>
+<ul>
+<li>With the MySQL dialect, the value <tt class="docutils literal"><span class="pre">&quot;read&quot;</span></tt> translates to 
+<tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt>.</li>
+<li>With the Oracle and Postgresql dialects, the value <tt class="docutils literal"><span class="pre">&quot;nowait&quot;</span></tt>
+translates to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt>.</li>
+<li>With the Postgresql dialect, the values &#8220;read&#8221; and <tt class="docutils literal"><span class="pre">&quot;read_nowait&quot;</span></tt>
+translate to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> and <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt>, respectively
+(new in 0.7.7).</li>
+</ul>
+</li>
 <li><strong>group_by</strong> &#8211; a list of <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects which will comprise the
 <tt class="docutils literal"><span class="pre">GROUP</span> <span class="pre">BY</span></tt> clause of the resulting select.</li>
 <li><strong>having</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> that will comprise the <tt class="docutils literal"><span class="pre">HAVING</span></tt> clause
@@ -1308,7 +1316,7 @@ compilation/execution.</li>
 will be called at statement execution time to determine the
 ultimate value.   Used for scenarios where the actual bind
 value cannot be determined at the point at which the clause
-construct is created, but embeded bind values are still desirable.</li>
+construct is created, but embedded bind values are still desirable.</li>
 <li><strong>type_</strong> &#8211; A <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> object that will be used to pre-process the
 value corresponding to this <a class="reference internal" href="#sqlalchemy.sql.expression._BindParamClause" title="sqlalchemy.sql.expression._BindParamClause"><tt class="xref py py-class docutils literal"><span class="pre">_BindParamClause</span></tt></a> at
 execution time.</li>
@@ -1384,7 +1392,7 @@ this <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElemen
 column names which should be present in the VALUES clause of the
 compiled statement. If <tt class="docutils literal"><span class="pre">None</span></tt>, all columns from the target table
 object are rendered.</li>
-<li><strong>dialect</strong> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance frmo which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
+<li><strong>dialect</strong> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance from which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
 will be acquired. This argument takes precedence over the <cite>bind</cite>
 argument as well as this <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine, if
 any.</li>
@@ -1425,7 +1433,7 @@ clause-level).</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ClauseElement.params">
 <tt class="descname">params</tt><big>(</big><em>*optionaldict</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ClauseElement.params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a copy with <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> elments replaced.</p>
+<dd><p>Return a copy with <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> elements replaced.</p>
 <p>Returns a copy of this ClauseElement with <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a>
 elements replaced with values taken from the given dictionary:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">clause</span> <span class="o">=</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">bindparam</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">)</span>
@@ -1472,7 +1480,7 @@ just returns self.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ClauseElement.unique_params">
 <tt class="descname">unique_params</tt><big>(</big><em>*optionaldict</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ClauseElement.unique_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a copy with <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> elments replaced.</p>
+<dd><p>Return a copy with <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> elements replaced.</p>
 <p>Same functionality as <tt class="docutils literal"><span class="pre">params()</span></tt>, except adds <cite>unique=True</cite>
 to affected bind parameters so that multiple statements can be
 used.</p>
@@ -1637,7 +1645,7 @@ expressions and function calls.</p>
 share a common base column as equivalent (i.e. shares_lineage())</li>
 <li><strong>equivalents</strong> &#8211; a dictionary of columns as keys mapped to sets
 of columns. If the given &#8220;other&#8221; column is present in this
-dictionary, if any of the columns in the correponding set() pass the
+dictionary, if any of the columns in the corresponding set() pass the
 comparison test, the result is True. This is used to expand the
 comparison to other columns that may be known to be equivalent to
 this one via foreign key or other criterion.</li>
@@ -2244,7 +2252,7 @@ the arguments for this <a class="reference internal" href="#sqlalchemy.sql.expre
 <dl class="attribute">
 <dt id="sqlalchemy.sql.expression.FunctionElement.columns">
 <tt class="descname">columns</tt><a class="headerlink" href="#sqlalchemy.sql.expression.FunctionElement.columns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fulfill the &#8216;columns&#8217; contrct of <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>.</p>
+<dd><p>Fulfill the &#8216;columns&#8217; contract of <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>.</p>
 <p>Returns a single-element list consisting of this object.</p>
 </dd></dl>
 
@@ -2366,7 +2374,7 @@ search for a match in the given dictionary.</p>
 <dd><p>Given a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, return the exported
 <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> object from this <a class="reference internal" href="#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a>
 which corresponds to that original
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> via a common anscestor
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> via a common ancestor
 column.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2383,7 +2391,7 @@ column.</p>
 <p>the given <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given
 <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is actually present within a sub-element
 of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.  Normally the column will match if
-it merely shares a common anscestor with one of the exported
+it merely shares a common ancestor with one of the exported
 columns of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
 </dd></dl>
 

@@ -358,6 +358,23 @@ class ConvenienceExecuteTest(fixtures.TablesTest):
         testing.run_as_contextmanager(ctx, fn, 5, value=8)
         self._assert_fn(5, value=8)
 
+    def test_transaction_engine_ctx_begin_fails(self):
+        engine = engines.testing_engine()
+        class MockConnection(Connection):
+            closed = False
+            def begin(self):
+                raise Exception("boom")
+
+            def close(self):
+                MockConnection.closed = True
+        engine._connection_cls = MockConnection
+        fn = self._trans_fn()
+        assert_raises(
+            Exception, 
+            engine.begin
+        )
+        assert MockConnection.closed
+
     def test_transaction_engine_ctx_rollback(self):
         fn = self._trans_rollback_fn()
         ctx = testing.db.begin()
@@ -983,6 +1000,23 @@ class EngineEventsTest(fixtures.TestBase):
         e1.execute(select([1]).compile(dialect=e1.dialect).statement)
         e1.execute(select([1]).compile(dialect=e1.dialect))
         e1._execute_compiled(select([1]).compile(dialect=e1.dialect), [], {})
+
+    def test_exception_event(self):
+        engine = engines.testing_engine()
+        canary = []
+
+        @event.listens_for(engine, 'dbapi_error')
+        def err(conn, cursor, stmt, parameters, context, exception):
+            canary.append((stmt, parameters, exception))
+
+        conn = engine.connect()
+        try:
+            conn.execute("SELECT FOO FROM I_DONT_EXIST")
+            assert False
+        except tsa.exc.DBAPIError, e:
+            assert canary[0][2] is e.orig
+            assert canary[0][0] == "SELECT FOO FROM I_DONT_EXIST"
+
 
     @testing.fails_on('firebird', 'Data type unknown')
     def test_execute_events(self):

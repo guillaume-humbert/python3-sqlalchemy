@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -666,7 +666,7 @@ future in order to enable cross-compatibility.</p>
 </div>
 <p>Used with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>examples:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># joined-load the &quot;orders&quot; colleciton on &quot;User&quot;</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># joined-load the &quot;orders&quot; collection on &quot;User&quot;</span>
 <span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">))</span>
 
 <span class="c"># joined-load the &quot;keywords&quot; collection on each &quot;Item&quot;,</span>
@@ -755,7 +755,7 @@ of the given name or series of mapped attributes
 into an subquery eager load.</p>
 <p>Used with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>examples:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># subquery-load the &quot;orders&quot; colleciton on &quot;User&quot;</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># subquery-load the &quot;orders&quot; collection on &quot;User&quot;</span>
 <span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">subqueryload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">))</span>
 
 <span class="c"># subquery-load the &quot;keywords&quot; collection on each &quot;Item&quot;,</span>

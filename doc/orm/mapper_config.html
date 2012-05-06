@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -856,7 +856,7 @@ configuration of attribute change behavior can make use of this system,
 described at <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.validates">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">validates</tt><big>(</big><em>*names</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.validates" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">validates</tt><big>(</big><em>*names</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.validates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decorate a method as a &#8216;validator&#8217; for one or more named properties.</p>
 <p>Designates a method as a validator, a method which receives the
 name of the attribute as well as a value to be assigned, or in the
@@ -869,6 +869,20 @@ The function should otherwise return the given value.</p>
 collection within the validation routine - this usage raises
 an assertion to avoid recursion overflows.  This is a reentrant
 condition which is not supported.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>*names</strong> &#8211; list of attribute names to be validated.</li>
+<li><strong>include_removes</strong> &#8211; if True, &#8220;remove&#8221; events will be 
+sent as well - the validation function must accept an additional
+argument &#8220;is_remove&#8221; which will be a boolean.  New in 0.7.7.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -1137,7 +1151,7 @@ to render an expression like:</p>
 for this property.</li>
 <li><strong>descriptor</strong> &#8211; <p>Optional when used in a <tt class="docutils literal"><span class="pre">properties={}</span></tt> declaration.  The Python
 descriptor or property to layer comparison behavior on top of.</p>
-<p>The like-named descriptor will be automatically retreived from the
+<p>The like-named descriptor will be automatically retrieved from the
 mapped class if left blank in a <tt class="docutils literal"><span class="pre">properties</span></tt> declaration.</p>
 </li>
 </ul>
@@ -1240,7 +1254,7 @@ WHERE vertice.x1 = ? AND vertice.y1 = ?
 <dt id="sqlalchemy.orm.composite">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">composite</tt><big>(</big><em>class_</em>, <em>*cols</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.composite" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a composite column-based property for use with a Mapper.</p>
-<p>See the mapping documention section <a class="reference internal" href="#mapper-composite"><em>Composite Column Types</em></a> for a full
+<p>See the mapping documentation section <a class="reference internal" href="#mapper-composite"><em>Composite Column Types</em></a> for a full
 usage example.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

@@ -603,6 +603,16 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
         self._test(None == Address.user, "addresses.user_id IS NULL")
         self._test(~(None == Address.user), "addresses.user_id IS NOT NULL")
 
+    def test_relationship_unimplemented(self):
+        User, Address = self.classes.User, self.classes.Address
+        for op in [
+            User.addresses.like,
+            User.addresses.ilike,
+            User.addresses.__le__,
+            User.addresses.__gt__,
+        ]:
+            assert_raises(NotImplementedError, op, "x")
+
     def test_relationship(self):
         User, Address = self.classes.User, self.classes.Address
 
@@ -1601,6 +1611,43 @@ class DistinctTest(QueryTest):
                 ]),
             ] == q.all()
         self.assert_sql_count(testing.db, go, 1)
+
+
+class PrefixWithTest(QueryTest, AssertsCompiledSQL):
+
+    def test_one_prefix(self):
+        User = self.classes.User
+        sess = create_session()
+        query = sess.query(User.name)\
+            .prefix_with('PREFIX_1')
+        expected = "SELECT PREFIX_1 "\
+            "users.name AS users_name FROM users"
+        self.assert_compile(query, expected,
+            dialect=default.DefaultDialect()
+        )
+
+    def test_many_prefixes(self):
+        User = self.classes.User
+        sess = create_session()
+        query = sess.query(User.name)\
+            .prefix_with('PREFIX_1', 'PREFIX_2')
+        expected = "SELECT PREFIX_1 PREFIX_2 "\
+            "users.name AS users_name FROM users"
+        self.assert_compile(query, expected,
+            dialect=default.DefaultDialect()
+        )
+
+    def test_chained_prefixes(self):
+        User = self.classes.User
+        sess = create_session()
+        query = sess.query(User.name)\
+            .prefix_with('PREFIX_1')\
+            .prefix_with('PREFIX_2', 'PREFIX_3')
+        expected = "SELECT PREFIX_1 PREFIX_2 PREFIX_3 "\
+            "users.name AS users_name FROM users"
+        self.assert_compile(query, expected,
+            dialect=default.DefaultDialect()
+        )
 
 
 class YieldTest(QueryTest):

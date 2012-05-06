@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -586,7 +586,7 @@ and will allow no further operations.</p>
 <tt class="descname">connect</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns self.</p>
 <p>This <tt class="docutils literal"><span class="pre">Connectable</span></tt> interface method returns self, allowing
-Connections to be used interchangably with Engines in most
+Connections to be used interchangeably with Engines in most
 situations that require a bind.</p>
 </dd></dl>
 
@@ -601,7 +601,7 @@ situations that require a bind.</p>
 <tt class="descname">contextual_connect</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.contextual_connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns self.</p>
 <p>This <tt class="docutils literal"><span class="pre">Connectable</span></tt> interface method returns self, allowing
-Connections to be used interchangably with Engines in most
+Connections to be used interchangeably with Engines in most
 situations that require a bind.</p>
 </dd></dl>
 
@@ -617,7 +617,7 @@ situations that require a bind.</p>
 <dt id="sqlalchemy.engine.base.Connection.detach">
 <tt class="descname">detach</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.detach" title="Permalink to this definition">¶</a></dt>
 <dd><p>Detach the underlying DB-API connection from its connection pool.</p>
-<p>This Connection instance will remain useable.  When closed,
+<p>This Connection instance will remain usable.  When closed,
 the DB-API connection will be literally closed and not
 returned to its pool.  The pool will typically lazily create a
 new connection to replace the detached connection.</p>
@@ -764,10 +764,10 @@ parameter passed to <a class="reference internal" href="engines.html#sqlalchemy.
 database specific, including those for <a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a>, 
 <a class="reference internal" href="../dialects/postgresql.html"><em>PostgreSQL</em></a> - see those dialect&#8217;s documentation
 for further info.</p>
-<p>Note that this option necessarily affects the underying 
+<p>Note that this option necessarily affects the underlying 
 DBAPI connection for the lifespan of the originating 
 <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, and is not per-execution. This 
-setting is not removed until the underying DBAPI connection 
+setting is not removed until the underlying DBAPI connection 
 is returned to the connection pool, i.e.
 the <a class="reference internal" href="#sqlalchemy.engine.base.Connection.close" title="sqlalchemy.engine.base.Connection.close"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.close()</span></tt></a> method is called.</p>
 </li>
@@ -975,7 +975,7 @@ of <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sq
 <p>Connects a <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> and 
 <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> together to provide a source 
 of database connectivity and behavior.</p>
-<p>An <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> object is instantiated publically using the 
+<p>An <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> object is instantiated publicly using the 
 <a class="reference internal" href="engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> function.</p>
 <p>See also:</p>
 <p><a class="reference internal" href="engines.html"><em>Engine Configuration</em></a></p>
@@ -1236,7 +1236,7 @@ of this <a class="reference internal" href="#sqlalchemy.engine.base.Engine" titl
 <p>The given keys/values in **opt are added to the
 default execution options that will be used for 
 all connections.  The initial contents of this dictionary
-can be sent via the <tt class="docutils literal"><span class="pre">execution_options</span></tt> paramter
+can be sent via the <tt class="docutils literal"><span class="pre">execution_options</span></tt> parameter
 to <a class="reference internal" href="engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
 <p>See <a class="reference internal" href="#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> for more
 details on execution options.</p>

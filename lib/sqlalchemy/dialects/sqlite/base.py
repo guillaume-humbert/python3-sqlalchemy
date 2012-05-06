@@ -103,13 +103,13 @@ class DATETIME(_DateTimeMixin, sqltypes.DateTime):
                 regexp=re.compile("(\d+)/(\d+)/(\d+) (\d+)-(\d+)-(\d+)(?:-(\d+))?")
             )
     
-    :param storage_format: format string which will be appled to the 
+    :param storage_format: format string which will be applied to the 
      tuple ``(value.year, value.month, value.day, value.hour,
      value.minute, value.second, value.microsecond)``, given a
      Python datetime.datetime() object.
     
     :param regexp: regular expression which will be applied to 
-     incoming result rows. The resulting match object is appled to
+     incoming result rows. The resulting match object is applied to
      the Python datetime() constructor via ``*map(int,
      match_obj.groups(0))``.
     """
@@ -164,12 +164,12 @@ class DATE(_DateTimeMixin, sqltypes.Date):
                 regexp=re.compile("(\d+)/(\d+)/(\d+)")
             )
     
-    :param storage_format: format string which will be appled to the 
+    :param storage_format: format string which will be applied to the 
      tuple ``(value.year, value.month, value.day)``,
      given a Python datetime.date() object.
     
     :param regexp: regular expression which will be applied to 
-     incoming result rows. The resulting match object is appled to
+     incoming result rows. The resulting match object is applied to
      the Python date() constructor via ``*map(int,
      match_obj.groups(0))``.
      
@@ -221,12 +221,12 @@ class TIME(_DateTimeMixin, sqltypes.Time):
                 regexp=re.compile("(\d+)-(\d+)-(\d+)-(?:-(\d+))?")
             )
     
-    :param storage_format: format string which will be appled 
+    :param storage_format: format string which will be applied 
      to the tuple ``(value.hour, value.minute, value.second,
      value.microsecond)``, given a Python datetime.time() object.
     
     :param regexp: regular expression which will be applied to 
-     incoming result rows. The resulting match object is appled to
+     incoming result rows. The resulting match object is applied to
      the Python time() constructor via ``*map(int,
      match_obj.groups(0))``.
 
@@ -441,6 +441,22 @@ class SQLiteIdentifierPreparer(compiler.IdentifierPreparer):
             result = self.quote_schema(index.table.schema, index.table.quote_schema) + "." + result
         return result
 
+class SQLiteExecutionContext(default.DefaultExecutionContext):
+    @util.memoized_property
+    def _preserve_raw_colnames(self):
+        return self.execution_options.get("sqlite_raw_colnames", False)
+
+    def _translate_colname(self, colname):
+        # adjust for dotted column names.  SQLite
+        # in the case of UNION may store col names as 
+        # "tablename.colname"
+        # in cursor.description
+        if not self._preserve_raw_colnames  and "." in colname:
+            return colname.split(".")[1], colname
+        else:
+            return colname, None
+
+
 class SQLiteDialect(default.DefaultDialect):
     name = 'sqlite'
     supports_alter = False
@@ -451,6 +467,7 @@ class SQLiteDialect(default.DefaultDialect):
     supports_cast = True
 
     default_paramstyle = 'qmark'
+    execution_ctx_cls = SQLiteExecutionContext
     statement_compiler = SQLiteCompiler
     ddl_compiler = SQLiteDDLCompiler
     type_compiler = SQLiteTypeCompiler
@@ -524,16 +541,6 @@ class SQLiteDialect(default.DefaultDialect):
             return connect
         else:
             return None
-
-    def _translate_colname(self, colname):
-        # adjust for dotted column names.  SQLite
-        # in the case of UNION may store col names as 
-        # "tablename.colname"
-        # in cursor.description
-        if "." in colname:
-            return colname.split(".")[1], colname
-        else:
-            return colname, None
 
     @reflection.cache
     def get_table_names(self, connection, schema=None, **kw):

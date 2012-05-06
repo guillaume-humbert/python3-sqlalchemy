@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -242,12 +242,12 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>storage_format</strong> &#8211; format string which will be appled to the 
+<li><strong>storage_format</strong> &#8211; format string which will be applied to the 
 tuple <tt class="docutils literal"><span class="pre">(value.year,</span> <span class="pre">value.month,</span> <span class="pre">value.day,</span> <span class="pre">value.hour,</span>
 <span class="pre">value.minute,</span> <span class="pre">value.second,</span> <span class="pre">value.microsecond)</span></tt>, given a
 Python datetime.datetime() object.</li>
 <li><strong>regexp</strong> &#8211; regular expression which will be applied to 
-incoming result rows. The resulting match object is appled to
+incoming result rows. The resulting match object is applied to
 the Python datetime() constructor via <tt class="docutils literal"><span class="pre">*map(int,</span>
 <span class="pre">match_obj.groups(0))</span></tt>.</li>
 </ul>
@@ -282,11 +282,11 @@ the Python datetime() constructor via <tt class="docutils literal"><span class="
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>storage_format</strong> &#8211; format string which will be appled to the 
+<li><strong>storage_format</strong> &#8211; format string which will be applied to the 
 tuple <tt class="docutils literal"><span class="pre">(value.year,</span> <span class="pre">value.month,</span> <span class="pre">value.day)</span></tt>,
 given a Python datetime.date() object.</li>
 <li><strong>regexp</strong> &#8211; regular expression which will be applied to 
-incoming result rows. The resulting match object is appled to
+incoming result rows. The resulting match object is applied to
 the Python date() constructor via <tt class="docutils literal"><span class="pre">*map(int,</span>
 <span class="pre">match_obj.groups(0))</span></tt>.</li>
 </ul>
@@ -323,11 +323,11 @@ the Python date() constructor via <tt class="docutils literal"><span class="pre"
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>storage_format</strong> &#8211; format string which will be appled 
+<li><strong>storage_format</strong> &#8211; format string which will be applied 
 to the tuple <tt class="docutils literal"><span class="pre">(value.hour,</span> <span class="pre">value.minute,</span> <span class="pre">value.second,</span>
 <span class="pre">value.microsecond)</span></tt>, given a Python datetime.time() object.</li>
 <li><strong>regexp</strong> &#8211; regular expression which will be applied to 
-incoming result rows. The resulting match object is appled to
+incoming result rows. The resulting match object is applied to
 the Python time() constructor via <tt class="docutils literal"><span class="pre">*map(int,</span>
 <span class="pre">match_obj.groups(0))</span></tt>.</li>
 </ul>

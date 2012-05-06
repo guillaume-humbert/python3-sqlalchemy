@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -749,9 +749,19 @@ being returned to the pool.  See the docstring for
 <li><strong>pool_timeout=30</strong> &#8211; number of seconds to wait before giving
 up on getting a connection from the pool. This is only used
 with <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a>.</li>
-<li><strong>strategy=&#8217;plain&#8217;</strong> &#8211; selects alternate engine implementations.
-Currently available is the <tt class="docutils literal"><span class="pre">threadlocal</span></tt>
-strategy, which is described in <a class="reference internal" href="connections.html#threadlocal-strategy"><em>Using the Threadlocal Execution Strategy</em></a>.</li>
+<li><strong>strategy=&#8217;plain&#8217;</strong> &#8211; <p>selects alternate engine implementations.
+Currently available are:</p>
+<ul>
+<li>the <tt class="docutils literal"><span class="pre">threadlocal</span></tt> strategy, which is described in
+<a class="reference internal" href="connections.html#threadlocal-strategy"><em>Using the Threadlocal Execution Strategy</em></a>;</li>
+<li>the <tt class="docutils literal"><span class="pre">mock</span></tt> strategy, which dispatches all statement
+execution to a function passed as the argument <tt class="docutils literal"><span class="pre">executor</span></tt>.
+See <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/FAQ#HowcanIgettheCREATETABLEDROPTABLEoutputasastring">example in the FAQ</a>.</li>
+</ul>
+</li>
+<li><strong>executor=None</strong> &#8211; a function taking arguments
+<tt class="docutils literal"><span class="pre">(sql,</span> <span class="pre">*multiparams,</span> <span class="pre">**params)</span></tt>, to which the <tt class="docutils literal"><span class="pre">mock</span></tt> strategy will
+dispatch all statement execution. Used only by <tt class="docutils literal"><span class="pre">strategy='mock'</span></tt>.</li>
 </ul>
 </td>
 </tr>
@@ -962,7 +972,7 @@ argument, which specifies a callable that returns a DBAPI connection:</p>
 </div>
 <div class="section" id="configuring-logging">
 <span id="dbengine-logging"></span><h2>Configuring Logging<a class="headerlink" href="#configuring-logging" title="Permalink to this headline">¶</a></h2>
-<p>Python&#8217;s standard <a class="reference external" href="http://www.python.org/doc/lib/module-logging.html">logging</a> module is used to
+<p>Python&#8217;s standard <a class="reference external" href="http://docs.python.org/library/logging.html">logging</a> module is used to
 implement informational and debug log output with SQLAlchemy. This allows
 SQLAlchemy&#8217;s logging to integrate in a standard way with other applications
 and libraries. The <tt class="docutils literal"><span class="pre">echo</span></tt> and <tt class="docutils literal"><span class="pre">echo_pool</span></tt> flags that are present on

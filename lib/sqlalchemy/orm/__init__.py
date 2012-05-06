@@ -390,12 +390,14 @@ def relationship(argument, secondary=None, **kwargs):
     :param innerjoin=False:
       when ``True``, joined eager loads will use an inner join to join
       against related tables instead of an outer join.  The purpose
-      of this option is strictly one of performance, as inner joins
-      generally perform better than outer joins.  This flag can
-      be set to ``True`` when the relationship references an object
-      via many-to-one using local foreign keys that are not nullable,
-      or when the reference is one-to-one or a collection that is 
-      guaranteed to have one or at least one entry.
+      of this option is generally one of performance, as inner joins
+      generally perform better than outer joins. Another reason can be
+      the use of ``with_lockmode``, which does not support outer joins.
+
+      This flag can be set to ``True`` when the relationship references an
+      object via many-to-one using local foreign keys that are not nullable,
+      or when the reference is one-to-one or a collection that is guaranteed
+      to have one or at least one entry.
 
     :param join_depth:
       when non-``None``, an integer value indicating how many levels
@@ -441,7 +443,7 @@ def relationship(argument, secondary=None, **kwargs):
 
       * True - a synonym for 'select'
 
-      * False - a synonyn for 'joined'
+      * False - a synonym for 'joined'
 
       * None - a synonym for 'noload'
 
@@ -719,7 +721,7 @@ def column_property(*cols, **kw):
 def composite(class_, *cols, **kwargs):
     """Return a composite column-based property for use with a Mapper.
 
-    See the mapping documention section :ref:`mapper_composite` for a full
+    See the mapping documentation section :ref:`mapper_composite` for a full
     usage example.
 
     :param class\_:
@@ -1218,7 +1220,7 @@ def comparable_property(comparator_factory, descriptor=None):
       Optional when used in a ``properties={}`` declaration.  The Python
       descriptor or property to layer comparison behavior on top of.
 
-      The like-named descriptor will be automatically retreived from the
+      The like-named descriptor will be automatically retrieved from the
       mapped class if left blank in a ``properties`` declaration.
 
     """
@@ -1278,7 +1280,7 @@ def joinedload(*keys, **kw):
 
     examples::
 
-        # joined-load the "orders" colleciton on "User"
+        # joined-load the "orders" collection on "User"
         query(User).options(joinedload(User.orders))
 
         # joined-load the "keywords" collection on each "Item",
@@ -1381,7 +1383,7 @@ def subqueryload(*keys):
 
     examples::
 
-        # subquery-load the "orders" colleciton on "User"
+        # subquery-load the "orders" collection on "User"
         query(User).options(subqueryload(User.orders))
 
         # subquery-load the "keywords" collection on each "Item",

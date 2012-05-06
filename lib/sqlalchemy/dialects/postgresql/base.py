@@ -675,6 +675,10 @@ class PGCompiler(compiler.SQLCompiler):
     def for_update_clause(self, select):
         if select.for_update == 'nowait':
             return " FOR UPDATE NOWAIT"
+        elif select.for_update == 'read':
+            return " FOR SHARE"
+        elif select.for_update == 'read_nowait':
+            return " FOR SHARE NOWAIT"
         else:
             return super(PGCompiler, self).for_update_clause(select)
 
@@ -1040,7 +1044,7 @@ class PGDialect(default.DefaultDialect):
         if is_prepared:
             if recover:
                 #FIXME: ugly hack to get out of transaction 
-                # context when commiting recoverable transactions
+                # context when committing recoverable transactions
                 # Must find out a way how to make the dbapi not 
                 # open a transaction.
                 connection.execute("ROLLBACK")
@@ -1625,8 +1629,8 @@ class PGDialect(default.DefaultDialect):
         for enum in c.fetchall():
             if enum['visible']:
                 # 'visible' just means whether or not the enum is in a
-                # schema that's on the search path -- or not overriden by
-                # a schema with higher presedence. If it's not visible,
+                # schema that's on the search path -- or not overridden by
+                # a schema with higher precedence. If it's not visible,
                 # it will be prefixed with the schema-name when it's used.
                 name = enum['name']
             else:
@@ -1652,7 +1656,6 @@ class PGDialect(default.DefaultDialect):
                n.nspname as "schema"
             FROM pg_catalog.pg_type t
                LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-               LEFT JOIN pg_catalog.pg_constraint r ON t.oid = r.contypid
             WHERE t.typtype = 'd'
         """
 
@@ -1665,8 +1668,8 @@ class PGDialect(default.DefaultDialect):
             attype = re.search('([^\(]+)', domain['attype']).group(1)
             if domain['visible']:
                 # 'visible' just means whether or not the domain is in a
-                # schema that's on the search path -- or not overriden by
-                # a schema with higher presedence. If it's not visible,
+                # schema that's on the search path -- or not overridden by
+                # a schema with higher precedence. If it's not visible,
                 # it will be prefixed with the schema-name when it's used.
                 name = domain['name']
             else:

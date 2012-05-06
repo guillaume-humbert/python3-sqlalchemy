@@ -77,6 +77,7 @@ class Query(object):
     _group_by = False
     _having = None
     _distinct = False
+    _prefixes = None
     _offset = None
     _limit = None
     _statement = None
@@ -917,7 +918,8 @@ class Query(object):
                 '_order_by', '_group_by',
                 '_limit', '_offset', 
                 '_joinpath', '_joinpoint', 
-                '_distinct', '_having'
+                '_distinct', '_having', 
+                '_prefixes',
         ):
             self.__dict__.pop(attr, None)
         self._set_select_from(fromclause)
@@ -1103,10 +1105,17 @@ class Query(object):
             ``FOR UPDATE`` (standard SQL, supported by most dialects)
 
             ``'update_nowait'`` - passes ``for_update='nowait'``, which
-            translates to ``FOR UPDATE NOWAIT`` (supported by Oracle)
+            translates to ``FOR UPDATE NOWAIT`` (supported by Oracle, 
+            PostgreSQL 8.1 upwards)
 
             ``'read'`` - passes ``for_update='read'``, which translates to
-            ``LOCK IN SHARE MODE`` (supported by MySQL).
+            ``LOCK IN SHARE MODE`` (for MySQL), and ``FOR SHARE`` (for 
+            PostgreSQL)
+
+            ``'read_nowait'`` - passes ``for_update='read_nowait'``, which 
+            translates to ``FOR SHARE NOWAIT`` (supported by PostgreSQL).
+            
+            New in 0.7.7: ``FOR SHARE`` and ``FOR SHARE NOWAIT`` (PostgreSQL)
         """
 
         self._lockmode = mode
@@ -1233,7 +1242,7 @@ class Query(object):
     @_generative(_no_statement_condition, _no_limit_offset)
     def group_by(self, *criterion):
         """apply one or more GROUP BY criterion to the query and return 
-        the newly resulting ``Query``"""
+        the newly resulting :class:`.Query`"""
 
         criterion = list(chain(*[_orm_columns(c) for c in criterion]))
 
@@ -1246,8 +1255,20 @@ class Query(object):
 
     @_generative(_no_statement_condition, _no_limit_offset)
     def having(self, criterion):
-        """apply a HAVING criterion to the query and return the 
-        newly resulting ``Query``."""
+        """apply a HAVING criterion to the query and return the
+        newly resulting :class:`.Query`.
+        
+        :meth:`having` is used in conjunction with :meth:`group_by`.
+ 
+        HAVING criterion makes it possible to use filters on aggregate
+        functions like COUNT, SUM, AVG, MAX, and MIN, eg.::
+ 
+            q = session.query(User.id).\\
+                        join(User.addresses).\\
+                        group_by(User.id).\\
+                        having(func.count(Address.id) > 2)
+ 
+        """
 
         if isinstance(criterion, basestring):
             criterion = sql.text(criterion)
@@ -2057,6 +2078,33 @@ class Query(object):
             else: 
                 self._distinct = criterion 
 
+    @_generative()
+    def prefix_with(self, *prefixes):
+        """Apply the prefixes to the query and return the newly resulting
+        ``Query``.
+
+        :param \*prefixes: optional prefixes, typically strings, 
+        not using any commas.   In particular is useful for MySQL keywords.
+
+        e.g.::
+
+            query = sess.query(User.name).\\
+                prefix_with('HIGH_PRIORITY').\\
+                prefix_with('SQL_SMALL_RESULT', 'ALL')
+
+        Would render::
+
+            SELECT HIGH_PRIORITY SQL_SMALL_RESULT ALL users.name AS users_name 
+            FROM users
+        
+        New in 0.7.7.
+
+        """
+        if self._prefixes:
+            self._prefixes += prefixes
+        else:
+            self._prefixes = prefixes
+
     def all(self):
         """Return the results represented by this ``Query`` as a list.
 
@@ -2468,6 +2516,7 @@ class Query(object):
             'limit':self._limit,
             'offset':self._offset,
             'distinct':self._distinct,
+            'prefixes':self._prefixes,
             'group_by':self._group_by or None,
             'having':self._having
         }
@@ -2807,6 +2856,7 @@ class Query(object):
         if self._lockmode:
             try:
                 for_update = {'read': 'read',
+                              'read_nowait': 'read_nowait',
                               'update': True,
                               'update_nowait': 'nowait',
                               None: False}[self._lockmode]

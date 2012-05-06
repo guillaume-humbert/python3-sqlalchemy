@@ -1139,38 +1139,80 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
 
     def test_for_update(self):
         self.assert_compile(
-                    table1.select(table1.c.myid==7, for_update=True), 
-                    "SELECT mytable.myid, mytable.name, mytable.description "
-                    "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE")
+            table1.select(table1.c.myid==7, for_update=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE")
 
         self.assert_compile(
-                    table1.select(table1.c.myid==7, for_update="nowait"), 
-                    "SELECT mytable.myid, mytable.name, mytable.description "
-                    "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE")
+            table1.select(table1.c.myid==7, for_update=False),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1")
+
+        # not supported by dialect, should just use update
+        self.assert_compile(
+            table1.select(table1.c.myid==7, for_update='nowait'),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE")
+
+        # unknown lock mode
+        self.assert_compile(
+            table1.select(table1.c.myid==7, for_update='unknown_mode'),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE")
+
+        # ----- mysql
 
         self.assert_compile(
-                    table1.select(table1.c.myid==7, for_update="nowait"), 
-                    "SELECT mytable.myid, mytable.name, mytable.description "
-                    "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE NOWAIT", 
-                    dialect=oracle.dialect())
+            table1.select(table1.c.myid==7, for_update=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %s FOR UPDATE",
+            dialect=mysql.dialect())
 
         self.assert_compile(
-                    table1.select(table1.c.myid==7, for_update="read"), 
-                    "SELECT mytable.myid, mytable.name, mytable.description "
-                    "FROM mytable WHERE mytable.myid = %s LOCK IN SHARE MODE", 
-                    dialect=mysql.dialect())
+            table1.select(table1.c.myid==7, for_update="read"),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %s LOCK IN SHARE MODE",
+            dialect=mysql.dialect())
+
+        # ----- oracle
 
         self.assert_compile(
-                    table1.select(table1.c.myid==7, for_update=True), 
-                    "SELECT mytable.myid, mytable.name, mytable.description "
-                    "FROM mytable WHERE mytable.myid = %s FOR UPDATE", 
-                    dialect=mysql.dialect())
+            table1.select(table1.c.myid==7, for_update=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE",
+            dialect=oracle.dialect())
 
         self.assert_compile(
-                    table1.select(table1.c.myid==7, for_update=True), 
-                    "SELECT mytable.myid, mytable.name, mytable.description "
-                    "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE", 
-                    dialect=oracle.dialect())
+            table1.select(table1.c.myid==7, for_update="nowait"),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE NOWAIT",
+            dialect=oracle.dialect())
+
+        # ----- postgresql
+
+        self.assert_compile(
+            table1.select(table1.c.myid==7, for_update=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s FOR UPDATE",
+            dialect=postgresql.dialect())
+
+        self.assert_compile(
+            table1.select(table1.c.myid==7, for_update="nowait"),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s FOR UPDATE NOWAIT",
+            dialect=postgresql.dialect())
+
+        self.assert_compile(
+            table1.select(table1.c.myid==7, for_update="read"),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s FOR SHARE",
+            dialect=postgresql.dialect())
+        
+        self.assert_compile(
+            table1.select(table1.c.myid==7, for_update="read_nowait"),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s FOR SHARE NOWAIT",
+            dialect=postgresql.dialect())
 
     def test_alias(self):
         # test the alias for a table1.  column names stay the same, table name "changes" to "foo".
@@ -2883,6 +2925,19 @@ class CRUDTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(u,
                 "UPDATE mytable SET name=:name "
                 "FROM myothertable WHERE myothertable.otherid = mytable.myid")
+
+        self.assert_compile(u,
+                "UPDATE mytable SET name=:name "
+                "FROM mytable, myothertable WHERE "
+                "myothertable.otherid = mytable.myid",
+                dialect=mssql.dialect())
+
+        self.assert_compile(u.where(table2.c.othername == mt.c.name),
+                "UPDATE mytable SET name=:name "
+                "FROM mytable, myothertable, mytable AS mytable_1 "
+                "WHERE myothertable.otherid = mytable.myid "
+                "AND myothertable.othername = mytable_1.name",
+                dialect=mssql.dialect())
 
     def test_delete(self):
         self.assert_compile(

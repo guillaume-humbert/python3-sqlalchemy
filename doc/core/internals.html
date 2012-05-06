@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -192,7 +192,7 @@ statement against.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> &#8211; a dict of string/object pairs whos values will
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> &#8211; a dict of string/object pairs whose values will
 override bind values compiled in to the
 statement.</td>
 </tr>
@@ -365,7 +365,7 @@ autocommit on/off, etc.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.get_pk_constraint">
 <tt class="descname">get_pk_constraint</tt><big>(</big><em>conn</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.get_pk_constraint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compatiblity method, adapts the result of get_primary_keys()
+<dd><p>Compatibility method, adapts the result of get_primary_keys()
 for those dialects which don&#8217;t implement get_pk_constraint().</p>
 </dd></dl>
 
@@ -1456,7 +1456,7 @@ compiled object, for those values that are present.</p>
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.render_literal_value">
 <tt class="descname">render_literal_value</tt><big>(</big><em>value</em>, <em>type_</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.render_literal_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Render the value of a bind parameter as a quoted literal.</p>
-<p>This is used for statement sections that do not accept bind paramters
+<p>This is used for statement sections that do not accept bind parameters
 on the target driver/database.</p>
 <p>This should be implemented by subclasses using the quoting services
 of the DBAPI.</p>
@@ -1490,7 +1490,7 @@ clauses before the VALUES or WHERE clause (i.e. MSSQL)</p>
 <tt class="descname">update_from_clause</tt><big>(</big><em>update_stmt</em>, <em>from_table</em>, <em>extra_froms</em>, <em>from_hints</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.update_from_clause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a hook to override the generation of an 
 UPDATE..FROM clause.</p>
-<p>MySQL overrides this.</p>
+<p>MySQL and MSSQL override this.</p>
 </dd></dl>
 
 <dl class="method">

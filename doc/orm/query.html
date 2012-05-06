@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -612,14 +612,22 @@ to the elements present in this collection.</td>
 <dt id="sqlalchemy.orm.query.Query.group_by">
 <tt class="descname">group_by</tt><big>(</big><em>*criterion</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.group_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>apply one or more GROUP BY criterion to the query and return 
-the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt></p>
+the newly resulting <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.having">
 <tt class="descname">having</tt><big>(</big><em>criterion</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.having" title="Permalink to this definition">¶</a></dt>
-<dd><p>apply a HAVING criterion to the query and return the 
-newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<dd><p>apply a HAVING criterion to the query and return the
+newly resulting <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</p>
+<p><tt class="xref py py-meth docutils literal"><span class="pre">having()</span></tt> is used in conjunction with <tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt>.</p>
+<p>HAVING criterion makes it possible to use filters on aggregate
+functions like COUNT, SUM, AVG, MAX, and MIN, eg.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span>\
+            <span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span><span class="o">.</span>\
+            <span class="n">group_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span>\
+            <span class="n">having</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span></pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -894,7 +902,7 @@ to a scalar subquery with a label of the given name.</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.orm.query.Query.logger">
-<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x104e03650&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x1045e6190&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -997,6 +1005,32 @@ the ORM is used normally - the <a class="reference internal" href="session.html#
 behavior of maintaining a transaction and expiring all attributes
 after rollback or commit handles object state automatically.
 This method is not intended for general use.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.prefix_with">
+<tt class="descname">prefix_with</tt><big>(</big><em>*prefixes</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.prefix_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the prefixes to the query and return the newly resulting
+<tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>*prefixes</strong> &#8211; optional prefixes, typically strings,</td>
+</tr>
+</tbody>
+</table>
+<p>not using any commas.   In particular is useful for MySQL keywords.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span>\
+    <span class="n">prefix_with</span><span class="p">(</span><span class="s">&#39;HIGH_PRIORITY&#39;</span><span class="p">)</span><span class="o">.</span>\
+    <span class="n">prefix_with</span><span class="p">(</span><span class="s">&#39;SQL_SMALL_RESULT&#39;</span><span class="p">,</span> <span class="s">&#39;ALL&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>Would render:</p>
+<div class="highlight-python"><pre>SELECT HIGH_PRIORITY SQL_SMALL_RESULT ALL users.name AS users_name 
+FROM users</pre>
+</div>
+<p>New in 0.7.7.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1259,9 +1293,14 @@ executed. Valid values are:</p>
 <p><tt class="docutils literal"><span class="pre">'update'</span></tt> - passes <tt class="docutils literal"><span class="pre">for_update=True</span></tt>, which translates to
 <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> (standard SQL, supported by most dialects)</p>
 <p><tt class="docutils literal"><span class="pre">'update_nowait'</span></tt> - passes <tt class="docutils literal"><span class="pre">for_update='nowait'</span></tt>, which
-translates to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt> (supported by Oracle)</p>
+translates to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt> (supported by Oracle, 
+PostgreSQL 8.1 upwards)</p>
 <p><tt class="docutils literal"><span class="pre">'read'</span></tt> - passes <tt class="docutils literal"><span class="pre">for_update='read'</span></tt>, which translates to
-<tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt> (supported by MySQL).</p>
+<tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt> (for MySQL), and <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> (for 
+PostgreSQL)</p>
+<p><tt class="docutils literal"><span class="pre">'read_nowait'</span></tt> - passes <tt class="docutils literal"><span class="pre">for_update='read_nowait'</span></tt>, which 
+translates to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt> (supported by PostgreSQL).</p>
+<p>New in 0.7.7: <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> and <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt> (PostgreSQL)</p>
 </td>
 </tr>
 </tbody>
@@ -1427,7 +1466,7 @@ selectable such as one that uses aggregate functions:</p>
 <span class="n">aggregated_unit_price</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
                             <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">UnitPrice</span><span class="o">.</span><span class="n">price</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;price&#39;</span><span class="p">)</span>
                         <span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">UnitPrice</span><span class="o">.</span><span class="n">unit_id</span><span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span>
-                        
+
 <span class="n">aggregated_unit_price</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">UnitPrice</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="n">aggregated_unit_price</span><span class="p">,</span> <span class="n">adapt_on_names</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <p>Above, functions on <tt class="docutils literal"><span class="pre">aggregated_unit_price</span></tt> which
