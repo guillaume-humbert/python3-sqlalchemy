@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -353,7 +353,7 @@ by the mapper and are effectively &#8220;read-only&#8221; attributes.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>*cols</strong> &#8211; list of Column objects to be mapped.</li>
-<li><strong>active_history=False</strong> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
+<li><strong>active_history=False</strong> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
 scalar attribute should be loaded when replaced, if not
 already loaded. Normally, history tracking logic for
 simple non-primary-key scalar values only needs to be
@@ -361,7 +361,10 @@ aware of the &#8220;new&#8221; value in order to perform a flush. This
 flag is available for applications that make use of
 <a class="reference internal" href="session.html#sqlalchemy.orm.attributes.get_history" title="sqlalchemy.orm.attributes.get_history"><tt class="xref py py-func docutils literal"><span class="pre">attributes.get_history()</span></tt></a> or <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.is_modified" title="sqlalchemy.orm.session.Session.is_modified"><tt class="xref py py-meth docutils literal"><span class="pre">Session.is_modified()</span></tt></a>
 which also need to know
-the &#8220;previous&#8221; value of the attribute. (new in 0.6.6)</li>
+the &#8220;previous&#8221; value of the attribute.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.6.6.</span></p>
+</li>
 <li><strong>comparator_factory</strong> &#8211; a class which extends
 <tt class="xref py py-class docutils literal"><span class="pre">ColumnProperty.Comparator</span></tt> which provides custom SQL clause
 generation for comparison operations.</li>
@@ -372,7 +375,7 @@ attribute is first accessed on an instance.  See also
 <a class="reference internal" href="#sqlalchemy.orm.deferred" title="sqlalchemy.orm.deferred"><tt class="xref py py-func docutils literal"><span class="pre">deferred()</span></tt></a>.</li>
 <li><strong>doc</strong> &#8211; optional string that will be applied as the doc on the
 class-bound descriptor.</li>
-<li><strong>expire_on_flush=True</strong> &#8211; Disable expiry on flush.   A column_property() which refers
+<li><strong>expire_on_flush=True</strong> &#8211; <p>Disable expiry on flush.   A column_property() which refers
 to a SQL expression (and not a single table-bound column)
 is considered to be a &#8220;read only&#8221; property; populating it
 has no effect on the state of data, and it can only return
@@ -383,10 +386,12 @@ Setting this parameter to <tt class="docutils literal"><span class="pre">False</
 leaving any existing value present after the flush proceeds.
 Note however that the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> with default expiration
 settings still expires 
-all attributes after a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a> call, however.
-New in 0.7.3.</li>
+all attributes after a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a> call, however.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.3.</span></p>
+</li>
 <li><strong>extension</strong> &#8211; an
-<a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a>
+<a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a>
 instance, or list of extensions, which will be prepended
 to the list of attribute listeners for the resulting
 descriptor placed on the class. 
@@ -875,9 +880,12 @@ condition which is not supported.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>*names</strong> &#8211; list of attribute names to be validated.</li>
-<li><strong>include_removes</strong> &#8211; if True, &#8220;remove&#8221; events will be 
+<li><strong>include_removes</strong> &#8211; <p>if True, &#8220;remove&#8221; events will be 
 sent as well - the validation function must accept an additional
-argument &#8220;is_remove&#8221; which will be a boolean.  New in 0.7.7.</li>
+argument &#8220;is_remove&#8221; which will be a boolean.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.7.</span></p>
+</li>
 </ul>
 </td>
 </tr>
@@ -1003,17 +1011,17 @@ WHERE substr(address.email, ?, length(address.email) - ?) = ?
 <div class="section" id="id2">
 <h3>Synonyms<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>Synonyms are a mapper-level construct that applies expression behavior to a descriptor
-based attribute.  The functionality of synonym is superceded as of 0.7 by hybrid attributes.</p>
+based attribute.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span>The functionality of synonym is superceded as of 0.7 by hybrid attributes.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.synonym">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">synonym</tt><big>(</big><em>name</em>, <em>map_column=False</em>, <em>descriptor=None</em>, <em>comparator_factory=None</em>, <em>doc=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.synonym" title="Permalink to this definition">¶</a></dt>
 <dd><p>Denote an attribute name as a synonym to a mapped property.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><a class="reference internal" href="#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a> is superseded as of 0.7 by 
-the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See 
-the documentation for hybrids at <a class="reference internal" href="extensions/hybrid.html"><em>Hybrid Attributes</em></a>.</p>
-</div>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span><a class="reference internal" href="#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a> is superseded by the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a>
+extension.  See  the documentation for hybrids
+at <a class="reference internal" href="extensions/hybrid.html"><em>Hybrid Attributes</em></a>.</p>
 <p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to
 <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -1099,12 +1107,10 @@ or aliasing that has been applied in the context of the generated SQL statement.
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">comparable_property</tt><big>(</big><em>comparator_factory</em>, <em>descriptor=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.comparable_property" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provides a method of applying a <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> 
 to any Python descriptor attribute.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><a class="reference internal" href="#sqlalchemy.orm.comparable_property" title="sqlalchemy.orm.comparable_property"><tt class="xref py py-func docutils literal"><span class="pre">comparable_property()</span></tt></a> is superseded as of 0.7 by 
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span><a class="reference internal" href="#sqlalchemy.orm.comparable_property" title="sqlalchemy.orm.comparable_property"><tt class="xref py py-func docutils literal"><span class="pre">comparable_property()</span></tt></a> is superseded by
 the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See the example 
 at <a class="reference internal" href="extensions/hybrid.html#hybrid-custom-comparators"><em>Building Custom Comparators</em></a>.</p>
-</div>
 <p>Allows any Python descriptor to behave like a SQL-enabled 
 attribute when used at the class level in queries, allowing
 redefinition of expression operator behavior.</p>
@@ -1168,13 +1174,11 @@ mapped class if left blank in a <tt class="docutils literal"><span class="pre">p
 <p>Sets of columns can be associated with a single user-defined datatype. The ORM
 provides a single attribute which represents the group of columns using the
 class you provide.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">As of SQLAlchemy 0.7, composites have been simplified such that
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span>Composites have been simplified such that
 they no longer &#8220;conceal&#8221; the underlying column based attributes.  Additionally,
 in-place mutation is no longer automatic; see the section below on
 enabling mutability to support tracking of in-place changes.</p>
-</div>
 <p>A simple example represents pairs of columns as a <tt class="docutils literal"><span class="pre">Point</span></tt> object.
 <tt class="docutils literal"><span class="pre">Point</span></tt> represents such a pair as <tt class="docutils literal"><span class="pre">.x</span></tt> and <tt class="docutils literal"><span class="pre">.y</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Point</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -1263,11 +1267,13 @@ usage example.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>class_</strong> &#8211; The &#8220;composite type&#8221; class.</li>
 <li><strong>*cols</strong> &#8211; List of Column objects to be mapped.</li>
-<li><strong>active_history=False</strong> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
+<li><strong>active_history=False</strong> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
 scalar attribute should be loaded when replaced, if not
-already loaded.  See the same flag on <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>.
-(This flag becomes meaningful specifically for 
-<a class="reference internal" href="#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a> in 0.7 - previously it was a placeholder).</li>
+already loaded.  See the same flag on <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span>This flag specifically becomes meaningful
+- previously it was a placeholder.</p>
+</li>
 <li><strong>group</strong> &#8211; A group name for this property when marked as deferred.</li>
 <li><strong>deferred</strong> &#8211; When True, the column property is &#8220;deferred&#8221;, meaning that it does not
 load immediately, and is instead loaded when the attribute is first
@@ -1277,7 +1283,7 @@ accessed on an instance.  See also <a class="reference internal" href="#sqlalche
 generation for comparison operations.</li>
 <li><strong>doc</strong> &#8211; optional string that will be applied as the doc on the
 class-bound descriptor.</li>
-<li><strong>extension</strong> &#8211; an <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance,
+<li><strong>extension</strong> &#8211; an <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance,
 or list of extensions, which will be prepended to the list of
 attribute listeners for the resulting descriptor placed on the class.
 <strong>Deprecated.</strong>  Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</li>
@@ -1290,12 +1296,14 @@ attribute listeners for the resulting descriptor placed on the class.
 
 <div class="section" id="tracking-in-place-mutations-on-composites">
 <h3>Tracking In-Place Mutations on Composites<a class="headerlink" href="#tracking-in-place-mutations-on-composites" title="Permalink to this headline">¶</a></h3>
-<p>As of SQLAlchemy 0.7, in-place changes to an existing composite value are
+<p>In-place changes to an existing composite value are
 not tracked automatically.  Instead, the composite class needs to provide
 events to its parent object explicitly.   This task is largely automated
 via the usage of the <a class="reference internal" href="extensions/mutable.html#sqlalchemy.ext.mutable.MutableComposite" title="sqlalchemy.ext.mutable.MutableComposite"><tt class="xref py py-class docutils literal"><span class="pre">MutableComposite</span></tt></a> mixin, which uses events
 to associate each user-defined composite object with all parent associations.
 Please see the example in <a class="reference internal" href="extensions/mutable.html#mutable-composites"><em>Establishing Mutability on Composites</em></a>.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span>No automatic tracking of in-place changes to an existing composite value.</p>
 </div>
 <div class="section" id="redefining-comparison-operations-for-composites">
 <h3>Redefining Comparison Operations for Composites<a class="headerlink" href="#redefining-comparison-operations-for-composites" title="Permalink to this headline">¶</a></h3>
@@ -1607,8 +1615,8 @@ table inheritance with its parent mapper.</p>
 be excluded from mapping.</p>
 <p>See <a class="reference internal" href="#include-exclude-cols"><em>Mapping a Subset of Table Columns</em></a> for an example.</p>
 </li>
-<li><strong>extension</strong> &#8211; A <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a> instance or
-list of <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a>
+<li><strong>extension</strong> &#8211; A <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a> instance or
+list of <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a>
 instances which will be applied to all operations by this
 <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a>.  <strong>Deprecated.</strong>  Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.MapperEvents" title="sqlalchemy.orm.events.MapperEvents"><tt class="xref py py-class docutils literal"><span class="pre">MapperEvents</span></tt></a>.</li>
 <li><strong>include_properties</strong> &#8211; <p>An inclusive list or set of string column
@@ -1676,7 +1684,7 @@ present in the mapped <a class="reference internal" href="../core/schema.html#sq
         <span class="s">&quot;polymorphic_identity&quot;</span><span class="p">:</span><span class="s">&quot;employee&quot;</span>
     <span class="p">}</span></pre></div>
 </div>
-<p>As of SQLAlchemy 0.7.4, it may also be specified
+<p>It may also be specified
 as a SQL expression, as in this example where we 
 use the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.case" title="sqlalchemy.sql.expression.case"><tt class="xref py py-func docutils literal"><span class="pre">case()</span></tt></a> construct to provide a conditional
 approach:</p>
@@ -1694,7 +1702,7 @@ approach:</p>
         <span class="s">&quot;polymorphic_identity&quot;</span><span class="p">:</span><span class="s">&quot;employee&quot;</span>
     <span class="p">}</span></pre></div>
 </div>
-<p>Also as of 0.7.4, it may also refer to any attribute 
+<p>It may also refer to any attribute 
 configured with <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>, or to the
 string name of one:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -1714,6 +1722,10 @@ string name of one:</p>
         <span class="s">&quot;polymorphic_identity&quot;</span><span class="p">:</span><span class="s">&quot;employee&quot;</span>
     <span class="p">}</span></pre></div>
 </div>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7.4: </span><tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> may be specified as a SQL expression,
+or refer to any attribute configured with
+<a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>, or to the string name of one.</p>
 <p>When setting <tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> to reference an
 attribute or expression that&#8217;s not present in the
 locally mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, yet the value 
@@ -2320,7 +2332,7 @@ mapped to the actual validation method.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

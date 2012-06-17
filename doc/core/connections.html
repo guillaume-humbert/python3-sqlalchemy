@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -771,7 +771,7 @@ setting is not removed until the underlying DBAPI connection
 is returned to the connection pool, i.e.
 the <a class="reference internal" href="#sqlalchemy.engine.base.Connection.close" title="sqlalchemy.engine.base.Connection.close"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.close()</span></tt></a> method is called.</p>
 </li>
-<li><strong>no_parameters</strong> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, if the final parameter 
+<li><strong>no_parameters</strong> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, if the final parameter 
 list or dictionary is totally empty, will invoke the 
 statement on the cursor as <tt class="docutils literal"><span class="pre">cursor.execute(statement)</span></tt>,
 not passing the parameter collection at all.
@@ -781,7 +781,10 @@ present; this option allows code to generate SQL
 containing percent signs (and possibly other characters)
 that is neutral regarding whether it&#8217;s executed by the DBAPI
 or piped into a script that&#8217;s later invoked by 
-command line tools.  New in 0.7.6.</li>
+command line tools.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.6.</span></p>
+</li>
 <li><strong>stream_results</strong> &#8211; Available on: Connection, statement.
 Indicate to the dialect that results should be 
 &#8220;streamed&#8221; and not pre-buffered, if possible.  This is a limitation
@@ -1000,7 +1003,8 @@ is in &#8220;single use&#8221; mode, where the <a class="reference internal" hre
 returned by the first call to <a class="reference internal" href="#sqlalchemy.engine.base.Connection.execute" title="sqlalchemy.engine.base.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execute()</span></tt></a> will
 close the <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> when that <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a>
 has exhausted all result rows.</p>
-<p>New in 0.7.6.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.6.</span></p>
 <p>See also:</p>
 <p><a class="reference internal" href="#sqlalchemy.engine.base.Engine.connect" title="sqlalchemy.engine.base.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a> - procure a <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> from
 an <a class="reference internal" href="#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
@@ -1422,17 +1426,38 @@ regardless of database backend.</p>
 <dt id="sqlalchemy.engine.base.ResultProxy.rowcount">
 <tt class="descname">rowcount</tt><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.rowcount" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the &#8216;rowcount&#8217; for this result.</p>
-<p>The &#8216;rowcount&#8217; reports the number of rows affected
-by an UPDATE or DELETE statement.  It has <em>no</em> other
-uses and is not intended to provide the number of rows
-present from a SELECT.</p>
-<p>Note that this row count may not be properly implemented in some
-dialects; this is indicated by
-<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount" title="sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount"><tt class="xref py py-meth docutils literal"><span class="pre">supports_sane_rowcount()</span></tt></a>
-and
-<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount" title="sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount"><tt class="xref py py-meth docutils literal"><span class="pre">supports_sane_multi_rowcount()</span></tt></a>.
-<tt class="docutils literal"><span class="pre">rowcount()</span></tt> also may not work at this time for a statement that
-uses <tt class="docutils literal"><span class="pre">returning()</span></tt>.</p>
+<p>The &#8216;rowcount&#8217; reports the number of rows <em>matched</em>
+by the WHERE criterion of an UPDATE or DELETE statement.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Notes regarding <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.rowcount" title="sqlalchemy.engine.base.ResultProxy.rowcount"><tt class="xref py py-attr docutils literal"><span class="pre">ResultProxy.rowcount</span></tt></a>:</p>
+<ul class="last simple">
+<li>This attribute returns the number of rows <em>matched</em>,
+which is not necessarily the same as the number of rows
+that were actually <em>modified</em> - an UPDATE statement, for example,
+may have no net change on a given row if the SET values
+given are the same as those present in the row already.
+Such a row would be matched but not modified.
+On backends that feature both styles, such as MySQL, 
+rowcount is configured by default to return the match 
+count in all cases.</li>
+<li><a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.rowcount" title="sqlalchemy.engine.base.ResultProxy.rowcount"><tt class="xref py py-attr docutils literal"><span class="pre">ResultProxy.rowcount</span></tt></a> is <em>only</em> useful in conjunction
+with an UPDATE or DELETE statement.  Contrary to what the Python
+DBAPI says, it does <em>not</em> return the
+number of rows available from the results of a SELECT statement
+as DBAPIs cannot support this functionality when rows are 
+unbuffered.</li>
+<li><a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.rowcount" title="sqlalchemy.engine.base.ResultProxy.rowcount"><tt class="xref py py-attr docutils literal"><span class="pre">ResultProxy.rowcount</span></tt></a> may not be fully implemented by
+all dialects.  In particular, most DBAPIs do not support an
+aggregate rowcount result from an executemany call.
+The <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount" title="sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount"><tt class="xref py py-meth docutils literal"><span class="pre">ResultProxy.supports_sane_rowcount()</span></tt></a> and 
+<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount" title="sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount"><tt class="xref py py-meth docutils literal"><span class="pre">ResultProxy.supports_sane_multi_rowcount()</span></tt></a> methods
+will report from the dialect if each usage is known to be
+supported.</li>
+<li>Statements that use RETURNING may not return a correct
+rowcount.</li>
+</ul>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1446,12 +1471,14 @@ uses <tt class="docutils literal"><span class="pre">returning()</span></tt>.</p>
 <dt id="sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount">
 <tt class="descname">supports_sane_multi_rowcount</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_multi_rowcount" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <tt class="docutils literal"><span class="pre">supports_sane_multi_rowcount</span></tt> from the dialect.</p>
+<p>See <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.rowcount" title="sqlalchemy.engine.base.ResultProxy.rowcount"><tt class="xref py py-attr docutils literal"><span class="pre">ResultProxy.rowcount</span></tt></a> for background.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount">
 <tt class="descname">supports_sane_rowcount</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.supports_sane_rowcount" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <tt class="docutils literal"><span class="pre">supports_sane_rowcount</span></tt> from the dialect.</p>
+<p>See <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.rowcount" title="sqlalchemy.engine.base.ResultProxy.rowcount"><tt class="xref py py-attr docutils literal"><span class="pre">ResultProxy.rowcount</span></tt></a> for background.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1569,7 +1596,7 @@ with the addition of the <a class="reference internal" href="#sqlalchemy.engine.
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

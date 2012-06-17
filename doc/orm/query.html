@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -202,7 +202,8 @@ to be returned.</p>
 <dd><p>Return the full SELECT statement represented by this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, converted 
 to a scalar subquery.</p>
 <p>Analogous to <tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql._SelectBaseMixin.as_scalar()</span></tt>.</p>
-<p>New in 0.6.5.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.6.5.</span></p>
 </dd></dl>
 
 <dl class="method">
@@ -278,8 +279,8 @@ embedded in another <a class="reference internal" href="../core/expression_api.h
     SELECT &lt;rest of query follows...&gt;
 ) AS anon_1</pre>
 </div>
-<p>Note the above scheme is newly refined in 0.7 
-(as of 0.7b3).</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span>The above scheme is newly refined as of 0.7b3.</p>
 <p>For fine grained control over specific columns 
 to count, to skip the usage of a subquery or
 otherwise control of the FROM clause,
@@ -309,7 +310,8 @@ with <a class="reference internal" href="session.html#sqlalchemy.orm.session.Ses
 <tt class="descname">cte</tt><big>(</big><em>name=None</em>, <em>recursive=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.cte" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the full SELECT statement represented by this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>
 represented as a common table expression (CTE).</p>
-<p>The <a class="reference internal" href="#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">Query.cte()</span></tt></a> method is new in 0.7.6.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.6.</span></p>
 <p>Parameters and usage are the same as those of the 
 <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression._SelectBase.cte" title="sqlalchemy.sql.expression._SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">_SelectBase.cte()</span></tt></a> method; see that method for 
 further details.</p>
@@ -486,13 +488,15 @@ of this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;some name&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>Multiple criteria are joined together by AND (new in 0.7.5):</p>
+<p>Multiple criteria are joined together by AND:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span>\
     <span class="nb">filter</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;some name&#39;</span><span class="p">,</span> <span class="n">MyClass</span><span class="o">.</span><span class="n">id</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">)</span></pre></div>
 </div>
 <p>The criterion is any SQL expression object applicable to the 
 WHERE clause of a select.   String expressions are coerced
 into SQL expression constructs via the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7.5: </span>Multiple criteria joined by AND.</p>
 <p>See also:</p>
 <p><a class="reference internal" href="#sqlalchemy.orm.query.Query.filter_by" title="sqlalchemy.orm.query.Query.filter_by"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter_by()</span></tt></a> - filter on keyword expressions.</p>
 </dd></dl>
@@ -744,18 +748,15 @@ when using the two-argument form, which should refer to the target
 entity in some way as well as an applicable source entity:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>In SQLAlchemy 0.6 and earlier, the two argument form of 
-<a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> requires the usage of a tuple:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">Address</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">))</span></pre></div>
-</div>
-<p class="last">This calling form is accepted in 0.7 and further, though
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span>In SQLAlchemy 0.6 and earlier, the two argument form of 
+<a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> requires the usage of a tuple:
+<tt class="docutils literal"><span class="pre">query(User).join((Address,</span> <span class="pre">User.id==Address.user_id))</span></tt>.
+This calling form is accepted in 0.7 and further, though
 is not necessary unless multiple join conditions are passed to
 a single <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> call, which itself is also not
 generally necessary as it is now equivalent to multiple
 calls (this wasn&#8217;t always the case).</p>
-</div>
 <p><strong>Advanced Join Targeting and Adaption</strong></p>
 <p>There is a lot of flexibility in what the &#8220;target&#8221; can be when using 
 <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a>.   As noted previously, it also accepts 
@@ -890,7 +891,8 @@ SQLAlchemy versions was the primary ORM-level joining interface.</p>
 <dd><p>Return the full SELECT statement represented by this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, converted 
 to a scalar subquery with a label of the given name.</p>
 <p>Analogous to <tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql._SelectBaseMixin.label()</span></tt>.</p>
-<p>New in 0.6.5.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.6.5.</span></p>
 </dd></dl>
 
 <dl class="method">
@@ -902,7 +904,7 @@ to a scalar subquery with a label of the given name.</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.orm.query.Query.logger">
-<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x1045e6190&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x1035cb4d0&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -945,8 +947,9 @@ identities.</p>
 more mapped classes as opposed to individual column attributes,
 may ultimately represent many rows but only one row of 
 unique entity or entities - this is a successful result for one().</p>
-<p>Calling <tt class="docutils literal"><span class="pre">one()</span></tt> results in an execution of the underlying query.
-As of 0.6, <tt class="docutils literal"><span class="pre">one()</span></tt> fully fetches all results instead of applying 
+<p>Calling <tt class="docutils literal"><span class="pre">one()</span></tt> results in an execution of the underlying query.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.6: </span><tt class="docutils literal"><span class="pre">one()</span></tt> fully fetches all results instead of applying 
 any kind of limit, so that the &#8220;unique&#8221;-ing of entities does not 
 conceal multiple object identities.</p>
 </dd></dl>
@@ -1030,7 +1033,8 @@ This method is not intended for general use.</p>
 <div class="highlight-python"><pre>SELECT HIGH_PRIORITY SQL_SMALL_RESULT ALL users.name AS users_name 
 FROM users</pre>
 </div>
-<p>New in 0.7.7.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.7.</span></p>
 </dd></dl>
 
 <dl class="method">
@@ -1250,7 +1254,8 @@ entities.</p>
 <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">subq</span><span class="p">,</span> <span class="n">subq</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">email</span> <span class="o">&lt;</span> <span class="n">Address</span><span class="o">.</span><span class="n">email</span><span class="p">))</span><span class="o">.</span>\
             <span class="n">limit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></pre></div>
 </div>
-<p>New in 0.6.5.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.6.5.</span></p>
 </dd></dl>
 
 <dl class="method">
@@ -1300,7 +1305,8 @@ PostgreSQL 8.1 upwards)</p>
 PostgreSQL)</p>
 <p><tt class="docutils literal"><span class="pre">'read_nowait'</span></tt> - passes <tt class="docutils literal"><span class="pre">for_update='read_nowait'</span></tt>, which 
 translates to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt> (supported by PostgreSQL).</p>
-<p>New in 0.7.7: <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> and <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt> (PostgreSQL)</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.7: </span><tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> and <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt> (PostgreSQL).</p>
 </td>
 </tr>
 </tbody>
@@ -1381,7 +1387,8 @@ the given function.</p>
 </div>
 <p>This allows ad-hoc recipes to be created for <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>
 objects.  See the example at <a class="reference internal" href="extensions/hybrid.html#hybrid-transformers"><em>Building Transformers</em></a>.</p>
-<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.with_transformation" title="sqlalchemy.orm.query.Query.with_transformation"><tt class="xref py py-meth docutils literal"><span class="pre">with_transformation()</span></tt></a> is new in SQLAlchemy 0.7.4.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.4.</span></p>
 </dd></dl>
 
 <dl class="method">
@@ -1475,7 +1482,8 @@ refer to <tt class="docutils literal"><span class="pre">.price</span></tt> will 
 as it is matched on the name &#8220;price&#8221;.  Ordinarily, the &#8220;price&#8221; function wouldn&#8217;t
 have any &#8220;column correspondence&#8221; to the actual <tt class="docutils literal"><span class="pre">UnitPrice.price</span></tt> column
 as it is not a proxy of the original.</p>
-<p><tt class="docutils literal"><span class="pre">adapt_on_names</span></tt> is new in 0.7.3.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.3.</span></p>
 </li>
 </ul>
 </td>
@@ -1541,7 +1549,8 @@ would fire off from the given parent on that attribute, meaning
 that the appropriate state is taken from the parent object in 
 Python without the need to render joins to the parent table
 in the rendered statement.</p>
-<p>As of 0.6.4, this method accepts parent instances in all 
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.6.4: </span>This method accepts parent instances in all 
 persistence states, including transient, persistent, and detached.
 Only the requisite primary key/foreign key attributes need to
 be populated.  Previous versions didn&#8217;t work with transient
@@ -1577,7 +1586,7 @@ parent/child relationship.</li>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

@@ -3,6 +3,85 @@
 =======
 CHANGES
 =======
+0.7.8
+=====
+- orm
+  - [bug] Fixed bug whereby subqueryload() from 
+    a polymorphic mapping to a target would incur
+    a new invocation of the query for each 
+    distinct class encountered in the polymorphic
+    result.  [ticket:2480]
+
+  - [bug] Fixed bug in declarative 
+    whereby the precedence of columns 
+    in a joined-table, composite
+    column (typically for id) would fail to
+    be correct if the columns contained
+    names distinct from their attribute 
+    names.  This would cause things like
+    primaryjoin conditions made against the
+    entity attributes to be incorrect.  Related
+    to [ticket:1892] as this was supposed
+    to be part of that, this is [ticket:2491].
+
+  - [feature] The 'objects' argument to 
+    flush() is no longer deprecated, as some
+    valid use cases have been identified.  
+
+  - [bug] Fixed identity_key() function which 
+    was not accepting a scalar argument 
+    for the identity.  [ticket:2508].
+
+  - [bug] Fixed bug whereby populate_existing
+    option would not propagate to subquery
+    eager loaders.  [ticket:2497].
+
+- sql
+  - [bug] added BIGINT to types.__all__,
+    BIGINT, BINARY, VARBINARY to sqlalchemy
+    module namespace, plus test to ensure
+    this breakage doesn't occur again.
+    [ticket:2499]
+
+  - [bug] Repaired common table expression
+    rendering to function correctly when the 
+    SELECT statement contains UNION or other
+    compound expressions, courtesy btbuilder.  
+    [ticket:2490]
+
+  - [bug] Fixed bug whereby append_column()
+    wouldn't function correctly on a cloned
+    select() construct, courtesy 
+    Gunnlaugur Þór Briem.  [ticket:2482]
+
+- engine
+  - [bug] Fixed memory leak in C version of
+    result proxy whereby DBAPIs which don't deliver
+    pure Python tuples for result rows would
+    fail to decrement refcounts correctly.
+    The most prominently affected DBAPI
+    is pyodbc.  [ticket:2489]
+
+  - [bug] Fixed bug affecting Py3K whereby
+    string positional parameters passed to 
+    engine/connection execute() would fail to be
+    interpreted correctly, due to __iter__
+    being present on Py3K string.  
+    [ticket:2503].
+
+- postgresql
+  - [bug] removed unnecessary table clause when
+    reflecting enums, [ticket:2510].  Courtesy
+    Gunnlaugur Þór Briem.
+
+- oracle
+  - [bug] Added ROWID to oracle.*, [ticket:2483]
+
+- mysql
+  - [feature] Added a new dialect for Google App
+    Engine.  Courtesy Richie Foreman. [ticket:2484]
+
+
 0.7.7
 =====
 - orm

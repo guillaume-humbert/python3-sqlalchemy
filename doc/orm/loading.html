@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -266,10 +266,8 @@ loading</strong>; these are described in <a class="reference internal" href="col
 </div>
 <div class="section" id="default-loading-strategies">
 <h2>Default Loading Strategies<a class="headerlink" href="#default-loading-strategies" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Default loader strategies are a new feature as of version 0.7.5.</p>
-</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.5: </span>Default loader strategies as a new feature.</p>
 <p>Each of <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">lazyload()</span></tt></a>,
 and <a class="reference internal" href="#sqlalchemy.orm.noload" title="sqlalchemy.orm.noload"><tt class="xref py py-func docutils literal"><span class="pre">noload()</span></tt></a> can be used to set the default style of
 <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> loading
@@ -649,7 +647,8 @@ object is already present in the <a class="reference internal" href="session.htm
 no SELECT statement will be emitted.</p>
 <p>Used with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>See also:  <a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">lazyload()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a></p>
-<p>New as of verison 0.6.5.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.6.5.</span></p>
 </dd></dl>
 
 <dl class="function">
@@ -657,13 +656,11 @@ no SELECT statement will be emitted.</p>
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">joinedload</tt><big>(</big><em>*keys</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.joinedload" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
 name or series of mapped attributes into an joined eager load.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This function is known as <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a> in all versions
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.6beta3: </span>This function is known as <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a> in all versions
 of SQLAlchemy prior to version 0.6beta3, including the 0.5 and 0.4
 series. <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a> will remain available for the foreseeable
 future in order to enable cross-compatibility.</p>
-</div>
 <p>Used with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>examples:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># joined-load the &quot;orders&quot; collection on &quot;User&quot;</span>
@@ -706,13 +703,11 @@ explicit JOIN for filtering/ordering and eager loading simultaneously.</p>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the
 given dot-separated path or series of mapped attributes 
 into an joined eager load.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This function is known as <a class="reference internal" href="#sqlalchemy.orm.eagerload_all" title="sqlalchemy.orm.eagerload_all"><tt class="xref py py-func docutils literal"><span class="pre">eagerload_all()</span></tt></a> in all versions
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.6beta3: </span>This function is known as <a class="reference internal" href="#sqlalchemy.orm.eagerload_all" title="sqlalchemy.orm.eagerload_all"><tt class="xref py py-func docutils literal"><span class="pre">eagerload_all()</span></tt></a> in all versions
 of SQLAlchemy prior to version 0.6beta3, including the 0.5 and 0.4
 series. <a class="reference internal" href="#sqlalchemy.orm.eagerload_all" title="sqlalchemy.orm.eagerload_all"><tt class="xref py py-func docutils literal"><span class="pre">eagerload_all()</span></tt></a> will remain available for the
 foreseeable future in order to enable cross-compatibility.</p>
-</div>
 <p>Used with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>For example:</p>
 <div class="highlight-python"><pre>query.options(joinedload_all('orders.items.keywords'))...</pre>
@@ -806,7 +801,7 @@ load in one subquery eager load.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

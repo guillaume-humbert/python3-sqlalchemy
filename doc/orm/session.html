@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -1966,7 +1966,7 @@ instances will be fully expired after each <tt class="docutils literal"><span cl
 attribute/object access subsequent to a completed transaction will load
 from the most recent database state.</li>
 <li><strong>extension</strong> &#8211; An optional 
-<a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.SessionExtension" title="sqlalchemy.orm.interfaces.SessionExtension"><tt class="xref py py-class docutils literal"><span class="pre">SessionExtension</span></tt></a> instance, or a list
+<a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.SessionExtension" title="sqlalchemy.orm.interfaces.SessionExtension"><tt class="xref py py-class docutils literal"><span class="pre">SessionExtension</span></tt></a> instance, or a list
 of such instances, which will receive pre- and post- commit and flush
 events, as well as a post-rollback event. <strong>Deprecated.</strong>
 Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.SessionEvents" title="sqlalchemy.orm.events.SessionEvents"><tt class="xref py py-class docutils literal"><span class="pre">SessionEvents</span></tt></a>.</li>
@@ -2324,13 +2324,19 @@ changes from Python to the database&#8217;s transaction buffer.</p>
 <p>For <tt class="docutils literal"><span class="pre">autocommit</span></tt> Sessions with no active manual transaction, flush()
 will create a transaction on the fly that surrounds the entire set of
 operations int the flush.</p>
-<dl class="docutils">
-<dt>objects</dt>
-<dd>Optional; a list or tuple collection.  Restricts the flush operation
-to only these objects, rather than all pending changes.
-Deprecated - this flag prevents the session from properly maintaining
-accounting among inter-object relations and can cause invalid results.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>objects</strong> &#8211; <p>Optional; restricts the flush operation to operate 
+only on elements that are in the given collection.</p>
+<p>This feature is for an extremely narrow set of use cases where
+particular objects may need to be operated upon before the 
+full flush() occurs.  It is not intended for general use.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2430,9 +2436,8 @@ each attribute&#8217;s net &#8220;dirty&#8221; status is performed.</p>
 <p>E.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="n">is_modified</span><span class="p">(</span><span class="n">someobject</span><span class="p">,</span> <span class="n">passive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">In SQLAlchemy 0.7 and earlier, the <tt class="docutils literal"><span class="pre">passive</span></tt> 
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>In SQLAlchemy 0.7 and earlier, the <tt class="docutils literal"><span class="pre">passive</span></tt> 
 flag should <strong>always</strong> be explicitly set to <tt class="docutils literal"><span class="pre">True</span></tt>. 
 The current default value of <a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_OFF" title="sqlalchemy.orm.attributes.PASSIVE_OFF"><tt class="xref py py-data docutils literal"><span class="pre">attributes.PASSIVE_OFF</span></tt></a>
 for this flag is incorrect, in that it loads unloaded
@@ -2441,7 +2446,6 @@ have no modified state, and furthermore trips off
 autoflush which then causes all subsequent, possibly
 modified attributes to lose their modified state.   
 The default value of the flag will be changed in 0.8.</p>
-</div>
 <p>A few caveats to this method apply:</p>
 <ul>
 <li><p class="first">Instances present in the <a class="reference internal" href="#sqlalchemy.orm.session.Session.dirty" title="sqlalchemy.orm.session.Session.dirty"><tt class="xref py py-attr docutils literal"><span class="pre">Session.dirty</span></tt></a> collection may report 
@@ -2480,7 +2484,7 @@ included in the operation.  Setting this to <tt class="docutils literal"><span c
 only local-column based properties (i.e. scalar columns or many-to-one
 foreign keys) that would result in an UPDATE for this instance upon
 flush.</li>
-<li><strong>passive</strong> &#8211; Indicates if unloaded attributes and 
+<li><strong>passive</strong> &#8211; <p>Indicates if unloaded attributes and 
 collections should be loaded in the course of performing 
 this test.  If set to <tt class="docutils literal"><span class="pre">False</span></tt>, or left at its default
 value of <a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_OFF" title="sqlalchemy.orm.attributes.PASSIVE_OFF"><tt class="xref py py-data docutils literal"><span class="pre">PASSIVE_OFF</span></tt></a>, unloaded attributes
@@ -2491,9 +2495,11 @@ noted previously, the existence of this flag here
 is a bug, as unloaded attributes by definition have 
 no changes, and the load operation also triggers an
 autoflush which then cancels out subsequent changes.
-This flag should <strong>always be set to 
-True</strong>.  In 0.8 the flag will be deprecated and the default
-set to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
+This flag should <strong>always be set to True</strong>.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>The flag will be deprecated and the default
+set to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -2539,7 +2545,8 @@ will not be subject to flushes occurring upon query
 access.  This is useful when initializing a series
 of objects which involve existing database queries,
 where the uncompleted object should not yet be flushed.</p>
-<p>New in 0.7.6.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.6.</span></p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -2643,8 +2650,9 @@ begin() is called multiple times.</p>
 <p>This corresponds to one or more Core <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>
 instances behind the scenes, with one <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>
 per <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> in use.</p>
-<p>Direct usage of <a class="reference internal" href="#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> is not typically 
-necessary as of SQLAlchemy 0.4; use the <a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> and 
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.4: </span>Direct usage of <a class="reference internal" href="#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> is not typically
+necessary; use the <a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> and 
 <a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a> methods on <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> itself to 
 control the transaction.</p>
 <p>The current instance of <a class="reference internal" href="#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> for a given
@@ -2925,7 +2933,7 @@ normally.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

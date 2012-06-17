@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -314,10 +314,11 @@ ALTER DATABASE MyDatabase SET READ_COMMITTED_SNAPSHOT ON</pre>
 </div>
 <div class="section" id="scalar-select-comparisons">
 <h2>Scalar Select Comparisons<a class="headerlink" href="#scalar-select-comparisons" title="Permalink to this headline">¶</a></h2>
-<p>The MSSQL dialect contains a legacy behavior whereby comparing
+<p class="deprecated">
+<span class="versionmodified">Deprecated since version 0.8: </span>The MSSQL dialect contains a legacy behavior whereby comparing
 a scalar select to a value using the <tt class="docutils literal"><span class="pre">=</span></tt> or <tt class="docutils literal"><span class="pre">!=</span></tt> operator
-will resolve to IN or NOT IN, respectively.  This behavior is 
-deprecated and will be removed in 0.8 - the <tt class="docutils literal"><span class="pre">s.in_()</span></tt>/<tt class="docutils literal"><span class="pre">~s.in_()</span></tt> operators 
+will resolve to IN or NOT IN, respectively.  This behavior
+will be removed in 0.8 - the <tt class="docutils literal"><span class="pre">s.in_()</span></tt>/<tt class="docutils literal"><span class="pre">~s.in_()</span></tt> operators 
 should be used when IN/NOT IN are desired.</p>
 <p>For the time being, the existing behavior prevents a comparison
 between scalar select and another value that actually wants to use <tt class="docutils literal"><span class="pre">=</span></tt>.
@@ -769,7 +770,9 @@ best guess as to whether or not the driver deals with unicode literals
 well.  When <tt class="docutils literal"><span class="pre">False</span></tt>, unicode literals will be encoded first, and when
 <tt class="docutils literal"><span class="pre">True</span></tt> unicode literals will be passed straight through.  This is an interim
 flag that hopefully should not be needed when the unicode situation stabilizes
-for unix + PyODBC.  New in 0.7.7.</p>
+for unix + PyODBC.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.7: </span><tt class="docutils literal"><span class="pre">supports_unicode_binds</span></tt> parameter to <tt class="docutils literal"><span class="pre">create_engine()</span></tt>.</p>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.mxodbc">
@@ -876,7 +879,7 @@ properties to the underlying JDBC driver.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

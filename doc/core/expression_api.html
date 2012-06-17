@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -478,7 +478,7 @@ boolean equivalent for the target dialect.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x101873350&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x101c72ed0&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><tt class="docutils literal"><span class="pre">func</span></tt> is a special object instance which generates SQL functions based on name-based attributes, e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -825,7 +825,8 @@ of the OVER construct.</li>
 </table>
 <p>This function is also available from the <tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt>
 construct itself via the <a class="reference internal" href="#sqlalchemy.sql.expression.FunctionElement.over" title="sqlalchemy.sql.expression.FunctionElement.over"><tt class="xref py py-meth docutils literal"><span class="pre">FunctionElement.over()</span></tt></a> method.</p>
-<p>New in 0.7.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.</span></p>
 </dd></dl>
 
 <dl class="function">
@@ -908,8 +909,9 @@ alternate values for this parameter:</p>
 <li>With the Oracle and Postgresql dialects, the value <tt class="docutils literal"><span class="pre">&quot;nowait&quot;</span></tt>
 translates to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt>.</li>
 <li>With the Postgresql dialect, the values &#8220;read&#8221; and <tt class="docutils literal"><span class="pre">&quot;read_nowait&quot;</span></tt>
-translate to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> and <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt>, respectively
-(new in 0.7.7).</li>
+translate to <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> and <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt>, respectively.<p class="versionadded">
+<span class="versionmodified">New in version 0.7.7.</span></p>
+</li>
 </ul>
 </li>
 <li><strong>group_by</strong> &#8211; a list of <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects which will comprise the
@@ -1201,7 +1203,7 @@ table to be updated.</li>
 condition of the <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement.   Modern applications
 may prefer to use the generative <a class="reference internal" href="#sqlalchemy.sql.expression.Update.where" title="sqlalchemy.sql.expression.Update.where"><tt class="xref py py-meth docutils literal"><span class="pre">where()</span></tt></a> 
 method to specify the <tt class="docutils literal"><span class="pre">WHERE</span></tt> clause.</p>
-<p>The WHERE clause can refer to multiple tables as of version 0.7.4.
+<p>The WHERE clause can refer to multiple tables.
 For databases which support this, an <tt class="docutils literal"><span class="pre">UPDATE</span> <span class="pre">FROM</span></tt> clause will
 be generated, or on MySQL, a multi-table update.  The statement 
 will fail on databases that don&#8217;t have support for multi-table
@@ -1214,6 +1216,8 @@ subquery:</p>
                     <span class="n">as_scalar</span><span class="p">()</span>
         <span class="p">)</span></pre></div>
 </div>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7.4: </span>The WHERE clause can refer to multiple tables.</p>
 </li>
 <li><strong>values</strong> &#8211; <p>Optional dictionary which specifies the <tt class="docutils literal"><span class="pre">SET</span></tt> conditions of the
 <tt class="docutils literal"><span class="pre">UPDATE</span></tt>.  If left as <tt class="docutils literal"><span class="pre">None</span></tt>, the <tt class="docutils literal"><span class="pre">SET</span></tt>
@@ -2155,7 +2159,8 @@ SELECT-based set operations.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.sql.expression.CTE" title="sqlalchemy.sql.expression.CTE"><tt class="xref py py-class docutils literal"><span class="pre">CTE</span></tt></a> object is obtained using the
 <a class="reference internal" href="#sqlalchemy.sql.expression._SelectBase.cte" title="sqlalchemy.sql.expression._SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">_SelectBase.cte()</span></tt></a> method from any selectable.
 See that method for complete examples.</p>
-<p>New in 0.7.6.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.6.</span></p>
 </dd></dl>
 
 <dl class="class">
@@ -2282,7 +2287,8 @@ for database backends that support window functions.</p>
 <span class="n">over</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">row_number</span><span class="p">(),</span> <span class="n">order_by</span><span class="o">=</span><span class="s">&#39;x&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>See <a class="reference internal" href="#sqlalchemy.sql.expression.over" title="sqlalchemy.sql.expression.over"><tt class="xref py py-func docutils literal"><span class="pre">over()</span></tt></a> for a full description.</p>
-<p>New in 0.7.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.</span></p>
 </dd></dl>
 
 <dl class="method">
@@ -3035,9 +3041,8 @@ and Sybase simultaneously:</p>
 <tt class="descname">with_only_columns</tt><big>(</big><em>columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.with_only_columns" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct with its columns 
 clause replaced with the given columns.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Due to a bug fix, this method has a slight 
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7.3: </span>Due to a bug fix, this method has a slight 
 behavioral change as of version 0.7.3.  
 Prior to version 0.7.3, the FROM clause of 
 a <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> was calculated upfront and as new columns
@@ -3054,7 +3059,6 @@ columns than originally present; the use case of replacing
 the columns list with an entirely different one hadn&#8217;t
 been anticipated until 0.7.3 was released; the usage
 guidelines below illustrate how this should be done.</p>
-</div>
 <p>This method is exactly equivalent to as if the original 
 <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> had been called with the given columns 
 clause.   I.e. a statement:</p>
@@ -3184,7 +3188,8 @@ upon the set of rows that have previously been selected.</p>
 similarly to <a class="reference internal" href="#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> objects, as special elements
 to be delivered to the FROM clause of the statement as well
 as to a WITH clause at the top of the statement.</p>
-<p>The <a class="reference internal" href="#sqlalchemy.sql.expression._SelectBase.cte" title="sqlalchemy.sql.expression._SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">_SelectBase.cte()</span></tt></a> method is new in 0.7.6.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.6.</span></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3486,7 +3491,8 @@ hint to a particular backend. Such as, to add a hint
 that only takes effect for SQL Server:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mytable</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">with_hint</span><span class="p">(</span><span class="s">&quot;WITH (PAGLOCK)&quot;</span><span class="p">,</span> <span class="n">dialect_name</span><span class="o">=</span><span class="s">&quot;mssql&quot;</span><span class="p">)</span></pre></div>
 </div>
-<p>New in 0.7.6.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.6.</span></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3732,7 +3738,7 @@ that does not provide support for sequences.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

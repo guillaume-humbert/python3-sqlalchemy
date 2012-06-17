@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -554,8 +554,7 @@ cost of individual transactions by default.  The
 threadlocal behavior installed into <tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt>.</li>
 <li><strong>reset_on_return</strong> &#8211; <p>Determine steps to take on 
 connections as they are returned to the pool.   
-As of SQLAlchemy 0.7.6, reset_on_return can have any 
-of these values:</p>
+reset_on_return can have any of these values:</p>
 <ul>
 <li>&#8216;rollback&#8217; - call rollback() on the connection,
 to release locks and transaction resources.
@@ -571,9 +570,6 @@ such as Microsoft SQL Server.  However, this
 value is more dangerous than &#8216;rollback&#8217; because
 any data changes present on the transaction
 are committed unconditionally.</li>
-</ul>
-<blockquote>
-<div><ul>
 <li>None - don&#8217;t do anything on the connection.
 This setting should only be made on a database
 that has no transaction support at all,
@@ -583,14 +579,11 @@ setting should <strong>never be selected</strong> for a
 database that supports transactions,
 as it will lead to deadlocks and stale
 state.</li>
-</ul>
-<blockquote>
-<div><ul>
 <li>False - same as None, this is here for
 backwards compatibility.</li>
 </ul>
-</div></blockquote>
-</div></blockquote>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7.6: </span><tt class="docutils literal"><span class="pre">reset_on_return</span></tt> accepts values.</p>
 </li>
 <li><strong>listeners</strong> &#8211; A list of
 <a class="reference internal" href="interfaces.html#sqlalchemy.interfaces.PoolListener" title="sqlalchemy.interfaces.PoolListener"><tt class="xref py py-class docutils literal"><span class="pre">PoolListener</span></tt></a>-like objects or
@@ -642,9 +635,10 @@ time.</p>
 <p>This will raise an exception if more than one connection is checked out
 at a time.  Useful for debugging code that is using more connections
 than desired.</p>
-<p><a class="reference internal" href="#sqlalchemy.pool.AssertionPool" title="sqlalchemy.pool.AssertionPool"><tt class="xref py py-class docutils literal"><span class="pre">AssertionPool</span></tt></a> also logs a traceback of where
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span><a class="reference internal" href="#sqlalchemy.pool.AssertionPool" title="sqlalchemy.pool.AssertionPool"><tt class="xref py py-class docutils literal"><span class="pre">AssertionPool</span></tt></a> also logs a traceback of where
 the original connection was checked out, and reports
-this in the assertion error raised (new in 0.7).</p>
+this in the assertion error raised.</p>
 </dd></dl>
 
 <dl class="class">
@@ -657,9 +651,9 @@ per each connection open/close.</p>
 <p>Reconnect-related functions such as <tt class="docutils literal"><span class="pre">recycle</span></tt> and connection
 invalidation are not supported by this Pool implementation, since
 no connections are held persistently.</p>
-<p><a class="reference internal" href="#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> is used by the SQlite dialect automatically
-when a file-based database is used (as of SQLAlchemy 0.7).
-See <a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a>.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span><a class="reference internal" href="#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> is used by the SQlite dialect automatically
+when a file-based database is used. See <a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a>.</p>
 </dd></dl>
 
 <dl class="class">
@@ -759,7 +753,7 @@ pooling.  Defaults to <a class="reference internal" href="#sqlalchemy.pool.Queue
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 
