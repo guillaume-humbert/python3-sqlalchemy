@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -212,20 +212,20 @@ the SQLAlchemy <tt class="docutils literal"><span class="pre">returning()</span>
 SQLAlchemy uses 200 with Unicode, datetime and decimal support (see
 <a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#adv_param_conv_dynamic_type_translation">details</a>).</p>
 </li>
-<li><p class="first">concurrency_level - set the backend policy with regards to threading 
+<li><p class="first">concurrency_level - set the backend policy with regards to threading
 issues: by default SQLAlchemy uses policy 1 (see <a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#special_issue_concurrency">details</a>).</p>
 </li>
-<li><p class="first">enable_rowcount - True by default, setting this to False disables 
-the usage of &#8220;cursor.rowcount&#8221; with the 
+<li><p class="first">enable_rowcount - True by default, setting this to False disables
+the usage of &#8220;cursor.rowcount&#8221; with the
 Kinterbasdb dialect, which SQLAlchemy ordinarily calls upon automatically
-after any UPDATE or DELETE statement.   When disabled, SQLAlchemy&#8217;s 
-ResultProxy will return -1 for result.rowcount.   The rationale here is 
-that Kinterbasdb requires a second round trip to the database when 
-.rowcount is called -  since SQLA&#8217;s resultproxy automatically closes 
-the cursor after a non-result-returning statement, rowcount must be 
+after any UPDATE or DELETE statement.   When disabled, SQLAlchemy&#8217;s
+ResultProxy will return -1 for result.rowcount.   The rationale here is
+that Kinterbasdb requires a second round trip to the database when
+.rowcount is called -  since SQLA&#8217;s resultproxy automatically closes
+the cursor after a non-result-returning statement, rowcount must be
 called, if at all, before the result object is returned.   Additionally,
 cursor.rowcount may not return correct results with older versions
-of Firebird, and setting this flag to False will also cause the 
+of Firebird, and setting this flag to False will also cause the
 SQLAlchemy ORM to ignore its usage. The behavior can also be controlled on a
 per-execution basis using the <cite>enable_rowcount</cite> option with
 <tt class="xref py py-meth docutils literal"><span class="pre">execution_options()</span></tt>:</p>

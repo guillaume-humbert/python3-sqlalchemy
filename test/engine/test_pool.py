@@ -110,7 +110,7 @@ class PoolTest(PoolTestBase):
         def creator():
             raise Exception("no creates allowed")
 
-        for cls in (pool.SingletonThreadPool, pool.StaticPool, 
+        for cls in (pool.SingletonThreadPool, pool.StaticPool,
                     pool.QueuePool, pool.NullPool, pool.AssertionPool):
             p = cls(creator=creator)
             p.dispose()
@@ -449,7 +449,7 @@ class DeprecatedPoolListenerTest(PoolTestBase):
                 eq_(len(innerself.first_connected), fconn)
                 eq_(len(innerself.checked_out), cout)
                 eq_(len(innerself.checked_in), cin)
-            def assert_in(innerself, item, in_conn, in_fconn, 
+            def assert_in(innerself, item, in_conn, in_fconn,
                                                 in_cout, in_cin):
                 self.assert_((item in innerself.connected) == in_conn)
                 self.assert_((item in innerself.first_connected) == in_fconn)
@@ -716,7 +716,7 @@ class QueuePoolTest(PoolTestBase):
 
     def test_timeout(self):
         p = self._queuepool_fixture(pool_size=3,
-                           max_overflow=0, 
+                           max_overflow=0,
                            timeout=2)
         c1 = p.connect()
         c2 = p.connect()
@@ -738,8 +738,8 @@ class QueuePoolTest(PoolTestBase):
         # them back to the start of do_get()
         dbapi = MockDBAPI()
         p = pool.QueuePool(
-                creator = lambda: dbapi.connect(delay=.05), 
-                pool_size = 2, 
+                creator = lambda: dbapi.connect(delay=.05),
+                pool_size = 2,
                 max_overflow = 1, use_threadlocal = False, timeout=3)
         timeouts = []
         def checkout():
@@ -759,7 +759,7 @@ class QueuePoolTest(PoolTestBase):
             th.start()
             threads.append(th)
         for th in threads:
-            th.join() 
+            th.join()
 
         assert len(timeouts) > 0
         for t in timeouts:
@@ -775,7 +775,7 @@ class QueuePoolTest(PoolTestBase):
         def creator():
             time.sleep(.05)
             return dbapi.connect()
- 
+
         p = pool.QueuePool(creator=creator,
                            pool_size=3, timeout=2,
                            max_overflow=max_overflow)
@@ -797,18 +797,115 @@ class QueuePoolTest(PoolTestBase):
             threads.append(th)
         for th in threads:
             th.join()
- 
+
         self.assert_(max(peaks) <= max_overflow)
 
         lazy_gc()
         assert not pool._refs
- 
+
+    def test_waiters_handled(self):
+        """test that threads waiting for connections are
+        handled when the pool is replaced.
+
+        """
+        dbapi = MockDBAPI()
+        def creator():
+            return dbapi.connect()
+
+        success = []
+        for timeout in (None, 30):
+            for max_overflow in (0, -1, 3):
+                p = pool.QueuePool(creator=creator,
+                                   pool_size=2, timeout=timeout,
+                                   max_overflow=max_overflow)
+                def waiter(p):
+                    conn = p.connect()
+                    time.sleep(.5)
+                    success.append(True)
+                    conn.close()
+
+                time.sleep(.2)
+                c1 = p.connect()
+                c2 = p.connect()
+
+                for i in range(2):
+                    t = threading.Thread(target=waiter, args=(p, ))
+                    t.setDaemon(True) # so the tests dont hang if this fails
+                    t.start()
+
+                c1.invalidate()
+                c2.invalidate()
+                p2 = p._replace()
+        time.sleep(2)
+        eq_(len(success), 12)
+
+    @testing.requires.python26
+    def test_notify_waiters(self):
+        dbapi = MockDBAPI()
+        canary = []
+        def creator1():
+            canary.append(1)
+            return dbapi.connect()
+        def creator2():
+            canary.append(2)
+            return dbapi.connect()
+        p1 = pool.QueuePool(creator=creator1,
+                           pool_size=1, timeout=None,
+                           max_overflow=0)
+        p2 = pool.QueuePool(creator=creator2,
+                           pool_size=1, timeout=None,
+                           max_overflow=-1)
+        def waiter(p):
+            conn = p.connect()
+            time.sleep(.5)
+            conn.close()
+
+        c1 = p1.connect()
+
+        for i in range(5):
+            t = threading.Thread(target=waiter, args=(p1, ))
+            t.setDaemon(True)
+            t.start()
+        time.sleep(.5)
+        eq_(canary, [1])
+        p1._pool.abort(p2)
+        time.sleep(1)
+        eq_(canary, [1, 2, 2, 2, 2, 2])
+
+    def test_dispose_closes_pooled(self):
+        dbapi = MockDBAPI()
+        def creator():
+            return dbapi.connect()
+
+        p = pool.QueuePool(creator=creator,
+                           pool_size=2, timeout=None,
+                           max_overflow=0)
+        c1 = p.connect()
+        c2 = p.connect()
+        conns = [c1.connection, c2.connection]
+        c1.close()
+        eq_([c.closed for c in conns], [False, False])
+        p.dispose()
+        eq_([c.closed for c in conns], [True, False])
+
+        # currently, if a ConnectionFairy is closed
+        # after the pool has been disposed, there's no
+        # flag that states it should be invalidated
+        # immediately - it just gets returned to the
+        # pool normally...
+        c2.close()
+        eq_([c.closed for c in conns], [True, False])
+
+        # ...and that's the one we'll get back next.
+        c3 = p.connect()
+        assert c3.connection is conns[1]
+
     def test_no_overflow(self):
         self._test_overflow(40, 0)
- 
+
     def test_max_overflow(self):
         self._test_overflow(40, 5)
- 
+
     def test_mixed_close(self):
         p = self._queuepool_fixture(pool_size=3, max_overflow=-1, use_threadlocal=True)
         c1 = p.connect()
@@ -833,7 +930,7 @@ class QueuePoolTest(PoolTestBase):
         p = self._queuepool_fixture(pool_size=2,
                            max_overflow=2)
 
-        # disable weakref collection of the 
+        # disable weakref collection of the
         # underlying connections
         strong_refs = set()
         def _conn():
@@ -881,10 +978,10 @@ class QueuePoolTest(PoolTestBase):
         self.assert_(p.checkedout() != 0)
         c2.close()
         self.assert_(p.checkedout() == 0)
- 
+
     def test_recycle(self):
         p = self._queuepool_fixture(pool_size=1,
-                           max_overflow=0, 
+                           max_overflow=0,
                            recycle=3)
         c1 = p.connect()
         c_id = id(c1.connection)

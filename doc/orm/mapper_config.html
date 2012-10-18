@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -380,12 +380,12 @@ to a SQL expression (and not a single table-bound column)
 is considered to be a &#8220;read only&#8221; property; populating it
 has no effect on the state of data, and it can only return
 database state.   For this reason a column_property()&#8217;s value
-is expired whenever the parent object is involved in a 
+is expired whenever the parent object is involved in a
 flush, that is, has any kind of &#8220;dirty&#8221; state within a flush.
 Setting this parameter to <tt class="docutils literal"><span class="pre">False</span></tt> will have the effect of
 leaving any existing value present after the flush proceeds.
 Note however that the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> with default expiration
-settings still expires 
+settings still expires
 all attributes after a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a> call, however.</p>
 <p class="versionadded">
 <span class="versionmodified">New in version 0.7.3.</span></p>
@@ -394,7 +394,7 @@ all attributes after a <a class="reference internal" href="session.html#sqlalche
 <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a>
 instance, or list of extensions, which will be prepended
 to the list of attribute listeners for the resulting
-descriptor placed on the class. 
+descriptor placed on the class.
 <strong>Deprecated.</strong> Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</li>
 </ul>
 </td>
@@ -546,24 +546,24 @@ of the given name into a deferred load.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">defer</span>
 
-<span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">defer</span><span class="p">(</span><span class="s">&quot;attribute_one&quot;</span><span class="p">),</span> 
+<span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">defer</span><span class="p">(</span><span class="s">&quot;attribute_one&quot;</span><span class="p">),</span>
                     <span class="n">defer</span><span class="p">(</span><span class="s">&quot;attribute_two&quot;</span><span class="p">))</span></pre></div>
 </div>
 <p>A class bound descriptor is also accepted:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span>
-                    <span class="n">defer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">attribute_one</span><span class="p">),</span> 
+                    <span class="n">defer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">attribute_one</span><span class="p">),</span>
                     <span class="n">defer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">attribute_two</span><span class="p">))</span></pre></div>
 </div>
 <p>A &#8220;path&#8221; can be specified onto a related or collection object using a
 dotted name. The <a class="reference internal" href="#sqlalchemy.orm.defer" title="sqlalchemy.orm.defer"><tt class="xref py py-func docutils literal"><span class="pre">orm.defer()</span></tt></a> option will be applied to that object
 when loaded:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span>
-                    <span class="n">defer</span><span class="p">(</span><span class="s">&quot;related.attribute_one&quot;</span><span class="p">),</span> 
+                    <span class="n">defer</span><span class="p">(</span><span class="s">&quot;related.attribute_one&quot;</span><span class="p">),</span>
                     <span class="n">defer</span><span class="p">(</span><span class="s">&quot;related.attribute_two&quot;</span><span class="p">))</span></pre></div>
 </div>
 <p>To specify a path via class, send multiple arguments:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span>
-                    <span class="n">defer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">related</span><span class="p">,</span> <span class="n">MyOtherClass</span><span class="o">.</span><span class="n">attribute_one</span><span class="p">),</span> 
+                    <span class="n">defer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">related</span><span class="p">,</span> <span class="n">MyOtherClass</span><span class="o">.</span><span class="n">attribute_one</span><span class="p">),</span>
                     <span class="n">defer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">related</span><span class="p">,</span> <span class="n">MyOtherClass</span><span class="o">.</span><span class="n">attribute_two</span><span class="p">))</span></pre></div>
 </div>
 <p>See also:</p>
@@ -589,24 +589,24 @@ of the given name into a non-deferred (regular column) load.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">undefer</span>
 
-<span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">undefer</span><span class="p">(</span><span class="s">&quot;attribute_one&quot;</span><span class="p">),</span> 
+<span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">undefer</span><span class="p">(</span><span class="s">&quot;attribute_one&quot;</span><span class="p">),</span>
                         <span class="n">undefer</span><span class="p">(</span><span class="s">&quot;attribute_two&quot;</span><span class="p">))</span></pre></div>
 </div>
 <p>A class bound descriptor is also accepted:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span>
-                    <span class="n">undefer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">attribute_one</span><span class="p">),</span> 
+                    <span class="n">undefer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">attribute_one</span><span class="p">),</span>
                     <span class="n">undefer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">attribute_two</span><span class="p">))</span></pre></div>
 </div>
 <p>A &#8220;path&#8221; can be specified onto a related or collection object using a
 dotted name. The <a class="reference internal" href="#sqlalchemy.orm.undefer" title="sqlalchemy.orm.undefer"><tt class="xref py py-func docutils literal"><span class="pre">orm.undefer()</span></tt></a> option will be applied to that
 object when loaded:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span>
-                    <span class="n">undefer</span><span class="p">(</span><span class="s">&quot;related.attribute_one&quot;</span><span class="p">),</span> 
+                    <span class="n">undefer</span><span class="p">(</span><span class="s">&quot;related.attribute_one&quot;</span><span class="p">),</span>
                     <span class="n">undefer</span><span class="p">(</span><span class="s">&quot;related.attribute_two&quot;</span><span class="p">))</span></pre></div>
 </div>
 <p>To specify a path via class, send multiple arguments:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span>
-                    <span class="n">undefer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">related</span><span class="p">,</span> <span class="n">MyOtherClass</span><span class="o">.</span><span class="n">attribute_one</span><span class="p">),</span> 
+                    <span class="n">undefer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">related</span><span class="p">,</span> <span class="n">MyOtherClass</span><span class="o">.</span><span class="n">attribute_one</span><span class="p">),</span>
                     <span class="n">undefer</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">related</span><span class="p">,</span> <span class="n">MyOtherClass</span><span class="o">.</span><span class="n">attribute_two</span><span class="p">))</span></pre></div>
 </div>
 <p>See also:</p>
@@ -640,8 +640,8 @@ column properties into a non-deferred (regular column) load.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; String name of the deferred group.   This name is 
-established using the &#8220;group&#8221; name to the <a class="reference internal" href="#sqlalchemy.orm.deferred" title="sqlalchemy.orm.deferred"><tt class="xref py py-func docutils literal"><span class="pre">orm.deferred()</span></tt></a> 
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; String name of the deferred group.   This name is
+established using the &#8220;group&#8221; name to the <a class="reference internal" href="#sqlalchemy.orm.deferred" title="sqlalchemy.orm.deferred"><tt class="xref py py-func docutils literal"><span class="pre">orm.deferred()</span></tt></a>
 configurational function.</td>
 </tr>
 </tbody>
@@ -713,7 +713,7 @@ needs to be present inside the hybrid, using the <tt class="docutils literal"><s
 </div>
 </div>
 <div class="section" id="using-column-property">
-<h3>Using column_property<a class="headerlink" href="#using-column-property" title="Permalink to this headline">¶</a></h3>
+<span id="mapper-column-property-sql-expressions"></span><h3>Using column_property<a class="headerlink" href="#using-column-property" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">orm.column_property()</span></tt></a> function can be used to map a SQL
 expression in a manner similar to a regularly mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.
 With this technique, the attribute is loaded
@@ -880,7 +880,7 @@ condition which is not supported.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>*names</strong> &#8211; list of attribute names to be validated.</li>
-<li><strong>include_removes</strong> &#8211; <p>if True, &#8220;remove&#8221; events will be 
+<li><strong>include_removes</strong> &#8211; <p>if True, &#8220;remove&#8221; events will be
 sent as well - the validation function must accept an additional
 argument &#8220;is_remove&#8221; which will be a boolean.</p>
 <p class="versionadded">
@@ -1105,13 +1105,13 @@ or aliasing that has been applied in the context of the generated SQL statement.
 <dl class="function">
 <dt id="sqlalchemy.orm.comparable_property">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">comparable_property</tt><big>(</big><em>comparator_factory</em>, <em>descriptor=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.comparable_property" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provides a method of applying a <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> 
+<dd><p>Provides a method of applying a <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a>
 to any Python descriptor attribute.</p>
 <p class="versionchanged">
 <span class="versionmodified">Changed in version 0.7: </span><a class="reference internal" href="#sqlalchemy.orm.comparable_property" title="sqlalchemy.orm.comparable_property"><tt class="xref py py-func docutils literal"><span class="pre">comparable_property()</span></tt></a> is superseded by
-the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See the example 
+the <a class="reference internal" href="extensions/hybrid.html#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension.  See the example
 at <a class="reference internal" href="extensions/hybrid.html#hybrid-custom-comparators"><em>Building Custom Comparators</em></a>.</p>
-<p>Allows any Python descriptor to behave like a SQL-enabled 
+<p>Allows any Python descriptor to behave like a SQL-enabled
 attribute when used at the class level in queries, allowing
 redefinition of expression operator behavior.</p>
 <p>In the example below we redefine <tt class="xref py py-meth docutils literal"><span class="pre">PropComparator.operate()</span></tt>
@@ -1126,7 +1126,7 @@ case-insensitive comparison:</p>
 <span class="k">class</span> <span class="nc">CaseInsensitiveComparator</span><span class="p">(</span><span class="n">PropComparator</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__clause_element__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">prop</span>
-    
+
     <span class="k">def</span> <span class="nf">operate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">op</span><span class="p">(</span>
             <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clause_element__</span><span class="p">()),</span>
@@ -1143,7 +1143,7 @@ case-insensitive comparison:</p>
                             <span class="n">CaseInsensitiveComparator</span><span class="p">(</span><span class="n">mapper</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">word</span><span class="p">,</span> <span class="n">mapper</span><span class="p">)</span>
                         <span class="p">)</span></pre></div>
 </div>
-<p>A mapping like the above allows the <tt class="docutils literal"><span class="pre">word_insensitive</span></tt> attribute 
+<p>A mapping like the above allows the <tt class="docutils literal"><span class="pre">word_insensitive</span></tt> attribute
 to render an expression like:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">SearchWord</span><span class="o">.</span><span class="n">word_insensitive</span> <span class="o">==</span> <span class="s">&quot;Trucks&quot;</span>
 <span class="go">lower(search_word.word) = lower(:lower_1)</span></pre></div>
@@ -1529,20 +1529,20 @@ via the Declarative extension.   When using Declarative,
 many of the usual <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> arguments are handled
 by the Declarative extension itself, including <tt class="docutils literal"><span class="pre">class_</span></tt>,
 <tt class="docutils literal"><span class="pre">local_table</span></tt>, <tt class="docutils literal"><span class="pre">properties</span></tt>, and  <tt class="docutils literal"><span class="pre">inherits</span></tt>.
-Other options are passed to <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> using 
+Other options are passed to <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> using
 the <tt class="docutils literal"><span class="pre">__mapper_args__</span></tt> class variable:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;my_table&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="nb">type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
     <span class="n">alt</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="s">&quot;some_alt&quot;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
-    
+
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;polymorphic_on&#39;</span> <span class="p">:</span> <span class="nb">type</span>
     <span class="p">}</span></pre></div>
 </div>
 <p>Explicit use of <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>
-is often referred to as <em>classical mapping</em>.  The above 
+is often referred to as <em>classical mapping</em>.  The above
 declarative example is equivalent in classical form to:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">my_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&quot;my_table&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
@@ -1553,8 +1553,8 @@ declarative example is equivalent in classical form to:</p>
 <span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">pass</span>
 
-<span class="n">mapper</span><span class="p">(</span><span class="n">MyClass</span><span class="p">,</span> <span class="n">my_table</span><span class="p">,</span> 
-    <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> 
+<span class="n">mapper</span><span class="p">(</span><span class="n">MyClass</span><span class="p">,</span> <span class="n">my_table</span><span class="p">,</span>
+    <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
     <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
         <span class="s">&#39;alt&#39;</span><span class="p">:</span><span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">some_alt</span>
     <span class="p">})</span></pre></div>
@@ -1570,10 +1570,10 @@ declarative example is equivalent in classical form to:</p>
 <li><strong>class_</strong> &#8211; The class to be mapped.  When using Declarative,
 this argument is automatically passed as the declared class
 itself.</li>
-<li><strong>local_table</strong> &#8211; The <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or other selectable 
-to which the class is mapped.  May be <tt class="docutils literal"><span class="pre">None</span></tt> if 
+<li><strong>local_table</strong> &#8211; The <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or other selectable
+to which the class is mapped.  May be <tt class="docutils literal"><span class="pre">None</span></tt> if
 this mapper inherits from another mapper using single-table
-inheritance.   When using Declarative, this argument is 
+inheritance.   When using Declarative, this argument is
 automatically passed by the extension, based on what
 is configured via the <tt class="docutils literal"><span class="pre">__table__</span></tt> argument or via the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 produced as a result of the <tt class="docutils literal"><span class="pre">__tablename__</span></tt> and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
@@ -1593,17 +1593,17 @@ mapper will assign an incoming row to an existing identity, as well
 as if <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">Session.merge()</span></tt></a> will check the database first for a
 particular primary key value. A &#8220;partial primary key&#8221; can occur if
 one has mapped to an OUTER JOIN, for example.</li>
-<li><strong>batch</strong> &#8211; Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>, indicating that save operations 
-of multiple entities can be batched together for efficiency. 
+<li><strong>batch</strong> &#8211; Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>, indicating that save operations
+of multiple entities can be batched together for efficiency.
 Setting to False indicates
 that an instance will be fully saved before saving the next
-instance.  This is used in the extremely rare case that a 
-<a class="reference internal" href="events.html#sqlalchemy.orm.events.MapperEvents" title="sqlalchemy.orm.events.MapperEvents"><tt class="xref py py-class docutils literal"><span class="pre">MapperEvents</span></tt></a> listener requires being called 
+instance.  This is used in the extremely rare case that a
+<a class="reference internal" href="events.html#sqlalchemy.orm.events.MapperEvents" title="sqlalchemy.orm.events.MapperEvents"><tt class="xref py py-class docutils literal"><span class="pre">MapperEvents</span></tt></a> listener requires being called
 in between individual row persistence operations.</li>
-<li><strong>column_prefix</strong> &#8211; <p>A string which will be prepended 
+<li><strong>column_prefix</strong> &#8211; <p>A string which will be prepended
 to the mapped attribute name when <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
 objects are automatically assigned as attributes to the
-mapped class.  Does not affect explicitly specified 
+mapped class.  Does not affect explicitly specified
 column-based properties.</p>
 <p>See the section <a class="reference internal" href="#column-prefix"><em>Naming All Columns with a Prefix</em></a> for an example.</p>
 </li>
@@ -1611,7 +1611,7 @@ column-based properties.</p>
 table inheritance with its parent mapper.</p>
 <p>See the section <a class="reference internal" href="inheritance.html#concrete-inheritance"><em>Concrete Table Inheritance</em></a> for an example.</p>
 </li>
-<li><strong>exclude_properties</strong> &#8211; <p>A list or set of string column names to 
+<li><strong>exclude_properties</strong> &#8211; <p>A list or set of string column names to
 be excluded from mapping.</p>
 <p>See <a class="reference internal" href="#include-exclude-cols"><em>Mapping a Subset of Table Columns</em></a> for an example.</p>
 </li>
@@ -1623,7 +1623,7 @@ instances which will be applied to all operations by this
 names to map.</p>
 <p>See <a class="reference internal" href="#include-exclude-cols"><em>Mapping a Subset of Table Columns</em></a> for an example.</p>
 </li>
-<li><strong>inherits</strong> &#8211; <p>A mapped class or the corresponding <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> 
+<li><strong>inherits</strong> &#8211; <p>A mapped class or the corresponding <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a>
 of one indicating a superclass to which this <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a>
 should <em>inherit</em> from.   The mapped class here must be a subclass of the
 other mapper&#8217;s class.   When using Declarative, this argument
@@ -1637,8 +1637,8 @@ expression which will
 define how the two tables are joined; defaults to a natural join
 between the two tables.</li>
 <li><strong>inherit_foreign_keys</strong> &#8211; When <tt class="docutils literal"><span class="pre">inherit_condition</span></tt> is used and the
-columns present are missing a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> configuration, 
-this parameter can be used to specify which columns are &#8220;foreign&#8221;.  
+columns present are missing a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> configuration,
+this parameter can be used to specify which columns are &#8220;foreign&#8221;.
 In most cases can be left as <tt class="docutils literal"><span class="pre">None</span></tt>.</li>
 <li><strong>non_primary</strong> &#8211; <p>Specify that this <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> is in addition
 to the &#8220;primary&#8221; mapper, that is, the one used for persistence.
@@ -1650,10 +1650,10 @@ usage.</p>
 </li>
 <li><strong>order_by</strong> &#8211; A single <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> or list of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
 objects for which selection operations should use as the default
-ordering for entities.  By default mappers have no pre-defined 
+ordering for entities.  By default mappers have no pre-defined
 ordering.</li>
 <li><strong>passive_updates</strong> &#8211; <p>Indicates UPDATE behavior of foreign key
-columns when a primary key column changes on a joined-table inheritance 
+columns when a primary key column changes on a joined-table inheritance
 mapping.   Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 <p>When True, it is assumed that ON UPDATE CASCADE is configured on
 the foreign key in the database, and that the database will handle
@@ -1665,35 +1665,35 @@ operation for an update.  The <a class="reference internal" href="#sqlalchemy.or
 emit an UPDATE statement for the dependent columns during a
 primary key change.</p>
 <p>See also:</p>
-<p><a class="reference internal" href="relationships.html#passive-updates"><em>Mutable Primary Keys / Update Cascades</em></a> - description of a similar feature as 
+<p><a class="reference internal" href="relationships.html#passive-updates"><em>Mutable Primary Keys / Update Cascades</em></a> - description of a similar feature as
 used with <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a></p>
 </li>
-<li><strong>polymorphic_on</strong> &#8211; <p>Specifies the column, attribute, or 
-SQL expression used to determine the target class for an 
+<li><strong>polymorphic_on</strong> &#8211; <p>Specifies the column, attribute, or
+SQL expression used to determine the target class for an
 incoming row, when inheriting classes are present.</p>
 <p>This value is commonly a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object that&#8217;s
 present in the mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;employee&#39;</span>
-    
+
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">discriminator</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
-    
+
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&quot;polymorphic_on&quot;</span><span class="p">:</span><span class="n">discriminator</span><span class="p">,</span>
         <span class="s">&quot;polymorphic_identity&quot;</span><span class="p">:</span><span class="s">&quot;employee&quot;</span>
     <span class="p">}</span></pre></div>
 </div>
 <p>It may also be specified
-as a SQL expression, as in this example where we 
+as a SQL expression, as in this example where we
 use the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.case" title="sqlalchemy.sql.expression.case"><tt class="xref py py-func docutils literal"><span class="pre">case()</span></tt></a> construct to provide a conditional
 approach:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;employee&#39;</span>
-    
+
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">discriminator</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
-    
+
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&quot;polymorphic_on&quot;</span><span class="p">:</span><span class="n">case</span><span class="p">([</span>
             <span class="p">(</span><span class="n">discriminator</span> <span class="o">==</span> <span class="s">&quot;EN&quot;</span><span class="p">,</span> <span class="s">&quot;engineer&quot;</span><span class="p">),</span>
@@ -1702,7 +1702,7 @@ approach:</p>
         <span class="s">&quot;polymorphic_identity&quot;</span><span class="p">:</span><span class="s">&quot;employee&quot;</span>
     <span class="p">}</span></pre></div>
 </div>
-<p>It may also refer to any attribute 
+<p>It may also refer to any attribute
 configured with <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>, or to the
 string name of one:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -1728,8 +1728,8 @@ or refer to any attribute configured with
 <a class="reference internal" href="#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>, or to the string name of one.</p>
 <p>When setting <tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> to reference an
 attribute or expression that&#8217;s not present in the
-locally mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, yet the value 
-of the discriminator should be persisted to the database, 
+locally mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, yet the value
+of the discriminator should be persisted to the database,
 the value of the
 discriminator is not automatically set on new
 instances; this must be handled by the user,
@@ -1751,12 +1751,12 @@ in the database.</p>
 <p>See also:</p>
 <p><a class="reference internal" href="inheritance.html"><em>Mapping Class Inheritance Hierarchies</em></a></p>
 </li>
-<li><strong>polymorphic_identity</strong> &#8211; Specifies the value which 
+<li><strong>polymorphic_identity</strong> &#8211; Specifies the value which
 identifies this particular class as returned by the
 column expression referred to by the <tt class="docutils literal"><span class="pre">polymorphic_on</span></tt>
 setting.  As rows are received, the value corresponding
 to the <tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> column expression is compared
-to this value, indicating which subclass should 
+to this value, indicating which subclass should
 be used for the newly reconstructed object.</li>
 <li><strong>properties</strong> &#8211; A dictionary mapping the string names of object
 attributes to <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a> instances, which define the
@@ -1771,11 +1771,11 @@ in the declared class body.</li>
 primary key to be used against this mapper&#8217;s selectable unit.
 This is normally simply the primary key of the <tt class="docutils literal"><span class="pre">local_table</span></tt>, but
 can be overridden here.</li>
-<li><strong>version_id_col</strong> &#8211; A <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> 
+<li><strong>version_id_col</strong> &#8211; A <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
 that will be used to keep a running version id of mapped entities
 in the database.  This is used during save operations to ensure that
 no other thread or process has updated the instance during the
-lifetime of the entity, else a <a class="reference internal" href="exceptions.html#sqlalchemy.orm.exc.StaleDataError" title="sqlalchemy.orm.exc.StaleDataError"><tt class="xref py py-class docutils literal"><span class="pre">StaleDataError</span></tt></a> 
+lifetime of the entity, else a <a class="reference internal" href="exceptions.html#sqlalchemy.orm.exc.StaleDataError" title="sqlalchemy.orm.exc.StaleDataError"><tt class="xref py py-class docutils literal"><span class="pre">StaleDataError</span></tt></a>
 exception is
 thrown.  By default the column must be of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> type,
 unless <tt class="docutils literal"><span class="pre">version_id_generator</span></tt> specifies a new generation
@@ -1790,13 +1790,13 @@ uuids, etc. e.g.:</p>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;mytable&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">version_uuid</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">32</span><span class="p">))</span>
-    
+
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;version_id_col&#39;</span><span class="p">:</span><span class="n">version_uuid</span><span class="p">,</span>
         <span class="s">&#39;version_id_generator&#39;</span><span class="p">:</span><span class="k">lambda</span> <span class="n">version</span><span class="p">:</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
     <span class="p">}</span></pre></div>
 </div>
-<p>The callable receives the current version identifier as its 
+<p>The callable receives the current version identifier as its
 single argument.</p>
 </li>
 <li><strong>with_polymorphic</strong> &#8211; <p>A tuple in the form <tt class="docutils literal"><span class="pre">(&lt;classes&gt;,</span>
@@ -1811,7 +1811,7 @@ classes.</p>
 <p>See also:</p>
 <p><a class="reference internal" href="inheritance.html#concrete-inheritance"><em>Concrete Table Inheritance</em></a> - typically uses <tt class="docutils literal"><span class="pre">with_polymorphic</span></tt>
 to specify a UNION statement to select from.</p>
-<p><a class="reference internal" href="inheritance.html#with-polymorphic"><em>Basic Control of Which Tables are Queried</em></a> - usage example of the related 
+<p><a class="reference internal" href="inheritance.html#with-polymorphic"><em>Basic Control of Which Tables are Queried</em></a> - usage example of the related
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.with_polymorphic" title="sqlalchemy.orm.query.Query.with_polymorphic"><tt class="xref py py-meth docutils literal"><span class="pre">Query.with_polymorphic()</span></tt></a> method</p>
 </li>
 </ul>
@@ -1832,7 +1832,7 @@ instance.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.class_mapper">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">class_mapper</tt><big>(</big><em>class_</em>, <em>compile=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.class_mapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a class, return the primary <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> associated 
+<dd><p>Given a class, return the primary <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> associated
 with the key.</p>
 <p>Raises <tt class="xref py py-class docutils literal"><span class="pre">UnmappedClassError</span></tt> if no mapping is configured
 on the given class, or <tt class="xref py py-class docutils literal"><span class="pre">ArgumentError</span></tt> if a non-class
@@ -1852,7 +1852,7 @@ object is passed.</p>
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">configure_mappers</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.configure_mappers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the inter-mapper relationships of all mappers that
 have been constructed thus far.</p>
-<p>This function can be called any number of times, but in 
+<p>This function can be called any number of times, but in
 most cases is handled internally.</p>
 </dd></dl>
 
@@ -1861,7 +1861,7 @@ most cases is handled internally.</p>
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">clear_mappers</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.clear_mappers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove all mappers from all classes.</p>
 <p>This function removes all instrumentation from classes and disposes
-of their associated mappers.  Once called, the classes are unmapped 
+of their associated mappers.  Once called, the classes are unmapped
 and can be later re-mapped with new mappers.</p>
 <p><a class="reference internal" href="#sqlalchemy.orm.clear_mappers" title="sqlalchemy.orm.clear_mappers"><tt class="xref py py-func docutils literal"><span class="pre">clear_mappers()</span></tt></a> is <em>not</em> for normal use, as there is literally no
 valid usage for it outside of very specific testing scenarios. Normally,
@@ -1871,7 +1871,7 @@ is garbage collected, its mapper is automatically disposed of as well. As
 such, <a class="reference internal" href="#sqlalchemy.orm.clear_mappers" title="sqlalchemy.orm.clear_mappers"><tt class="xref py py-func docutils literal"><span class="pre">clear_mappers()</span></tt></a> is only for usage in test suites that re-use
 the same classes with different mappings, which is itself an extremely rare
 use case - the only such use case is in fact SQLAlchemy&#8217;s own test suite,
-and possibly the test suites of other ORM extension libraries which 
+and possibly the test suites of other ORM extension libraries which
 intend to test various combinations of mapper construction upon a fixed
 set of classes.</p>
 </dd></dl>
@@ -1923,12 +1923,12 @@ this is used.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>table_map</strong> &#8211; mapping of polymorphic identities to 
+<li><strong>table_map</strong> &#8211; mapping of polymorphic identities to
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects.</li>
-<li><strong>typecolname</strong> &#8211; string name of a &#8220;discriminator&#8221; column, which will be 
+<li><strong>typecolname</strong> &#8211; string name of a &#8220;discriminator&#8221; column, which will be
 derived from the query, producing the polymorphic identity for each row.  If
 <tt class="docutils literal"><span class="pre">None</span></tt>, no polymorphic discriminator is generated.</li>
-<li><strong>aliasname</strong> &#8211; name of the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> 
+<li><strong>aliasname</strong> &#8211; name of the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a>
 construct generated.</li>
 <li><strong>cast_nulls</strong> &#8211; if True, non-existent columns, which are represented as labeled
 NULLs, will be passed into CAST.   This is a legacy behavior that is problematic
@@ -2048,7 +2048,7 @@ Behavior is undefined if directly modified.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.common_parent">
 <tt class="descname">common_parent</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.common_parent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return true if the given mapper shares a 
+<dd><p>Return true if the given mapper shares a
 common inherited parent as this mapper.</p>
 </dd></dl>
 

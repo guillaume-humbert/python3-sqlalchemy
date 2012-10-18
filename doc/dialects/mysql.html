@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -252,17 +252,18 @@ supported in any given server release.</p>
 <div class="section" id="connection-timeouts">
 <h2>Connection Timeouts<a class="headerlink" href="#connection-timeouts" title="Permalink to this headline">¶</a></h2>
 <p>MySQL features an automatic connection close behavior, for connections that have
-been idle for eight hours or more.   To circumvent having this issue, use the 
+been idle for eight hours or more.   To circumvent having this issue, use the
 <tt class="docutils literal"><span class="pre">pool_recycle</span></tt> option which controls the maximum age of any connection:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb://...&#39;</span><span class="p">,</span> <span class="n">pool_recycle</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span></pre></div>
 </div>
 </div>
 <div class="section" id="storage-engines">
-<h2>Storage Engines<a class="headerlink" href="#storage-engines" title="Permalink to this headline">¶</a></h2>
+<span id="mysql-storage-engines"></span><h2>Storage Engines<a class="headerlink" href="#storage-engines" title="Permalink to this headline">¶</a></h2>
 <p>Most MySQL server installations have a default table type of <tt class="docutils literal"><span class="pre">MyISAM</span></tt>, a
 non-transactional table type.  During a transaction, non-transactional storage
 engines do not participate and continue to store table changes in autocommit
-mode.  For fully atomic transactions, all participating tables must use a
+mode.  For fully atomic transactions as well as support for foreign key
+constraints, all participating tables must use a
 transactional engine such as <tt class="docutils literal"><span class="pre">InnoDB</span></tt>, <tt class="docutils literal"><span class="pre">Falcon</span></tt>, <tt class="docutils literal"><span class="pre">SolidDB</span></tt>, <cite>PBXT</cite>, etc.</p>
 <p>Storage engines can be elected when creating tables in SQLAlchemy by supplying
 a <tt class="docutils literal"><span class="pre">mysql_engine='whatever'</span></tt> to the <tt class="docutils literal"><span class="pre">Table</span></tt> constructor.  Any MySQL table
@@ -272,6 +273,10 @@ creation option can be specified in this syntax:</p>
       <span class="n">mysql_engine</span><span class="o">=</span><span class="s">&#39;InnoDB&#39;</span><span class="p">,</span>
       <span class="n">mysql_charset</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span>
      <span class="p">)</span></pre></div>
+</div>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/innodb-storage-engine.html">The InnoDB Storage Engine</a> - on the MySQL website.</p>
 </div>
 </div>
 <div class="section" id="case-sensitivity-and-table-reflection">
@@ -290,14 +295,14 @@ to be used.</p>
 </div>
 <div class="section" id="transaction-isolation-level">
 <h2>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> 
-parameter which results in the command <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span> 
-<span class="pre">TRANSACTION</span> <span class="pre">ISOLATION</span> <span class="pre">LEVEL</span> <span class="pre">&lt;level&gt;</span></tt> being invoked for 
+<p><a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt>
+parameter which results in the command <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span>
+<span class="pre">TRANSACTION</span> <span class="pre">ISOLATION</span> <span class="pre">LEVEL</span> <span class="pre">&lt;level&gt;</span></tt> being invoked for
 every new connection. Valid values for this parameter are
-<tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt>, 
+<tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt>,
 <tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt>, and <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span>
-                <span class="s">&quot;mysql://scott:tiger@localhost/test&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;mysql://scott:tiger@localhost/test&quot;</span><span class="p">,</span>
                 <span class="n">isolation_level</span><span class="o">=</span><span class="s">&quot;READ UNCOMMITTED&quot;</span>
             <span class="p">)</span></pre></div>
 </div>
@@ -387,7 +392,7 @@ usual definition of &#8220;number of rows matched by an UPDATE or DELETE&#8221; 
 This is in contradiction to the default setting on most MySQL DBAPI drivers,
 which is &#8220;number of rows actually modified/deleted&#8221;.  For this reason, the
 SQLAlchemy MySQL dialects always set the <tt class="docutils literal"><span class="pre">constants.CLIENT.FOUND_ROWS</span></tt> flag,
-or whatever is equivalent for the DBAPI in use, on connect, unless the flag value 
+or whatever is equivalent for the DBAPI in use, on connect, unless the flag value
 is overridden using DBAPI-specific options
 (such as <tt class="docutils literal"><span class="pre">client_flag</span></tt> for the MySQL-Python driver, <tt class="docutils literal"><span class="pre">found_rows</span></tt> for the
 OurSQL driver).</p>
@@ -440,7 +445,7 @@ VARCHAR, TEXT, BINARY, VARBINARY and BLOB.</p>
 <div class="section" id="index-types">
 <h3>Index Types<a class="headerlink" href="#index-types" title="Permalink to this headline">¶</a></h3>
 <p>Some MySQL storage engines permit you to specify an index type when creating
-an index or primary key constraint. SQLAlchemy provides this feature via the 
+an index or primary key constraint. SQLAlchemy provides this feature via the
 <tt class="docutils literal"><span class="pre">mysql_using</span></tt> parameter on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mysql_using</span><span class="o">=</span><span class="s">&#39;hash&#39;</span><span class="p">)</span></pre></div>
 </div>
@@ -448,7 +453,7 @@ an index or primary key constraint. SQLAlchemy provides this feature via the
 <div class="highlight-python"><div class="highlight"><pre><span class="n">PrimaryKeyConstraint</span><span class="p">(</span><span class="s">&quot;data&quot;</span><span class="p">,</span> <span class="n">mysql_using</span><span class="o">=</span><span class="s">&#39;hash&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>The value passed to the keyword argument will be simply passed through to the
-underlying CREATE INDEX or PRIMARY KEY clause, so it <em>must</em> be a valid index 
+underlying CREATE INDEX or PRIMARY KEY clause, so it <em>must</em> be a valid index
 type for your MySQL storage engine.</p>
 <p>More information can be found at:</p>
 <p><a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/create-index.html">http://dev.mysql.com/doc/refman/5.0/en/create-index.html</a></p>
@@ -570,7 +575,7 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>create_constraint</strong> &#8211; defaults to True.  If the boolean 
+<li><strong>create_constraint</strong> &#8211; defaults to True.  If the boolean
 is generated as an int/smallint, also create a CHECK constraint
 on the table that ensures 1 or 0 as a value.</li>
 <li><strong>name</strong> &#8211; if a CHECK constraint is generated, specify
@@ -1359,19 +1364,19 @@ only the collation of character data.</li>
 <p>MySQLdb will accommodate Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects if the
 <tt class="docutils literal"><span class="pre">use_unicode=1</span></tt> parameter, or the <tt class="docutils literal"><span class="pre">charset</span></tt> parameter,
 is passed as a connection argument.</p>
-<p>Without this setting, many MySQL server installations default to 
+<p>Without this setting, many MySQL server installations default to
 a <tt class="docutils literal"><span class="pre">latin1</span></tt> encoding for client connections, which has the effect
-of all data being converted into <tt class="docutils literal"><span class="pre">latin1</span></tt>, even if you have <tt class="docutils literal"><span class="pre">utf8</span></tt> 
+of all data being converted into <tt class="docutils literal"><span class="pre">latin1</span></tt>, even if you have <tt class="docutils literal"><span class="pre">utf8</span></tt>
 or another character set configured on your tables
 and columns.  With versions 4.1 and higher, you can change the connection
 character set either through server configuration or by including the
 <tt class="docutils literal"><span class="pre">charset</span></tt> parameter.  The <tt class="docutils literal"><span class="pre">charset</span></tt>
-parameter as received by MySQL-Python also has the side-effect of 
+parameter as received by MySQL-Python also has the side-effect of
 enabling <tt class="docutils literal"><span class="pre">use_unicode=1</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># set client encoding to utf8; all strings come back as unicode</span>
 <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb:///mydb?charset=utf8&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>Manually configuring <tt class="docutils literal"><span class="pre">use_unicode=0</span></tt> will cause MySQL-python to 
+<p>Manually configuring <tt class="docutils literal"><span class="pre">use_unicode=0</span></tt> will cause MySQL-python to
 return encoded strings:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># set client encoding to utf8; all strings come back as utf8 str</span>
 <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb:///mydb?charset=utf8&amp;use_unicode=0&#39;</span><span class="p">)</span></pre></div>
@@ -1429,8 +1434,8 @@ defaults to, there is a separate parameter:</p>
 </div>
 <div class="section" id="mysql-python-compatibility">
 <h3>MySQL-Python Compatibility<a class="headerlink" href="#mysql-python-compatibility" title="Permalink to this headline">¶</a></h3>
-<p>The pymysql DBAPI is a pure Python port of the MySQL-python (MySQLdb) driver, 
-and targets 100% compatibility.   Most behavioral notes for MySQL-python apply to 
+<p>The pymysql DBAPI is a pure Python port of the MySQL-python (MySQLdb) driver,
+and targets 100% compatibility.   Most behavioral notes for MySQL-python apply to
 the pymysql driver as well.</p>
 </div>
 </div>
@@ -1468,7 +1473,7 @@ changes.</p>
 <h3>Pooling<a class="headerlink" href="#pooling" title="Permalink to this headline">¶</a></h3>
 <p>Google App Engine connections appear to be randomly recycled,
 so the dialect does not pool connections.  The <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a>
-implementation is installed within the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> by 
+implementation is installed within the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> by
 default.</p>
 </div>
 </div>
@@ -1486,7 +1491,7 @@ default.</p>
 </div>
 <div class="section" id="limitations">
 <h3>Limitations<a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h3>
-<p>The mysql-pyodbc dialect is subject to unresolved character encoding issues 
+<p>The mysql-pyodbc dialect is subject to unresolved character encoding issues
 which exist within the current ODBC drivers available.
 (see <a class="reference external" href="http://code.google.com/p/pyodbc/issues/detail?id=25">http://code.google.com/p/pyodbc/issues/detail?id=25</a>).   Consider usage
 of OurSQL, MySQLdb, or MySQL-connector/Python.</p>

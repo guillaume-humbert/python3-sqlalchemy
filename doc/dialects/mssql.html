@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -236,7 +236,7 @@ supported directly through the <tt class="docutils literal"><span class="pre">TO
 <div class="highlight-python"><pre>SELECT TOP n</pre>
 </div>
 <p>If using SQL Server 2005 or above, LIMIT with OFFSET
-support is available through the <tt class="docutils literal"><span class="pre">ROW_NUMBER</span> <span class="pre">OVER</span></tt> construct. 
+support is available through the <tt class="docutils literal"><span class="pre">ROW_NUMBER</span> <span class="pre">OVER</span></tt> construct.
 For versions below 2005, LIMIT with OFFSET usage will fail.</p>
 </div>
 <div class="section" id="nullability">
@@ -278,13 +278,13 @@ statements that are unable to be parsed by the database server.</p>
 <h2>Triggers<a class="headerlink" href="#triggers" title="Permalink to this headline">¶</a></h2>
 <p>SQLAlchemy by default uses OUTPUT INSERTED to get at newly
 generated primary key values via IDENTITY columns or other
-server side defaults.   MS-SQL does not 
+server side defaults.   MS-SQL does not
 allow the usage of OUTPUT INSERTED on tables that have triggers.
 To disable the usage of OUTPUT INSERTED on a per-table basis,
 specify <tt class="docutils literal"><span class="pre">implicit_returning=False</span></tt> for each <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 which has triggers:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> 
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> 
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
     <span class="c"># ...,</span>
     <span class="n">implicit_returning</span><span class="o">=</span><span class="bp">False</span>
 <span class="p">)</span></pre></div>
@@ -299,11 +299,11 @@ which has triggers:</p>
 </div>
 <div class="section" id="enabling-snapshot-isolation">
 <h2>Enabling Snapshot Isolation<a class="headerlink" href="#enabling-snapshot-isolation" title="Permalink to this headline">¶</a></h2>
-<p>Not necessarily specific to SQLAlchemy, SQL Server has a default transaction 
+<p>Not necessarily specific to SQLAlchemy, SQL Server has a default transaction
 isolation mode that locks entire tables, and causes even mildly concurrent
 applications to have long held locks and frequent deadlocks.
-Enabling snapshot isolation for the database as a whole is recommended 
-for modern levels of concurrency support.  This is accomplished via the 
+Enabling snapshot isolation for the database as a whole is recommended
+for modern levels of concurrency support.  This is accomplished via the
 following ALTER DATABASE commands executed at the SQL prompt:</p>
 <div class="highlight-python"><pre>ALTER DATABASE MyDatabase SET ALLOW_SNAPSHOT_ISOLATION ON
 
@@ -318,7 +318,7 @@ ALTER DATABASE MyDatabase SET READ_COMMITTED_SNAPSHOT ON</pre>
 <span class="versionmodified">Deprecated since version 0.8: </span>The MSSQL dialect contains a legacy behavior whereby comparing
 a scalar select to a value using the <tt class="docutils literal"><span class="pre">=</span></tt> or <tt class="docutils literal"><span class="pre">!=</span></tt> operator
 will resolve to IN or NOT IN, respectively.  This behavior
-will be removed in 0.8 - the <tt class="docutils literal"><span class="pre">s.in_()</span></tt>/<tt class="docutils literal"><span class="pre">~s.in_()</span></tt> operators 
+will be removed in 0.8 - the <tt class="docutils literal"><span class="pre">s.in_()</span></tt>/<tt class="docutils literal"><span class="pre">~s.in_()</span></tt> operators
 should be used when IN/NOT IN are desired.</p>
 <p>For the time being, the existing behavior prevents a comparison
 between scalar select and another value that actually wants to use <tt class="docutils literal"><span class="pre">=</span></tt>.
@@ -705,14 +705,14 @@ like:</p>
 <div class="highlight-python"><pre>dsn=mydsn;UID=user;PWD=pass;LANGUAGE=us_english</pre>
 </div>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db</span></tt> - connects using a connection 
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db</span></tt> - connects using a connection
 that would appear like:</p>
 <div class="highlight-python"><pre>DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass</pre>
 </div>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host:123/db</span></tt> - connects using a connection
 string which includes the port
-information using the comma syntax. This will create the following 
+information using the comma syntax. This will create the following
 connection string:</p>
 <div class="highlight-python"><pre>DRIVER={SQL Server};Server=host,123;Database=db;UID=user;PWD=pass</pre>
 </div>
@@ -750,9 +750,9 @@ the python shell. For example:</p>
 </div>
 <div class="section" id="unicode-binds">
 <h3>Unicode Binds<a class="headerlink" href="#unicode-binds" title="Permalink to this headline">¶</a></h3>
-<p>The current state of PyODBC on a unix backend with FreeTDS and/or 
+<p>The current state of PyODBC on a unix backend with FreeTDS and/or
 EasySoft is poor regarding unicode; different OS platforms and versions of UnixODBC
-versus IODBC versus FreeTDS/EasySoft versus PyODBC itself dramatically 
+versus IODBC versus FreeTDS/EasySoft versus PyODBC itself dramatically
 alter how strings are received.  The PyODBC dialect attempts to use all the information
 it knows to determine whether or not a Python unicode literal can be
 passed directly to the PyODBC driver or not; while SQLAlchemy can encode
@@ -760,12 +760,12 @@ these to bytestrings first, some users have reported that PyODBC mis-handles
 bytestrings for certain encodings and requires a Python unicode object,
 while the author has observed widespread cases where a Python unicode
 is completely misinterpreted by PyODBC, particularly when dealing with
-the information schema tables used in table reflection, and the value 
+the information schema tables used in table reflection, and the value
 must first be encoded to a bytestring.</p>
 <p>It is for this reason that whether or not unicode literals for bound
-parameters be sent to PyODBC can be controlled using the 
-<tt class="docutils literal"><span class="pre">supports_unicode_binds</span></tt> parameter to <tt class="docutils literal"><span class="pre">create_engine()</span></tt>.  When 
-left at its default of <tt class="docutils literal"><span class="pre">None</span></tt>, the PyODBC dialect will use its 
+parameters be sent to PyODBC can be controlled using the
+<tt class="docutils literal"><span class="pre">supports_unicode_binds</span></tt> parameter to <tt class="docutils literal"><span class="pre">create_engine()</span></tt>.  When
+left at its default of <tt class="docutils literal"><span class="pre">None</span></tt>, the PyODBC dialect will use its
 best guess as to whether or not the driver deals with unicode literals
 well.  When <tt class="docutils literal"><span class="pre">False</span></tt>, unicode literals will be encoded first, and when
 <tt class="docutils literal"><span class="pre">True</span></tt> unicode literals will be passed straight through.  This is an interim
@@ -827,8 +827,8 @@ of <tt class="docutils literal"><span class="pre">False</span></tt> will uncondi
 <div class="highlight-python"><pre>mssql+pymssql://&lt;username&gt;:&lt;password&gt;@&lt;freetds_name&gt;</pre>
 </div>
 <p>Adding &#8221;?charset=utf8&#8221; or similar will cause pymssql to return
-strings as Python unicode objects.   This can potentially improve 
-performance in some scenarios as decoding of strings is 
+strings as Python unicode objects.   This can potentially improve
+performance in some scenarios as decoding of strings is
 handled natively.</p>
 </div>
 <div class="section" id="limitations">

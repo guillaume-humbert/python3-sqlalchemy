@@ -257,8 +257,8 @@ While SQLAlchemy directly supports emitting CREATE and DROP statements for schem
 constructs, the ability to alter those constructs, usually via the ALTER statement
 as well as other database-specific constructs, is outside of the scope of SQLAlchemy
 itself.  While it's easy enough to emit ALTER statements and similar by hand,
-such as by passing a string to :meth:`.Connection.execute` or by using the 
-:class:`.DDL` construct, it's a common practice to automate the maintenance of 
+such as by passing a string to :meth:`.Connection.execute` or by using the
+:class:`.DDL` construct, it's a common practice to automate the maintenance of
 database schemas in relation to application code using schema migration tools.
 
 There are two major migration tools available for SQLAlchemy:
@@ -266,96 +266,13 @@ There are two major migration tools available for SQLAlchemy:
 * `Alembic <http://alembic.readthedocs.org>`_ - Written by the author of SQLAlchemy,
   Alembic features a highly customizable environment and a minimalistic usage pattern,
   supporting such features as transactional DDL, automatic generation of "candidate"
-  migrations, an "offline" mode which generates SQL scripts, and support for branch 
+  migrations, an "offline" mode which generates SQL scripts, and support for branch
   resolution.
 * `SQLAlchemy-Migrate <http://code.google.com/p/sqlalchemy-migrate/>`_ - The original
   migration tool for SQLAlchemy, SQLAlchemy-Migrate is widely used and continues
-  under active development.   SQLAlchemy-Migrate includes features such as 
-  SQL script generation, ORM class generation, ORM model comparison, and extensive 
+  under active development.   SQLAlchemy-Migrate includes features such as
+  SQL script generation, ORM class generation, ORM model comparison, and extensive
   support for SQLite migrations.
-
-.. _metadata_binding:
-
-Binding MetaData to an Engine or Connection
---------------------------------------------
-
-Notice in the previous section the creator/dropper methods accept an argument
-for the database engine in use. When a schema construct is combined with an
-:class:`~sqlalchemy.engine.base.Engine` object, or an individual
-:class:`~sqlalchemy.engine.base.Connection` object, we call this the *bind*.
-In the above examples the bind is associated with the schema construct only
-for the duration of the operation. However, the option exists to persistently
-associate a bind with a set of schema constructs via the
-:class:`~sqlalchemy.schema.MetaData` object's ``bind`` attribute::
-
-    engine = create_engine('sqlite://')
-
-    # create MetaData
-    meta = MetaData()
-
-    # bind to an engine
-    meta.bind = engine
-
-We can now call methods like :func:`~sqlalchemy.schema.MetaData.create_all`
-without needing to pass the :class:`~sqlalchemy.engine.base.Engine`::
-
-    meta.create_all()
-
-The MetaData's bind is used for anything that requires an active connection,
-such as loading the definition of a table from the database automatically
-(called *reflection*)::
-
-    # describe a table called 'users', query the database for its columns
-    users_table = Table('users', meta, autoload=True)
-
-As well as for executing SQL constructs that are derived from that MetaData's table objects::
-
-    # generate a SELECT statement and execute
-    result = users_table.select().execute()
-
-Binding the MetaData to the Engine is a **completely optional** feature. The
-above operations can be achieved without the persistent bind using
-parameters::
-
-    # describe a table called 'users', query the database for its columns
-    users_table = Table('users', meta, autoload=True, autoload_with=engine)
-
-    # generate a SELECT statement and execute
-    result = engine.execute(users_table.select())
-
-Should you use bind ? It's probably best to start without it, and wait for a
-specific need to arise. Bind is useful if:
-
-* You aren't using the ORM, are usually using "connectionless" execution, and
-  find yourself constantly needing to specify the same
-  :class:`~sqlalchemy.engine.base.Engine` object throughout the entire
-  application. Bind can be used here to provide "implicit" execution.
-* Your application has multiple schemas that correspond to different engines.
-  Using one :class:`~sqlalchemy.schema.MetaData` for each schema, bound to
-  each engine, provides a decent place to delineate between the schemas. The
-  ORM will also integrate with this approach, where the :class:`.Session` will
-  naturally use the engine that is bound to each table via its metadata
-  (provided the :class:`.Session` itself has no ``bind`` configured.).
-
-Alternatively, the ``bind`` attribute of :class:`~sqlalchemy.schema.MetaData`
-is *confusing* if:
-
-* Your application talks to multiple database engines at different times,
-  which use the *same* set of :class:`.Table` objects. It's usually confusing
-  and unnecessary to begin to create "copies" of :class:`.Table` objects just
-  so that different engines can be used for different operations. An example
-  is an application that writes data to a "master" database while performing
-  read-only operations from a "read slave". A global
-  :class:`~sqlalchemy.schema.MetaData` object is *not* appropriate for
-  per-request switching like this, although a
-  :class:`~sqlalchemy.schema.ThreadLocalMetaData` object is.
-* You are using the ORM :class:`.Session` to handle which class/table is bound
-  to which engine, or you are using the :class:`.Session` to manage switching
-  between engines. Its a good idea to keep the "binding of tables to engines"
-  in one place - either using :class:`~sqlalchemy.schema.MetaData` only (the
-  :class:`.Session` can of course be present, it just has no ``bind``
-  configured), or using :class:`.Session` only (the ``bind`` attribute of
-  :class:`~sqlalchemy.schema.MetaData` is left empty).
 
 Specifying the Schema Name
 ---------------------------
@@ -1092,11 +1009,11 @@ Setting up Constraints when using the Declarative ORM Extension
 The :class:`.Table` is the SQLAlchemy Core construct that allows one to define
 table metadata, which among other things can be used by the SQLAlchemy ORM
 as a target to map a class.  The :ref:`Declarative <declarative_toplevel>`
-extension allows the :class:`.Table` object to be created automatically, given 
+extension allows the :class:`.Table` object to be created automatically, given
 the contents of the table primarily as a mapping of :class:`.Column` objects.
 
 To apply table-level constraint objects such as :class:`.ForeignKeyConstraint`
-to a table defined using Declarative, use the ``__table_args__`` attribute, 
+to a table defined using Declarative, use the ``__table_args__`` attribute,
 described at :ref:`declarative_table_args`.
 
 Constraints API
@@ -1179,9 +1096,9 @@ INDEX" is issued right after the create statements for the table:
     CREATE INDEX idx_col34 ON mytable (col3, col4){stop}
 
 Note in the example above, the :class:`.Index` construct is created
-externally to the table which it corresponds, using :class:`.Column` 
+externally to the table which it corresponds, using :class:`.Column`
 objects directly.  :class:`.Index` also supports
-"inline" definition inside the :class:`.Table`, using string names to 
+"inline" definition inside the :class:`.Table`, using string names to
 identify columns::
 
     meta = MetaData()
@@ -1308,7 +1225,7 @@ constraint will be added via ALTER:
 
     event.listen(
         users,
-        "after_create", 
+        "after_create",
         AddConstraint(constraint)
     )
     event.listen(
@@ -1331,11 +1248,11 @@ constraint will be added via ALTER:
     DROP TABLE users{stop}
 
 The real usefulness of the above becomes clearer once we illustrate the :meth:`.DDLEvent.execute_if`
-method.  This method returns a modified form of the DDL callable which will 
+method.  This method returns a modified form of the DDL callable which will
 filter on criteria before responding to a received event.   It accepts a
 parameter ``dialect``, which is the string name of a dialect or a tuple of such,
 which will limit the execution of the item to just those dialects.  It also
-accepts a ``callable_`` parameter which may reference a Python callable which will 
+accepts a ``callable_`` parameter which may reference a Python callable which will
 be invoked upon event reception, returning ``True`` or ``False`` indicating if
 the event should proceed.
 

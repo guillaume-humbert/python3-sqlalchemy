@@ -4,7 +4,7 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy import pool as pool_module
 
 class QueuePoolTest(fixtures.TestBase, AssertsExecutionResults):
-    __requires__ = 'cpython', 
+    __requires__ = 'cpython',
 
     class Connection(object):
         def rollback(self):
@@ -15,7 +15,7 @@ class QueuePoolTest(fixtures.TestBase, AssertsExecutionResults):
 
     def teardown(self):
         # the tests leave some fake connections
-        # around which dont necessarily 
+        # around which dont necessarily
         # get gc'ed as quickly as we'd like,
         # on backends like pypy, python3.2
         pool_module._refs.clear()
@@ -27,11 +27,12 @@ class QueuePoolTest(fixtures.TestBase, AssertsExecutionResults):
                          use_threadlocal=True)
 
 
-    @profiling.function_call_count(72, {'2.4': 63, '2.7':67, 
-                                            '2.7+cextension':67,
-                                            '3.0':73, '3.1':73, 
-                                            '3.2':55},
-                                            variance=.10)
+    # the callcount on this test seems to vary
+    # based on tests that ran before (particularly py3k),
+    # probably
+    # due to the event mechanics being established
+    # or not already...
+    @profiling.function_call_count()
     def test_first_connect(self):
         conn = pool.connect()
 
@@ -39,10 +40,7 @@ class QueuePoolTest(fixtures.TestBase, AssertsExecutionResults):
         conn = pool.connect()
         conn.close()
 
-        @profiling.function_call_count(32, {'2.4': 21, '2.7':29,
-                                            '3.2':25,
-                                            '2.7+cextension':29},
-                                            variance=.10)
+        @profiling.function_call_count()
         def go():
             conn2 = pool.connect()
             return conn2
@@ -51,7 +49,7 @@ class QueuePoolTest(fixtures.TestBase, AssertsExecutionResults):
     def test_second_samethread_connect(self):
         conn = pool.connect()
 
-        @profiling.function_call_count(6, {'2.4': 4, '3':7})
+        @profiling.function_call_count()
         def go():
             return pool.connect()
         c2 = go()

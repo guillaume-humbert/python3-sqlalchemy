@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -162,10 +162,10 @@ result of DBAPI exceptions are all subclasses of
 <p>There are two scenarios where this error occurs:</p>
 <ul class="simple">
 <li>In a Session flush operation, if two objects are mutually dependent
-on each other, they can not be inserted or deleted via INSERT or 
+on each other, they can not be inserted or deleted via INSERT or
 DELETE statements alone; an UPDATE will be needed to post-associate
 or pre-deassociate one of the foreign key constrained values.
-The <tt class="docutils literal"><span class="pre">post_update</span></tt> flag described at <a class="reference internal" href="../orm/relationships.html#post-update"><em>Rows that point to themselves / Mutually Dependent Rows</em></a> can resolve 
+The <tt class="docutils literal"><span class="pre">post_update</span></tt> flag described at <a class="reference internal" href="../orm/relationships.html#post-update"><em>Rows that point to themselves / Mutually Dependent Rows</em></a> can resolve
 this cycle.</li>
 <li>In a <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a>, <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a>,
 <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.sorted_tables" title="sqlalchemy.schema.MetaData.sorted_tables"><tt class="xref py py-attr docutils literal"><span class="pre">MetaData.sorted_tables</span></tt></a> operation, two <a class="reference internal" href="schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>
@@ -196,7 +196,7 @@ that there is no guarantee that different DB-API implementations will
 raise the same exception type for any given error condition.</p>
 <p><a class="reference internal" href="#sqlalchemy.exc.DBAPIError" title="sqlalchemy.exc.DBAPIError"><tt class="xref py py-class docutils literal"><span class="pre">DBAPIError</span></tt></a> features <a class="reference internal" href="#sqlalchemy.exc.StatementError.statement" title="sqlalchemy.exc.StatementError.statement"><tt class="xref py py-attr docutils literal"><span class="pre">statement</span></tt></a>
 and <a class="reference internal" href="#sqlalchemy.exc.StatementError.params" title="sqlalchemy.exc.StatementError.params"><tt class="xref py py-attr docutils literal"><span class="pre">params</span></tt></a> attributes which supply context regarding
-the specifics of the statement which had an issue, for the 
+the specifics of the statement which had an issue, for the
 typical case when the error was raised within the context of
 emitting a SQL statement.</p>
 <p>The wrapped exception object is available in the <a class="reference internal" href="#sqlalchemy.exc.StatementError.orig" title="sqlalchemy.exc.StatementError.orig"><tt class="xref py py-attr docutils literal"><span class="pre">orig</span></tt></a> attribute.
@@ -223,9 +223,9 @@ Its type and properties are DB-API implementation specific.</p>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.exc.SQLAlchemyError" title="sqlalchemy.exc.SQLAlchemyError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.SQLAlchemyError</span></tt></a></p>
 <p>A disconnect is detected on a raw DB-API connection.</p>
 <p>This error is raised and consumed internally by a connection pool.  It can
-be raised by the <a class="reference internal" href="events.html#sqlalchemy.events.PoolEvents.checkout" title="sqlalchemy.events.PoolEvents.checkout"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.checkout()</span></tt></a> event 
+be raised by the <a class="reference internal" href="events.html#sqlalchemy.events.PoolEvents.checkout" title="sqlalchemy.events.PoolEvents.checkout"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.checkout()</span></tt></a> event
 so that the host pool forces a retry; the exception will be caught
-three times in a row before the pool gives up and raises 
+three times in a row before the pool gives up and raises
 <a class="reference internal" href="#sqlalchemy.exc.InvalidRequestError" title="sqlalchemy.exc.InvalidRequestError"><tt class="xref py py-class docutils literal"><span class="pre">InvalidRequestError</span></tt></a> regarding the connection attempt.</p>
 </dd></dl>
 
@@ -395,7 +395,7 @@ object that&#8217;s in a closed state.</p>
 during execution, and features <a class="reference internal" href="#sqlalchemy.exc.StatementError.statement" title="sqlalchemy.exc.StatementError.statement"><tt class="xref py py-attr docutils literal"><span class="pre">statement</span></tt></a>
 and <a class="reference internal" href="#sqlalchemy.exc.StatementError.params" title="sqlalchemy.exc.StatementError.params"><tt class="xref py py-attr docutils literal"><span class="pre">params</span></tt></a> attributes which supply context regarding
 the specifics of the statement which had an issue.</p>
-<p>The wrapped exception object is available in 
+<p>The wrapped exception object is available in
 the <a class="reference internal" href="#sqlalchemy.exc.StatementError.orig" title="sqlalchemy.exc.StatementError.orig"><tt class="xref py py-attr docutils literal"><span class="pre">orig</span></tt></a> attribute.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.exc.StatementError.orig">

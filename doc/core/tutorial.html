@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -120,7 +120,6 @@
 <li><a class="reference internal" href="#insert-expressions">Insert Expressions</a></li>
 <li><a class="reference internal" href="#executing">Executing</a></li>
 <li><a class="reference internal" href="#executing-multiple-statements">Executing Multiple Statements</a></li>
-<li><a class="reference internal" href="#connectionless-implicit-execution">Connectionless / Implicit Execution</a></li>
 <li><a class="reference internal" href="#selecting">Selecting</a></li>
 <li><a class="reference internal" href="#operators">Operators</a></li>
 <li><a class="reference internal" href="#conjunctions">Conjunctions</a></li>
@@ -459,42 +458,6 @@ others. This is because the <a class="reference internal" href="expression_api.h
 statement is compiled against the <strong>first</strong> dictionary in the list, and it&#8217;s
 assumed that all subsequent argument dictionaries are compatible with that
 statement.</p>
-</div>
-<div class="section" id="connectionless-implicit-execution">
-<h2>Connectionless / Implicit Execution<a class="headerlink" href="#connectionless-implicit-execution" title="Permalink to this headline">¶</a></h2>
-<p>We&#8217;re executing our <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> using a
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>. There&#8217;s two options that allow
-you to not have to deal with the connection part. You can execute in the
-<strong>connectionless</strong> style, using the engine, which checks out from the
-connection pool a connection for you, performs the execute operation with that
-connection, and then checks the connection back into the pool upon completion
-of the operation:</p>
-<div class="highlight-pycon+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">insert</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;fred&#39;</span><span class="p">,</span> <span class="n">fullname</span><span class="o">=</span><span class="s">&quot;Fred Flintstone&quot;</span><span class="p">)</span>
-<div class='popup_sql'>INSERT INTO users (name, fullname) VALUES (?, ?)
-('fred', 'Fred Flintstone')
-COMMIT</div></pre></div>
-</div>
-<p>and you can save even more steps than that, if you connect the
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> to the
-<a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object we created earlier. When this is
-done, all SQL expressions which involve tables within the
-<a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object will be automatically <strong>bound</strong> to
-the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>. In this case, we call it
-<strong>implicit execution</strong>:</p>
-<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span><span class="o">.</span><span class="n">bind</span> <span class="o">=</span> <span class="n">engine</span>
-<a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;mary&quot;</span><span class="p">,</span> <span class="n">fullname</span><span class="o">=</span><span class="s">&quot;Mary Contrary&quot;</span><span class="p">)</span>
-<div class='popup_sql'>INSERT INTO users (name, fullname) VALUES (?, ?)
-('mary', 'Mary Contrary')
-COMMIT</div></pre></div>
-</div>
-<p>When the <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> is bound, statements will also
-compile against the engine&#8217;s dialect. Since a lot of the examples here assume
-the default dialect, we&#8217;ll detach the engine from the metadata which we just
-attached:</p>
-<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span><span class="o">.</span><span class="n">bind</span> <span class="o">=</span> <span class="bp">None</span></pre></div>
-</div>
-<p>Detailed examples of connectionless and implicit execution are available in
-the &#8220;Engines&#8221; chapter: <a class="reference internal" href="connections.html#dbengine-implicit"><em>Connectionless Execution, Implicit Execution</em></a>.</p>
 </div>
 <div class="section" id="selecting">
 <span id="coretutorial-selecting"></span><h2>Selecting<a class="headerlink" href="#selecting" title="Permalink to this headline">¶</a></h2>

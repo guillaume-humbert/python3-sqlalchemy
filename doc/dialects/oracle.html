@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -172,7 +172,7 @@
 for that driver.</p>
 <div class="section" id="connect-arguments">
 <h2>Connect Arguments<a class="headerlink" href="#connect-arguments" title="Permalink to this headline">¶</a></h2>
-<p>The dialect supports several <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> arguments which 
+<p>The dialect supports several <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> arguments which
 affect the behavior of the dialect regardless of driver in use.</p>
 <ul class="simple">
 <li><em>use_ansi</em> - Use ANSI JOIN constructs (see the section on Oracle 8).  Defaults
@@ -185,18 +185,18 @@ to <tt class="docutils literal"><span class="pre">True</span></tt>.  If <tt clas
 <h2>Auto Increment Behavior<a class="headerlink" href="#auto-increment-behavior" title="Permalink to this headline">¶</a></h2>
 <p>SQLAlchemy Table objects which include integer primary keys are usually assumed to have
 &#8220;autoincrementing&#8221; behavior, meaning they can generate their own primary key values upon
-INSERT.  Since Oracle has no &#8220;autoincrement&#8221; feature, SQLAlchemy relies upon sequences 
+INSERT.  Since Oracle has no &#8220;autoincrement&#8221; feature, SQLAlchemy relies upon sequences
 to produce these values.   With the Oracle dialect, <em>a sequence must always be explicitly
-specified to enable autoincrement</em>.  This is divergent with the majority of documentation 
+specified to enable autoincrement</em>.  This is divergent with the majority of documentation
 examples which assume the usage of an autoincrement-capable database.   To specify sequences,
 use the sqlalchemy.schema.Sequence object which is passed to a Column construct:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> 
+<div class="highlight-python"><div class="highlight"><pre><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
       <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;id_seq&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
       <span class="n">Column</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="o">...</span>
 <span class="p">)</span></pre></div>
 </div>
 <p>This step is also required when using table reflection, i.e. autoload=True:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> 
+<div class="highlight-python"><div class="highlight"><pre><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
       <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;id_seq&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
       <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span>
 <span class="p">)</span></pre></div>
@@ -204,11 +204,11 @@ use the sqlalchemy.schema.Sequence object which is passed to a Column construct:
 </div>
 <div class="section" id="identifier-casing">
 <h2>Identifier Casing<a class="headerlink" href="#identifier-casing" title="Permalink to this headline">¶</a></h2>
-<p>In Oracle, the data dictionary represents all case insensitive identifier names 
+<p>In Oracle, the data dictionary represents all case insensitive identifier names
 using UPPERCASE text.   SQLAlchemy on the other hand considers an all-lower case identifier
 name to be case insensitive.   The Oracle dialect converts all case insensitive identifiers
 to and from those two formats during schema level communication, such as reflection of
-tables and indexes.   Using an UPPERCASE name on the SQLAlchemy side indicates a 
+tables and indexes.   Using an UPPERCASE name on the SQLAlchemy side indicates a
 case sensitive identifier, and SQLAlchemy will quote the name - this will cause mismatches
 against data dictionary data received from Oracle, so unless identifier names have been
 truly created as case sensitive (i.e. using quoted names), all lowercase names should be
@@ -224,13 +224,13 @@ to be set in order for the oracle client library to use proper encoding,
 such as &#8220;AMERICAN_AMERICA.UTF8&#8221;.</p>
 <p>Also note that Oracle supports unicode data through the NVARCHAR and NCLOB data types.
 When using the SQLAlchemy Unicode and UnicodeText types, these DDL types will be used
-within CREATE TABLE statements.   Usage of VARCHAR2 and CLOB with unicode text still 
+within CREATE TABLE statements.   Usage of VARCHAR2 and CLOB with unicode text still
 requires NLS_LANG to be set.</p>
 </div>
 <div class="section" id="limit-offset-support">
 <h2>LIMIT/OFFSET Support<a class="headerlink" href="#limit-offset-support" title="Permalink to this headline">¶</a></h2>
-<p>Oracle has no support for the LIMIT or OFFSET keywords.  SQLAlchemy uses 
-a wrapped subquery approach in conjunction with ROWNUM.  The exact methodology 
+<p>Oracle has no support for the LIMIT or OFFSET keywords.  SQLAlchemy uses
+a wrapped subquery approach in conjunction with ROWNUM.  The exact methodology
 is taken from
 <a class="reference external" href="http://www.oracle.com/technology/oramag/oracle/06-sep/o56asktom.html">http://www.oracle.com/technology/oramag/oracle/06-sep/o56asktom.html</a> .</p>
 <p>There are two options which affect its behavior:</p>
@@ -239,23 +239,23 @@ is taken from
 optimization directive, specify <tt class="docutils literal"><span class="pre">optimize_limits=True</span></tt> to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</li>
 <li>the values passed for the limit/offset are sent as bound parameters.   Some users have observed
 that Oracle produces a poor query plan when the values are sent as binds and not
-rendered literally.   To render the limit/offset values literally within the SQL 
+rendered literally.   To render the limit/offset values literally within the SQL
 statement, specify <tt class="docutils literal"><span class="pre">use_binds_for_limits=False</span></tt> to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</li>
 </ul>
-<p>Some users have reported better performance when the entirely different approach of a 
-window query is used, i.e. ROW_NUMBER() OVER (ORDER BY), to provide LIMIT/OFFSET (note 
-that the majority of users don&#8217;t observe this).  To suit this case the 
-method used for LIMIT/OFFSET can be replaced entirely.  See the recipe at 
+<p>Some users have reported better performance when the entirely different approach of a
+window query is used, i.e. ROW_NUMBER() OVER (ORDER BY), to provide LIMIT/OFFSET (note
+that the majority of users don&#8217;t observe this).  To suit this case the
+method used for LIMIT/OFFSET can be replaced entirely.  See the recipe at
 <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/UsageRecipes/WindowFunctionsByDefault">http://www.sqlalchemy.org/trac/wiki/UsageRecipes/WindowFunctionsByDefault</a>
 which installs a select compiler that overrides the generation of limit/offset with
 a window function.</p>
 </div>
 <div class="section" id="on-update-cascade">
 <h2>ON UPDATE CASCADE<a class="headerlink" href="#on-update-cascade" title="Permalink to this headline">¶</a></h2>
-<p>Oracle doesn&#8217;t have native ON UPDATE CASCADE functionality.  A trigger based solution 
+<p>Oracle doesn&#8217;t have native ON UPDATE CASCADE functionality.  A trigger based solution
 is available at <a class="reference external" href="http://asktom.oracle.com/tkyte/update_cascade/index.html">http://asktom.oracle.com/tkyte/update_cascade/index.html</a> .</p>
 <p>When using the SQLAlchemy ORM, the ORM has limited ability to manually issue
-cascading updates - specify ForeignKey objects using the 
+cascading updates - specify ForeignKey objects using the
 &#8220;deferrable=True, initially=&#8217;deferred&#8217;&#8221; keyword arguments,
 and specify &#8220;passive_updates=False&#8221; on each relationship().</p>
 </div>
@@ -267,20 +267,20 @@ behaviors:</p>
 <li>the use_ansi flag is set to False.  This has the effect of converting all
 JOIN phrases into the WHERE clause, and in the case of LEFT OUTER JOIN
 makes use of Oracle&#8217;s (+) operator.</li>
-<li>the NVARCHAR2 and NCLOB datatypes are no longer generated as DDL when 
-the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> is used - VARCHAR2 and CLOB are issued 
+<li>the NVARCHAR2 and NCLOB datatypes are no longer generated as DDL when
+the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> is used - VARCHAR2 and CLOB are issued
 instead.   This because these types don&#8217;t seem to work correctly on Oracle 8
-even though they are available.  The <a class="reference internal" href="../core/types.html#sqlalchemy.types.NVARCHAR" title="sqlalchemy.types.NVARCHAR"><tt class="xref py py-class docutils literal"><span class="pre">NVARCHAR</span></tt></a> 
+even though they are available.  The <a class="reference internal" href="../core/types.html#sqlalchemy.types.NVARCHAR" title="sqlalchemy.types.NVARCHAR"><tt class="xref py py-class docutils literal"><span class="pre">NVARCHAR</span></tt></a>
 and <a class="reference internal" href="#sqlalchemy.dialects.oracle.NCLOB" title="sqlalchemy.dialects.oracle.NCLOB"><tt class="xref py py-class docutils literal"><span class="pre">NCLOB</span></tt></a> types will always generate NVARCHAR2 and NCLOB.</li>
-<li>the &#8220;native unicode&#8221; mode is disabled when using cx_oracle, i.e. SQLAlchemy 
+<li>the &#8220;native unicode&#8221; mode is disabled when using cx_oracle, i.e. SQLAlchemy
 encodes all Python unicode objects to &#8220;string&#8221; before passing in as bind parameters.</li>
 </ul>
 </div>
 <div class="section" id="synonym-dblink-reflection">
 <h2>Synonym/DBLINK Reflection<a class="headerlink" href="#synonym-dblink-reflection" title="Permalink to this headline">¶</a></h2>
 <p>When using reflection with Table objects, the dialect can optionally search for tables
-indicated by synonyms that reference DBLINK-ed tables by passing the flag 
-oracle_resolve_synonyms=True as a keyword argument to the Table construct.  If DBLINK 
+indicated by synonyms that reference DBLINK-ed tables by passing the flag
+oracle_resolve_synonyms=True as a keyword argument to the Table construct.  If DBLINK
 is not in use this flag should be left off.</p>
 </div>
 <div class="section" id="oracle-data-types">
@@ -378,22 +378,22 @@ DDL statements.  May be safely omitted if no <tt class="docutils literal"><span 
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the 
+<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
 and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
 If the DBAPI in use does not support Python unicode
 (which is fewer and fewer these days), SQLAlchemy
-will encode/decode the value, using the 
-value of the <tt class="docutils literal"><span class="pre">encoding</span></tt> parameter passed to 
+will encode/decode the value, using the
+value of the <tt class="docutils literal"><span class="pre">encoding</span></tt> parameter passed to
 <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> as the encoding.</p>
 <p>When using a DBAPI that natively supports Python
-unicode objects, this flag generally does not 
+unicode objects, this flag generally does not
 need to be set.  For columns that are explicitly
 intended to store non-ASCII data, the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>
-or <tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt> 
+or <tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt>
 types should be used regardless, which feature
-the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but 
+the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but
 also indicate an underlying column type that
 directly supports unicode, such as <tt class="docutils literal"><span class="pre">NVARCHAR</span></tt>.</p>
 <p>For the extremely rare case that Python <tt class="docutils literal"><span class="pre">unicode</span></tt>
@@ -403,11 +403,11 @@ the value <tt class="docutils literal"><span class="pre">force</span></tt> can b
 cause SQLAlchemy&#8217;s encode/decode services to be
 used unconditionally.</p>
 </li>
-<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted 
-when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the 
-<a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>, 
-or the <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.   
-See <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to 
+<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted
+when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>,
+or the <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.
+See <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to
 control this warning.</li>
 <li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
@@ -454,22 +454,22 @@ DDL statements.  May be safely omitted if no <tt class="docutils literal"><span 
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the 
+<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
 and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
 If the DBAPI in use does not support Python unicode
 (which is fewer and fewer these days), SQLAlchemy
-will encode/decode the value, using the 
-value of the <tt class="docutils literal"><span class="pre">encoding</span></tt> parameter passed to 
+will encode/decode the value, using the
+value of the <tt class="docutils literal"><span class="pre">encoding</span></tt> parameter passed to
 <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> as the encoding.</p>
 <p>When using a DBAPI that natively supports Python
-unicode objects, this flag generally does not 
+unicode objects, this flag generally does not
 need to be set.  For columns that are explicitly
 intended to store non-ASCII data, the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>
-or <tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt> 
+or <tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt>
 types should be used regardless, which feature
-the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but 
+the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but
 also indicate an underlying column type that
 directly supports unicode, such as <tt class="docutils literal"><span class="pre">NVARCHAR</span></tt>.</p>
 <p>For the extremely rare case that Python <tt class="docutils literal"><span class="pre">unicode</span></tt>
@@ -479,11 +479,11 @@ the value <tt class="docutils literal"><span class="pre">force</span></tt> can b
 cause SQLAlchemy&#8217;s encode/decode services to be
 used unconditionally.</p>
 </li>
-<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted 
-when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the 
-<a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>, 
-or the <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.   
-See <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to 
+<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted
+when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>,
+or the <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.
+See <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to
 control this warning.</li>
 <li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
@@ -516,18 +516,18 @@ strings from a column with varied or corrupted encodings.</li>
 <p>Support for the Oracle database via the cx_oracle driver.</p>
 <div class="section" id="driver">
 <h3>Driver<a class="headerlink" href="#driver" title="Permalink to this headline">¶</a></h3>
-<p>The Oracle dialect uses the cx_oracle driver, available at 
-<a class="reference external" href="http://cx-oracle.sourceforge.net/">http://cx-oracle.sourceforge.net/</a> .   The dialect has several behaviors 
+<p>The Oracle dialect uses the cx_oracle driver, available at
+<a class="reference external" href="http://cx-oracle.sourceforge.net/">http://cx-oracle.sourceforge.net/</a> .   The dialect has several behaviors
 which are specifically tailored towards compatibility with this module.
 Version 5.0 or greater is <strong>strongly</strong> recommended, as SQLAlchemy makes
-extensive use of the cx_oracle output converters for numeric and 
+extensive use of the cx_oracle output converters for numeric and
 string conversions.</p>
 </div>
 <div class="section" id="connecting">
 <h3>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h3>
-<p>Connecting with create_engine() uses the standard URL approach of 
-<tt class="docutils literal"><span class="pre">oracle://user:pass&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.  If dbname is present, the 
-host, port, and dbname tokens are converted to a TNS name using the cx_oracle 
+<p>Connecting with create_engine() uses the standard URL approach of
+<tt class="docutils literal"><span class="pre">oracle://user:pass&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.  If dbname is present, the
+host, port, and dbname tokens are converted to a TNS name using the cx_oracle
 <tt class="xref py py-func docutils literal"><span class="pre">makedsn()</span></tt> function.  Otherwise, the host token is taken directly as a TNS name.</p>
 <p>Additional arguments which may be specified either as query string arguments on the
 URL, or as keyword arguments to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
@@ -552,7 +552,7 @@ all unicode strings directly to cx_oracle, and additionally uses an output
 handler so that all string based result values are returned as unicode as well.
 Generally, the <tt class="docutils literal"><span class="pre">NLS_LANG</span></tt> environment variable determines the nature
 of the encoding to be used.</p>
-<p>Note that this behavior is disabled when Oracle 8 is detected, as it has been 
+<p>Note that this behavior is disabled when Oracle 8 is detected, as it has been
 observed that issues remain when passing Python unicodes to cx_oracle with Oracle 8.</p>
 </div>
 <div class="section" id="lob-objects">
@@ -567,7 +567,7 @@ cursor is broken.</p>
 </div>
 <div class="section" id="two-phase-transaction-support">
 <h3>Two Phase Transaction Support<a class="headerlink" href="#two-phase-transaction-support" title="Permalink to this headline">¶</a></h3>
-<p>Two Phase transactions are implemented using XA transactions.  Success has been reported 
+<p>Two Phase transactions are implemented using XA transactions.  Success has been reported
 with this feature but it should be regarded as experimental.</p>
 </div>
 <div class="section" id="precision-numerics">
@@ -588,13 +588,13 @@ the feature can detract significantly from performance.
 If precision numerics aren&#8217;t required, the decimal handling
 can be disabled by passing the flag <tt class="docutils literal"><span class="pre">coerce_to_decimal=False</span></tt>
 to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;oracle+cx_oracle://dsn&quot;</span><span class="p">,</span> 
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;oracle+cx_oracle://dsn&quot;</span><span class="p">,</span>
                     <span class="n">coerce_to_decimal</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></pre></div>
 </div>
 <p class="versionadded">
 <span class="versionmodified">New in version 0.7.6: </span>Add the <tt class="docutils literal"><span class="pre">coerce_to_decimal</span></tt> flag.</p>
-<p>Another alternative to performance is to use the 
-<a class="reference external" href="http://pypi.python.org/pypi/cdecimal/">cdecimal</a> library; 
+<p>Another alternative to performance is to use the
+<a class="reference external" href="http://pypi.python.org/pypi/cdecimal/">cdecimal</a> library;
 see <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a> for additional notes.</p>
 <p>The handler attempts to use the &#8220;precision&#8221; and &#8220;scale&#8221;
 attributes of the result set column to best determine if

@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -288,10 +288,10 @@ using the new connection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>retval=False</strong> &#8211; Applies to the <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_execute" title="sqlalchemy.events.ConnectionEvents.before_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_execute()</span></tt></a> and 
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>retval=False</strong> &#8211; Applies to the <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_execute" title="sqlalchemy.events.ConnectionEvents.before_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_execute()</span></tt></a> and
 <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_cursor_execute" title="sqlalchemy.events.ConnectionEvents.before_cursor_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_cursor_execute()</span></tt></a> events only.  When True, the
 user-defined event function must have a return value, which
-is a tuple of parameters that replace the given statement 
+is a tuple of parameters that replace the given statement
 and parameters.  See those methods for a description of
 specific return arguments.</td>
 </tr>
@@ -349,8 +349,8 @@ specific return arguments.</td>
 <dt id="sqlalchemy.events.ConnectionEvents.dbapi_error">
 <tt class="descname">dbapi_error</tt><big>(</big><em>conn</em>, <em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em>, <em>exception</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.dbapi_error" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept a raw DBAPI error.</p>
-<p>This event is called with the DBAPI exception instance 
-received from the DBAPI itself, <em>before</em> SQLAlchemy wraps the 
+<p>This event is called with the DBAPI exception instance
+received from the DBAPI itself, <em>before</em> SQLAlchemy wraps the
 exception with it&#8217;s own exception wrappers, and before any
 other operations are performed on the DBAPI cursor; the
 existing transaction remains in effect as well as any state
@@ -363,7 +363,7 @@ interfere with SQLAlchemy&#8217;s cleanup and error handling
 routines.</p>
 <p>Subsequent to this hook, SQLAlchemy may attempt any
 number of operations on the connection/cursor, including
-closing the cursor, rolling back of the transaction in the 
+closing the cursor, rolling back of the transaction in the
 case of connectionless execution, and disposing of the entire
 connection pool if a &#8220;disconnect&#8221; was detected.   The
 exception is then wrapped in a SQLAlchemy DBAPI exception
@@ -436,14 +436,14 @@ is associated with a <a class="reference internal" href="schema.html#sqlalchemy.
 <span class="n">some_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;some_table&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">))</span>
 
 <span class="k">def</span> <span class="nf">after_create</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;ALTER TABLE </span><span class="si">%s</span><span class="s"> SET name=foo_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> 
+    <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;ALTER TABLE </span><span class="si">%s</span><span class="s"> SET name=foo_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
                             <span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
 
 <span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">some_table</span><span class="p">,</span> <span class="s">&quot;after_create&quot;</span><span class="p">,</span> <span class="n">after_create</span><span class="p">)</span></pre></div>
 </div>
-<p>DDL events integrate closely with the 
+<p>DDL events integrate closely with the
 <a class="reference internal" href="schema.html#sqlalchemy.schema.DDL" title="sqlalchemy.schema.DDL"><tt class="xref py py-class docutils literal"><span class="pre">DDL</span></tt></a> class and the <a class="reference internal" href="schema.html#sqlalchemy.schema.DDLElement" title="sqlalchemy.schema.DDLElement"><tt class="xref py py-class docutils literal"><span class="pre">DDLElement</span></tt></a> hierarchy
-of DDL clause constructs, which are themselves appropriate 
+of DDL clause constructs, which are themselves appropriate
 as listener callables:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">DDL</span>
 <span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span>
@@ -479,7 +479,7 @@ CREATE statement or statements have been emitted.</li>
 to the event.  The contents of this dictionary
 may vary across releases, and include the
 list of tables being generated for a metadata-level
-event, the checkfirst flag, and other 
+event, the checkfirst flag, and other
 elements used by internal events.</li>
 </ul>
 </td>
@@ -505,7 +505,7 @@ DROP statement or statements have been emitted.</li>
 to the event.  The contents of this dictionary
 may vary across releases, and include the
 list of tables being generated for a metadata-level
-event, the checkfirst flag, and other 
+event, the checkfirst flag, and other
 elements used by internal events.</li>
 </ul>
 </td>
@@ -517,7 +517,7 @@ elements used by internal events.</li>
 <dl class="method">
 <dt id="sqlalchemy.events.DDLEvents.after_parent_attach">
 <tt class="descname">after_parent_attach</tt><big>(</big><em>target</em>, <em>parent</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DDLEvents.after_parent_attach" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called after a <a class="reference internal" href="schema.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">SchemaItem</span></tt></a> is associated with 
+<dd><p>Called after a <a class="reference internal" href="schema.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">SchemaItem</span></tt></a> is associated with
 a parent <a class="reference internal" href="schema.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">SchemaItem</span></tt></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -562,7 +562,7 @@ CREATE statement or statements will be emitted.</li>
 to the event.  The contents of this dictionary
 may vary across releases, and include the
 list of tables being generated for a metadata-level
-event, the checkfirst flag, and other 
+event, the checkfirst flag, and other
 elements used by internal events.</li>
 </ul>
 </td>
@@ -588,7 +588,7 @@ DROP statement or statements will be emitted.</li>
 to the event.  The contents of this dictionary
 may vary across releases, and include the
 list of tables being generated for a metadata-level
-event, the checkfirst flag, and other 
+event, the checkfirst flag, and other
 elements used by internal events.</li>
 </ul>
 </td>
@@ -600,7 +600,7 @@ elements used by internal events.</li>
 <dl class="method">
 <dt id="sqlalchemy.events.DDLEvents.before_parent_attach">
 <tt class="descname">before_parent_attach</tt><big>(</big><em>target</em>, <em>parent</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DDLEvents.before_parent_attach" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called before a <a class="reference internal" href="schema.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">SchemaItem</span></tt></a> is associated with 
+<dd><p>Called before a <a class="reference internal" href="schema.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">SchemaItem</span></tt></a> is associated with
 a parent <a class="reference internal" href="schema.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">SchemaItem</span></tt></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -635,7 +635,7 @@ i.e. those copies that are generated when
 a <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is being reflected.</p>
 <p>The dictionary of column information as returned by the
 dialect is passed, and can be modified.  The dictionary
-is that returned in each element of the list returned 
+is that returned in each element of the list returned
 by <a class="reference internal" href="schema.html#sqlalchemy.engine.reflection.Inspector.get_columns" title="sqlalchemy.engine.reflection.Inspector.get_columns"><tt class="xref py py-meth docutils literal"><span class="pre">reflection.Inspector.get_columns()</span></tt></a>.</p>
 <p>The event is called before any action is taken against
 this dictionary, and the contents can be modified.
@@ -643,7 +643,7 @@ The <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" ti
 and <tt class="docutils literal"><span class="pre">quote</span></tt> can also be added to the dictionary and
 will be passed to the constructor of <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</p>
 <p>Note that this event is only meaningful if either
-associated with the <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> class across the 
+associated with the <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> class across the
 board, e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">Table</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
@@ -651,10 +651,10 @@ board, e.g.:</p>
 <span class="k">def</span> <span class="nf">listen_for_reflect</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">column_info</span><span class="p">):</span>
     <span class="s">&quot;receive a column_reflect event&quot;</span>
     <span class="c"># ...</span>
-    
+
 <span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span>
-        <span class="n">Table</span><span class="p">,</span> 
-        <span class="s">&#39;column_reflect&#39;</span><span class="p">,</span> 
+        <span class="n">Table</span><span class="p">,</span>
+        <span class="s">&#39;column_reflect&#39;</span><span class="p">,</span>
         <span class="n">listen_for_reflect</span><span class="p">)</span></pre></div>
 </div>
 <p>...or with a specific <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> instance using
@@ -662,9 +662,9 @@ the <tt class="docutils literal"><span class="pre">listeners</span></tt> argumen
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">listen_for_reflect</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">column_info</span><span class="p">):</span>
     <span class="s">&quot;receive a column_reflect event&quot;</span>
     <span class="c"># ...</span>
-    
+
 <span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
-    <span class="s">&#39;sometable&#39;</span><span class="p">,</span> 
+    <span class="s">&#39;sometable&#39;</span><span class="p">,</span>
     <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
     <span class="n">listeners</span><span class="o">=</span><span class="p">[</span>
         <span class="p">(</span><span class="s">&#39;column_reflect&#39;</span><span class="p">,</span> <span class="n">listen_for_reflect</span><span class="p">)</span>

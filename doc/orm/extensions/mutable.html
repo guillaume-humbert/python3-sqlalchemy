@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -166,8 +166,8 @@ call, looking for changes.</p>
 <div class="section" id="establishing-mutability-on-scalar-column-values">
 <span id="mutable-scalars"></span><h2>Establishing Mutability on Scalar Column Values<a class="headerlink" href="#establishing-mutability-on-scalar-column-values" title="Permalink to this headline">¶</a></h2>
 <p>A typical example of a &#8220;mutable&#8221; structure is a Python dictionary.
-Following the example introduced in <a class="reference internal" href="../../core/types.html"><em>Column and Data Types</em></a>, we 
-begin with a custom type that marshals Python dictionaries into 
+Following the example introduced in <a class="reference internal" href="../../core/types.html"><em>Column and Data Types</em></a>, we
+begin with a custom type that marshals Python dictionaries into
 JSON strings before being persisted:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">TypeDecorator</span><span class="p">,</span> <span class="n">VARCHAR</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -187,7 +187,7 @@ JSON strings before being persisted:</p>
             <span class="n">value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span></pre></div>
 </div>
-<p>The usage of <tt class="docutils literal"><span class="pre">json</span></tt> is only for the purposes of example. The <a class="reference internal" href="#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> 
+<p>The usage of <tt class="docutils literal"><span class="pre">json</span></tt> is only for the purposes of example. The <a class="reference internal" href="#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a>
 extension can be used
 with any type whose target Python type may be mutable, including
 <a class="reference internal" href="../../core/types.html#sqlalchemy.types.PickleType" title="sqlalchemy.types.PickleType"><tt class="xref py py-class docutils literal"><span class="pre">PickleType</span></tt></a>, <a class="reference internal" href="../../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a>, etc.</p>
@@ -228,7 +228,7 @@ the <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable" title="
 built-in <tt class="docutils literal"><span class="pre">dict</span></tt> to produce a dict
 subclass which routes all mutation events through <tt class="docutils literal"><span class="pre">__setitem__</span></tt>. There are
 many variants on this approach, such as subclassing <tt class="docutils literal"><span class="pre">UserDict.UserDict</span></tt>,
-the newer <tt class="docutils literal"><span class="pre">collections.MutableMapping</span></tt>,  etc. The part that&#8217;s important to this 
+the newer <tt class="docutils literal"><span class="pre">collections.MutableMapping</span></tt>,  etc. The part that&#8217;s important to this
 example is that the <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.changed" title="sqlalchemy.ext.mutable.Mutable.changed"><tt class="xref py py-meth docutils literal"><span class="pre">Mutable.changed()</span></tt></a> method is called whenever an in-place change to the
 datastructure takes place.</p>
 <p>We also redefine the <tt class="xref py py-meth docutils literal"><span class="pre">Mutable.coerce()</span></tt> method which will be used to
@@ -236,7 +236,7 @@ convert any values that are not instances of <tt class="docutils literal"><span 
 as the plain dictionaries returned by the <tt class="docutils literal"><span class="pre">json</span></tt> module, into the
 appropriate type.  Defining this method is optional; we could just as well created our
 <tt class="docutils literal"><span class="pre">JSONEncodedDict</span></tt> such that it always returns an instance of <tt class="docutils literal"><span class="pre">MutationDict</span></tt>,
-and additionally ensured that all calling code uses <tt class="docutils literal"><span class="pre">MutationDict</span></tt> 
+and additionally ensured that all calling code uses <tt class="docutils literal"><span class="pre">MutationDict</span></tt>
 explicitly.  When <tt class="xref py py-meth docutils literal"><span class="pre">Mutable.coerce()</span></tt> is not overridden, any values
 applied to a parent object which are not instances of the mutable type
 will raise a <tt class="docutils literal"><span class="pre">ValueError</span></tt>.</p>
@@ -254,7 +254,7 @@ attribute. Such as, with classical table metadata:</p>
 <span class="p">)</span></pre></div>
 </div>
 <p>Above, <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.as_mutable" title="sqlalchemy.ext.mutable.Mutable.as_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">as_mutable()</span></tt></a> returns an instance of <tt class="docutils literal"><span class="pre">JSONEncodedDict</span></tt>
-(if the type object was not an instance already), which will intercept any 
+(if the type object was not an instance already), which will intercept any
 attributes which are mapped against this type.  Below we establish a simple
 mapping against the <tt class="docutils literal"><span class="pre">my_data</span></tt> table:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">mapper</span>
@@ -292,7 +292,7 @@ will flag the attribute as &#8220;dirty&#8221; on the parent object:</p>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">MutationDict</span></tt> can be associated with all future instances
 of <tt class="docutils literal"><span class="pre">JSONEncodedDict</span></tt> in one step, using <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.associate_with" title="sqlalchemy.ext.mutable.Mutable.associate_with"><tt class="xref py py-meth docutils literal"><span class="pre">associate_with()</span></tt></a>.  This
-is similar to <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.as_mutable" title="sqlalchemy.ext.mutable.Mutable.as_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">as_mutable()</span></tt></a> except it will intercept 
+is similar to <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.as_mutable" title="sqlalchemy.ext.mutable.Mutable.as_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">as_mutable()</span></tt></a> except it will intercept
 all occurrences of <tt class="docutils literal"><span class="pre">MutationDict</span></tt> in all mappings unconditionally, without
 the need to declare it individually:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">MutationDict</span><span class="o">.</span><span class="n">associate_with</span><span class="p">(</span><span class="n">JSONEncodedDict</span><span class="p">)</span>
@@ -435,10 +435,10 @@ Below we define both a <tt class="docutils literal"><span class="pre">__getstate
 the minimal form of our <tt class="docutils literal"><span class="pre">Point</span></tt> class:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Point</span><span class="p">(</span><span class="n">MutableComposite</span><span class="p">):</span>
     <span class="c"># ...</span>
-    
+
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span>
-    
+
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">state</span></pre></div>
 </div>
@@ -477,7 +477,7 @@ events to a parent object.</p>
 <dd><p>Associate a SQL type with this mutable Python type.</p>
 <p>This establishes listeners that will detect ORM mappings against
 the given type, adding mutation event trackers to those mappings.</p>
-<p>The type is returned, unconditionally as an instance, so that 
+<p>The type is returned, unconditionally as an instance, so that
 <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.as_mutable" title="sqlalchemy.ext.mutable.Mutable.as_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">as_mutable()</span></tt></a> can be used inline:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
@@ -487,14 +487,14 @@ the given type, adding mutation event trackers to those mappings.</p>
 <p>Note that the returned type is always an instance, even if a class
 is given, and that only columns which are declared specifically with that
 type instance receive additional instrumentation.</p>
-<p>To associate a particular mutable type with all occurrences of a 
+<p>To associate a particular mutable type with all occurrences of a
 particular type, use the <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.associate_with" title="sqlalchemy.ext.mutable.Mutable.associate_with"><tt class="xref py py-meth docutils literal"><span class="pre">Mutable.associate_with()</span></tt></a> classmethod
 of the particular <tt class="xref py py-meth docutils literal"><span class="pre">Mutable()</span></tt> subclass to establish a global
 association.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">The listeners established by this method are <em>global</em>
-to all mappers, and are <em>not</em> garbage collected.   Only use 
+to all mappers, and are <em>not</em> garbage collected.   Only use
 <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.as_mutable" title="sqlalchemy.ext.mutable.Mutable.as_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">as_mutable()</span></tt></a> for types that are permanent to an application,
 not with ad-hoc types else this will cause unbounded growth
 in memory usage.</p>
@@ -504,13 +504,13 @@ in memory usage.</p>
 <dl class="classmethod">
 <dt id="sqlalchemy.ext.mutable.Mutable.associate_with">
 <em class="property">classmethod </em><tt class="descname">associate_with</tt><big>(</big><em>sqltype</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.mutable.Mutable.associate_with" title="Permalink to this definition">¶</a></dt>
-<dd><p>Associate this wrapper with all future mapped columns 
+<dd><p>Associate this wrapper with all future mapped columns
 of the given type.</p>
 <p>This is a convenience method that calls <tt class="docutils literal"><span class="pre">associate_with_attribute</span></tt> automatically.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">The listeners established by this method are <em>global</em>
-to all mappers, and are <em>not</em> garbage collected.   Only use 
+to all mappers, and are <em>not</em> garbage collected.   Only use
 <a class="reference internal" href="#sqlalchemy.ext.mutable.Mutable.associate_with" title="sqlalchemy.ext.mutable.Mutable.associate_with"><tt class="xref py py-meth docutils literal"><span class="pre">associate_with()</span></tt></a> for types that are permanent to an application,
 not with ad-hoc types else this will cause unbounded growth
 in memory usage.</p>
@@ -520,7 +520,7 @@ in memory usage.</p>
 <dl class="classmethod">
 <dt id="sqlalchemy.ext.mutable.Mutable.associate_with_attribute">
 <em class="property">classmethod </em><tt class="descname">associate_with_attribute</tt><big>(</big><em>attribute</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.mutable.Mutable.associate_with_attribute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Establish this type as a mutation listener for the given 
+<dd><p>Establish this type as a mutation listener for the given
 mapped descriptor.</p>
 </dd></dl>
 
@@ -543,7 +543,7 @@ owning parent or parents.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">The listeners established by the <a class="reference internal" href="#sqlalchemy.ext.mutable.MutableComposite" title="sqlalchemy.ext.mutable.MutableComposite"><tt class="xref py py-class docutils literal"><span class="pre">MutableComposite</span></tt></a>
-class are <em>global</em> to all mappers, and are <em>not</em> garbage collected.   Only use 
+class are <em>global</em> to all mappers, and are <em>not</em> garbage collected.   Only use
 <a class="reference internal" href="#sqlalchemy.ext.mutable.MutableComposite" title="sqlalchemy.ext.mutable.MutableComposite"><tt class="xref py py-class docutils literal"><span class="pre">MutableComposite</span></tt></a> for types that are permanent to an application,
 not with ad-hoc types else this will cause unbounded growth
 in memory usage.</p>
