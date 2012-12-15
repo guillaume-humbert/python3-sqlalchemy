@@ -1,11 +1,11 @@
-from test.lib.testing import eq_
+from sqlalchemy.testing import eq_
 from sqlalchemy import *
 from sqlalchemy.orm import *
 
-from test.lib import testing
+from sqlalchemy import testing
 from test.orm import _fixtures
-from test.lib import fixtures
-from test.lib.schema import Table, Column
+from sqlalchemy.testing import fixtures
+from sqlalchemy.testing.schema import Table, Column
 
 
 class SingleInheritanceTest(testing.AssertsCompiledSQL, fixtures.MappedTest):
@@ -278,7 +278,8 @@ class RelationshipFromSingleTest(testing.AssertsCompiledSQL, fixtures.MappedTest
 
         sess = create_session()
         context = sess.query(Manager).options(subqueryload('stuff'))._compile_context()
-        subq = context.attributes[('subquery', (class_mapper(Employee), 'stuff'))]
+        subq = context.attributes[('subquery',
+                (class_mapper(Manager), class_mapper(Manager).attrs.stuff))]
 
         self.assert_compile(subq,
                             'SELECT employee_stuff.id AS '

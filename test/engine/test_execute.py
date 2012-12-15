@@ -1,22 +1,26 @@
-from test.lib.testing import eq_, assert_raises, assert_raises_message, config
+from __future__ import with_statement
+
+from sqlalchemy.testing import eq_, assert_raises, assert_raises_message, \
+    config, is_
 import re
-from test.lib.util import picklers
+from sqlalchemy.testing.util import picklers
 from sqlalchemy.interfaces import ConnectionProxy
 from sqlalchemy import MetaData, Integer, String, INT, VARCHAR, func, \
     bindparam, select, event, TypeDecorator, create_engine, Sequence
 from sqlalchemy.sql import column, literal
-from test.lib.schema import Table, Column
+from sqlalchemy.testing.schema import Table, Column
 import sqlalchemy as tsa
-from test.lib import testing, engines
-from test.lib.engines import testing_engine
+from sqlalchemy import testing
+from sqlalchemy.testing import engines
+from sqlalchemy.testing.engines import testing_engine
 import logging
 from sqlalchemy.dialects.oracle.zxjdbc import ReturningParam
-from sqlalchemy.engine import base, default
+from sqlalchemy.engine import result as _result, default
 from sqlalchemy.engine.base import Connection, Engine
-from test.lib import fixtures
+from sqlalchemy.testing import fixtures
 import StringIO
 
-users, metadata = None, None
+users, metadata, users_autoinc = None, None, None
 class ExecuteTest(fixtures.TestBase):
     @classmethod
     def setup_class(cls):
@@ -44,9 +48,9 @@ class ExecuteTest(fixtures.TestBase):
     @testing.fails_on("postgresql+pg8000",
             "pg8000 still doesn't allow single % without params")
     def test_no_params_option(self):
-        stmt = "SELECT '%'"
-        if testing.against('oracle'):
-            stmt += " FROM DUAL"
+        stmt = "SELECT '%'" + testing.db.dialect.statement_compiler(
+                                    testing.db.dialect, None).default_from()
+
         conn = testing.db.connect()
         result = conn.\
                 execution_options(no_parameters=True).\
@@ -312,16 +316,14 @@ class ExecuteTest(fixtures.TestBase):
     def test_empty_insert(self):
         """test that execute() interprets [] as a list with no params"""
 
-        result = \
-            testing.db.execute(users_autoinc.insert().
-                        values(user_name=bindparam('name')), [])
-        eq_(testing.db.execute(users_autoinc.select()).fetchall(), [(1,
-            None)])
+        testing.db.execute(users_autoinc.insert().
+                    values(user_name=bindparam('name', None)), [])
+        eq_(testing.db.execute(users_autoinc.select()).fetchall(), [(1, None)])
 
     @testing.requires.ad_hoc_engines
     def test_engine_level_options(self):
-        eng = engines.testing_engine(options={'execution_options'
-                : {'foo': 'bar'}})
+        eng = engines.testing_engine(options={'execution_options':
+                                            {'foo': 'bar'}})
         conn = eng.contextual_connect()
         eq_(conn._execution_options['foo'], 'bar')
         eq_(conn.execution_options(bat='hoho')._execution_options['foo'
@@ -333,6 +335,66 @@ class ExecuteTest(fixtures.TestBase):
         eng.update_execution_options(foo='hoho')
         conn = eng.contextual_connect()
         eq_(conn._execution_options['foo'], 'hoho')
+
+    @testing.requires.ad_hoc_engines
+    def test_generative_engine_execution_options(self):
+        eng = engines.testing_engine(options={'execution_options':
+                                            {'base': 'x1'}})
+
+        eng1 = eng.execution_options(foo="b1")
+        eng2 = eng.execution_options(foo="b2")
+        eng1a = eng1.execution_options(bar="a1")
+        eng2a = eng2.execution_options(foo="b3", bar="a2")
+
+        eq_(eng._execution_options,
+                {'base': 'x1'})
+        eq_(eng1._execution_options,
+                {'base': 'x1', 'foo': 'b1'})
+        eq_(eng2._execution_options,
+                {'base': 'x1', 'foo': 'b2'})
+        eq_(eng1a._execution_options,
+                {'base': 'x1', 'foo': 'b1', 'bar': 'a1'})
+        eq_(eng2a._execution_options,
+                {'base': 'x1', 'foo': 'b3', 'bar': 'a2'})
+        is_(eng1a.pool, eng.pool)
+
+        # test pool is shared
+        eng2.dispose()
+        is_(eng1a.pool, eng2.pool)
+        is_(eng.pool, eng2.pool)
+
+    @testing.requires.ad_hoc_engines
+    def test_generative_engine_event_dispatch(self):
+        canary = []
+        def l1(*arg, **kw):
+            canary.append("l1")
+        def l2(*arg, **kw):
+            canary.append("l2")
+        def l3(*arg, **kw):
+            canary.append("l3")
+
+        eng = engines.testing_engine(options={'execution_options':
+                                            {'base': 'x1'}})
+        event.listen(eng, "before_execute", l1)
+
+        eng1 = eng.execution_options(foo="b1")
+        event.listen(eng, "before_execute", l2)
+        event.listen(eng1, "before_execute", l3)
+
+        eng.execute(select([1]))
+        eng1.execute(select([1]))
+
+        eq_(canary, ["l1", "l2", "l3", "l1", "l2"])
+
+    @testing.requires.ad_hoc_engines
+    def test_generative_engine_event_dispatch_hasevents(self):
+        def l1(*arg, **kw):
+            pass
+        eng = create_engine(testing.db.url)
+        assert not eng._has_events
+        event.listen(eng, "before_execute", l1)
+        eng2 = eng.execution_options(foo='bar')
+        assert eng2._has_events
 
     def test_unicode_test_fails_warning(self):
         class MockCursor(engines.DBAPIProxyCursor):
@@ -896,6 +958,60 @@ class ResultProxyTest(fixtures.TestBase):
         writer.writerow(row)
         assert s.getvalue().strip() == '1,Test'
 
+    @testing.requires.selectone
+    def test_empty_accessors(self):
+        statements = [
+            (
+                "select 1",
+                [
+                    lambda r: r.last_inserted_params(),
+                    lambda r: r.last_updated_params(),
+                    lambda r: r.prefetch_cols(),
+                    lambda r: r.postfetch_cols(),
+                    lambda r : r.inserted_primary_key
+                ],
+                "Statement is not a compiled expression construct."
+            ),
+            (
+                select([1]),
+                [
+                    lambda r: r.last_inserted_params(),
+                    lambda r : r.inserted_primary_key
+                ],
+                r"Statement is not an insert\(\) expression construct."
+            ),
+            (
+                select([1]),
+                [
+                    lambda r: r.last_updated_params(),
+                ],
+                r"Statement is not an update\(\) expression construct."
+            ),
+            (
+                select([1]),
+                [
+                    lambda r: r.prefetch_cols(),
+                    lambda r : r.postfetch_cols()
+                ],
+                r"Statement is not an insert\(\) "
+                r"or update\(\) expression construct."
+            ),
+        ]
+
+        for stmt, meths, msg in statements:
+            r = testing.db.execute(stmt)
+            try:
+                for meth in meths:
+                    assert_raises_message(
+                        tsa.exc.InvalidRequestError,
+                        msg,
+                        meth, r
+                    )
+
+            finally:
+                r.close()
+
+
 class AlternateResultProxyTest(fixtures.TestBase):
     __requires__ = ('sqlite', )
 
@@ -946,27 +1062,29 @@ class AlternateResultProxyTest(fixtures.TestBase):
         eq_(rows, [(i, "t_%d" % i) for i in xrange(1, 6)])
 
     def test_plain(self):
-        self._test_proxy(base.ResultProxy)
+        self._test_proxy(_result.ResultProxy)
 
     def test_buffered_row_result_proxy(self):
-        self._test_proxy(base.BufferedRowResultProxy)
+        self._test_proxy(_result.BufferedRowResultProxy)
 
     def test_fully_buffered_result_proxy(self):
-        self._test_proxy(base.FullyBufferedResultProxy)
+        self._test_proxy(_result.FullyBufferedResultProxy)
 
     def test_buffered_column_result_proxy(self):
-        self._test_proxy(base.BufferedColumnResultProxy)
+        self._test_proxy(_result.BufferedColumnResultProxy)
 
 class EngineEventsTest(fixtures.TestBase):
     __requires__ = 'ad_hoc_engines',
 
     def tearDown(self):
         Engine.dispatch._clear()
+        Engine._has_events = False
 
     def _assert_stmts(self, expected, received):
+        orig = list(received)
         for stmt, params, posn in expected:
             if not received:
-                assert False
+                assert False, "Nothing available for stmt: %s" % stmt
             while received:
                 teststmt, testparams, testmultiparams = \
                     received.pop(0)
@@ -1018,6 +1136,26 @@ class EngineEventsTest(fixtures.TestBase):
 
         eq_(canary, ['be1', 'be3', 'be2', 'be1', 'be3'])
 
+    def test_per_connection_plus_engine(self):
+        canary = []
+        def be1(conn, stmt, *arg):
+            canary.append('be1')
+        def be2(conn, stmt, *arg):
+            canary.append('be2')
+        e1 = testing_engine(config.db_url)
+
+        event.listen(e1, "before_execute", be1)
+
+        conn = e1.connect()
+        event.listen(conn, "before_execute", be2)
+        canary[:] = []
+        conn.execute(select([1]))
+
+        eq_(canary, ['be2', 'be1'])
+
+        conn._branch().execute(select([1]))
+        eq_(canary, ['be2', 'be1', 'be2', 'be1'])
+
     def test_argument_format_execute(self):
         def before_execute(conn, clauseelement, multiparams, params):
             assert isinstance(multiparams, (list, tuple))
@@ -1032,7 +1170,7 @@ class EngineEventsTest(fixtures.TestBase):
         e1.execute(select([1]))
         e1.execute(select([1]).compile(dialect=e1.dialect).statement)
         e1.execute(select([1]).compile(dialect=e1.dialect))
-        e1._execute_compiled(select([1]).compile(dialect=e1.dialect), [], {})
+        e1._execute_compiled(select([1]).compile(dialect=e1.dialect), (), {})
 
     def test_exception_event(self):
         engine = engines.testing_engine()
@@ -1069,11 +1207,12 @@ class EngineEventsTest(fixtures.TestBase):
         for engine in [
             engines.testing_engine(options=dict(implicit_returning=False)),
             engines.testing_engine(options=dict(implicit_returning=False,
-                                   strategy='threadlocal'))
+                                   strategy='threadlocal')),
+            engines.testing_engine(options=dict(implicit_returning=False)).\
+                connect()
             ]:
             event.listen(engine, 'before_execute', execute)
             event.listen(engine, 'before_cursor_execute', cursor_execute)
-
             m = MetaData(engine)
             t1 = Table('t1', m,
                 Column('c1', Integer, primary_key=True),
@@ -1088,21 +1227,26 @@ class EngineEventsTest(fixtures.TestBase):
                     'some data'), (6, 'foo')])
             finally:
                 m.drop_all()
-            engine.dispose()
+
             compiled = [('CREATE TABLE t1', {}, None),
-                        ('INSERT INTO t1 (c1, c2)', {'c2': 'some data',
-                        'c1': 5}, None), ('INSERT INTO t1 (c1, c2)',
-                        {'c1': 6}, None), ('select * from t1', {},
-                        None), ('DROP TABLE t1', {}, None)]
-            if not testing.against('oracle+zxjdbc'):  # or engine.dialect.pr
-                                                      # eexecute_pk_sequence
-                                                      # s:
+                        ('INSERT INTO t1 (c1, c2)',
+                                {'c2': 'some data', 'c1': 5}, None),
+                        ('INSERT INTO t1 (c1, c2)',
+                        {'c1': 6}, None),
+                        ('select * from t1', {}, None),
+                        ('DROP TABLE t1', {}, None)]
+
+            # or engine.dialect.preexecute_pk_sequences:
+            if not testing.against('oracle+zxjdbc'):
                 cursor = [
                     ('CREATE TABLE t1', {}, ()),
-                    ('INSERT INTO t1 (c1, c2)', {'c2': 'some data', 'c1'
-                     : 5}, (5, 'some data')),
-                    ('SELECT lower', {'lower_2': 'Foo'}, ('Foo', )),
-                    ('INSERT INTO t1 (c1, c2)', {'c2': 'foo', 'c1': 6},
+                    ('INSERT INTO t1 (c1, c2)', {
+                        'c2': 'some data', 'c1': 5},
+                        (5, 'some data')),
+                    ('SELECT lower', {'lower_2': 'Foo'},
+                        ('Foo', )),
+                    ('INSERT INTO t1 (c1, c2)',
+                     {'c2': 'foo', 'c1': 6},
                      (6, 'foo')),
                     ('select * from t1', {}, ()),
                     ('DROP TABLE t1', {}, ()),
@@ -1112,18 +1256,20 @@ class EngineEventsTest(fixtures.TestBase):
                 if testing.against('oracle+zxjdbc'):
                     insert2_params += (ReturningParam(12), )
                 cursor = [('CREATE TABLE t1', {}, ()),
-                          ('INSERT INTO t1 (c1, c2)', {'c2': 'some data'
-                          , 'c1': 5}, (5, 'some data')),
+                          ('INSERT INTO t1 (c1, c2)',
+                            {'c2': 'some data', 'c1': 5}, (5, 'some data')),
                           ('INSERT INTO t1 (c1, c2)', {'c1': 6,
                           'lower_2': 'Foo'}, insert2_params),
-                          ('select * from t1', {}, ()), ('DROP TABLE t1'
-                          , {}, ())]  # bind param name 'lower_2' might
-                                      # be incorrect
+                          ('select * from t1', {}, ()),
+                          ('DROP TABLE t1', {}, ())]
+                                # bind param name 'lower_2' might
+                                # be incorrect
             self._assert_stmts(compiled, stmts)
             self._assert_stmts(cursor, cursor_stmts)
 
     def test_options(self):
         canary = []
+
         def execute(conn, *args, **kw):
             canary.append('execute')
 
@@ -1171,6 +1317,33 @@ class EngineEventsTest(fixtures.TestBase):
             canary, ['execute', 'cursor_execute']
         )
 
+    @testing.requires.sequences
+    @testing.provide_metadata
+    def test_cursor_execute(self):
+        canary = []
+        def tracker(name):
+            def go(conn, cursor, statement, parameters, context, executemany):
+                canary.append((statement, context))
+            return go
+        engine = engines.testing_engine()
+
+
+        t = Table('t', self.metadata,
+                    Column('x', Integer, Sequence('t_id_seq'), primary_key=True),
+                    implicit_returning=False
+                    )
+        self.metadata.create_all(engine)
+        with engine.begin() as conn:
+            event.listen(conn, 'before_cursor_execute', tracker('cursor_execute'))
+            conn.execute(t.insert())
+        # we see the sequence pre-executed in the first call
+        assert "t_id_seq" in canary[0][0]
+        assert "INSERT" in canary[1][0]
+        # same context
+        is_(
+            canary[0][1], canary[1][1]
+        )
+
     def test_transactional(self):
         canary = []
         def tracker(name):
@@ -1201,10 +1374,15 @@ class EngineEventsTest(fixtures.TestBase):
     @testing.requires.savepoints
     @testing.requires.two_phase_transactions
     def test_transactional_advanced(self):
-        canary = []
-        def tracker(name):
+        canary1 = []
+        def tracker1(name):
             def go(*args, **kw):
-                canary.append(name)
+                canary1.append(name)
+            return go
+        canary2 = []
+        def tracker2(name):
+            def go(*args, **kw):
+                canary2.append(name)
             return go
 
         engine = engines.testing_engine()
@@ -1212,9 +1390,14 @@ class EngineEventsTest(fixtures.TestBase):
                     'rollback_savepoint', 'release_savepoint',
                     'rollback', 'begin_twophase',
                        'prepare_twophase', 'commit_twophase']:
-            event.listen(engine, '%s' % name, tracker(name))
+            event.listen(engine, '%s' % name, tracker1(name))
 
         conn = engine.connect()
+        for name in ['begin', 'savepoint',
+                    'rollback_savepoint', 'release_savepoint',
+                    'rollback', 'begin_twophase',
+                       'prepare_twophase', 'commit_twophase']:
+            event.listen(conn, '%s' % name, tracker2(name))
 
         trans = conn.begin()
         trans2 = conn.begin_nested()
@@ -1230,7 +1413,12 @@ class EngineEventsTest(fixtures.TestBase):
         trans.prepare()
         trans.commit()
 
-        eq_(canary, ['begin', 'savepoint',
+        eq_(canary1, ['begin', 'savepoint',
+                    'rollback_savepoint', 'savepoint', 'release_savepoint',
+                    'rollback', 'begin_twophase',
+                       'prepare_twophase', 'commit_twophase']
+        )
+        eq_(canary2, ['begin', 'savepoint',
                     'rollback_savepoint', 'savepoint', 'release_savepoint',
                     'rollback', 'begin_twophase',
                        'prepare_twophase', 'commit_twophase']
@@ -1278,7 +1466,7 @@ class ProxyConnectionTest(fixtures.TestBase):
         def assert_stmts(expected, received):
             for stmt, params, posn in expected:
                 if not received:
-                    assert False
+                    assert False, "Nothing available for stmt: %s" % stmt
                 while received:
                     teststmt, testparams, testmultiparams = \
                         received.pop(0)
@@ -1321,7 +1509,8 @@ class ProxyConnectionTest(fixtures.TestBase):
                     ('CREATE TABLE t1', {}, ()),
                     ('INSERT INTO t1 (c1, c2)', {'c2': 'some data', 'c1'
                      : 5}, (5, 'some data')),
-                    ('SELECT lower', {'lower_2': 'Foo'}, ('Foo', )),
+                    ('SELECT lower', {'lower_2': 'Foo'},
+                        ('Foo', )),
                     ('INSERT INTO t1 (c1, c2)', {'c2': 'foo', 'c1': 6},
                      (6, 'foo')),
                     ('select * from t1', {}, ()),

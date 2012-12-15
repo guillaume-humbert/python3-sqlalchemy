@@ -74,10 +74,13 @@ Supported Platforms
 
 SQLAlchemy has been tested against the following platforms:
 
-* cPython since version 2.4, through the 2.xx series
+* cPython since version 2.5, through the 2.xx series
 * cPython version 3, throughout all 3.xx series
 * `Jython <http://www.jython.org/>`_ 2.5 or greater
 * `Pypy <http://pypy.org/>`_ 1.5 or greater
+
+.. versionchanged:: 0.8
+   Python 2.5 is now the minimum Python version supported.
 
 Supported Installation Methods
 -------------------------------
@@ -98,11 +101,6 @@ SQLAlchemy supports installation using standard Python "distutils" or
 * **pip** - `pip <http://pypi.python.org/pypi/pip/>`_ is an installer that
   rides on top of ``setuptools`` or ``distribute``, replacing the usage
   of ``easy_install``.  It is often preferred for its simpler mode of usage.
-
-.. note::
-
-   It is strongly recommended that either ``setuptools`` or ``distribute`` be installed.
-   Python's built-in ``distutils`` lacks many widely used installation features.
 
 Install via easy_install or pip
 -------------------------------
@@ -166,15 +164,15 @@ work with a non-Distribute setuptools installation.
 Installing a Database API
 ----------------------------------
 
-SQLAlchemy is designed to operate with a `DB-API
-<http://www.python.org/doc/peps/pep-0249/>`_ implementation built for a
-particular database, and includes support for the most popular databases. The
-current list is at :ref:`supported_dbapis`.
+SQLAlchemy is designed to operate with a :term:`DBAPI` implementation built for a
+particular database, and includes support for the most popular databases.
+The individual database sections in :doc:`/dialects/index` enumerate
+the available DBAPIs for each database, including external links.
 
 Checking the Installed SQLAlchemy Version
 ------------------------------------------
 
-This documentation covers SQLAlchemy version 0.7. If you're working on a
+This documentation covers SQLAlchemy version 0.8. If you're working on a
 system that already has SQLAlchemy installed, check the version from your
 Python prompt like this:
 
@@ -182,12 +180,11 @@ Python prompt like this:
 
      >>> import sqlalchemy
      >>> sqlalchemy.__version__ # doctest: +SKIP
-     0.7.0
+     0.8.0
 
 .. _migration:
 
-0.6 to 0.7 Migration
+0.7 to 0.8 Migration
 =====================
 
-Notes on what's changed from 0.6 to 0.7 is available on the SQLAlchemy wiki at
-`07Migration <http://www.sqlalchemy.org/trac/wiki/07Migration>`_.
+Notes on what's changed from 0.7 to 0.8 is available here at :doc:`changelog/migration_08`.

@@ -1,17 +1,40 @@
 """tests the "bind" attribute/argument across schema and SQL,
 including the deprecated versions of these arguments"""
-
-from test.lib.testing import eq_, assert_raises
+from __future__ import with_statement
+from sqlalchemy.testing import eq_, assert_raises
 from sqlalchemy import engine, exc
 from sqlalchemy import MetaData, ThreadLocalMetaData
 from sqlalchemy import Integer, text
-from test.lib.schema import Table
-from test.lib.schema import Column
+from sqlalchemy.testing.schema import Table
+from sqlalchemy.testing.schema import Column
 import sqlalchemy as sa
-from test.lib import testing
-from test.lib import fixtures
+from sqlalchemy import testing
+from sqlalchemy.testing import fixtures
 
 class BindTest(fixtures.TestBase):
+    def test_bind_close_engine(self):
+        e = testing.db
+        with e.connect() as conn:
+            assert not conn.closed
+        assert conn.closed
+
+        with e.contextual_connect() as conn:
+            assert not conn.closed
+        assert conn.closed
+
+    def test_bind_close_conn(self):
+        e = testing.db
+        conn = e.connect()
+        with conn.connect() as c2:
+            assert not c2.closed
+        assert not conn.closed
+        assert c2.closed
+
+        with conn.contextual_connect() as c2:
+            assert not c2.closed
+        assert not conn.closed
+        assert c2.closed
+
     def test_create_drop_explicit(self):
         metadata = MetaData()
         table = Table('test_table', metadata,

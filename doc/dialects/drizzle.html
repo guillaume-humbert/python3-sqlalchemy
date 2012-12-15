@@ -10,7 +10,7 @@
     
                 Drizzle
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Firebird" href="firebird.html" />
         <link rel="prev" title="Dialects" href="index.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 Drizzle
@@ -114,10 +114,11 @@
     <h3><a href="../index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Drizzle</a><ul>
-<li><a class="reference internal" href="#connecting">Connecting</a></li>
+<li><a class="reference internal" href="#dialect-drizzle">Support for the Drizzle database.</a></li>
 <li><a class="reference internal" href="#drizzle-data-types">Drizzle Data Types</a></li>
-<li><a class="reference internal" href="#module-sqlalchemy.dialects.drizzle.mysqldb">MySQL-Python Notes</a><ul>
-<li><a class="reference internal" href="#id1">Connecting</a></li>
+<li><a class="reference internal" href="#module-sqlalchemy.dialects.drizzle.mysqldb">MySQL-Python</a><ul>
+<li><a class="reference internal" href="#dialect-drizzle-mysqldb-url">DBAPI</a></li>
+<li><a class="reference internal" href="#dialect-drizzle-mysqldb-connect">Connecting</a></li>
 </ul>
 </li>
 </ul>
@@ -150,17 +151,20 @@
         
 <div class="section" id="module-sqlalchemy.dialects.drizzle.base">
 <span id="drizzle"></span><span id="drizzle-toplevel"></span><h1>Drizzle<a class="headerlink" href="#module-sqlalchemy.dialects.drizzle.base" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dialect-drizzle">
 <p>Support for the Drizzle database.</p>
+<h2>DBAPI Support<a class="headerlink" href="#dialect-drizzle" title="Permalink to this headline">¶</a></h2>
+<p>The following dialect/DBAPI options are available.  Please refer to individual DBAPI sections for connect information.<ul class="simple">
+<li><a class="reference external" href="#module-sqlalchemy.dialects.drizzle.mysqldb">MySQL-Python</a></li>
+</ul>
+</p>
+</div>
 <p>Drizzle is a variant of MySQL. Unlike MySQL, Drizzle&#8217;s default storage engine
 is InnoDB (transactions, foreign-keys) rather than MyISAM. For more
 <a class="reference external" href="http://docs.drizzle.org/mysql_differences.html">Notable Differences</a>, visit
 the <a class="reference external" href="http://docs.drizzle.org/index.html">Drizzle Documentation</a>.</p>
 <p>The SQLAlchemy Drizzle dialect leans heavily on the MySQL dialect, so much of
 the <a class="reference internal" href="mysql.html"><em>SQLAlchemy MySQL</em></a> documentation is also relevant.</p>
-<div class="section" id="connecting">
-<h2>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h2>
-<p>See the individual driver sections below for details on connecting.</p>
-</div>
 <div class="section" id="drizzle-data-types">
 <h2>Drizzle Data Types<a class="headerlink" href="#drizzle-data-types" title="Permalink to this headline">¶</a></h2>
 <p>As with all SQLAlchemy dialects, all UPPERCASE types that are known to be
@@ -496,16 +500,18 @@ only the collation of character data.</li>
 
 </div>
 <div class="section" id="module-sqlalchemy.dialects.drizzle.mysqldb">
-<span id="mysql-python-notes"></span><h2>MySQL-Python Notes<a class="headerlink" href="#module-sqlalchemy.dialects.drizzle.mysqldb" title="Permalink to this headline">¶</a></h2>
-<p>Support for the Drizzle database via the mysql-python adapter.</p>
-<p>MySQL-Python is available at:</p>
-<blockquote>
-<div><a class="reference external" href="http://sourceforge.net/projects/mysql-python">http://sourceforge.net/projects/mysql-python</a></div></blockquote>
-<div class="section" id="id1">
-<h3>Connecting<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>Connect string format:</p>
-<div class="highlight-python"><pre>drizzle+mysqldb://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;[:&lt;port&gt;]/&lt;dbname&gt;</pre>
+<span id="mysql-python"></span><h2>MySQL-Python<a class="headerlink" href="#module-sqlalchemy.dialects.drizzle.mysqldb" title="Permalink to this headline">¶</a></h2>
+<p>Support for the Drizzle database via the MySQL-Python driver.</p>
+<div class="section" id="dialect-drizzle-mysqldb-url">
+<h3>DBAPI<a class="headerlink" href="#dialect-drizzle-mysqldb-url" title="Permalink to this headline">¶</a></h3>
+<p>Documentation and download information (if applicable) for MySQL-Python is available at:
+<a class="reference external" href="http://sourceforge.net/projects/mysql-python">http://sourceforge.net/projects/mysql-python</a></p>
 </div>
+<div class="section" id="dialect-drizzle-mysqldb-connect">
+<h3>Connecting<a class="headerlink" href="#dialect-drizzle-mysqldb-connect" title="Permalink to this headline">¶</a></h3>
+<p>Connect String:<div class="highlight-python"><pre>drizzle+mysqldb://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;[:&lt;port&gt;]/&lt;dbname&gt;</pre>
+</div>
+</p>
 </div>
 </div>
 </div>

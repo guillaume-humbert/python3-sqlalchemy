@@ -11,7 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys
+import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -29,11 +30,15 @@ import sqlalchemy
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-#extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode',
-#                'sphinx.ext.doctest', 'builder.builders']
 
-extensions = ['sphinx.ext.autodoc',
-                'sphinx.ext.doctest', 'builder.builders']
+extensions = [
+            'sphinx.ext.autodoc',
+                'builder.autodoc_mods',
+                'builder.changelog',
+                'builder.dialect_info',
+                'builder.mako',
+                'builder.sqlformatter',
+            ]
 
 # Add any paths that contain templates here, relative to this directory.
 # not sure why abspath() is needed here, some users
@@ -45,7 +50,21 @@ nitpicky = True
 # The suffix of source filenames.
 source_suffix = '.rst'
 
-template_bridge = "builder.builders.MakoBridge"
+
+# section names used by the changelog extension.
+changelog_sections = ["general", "orm", "orm declarative", "orm querying", \
+                "orm configuration", "engine", "sql", \
+                "schema", \
+                "postgresql", "mysql", "sqlite", "mssql", \
+                "oracle", "firebird"]
+# tags to sort on inside of sections
+changelog_inner_tag_sort = ["feature", "bug", "moved", "changed", "removed"]
+
+# how to render changelog links
+changelog_render_ticket = "http://www.sqlalchemy.org/trac/ticket/%s"
+changelog_render_pullreq = "https://bitbucket.org/sqlalchemy/sqlalchemy/pull-request/%s"
+changelog_render_changeset = "http://www.sqlalchemy.org/trac/changeset/%s"
+
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
@@ -62,11 +81,11 @@ copyright = u'2007-2012, the SQLAlchemy authors and contributors'
 # built documents.
 #
 # The short X.Y version.
-version = "0.7"
+version = "0.8"
 # The full version, including alpha/beta/rc tags.
-release = "0.7.9"
+release = "0.8.0b2"
 
-release_date = "October 1, 2012"
+release_date = "December 14, 2012"
 
 site_base = "http://www.sqlalchemy.org"
 

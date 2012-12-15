@@ -10,7 +10,7 @@
     
                 Expression Serializer Extension
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,10 +32,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Deprecated Event Interfaces" href="interfaces.html" />
-        <link rel="prev" title="Custom SQL Constructs and Compilation Extension" href="compiler.html" />
+        <link rel="prev" title="Runtime Inspection API" href="inspection.html" />
 
     </head>
     <body>
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -78,7 +78,7 @@
     <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
-            <a href="compiler.html" title="previous chapter">Custom SQL Constructs and Compilation Extension</a>
+            <a href="inspection.html" title="previous chapter">Runtime Inspection API</a>
             </li>
             <li>Next:
             <a href="interfaces.html" title="next chapter">Deprecated Event Interfaces</a>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Expression Serializer Extension
@@ -119,7 +119,7 @@
 
     <h4>Previous Topic</h4>
     <p>
-    <a href="compiler.html" title="previous chapter">Custom SQL Constructs and Compilation Extension</a>
+    <a href="inspection.html" title="previous chapter">Runtime Inspection API</a>
     </p>
     <h4>Next Topic</h4>
     <p>
@@ -173,13 +173,14 @@ namespace.</p>
 needed for:</p>
 <ul class="simple">
 <li>instances of user-defined classes.   These contain no references to engines,
-sessions or expression constructs in the typical case and can be serialized directly.</li>
-<li>Table metadata that is to be loaded entirely from the serialized structure (i.e. is
-not already declared in the application).   Regular pickle.loads()/dumps() can
-be used to fully dump any <tt class="docutils literal"><span class="pre">MetaData</span></tt> object, typically one which was reflected
-from an existing database at some previous point in time.  The serializer module
-is specifically for the opposite case, where the Table metadata is already present
-in memory.</li>
+sessions or expression constructs in the typical case and can be serialized
+directly.</li>
+<li>Table metadata that is to be loaded entirely from the serialized structure
+(i.e. is not already declared in the application).   Regular
+pickle.loads()/dumps() can be used to fully dump any <tt class="docutils literal"><span class="pre">MetaData</span></tt> object,
+typically one which was reflected from an existing database at some previous
+point in time.  The serializer module is specifically for the opposite case,
+where the Table metadata is already present in memory.</li>
 </ul>
 <dl class="function">
 <dt id="sqlalchemy.ext.serializer.Serializer">
@@ -209,7 +210,7 @@ in memory.</li>
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
         Previous:
-        <a href="compiler.html" title="previous chapter">Custom SQL Constructs and Compilation Extension</a>
+        <a href="inspection.html" title="previous chapter">Runtime Inspection API</a>
         Next:
         <a href="interfaces.html" title="next chapter">Deprecated Event Interfaces</a>
 

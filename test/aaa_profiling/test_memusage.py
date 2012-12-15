@@ -1,61 +1,67 @@
-from test.lib.testing import eq_
+from sqlalchemy.testing import eq_
 from sqlalchemy.orm import mapper, relationship, create_session, \
-    clear_mappers, sessionmaker, class_mapper
+    clear_mappers, sessionmaker, class_mapper, aliased,\
+    Session, subqueryload
 from sqlalchemy.orm.mapper import _mapper_registry
 from sqlalchemy.orm.session import _sessions
 import operator
-from test.lib import testing, engines
+from sqlalchemy import testing
+from sqlalchemy.testing import engines
 from sqlalchemy import MetaData, Integer, String, ForeignKey, \
     PickleType, create_engine, Unicode
-from test.lib.schema import Table, Column
+from sqlalchemy.testing.schema import Table, Column
 import sqlalchemy as sa
 from sqlalchemy.sql import column
 from sqlalchemy.processors import to_decimal_processor_factory, \
     to_unicode_processor_factory
-from test.lib.util import gc_collect
+from sqlalchemy.testing.util import gc_collect
 from sqlalchemy.util.compat import decimal
 import gc
 import weakref
-from test.lib import fixtures
+from sqlalchemy.testing import fixtures
 
 class A(fixtures.ComparableEntity):
     pass
 class B(fixtures.ComparableEntity):
     pass
+class ASub(A):
+    pass
 
-def profile_memory(func):
-    # run the test 50 times.  if length of gc.get_objects()
-    # keeps growing, assert false
+def profile_memory(times=50):
+    def decorate(func):
+        # run the test 50 times.  if length of gc.get_objects()
+        # keeps growing, assert false
 
-    def profile(*args):
-        gc_collect()
-        samples = [0 for x in range(0, 50)]
-        for x in range(0, 50):
-            func(*args)
+        def profile(*args):
             gc_collect()
-            samples[x] = len(gc.get_objects())
+            samples = [0 for x in range(0, times)]
+            for x in range(0, times):
+                func(*args)
+                gc_collect()
+                samples[x] = len(gc.get_objects())
 
-        print "sample gc sizes:", samples
+            print "sample gc sizes:", samples
 
-        assert len(_sessions) == 0
+            assert len(_sessions) == 0
 
-        for x in samples[-4:]:
-            if x != samples[-5]:
-                flatline = False
-                break
-        else:
-            flatline = True
-
-        # object count is bigger than when it started
-        if not flatline and samples[-1] > samples[0]:
-            for x in samples[1:-2]:
-                # see if a spike bigger than the endpoint exists
-                if x > samples[-1]:
+            for x in samples[-4:]:
+                if x != samples[-5]:
+                    flatline = False
                     break
             else:
-                assert False, repr(samples) + " " + repr(flatline)
+                flatline = True
 
-    return profile
+            # object count is bigger than when it started
+            if not flatline and samples[-1] > samples[0]:
+                for x in samples[1:-2]:
+                    # see if a spike bigger than the endpoint exists
+                    if x > samples[-1]:
+                        break
+                else:
+                    assert False, repr(samples) + " " + repr(flatline)
+
+        return profile
+    return decorate
 
 def assert_no_mappers():
     clear_mappers()
@@ -78,7 +84,7 @@ class MemUsageTest(EnsureZeroed):
             pass
 
         x = []
-        @profile_memory
+        @profile_memory()
         def go():
             x[-1:] = [Foo(), Foo(), Foo(), Foo(), Foo(), Foo()]
         go()
@@ -107,7 +113,7 @@ class MemUsageTest(EnsureZeroed):
 
         m3 = mapper(A, table1, non_primary=True)
 
-        @profile_memory
+        @profile_memory()
         def go():
             sess = create_session()
             a1 = A(col2="a1")
@@ -168,7 +174,7 @@ class MemUsageTest(EnsureZeroed):
 
         m3 = mapper(A, table1, non_primary=True)
 
-        @profile_memory
+        @profile_memory()
         def go():
             engine = engines.testing_engine(
                                 options={'logging_name':'FOO',
@@ -227,7 +233,7 @@ class MemUsageTest(EnsureZeroed):
             (postgresql.INTERVAL, ),
             (mysql.VARCHAR, ),
         ):
-            @profile_memory
+            @profile_memory()
             def go():
                 type_ = args[0](*args[1:])
                 bp = type_._cached_bind_processor(eng.dialect)
@@ -260,7 +266,7 @@ class MemUsageTest(EnsureZeroed):
         del session
         counter = [1]
 
-        @profile_memory
+        @profile_memory()
         def go():
             session = create_session()
             w1 = session.query(Wide).first()
@@ -282,11 +288,6 @@ class MemUsageTest(EnsureZeroed):
         finally:
             metadata.drop_all()
 
-    @testing.fails_if(lambda : testing.db.dialect.name == 'sqlite' \
-                      and testing.db.dialect.dbapi.version_info >= (2,
-                      5),
-                      'Newer pysqlites generate warnings here too and '
-                      'have similar issues.')
     def test_unicode_warnings(self):
         metadata = MetaData(testing.db)
         table1 = Table('mytable', metadata, Column('col1', Integer,
@@ -296,8 +297,11 @@ class MemUsageTest(EnsureZeroed):
         metadata.create_all()
         i = [1]
 
+        # the times here is cranked way up so that we can see
+        # pysqlite clearing out it's internal buffer and allow
+        # the test to pass
         @testing.emits_warning()
-        @profile_memory
+        @profile_memory(times=220)
         def go():
 
             # execute with a non-unicode object. a warning is emitted,
@@ -325,7 +329,7 @@ class MemUsageTest(EnsureZeroed):
             Column('col2', String(30)),
             Column('col3', Integer, ForeignKey("mytable.col1")))
 
-        @profile_memory
+        @profile_memory()
         def go():
             m1 = mapper(A, table1, properties={
                 "bs":relationship(B, order_by=table2.c.col1)
@@ -368,6 +372,71 @@ class MemUsageTest(EnsureZeroed):
             metadata.drop_all()
         assert_no_mappers()
 
+    def test_alias_pathing(self):
+        metadata = MetaData(testing.db)
+
+        a = Table("a", metadata,
+            Column('id', Integer, primary_key=True,
+                                test_needs_autoincrement=True),
+            Column('bid', Integer, ForeignKey('b.id')),
+            Column('type', String(30))
+        )
+
+        asub = Table("asub", metadata,
+            Column('id', Integer, ForeignKey('a.id'),
+                                primary_key=True),
+            Column('data', String(30)))
+
+        b = Table("b", metadata,
+            Column('id', Integer, primary_key=True,
+                                test_needs_autoincrement=True),
+        )
+        mapper(A, a, polymorphic_identity='a',
+            polymorphic_on=a.c.type)
+        mapper(ASub, asub, inherits=A,polymorphic_identity='asub')
+        m1 = mapper(B, b, properties={
+            'as_':relationship(A)
+        })
+
+        metadata.create_all()
+        sess = Session()
+        a1 = ASub(data="a1")
+        a2 = ASub(data="a2")
+        a3 = ASub(data="a3")
+        b1 = B(as_=[a1, a2, a3])
+        sess.add(b1)
+        sess.commit()
+        del sess
+
+        # sqlite has a slow enough growth here
+        # that we have to run it more times to see the
+        # "dip" again
+        @profile_memory(times=120)
+        def go():
+            sess = Session()
+            sess.query(B).options(subqueryload(B.as_.of_type(ASub))).all()
+            sess.close()
+        try:
+            go()
+        finally:
+            metadata.drop_all()
+        clear_mappers()
+
+    def test_path_registry(self):
+        metadata = MetaData()
+        a = Table("a", metadata,
+            Column('id', Integer, primary_key=True),
+            Column('foo', Integer),
+            Column('bar', Integer)
+        )
+        m1 = mapper(A, a)
+        @profile_memory()
+        def go():
+            ma = sa.inspect(aliased(A))
+            m1._path_registry[m1.attrs.foo][ma][m1.attrs.bar]
+        go()
+        clear_mappers()
+
     def test_with_inheritance(self):
         metadata = MetaData(testing.db)
 
@@ -383,7 +452,7 @@ class MemUsageTest(EnsureZeroed):
             Column('col3', String(30)),
             )
 
-        @profile_memory
+        @profile_memory()
         def go():
             class A(fixtures.ComparableEntity):
                 pass
@@ -449,7 +518,7 @@ class MemUsageTest(EnsureZeroed):
             Column('t2', Integer, ForeignKey('mytable2.col1')),
             )
 
-        @profile_memory
+        @profile_memory()
         def go():
             class A(fixtures.ComparableEntity):
                 pass
@@ -505,7 +574,7 @@ class MemUsageTest(EnsureZeroed):
         t = Table('t', m, Column('x', Integer), Column('y', Integer))
         m.create_all(e)
         e.execute(t.insert(), {"x":1, "y":1})
-        @profile_memory
+        @profile_memory()
         def go():
             r = e.execute(t.alias().select())
             for row in r:
@@ -541,7 +610,7 @@ class MemUsageTest(EnsureZeroed):
         metadata.create_all()
         session = sessionmaker()
 
-        @profile_memory
+        @profile_memory()
         def go():
             s = table2.select()
             sess = session()
@@ -553,59 +622,11 @@ class MemUsageTest(EnsureZeroed):
             metadata.drop_all()
 
 
-    def test_mutable_identity(self):
-        metadata = MetaData(testing.db)
-
-        table1 = Table("mytable", metadata,
-            Column('col1', Integer, primary_key=True,
-                                test_needs_autoincrement=True),
-            Column('col2', PickleType(comparator=operator.eq, mutable=True))
-            )
-
-        class Foo(object):
-            def __init__(self, col2):
-                self.col2 = col2
-
-        mapper(Foo, table1)
-        metadata.create_all()
-
-        session = sessionmaker()()
-
-        def go():
-            obj = [
-                Foo({'a':1}),
-                Foo({'b':1}),
-                Foo({'c':1}),
-                Foo({'d':1}),
-                Foo({'e':1}),
-                Foo({'f':1}),
-                Foo({'g':1}),
-                Foo({'h':1}),
-                Foo({'i':1}),
-                Foo({'j':1}),
-                Foo({'k':1}),
-                Foo({'l':1}),
-            ]
-
-            session.add_all(obj)
-            session.commit()
-
-            testing.eq_(len(session.identity_map._mutable_attrs), 12)
-            testing.eq_(len(session.identity_map), 12)
-            obj = None
-            gc_collect()
-            testing.eq_(len(session.identity_map._mutable_attrs), 0)
-            testing.eq_(len(session.identity_map), 0)
-
-        try:
-            go()
-        finally:
-            metadata.drop_all()
 
     def test_type_compile(self):
         from sqlalchemy.dialects.sqlite.base import dialect as SQLiteDialect
         cast = sa.cast(column('x'), sa.Integer)
-        @profile_memory
+        @profile_memory()
         def go():
             dialect = SQLiteDialect()
             cast.compile(dialect=dialect)
@@ -613,21 +634,21 @@ class MemUsageTest(EnsureZeroed):
 
     @testing.requires.cextensions
     def test_DecimalResultProcessor_init(self):
-        @profile_memory
+        @profile_memory()
         def go():
             to_decimal_processor_factory({}, 10)
         go()
 
     @testing.requires.cextensions
     def test_DecimalResultProcessor_process(self):
-        @profile_memory
+        @profile_memory()
         def go():
             to_decimal_processor_factory(decimal.Decimal, 10)(1.2)
         go()
 
     @testing.requires.cextensions
     def test_UnicodeResultProcessor_init(self):
-        @profile_memory
+        @profile_memory()
         def go():
             to_unicode_processor_factory('utf8')
         go()

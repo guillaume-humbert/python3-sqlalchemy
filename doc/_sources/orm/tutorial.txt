@@ -42,11 +42,11 @@ following text represents the expected return value.
 Version Check
 =============
 
-A quick check to verify that we are on at least **version 0.7** of SQLAlchemy::
+A quick check to verify that we are on at least **version 0.8** of SQLAlchemy::
 
     >>> import sqlalchemy
     >>> sqlalchemy.__version__ # doctest:+SKIP
-    0.7.0
+    0.8.0
 
 Connecting
 ==========
@@ -319,7 +319,7 @@ objects::
     >>> Session = sessionmaker(bind=engine)
 
 In the case where your application does not yet have an
-:class:`~sqlalchemy.engine.base.Engine` when you define your module-level
+:class:`~sqlalchemy.engine.Engine` when you define your module-level
 objects, just set it up like this::
 
     >>> Session = sessionmaker()
@@ -492,7 +492,7 @@ load-on-first-access. In this case, the entire row was re-loaded on access
 because a new transaction was begun after we issued :meth:`~.Session.commit`. SQLAlchemy
 by default refreshes data from a previous transaction the first time it's
 accessed within a new transaction, so that the most recent state is available.
-The level of reloading is configurable as is described in :ref:`session_toplevel`.
+The level of reloading is configurable as is described in :doc:`/orm/session`.
 
 .. topic:: Session Object States
 
@@ -623,7 +623,8 @@ is expressed as tuples:
     fred Fred Flinstone
 
 The tuples returned by :class:`~sqlalchemy.orm.query.Query` are *named*
-tuples, and can be treated much like an ordinary Python object. The names are
+tuples, supplied by the :class:`.KeyedTuple` class, and can be treated much like an
+ordinary Python object. The names are
 the same as the attribute's name for an attribute, and the class name for a
 class:
 
@@ -643,7 +644,7 @@ class:
     <User('fred','Fred Flinstone', 'blah')> fred
 
 You can control the names of individual column expressions using the
-:meth:`~._CompareMixin.label` construct, which is available from
+:meth:`~.CompareMixin.label` construct, which is available from
 any :class:`.ColumnElement`-derived object, as well as any class attribute which
 is mapped to one (such as ``User.name``):
 
@@ -1757,7 +1758,7 @@ attribute:
     <User('jack','Jack Bean', 'gjffdd')>
 
 For more information on eager loading, including how to configure various forms
-of loading by default, see the section :ref:`loading_toplevel`.
+of loading by default, see the section :doc:`/orm/loading`.
 
 Deleting
 ========
@@ -2163,4 +2164,4 @@ Mapper Reference: :ref:`mapper_config_toplevel`
 
 Relationship Reference: :ref:`relationship_config_toplevel`
 
-Session Reference: :ref:`session_toplevel`
+Session Reference: :doc:`/orm/session`

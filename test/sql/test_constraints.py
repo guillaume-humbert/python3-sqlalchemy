@@ -1,11 +1,12 @@
-from test.lib.testing import assert_raises, assert_raises_message
+from sqlalchemy.testing import assert_raises, assert_raises_message
 from sqlalchemy import *
 from sqlalchemy import exc, schema
-from test.lib import *
-from test.lib import config, engines
+from sqlalchemy.testing import fixtures, AssertsExecutionResults, AssertsCompiledSQL
+from sqlalchemy import testing
+from sqlalchemy.testing import config, engines
 from sqlalchemy.engine import ddl
-from test.lib.testing import eq_
-from test.lib.assertsql import AllOf, RegexSQL, ExactSQL, CompiledSQL
+from sqlalchemy.testing import eq_
+from sqlalchemy.testing.assertsql import AllOf, RegexSQL, ExactSQL, CompiledSQL
 from sqlalchemy.dialects.postgresql import base as postgresql
 
 class ConstraintTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
@@ -394,6 +395,25 @@ class ConstraintCompilationTest(fixtures.TestBase, AssertsCompiledSQL):
             "(a) DEFERRABLE INITIALLY DEFERRED)",
         )
 
+    def test_fk_match_clause(self):
+        t = Table('tbl', MetaData(),
+                  Column('a', Integer),
+                  Column('b', Integer,
+                         ForeignKey('tbl.a', match="SIMPLE")))
+
+        self.assert_compile(
+            schema.CreateTable(t),
+            "CREATE TABLE tbl (a INTEGER, b INTEGER, "
+            "FOREIGN KEY(b) REFERENCES tbl "
+            "(a) MATCH SIMPLE)",
+        )
+
+        self.assert_compile(
+            schema.AddConstraint(list(t.foreign_keys)[0].constraint),
+            "ALTER TABLE tbl ADD FOREIGN KEY(b) "
+            "REFERENCES tbl (a) MATCH SIMPLE"
+        )
+
     def test_deferrable_unique(self):
         factory = lambda **kw: UniqueConstraint('b', **kw)
         self._test_deferrable(factory)
@@ -476,7 +496,8 @@ class ConstraintCompilationTest(fixtures.TestBase, AssertsCompiledSQL):
         )
 
         constraint = CheckConstraint('a < b',name="my_test_constraint",
-                                        deferrable=True,initially='DEFERRED', table=t)
+                                        deferrable=True,initially='DEFERRED',
+                                        table=t)
 
 
         # before we create an AddConstraint,
@@ -552,4 +573,83 @@ class ConstraintCompilationTest(fixtures.TestBase, AssertsCompiledSQL):
             "ALTER TABLE tbl ADD PRIMARY KEY (a)"
         )
 
+    def test_auto_append_constraint(self):
+        m = MetaData()
 
+        t = Table('tbl', m,
+                  Column('a', Integer),
+                  Column('b', Integer)
+        )
+
+        t2 = Table('t2', m,
+                Column('a', Integer),
+                Column('b', Integer)
+        )
+
+        for c in (
+            UniqueConstraint(t.c.a),
+            CheckConstraint(t.c.a > 5),
+            ForeignKeyConstraint([t.c.a], [t2.c.a]),
+            PrimaryKeyConstraint(t.c.a)
+        ):
+            assert c in t.constraints
+            t.append_constraint(c)
+            assert c in t.constraints
+
+        c = Index('foo', t.c.a)
+        assert c in t.indexes
+
+    def test_tometadata_ok(self):
+        m = MetaData()
+
+        t = Table('tbl', m,
+                  Column('a', Integer),
+                  Column('b', Integer)
+        )
+
+        t2 = Table('t2', m,
+                Column('a', Integer),
+                Column('b', Integer)
+        )
+
+        uq = UniqueConstraint(t.c.a)
+        ck = CheckConstraint(t.c.a > 5)
+        fk = ForeignKeyConstraint([t.c.a], [t2.c.a])
+        pk = PrimaryKeyConstraint(t.c.a)
+
+        m2 = MetaData()
+
+        t3 = t.tometadata(m2)
+
+        eq_(len(t3.constraints), 4)
+
+        for c in t3.constraints:
+            assert c.table is t3
+
+    def test_check_constraint_copy(self):
+        m = MetaData()
+        t = Table('tbl', m,
+                  Column('a', Integer),
+                  Column('b', Integer)
+        )
+        ck = CheckConstraint(t.c.a > 5)
+        ck2 = ck.copy()
+        assert ck in t.constraints
+        assert ck2 not in t.constraints
+
+
+    def test_ambig_check_constraint_auto_append(self):
+        m = MetaData()
+
+        t = Table('tbl', m,
+                  Column('a', Integer),
+                  Column('b', Integer)
+        )
+
+        t2 = Table('t2', m,
+                Column('a', Integer),
+                Column('b', Integer)
+        )
+        c = CheckConstraint(t.c.a > t2.c.b)
+        assert c not in t.constraints
+        assert c not in t2.constraints

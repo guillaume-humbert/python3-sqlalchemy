@@ -10,7 +10,7 @@
     
                 ORM Events
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Extensions" href="extensions/index.html" />
         <link rel="prev" title="Relationship Loading Techniques" href="loading.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 ORM Events
@@ -119,7 +119,6 @@
 <li><a class="reference internal" href="#instance-events">Instance Events</a></li>
 <li><a class="reference internal" href="#session-events">Session Events</a></li>
 <li><a class="reference internal" href="#instrumentation-events">Instrumentation Events</a></li>
-<li><a class="reference internal" href="#alternate-class-instrumentation">Alternate Class Instrumentation</a></li>
 </ul>
 </li>
 </ul>
@@ -327,7 +326,8 @@ the given value, or a new effective value, should be returned.</p>
 
 <span class="c"># associate the listener function with SomeMappedClass,</span>
 <span class="c"># to execute during the &quot;before_insert&quot; hook</span>
-<span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">SomeMappedClass</span><span class="p">,</span> <span class="s">&#39;before_insert&#39;</span><span class="p">,</span> <span class="n">my_before_insert_listener</span><span class="p">)</span></pre></div>
+<span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span>
+    <span class="n">SomeMappedClass</span><span class="p">,</span> <span class="s">&#39;before_insert&#39;</span><span class="p">,</span> <span class="n">my_before_insert_listener</span><span class="p">)</span></pre></div>
 </div>
 <p>Available targets include mapped classes, instances of
 <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> (i.e. returned by <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>,
@@ -362,7 +362,8 @@ available to the <a class="reference internal" href="../core/event.html#sqlalche
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>propagate=False</strong> &#8211; When True, the event listener should
-be applied to all inheriting mappers as well as the
+be applied to all inheriting mappers and/or the mappers of
+inheriting classes, as well as any
 mapper which is the target of this listener.</li>
 <li><strong>raw=False</strong> &#8211; When True, the &#8220;target&#8221; argument passed
 to applicable event listener functions will be the
@@ -397,9 +398,9 @@ note is usually called automatically as mappings are first
 used.</p>
 <p>Theoretically this event is called once per
 application, but is actually called any time new mappers
-have been affected by a <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.configure_mappers" title="sqlalchemy.orm.configure_mappers"><tt class="xref py py-func docutils literal"><span class="pre">orm.configure_mappers()</span></tt></a> call.   If new mappings
-are constructed after existing ones have already been used,
-this event can be called again.</p>
+have been affected by a <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.configure_mappers" title="sqlalchemy.orm.configure_mappers"><tt class="xref py py-func docutils literal"><span class="pre">orm.configure_mappers()</span></tt></a>
+call.   If new mappings are constructed after existing ones have
+already been used, this event can be called again.</p>
 </dd></dl>
 
 <dl class="method">
@@ -417,9 +418,9 @@ once in a previous step.</p>
 <p class="first admonition-title">Warning</p>
 <p>Mapper-level flush events are designed to operate <strong>on attributes
 local to the immediate object being handled
-and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> <strong>only.</strong>
-Handlers here should <strong>not</strong> make alterations to the state of
-the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
+and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
+<strong>only.</strong> Handlers here should <strong>not</strong> make alterations to the
+state of the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
 affect any <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> -mapped attributes, as
 session cascade rules will not function properly, nor is it
 always known if the related class has already been handled.
@@ -428,13 +429,14 @@ Operations that <strong>are not supported in mapper events</strong> include:</p>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a></li>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a></li>
 <li>Mapped collection append, add, remove, delete, discard, etc.</li>
-<li>Mapped relationship attribute set/del events, i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
+<li>Mapped relationship attribute set/del events,
+i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
 </ul>
 <p>Operations which manipulate the state of the object
 relative to other objects are better handled:</p>
 <ul class="last simple">
-<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself, or another method
-designed to establish some particular state.</li>
+<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself,
+or another method designed to establish some particular state.</li>
 <li>In a <tt class="docutils literal"><span class="pre">&#64;validates</span></tt> handler, see <a class="reference internal" href="mapper_config.html#simple-validators"><em>Simple Validators</em></a></li>
 <li>Within the  <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.before_flush()</span></tt></a> event.</li>
 </ul>
@@ -446,7 +448,7 @@ designed to establish some particular state.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
 emit DELETE statements for this instance.  This
 provides a handle into the current transaction on the
 target database specific to this instance.</li>
@@ -485,24 +487,26 @@ event-&gt;persist-&gt;event steps.</p>
 <p class="first admonition-title">Warning</p>
 <p>Mapper-level flush events are designed to operate <strong>on attributes
 local to the immediate object being handled
-and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> <strong>only.</strong>
-Handlers here should <strong>not</strong> make alterations to the state of
-the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
-affect any <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> -mapped attributes, as
-session cascade rules will not function properly, nor is it
-always known if the related class has already been handled.
-Operations that <strong>are not supported in mapper events</strong> include:</p>
+and via SQL operations with the given</strong>
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> <strong>only.</strong> Handlers here should <strong>not</strong> make
+alterations to the state of the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in
+general should not affect any <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> -mapped
+attributes, as session cascade rules will not function properly,
+nor is it always known if the related class has already been
+handled. Operations that <strong>are not supported in mapper
+events</strong> include:</p>
 <ul class="simple">
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a></li>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a></li>
 <li>Mapped collection append, add, remove, delete, discard, etc.</li>
-<li>Mapped relationship attribute set/del events, i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
+<li>Mapped relationship attribute set/del events,
+i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
 </ul>
 <p>Operations which manipulate the state of the object
 relative to other objects are better handled:</p>
 <ul class="last simple">
-<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself, or another method
-designed to establish some particular state.</li>
+<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself,
+or another method designed to establish some particular state.</li>
 <li>In a <tt class="docutils literal"><span class="pre">&#64;validates</span></tt> handler, see <a class="reference internal" href="mapper_config.html#simple-validators"><em>Simple Validators</em></a></li>
 <li>Within the  <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.before_flush()</span></tt></a> event.</li>
 </ul>
@@ -514,7 +518,7 @@ designed to establish some particular state.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
 emit INSERT statements for this instance.  This
 provides a handle into the current transaction on the
 target database specific to this instance.</li>
@@ -569,9 +573,9 @@ steps.</p>
 <p class="first admonition-title">Warning</p>
 <p>Mapper-level flush events are designed to operate <strong>on attributes
 local to the immediate object being handled
-and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> <strong>only.</strong>
-Handlers here should <strong>not</strong> make alterations to the state of
-the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
+and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
+<strong>only.</strong> Handlers here should <strong>not</strong> make alterations to the
+state of the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
 affect any <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> -mapped attributes, as
 session cascade rules will not function properly, nor is it
 always known if the related class has already been handled.
@@ -580,13 +584,14 @@ Operations that <strong>are not supported in mapper events</strong> include:</p>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a></li>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a></li>
 <li>Mapped collection append, add, remove, delete, discard, etc.</li>
-<li>Mapped relationship attribute set/del events, i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
+<li>Mapped relationship attribute set/del events,
+i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
 </ul>
 <p>Operations which manipulate the state of the object
 relative to other objects are better handled:</p>
 <ul class="last simple">
-<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself, or another method
-designed to establish some particular state.</li>
+<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself,
+or another method designed to establish some particular state.</li>
 <li>In a <tt class="docutils literal"><span class="pre">&#64;validates</span></tt> handler, see <a class="reference internal" href="mapper_config.html#simple-validators"><em>Simple Validators</em></a></li>
 <li>Within the  <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.before_flush()</span></tt></a> event.</li>
 </ul>
@@ -598,7 +603,7 @@ designed to establish some particular state.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
 emit UPDATE statements for this instance.  This
 provides a handle into the current transaction on the
 target database specific to this instance.</li>
@@ -634,7 +639,7 @@ of this event.</li>
 a handle to the current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress as well
 as additional state information.</li>
 <li><strong>row</strong> &#8211; the result row being handled.  This may be
-an actual <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.RowProxy" title="sqlalchemy.engine.base.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> or may be a dictionary containing
+an actual <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.RowProxy" title="sqlalchemy.engine.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> or may be a dictionary containing
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects as keys.</li>
 <li><strong>target</strong> &#8211; the mapped instance being populated.  If
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will
@@ -673,9 +678,9 @@ once in a later step.</p>
 <p class="first admonition-title">Warning</p>
 <p>Mapper-level flush events are designed to operate <strong>on attributes
 local to the immediate object being handled
-and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> <strong>only.</strong>
-Handlers here should <strong>not</strong> make alterations to the state of
-the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
+and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
+<strong>only.</strong> Handlers here should <strong>not</strong> make alterations to the
+state of the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
 affect any <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> -mapped attributes, as
 session cascade rules will not function properly, nor is it
 always known if the related class has already been handled.
@@ -684,13 +689,14 @@ Operations that <strong>are not supported in mapper events</strong> include:</p>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a></li>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a></li>
 <li>Mapped collection append, add, remove, delete, discard, etc.</li>
-<li>Mapped relationship attribute set/del events, i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
+<li>Mapped relationship attribute set/del events,
+i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
 </ul>
 <p>Operations which manipulate the state of the object
 relative to other objects are better handled:</p>
 <ul class="last simple">
-<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself, or another method
-designed to establish some particular state.</li>
+<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself,
+or another method designed to establish some particular state.</li>
 <li>In a <tt class="docutils literal"><span class="pre">&#64;validates</span></tt> handler, see <a class="reference internal" href="mapper_config.html#simple-validators"><em>Simple Validators</em></a></li>
 <li>Within the  <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.before_flush()</span></tt></a> event.</li>
 </ul>
@@ -702,7 +708,7 @@ designed to establish some particular state.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
 emit DELETE statements for this instance.  This
 provides a handle into the current transaction on the
 target database specific to this instance.</li>
@@ -741,24 +747,26 @@ steps.</p>
 <p class="first admonition-title">Warning</p>
 <p>Mapper-level flush events are designed to operate <strong>on attributes
 local to the immediate object being handled
-and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> <strong>only.</strong>
-Handlers here should <strong>not</strong> make alterations to the state of
-the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
-affect any <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> -mapped attributes, as
-session cascade rules will not function properly, nor is it
-always known if the related class has already been handled.
-Operations that <strong>are not supported in mapper events</strong> include:</p>
+and via SQL operations with the given</strong>
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> <strong>only.</strong> Handlers here should <strong>not</strong> make
+alterations to the state of the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and
+in general should not affect any <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> -mapped
+attributes, as session cascade rules will not function properly,
+nor is it always known if the related class has already been
+handled. Operations that <strong>are not supported in mapper
+events</strong> include:</p>
 <ul class="simple">
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a></li>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a></li>
 <li>Mapped collection append, add, remove, delete, discard, etc.</li>
-<li>Mapped relationship attribute set/del events, i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
+<li>Mapped relationship attribute set/del events,
+i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
 </ul>
 <p>Operations which manipulate the state of the object
 relative to other objects are better handled:</p>
 <ul class="last simple">
-<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself, or another method
-designed to establish some particular state.</li>
+<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself, or
+another method designed to establish some particular state.</li>
 <li>In a <tt class="docutils literal"><span class="pre">&#64;validates</span></tt> handler, see <a class="reference internal" href="mapper_config.html#simple-validators"><em>Simple Validators</em></a></li>
 <li>Within the  <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.before_flush()</span></tt></a> event.</li>
 </ul>
@@ -770,7 +778,7 @@ designed to establish some particular state.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
 emit INSERT statements for this instance.  This
 provides a handle into the current transaction on the
 target database specific to this instance.</li>
@@ -826,9 +834,9 @@ steps.</p>
 <p class="first admonition-title">Warning</p>
 <p>Mapper-level flush events are designed to operate <strong>on attributes
 local to the immediate object being handled
-and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> <strong>only.</strong>
-Handlers here should <strong>not</strong> make alterations to the state of
-the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
+and via SQL operations with the given</strong> <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
+<strong>only.</strong> Handlers here should <strong>not</strong> make alterations to the
+state of the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> overall, and in general should not
 affect any <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> -mapped attributes, as
 session cascade rules will not function properly, nor is it
 always known if the related class has already been handled.
@@ -837,13 +845,14 @@ Operations that <strong>are not supported in mapper events</strong> include:</p>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a></li>
 <li><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a></li>
 <li>Mapped collection append, add, remove, delete, discard, etc.</li>
-<li>Mapped relationship attribute set/del events, i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
+<li>Mapped relationship attribute set/del events,
+i.e. <tt class="docutils literal"><span class="pre">someobject.related</span> <span class="pre">=</span> <span class="pre">someotherobject</span></tt></li>
 </ul>
 <p>Operations which manipulate the state of the object
 relative to other objects are better handled:</p>
 <ul class="last simple">
-<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself, or another method
-designed to establish some particular state.</li>
+<li>In the <tt class="docutils literal"><span class="pre">__init__()</span></tt> method of the mapped object itself,
+or another method designed to establish some particular state.</li>
 <li>In a <tt class="docutils literal"><span class="pre">&#64;validates</span></tt> handler, see <a class="reference internal" href="mapper_config.html#simple-validators"><em>Simple Validators</em></a></li>
 <li>Within the  <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">SessionEvents.before_flush()</span></tt></a> event.</li>
 </ul>
@@ -855,7 +864,7 @@ designed to establish some particular state.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>mapper</strong> &#8211; the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> which is the target
 of this event.</li>
-<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
+<li><strong>connection</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used to
 emit UPDATE statements for this instance.  This
 provides a handle into the current transaction on the
 target database specific to this instance.</li>
@@ -892,7 +901,7 @@ of this event.</li>
 a handle to the current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress as well
 as additional state information.</li>
 <li><strong>row</strong> &#8211; the result row being handled.  This may be
-an actual <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.RowProxy" title="sqlalchemy.engine.base.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> or may be a dictionary containing
+an actual <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.RowProxy" title="sqlalchemy.engine.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> or may be a dictionary containing
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects as keys.</li>
 <li><strong>class_</strong> &#8211; the mapped class.</li>
 </ul>
@@ -937,9 +946,9 @@ of this event.</li>
 <tt class="descname">mapper_configured</tt><big>(</big><em>mapper</em>, <em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.MapperEvents.mapper_configured" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when the mapper for the class is fully configured.</p>
 <p>This event is the latest phase of mapper construction, and
-is invoked when the mapped classes are first used, so that relationships
-between mappers can be resolved.   When the event is called,
-the mapper should be in its final state.</p>
+is invoked when the mapped classes are first used, so that
+relationships between mappers can be resolved.   When the event is
+called, the mapper should be in its final state.</p>
 <p>While the configuration event normally occurs automatically,
 it can be forced to occur ahead of time, in the case where the event
 is needed before any actual mapper usage,  by using the
@@ -983,7 +992,7 @@ of this event.</li>
 a handle to the current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress as well
 as additional state information.</li>
 <li><strong>row</strong> &#8211; the result row being handled.  This may be
-an actual <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.RowProxy" title="sqlalchemy.engine.base.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> or may be a dictionary containing
+an actual <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.RowProxy" title="sqlalchemy.engine.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> or may be a dictionary containing
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects as keys.</li>
 <li><strong>target</strong> &#8211; the mapped instance.  If
 the event is configured with <tt class="docutils literal"><span class="pre">raw=True</span></tt>, this will
@@ -1011,7 +1020,7 @@ new row instance.</p>
 It is called when the mapper first receives a row, before
 the object identity or the instance itself has been derived
 from that row.   The given row may or may not be a
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.RowProxy" title="sqlalchemy.engine.base.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> object - it will always be a dictionary-like
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.RowProxy" title="sqlalchemy.engine.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> object - it will always be a dictionary-like
 object which contains mapped columns as keys.  The
 returned object should also be a dictionary-like object
 which recognizes mapped columns as keys.</p>
@@ -1026,7 +1035,7 @@ of this event.</li>
 a handle to the current <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in progress as well
 as additional state information.</li>
 <li><strong>row</strong> &#8211; the result row being handled.  This may be
-an actual <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.RowProxy" title="sqlalchemy.engine.base.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> or may be a dictionary containing
+an actual <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.RowProxy" title="sqlalchemy.engine.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a> or may be a dictionary containing
 <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects as keys.</li>
 </ul>
 </td>
@@ -1081,8 +1090,8 @@ available to the <a class="reference internal" href="../core/event.html#sqlalche
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>propagate=False</strong> &#8211; When True, the event listener should
-be applied to all inheriting mappers as well as the
-mapper which is the target of this listener.</li>
+be applied to all inheriting classes as well as the
+class which is the target of this listener.</li>
 <li><strong>raw=False</strong> &#8211; When True, the &#8220;target&#8221; argument passed
 to applicable event listener functions will be the
 instance&#8217;s <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> management
@@ -1291,7 +1300,7 @@ dictionary which was pickled.</li>
 </div>
 <p>The <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">listen()</span></tt></a> function will accept
 <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> objects as well as the return result
-of <a class="reference internal" href="session.html#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> and <a class="reference internal" href="session.html#sqlalchemy.orm.scoped_session" title="sqlalchemy.orm.scoped_session"><tt class="xref py py-func docutils literal"><span class="pre">scoped_session()</span></tt></a>.</p>
+of <tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt> and <tt class="xref py py-func docutils literal"><span class="pre">scoped_session()</span></tt>.</p>
 <p>Additionally, it accepts the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> class which
 will apply listeners to all <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instances
 globally.</p>
@@ -1300,6 +1309,17 @@ globally.</p>
 <tt class="descname">after_attach</tt><big>(</big><em>session</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_attach" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute after an instance is attached to a session.</p>
 <p>This is called after an add, delete or merge.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As of 0.8, this event fires off <em>after</em> the item
+has been fully associated with the session, which is
+different than previous releases.  For event
+handlers that require the object not yet
+be part of session state (such as handlers which
+may autoflush while the target object is not
+yet complete) consider the
+new <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_attach" title="sqlalchemy.orm.events.SessionEvents.before_attach"><tt class="xref py py-meth docutils literal"><span class="pre">before_attach()</span></tt></a> event.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1313,7 +1333,7 @@ globally.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</li>
 <li><strong>transaction</strong> &#8211; The <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a>.</li>
-<li><strong>connection</strong> &#8211; The <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object
+<li><strong>connection</strong> &#8211; The <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object
 which will be used for SQL statements.</li>
 </ul>
 </td>
@@ -1336,7 +1356,7 @@ which will be used for SQL statements.</li>
 called upon.</li>
 <li><strong>query_context</strong> &#8211; The <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a> object, corresponding
 to the invocation of an ORM query.</li>
-<li><strong>result</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> returned as a result of the
+<li><strong>result</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> returned as a result of the
 bulk DELETE operation.</li>
 </ul>
 </td>
@@ -1359,7 +1379,7 @@ bulk DELETE operation.</li>
 called upon.</li>
 <li><strong>query_context</strong> &#8211; The <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a> object, corresponding
 to the invocation of an ORM query.</li>
-<li><strong>result</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> returned as a result of the
+<li><strong>result</strong> &#8211; the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> returned as a result of the
 bulk UPDATE operation.</li>
 </ul>
 </td>
@@ -1478,17 +1498,70 @@ by first checking the <a class="reference internal" href="session.html#sqlalchem
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>session</strong> &#8211; The target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</li>
-<li><strong>previous_transaction</strong> &#8211; The <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> transactional
-marker object which was just closed.   The current <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a>
-for the given <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is available via the
-<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.transaction" title="sqlalchemy.orm.session.Session.transaction"><tt class="xref py py-attr docutils literal"><span class="pre">Session.transaction</span></tt></a> attribute.</li>
+<li><strong>previous_transaction</strong> &#8211; The <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>transactional marker object which was just closed.   The current
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> for the given <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is
+available via the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.transaction" title="sqlalchemy.orm.session.Session.transaction"><tt class="xref py py-attr docutils literal"><span class="pre">Session.transaction</span></tt></a> attribute.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.3.</span></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.events.SessionEvents.after_transaction_create">
+<tt class="descname">after_transaction_create</tt><big>(</big><em>session</em>, <em>transaction</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute when a new <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> is created.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session</strong> &#8211; the target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</li>
+<li><strong>transaction</strong> &#8211; the target <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="versionadded">
-<span class="versionmodified">New in version 0.7.3.</span></p>
+<span class="versionmodified">New in version 0.8.</span></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.events.SessionEvents.after_transaction_end">
+<tt class="descname">after_transaction_end</tt><big>(</big><em>session</em>, <em>transaction</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute when the span of a <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> ends.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session</strong> &#8211; the target <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</li>
+<li><strong>transaction</strong> &#8211; the target <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.</span></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.events.SessionEvents.before_attach">
+<tt class="descname">before_attach</tt><big>(</big><em>session</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.before_attach" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute before an instance is attached to a session.</p>
+<p>This is called before an add, delete or merge causes
+the object to be part of the session.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.: </span>Note that <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.SessionExtension.after_attach" title="sqlalchemy.orm.interfaces.SessionExtension.after_attach"><tt class="xref py py-meth docutils literal"><span class="pre">after_attach()</span></tt></a> now
+fires off after the item is part of the session.
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_attach" title="sqlalchemy.orm.events.SessionEvents.before_attach"><tt class="xref py py-meth docutils literal"><span class="pre">before_attach()</span></tt></a> is provided for those cases where
+the item should not yet be part of the session state.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1541,9 +1614,24 @@ objects which can be passed to the <a class="reference internal" href="session.h
 <p>The listeners here support being established against
 any new style class, that is any object that is a subclass
 of &#8216;type&#8217;.  Events will then be fired off for events
-against that class as well as all subclasses.
-&#8216;type&#8217; itself is also accepted as a target
-in which case the events fire for all classes.</p>
+against that class.  If the &#8220;propagate=True&#8221; flag is passed
+to event.listen(), the event will fire off for subclasses
+of that class as well.</p>
+<p>The Python <tt class="docutils literal"><span class="pre">type</span></tt> builtin is also accepted as a target,
+which when used has the effect of events being emitted
+for all classes.</p>
+<p>Note the &#8220;propagate&#8221; flag here is defaulted to <tt class="docutils literal"><span class="pre">True</span></tt>,
+unlike the other class level events where it defaults
+to <tt class="docutils literal"><span class="pre">False</span></tt>.  This means that new subclasses will also
+be the subject of these events, when a listener
+is established on a superclass.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>- events here will emit based
+on comparing the incoming class to the type of class
+passed to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a>.  Previously, the
+event would fire for any class unconditionally regardless
+of what class was sent for listening, despite
+documentation which stated the contrary.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.events.InstrumentationEvents.attribute_instrument">
 <tt class="descname">attribute_instrument</tt><big>(</big><em>cls</em>, <em>key</em>, <em>inst</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.InstrumentationEvents.attribute_instrument" title="Permalink to this definition">¶</a></dt>
@@ -1555,7 +1643,7 @@ in which case the events fire for all classes.</p>
 <tt class="descname">class_instrument</tt><big>(</big><em>cls</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.InstrumentationEvents.class_instrument" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called after the given class is instrumented.</p>
 <p>To get at the <a class="reference internal" href="internals.html#sqlalchemy.orm.instrumentation.ClassManager" title="sqlalchemy.orm.instrumentation.ClassManager"><tt class="xref py py-class docutils literal"><span class="pre">ClassManager</span></tt></a>, use
-<a class="reference internal" href="session.html#sqlalchemy.orm.attributes.manager_of_class" title="sqlalchemy.orm.attributes.manager_of_class"><tt class="xref py py-func docutils literal"><span class="pre">manager_of_class()</span></tt></a>.</p>
+<tt class="xref py py-func docutils literal"><span class="pre">manager_of_class()</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1563,109 +1651,8 @@ in which case the events fire for all classes.</p>
 <tt class="descname">class_uninstrument</tt><big>(</big><em>cls</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.InstrumentationEvents.class_uninstrument" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called before the given class is uninstrumented.</p>
 <p>To get at the <a class="reference internal" href="internals.html#sqlalchemy.orm.instrumentation.ClassManager" title="sqlalchemy.orm.instrumentation.ClassManager"><tt class="xref py py-class docutils literal"><span class="pre">ClassManager</span></tt></a>, use
-<a class="reference internal" href="session.html#sqlalchemy.orm.attributes.manager_of_class" title="sqlalchemy.orm.attributes.manager_of_class"><tt class="xref py py-func docutils literal"><span class="pre">manager_of_class()</span></tt></a>.</p>
+<tt class="xref py py-func docutils literal"><span class="pre">manager_of_class()</span></tt>.</p>
 </dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="alternate-class-instrumentation">
-<h2>Alternate Class Instrumentation<a class="headerlink" href="#alternate-class-instrumentation" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">InstrumentationManager</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager" title="Permalink to this definition">¶</a></dt>
-<dd><p>User-defined class instrumentation extension.</p>
-<p><a class="reference internal" href="#sqlalchemy.orm.interfaces.InstrumentationManager" title="sqlalchemy.orm.interfaces.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a> can be subclassed in order
-to change
-how class instrumentation proceeds. This class exists for
-the purposes of integration with other object management
-frameworks which would like to entirely modify the
-instrumentation methodology of the ORM, and is not intended
-for regular usage.  For interception of class instrumentation
-events, see <a class="reference internal" href="#sqlalchemy.orm.events.InstrumentationEvents" title="sqlalchemy.orm.events.InstrumentationEvents"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationEvents</span></tt></a>.</p>
-<p>For an example of <a class="reference internal" href="#sqlalchemy.orm.interfaces.InstrumentationManager" title="sqlalchemy.orm.interfaces.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a>, see the
-example <a class="reference internal" href="examples.html#examples-instrumentation"><em>Attribute Instrumentation</em></a>.</p>
-<p>The API for this class should be considered as semi-stable,
-and may change slightly with new releases.</p>
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.dict_getter">
-<tt class="descname">dict_getter</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.dict_getter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.dispose">
-<tt class="descname">dispose</tt><big>(</big><em>class_</em>, <em>manager</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.dispose" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.get_instance_dict">
-<tt class="descname">get_instance_dict</tt><big>(</big><em>class_</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.get_instance_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.initialize_instance_dict">
-<tt class="descname">initialize_instance_dict</tt><big>(</big><em>class_</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.initialize_instance_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.install_descriptor">
-<tt class="descname">install_descriptor</tt><big>(</big><em>class_</em>, <em>key</em>, <em>inst</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.install_descriptor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.install_member">
-<tt class="descname">install_member</tt><big>(</big><em>class_</em>, <em>key</em>, <em>implementation</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.install_member" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.install_state">
-<tt class="descname">install_state</tt><big>(</big><em>class_</em>, <em>instance</em>, <em>state</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.install_state" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.instrument_attribute">
-<tt class="descname">instrument_attribute</tt><big>(</big><em>class_</em>, <em>key</em>, <em>inst</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.instrument_attribute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.instrument_collection_class">
-<tt class="descname">instrument_collection_class</tt><big>(</big><em>class_</em>, <em>key</em>, <em>collection_class</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.instrument_collection_class" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.manage">
-<tt class="descname">manage</tt><big>(</big><em>class_</em>, <em>manager</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.manage" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.manager_getter">
-<tt class="descname">manager_getter</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.manager_getter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.post_configure_attribute">
-<tt class="descname">post_configure_attribute</tt><big>(</big><em>class_</em>, <em>key</em>, <em>inst</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.post_configure_attribute" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.remove_state">
-<tt class="descname">remove_state</tt><big>(</big><em>class_</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.remove_state" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.state_getter">
-<tt class="descname">state_getter</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.state_getter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.uninstall_descriptor">
-<tt class="descname">uninstall_descriptor</tt><big>(</big><em>class_</em>, <em>key</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.uninstall_descriptor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.orm.interfaces.InstrumentationManager.uninstall_member">
-<tt class="descname">uninstall_member</tt><big>(</big><em>class_</em>, <em>key</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager.uninstall_member" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 

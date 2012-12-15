@@ -460,8 +460,29 @@ objects available for a particular ``User``::
         id = Column(Integer, primary_key=True)
         address_count = column_property(
             select([func.count(Address.id)]).\
-                where(Address.user_id==id)
+                where(Address.user_id==id).\
+                correlate_except(Address)
         )
+
+In the above example, we define a :func:`.select` construct like the following::
+
+    select([func.count(Address.id)]).\
+        where(Address.user_id==id).\
+        correlate_except(Address)
+
+The meaning of the above statement is, select the count of ``Address.id`` rows
+where the ``Address.user_id`` column is equated to ``id``, which in the context
+of the ``User`` class is the :class:`.Column` named ``id`` (note that ``id`` is
+also the name of a Python built in function, which is not what we want to use
+here - if we were outside of the ``User`` class definition, we'd use ``User.id``).
+
+The :meth:`.select.correlate_except` directive indicates that each element in the
+FROM clause of this :func:`.select` may be omitted from the FROM list (that is, correlated
+to the enclosing SELECT statement against ``User``) except for the one corresponding
+to ``Address``.  This isn't strictly necessary, but prevents ``Address`` from
+being inadvertently omitted from the FROM list in the case of a long string
+of joins between ``User`` and ``Address`` tables where SELECT statements against
+``Address`` are nested.
 
 If import issues prevent the :func:`.column_property` from being defined
 inline with the class, it can be assigned to the class after both
@@ -714,57 +735,25 @@ based attribute.
 
 .. _custom_comparators:
 
-Custom Comparators
-------------------
+Operator Customization
+----------------------
 
-The expressions returned by comparison operations, such as
-``User.name=='ed'``, can be customized, by implementing an object that
-explicitly defines each comparison method needed.
+The "operators" used by the SQLAlchemy ORM and Core expression language
+are fully customizable.  For example, the comparison expression
+``User.name == 'ed'`` makes usage of an operator built into Python
+itself called ``operator.eq`` - the actual SQL construct which SQLAlchemy
+associates with such an operator can be modified.  New
+operations can be associated with column expressions as well.   The operators
+which take place for column expressions are most directly redefined at the
+type level -  see the
+section :ref:`types_operators` for a description.
 
-This is a relatively rare use case which generally applies only to
-highly customized types.  Usually, custom SQL behaviors can be
-associated with a mapped class by composing together the classes'
-existing mapped attributes with other expression components,
-using the techniques described in :ref:`mapper_sql_expressions`.
-Those approaches should be considered first before resorting to custom comparison objects.
-
-Each of :func:`.orm.column_property`, :func:`~.composite`, :func:`.relationship`,
-and :func:`.comparable_property` accept an argument called
-``comparator_factory``.   A subclass of :class:`.PropComparator` can be provided
-for this argument, which can then reimplement basic Python comparison methods
-such as ``__eq__()``, ``__ne__()``, ``__lt__()``, and so on.
-
-It's best to subclass the :class:`.PropComparator` subclass provided by
-each type of property.  For example, to allow a column-mapped attribute to
-do case-insensitive comparison::
-
-    from sqlalchemy.orm.properties import ColumnProperty
-    from sqlalchemy.sql import func, Column, Integer, String
-
-    class MyComparator(ColumnProperty.Comparator):
-        def __eq__(self, other):
-            return func.lower(self.__clause_element__()) == func.lower(other)
-
-    class EmailAddress(Base):
-        __tablename__ = 'address'
-        id = Column(Integer, primary_key=True)
-        email = column_property(
-                        Column('email', String),
-                        comparator_factory=MyComparator
-                    )
-
-Above, comparisons on the ``email`` column are wrapped in the SQL lower()
-function to produce case-insensitive matching::
-
-    >>> str(EmailAddress.email == 'SomeAddress@foo.com')
-    lower(address.email) = lower(:lower_1)
-
-When building a :class:`.PropComparator`, the ``__clause_element__()`` method
-should be used in order to acquire the underlying mapped column.  This will
-return a column that is appropriately wrapped in any kind of subquery
-or aliasing that has been applied in the context of the generated SQL statement.
-
-.. autofunction:: comparable_property
+ORM level functions like :func:`.column_property`, :func:`.relationship`,
+and :func:`.composite` also provide for operator redefinition at the ORM
+level, by passing a :class:`.PropComparator` subclass to the ``comparator_factory``
+argument of each function.  Customization of operators at this level is a
+rare use case.  See the documentation at :class:`.PropComparator`
+for an overview.
 
 .. _mapper_composite:
 
@@ -866,6 +855,7 @@ using the ``.start`` and ``.end`` attributes against ad-hoc ``Point`` instances:
 
 .. autofunction:: composite
 
+
 Tracking In-Place Mutations on Composites
 -----------------------------------------
 
@@ -877,14 +867,20 @@ to associate each user-defined composite object with all parent associations.
 Please see the example in :ref:`mutable_composites`.
 
 .. versionchanged:: 0.7
-    No automatic tracking of in-place changes to an existing composite value.
+    In-place changes to an existing composite value are no longer
+    tracked automatically; the functionality is superseded by the
+    :class:`.MutableComposite` class.
+
+.. _composite_operations:
 
 Redefining Comparison Operations for Composites
 -----------------------------------------------
 
 The "equals" comparison operation by default produces an AND of all
 corresponding columns equated to one another. This can be changed using
-the ``comparator_factory``, described in :ref:`custom_comparators`.
+the ``comparator_factory`` argument to :func:`.composite`, where we
+specify a custom :class:`.CompositeProperty.Comparator` class
+to define existing or new operations.
 Below we illustrate the "greater than" operator, implementing
 the same expression that the base "greater than" does::
 
@@ -1106,8 +1102,6 @@ Class Mapping API
 .. autofunction:: object_mapper
 
 .. autofunction:: class_mapper
-
-.. autofunction:: compile_mappers
 
 .. autofunction:: configure_mappers
 

@@ -10,7 +10,7 @@
     
                 Collection Configuration and Techniques
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
         <link rel="prev" title="Relationship Configuration" href="relationships.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Collection Configuration and Techniques
@@ -447,8 +447,9 @@ after a session flush.</p>
 <dt id="sqlalchemy.orm.collections.column_mapped_collection">
 <tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">column_mapped_collection</tt><big>(</big><em>mapping_spec</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.column_mapped_collection" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dictionary-based collection type with column-based keying.</p>
-<p>Returns a <a class="reference internal" href="#sqlalchemy.orm.collections.MappedCollection" title="sqlalchemy.orm.collections.MappedCollection"><tt class="xref py py-class docutils literal"><span class="pre">MappedCollection</span></tt></a> factory with a keying function generated
-from mapping_spec, which may be a Column or a sequence of Columns.</p>
+<p>Returns a <a class="reference internal" href="#sqlalchemy.orm.collections.MappedCollection" title="sqlalchemy.orm.collections.MappedCollection"><tt class="xref py py-class docutils literal"><span class="pre">MappedCollection</span></tt></a> factory with a keying function
+generated from mapping_spec, which may be a Column or a sequence
+of Columns.</p>
 <p>The key value must be immutable for the lifetime of the object.  You
 can not, for example, map on foreign key values if those key values will
 change during the session, i.e. from None to a database-assigned integer
@@ -459,8 +460,9 @@ after a session flush.</p>
 <dt id="sqlalchemy.orm.collections.mapped_collection">
 <tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">mapped_collection</tt><big>(</big><em>keyfunc</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.mapped_collection" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dictionary-based collection type with arbitrary keying.</p>
-<p>Returns a <a class="reference internal" href="#sqlalchemy.orm.collections.MappedCollection" title="sqlalchemy.orm.collections.MappedCollection"><tt class="xref py py-class docutils literal"><span class="pre">MappedCollection</span></tt></a> factory with a keying function generated
-from keyfunc, a callable that takes an entity and returns a key value.</p>
+<p>Returns a <a class="reference internal" href="#sqlalchemy.orm.collections.MappedCollection" title="sqlalchemy.orm.collections.MappedCollection"><tt class="xref py py-class docutils literal"><span class="pre">MappedCollection</span></tt></a> factory with a keying function
+generated from keyfunc, a callable that takes an entity and returns a
+key value.</p>
 <p>The key value must be immutable for the lifetime of the object.  You
 can not, for example, map on foreign key values if those key values will
 change during the session, i.e. from None to a database-assigned integer
@@ -701,10 +703,11 @@ validation on the values about to be assigned.</p>
 <dt id="sqlalchemy.orm.collections.collection.internally_instrumented">
 <em class="property">static </em><tt class="descname">internally_instrumented</tt><big>(</big><em>fn</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.collection.internally_instrumented" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tag the method as instrumented.</p>
-<p>This tag will prevent any decoration from being applied to the method.
-Use this if you are orchestrating your own calls to <a class="reference internal" href="#sqlalchemy.orm.collections.collection_adapter" title="sqlalchemy.orm.collections.collection_adapter"><tt class="xref py py-func docutils literal"><span class="pre">collection_adapter()</span></tt></a>
-in one of the basic SQLAlchemy interface methods, or to prevent
-an automatic ABC method decoration from wrapping your implementation:</p>
+<p>This tag will prevent any decoration from being applied to the
+method. Use this if you are orchestrating your own calls to
+<a class="reference internal" href="#sqlalchemy.orm.collections.collection_adapter" title="sqlalchemy.orm.collections.collection_adapter"><tt class="xref py py-func docutils literal"><span class="pre">collection_adapter()</span></tt></a> in one of the basic SQLAlchemy
+interface methods, or to prevent an automatic ABC method
+decoration from wrapping your implementation:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># normally an &#39;extend&#39; method on a list-like class would be</span>
 <span class="c"># automatically intercepted and re-implemented in terms of</span>
 <span class="c"># SQLAlchemy events and append().  your implementation will</span>
@@ -870,10 +873,10 @@ methods before used in a custom subclass.</p>
 <dt id="sqlalchemy.orm.collections.MappedCollection">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">MappedCollection</tt><big>(</big><em>keyfunc</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.MappedCollection" title="Permalink to this definition">¶</a></dt>
 <dd><p>A basic dictionary-based collection class.</p>
-<p>Extends dict with the minimal bag semantics that collection classes require.
-<tt class="docutils literal"><span class="pre">set</span></tt> and <tt class="docutils literal"><span class="pre">remove</span></tt> are implemented in terms of a keying function: any
-callable that takes an object and returns an object for use as a dictionary
-key.</p>
+<p>Extends dict with the minimal bag semantics that collection
+classes require. <tt class="docutils literal"><span class="pre">set</span></tt> and <tt class="docutils literal"><span class="pre">remove</span></tt> are implemented in terms
+of a keying function: any callable that takes an object and
+returns an object for use as a dictionary key.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.collections.MappedCollection.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>keyfunc</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.MappedCollection.__init__" title="Permalink to this definition">¶</a></dt>
@@ -969,8 +972,10 @@ remove events fired upon them.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>values</strong> &#8211; An iterable of collection member instances</li>
-<li><strong>existing_adapter</strong> &#8211; A <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a> of instances to be replaced</li>
-<li><strong>new_adapter</strong> &#8211; An empty <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a> to load with <tt class="docutils literal"><span class="pre">values</span></tt></li>
+<li><strong>existing_adapter</strong> &#8211; A <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a> of
+instances to be replaced</li>
+<li><strong>new_adapter</strong> &#8211; An empty <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a>
+to load with <tt class="docutils literal"><span class="pre">values</span></tt></li>
 </ul>
 </td>
 </tr>

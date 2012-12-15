@@ -1,8 +1,8 @@
-from test.lib.testing import eq_, assert_raises, assert_raises_message
-from test.lib import testing
-from test.lib.schema import Table, Column
+from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
+from sqlalchemy import testing
+from sqlalchemy.testing.schema import Table, Column
 from test.orm import _fixtures
-from test.lib import fixtures
+from sqlalchemy.testing import fixtures
 from sqlalchemy import Integer, String, ForeignKey, func
 from sqlalchemy.orm import mapper, relationship, backref, \
                             create_session, unitofwork, attributes,\
@@ -147,7 +147,7 @@ class SyncTest(fixtures.MappedTest,
     def test_update(self):
         uowcommit, a1, b1, a_mapper, b_mapper = self._fixture()
         a1.obj().id = 10
-        a1.commit_all(a1.dict)
+        a1._commit_all(a1.dict)
         a1.obj().id = 12
         pairs = [(a_mapper.c.id, b_mapper.c.id,)]
         dest = {}
@@ -204,7 +204,7 @@ class SyncTest(fixtures.MappedTest,
     def test_source_modified_modified(self):
         uowcommit, a1, b1, a_mapper, b_mapper = self._fixture()
         a1.obj().id = 10
-        a1.commit_all(a1.dict)
+        a1._commit_all(a1.dict)
         a1.obj().id = 12
         pairs = [(a_mapper.c.id, b_mapper.c.id,)]
         eq_(

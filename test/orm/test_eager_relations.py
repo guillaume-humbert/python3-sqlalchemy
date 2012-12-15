@@ -1,20 +1,20 @@
 """tests of joined-eager loaded attributes"""
 
-from test.lib.testing import eq_, is_, is_not_
+from sqlalchemy.testing import eq_, is_, is_not_
 import sqlalchemy as sa
-from test.lib import testing
+from sqlalchemy import testing
 from sqlalchemy.orm import joinedload, deferred, undefer, \
     joinedload_all, backref, eagerload, Session, immediateload
 from sqlalchemy import Integer, String, Date, ForeignKey, and_, select, \
     func
-from test.lib.schema import Table, Column
+from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session, \
     lazyload, aliased, column_property
 from sqlalchemy.sql import operators
-from test.lib.testing import eq_, assert_raises, \
+from sqlalchemy.testing import eq_, assert_raises, \
     assert_raises_message
-from test.lib.assertsql import CompiledSQL
-from test.lib import fixtures
+from sqlalchemy.testing.assertsql import CompiledSQL
+from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
 from sqlalchemy.util import OrderedDict as odict
 import datetime
@@ -310,6 +310,8 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                                         order_by=keywords.c.id) #m2m
         })
         mapper(Keyword, keywords)
+
+
 
         for opt, count in [
             ((
@@ -1442,11 +1444,12 @@ class SubqueryAliasingTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
         b_table, a_table = self.tables.b, self.tables.a
         self._fixture({})
         cp = select([func.sum(b_table.c.value)]).\
-                        where(b_table.c.a_id==a_table.c.id).\
+                        where(b_table.c.a_id == a_table.c.id).\
                         correlate(a_table).as_scalar()
-        # note its re-rendering the subquery in the
-        # outermost order by.  usually we want it to address
-        # the column within the subquery.  labelling fixes that.
+
+        # up until 0.8, this was ordering by a new subquery.
+        # the removal of a separate _make_proxy() from ScalarSelect
+        # fixed that.
         self.assert_compile(
             create_session().query(A).options(joinedload_all('bs')).
                             order_by(cp).
@@ -1458,8 +1461,7 @@ class SubqueryAliasingTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
             "b.a_id = a.id) AS anon_2 FROM a ORDER BY (SELECT "
             "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
             "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 "
-            "ON anon_1.a_id = b_1.a_id ORDER BY "
-            "(SELECT anon_1.anon_2 FROM b WHERE b.a_id = anon_1.a_id)"
+            "ON anon_1.a_id = b_1.a_id ORDER BY anon_1.anon_2"
         )
 
     def test_standalone_subquery_labeled(self):
@@ -2304,46 +2306,6 @@ class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
         dialect=DefaultDialect()
         )
 
-class CyclicalInheritingEagerTest(fixtures.MappedTest):
-
-    @classmethod
-    def define_tables(cls, metadata):
-        Table('t1', metadata,
-            Column('c1', Integer, primary_key=True, test_needs_autoincrement=True),
-            Column('c2', String(30)),
-            Column('type', String(30))
-            )
-
-        Table('t2', metadata,
-            Column('c1', Integer, primary_key=True, test_needs_autoincrement=True),
-            Column('c2', String(30)),
-            Column('type', String(30)),
-            Column('t1.id', Integer, ForeignKey('t1.c1')))
-
-    def test_basic(self):
-        t2, t1 = self.tables.t2, self.tables.t1
-
-        class T(object):
-            pass
-
-        class SubT(T):
-            pass
-
-        class T2(object):
-            pass
-
-        class SubT2(T2):
-            pass
-
-        mapper(T, t1, polymorphic_on=t1.c.type, polymorphic_identity='t1')
-        mapper(SubT, None, inherits=T, polymorphic_identity='subt1', properties={
-            't2s':relationship(SubT2, lazy='joined', backref=sa.orm.backref('subt', lazy='joined'))
-        })
-        mapper(T2, t2, polymorphic_on=t2.c.type, polymorphic_identity='t2')
-        mapper(SubT2, None, inherits=T2, polymorphic_identity='subt2')
-
-        # testing a particular endless loop condition in eager join setup
-        create_session().query(SubT).all()
 
 class SubqueryTest(fixtures.MappedTest):
     @classmethod
@@ -2597,5 +2559,108 @@ class CorrelatedSubqueryTest(fixtures.MappedTest):
                 User(name='user2', stuff=[Stuff(id=4)])
             )
         self.assert_sql_count(testing.db, go, 1)
+
+class CyclicalInheritingEagerTestOne(fixtures.MappedTest):
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('t1', metadata,
+            Column('c1', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('c2', String(30)),
+            Column('type', String(30))
+            )
+
+        Table('t2', metadata,
+            Column('c1', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('c2', String(30)),
+            Column('type', String(30)),
+            Column('t1.id', Integer, ForeignKey('t1.c1')))
+
+    def test_basic(self):
+        t2, t1 = self.tables.t2, self.tables.t1
+
+        class T(object):
+            pass
+
+        class SubT(T):
+            pass
+
+        class T2(object):
+            pass
+
+        class SubT2(T2):
+            pass
+
+        mapper(T, t1, polymorphic_on=t1.c.type, polymorphic_identity='t1')
+        mapper(SubT, None, inherits=T, polymorphic_identity='subt1', properties={
+            't2s': relationship(SubT2, lazy='joined',
+                backref=sa.orm.backref('subt', lazy='joined'))
+        })
+        mapper(T2, t2, polymorphic_on=t2.c.type, polymorphic_identity='t2')
+        mapper(SubT2, None, inherits=T2, polymorphic_identity='subt2')
+
+        # testing a particular endless loop condition in eager load setup
+        create_session().query(SubT).all()
+
+class CyclicalInheritingEagerTestTwo(fixtures.DeclarativeMappedTest,
+                        testing.AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    @classmethod
+    def setup_classes(cls):
+        Base = cls.DeclarativeBasic
+        class PersistentObject(Base):
+            __tablename__ = 'persistent'
+            id = Column(Integer, primary_key=True,
+                    test_needs_autoincrement=True)
+
+        class Movie(PersistentObject):
+            __tablename__ = 'movie'
+            id = Column(Integer, ForeignKey('persistent.id'), primary_key=True)
+            director_id = Column(Integer, ForeignKey('director.id'))
+            title = Column(String(50))
+
+        class Director(PersistentObject):
+            __tablename__ = 'director'
+            id = Column(Integer, ForeignKey('persistent.id'), primary_key=True)
+            movies = relationship("Movie", foreign_keys=Movie.director_id)
+            name = Column(String(50))
+
+
+    def test_from_subclass(self):
+        Director = self.classes.Director
+        s = create_session()
+
+        self.assert_compile(
+            s.query(Director).options(joinedload('*')),
+            "SELECT director.id AS director_id, persistent.id AS persistent_id, "
+            "director.name AS director_name, anon_1.movie_id AS anon_1_movie_id, "
+            "anon_1.persistent_id AS anon_1_persistent_id, "
+            "anon_1.movie_director_id AS anon_1_movie_director_id, "
+            "anon_1.movie_title AS anon_1_movie_title "
+            "FROM persistent JOIN director ON persistent.id = director.id "
+            "LEFT OUTER JOIN "
+            "(SELECT persistent.id AS persistent_id, movie.id AS movie_id, "
+                "movie.director_id AS movie_director_id, movie.title AS movie_title "
+                "FROM persistent JOIN movie ON persistent.id = movie.id) AS anon_1 "
+            "ON director.id = anon_1.movie_director_id"
+        )
+
+    def test_integrate(self):
+        Director = self.classes.Director
+        Movie = self.classes.Movie
+
+        session = Session(testing.db)
+        rscott = Director(name=u"Ridley Scott")
+        alien = Movie(title=u"Alien")
+        brunner = Movie(title=u"Blade Runner")
+        rscott.movies.append(brunner)
+        rscott.movies.append(alien)
+        session.add_all([rscott, alien, brunner])
+        session.commit()
+
+        session.close_all()
+        d = session.query(Director).options(joinedload('*')).first()
+        assert len(list(session)) == 3
 
 

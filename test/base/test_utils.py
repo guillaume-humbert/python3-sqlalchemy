@@ -1,12 +1,123 @@
-from test.lib.testing import assert_raises, assert_raises_message
-import copy, threading
+import copy
+
 from sqlalchemy import util, sql, exc
-from test.lib.testing import eq_, is_, ne_, fails_if
-from test.lib.util import gc_collect, picklers
+from sqlalchemy.testing import assert_raises, assert_raises_message, fixtures
+from sqlalchemy.testing import eq_, is_, ne_, fails_if
+from sqlalchemy.testing.util import picklers
 from sqlalchemy.util import classproperty
-from test.lib import fixtures
+
+
+class KeyedTupleTest():
+
+    def test_empty(self):
+        keyed_tuple = util.KeyedTuple([])
+        eq_(type(keyed_tuple), util.KeyedTuple)
+        eq_(str(keyed_tuple), '()')
+        eq_(len(keyed_tuple), 0)
+
+        eq_(keyed_tuple.__dict__, {'_labels': []})
+        eq_(keyed_tuple.keys(), [])
+        eq_(keyed_tuple._fields, ())
+        eq_(keyed_tuple._asdict(), {})
+
+    def test_values_but_no_labels(self):
+        keyed_tuple = util.KeyedTuple([1, 2])
+        eq_(type(keyed_tuple), util.KeyedTuple)
+        eq_(str(keyed_tuple), '(1, 2)')
+        eq_(len(keyed_tuple), 2)
+
+        eq_(keyed_tuple.__dict__, {'_labels': []})
+        eq_(keyed_tuple.keys(), [])
+        eq_(keyed_tuple._fields, ())
+        eq_(keyed_tuple._asdict(), {})
+
+        eq_(keyed_tuple[0], 1)
+        eq_(keyed_tuple[1], 2)
+
+    def test_basic_creation(self):
+        keyed_tuple = util.KeyedTuple([1, 2], ['a', 'b'])
+        eq_(str(keyed_tuple), '(1, 2)')
+        eq_(keyed_tuple.keys(), ['a', 'b'])
+        eq_(keyed_tuple._fields, ('a', 'b'))
+        eq_(keyed_tuple._asdict(), {'a': 1, 'b': 2})
+
+    def test_basic_index_access(self):
+        keyed_tuple = util.KeyedTuple([1, 2], ['a', 'b'])
+        eq_(keyed_tuple[0], 1)
+        eq_(keyed_tuple[1], 2)
+
+        def should_raise():
+            keyed_tuple[2]
+        assert_raises(IndexError, should_raise)
+
+    def test_basic_attribute_access(self):
+        keyed_tuple = util.KeyedTuple([1, 2], ['a', 'b'])
+        eq_(keyed_tuple.a, 1)
+        eq_(keyed_tuple.b, 2)
+
+        def should_raise():
+            keyed_tuple.c
+        assert_raises(AttributeError, should_raise)
+
+    def test_none_label(self):
+        keyed_tuple = util.KeyedTuple([1, 2, 3], ['a', None, 'b'])
+        eq_(str(keyed_tuple), '(1, 2, 3)')
+
+        # TODO: consider not allowing None labels
+        expected = {'a': 1, None: 2, 'b': 3, '_labels': ['a', None, 'b']}
+        eq_(keyed_tuple.__dict__, expected)
+        eq_(keyed_tuple.keys(), ['a', 'b'])
+        eq_(keyed_tuple._fields, ('a', 'b'))
+        eq_(keyed_tuple._asdict(), {'a': 1, 'b': 3})
+
+        # attribute access: can't get at value 2
+        eq_(keyed_tuple.a, 1)
+        eq_(keyed_tuple.b, 3)
+
+        # index access: can get at value 2
+        eq_(keyed_tuple[0], 1)
+        eq_(keyed_tuple[1], 2)
+        eq_(keyed_tuple[2], 3)
+
+    def test_duplicate_labels(self):
+        keyed_tuple = util.KeyedTuple([1, 2, 3], ['a', 'b', 'b'])
+        eq_(str(keyed_tuple), '(1, 2, 3)')
+
+        # TODO: consider not allowing duplicate labels
+        expected = {'a': 1, 'b': 3, '_labels': ['a', 'b', 'b']}
+        eq_(keyed_tuple.__dict__, expected)
+        eq_(keyed_tuple.keys(), ['a', 'b', 'b'])
+        eq_(keyed_tuple._fields, ('a', 'b', 'b'))
+        eq_(keyed_tuple._asdict(), {'a': 1, 'b': 3})
+
+        # attribute access: can't get at value 2
+        eq_(keyed_tuple.a, 1)
+        eq_(keyed_tuple.b, 3)
+
+        # index access: can get at value 2
+        eq_(keyed_tuple[0], 1)
+        eq_(keyed_tuple[1], 2)
+        eq_(keyed_tuple[2], 3)
+
+    def test_immutable(self):
+        keyed_tuple = util.KeyedTuple([1, 2], ['a', 'b'])
+        eq_(str(keyed_tuple), '(1, 2)')
+
+        # attribute access: mutable
+        eq_(keyed_tuple.a, 1)
+        keyed_tuple.a = 100
+        eq_(keyed_tuple.a, 100)
+        keyed_tuple.c = 300
+        eq_(keyed_tuple.c, 300)
+
+        # index access: immutable
+        def should_raise():
+            keyed_tuple[0] = 100
+        assert_raises(TypeError, should_raise)
+
 
 class OrderedDictTest(fixtures.TestBase):
+
     def test_odict(self):
         o = util.OrderedDict()
         o['a'] = 1
@@ -70,25 +181,31 @@ class OrderedDictTest(fixtures.TestBase):
         o3 = copy.copy(o)
         eq_(o3.keys(), o.keys())
 
+
 class OrderedSetTest(fixtures.TestBase):
+
     def test_mutators_against_iter(self):
         # testing a set modified against an iterator
-        o = util.OrderedSet([3,2, 4, 5])
+        o = util.OrderedSet([3, 2, 4, 5])
 
-        eq_(o.difference(iter([3,4])), util.OrderedSet([2,5]))
-        eq_(o.intersection(iter([3,4, 6])), util.OrderedSet([3, 4]))
-        eq_(o.union(iter([3,4, 6])), util.OrderedSet([2, 3, 4, 5, 6]))
+        eq_(o.difference(iter([3, 4])), util.OrderedSet([2, 5]))
+        eq_(o.intersection(iter([3, 4, 6])), util.OrderedSet([3, 4]))
+        eq_(o.union(iter([3, 4, 6])), util.OrderedSet([2, 3, 4, 5, 6]))
+
 
 class FrozenDictTest(fixtures.TestBase):
+
     def test_serialize(self):
-        d = util.immutabledict({1:2, 3:4})
+        d = util.immutabledict({1: 2, 3: 4})
         for loads, dumps in picklers():
             print loads(dumps(d))
 
 
 class MemoizedAttrTest(fixtures.TestBase):
+
     def test_memoized_property(self):
         val = [20]
+
         class Foo(object):
             @util.memoized_property
             def bar(self):
@@ -102,10 +219,11 @@ class MemoizedAttrTest(fixtures.TestBase):
         eq_(f1.bar, 20)
         eq_(f1.bar, 20)
         eq_(val[0], 21)
-        eq_(f1.__dict__['bar'] , 20)
+        eq_(f1.__dict__['bar'], 20)
 
     def test_memoized_instancemethod(self):
         val = [20]
+
         class Foo(object):
             @util.memoized_instancemethod
             def bar(self):
@@ -120,7 +238,9 @@ class MemoizedAttrTest(fixtures.TestBase):
         eq_(f1.bar(), 20)
         eq_(val[0], 21)
 
+
 class ColumnCollectionTest(fixtures.TestBase):
+
     def test_in(self):
         cc = sql.ColumnCollection()
         cc.add(sql.column('col1'))
@@ -145,8 +265,9 @@ class ColumnCollectionTest(fixtures.TestBase):
         cc1.add(c1)
         cc2.add(c2)
         cc3.add(c3)
-        assert (cc1==cc2).compare(c1 == c2)
-        assert not (cc1==cc3).compare(c2 == c3)
+        assert (cc1 == cc2).compare(c1 == c2)
+        assert not (cc1 == cc3).compare(c2 == c3)
+
 
 class LRUTest(fixtures.TestBase):
 
@@ -160,7 +281,7 @@ class LRUTest(fixtures.TestBase):
 
         l = util.LRUCache(10, threshold=.2)
 
-        for id in range(1,20):
+        for id in range(1, 20):
             l[id] = item(id)
 
         # first couple of items should be gone
@@ -168,7 +289,7 @@ class LRUTest(fixtures.TestBase):
         assert 2 not in l
 
         # next batch over the threshold of 10 should be present
-        for id_ in range(11,20):
+        for id_ in range(11, 20):
             assert id_ in l
 
         l[12]
@@ -195,6 +316,7 @@ class LRUTest(fixtures.TestBase):
 class ImmutableSubclass(str):
     pass
 
+
 class FlattenIteratorTest(fixtures.TestBase):
 
     def test_flatten(self):
@@ -215,37 +337,49 @@ class FlattenIteratorTest(fixtures.TestBase):
                     [IterString('x'), IterString('y')]])) == ['asdf',
                 'x', 'y']
 
+
 class HashOverride(object):
+
     def __init__(self, value=None):
         self.value = value
+
     def __hash__(self):
         return hash(self.value)
 
+
 class EqOverride(object):
+
     def __init__(self, value=None):
         self.value = value
     __hash__ = object.__hash__
+
     def __eq__(self, other):
         if isinstance(other, EqOverride):
             return self.value == other.value
         else:
             return False
+
     def __ne__(self, other):
         if isinstance(other, EqOverride):
             return self.value != other.value
         else:
             return True
 
+
 class HashEqOverride(object):
+
     def __init__(self, value=None):
         self.value = value
+
     def __hash__(self):
         return hash(self.value)
+
     def __eq__(self, other):
         if isinstance(other, EqOverride):
             return self.value == other.value
         else:
             return False
+
     def __ne__(self, other):
         if isinstance(other, EqOverride):
             return self.value != other.value
@@ -254,17 +388,18 @@ class HashEqOverride(object):
 
 
 class IdentitySetTest(fixtures.TestBase):
+
     def assert_eq(self, identityset, expected_iterable):
         expected = sorted([id(o) for o in expected_iterable])
         found = sorted([id(o) for o in identityset])
         eq_(found, expected)
 
     def test_init(self):
-        ids = util.IdentitySet([1,2,3,2,1])
-        self.assert_eq(ids, [1,2,3])
+        ids = util.IdentitySet([1, 2, 3, 2, 1])
+        self.assert_eq(ids, [1, 2, 3])
 
         ids = util.IdentitySet(ids)
-        self.assert_eq(ids, [1,2,3])
+        self.assert_eq(ids, [1, 2, 3])
 
         ids = util.IdentitySet()
         self.assert_eq(ids, [])
@@ -290,7 +425,7 @@ class IdentitySetTest(fixtures.TestBase):
                 ids.add(data[i])
             self.assert_eq(ids, data)
 
-    def test_dunder_sub(self):
+    def test_dunder_sub2(self):
         IdentitySet = util.IdentitySet
         o1, o2, o3 = object(), object(), object()
         ids1 = IdentitySet([o1])
@@ -302,6 +437,419 @@ class IdentitySetTest(fixtures.TestBase):
 
         ids2 -= ids1
         eq_(ids2, IdentitySet([o2, o3]))
+
+    def test_dunder_eq(self):
+        _, _, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(twin1 == twin2, True)
+        eq_(unique1 == unique2, False)
+
+        # not an IdentitySet
+        not_an_identity_set = object()
+        eq_(unique1 == not_an_identity_set, False)
+
+    def test_dunder_ne(self):
+        _, _, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(twin1 != twin2, False)
+        eq_(unique1 != unique2, True)
+
+        # not an IdentitySet
+        not_an_identity_set = object()
+        eq_(unique1 != not_an_identity_set, True)
+
+    def test_dunder_le(self):
+        super_, sub_, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(sub_ <= super_, True)
+        eq_(super_ <= sub_, False)
+
+        # the same sets
+        eq_(twin1 <= twin2, True)
+        eq_(twin2 <= twin1, True)
+
+        # totally different sets
+        eq_(unique1 <= unique2, False)
+        eq_(unique2 <= unique1, False)
+
+        # not an IdentitySet
+        def should_raise():
+            not_an_identity_set = object()
+            return unique1 <= not_an_identity_set
+        self._assert_unorderable_types(should_raise)
+
+    def test_dunder_lt(self):
+        super_, sub_, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(sub_ < super_, True)
+        eq_(super_ < sub_, False)
+
+        # the same sets
+        eq_(twin1 < twin2, False)
+        eq_(twin2 < twin1, False)
+
+        # totally different sets
+        eq_(unique1 < unique2, False)
+        eq_(unique2 < unique1, False)
+
+        # not an IdentitySet
+        def should_raise():
+            not_an_identity_set = object()
+            return unique1 < not_an_identity_set
+        self._assert_unorderable_types(should_raise)
+
+    def test_dunder_ge(self):
+        super_, sub_, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(sub_ >= super_, False)
+        eq_(super_ >= sub_, True)
+
+        # the same sets
+        eq_(twin1 >= twin2, True)
+        eq_(twin2 >= twin1, True)
+
+        # totally different sets
+        eq_(unique1 >= unique2, False)
+        eq_(unique2 >= unique1, False)
+
+        # not an IdentitySet
+        def should_raise():
+            not_an_identity_set = object()
+            return unique1 >= not_an_identity_set
+        self._assert_unorderable_types(should_raise)
+
+    def test_dunder_gt(self):
+        super_, sub_, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(sub_ > super_, False)
+        eq_(super_ > sub_, True)
+
+        # the same sets
+        eq_(twin1 > twin2, False)
+        eq_(twin2 > twin1, False)
+
+        # totally different sets
+        eq_(unique1 > unique2, False)
+        eq_(unique2 > unique1, False)
+
+        # not an IdentitySet
+        def should_raise():
+            not_an_identity_set = object()
+            return unique1 > not_an_identity_set
+        self._assert_unorderable_types(should_raise)
+
+    def test_issubset(self):
+        super_, sub_, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(sub_.issubset(super_), True)
+        eq_(super_.issubset(sub_), False)
+
+        # the same sets
+        eq_(twin1.issubset(twin2), True)
+        eq_(twin2.issubset(twin1), True)
+
+        # totally different sets
+        eq_(unique1.issubset(unique2), False)
+        eq_(unique2.issubset(unique1), False)
+
+        # not an IdentitySet
+        not_an_identity_set = object()
+        assert_raises(TypeError, unique1.issubset, not_an_identity_set)
+
+    def test_issuperset(self):
+        super_, sub_, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(sub_.issuperset(super_), False)
+        eq_(super_.issuperset(sub_), True)
+
+        # the same sets
+        eq_(twin1.issuperset(twin2), True)
+        eq_(twin2.issuperset(twin1), True)
+
+        # totally different sets
+        eq_(unique1.issuperset(unique2), False)
+        eq_(unique2.issuperset(unique1), False)
+
+        # not an IdentitySet
+        not_an_identity_set = object()
+        assert_raises(TypeError, unique1.issuperset, not_an_identity_set)
+
+    def test_union(self):
+        super_, sub_, twin1, twin2, _, _ = self._create_sets()
+
+        # basic set math
+        eq_(sub_.union(super_), super_)
+        eq_(super_.union(sub_), super_)
+
+        # the same sets
+        eq_(twin1.union(twin2), twin1)
+        eq_(twin2.union(twin1), twin1)
+
+        # empty sets
+        empty = util.IdentitySet([])
+        eq_(empty.union(empty), empty)
+
+        # totally different sets
+        unique1 = util.IdentitySet([1])
+        unique2 = util.IdentitySet([2])
+        eq_(unique1.union(unique2), util.IdentitySet([1, 2]))
+
+        # not an IdentitySet
+        not_an_identity_set = object()
+        assert_raises(TypeError, unique1.union, not_an_identity_set)
+
+    def test_dunder_or(self):
+        super_, sub_, twin1, twin2, _, _ = self._create_sets()
+
+        # basic set math
+        eq_(sub_ | super_, super_)
+        eq_(super_ | sub_, super_)
+
+        # the same sets
+        eq_(twin1 | twin2, twin1)
+        eq_(twin2 | twin1, twin1)
+
+        # empty sets
+        empty = util.IdentitySet([])
+        eq_(empty | empty, empty)
+
+        # totally different sets
+        unique1 = util.IdentitySet([1])
+        unique2 = util.IdentitySet([2])
+        eq_(unique1 | unique2, util.IdentitySet([1, 2]))
+
+        # not an IdentitySet
+        def should_raise():
+            not_an_identity_set = object()
+            return unique1 | not_an_identity_set
+        assert_raises(TypeError, should_raise)
+
+    def test_update(self):
+        pass  # TODO
+
+    def test_dunder_ior(self):
+        super_, sub_, _, _, _, _ = self._create_sets()
+
+        # basic set math
+        sub_ |= super_
+        eq_(sub_, super_)
+        super_ |= sub_
+        eq_(super_, super_)
+
+        # totally different sets
+        unique1 = util.IdentitySet([1])
+        unique2 = util.IdentitySet([2])
+        unique1 |= unique2
+        eq_(unique1, util.IdentitySet([1, 2]))
+        eq_(unique2, util.IdentitySet([2]))
+
+        # not an IdentitySet
+        def should_raise():
+            unique = util.IdentitySet([1])
+            not_an_identity_set = object()
+            unique |= not_an_identity_set
+        assert_raises(TypeError, should_raise)
+
+    def test_difference(self):
+        _, _, twin1, twin2, _, _ = self._create_sets()
+
+        # basic set math
+        set1 = util.IdentitySet([1, 2, 3])
+        set2 = util.IdentitySet([2, 3, 4])
+        eq_(set1.difference(set2), util.IdentitySet([1]))
+        eq_(set2.difference(set1), util.IdentitySet([4]))
+
+        # empty sets
+        empty = util.IdentitySet([])
+        eq_(empty.difference(empty), empty)
+
+        # the same sets
+        eq_(twin1.difference(twin2), empty)
+        eq_(twin2.difference(twin1), empty)
+
+        # totally different sets
+        unique1 = util.IdentitySet([1])
+        unique2 = util.IdentitySet([2])
+        eq_(unique1.difference(unique2), util.IdentitySet([1]))
+        eq_(unique2.difference(unique1), util.IdentitySet([2]))
+
+        # not an IdentitySet
+        not_an_identity_set = object()
+        assert_raises(TypeError, unique1.difference, not_an_identity_set)
+
+    def test_dunder_sub(self):
+        _, _, twin1, twin2, _, _ = self._create_sets()
+
+        # basic set math
+        set1 = util.IdentitySet([1, 2, 3])
+        set2 = util.IdentitySet([2, 3, 4])
+        eq_(set1 - set2, util.IdentitySet([1]))
+        eq_(set2 - set1, util.IdentitySet([4]))
+
+        # empty sets
+        empty = util.IdentitySet([])
+        eq_(empty - empty, empty)
+
+        # the same sets
+        eq_(twin1 - twin2, empty)
+        eq_(twin2 - twin1, empty)
+
+        # totally different sets
+        unique1 = util.IdentitySet([1])
+        unique2 = util.IdentitySet([2])
+        eq_(unique1 - unique2, util.IdentitySet([1]))
+        eq_(unique2 - unique1, util.IdentitySet([2]))
+
+        # not an IdentitySet
+        def should_raise():
+            not_an_identity_set = object()
+            unique1 - not_an_identity_set
+        assert_raises(TypeError, should_raise)
+
+    def test_difference_update(self):
+        pass  # TODO
+
+    def test_dunder_isub(self):
+        pass  # TODO
+
+    def test_intersection(self):
+        super_, sub_, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(sub_.intersection(super_), sub_)
+        eq_(super_.intersection(sub_), sub_)
+
+        # the same sets
+        eq_(twin1.intersection(twin2), twin1)
+        eq_(twin2.intersection(twin1), twin1)
+
+        # empty sets
+        empty = util.IdentitySet([])
+        eq_(empty.intersection(empty), empty)
+
+        # totally different sets
+        eq_(unique1.intersection(unique2), empty)
+
+        # not an IdentitySet
+        not_an_identity_set = object()
+        assert_raises(TypeError, unique1.intersection, not_an_identity_set)
+
+    def test_dunder_and(self):
+        super_, sub_, twin1, twin2, unique1, unique2 = self._create_sets()
+
+        # basic set math
+        eq_(sub_ & super_, sub_)
+        eq_(super_ & sub_, sub_)
+
+        # the same sets
+        eq_(twin1 & twin2, twin1)
+        eq_(twin2 & twin1, twin1)
+
+        # empty sets
+        empty = util.IdentitySet([])
+        eq_(empty & empty, empty)
+
+        # totally different sets
+        eq_(unique1 & unique2, empty)
+
+        # not an IdentitySet
+        def should_raise():
+            not_an_identity_set = object()
+            return unique1 & not_an_identity_set
+        assert_raises(TypeError, should_raise)
+
+    def test_intersection_update(self):
+        pass  # TODO
+
+    def test_dunder_iand(self):
+        pass  # TODO
+
+    def test_symmetric_difference(self):
+        _, _, twin1, twin2, _, _ = self._create_sets()
+
+        # basic set math
+        set1 = util.IdentitySet([1, 2, 3])
+        set2 = util.IdentitySet([2, 3, 4])
+        eq_(set1.symmetric_difference(set2), util.IdentitySet([1, 4]))
+        eq_(set2.symmetric_difference(set1), util.IdentitySet([1, 4]))
+
+        # empty sets
+        empty = util.IdentitySet([])
+        eq_(empty.symmetric_difference(empty), empty)
+
+        # the same sets
+        eq_(twin1.symmetric_difference(twin2), empty)
+        eq_(twin2.symmetric_difference(twin1), empty)
+
+        # totally different sets
+        unique1 = util.IdentitySet([1])
+        unique2 = util.IdentitySet([2])
+        eq_(unique1.symmetric_difference(unique2), util.IdentitySet([1, 2]))
+        eq_(unique2.symmetric_difference(unique1), util.IdentitySet([1, 2]))
+
+        # not an IdentitySet
+        not_an_identity_set = object()
+        assert_raises(
+            TypeError, unique1.symmetric_difference, not_an_identity_set)
+
+    def test_dunder_xor(self):
+        _, _, twin1, twin2, _, _ = self._create_sets()
+
+        # basic set math
+        set1 = util.IdentitySet([1, 2, 3])
+        set2 = util.IdentitySet([2, 3, 4])
+        eq_(set1 ^ set2, util.IdentitySet([1, 4]))
+        eq_(set2 ^ set1, util.IdentitySet([1, 4]))
+
+        # empty sets
+        empty = util.IdentitySet([])
+        eq_(empty ^ empty, empty)
+
+        # the same sets
+        eq_(twin1 ^ twin2, empty)
+        eq_(twin2 ^ twin1, empty)
+
+        # totally different sets
+        unique1 = util.IdentitySet([1])
+        unique2 = util.IdentitySet([2])
+        eq_(unique1 ^ unique2, util.IdentitySet([1, 2]))
+        eq_(unique2 ^ unique1, util.IdentitySet([1, 2]))
+
+        # not an IdentitySet
+        def should_raise():
+            not_an_identity_set = object()
+            return unique1 ^ not_an_identity_set
+        assert_raises(TypeError, should_raise)
+
+    def test_symmetric_difference_update(self):
+        pass  # TODO
+
+    def _create_sets(self):
+        o1, o2, o3, o4, o5 = object(), object(), object(), object(), object()
+        super_ = util.IdentitySet([o1, o2, o3])
+        sub_ = util.IdentitySet([o2])
+        twin1 = util.IdentitySet([o3])
+        twin2 = util.IdentitySet([o3])
+        unique1 = util.IdentitySet([o4])
+        unique2 = util.IdentitySet([o5])
+        return super_, sub_, twin1, twin2, unique1, unique2
+
+    def _assert_unorderable_types(self, callable_):
+        # Py3K
+        #assert_raises_message(
+        #    TypeError, 'unorderable types', callable_)
+        # Py2K
+        assert_raises_message(
+            TypeError, 'cannot compare sets using cmp()', callable_)
+        # end Py2K
 
     def test_basic_sanity(self):
         IdentitySet = util.IdentitySet
@@ -320,7 +868,7 @@ class IdentitySetTest(fixtures.TestBase):
         assert ids != None
         assert not(ids == None)
 
-        ne_(ids, IdentitySet([o1,o2,o3]))
+        ne_(ids, IdentitySet([o1, o2, o3]))
         ids.clear()
         assert o1 not in ids
         ids.add(o2)
@@ -329,7 +877,7 @@ class IdentitySetTest(fixtures.TestBase):
         ids.add(o1)
         eq_(len(ids), 1)
 
-        isuper = IdentitySet([o1,o2])
+        isuper = IdentitySet([o1, o2])
         assert ids < isuper
         assert ids.issubset(isuper)
         assert isuper.issuperset(ids)
@@ -361,7 +909,7 @@ class IdentitySetTest(fixtures.TestBase):
             assert True
 
         try:
-            s = set([o1,o2])
+            s = set([o1, o2])
             s |= ids
             assert False
         except TypeError:
@@ -370,18 +918,6 @@ class IdentitySetTest(fixtures.TestBase):
         assert_raises(TypeError, util.cmp, ids)
         assert_raises(TypeError, hash, ids)
 
-    def test_difference(self):
-        os1 = util.IdentitySet([1,2,3])
-        os2 = util.IdentitySet([3,4,5])
-        s1 = set([1,2,3])
-        s2 = set([3,4,5])
-
-        eq_(os1 - os2, util.IdentitySet([1, 2]))
-        eq_(os2 - os1, util.IdentitySet([4, 5]))
-        assert_raises(TypeError, lambda: os1 - s2)
-        assert_raises(TypeError, lambda: os1 - [3, 4, 5])
-        assert_raises(TypeError, lambda: s1 - os2)
-        assert_raises(TypeError, lambda: s1 - [3, 4, 5])
 
 class OrderedIdentitySetTest(fixtures.TestBase):
 
@@ -424,19 +960,19 @@ class DictlikeIteritemsTest(fixtures.TestBase):
                           instance)
 
     def test_dict(self):
-        d = dict(a=1,b=2,c=3)
+        d = dict(a=1, b=2, c=3)
         self._ok(d)
 
     def test_subdict(self):
         class subdict(dict):
             pass
-        d = subdict(a=1,b=2,c=3)
+        d = subdict(a=1, b=2, c=3)
         self._ok(d)
 
     # Py2K
     def test_UserDict(self):
         import UserDict
-        d = UserDict.UserDict(a=1,b=2,c=3)
+        d = UserDict.UserDict(a=1, b=2, c=3)
         self._ok(d)
     # end Py2K
 
@@ -462,8 +998,9 @@ class DictlikeIteritemsTest(fixtures.TestBase):
         class duck3(object):
             def iterkeys(duck):
                 return iter(['a', 'b', 'c'])
+
             def __getitem__(duck, key):
-                return dict(a=1,b=2,c=3).get(key)
+                return dict(a=1, b=2, c=3).get(key)
         self._ok(duck3())
     # end Py2K
 
@@ -477,8 +1014,9 @@ class DictlikeIteritemsTest(fixtures.TestBase):
         class duck5(object):
             def keys(duck):
                 return ['a', 'b', 'c']
+
             def get(duck, key):
-                return dict(a=1,b=2,c=3).get(key)
+                return dict(a=1, b=2, c=3).get(key)
         self._ok(duck5())
 
     def test_duck_6(self):
@@ -489,10 +1027,12 @@ class DictlikeIteritemsTest(fixtures.TestBase):
 
 
 class DuckTypeCollectionTest(fixtures.TestBase):
+
     def test_sets(self):
         # Py2K
         import sets
         # end Py2K
+
         class SetLike(object):
             def add(self):
                 pass
@@ -519,39 +1059,54 @@ class DuckTypeCollectionTest(fixtures.TestBase):
             instance = type_()
             is_(util.duck_type_collection(instance), None)
 
+
 class ArgInspectionTest(fixtures.TestBase):
+
     def test_get_cls_kwargs(self):
+
         class A(object):
             def __init__(self, a):
                 pass
+
         class A1(A):
             def __init__(self, a1):
                 pass
+
         class A11(A1):
             def __init__(self, a11, **kw):
                 pass
+
         class B(object):
             def __init__(self, b, **kw):
                 pass
+
         class B1(B):
             def __init__(self, b1, **kw):
                 pass
+
         class AB(A, B):
             def __init__(self, ab):
                 pass
+
         class BA(B, A):
             def __init__(self, ba, **kwargs):
                 pass
+
         class BA1(BA):
             pass
+
         class CAB(A, B):
             pass
+
         class CBA(B, A):
             pass
+
         class CAB1(A, B1):
             pass
+
         class CB1A(B1, A):
             pass
+
         class D(object):
             pass
 
@@ -573,10 +1128,18 @@ class ArgInspectionTest(fixtures.TestBase):
         test(D)
 
     def test_get_func_kwargs(self):
-        def f1(): pass
-        def f2(foo): pass
-        def f3(*foo): pass
-        def f4(**foo): pass
+
+        def f1():
+            pass
+
+        def f2(foo):
+            pass
+
+        def f3(*foo):
+            pass
+
+        def f4(**foo):
+            pass
 
         def test(fn, *expected):
             eq_(set(util.get_func_kwargs(fn)), set(expected))
@@ -586,7 +1149,9 @@ class ArgInspectionTest(fixtures.TestBase):
         test(f3)
         test(f4)
 
+
 class SymbolTest(fixtures.TestBase):
+
     def test_basic(self):
         sym1 = util.symbol('foo')
         assert sym1.name == 'foo'
@@ -616,200 +1181,29 @@ class SymbolTest(fixtures.TestBase):
             assert rt is sym1
             assert rt is sym2
 
-class WeakIdentityMappingTest(fixtures.TestBase):
-    class Data(object):
-        pass
+    def test_bitflags(self):
+        sym1 = util.symbol('sym1', canonical=1)
+        sym2 = util.symbol('sym2', canonical=2)
 
-    def _some_data(self, some=20):
-        return [self.Data() for _ in xrange(some)]
+        assert sym1 & sym1
+        assert not sym1 & sym2
+        assert not sym1 & sym1 & sym2
 
-    def _fixture(self, some=20):
-        data = self._some_data()
-        wim = util.WeakIdentityMapping()
-        for idx, obj in enumerate(data):
-            wim[obj] = idx
-        return data, wim
+    def test_composites(self):
+        sym1 = util.symbol('sym1', canonical=1)
+        sym2 = util.symbol('sym2', canonical=2)
+        sym3 = util.symbol('sym3', canonical=4)
+        sym4 = util.symbol('sym4', canonical=8)
 
-    def test_delitem(self):
-        data, wim = self._fixture()
-        needle = data[-1]
+        assert sym1 & (sym2 | sym1 | sym4)
+        assert not sym1 & (sym2 | sym3)
 
-        assert needle in wim
-        assert id(needle) in wim.by_id
-        eq_(wim[needle], wim.by_id[id(needle)])
-
-        del wim[needle]
-
-        assert needle not in wim
-        assert id(needle) not in wim.by_id
-        eq_(len(wim), (len(data) - 1))
-
-        data.remove(needle)
-
-        assert needle not in wim
-        assert id(needle) not in wim.by_id
-        eq_(len(wim), len(data))
-
-    def test_setitem(self):
-        data, wim = self._fixture()
-
-        o1, oid1 = data[-1], id(data[-1])
-
-        assert o1 in wim
-        assert oid1 in wim.by_id
-        eq_(wim[o1], wim.by_id[oid1])
-        id_keys = set(wim.by_id.keys())
-
-        wim[o1] = 1234
-        assert o1 in wim
-        assert oid1 in wim.by_id
-        eq_(wim[o1], wim.by_id[oid1])
-        eq_(set(wim.by_id.keys()), id_keys)
-
-        o2 = self.Data()
-        oid2 = id(o2)
-
-        wim[o2] = 5678
-        assert o2 in wim
-        assert oid2 in wim.by_id
-        eq_(wim[o2], wim.by_id[oid2])
-
-    def test_pop(self):
-        data, wim = self._fixture()
-        needle = data[-1]
-
-        needle = data.pop()
-        assert needle in wim
-        assert id(needle) in wim.by_id
-        eq_(wim[needle], wim.by_id[id(needle)])
-        eq_(len(wim), (len(data) + 1))
-
-        wim.pop(needle)
-        assert needle not in wim
-        assert id(needle) not in wim.by_id
-        eq_(len(wim), len(data))
-
-    def test_pop_default(self):
-        data, wim = self._fixture()
-        needle = data[-1]
-
-        value = wim[needle]
-        x = wim.pop(needle, 123)
-        ne_(x, 123)
-        eq_(x, value)
-        assert needle not in wim
-        assert id(needle) not in wim.by_id
-        eq_(len(data), (len(wim) + 1))
-
-        n2 = self.Data()
-        y = wim.pop(n2, 456)
-        eq_(y, 456)
-        assert n2 not in wim
-        assert id(n2) not in wim.by_id
-        eq_(len(data), (len(wim) + 1))
-
-    def test_popitem(self):
-        data, wim = self._fixture()
-        (needle, idx) = wim.popitem()
-
-        assert needle in data
-        eq_(len(data), (len(wim) + 1))
-        assert id(needle) not in wim.by_id
-
-    def test_setdefault(self):
-        data, wim = self._fixture()
-
-        o1 = self.Data()
-        oid1 = id(o1)
-
-        assert o1 not in wim
-
-        res1 = wim.setdefault(o1, 123)
-        assert o1 in wim
-        assert oid1 in wim.by_id
-        eq_(res1, 123)
-        id_keys = set(wim.by_id.keys())
-
-        res2 = wim.setdefault(o1, 456)
-        assert o1 in wim
-        assert oid1 in wim.by_id
-        eq_(res2, 123)
-        assert set(wim.by_id.keys()) == id_keys
-
-        del wim[o1]
-        assert o1 not in wim
-        assert oid1 not in wim.by_id
-        ne_(set(wim.by_id.keys()), id_keys)
-
-        res3 = wim.setdefault(o1, 789)
-        assert o1 in wim
-        assert oid1 in wim.by_id
-        eq_(res3, 789)
-        eq_(set(wim.by_id.keys()), id_keys)
-
-    def test_clear(self):
-        data, wim = self._fixture()
-
-        assert len(data) == len(wim) == len(wim.by_id)
-        wim.clear()
-
-        eq_(wim, {})
-        eq_(wim.by_id, {})
-
-    def test_update(self):
-        data, wim = self._fixture()
-        assert_raises(NotImplementedError, wim.update)
-
-    def test_weak_clear(self):
-        data, wim = self._fixture()
-
-        assert len(data) == len(wim) == len(wim.by_id)
-
-        del data[:]
-        gc_collect()
-
-        eq_(wim, {})
-        eq_(wim.by_id, {})
-        eq_(wim._weakrefs, {})
-
-    def test_weak_single(self):
-        data, wim = self._fixture()
-
-        assert len(data) == len(wim) == len(wim.by_id)
-
-        oid = id(data[0])
-        del data[0]
-        gc_collect()
-
-        assert len(data) == len(wim) == len(wim.by_id)
-        assert oid not in wim.by_id
-
-    def test_weak_threadhop(self):
-        data, wim = self._fixture()
-        data = set(data)
-
-        cv = threading.Condition()
-
-        def empty(obj):
-            cv.acquire()
-            obj.clear()
-            cv.notify()
-            cv.release()
-
-        th = threading.Thread(target=empty, args=(data,))
-
-        cv.acquire()
-        th.start()
-        cv.wait()
-        cv.release()
-        gc_collect()
-
-        eq_(wim, {})
-        eq_(wim.by_id, {})
-        eq_(wim._weakrefs, {})
+        assert not (sym1 | sym2) & (sym3 | sym4)
+        assert (sym1 | sym2) & (sym2 | sym4)
 
 
 class TestFormatArgspec(fixtures.TestBase):
+
     def test_specs(self):
         def test(fn, wanted, grouped=None):
             if grouped is None:
@@ -820,57 +1214,57 @@ class TestFormatArgspec(fixtures.TestBase):
 
         test(lambda: None,
            {'args': '()', 'self_arg': None,
-            'apply_kw': '()', 'apply_pos': '()' })
+            'apply_kw': '()', 'apply_pos': '()'})
 
         test(lambda: None,
            {'args': '', 'self_arg': None,
-            'apply_kw': '', 'apply_pos': '' },
+            'apply_kw': '', 'apply_pos': ''},
            grouped=False)
 
         test(lambda self: None,
            {'args': '(self)', 'self_arg': 'self',
-            'apply_kw': '(self)', 'apply_pos': '(self)' })
+            'apply_kw': '(self)', 'apply_pos': '(self)'})
 
         test(lambda self: None,
            {'args': 'self', 'self_arg': 'self',
-            'apply_kw': 'self', 'apply_pos': 'self' },
+            'apply_kw': 'self', 'apply_pos': 'self'},
            grouped=False)
 
         test(lambda *a: None,
            {'args': '(*a)', 'self_arg': 'a[0]',
-            'apply_kw': '(*a)', 'apply_pos': '(*a)' })
+            'apply_kw': '(*a)', 'apply_pos': '(*a)'})
 
         test(lambda **kw: None,
            {'args': '(**kw)', 'self_arg': None,
-            'apply_kw': '(**kw)', 'apply_pos': '(**kw)' })
+            'apply_kw': '(**kw)', 'apply_pos': '(**kw)'})
 
         test(lambda *a, **kw: None,
            {'args': '(*a, **kw)', 'self_arg': 'a[0]',
-            'apply_kw': '(*a, **kw)', 'apply_pos': '(*a, **kw)' })
+            'apply_kw': '(*a, **kw)', 'apply_pos': '(*a, **kw)'})
 
         test(lambda a, *b: None,
            {'args': '(a, *b)', 'self_arg': 'a',
-            'apply_kw': '(a, *b)', 'apply_pos': '(a, *b)' })
+            'apply_kw': '(a, *b)', 'apply_pos': '(a, *b)'})
 
         test(lambda a, **b: None,
            {'args': '(a, **b)', 'self_arg': 'a',
-            'apply_kw': '(a, **b)', 'apply_pos': '(a, **b)' })
+            'apply_kw': '(a, **b)', 'apply_pos': '(a, **b)'})
 
         test(lambda a, *b, **c: None,
            {'args': '(a, *b, **c)', 'self_arg': 'a',
-            'apply_kw': '(a, *b, **c)', 'apply_pos': '(a, *b, **c)' })
+            'apply_kw': '(a, *b, **c)', 'apply_pos': '(a, *b, **c)'})
 
         test(lambda a, b=1, **c: None,
            {'args': '(a, b=1, **c)', 'self_arg': 'a',
-            'apply_kw': '(a, b=b, **c)', 'apply_pos': '(a, b, **c)' })
+            'apply_kw': '(a, b=b, **c)', 'apply_pos': '(a, b, **c)'})
 
         test(lambda a=1, b=2: None,
            {'args': '(a=1, b=2)', 'self_arg': 'a',
-            'apply_kw': '(a=a, b=b)', 'apply_pos': '(a, b)' })
+            'apply_kw': '(a=a, b=b)', 'apply_pos': '(a, b)'})
 
         test(lambda a=1, b=2: None,
            {'args': 'a=1, b=2', 'self_arg': 'a',
-            'apply_kw': 'a=a, b=b', 'apply_pos': 'a, b' },
+            'apply_kw': 'a=a, b=b', 'apply_pos': 'a, b'},
            grouped=False)
 
     @fails_if(lambda: util.pypy, "object.__init__ is introspectable")
@@ -883,7 +1277,7 @@ class TestFormatArgspec(fixtures.TestBase):
             'apply_pos': '(self, *args, **kwargs)',
             'apply_kw': '(self, *args, **kwargs)'}
         custom_spec = {
-            'args': '(slef, a=123)', 'self_arg': 'slef', # yes, slef
+            'args': '(slef, a=123)', 'self_arg': 'slef',  # yes, slef
             'apply_pos': '(slef, a)', 'apply_kw': '(slef, a=a)'}
 
         self._test_init(None, object_spec, wrapper_spec, custom_spec)
@@ -899,7 +1293,7 @@ class TestFormatArgspec(fixtures.TestBase):
             'apply_pos': 'self, *args, **kwargs',
             'apply_kw': 'self, *args, **kwargs'}
         custom_spec = {
-            'args': 'slef, a=123', 'self_arg': 'slef', # yes, slef
+            'args': 'slef, a=123', 'self_arg': 'slef',  # yes, slef
             'apply_pos': 'slef, a', 'apply_kw': 'slef, a=a'}
 
         self._test_init(False, object_spec, wrapper_spec, custom_spec)
@@ -912,7 +1306,8 @@ class TestFormatArgspec(fixtures.TestBase):
                 parsed = util.format_argspec_init(fn, grouped=grouped)
             eq_(parsed, wanted)
 
-        class O(object): pass
+        class O(object):
+            pass
 
         test(O.__init__, object_spec)
 
@@ -928,7 +1323,8 @@ class TestFormatArgspec(fixtures.TestBase):
 
         test(O.__init__, custom_spec)
 
-        class O(list): pass
+        class O(list):
+            pass
 
         test(O.__init__, wrapper_spec)
 
@@ -952,6 +1348,7 @@ class TestFormatArgspec(fixtures.TestBase):
 
 
 class GenericReprTest(fixtures.TestBase):
+
     def test_all_positional(self):
         class Foo(object):
             def __init__(self, a, b, c):
@@ -1037,17 +1434,27 @@ class GenericReprTest(fixtures.TestBase):
             "Foo()"
         )
 
+
 class AsInterfaceTest(fixtures.TestBase):
 
     class Something(object):
-        def _ignoreme(self): pass
-        def foo(self): pass
-        def bar(self): pass
+
+        def _ignoreme(self):
+            pass
+
+        def foo(self):
+            pass
+
+        def bar(self):
+            pass
 
     class Partial(object):
-        def bar(self): pass
 
-    class Object(object): pass
+        def bar(self):
+            pass
+
+    class Object(object):
+        pass
 
     def test_instance(self):
         obj = object()
@@ -1107,26 +1514,23 @@ class AsInterfaceTest(fixtures.TestBase):
         res = util.as_interface(obj, cls=self.Something,
                                 required=self.Something)
         assertAdapted(res, 'foo', 'bar')
-        res = util.as_interface(obj, cls=self.Something, required=('foo'
-                                , ))
+        res = util.as_interface(obj, cls=self.Something, required=('foo',))
         assertAdapted(res, 'foo', 'bar')
         res = util.as_interface(obj, methods=('foo', 'bar'))
         assertAdapted(res, 'foo', 'bar')
         res = util.as_interface(obj, methods=('foo', 'bar', 'baz'))
         assertAdapted(res, 'foo', 'bar')
-        res = util.as_interface(obj, methods=('foo', 'bar'),
-                                required=('foo', ))
+        res = util.as_interface(obj, methods=('foo', 'bar'), required=('foo',))
         assertAdapted(res, 'foo', 'bar')
-        assert_raises(TypeError, util.as_interface, obj, methods=('foo'
-                      , ))
-        assert_raises(TypeError, util.as_interface, obj, methods=('foo'
-                      , 'bar', 'baz'), required=('baz', ))
-        obj = {'foo': 123}
+        assert_raises(TypeError, util.as_interface, obj, methods=('foo',))
         assert_raises(TypeError, util.as_interface, obj,
-                      cls=self.Something)
+                      methods=('foo', 'bar', 'baz'), required=('baz', ))
+        obj = {'foo': 123}
+        assert_raises(TypeError, util.as_interface, obj, cls=self.Something)
 
 
 class TestClassHierarchy(fixtures.TestBase):
+
     def test_object(self):
         eq_(set(util.class_hierarchy(object)), set((object,)))
 
@@ -1167,17 +1571,14 @@ class TestClassProperty(fixtures.TestBase):
 
     def test_simple(self):
         class A(object):
-            something = {'foo':1}
+            something = {'foo': 1}
 
         class B(A):
 
             @classproperty
             def something(cls):
-                d = dict(super(B,cls).something)
-                d.update({'bazz':2})
+                d = dict(super(B, cls).something)
+                d.update({'bazz': 2})
                 return d
 
-        eq_(B.something,{
-                'foo':1,
-                'bazz':2,
-                })
+        eq_(B.something, {'foo': 1, 'bazz': 2})

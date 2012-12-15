@@ -1,14 +1,15 @@
-from test.lib.testing import eq_, assert_raises, assert_raises_message
+from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 import time
 import weakref
 from sqlalchemy import select, MetaData, Integer, String, pool, create_engine
-from test.lib.schema import Table, Column
+from sqlalchemy.testing.schema import Table, Column
 import sqlalchemy as tsa
-from test.lib import testing, engines
-from test.lib.util import gc_collect
+from sqlalchemy import testing
+from sqlalchemy.testing import engines
+from sqlalchemy.testing.util import gc_collect
 from sqlalchemy import exc
-from test.lib import fixtures
-from test.lib.engines import testing_engine
+from sqlalchemy.testing import fixtures
+from sqlalchemy.testing.engines import testing_engine
 
 class MockDisconnect(Exception):
     pass
@@ -263,6 +264,33 @@ class RealReconnectTest(fixtures.TestBase):
         assert not conn.invalidated
 
         conn.close()
+
+    def test_multiple_invalidate(self):
+        c1 = engine.connect()
+        c2 = engine.connect()
+
+        eq_(c1.execute(select([1])).scalar(), 1)
+
+        p1 = engine.pool
+        engine.test_shutdown()
+
+        try:
+            c1.execute(select([1]))
+            assert False
+        except tsa.exc.DBAPIError, e:
+            assert e.connection_invalidated
+
+        p2 = engine.pool
+
+        try:
+            c2.execute(select([1]))
+            assert False
+        except tsa.exc.DBAPIError, e:
+            assert e.connection_invalidated
+
+        # pool isn't replaced
+        assert engine.pool is p2
+
 
     def test_ensure_is_disconnect_gets_connection(self):
         def is_disconnect(e, conn, cursor):

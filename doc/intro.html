@@ -10,7 +10,7 @@
     
                 Overview
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="index.html" />
         <link rel="next" title="SQLAlchemy ORM" href="orm/index.html" />
         <link rel="prev" title="Table of Contents" href="contents.html" />
 
@@ -54,7 +54,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -66,7 +66,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -92,7 +92,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="index.html">SQLAlchemy 0.8 Documentation</a>
         » 
                 Overview
              
@@ -126,7 +126,7 @@
 <li><a class="reference internal" href="#checking-the-installed-sqlalchemy-version">Checking the Installed SQLAlchemy Version</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#to-0-7-migration">0.6 to 0.7 Migration</a></li>
+<li><a class="reference internal" href="#to-0-8-migration">0.7 to 0.8 Migration</a></li>
 </ul>
 </li>
 </ul>
@@ -210,11 +210,13 @@ constructs as well as the ORM on the wiki.  See
 <h3>Supported Platforms<a class="headerlink" href="#supported-platforms" title="Permalink to this headline">¶</a></h3>
 <p>SQLAlchemy has been tested against the following platforms:</p>
 <ul class="simple">
-<li>cPython since version 2.4, through the 2.xx series</li>
+<li>cPython since version 2.5, through the 2.xx series</li>
 <li>cPython version 3, throughout all 3.xx series</li>
 <li><a class="reference external" href="http://www.jython.org/">Jython</a> 2.5 or greater</li>
 <li><a class="reference external" href="http://pypy.org/">Pypy</a> 1.5 or greater</li>
 </ul>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>Python 2.5 is now the minimum Python version supported.</p>
 </div>
 <div class="section" id="supported-installation-methods">
 <h3>Supported Installation Methods<a class="headerlink" href="#supported-installation-methods" title="Permalink to this headline">¶</a></h3>
@@ -235,11 +237,6 @@ extensions as well as Python 3 builds are supported.</li>
 rides on top of <tt class="docutils literal"><span class="pre">setuptools</span></tt> or <tt class="docutils literal"><span class="pre">distribute</span></tt>, replacing the usage
 of <tt class="docutils literal"><span class="pre">easy_install</span></tt>.  It is often preferred for its simpler mode of usage.</li>
 </ul>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">It is strongly recommended that either <tt class="docutils literal"><span class="pre">setuptools</span></tt> or <tt class="docutils literal"><span class="pre">distribute</span></tt> be installed.
-Python&#8217;s built-in <tt class="docutils literal"><span class="pre">distutils</span></tt> lacks many widely used installation features.</p>
-</div>
 </div>
 <div class="section" id="install-via-easy-install-or-pip">
 <h3>Install via easy_install or pip<a class="headerlink" href="#install-via-easy-install-or-pip" title="Permalink to this headline">¶</a></h3>
@@ -293,25 +290,25 @@ work with a non-Distribute setuptools installation.</p>
 </div>
 <div class="section" id="installing-a-database-api">
 <h3>Installing a Database API<a class="headerlink" href="#installing-a-database-api" title="Permalink to this headline">¶</a></h3>
-<p>SQLAlchemy is designed to operate with a <a class="reference external" href="http://www.python.org/doc/peps/pep-0249/">DB-API</a> implementation built for a
-particular database, and includes support for the most popular databases. The
-current list is at <a class="reference internal" href="core/engines.html#supported-dbapis"><em>Supported Databases</em></a>.</p>
+<p>SQLAlchemy is designed to operate with a <a class="reference internal" href="glossary.html#term-dbapi"><em class="xref std std-term">DBAPI</em></a> implementation built for a
+particular database, and includes support for the most popular databases.
+The individual database sections in <a class="reference internal" href="dialects/index.html"><em>Dialects</em></a> enumerate
+the available DBAPIs for each database, including external links.</p>
 </div>
 <div class="section" id="checking-the-installed-sqlalchemy-version">
 <h3>Checking the Installed SQLAlchemy Version<a class="headerlink" href="#checking-the-installed-sqlalchemy-version" title="Permalink to this headline">¶</a></h3>
-<p>This documentation covers SQLAlchemy version 0.7. If you&#8217;re working on a
+<p>This documentation covers SQLAlchemy version 0.8. If you&#8217;re working on a
 system that already has SQLAlchemy installed, check the version from your
 Python prompt like this:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sqlalchemy</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">__version__</span> 
-<span class="mf">0.7</span><span class="o">.</span><span class="mi">0</span></pre></div>
+<span class="mf">0.8</span><span class="o">.</span><span class="mi">0</span></pre></div>
 </div>
 </div>
 </div>
-<div class="section" id="to-0-7-migration">
-<span id="migration"></span><h2>0.6 to 0.7 Migration<a class="headerlink" href="#to-0-7-migration" title="Permalink to this headline">¶</a></h2>
-<p>Notes on what&#8217;s changed from 0.6 to 0.7 is available on the SQLAlchemy wiki at
-<a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/07Migration">07Migration</a>.</p>
+<div class="section" id="to-0-8-migration">
+<span id="migration"></span><h2>0.7 to 0.8 Migration<a class="headerlink" href="#to-0-8-migration" title="Permalink to this headline">¶</a></h2>
+<p>Notes on what&#8217;s changed from 0.7 to 0.8 is available here at <a class="reference internal" href="changelog/migration_08.html"><em>What&#8217;s New in SQLAlchemy 0.8?</em></a>.</p>
 </div>
 </div>
 

@@ -274,6 +274,7 @@ There are two major migration tools available for SQLAlchemy:
   SQL script generation, ORM class generation, ORM model comparison, and extensive
   support for SQLite migrations.
 
+
 Specifying the Schema Name
 ---------------------------
 
@@ -324,6 +325,7 @@ Column, Table, MetaData API
 
 .. autoclass:: Column
     :members:
+    :inherited-members:
     :undoc-members:
     :show-inheritance:
 
@@ -334,9 +336,11 @@ Column, Table, MetaData API
 
 .. autoclass:: SchemaItem
     :show-inheritance:
+    :members:
 
 .. autoclass:: Table
     :members:
+    :inherited-members:
     :undoc-members:
     :show-inheritance:
 
@@ -657,13 +661,13 @@ performance reasons.
 
 When the statement is executed with a single set of parameters (that is, it is
 not an "executemany" style execution), the returned
-:class:`~sqlalchemy.engine.base.ResultProxy` will contain a collection
+:class:`~sqlalchemy.engine.ResultProxy` will contain a collection
 accessible via ``result.postfetch_cols()`` which contains a list of all
 :class:`~sqlalchemy.schema.Column` objects which had an inline-executed
 default. Similarly, all parameters which were bound to the statement,
 including all Python and SQL expressions which were pre-executed, are present
 in the ``last_inserted_params()`` or ``last_updated_params()`` collections on
-:class:`~sqlalchemy.engine.base.ResultProxy`. The ``inserted_primary_key``
+:class:`~sqlalchemy.engine.ResultProxy`. The ``inserted_primary_key``
 collection contains a list of primary key values for the row inserted (a list
 so that single-column and composite-column primary keys are represented in the
 same format).
@@ -694,21 +698,58 @@ have a way to "postfetch" the ID, and the statement is not "inlined", the SQL
 expression is pre-executed; otherwise, SQLAlchemy lets the default fire off on
 the database side normally.
 
+.. _triggered_columns:
+
 Triggered Columns
 ------------------
 
 Columns with values set by a database trigger or other external process may be
-called out with a marker::
+called out using :class:`.FetchedValue` as a marker::
 
     t = Table('test', meta,
         Column('abc', String(20), server_default=FetchedValue()),
         Column('def', String(20), server_onupdate=FetchedValue())
     )
 
+.. versionchanged:: 0.8.0b2,0.7.10
+    The ``for_update`` argument on :class:`.FetchedValue` is set automatically
+    when specified as the ``server_onupdate`` argument.  If using an older version,
+    specify the onupdate above as ``server_onupdate=FetchedValue(for_update=True)``.
+
 These markers do not emit a "default" clause when the table is created,
 however they do set the same internal flags as a static ``server_default``
 clause, providing hints to higher-level tools that a "post-fetch" of these
 rows should be performed after an insert or update.
+
+.. note::
+
+    It's generally not appropriate to use :class:`.FetchedValue` in
+    conjunction with a primary key column, particularly when using the
+    ORM or any other scenario where the :attr:`.ResultProxy.inserted_primary_key`
+    attribute is required.  This is becaue the "post-fetch" operation requires
+    that the primary key value already be available, so that the
+    row can be selected on its primary key.
+
+    For a server-generated primary key value, all databases provide special
+    accessors or other techniques in order to acquire the "last inserted
+    primary key" column of a table.  These mechanisms aren't affected by the presence
+    of :class:`.FetchedValue`.  For special situations where triggers are
+    used to generate primary key values, and the database in use does not
+    support the ``RETURNING`` clause, it may be necessary to forego the usage
+    of the trigger and instead apply the SQL expression or function as a
+    "pre execute" expression::
+
+        t = Table('test', meta,
+                Column('abc', MyType, default=func.generate_new_value(), primary_key=True)
+        )
+
+    Where above, when :meth:`.Table.insert` is used,
+    the ``func.generate_new_value()`` expression will be pre-executed
+    in the context of a scalar ``SELECT`` statement, and the new value will
+    be applied to the subsequent ``INSERT``, while at the same time being
+    made available to the :attr:`.ResultProxy.inserted_primary_key`
+    attribute.
+
 
 Defining Sequences
 -------------------
@@ -1247,14 +1288,14 @@ constraint will be added via ALTER:
     ALTER TABLE users DROP CONSTRAINT cst_user_name_length
     DROP TABLE users{stop}
 
-The real usefulness of the above becomes clearer once we illustrate the :meth:`.DDLEvent.execute_if`
-method.  This method returns a modified form of the DDL callable which will
-filter on criteria before responding to a received event.   It accepts a
-parameter ``dialect``, which is the string name of a dialect or a tuple of such,
-which will limit the execution of the item to just those dialects.  It also
-accepts a ``callable_`` parameter which may reference a Python callable which will
-be invoked upon event reception, returning ``True`` or ``False`` indicating if
-the event should proceed.
+The real usefulness of the above becomes clearer once we illustrate the
+:meth:`.DDLElement.execute_if` method.  This method returns a modified form of
+the DDL callable which will filter on criteria before responding to a
+received event.   It accepts a parameter ``dialect``, which is the string
+name of a dialect or a tuple of such, which will limit the execution of the
+item to just those dialects.  It also accepts a ``callable_`` parameter which
+may reference a Python callable which will be invoked upon event reception,
+returning ``True`` or ``False`` indicating if the event should proceed.
 
 If our :class:`~sqlalchemy.schema.CheckConstraint` was only supported by
 Postgresql and not other databases, we could limit its usage to just that dialect::
@@ -1369,6 +1410,11 @@ DDL Expression Constructs API
     :show-inheritance:
 
 .. autoclass:: DropTable
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: CreateColumn
     :members:
     :undoc-members:
     :show-inheritance:

@@ -51,12 +51,12 @@ construction arguments, are as follows:
   :members: __init__
   :show-inheritance:
 
-cx_Oracle Notes
----------------
+cx_Oracle
+----------
 
 .. automodule:: sqlalchemy.dialects.oracle.cx_oracle
 
-zxjdbc Notes
---------------
+zxjdbc
+-------
 
 .. automodule:: sqlalchemy.dialects.oracle.zxjdbc

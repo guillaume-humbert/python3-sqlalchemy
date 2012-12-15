@@ -3,9 +3,14 @@
 Examples
 ========
 
-The SQLAlchemy distribution includes a variety of code examples illustrating a select set of patterns, some typical and some not so typical.   All are runnable and can be found in the ``/examples`` directory of the distribution.   Each example contains a README in its ``__init__.py`` file, each of which are listed below.
+The SQLAlchemy distribution includes a variety of code examples illustrating
+a select set of patterns, some typical and some not so typical.   All are
+runnable and can be found in the ``/examples`` directory of the
+distribution.   Each example contains a README in its ``__init__.py`` file,
+each of which are listed below.
 
-Additional SQLAlchemy examples, some user contributed, are available on the wiki at `<http://www.sqlalchemy.org/trac/wiki/UsageRecipes>`_.
+Additional SQLAlchemy examples, some user contributed, are available on the
+wiki at `<http://www.sqlalchemy.org/trac/wiki/UsageRecipes>`_.
 
 .. _examples_adjacencylist:
 
@@ -37,21 +42,12 @@ Location: /examples/custom_attributes/
 
 .. _examples_caching:
 
-Beaker Caching
---------------
+Dogpile Caching
+---------------
 
-Location: /examples/beaker_caching/
+Location: /examples/dogpile_caching/
 
-.. automodule:: beaker_caching
-
-.. _examples_declarative_reflection:
-
-Declarative Reflection
-----------------------
-
-Location: /examples/declarative_reflection
-
-.. automodule:: declarative_reflection
+.. automodule:: dogpile_caching
 
 Directed Graphs
 ---------------
@@ -110,6 +106,8 @@ Polymorphic Associations
 ------------------------
 
 See :ref:`examples_generic_associations` for a modern version of polymorphic associations.
+
+.. _examples_postgis:
 
 PostGIS Integration
 -------------------

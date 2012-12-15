@@ -10,7 +10,7 @@
     
                 Relationship Configuration
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Collection Configuration and Techniques" href="collections.html" />
         <link rel="prev" title="Mapper Configuration" href="mapper_config.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Relationship Configuration
@@ -126,6 +126,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#adjacency-list-relationships">Adjacency List Relationships</a><ul>
+<li><a class="reference internal" href="#composite-adjacency-lists">Composite Adjacency Lists</a></li>
 <li><a class="reference internal" href="#self-referential-query-strategies">Self-Referential Query Strategies</a></li>
 <li><a class="reference internal" href="#configuring-self-referential-eager-loading">Configuring Self-Referential Eager Loading</a></li>
 </ul>
@@ -135,10 +136,11 @@
 <li><a class="reference internal" href="#one-way-backrefs">One Way Backrefs</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#setting-the-primaryjoin-and-secondaryjoin">Setting the primaryjoin and secondaryjoin</a><ul>
+<li><a class="reference internal" href="#configuring-how-relationship-joins">Configuring how Relationship Joins</a><ul>
+<li><a class="reference internal" href="#handling-multiple-join-paths">Handling Multiple Join Paths</a></li>
 <li><a class="reference internal" href="#specifying-alternate-join-conditions">Specifying Alternate Join Conditions</a></li>
+<li><a class="reference internal" href="#creating-custom-foreign-conditions">Creating Custom Foreign Conditions</a></li>
 <li><a class="reference internal" href="#self-referential-many-to-many-relationship">Self-Referential Many-to-Many Relationship</a></li>
-<li><a class="reference internal" href="#specifying-foreign-keys">Specifying Foreign Keys</a></li>
 <li><a class="reference internal" href="#building-query-enabled-properties">Building Query-Enabled Properties</a></li>
 </ul>
 </li>
@@ -368,7 +370,7 @@ this feature, the database itself can be made to automatically delete rows in th
 &#8220;secondary&#8221; table as referencing rows in &#8220;child&#8221; are deleted.   SQLAlchemy
 can be instructed to forego actively loading in the <tt class="docutils literal"><span class="pre">Child.parents</span></tt>
 collection in this case using the <tt class="docutils literal"><span class="pre">passive_deletes=True</span></tt> directive
-on <tt class="xref py py-meth docutils literal"><span class="pre">relationship()</span></tt>; see <a class="reference internal" href="collections.html#passive-deletes"><em>Using Passive Deletes</em></a> for more details
+on <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>; see <a class="reference internal" href="collections.html#passive-deletes"><em>Using Passive Deletes</em></a> for more details
 on this.</li>
 </ul>
 <p>Note again, these behaviors are <em>only</em> relevant to the <tt class="docutils literal"><span class="pre">secondary</span></tt> option
@@ -461,7 +463,7 @@ object.</p>
 </div>
 </div>
 <div class="section" id="adjacency-list-relationships">
-<h2>Adjacency List Relationships<a class="headerlink" href="#adjacency-list-relationships" title="Permalink to this headline">¶</a></h2>
+<span id="self-referential"></span><h2>Adjacency List Relationships<a class="headerlink" href="#adjacency-list-relationships" title="Permalink to this headline">¶</a></h2>
 <p>The <strong>adjacency list</strong> pattern is a common relational pattern whereby a table
 contains a foreign key reference to itself. This is the most common
 way to represent hierarchical data in flat tables.  Other methods
@@ -530,6 +532,42 @@ relationship using the <a class="reference internal" href="#sqlalchemy.orm.backr
 <p>There are several examples included with SQLAlchemy illustrating
 self-referential strategies; these include <a class="reference internal" href="examples.html#examples-adjacencylist"><em>Adjacency List</em></a> and
 <a class="reference internal" href="examples.html#examples-xmlpersistence"><em>XML Persistence</em></a>.</p>
+<div class="section" id="composite-adjacency-lists">
+<h3>Composite Adjacency Lists<a class="headerlink" href="#composite-adjacency-lists" title="Permalink to this headline">¶</a></h3>
+<p>A sub-category of the adjacency list relationship is the rare
+case where a particular column is present on both the &#8220;local&#8221; and
+&#8220;remote&#8221; side of the join condition.  An example is the <tt class="docutils literal"><span class="pre">Folder</span></tt>
+class below; using a composite primary key, the <tt class="docutils literal"><span class="pre">account_id</span></tt>
+column refers to itself, to indicate sub folders which are within
+the same account as that of the parent; while <tt class="docutils literal"><span class="pre">folder_id</span></tt> refers
+to a specific folder within that account:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Folder</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;folder&#39;</span>
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+      <span class="n">ForeignKeyConstraint</span><span class="p">(</span>
+          <span class="p">[</span><span class="s">&#39;account_id&#39;</span><span class="p">,</span> <span class="s">&#39;parent_id&#39;</span><span class="p">],</span>
+          <span class="p">[</span><span class="s">&#39;folder.account_id&#39;</span><span class="p">,</span> <span class="s">&#39;folder.folder_id&#39;</span><span class="p">]),</span>
+    <span class="p">)</span>
+
+    <span class="n">account_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">folder_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">parent_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+
+    <span class="n">parent_folder</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Folder&quot;</span><span class="p">,</span>
+                        <span class="n">backref</span><span class="o">=</span><span class="s">&quot;child_folders&quot;</span><span class="p">,</span>
+                        <span class="n">remote_side</span><span class="o">=</span><span class="p">[</span><span class="n">account_id</span><span class="p">,</span> <span class="n">folder_id</span><span class="p">]</span>
+                  <span class="p">)</span></pre></div>
+</div>
+<p>Above, we pass <tt class="docutils literal"><span class="pre">account_id</span></tt> into the <tt class="docutils literal"><span class="pre">remote_side</span></tt> list.
+<a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> recognizes that the <tt class="docutils literal"><span class="pre">account_id</span></tt> column here
+is on both sides, and aligns the &#8220;remote&#8221; column along with the
+<tt class="docutils literal"><span class="pre">folder_id</span></tt> column, which it recognizes as uniquely present on
+the &#8220;remote&#8221; side.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8: </span>Support for self-referential composite keys in <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
+where a column points to itself.</p>
+</div>
 <div class="section" id="self-referential-query-strategies">
 <h3>Self-Referential Query Strategies<a class="headerlink" href="#self-referential-query-strategies" title="Permalink to this headline">¶</a></h3>
 <p>Querying of self-referential structures works like any other query:</p>
@@ -541,7 +579,7 @@ the foreign key from one level of the tree to the next.  In SQL,
 a join from a table to itself requires that at least one side of the
 expression be &#8220;aliased&#8221; so that it can be unambiguously referred to.</p>
 <p>Recall from <a class="reference internal" href="tutorial.html#ormtutorial-aliases"><em>Using Aliases</em></a> in the ORM tutorial that the
-<a class="reference internal" href="query.html#sqlalchemy.orm.aliased" title="sqlalchemy.orm.aliased"><tt class="xref py py-class docutils literal"><span class="pre">orm.aliased</span></tt></a> construct is normally used to provide an &#8220;alias&#8221; of
+<a class="reference internal" href="query.html#sqlalchemy.orm.aliased" title="sqlalchemy.orm.aliased"><tt class="xref py py-func docutils literal"><span class="pre">orm.aliased()</span></tt></a> construct is normally used to provide an &#8220;alias&#8221; of
 an ORM entity.  Joining from <tt class="docutils literal"><span class="pre">Node</span></tt> to itself using this technique
 looks like:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">aliased</span>
@@ -757,7 +795,7 @@ the relationship at a schema level, and are unlikely to be different in the reve
 direction.  The usual case
 here is a many-to-many <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> that has a <tt class="docutils literal"><span class="pre">secondary</span></tt> argument,
 or a one-to-many or many-to-one which has a <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument (the
-<tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument is discussed in <a class="reference internal" href="#relationship-primaryjoin"><em>Setting the primaryjoin and secondaryjoin</em></a>).  Such
+<tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument is discussed in <a class="reference internal" href="#relationship-primaryjoin"><em>Specifying Alternate Join Conditions</em></a>).  Such
 as if we limited the list of <tt class="docutils literal"><span class="pre">Address</span></tt> objects to those which start with &#8220;tony&#8221;:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
@@ -892,11 +930,16 @@ itself is only a slight transgression of this philosophy - SQLAlchemy tries to k
 these to a minimum overall.</p>
 </div>
 </div>
-<div class="section" id="setting-the-primaryjoin-and-secondaryjoin">
-<span id="relationship-primaryjoin"></span><h2>Setting the primaryjoin and secondaryjoin<a class="headerlink" href="#setting-the-primaryjoin-and-secondaryjoin" title="Permalink to this headline">¶</a></h2>
-<p>A common scenario arises when we attempt to relate two
-classes together, where there exist multiple ways to join the
-two tables.</p>
+<div class="section" id="configuring-how-relationship-joins">
+<span id="relationship-configure-joins"></span><h2>Configuring how Relationship Joins<a class="headerlink" href="#configuring-how-relationship-joins" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> will normally create a join between two tables
+by examining the foreign key relationship between the two tables
+to determine which columns should be compared.  There are a variety
+of situations where this behavior needs to be customized.</p>
+<div class="section" id="handling-multiple-join-paths">
+<span id="relationship-foreign-keys"></span><h3>Handling Multiple Join Paths<a class="headerlink" href="#handling-multiple-join-paths" title="Permalink to this headline">¶</a></h3>
+<p>One of the most common situations to deal with is when
+there are more than one foreign key path between two tables.</p>
 <p>Consider a <tt class="docutils literal"><span class="pre">Customer</span></tt> class that contains two foreign keys to an <tt class="docutils literal"><span class="pre">Address</span></tt>
 class:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span>
@@ -925,24 +968,21 @@ class:</p>
     <span class="nb">zip</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span></pre></div>
 </div>
 <p>The above mapping, when we attempt to use it, will produce the error:</p>
-<div class="highlight-python"><pre>sqlalchemy.exc.ArgumentError: Could not determine join condition between
-parent/child tables on relationship Customer.billing_address. Specify a
-'primaryjoin' expression. If 'secondary' is present, 'secondaryjoin' is
-needed as well.</pre>
+<div class="highlight-python"><pre>sqlalchemy.exc.AmbiguousForeignKeysError: Could not determine join
+condition between parent/child tables on relationship
+Customer.billing_address - there are multiple foreign key
+paths linking the tables.  Specify the 'foreign_keys' argument,
+providing a list of those columns which should be
+counted as containing a foreign key reference to the parent table.</pre>
 </div>
-<p>What this error means is that if you have a <tt class="docutils literal"><span class="pre">Customer</span></tt> object, and wish
-to load in an associated <tt class="docutils literal"><span class="pre">Address</span></tt>, there is the choice of retrieving
-the <tt class="docutils literal"><span class="pre">Address</span></tt> referred to by the <tt class="docutils literal"><span class="pre">billing_address_id</span></tt> column or the one
-referred to by the <tt class="docutils literal"><span class="pre">shipping_address_id</span></tt> column.  The <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>,
-as it is, cannot determine its full configuration.   The examples at
-<a class="reference internal" href="#relationship-patterns"><em>Basic Relational Patterns</em></a> didn&#8217;t have this issue, because in each of those examples
-there was only <strong>one</strong> way to refer to the related table.</p>
-<p>To resolve this issue, <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> accepts an argument named
-<tt class="docutils literal"><span class="pre">primaryjoin</span></tt> which accepts a Python-based SQL expression, using the system described
-at <a class="reference internal" href="../core/tutorial.html"><em>SQL Expression Language Tutorial</em></a>, that describes how the two tables should be joined
-together.  When using the declarative system, we often will specify this Python
-expression within a string, which is late-evaluated by the mapping configuration
-system so that it has access to the full namespace of available classes:</p>
+<p>The above message is pretty long.  There are many potential messages
+that <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> can return, which have been carefully tailored
+to detect a variety of common configurational issues; most will suggest
+the additional configuration that&#8217;s needed to resolve the ambiguity
+or other missing information.</p>
+<p>In this case, the message wants us to qualify each <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
+by instructing for each one which foreign key column should be considered, and
+the appropriate form is as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;customer&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -951,22 +991,42 @@ system so that it has access to the full namespace of available classes:</p>
     <span class="n">billing_address_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;address.id&quot;</span><span class="p">))</span>
     <span class="n">shipping_address_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;address.id&quot;</span><span class="p">))</span>
 
-    <span class="n">billing_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span>
-                    <span class="n">primaryjoin</span><span class="o">=</span><span class="s">&quot;Address.id==Customer.billing_address_id&quot;</span><span class="p">)</span>
-    <span class="n">shipping_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span>
-                    <span class="n">primaryjoin</span><span class="o">=</span><span class="s">&quot;Address.id==Customer.shipping_address_id&quot;</span><span class="p">)</span></pre></div>
+    <span class="n">billing_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span> <span class="n">foreign_keys</span><span class="o">=</span><span class="p">[</span><span class="n">billing_address_id</span><span class="p">])</span>
+    <span class="n">shipping_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span> <span class="n">foreign_keys</span><span class="o">=</span><span class="p">[</span><span class="n">shipping_address_id</span><span class="p">])</span></pre></div>
 </div>
-<p>Above, loading the <tt class="docutils literal"><span class="pre">Customer.billing_address</span></tt> relationship from a <tt class="docutils literal"><span class="pre">Customer</span></tt>
+<p>Above, we specify the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> argument, which is a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> or list
+of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects which indicate those columns to be considered &#8220;foreign&#8221;,
+or in other words, the columns that contain a value referring to a parent table.
+Loading the <tt class="docutils literal"><span class="pre">Customer.billing_address</span></tt> relationship from a <tt class="docutils literal"><span class="pre">Customer</span></tt>
 object will use the value present in <tt class="docutils literal"><span class="pre">billing_address_id</span></tt> in order to
 identify the row in <tt class="docutils literal"><span class="pre">Address</span></tt> to be loaded; similarly, <tt class="docutils literal"><span class="pre">shipping_address_id</span></tt>
 is used for the <tt class="docutils literal"><span class="pre">shipping_address</span></tt> relationship.   The linkage of the two
 columns also plays a role during persistence; the newly generated primary key
 of a just-inserted <tt class="docutils literal"><span class="pre">Address</span></tt> object will be copied into the appropriate
 foreign key column of an associated <tt class="docutils literal"><span class="pre">Customer</span></tt> object during a flush.</p>
+<p>When specifying <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> with Declarative, we can also use string
+names to specify, however it is important that if using a list, the <strong>list
+is part of the string</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">billing_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span> <span class="n">foreign_keys</span><span class="o">=</span><span class="s">&quot;[Customer.billing_address_id]&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>In this specific example, the list is not necessary in any case as there&#8217;s only
+one <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> we need:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">billing_address</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span> <span class="n">foreign_keys</span><span class="o">=</span><span class="s">&quot;Customer.billing_address_id&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span><a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> can resolve ambiguity between foreign key targets on the
+basis of the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> argument alone; the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument is no
+longer needed in this situation.</p>
+</div>
 <div class="section" id="specifying-alternate-join-conditions">
-<h3>Specifying Alternate Join Conditions<a class="headerlink" href="#specifying-alternate-join-conditions" title="Permalink to this headline">¶</a></h3>
-<p>The open-ended nature of <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> also allows us to customize how
-related items are loaded.   In the example below, using the <tt class="docutils literal"><span class="pre">User</span></tt> class
+<span id="relationship-primaryjoin"></span><h3>Specifying Alternate Join Conditions<a class="headerlink" href="#specifying-alternate-join-conditions" title="Permalink to this headline">¶</a></h3>
+<p>The default behavior of <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> when constructing a join
+is that it equates the value of primary key columns
+on one side to that of foreign-key-referring columns on the other.
+We can change this criterion to be anything we&#8217;d like using the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt>
+argument, as well as the <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> argument in the case when
+a &#8220;secondary&#8221; table is used.</p>
+<p>In the example below, using the <tt class="docutils literal"><span class="pre">User</span></tt> class
 as well as an <tt class="docutils literal"><span class="pre">Address</span></tt> class which stores a street address,  we
 create a relationship <tt class="docutils literal"><span class="pre">boston_addresses</span></tt> which will only
 load those <tt class="docutils literal"><span class="pre">Address</span></tt> objects which specify a city of &#8220;Boston&#8221;:</p>
@@ -1000,24 +1060,7 @@ two distinct predicates for the join condition - joining both the <tt class="doc
 to just <tt class="docutils literal"><span class="pre">city='Boston'</span></tt>.   When using Declarative, rudimentary SQL functions like
 <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a> are automatically available in the evaluated namespace of a string
 <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> argument.</p>
-<p>When using classical mappings, we have the advantage of the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects
-already being present when the mapping is defined, so that the SQL expression
-can be created immediately:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">mapper</span>
-
-<span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">pass</span>
-<span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">pass</span>
-
-<span class="n">mapper</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">addresses_table</span><span class="p">)</span>
-<span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;boston_addresses&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span>
-                <span class="n">and_</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
-                <span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">city</span><span class="o">==</span><span class="s">&#39;Boston&#39;</span><span class="p">))</span>
-<span class="p">})</span></pre></div>
-</div>
-<p>Note that the custom criteria we use in a <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> is generally only significant
+<p>The custom criteria we use in a <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> is generally only significant
 when SQLAlchemy is rendering SQL in order to load or represent this relationship.
 That is, it&#8217;s  used
 in the SQL statement that&#8217;s emitted in order to perform a per-attribute lazy load, or when a join is
@@ -1030,6 +1073,73 @@ a flush occurs, the objects inside of <tt class="docutils literal"><span class="
 value of the primary key <tt class="docutils literal"><span class="pre">user.id</span></tt> column onto the foreign-key-holding <tt class="docutils literal"><span class="pre">address.user_id</span></tt> column
 for each row.  The <tt class="docutils literal"><span class="pre">city</span></tt> criteria has no effect here, as the flush process only cares about synchronizing primary
 key values into referencing foreign key values.</p>
+</div>
+<div class="section" id="creating-custom-foreign-conditions">
+<span id="relationship-custom-foreign"></span><h3>Creating Custom Foreign Conditions<a class="headerlink" href="#creating-custom-foreign-conditions" title="Permalink to this headline">¶</a></h3>
+<p>Another element of the primary join condition is how those columns
+considered &#8220;foreign&#8221; are determined.  Usually, some subset
+of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects will specify <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>, or otherwise
+be part of a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> that&#8217;s relevant to the join condition.
+<a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> looks to this foreign key status as it decides
+how it should load and persist data for this relationship.   However, the
+<tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument can be used to create a join condition that
+doesn&#8217;t involve any &#8220;schema&#8221; level foreign keys.  We can combine <tt class="docutils literal"><span class="pre">primaryjoin</span></tt>
+along with <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> and <tt class="docutils literal"><span class="pre">remote_side</span></tt> explicitly in order to
+establish such a join.</p>
+<p>Below, a class <tt class="docutils literal"><span class="pre">HostEntry</span></tt> joins to itself, equating the string <tt class="docutils literal"><span class="pre">content</span></tt>
+column to the <tt class="docutils literal"><span class="pre">ip_address</span></tt> column, which is a Postgresql type called <tt class="docutils literal"><span class="pre">INET</span></tt>.
+We need to use <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> in order to cast one side of the join to the
+type of the other:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">INET</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">HostEntry</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;host_entry&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ip_address</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">INET</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
+
+    <span class="c"># relationship() using explicit foreign_keys, remote_side</span>
+    <span class="n">parent_host</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;HostEntry&quot;</span><span class="p">,</span>
+                        <span class="n">primaryjoin</span><span class="o">=</span><span class="n">ip_address</span> <span class="o">==</span> <span class="n">cast</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">INET</span><span class="p">),</span>
+                        <span class="n">foreign_keys</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
+                        <span class="n">remote_side</span><span class="o">=</span><span class="n">ip_address</span>
+                    <span class="p">)</span></pre></div>
+</div>
+<p>The above relationship will produce a join like:</p>
+<div class="highlight-python"><pre>SELECT host_entry.id, host_entry.ip_address, host_entry.content
+FROM host_entry JOIN host_entry AS host_entry_1
+ON host_entry_1.ip_address = CAST(host_entry.content AS INET)</pre>
+</div>
+<p>An alternative syntax to the above is to use the <a class="reference internal" href="#sqlalchemy.orm.foreign" title="sqlalchemy.orm.foreign"><tt class="xref py py-func docutils literal"><span class="pre">foreign()</span></tt></a> and
+<a class="reference internal" href="#sqlalchemy.orm.remote" title="sqlalchemy.orm.remote"><tt class="xref py py-func docutils literal"><span class="pre">remote()</span></tt></a> <a class="reference internal" href="../glossary.html#term-annotations"><em class="xref std std-term">annotations</em></a>, inline within the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> expression.
+This syntax represents the annotations that <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> normally
+applies by itself to the join condition given the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> and
+<tt class="docutils literal"><span class="pre">remote_side</span></tt> arguments; the functions are provided in the API in the
+rare case that <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> can&#8217;t determine the exact location
+of these features on its own:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">foreign</span><span class="p">,</span> <span class="n">remote</span>
+
+<span class="k">class</span> <span class="nc">HostEntry</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;host_entry&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ip_address</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">INET</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
+
+    <span class="c"># relationship() using explicit foreign() and remote() annotations</span>
+    <span class="c"># in lieu of separate arguments</span>
+    <span class="n">parent_host</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;HostEntry&quot;</span><span class="p">,</span>
+                        <span class="n">primaryjoin</span><span class="o">=</span><span class="n">remote</span><span class="p">(</span><span class="n">ip_address</span><span class="p">)</span> <span class="o">==</span> \
+                                <span class="n">cast</span><span class="p">(</span><span class="n">foreign</span><span class="p">(</span><span class="n">content</span><span class="p">),</span> <span class="n">INET</span><span class="p">),</span>
+                    <span class="p">)</span></pre></div>
+</div>
 </div>
 <div class="section" id="self-referential-many-to-many-relationship">
 <span id="self-referential-many-to-many"></span><h3>Self-Referential Many-to-Many Relationship<a class="headerlink" href="#self-referential-many-to-many-relationship" title="Permalink to this headline">¶</a></h3>
@@ -1096,28 +1206,6 @@ to <tt class="docutils literal"><span class="pre">node.c.id</span></tt>:</p>
 <p>Note that in both examples, the <tt class="docutils literal"><span class="pre">backref</span></tt> keyword specifies a <tt class="docutils literal"><span class="pre">left_nodes</span></tt>
 backref - when <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> creates the second relationship in the reverse
 direction, it&#8217;s smart enough to reverse the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> and <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> arguments.</p>
-</div>
-<div class="section" id="specifying-foreign-keys">
-<h3>Specifying Foreign Keys<a class="headerlink" href="#specifying-foreign-keys" title="Permalink to this headline">¶</a></h3>
-<p>When using <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> and <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt>, SQLAlchemy also needs to be
-aware of which columns in the relationship reference the other. In most cases,
-a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> construct will have
-<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> constructs which take care of this;
-however, in the case of reflected tables on a database that does not report
-FKs (like MySQL ISAM) or when using join conditions on columns that don&#8217;t have
-foreign keys, the <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> needs to be told
-specifically which columns are &#8220;foreign&#8221; using the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt>
-collection:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">__table__</span> <span class="o">=</span> <span class="n">addresses_table</span>
-
-<span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">__table__</span> <span class="o">=</span> <span class="n">users_table</span>
-    <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span>
-                    <span class="n">primaryjoin</span><span class="o">=</span>
-                    <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="o">==</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
-                    <span class="n">foreign_keys</span><span class="o">=</span><span class="p">[</span><span class="n">addresses_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">])</span></pre></div>
-</div>
 </div>
 <div class="section" id="building-query-enabled-properties">
 <h3>Building Query-Enabled Properties<a class="headerlink" href="#building-query-enabled-properties" title="Permalink to this headline">¶</a></h3>
@@ -1352,8 +1440,6 @@ mutating primary key, not throughout the database.</p>
 <dt id="sqlalchemy.orm.relationship">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">relationship</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.relationship" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a relationship of a primary Mapper to a secondary Mapper.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.6: </span><a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> is historically known as <a class="reference internal" href="#sqlalchemy.orm.relation" title="sqlalchemy.orm.relation"><tt class="xref py py-func docutils literal"><span class="pre">relation()</span></tt></a>.</p>
 <p>This corresponds to a parent-child or associative table relationship.  The
 constructed class is an instance of <a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty" title="sqlalchemy.orm.properties.RelationshipProperty"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt></a>.</p>
 <p>A typical <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, used in a classical mapping:</p>
@@ -1363,10 +1449,10 @@ constructed class is an instance of <a class="reference internal" href="internal
 </div>
 <p>Some arguments accepted by <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> optionally accept a
 callable function, which when called produces the desired value.
-The callable is invoked by the parent <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> at &#8220;mapper initialization&#8221;
-time, which happens only when mappers are first used, and is assumed
-to be after all mappings have been constructed.  This can be used
-to resolve order-of-declaration and other dependency issues, such as
+The callable is invoked by the parent <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> at &#8220;mapper
+initialization&#8221; time, which happens only when mappers are first used, and
+is assumed to be after all mappings have been constructed.  This can be
+used to resolve order-of-declaration and other dependency issues, such as
 if <tt class="docutils literal"><span class="pre">Child</span></tt> is declared below <tt class="docutils literal"><span class="pre">Parent</span></tt> in the same file:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="s">&quot;children&quot;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Child</span><span class="p">,</span>
@@ -1378,8 +1464,8 @@ initializer allows string arguments to be passed to <a class="reference internal
 These string arguments are converted into callables that evaluate
 the string as Python code, using the Declarative
 class-registry as a namespace.  This allows the lookup of related
-classes to be automatic via their string name, and removes the need to import
-related classes at all into the local module space:</p>
+classes to be automatic via their string name, and removes the need to
+import related classes at all into the local module space:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
 
 <span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
@@ -1396,8 +1482,8 @@ related classes at all into the local module space:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>argument</strong> &#8211; <p>a mapped class, or actual <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> instance, representing the target of
-the relationship.</p>
+<li><strong>argument</strong> &#8211; <p>a mapped class, or actual <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> instance, representing the
+target of the relationship.</p>
 <p><tt class="docutils literal"><span class="pre">argument</span></tt> may also be passed as a callable function
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
@@ -1516,14 +1602,24 @@ of a list of <a class="reference internal" href="../core/schema.html#sqlalchemy.
 part of the foreign key.</p>
 <p>There are only two use cases for <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> - one, when it is not
 convenient for <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> metadata to contain its own foreign key
-metadata (which should be almost never, unless reflecting a large amount of
-tables from a MySQL MyISAM schema, or a schema that doesn&#8217;t actually
+metadata (which should be almost never, unless reflecting a large amount
+of tables from a MySQL MyISAM schema, or a schema that doesn&#8217;t actually
 have foreign keys on it). The other is for extremely
 rare and exotic composite foreign key setups where some columns
 should artificially not be considered as foreign.</p>
 <p><tt class="docutils literal"><span class="pre">foreign_keys</span></tt> may also be passed as a callable function
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>The <a class="reference internal" href="#sqlalchemy.orm.foreign" title="sqlalchemy.orm.foreign"><tt class="xref py py-func docutils literal"><span class="pre">foreign()</span></tt></a> annotation can also be applied
+directly to the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> expression, which is an alternate,
+more specific system of describing which columns in a particular
+<tt class="docutils literal"><span class="pre">primaryjoin</span></tt> should be considered &#8220;foreign&#8221;.</p>
+</li>
+<li><strong>info</strong> &#8211; <p>Optional data dictionary which will be populated into the
+<a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.MapperProperty.info" title="sqlalchemy.orm.interfaces.MapperProperty.info"><tt class="xref py py-attr docutils literal"><span class="pre">MapperProperty.info</span></tt></a> attribute of this object.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.</span></p>
 </li>
 <li><strong>innerjoin=False</strong> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, joined eager loads will use an inner join to join
 against related tables instead of an outer join.  The purpose
@@ -1559,10 +1655,9 @@ simple many-to-one references.<p class="versionadded">
 that of the parent, using a JOIN or LEFT OUTER JOIN.  Whether
 the join is &#8220;outer&#8221; or not is determined by the <tt class="docutils literal"><span class="pre">innerjoin</span></tt>
 parameter.</li>
-<li><tt class="docutils literal"><span class="pre">subquery</span></tt> - items should be loaded &#8220;eagerly&#8221; within the same
-query as that of the parent, using a second SQL statement
-which issues a JOIN to a subquery of the original
-statement.</li>
+<li><tt class="docutils literal"><span class="pre">subquery</span></tt> - items should be loaded &#8220;eagerly&#8221; as the parents are
+loaded, using one additional SQL statement, which issues a JOIN to a
+subquery of the original statement, for each collection requested.</li>
 <li><tt class="docutils literal"><span class="pre">noload</span></tt> - no loading should occur at any time.  This is to
 support &#8220;write-only&#8221; attributes, or attributes which are
 populated in some manner specific to the application.</li>
@@ -1578,24 +1673,22 @@ the section <a class="reference internal" href="collections.html#dynamic-relatio
 <p>Detailed discussion of loader strategies is at <a class="reference internal" href="loading.html"><em>Relationship Loading Techniques</em></a>.</p>
 </li>
 <li><strong>load_on_pending=False</strong> &#8211; <p>Indicates loading behavior for transient or pending parent objects.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>load_on_pending is superseded by
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.enable_relationship_loading" title="sqlalchemy.orm.session.Session.enable_relationship_loading"><tt class="xref py py-meth docutils literal"><span class="pre">Session.enable_relationship_loading()</span></tt></a>.</p>
 <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, causes the lazy-loader to
 issue a query for a parent object that is not persistent, meaning it has
 never been flushed.  This may take effect for a pending object when
 autoflush is disabled, or for a transient object that has been
 &#8220;attached&#8221; to a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> but is not part of its pending
-collection. Attachment of transient objects to the session without
-moving to the &#8220;pending&#8221; state is not a supported behavior at this time.</p>
-<p>Note that the load of related objects on a pending or transient object
-also does not trigger any attribute change events - no user-defined
-events will be emitted for these attributes, and if and when the
-object is ultimately flushed, only the user-specific foreign key
-attributes will be part of the modified state.</p>
+collection.</p>
 <p>The load_on_pending flag does not improve behavior
 when the ORM is used normally - object references should be constructed
 at the object level, not at the foreign key level, so that they
 are present in an ordinary way before flush() proceeds.  This flag
 is not not intended for general use.</p>
-<p>New in 0.6.5.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.6.5.</span></p>
 </li>
 <li><strong>order_by</strong> &#8211; <p>indicates the ordering that should be applied when loading these
 items.  <tt class="docutils literal"><span class="pre">order_by</span></tt> is expected to refer to one of the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
@@ -1680,6 +1773,11 @@ list of columns that form the &#8220;remote side&#8221; of the relationship.</p>
 <p><tt class="docutils literal"><span class="pre">remote_side</span></tt> may also be passed as a callable function
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>The <a class="reference internal" href="#sqlalchemy.orm.remote" title="sqlalchemy.orm.remote"><tt class="xref py py-func docutils literal"><span class="pre">remote()</span></tt></a> annotation can also be applied
+directly to the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> expression, which is an alternate,
+more specific system of describing which columns in a particular
+<tt class="docutils literal"><span class="pre">primaryjoin</span></tt> should be considered &#8220;remote&#8221;.</p>
 </li>
 <li><strong>query_class</strong> &#8211; a <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> subclass that will be used as the base of the
 &#8220;appender query&#8221; returned by a &#8220;dynamic&#8221; relationship, that
@@ -1720,13 +1818,16 @@ case, use an alternative method.</li>
 </tr>
 </tbody>
 </table>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.6: </span><a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> was renamed from its previous name
+<a class="reference internal" href="#sqlalchemy.orm.relation" title="sqlalchemy.orm.relation"><tt class="xref py py-func docutils literal"><span class="pre">relation()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.backref">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">backref</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.backref" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a back reference with explicit keyword arguments, which are the same
-arguments one can send to <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</p>
+<dd><p>Create a back reference with explicit keyword arguments, which are the
+same arguments one can send to <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</p>
 <p>Used with the <tt class="docutils literal"><span class="pre">backref</span></tt> keyword argument to <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> in
 place of a string argument, e.g.:</p>
 <div class="highlight-python"><pre>'items':relationship(SomeItem, backref=backref('parent', lazy='subquery'))</pre>
@@ -1753,6 +1854,38 @@ using the <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></
 </div>
 <p>See the section <a class="reference internal" href="collections.html#dynamic-relationship"><em>Dynamic Relationship Loaders</em></a> for more details
 on dynamic loading.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sqlalchemy.orm.foreign">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">foreign</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.foreign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Annotate a portion of a primaryjoin expression
+with a &#8216;foreign&#8217; annotation.</p>
+<p>See the section <a class="reference internal" href="#relationship-custom-foreign"><em>Creating Custom Foreign Conditions</em></a> for a
+description of use.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.</span></p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#relationship-custom-foreign"><em>Creating Custom Foreign Conditions</em></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.remote" title="sqlalchemy.orm.remote"><tt class="xref py py-func docutils literal"><span class="pre">remote()</span></tt></a></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sqlalchemy.orm.remote">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">remote</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.remote" title="Permalink to this definition">¶</a></dt>
+<dd><p>Annotate a portion of a primaryjoin expression
+with a &#8216;remote&#8217; annotation.</p>
+<p>See the section <a class="reference internal" href="#relationship-custom-foreign"><em>Creating Custom Foreign Conditions</em></a> for a
+description of use.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.</span></p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#relationship-custom-foreign"><em>Creating Custom Foreign Conditions</em></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.foreign" title="sqlalchemy.orm.foreign"><tt class="xref py py-func docutils literal"><span class="pre">foreign()</span></tt></a></p>
+</div>
 </dd></dl>
 
 </div>

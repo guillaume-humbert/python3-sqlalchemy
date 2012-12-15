@@ -2,16 +2,17 @@
 Primary key changing capabilities and passive/non-passive cascading updates.
 
 """
-from test.lib.testing import eq_, ne_, \
+from __future__ import with_statement
+from sqlalchemy.testing import eq_, ne_, \
                         assert_raises, assert_raises_message
 import sqlalchemy as sa
-from test.lib import testing
+from sqlalchemy import testing
 from sqlalchemy import Integer, String, ForeignKey, Unicode
-from test.lib.schema import Table, Column
+from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session, backref, Session
 from sqlalchemy.orm.session import make_transient
-from test.lib.testing import eq_
-from test.lib import fixtures
+from sqlalchemy.testing import eq_
+from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
 
 class NaturalPKTest(fixtures.MappedTest):
@@ -189,7 +190,6 @@ class NaturalPKTest(fixtures.MappedTest):
         u1 = sess.query(User).get('fred')
         eq_(User(username='fred', fullname='jack'), u1)
 
-
     @testing.fails_on('sqlite', 'sqlite doesnt support ON UPDATE CASCADE')
     @testing.fails_on('oracle', 'oracle doesnt support ON UPDATE CASCADE')
     def test_manytoone_passive(self):
@@ -197,6 +197,43 @@ class NaturalPKTest(fixtures.MappedTest):
 
     def test_manytoone_nonpassive(self):
         self._test_manytoone(False)
+
+    def test_manytoone_nonpassive_cold_mapping(self):
+        """test that the mapper-level m2o dependency processor
+        is set up even if the opposite side relationship
+        hasn't yet been part of a flush.
+
+        """
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
+        with testing.db.begin() as conn:
+            conn.execute(users.insert(),
+                username='jack', fullname='jack'
+                )
+            conn.execute(addresses.insert(),
+                email='jack1', username='jack'
+            )
+            conn.execute(addresses.insert(),
+                email='jack2', username='jack'
+                )
+
+        mapper(User, users)
+        mapper(Address, addresses, properties={
+            'user': relationship(User,
+                    passive_updates=False)
+        })
+
+        sess = create_session()
+        u1 = sess.query(User).first()
+        a1, a2 = sess.query(Address).all()
+        u1.username = 'ed'
+
+        def go():
+            sess.flush()
+        self.assert_sql_count(testing.db, go, 3)
 
     def _test_manytoone(self, passive_updates):
         users, Address, addresses, User = (self.tables.users,
@@ -206,7 +243,7 @@ class NaturalPKTest(fixtures.MappedTest):
 
         mapper(User, users)
         mapper(Address, addresses, properties={
-            'user':relationship(User, passive_updates=passive_updates)
+            'user': relationship(User, passive_updates=passive_updates)
         })
 
         sess = create_session()
@@ -237,6 +274,7 @@ class NaturalPKTest(fixtures.MappedTest):
         sess.expunge_all()
         eq_([Address(username='ed'), Address(username='ed')],
                 sess.query(Address).all())
+
 
     @testing.fails_on('sqlite', 'sqlite doesnt support ON UPDATE CASCADE')
     @testing.fails_on('oracle', 'oracle doesnt support ON UPDATE CASCADE')
@@ -927,7 +965,7 @@ class CascadeToFKPKTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
         sess.add(u2)
         sess.add(a2)
 
-        from test.lib.assertsql import CompiledSQL
+        from sqlalchemy.testing.assertsql import CompiledSQL
 
         # test that the primary key columns of addresses are not
         # being updated as well, since this is a row switch.

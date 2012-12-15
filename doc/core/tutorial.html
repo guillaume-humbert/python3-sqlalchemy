@@ -10,7 +10,7 @@
     
                 SQL Expression Language Tutorial
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="SQL Statements and Expressions API" href="expression_api.html" />
         <link rel="prev" title="SQLAlchemy Core" href="index.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 SQL Expression Language Tutorial
@@ -121,7 +121,10 @@
 <li><a class="reference internal" href="#executing">Executing</a></li>
 <li><a class="reference internal" href="#executing-multiple-statements">Executing Multiple Statements</a></li>
 <li><a class="reference internal" href="#selecting">Selecting</a></li>
-<li><a class="reference internal" href="#operators">Operators</a></li>
+<li><a class="reference internal" href="#operators">Operators</a><ul>
+<li><a class="reference internal" href="#operator-customization">Operator Customization</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#conjunctions">Conjunctions</a></li>
 <li><a class="reference internal" href="#using-text">Using Text</a></li>
 <li><a class="reference internal" href="#using-aliases">Using Aliases</a></li>
@@ -215,10 +218,10 @@ following text represents the expected return value. The tutorial has no
 prerequisites.</p>
 <div class="section" id="version-check">
 <h2>Version Check<a class="headerlink" href="#version-check" title="Permalink to this headline">¶</a></h2>
-<p>A quick check to verify that we are on at least <strong>version 0.7</strong> of SQLAlchemy:</p>
+<p>A quick check to verify that we are on at least <strong>version 0.8</strong> of SQLAlchemy:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sqlalchemy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sqlalchemy</span><span class="o">.</span><span class="n">__version__</span> 
-<span class="go">0.7.0</span></pre></div>
+<span class="go">0.8.0</span></pre></div>
 </div>
 </div>
 <div class="section" id="connecting">
@@ -375,9 +378,9 @@ connections capable of issuing SQL to the database. To acquire a connection,
 we use the <tt class="docutils literal"><span class="pre">connect()</span></tt> method:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span> 
-<span class="go">&lt;sqlalchemy.engine.base.Connection object at 0x...&gt;</span></pre></div>
+<span class="go">&lt;sqlalchemy.engine.Connection object at 0x...&gt;</span></pre></div>
 </div>
-<p>The <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object represents an actively
+<p>The <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object represents an actively
 checked out DBAPI connection resource. Lets feed it our
 <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> object and see what happens:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
@@ -388,7 +391,7 @@ COMMIT</div></pre></div>
 <p>So the INSERT statement was now issued to the database. Although we got
 positional &#8220;qmark&#8221; bind parameters instead of &#8220;named&#8221; bind parameters in the
 output. How come ? Because when executed, the
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> used the SQLite <strong>dialect</strong> to
+<a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> used the SQLite <strong>dialect</strong> to
 help generate the statement; when we use the <tt class="docutils literal"><span class="pre">str()</span></tt> function, the statement
 isn&#8217;t aware of this dialect, and falls back onto a default which uses named
 parameters. We can view this manually as follows:</p>
@@ -397,9 +400,9 @@ parameters. We can view this manually as follows:</p>
 <span class="go">&#39;INSERT INTO users (name, fullname) VALUES (?, ?)&#39;</span></pre></div>
 </div>
 <p>What about the <tt class="docutils literal"><span class="pre">result</span></tt> variable we got when we called <tt class="docutils literal"><span class="pre">execute()</span></tt> ? As
-the SQLAlchemy <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object references a
+the SQLAlchemy <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object references a
 DBAPI connection, the result, known as a
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> object, is analogous to the DBAPI
+<a class="reference internal" href="connections.html#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> object, is analogous to the DBAPI
 cursor object. In the case of an INSERT, we can get important information from
 it, such as the primary key values which were generated from our statement:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">inserted_primary_key</span>
@@ -411,7 +414,7 @@ did not specify the <tt class="docutils literal"><span class="pre">id</span></tt
 value would have been used. In either case, SQLAlchemy always knows how to get
 at a newly generated primary key value, even though the method of generating
 them is different across different databases; each database&#8217;s
-<a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> knows the specific steps needed to
+<tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> knows the specific steps needed to
 determine the correct value (or values; note that <tt class="docutils literal"><span class="pre">inserted_primary_key</span></tt>
 returns a list so that it supports composite primary keys).</p>
 </div>
@@ -421,7 +424,7 @@ returns a list so that it supports composite primary keys).</p>
 various behaviors of expression language constructs. In the usual case, an
 <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> statement is usually compiled
 against the parameters sent to the <tt class="docutils literal"><span class="pre">execute()</span></tt> method on
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, so that there&#8217;s no need to use
+<a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, so that there&#8217;s no need to use
 the <tt class="docutils literal"><span class="pre">values</span></tt> keyword with <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a>. Lets
 create a generic <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> statement again
 and use it in the &#8220;normal&#8221; way:</p>
@@ -429,7 +432,7 @@ and use it in the &#8220;normal&#8221; way:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="n">fullname</span><span class="o">=</span><span class="s">&#39;Wendy Williams&#39;</span><span class="p">)</span> 
 <div class='show_sql'>INSERT INTO users (id, name, fullname) VALUES (?, ?, ?)
 (2, 'wendy', 'Wendy Williams')
-COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x...&gt;</span></pre></div>
+COMMIT</div><span class="go">&lt;sqlalchemy.engine.ResultProxy object at 0x...&gt;</span></pre></div>
 </div>
 <p>Above, because we specified all three columns in the the <tt class="docutils literal"><span class="pre">execute()</span></tt> method,
 the compiled <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> included all three
@@ -448,7 +451,7 @@ inserted, as we do here to add some email addresses:</p>
 <span class="gp">... </span><span class="p">])</span>
 <div class='show_sql'>INSERT INTO addresses (user_id, email_address) VALUES (?, ?)
 ((1, 'jack@yahoo.com'), (1, 'jack@msn.com'), (2, 'www@www.org'), (2, 'wendy@aol.com'))
-COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x...&gt;</span></pre></div>
+COMMIT</div><span class="go">&lt;sqlalchemy.engine.ResultProxy object at 0x...&gt;</span></pre></div>
 </div>
 <p>Above, we again relied upon SQLite&#8217;s automatic generation of primary key
 identifiers for each <tt class="docutils literal"><span class="pre">addresses</span></tt> row.</p>
@@ -476,10 +479,10 @@ FROM users
 within the COLUMNS clause of the select, and then executing. SQLAlchemy
 expanded the <tt class="docutils literal"><span class="pre">users</span></tt> table into the set of each of its columns, and also
 generated a FROM clause for us. The result returned is again a
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> object, which acts much like a
+<a class="reference internal" href="connections.html#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> object, which acts much like a
 DBAPI cursor, including methods such as
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.ResultProxy.fetchone" title="sqlalchemy.engine.base.ResultProxy.fetchone"><tt class="xref py py-func docutils literal"><span class="pre">fetchone()</span></tt></a> and
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.ResultProxy.fetchall" title="sqlalchemy.engine.base.ResultProxy.fetchall"><tt class="xref py py-func docutils literal"><span class="pre">fetchall()</span></tt></a>. The easiest way to get
+<a class="reference internal" href="connections.html#sqlalchemy.engine.ResultProxy.fetchone" title="sqlalchemy.engine.ResultProxy.fetchone"><tt class="xref py py-func docutils literal"><span class="pre">fetchone()</span></tt></a> and
+<a class="reference internal" href="connections.html#sqlalchemy.engine.ResultProxy.fetchall" title="sqlalchemy.engine.ResultProxy.fetchall"><tt class="xref py py-func docutils literal"><span class="pre">fetchall()</span></tt></a>. The easiest way to get
 rows from it is to just iterate:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="k">print</span> <span class="n">row</span>
@@ -516,7 +519,7 @@ FROM users
 </div>
 <p>Result sets which have pending rows remaining should be explicitly closed
 before discarding. While the cursor and connection resources referenced by the
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> will be respectively closed and
+<a class="reference internal" href="connections.html#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> will be respectively closed and
 returned to the connection pool when the object is garbage collected, it&#8217;s
 better to make it explicit as some database APIs are very picky about such
 things:</p>
@@ -589,7 +592,7 @@ just a Python equality operator between two different
 is up. Saying <tt class="docutils literal"><span class="pre">1==1</span></tt> produces <tt class="docutils literal"><span class="pre">True</span></tt>, and <tt class="docutils literal"><span class="pre">1==2</span></tt> produces <tt class="docutils literal"><span class="pre">False</span></tt>, not
 a WHERE clause. So lets see exactly what that expression is doing:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span> 
-<span class="go">&lt;sqlalchemy.sql.expression._BinaryExpression object at 0x...&gt;</span></pre></div>
+<span class="go">&lt;sqlalchemy.sql.expression.BinaryExpression object at 0x...&gt;</span></pre></div>
 </div>
 <p>Wow, surprise ! This is neither a <tt class="docutils literal"><span class="pre">True</span></tt> nor a <tt class="docutils literal"><span class="pre">False</span></tt>. Well what is it ?</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
@@ -651,10 +654,10 @@ not all of them. MySQL users, fear not:</p>
 <span class="go">concat(users.name, users.fullname)</span></pre></div>
 </div>
 <p>The above illustrates the SQL that&#8217;s generated for an
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> that&#8217;s connected to a MySQL database;
+<a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> that&#8217;s connected to a MySQL database;
 the <tt class="docutils literal"><span class="pre">||</span></tt> operator now compiles as MySQL&#8217;s <tt class="docutils literal"><span class="pre">concat()</span></tt> function.</p>
 <p>If you have come across an operator which really isn&#8217;t available, you can
-always use the <tt class="docutils literal"><span class="pre">op()</span></tt> method; this generates whatever operator you need:</p>
+always use the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.op" title="sqlalchemy.sql.operators.ColumnOperators.op"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.op()</span></tt></a> method; this generates whatever operator you need:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s">&#39;tiddlywinks&#39;</span><span class="p">)(</span><span class="s">&#39;foo&#39;</span><span class="p">)</span>
 <span class="go">users.name tiddlywinks :name_1</span></pre></div>
 </div>
@@ -662,6 +665,15 @@ always use the <tt class="docutils literal"><span class="pre">op()</span></tt> m
 <div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s">&#39;&amp;&#39;</span><span class="p">)(</span><span class="mh">0xff</span><span class="p">)</span></pre></div>
 </div>
 <p>is a bitwise AND of the value in <cite>somecolumn</cite>.</p>
+<div class="section" id="operator-customization">
+<h3>Operator Customization<a class="headerlink" href="#operator-customization" title="Permalink to this headline">¶</a></h3>
+<p>While <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.op" title="sqlalchemy.sql.operators.ColumnOperators.op"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.op()</span></tt></a> is handy to get at a custom operator in a hurry,
+the Core supports fundamental customization and extension of the operator system at
+the type level.   The behavior of existing operators can be modified on a per-type
+basis, and new operations can be defined which become available for all column
+expressions that are part of that particular type.  See the section <a class="reference internal" href="types.html#types-operators"><em>Redefining and Creating New Operators</em></a>
+for a description.</p>
+</div>
 </div>
 <div class="section" id="conjunctions">
 <h2>Conjunctions<a class="headerlink" href="#conjunctions" title="Permalink to this headline">¶</a></h2>
@@ -956,7 +968,7 @@ WHERE addresses.user_id = users.id AND addresses.email_address LIKE ?)) ORDER BY
 to arrive with a full statement.</p>
 <div class="section" id="transforming-a-statement">
 <h3>Transforming a Statement<a class="headerlink" href="#transforming-a-statement" title="Permalink to this headline">¶</a></h3>
-<p>We&#8217;ve seen how methods like <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Select.where" title="sqlalchemy.sql.expression.Select.where"><tt class="xref py py-meth docutils literal"><span class="pre">Select.where()</span></tt></a> and <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression._SelectBase.order_by" title="sqlalchemy.sql.expression._SelectBase.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">_SelectBase.order_by()</span></tt></a> are
+<p>We&#8217;ve seen how methods like <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Select.where" title="sqlalchemy.sql.expression.Select.where"><tt class="xref py py-meth docutils literal"><span class="pre">Select.where()</span></tt></a> and <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.SelectBase.order_by" title="sqlalchemy.sql.expression.SelectBase.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.order_by()</span></tt></a> are
 part of the so-called <em>Generative</em> family of methods on the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct,
 where one <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> copies itself to return a new one with modifications.
 SQL constructs also support another form of generative behavior which is
@@ -1039,7 +1051,7 @@ WHERE users.name LIKE ? || '%' OR addresses.email_address LIKE ? || '@%'
 </div>
 <div class="section" id="functions">
 <h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
-<p>SQL functions are created using the <tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt> keyword, which
+<p>SQL functions are created using the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> keyword, which
 generates functions using attribute access:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">func</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
@@ -1109,12 +1121,12 @@ of our selectable:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span><span class="o">.</span><span class="n">params</span>
 <span class="go">{u&#39;x_2&#39;: 5, u&#39;y_2&#39;: 12, u&#39;y_1&#39;: 45, u&#39;x_1&#39;: 17}</span></pre></div>
 </div>
-<p>See also <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.sql.expression.func</span></tt></a>.</p>
+<p>See also <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a>.</p>
 </div>
 <div class="section" id="window-functions">
 <h3>Window Functions<a class="headerlink" href="#window-functions" title="Permalink to this headline">¶</a></h3>
 <p>Any <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.FunctionElement" title="sqlalchemy.sql.expression.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a>, including functions generated by
-<tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt>, can be turned into a &#8220;window function&#8221;, that is an
+<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a>, can be turned into a &#8220;window function&#8221;, that is an
 OVER clause, using the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.FunctionElement.over" title="sqlalchemy.sql.expression.FunctionElement.over"><tt class="xref py py-meth docutils literal"><span class="pre">over()</span></tt></a> method:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">row_number</span><span class="p">()</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">order_by</span><span class="o">=</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span> 
@@ -1186,7 +1198,7 @@ WHERE addresses.email_address LIKE ?
 <div class="section" id="scalar-selects">
 <h3>Scalar Selects<a class="headerlink" href="#scalar-selects" title="Permalink to this headline">¶</a></h3>
 <p>To embed a SELECT in a column expression, use
-<tt class="xref py py-func docutils literal"><span class="pre">as_scalar()</span></tt>:</p>
+<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.SelectBase.as_scalar" title="sqlalchemy.sql.expression.SelectBase.as_scalar"><tt class="xref py py-func docutils literal"><span class="pre">as_scalar()</span></tt></a>:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">select</span><span class="p">([</span>   
 <span class="gp">... </span>      <span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
 <span class="gp">... </span>      <span class="n">select</span><span class="p">([</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">)],</span> <span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span><span class="o">.</span><span class="n">as_scalar</span><span class="p">()</span>
@@ -1211,7 +1223,7 @@ FROM users
 </div>
 </div>
 <div class="section" id="correlated-subqueries">
-<h3>Correlated Subqueries<a class="headerlink" href="#correlated-subqueries" title="Permalink to this headline">¶</a></h3>
+<span id="id1"></span><h3>Correlated Subqueries<a class="headerlink" href="#correlated-subqueries" title="Permalink to this headline">¶</a></h3>
 <p>Notice in the examples on &#8220;scalar selects&#8221;, the FROM clause of each embedded
 select did not contain the <tt class="docutils literal"><span class="pre">users</span></tt> table in its FROM clause. This is because
 SQLAlchemy automatically attempts to correlate embedded FROM objects to that
@@ -1267,7 +1279,7 @@ LIMIT 1 OFFSET 1
 </div>
 </div>
 <div class="section" id="inserts-and-updates">
-<span id="id1"></span><h2>Inserts and Updates<a class="headerlink" href="#inserts-and-updates" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>Inserts and Updates<a class="headerlink" href="#inserts-and-updates" title="Permalink to this headline">¶</a></h2>
 <p>Finally, we&#8217;re back to INSERT for some more detail. The
 <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> construct provides a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ValuesBase.values" title="sqlalchemy.sql.expression.ValuesBase.values"><tt class="xref py py-meth docutils literal"><span class="pre">values()</span></tt></a>
 method which can be used to send any value or clause expression to the VALUES
@@ -1309,7 +1321,7 @@ that can be specified:</p>
 <span class="gp">... </span>               <span class="p">)</span> 
 <div class='popup_sql'>UPDATE users SET name=? WHERE users.name = ?
 ('ed', 'jack')
-COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x...&gt;</span>
+COMMIT</div><span class="go">&lt;sqlalchemy.engine.ResultProxy object at 0x...&gt;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># use bind parameters</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span>\
@@ -1318,7 +1330,7 @@ COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x
 <a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">oldname</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">,</span> <span class="n">newname</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span> 
 <div class='popup_sql'>UPDATE users SET name=? WHERE users.name = ?
 ('ed', 'jack')
-COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x...&gt;</span>
+COMMIT</div><span class="go">&lt;sqlalchemy.engine.ResultProxy object at 0x...&gt;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># with binds, you can also update many rows at once</span>
 <a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">u</span><span class="p">,</span>
@@ -1328,7 +1340,7 @@ COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x
 <span class="gp">... </span>    <span class="p">)</span> 
 <div class='popup_sql'>UPDATE users SET name=? WHERE users.name = ?
 [('ed', 'jack'), ('mary', 'wendy'), ('jake', 'jim')]
-COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x...&gt;</span>
+COMMIT</div><span class="go">&lt;sqlalchemy.engine.ResultProxy object at 0x...&gt;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># update a column to an expression.:</span>
 <a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span>
@@ -1336,7 +1348,7 @@ COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x
 <span class="gp">... </span>                <span class="p">)</span> 
 <div class='popup_sql'>UPDATE users SET fullname=(? || users.name)
 ('Fullname: ',)
-COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x...&gt;</span></pre></div>
+COMMIT</div><span class="go">&lt;sqlalchemy.engine.ResultProxy object at 0x...&gt;</span></pre></div>
 </div>
 <div class="section" id="correlated-updates">
 <h3>Correlated Updates<a class="headerlink" href="#correlated-updates" title="Permalink to this headline">¶</a></h3>
@@ -1349,7 +1361,7 @@ FROM addresses
 WHERE addresses.user_id = users.id
 LIMIT 1 OFFSET 0)
 ()
-COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x...&gt;</span></pre></div>
+COMMIT</div><span class="go">&lt;sqlalchemy.engine.ResultProxy object at 0x...&gt;</span></pre></div>
 </div>
 </div>
 <div class="section" id="multiple-table-updates">
@@ -1375,7 +1387,7 @@ WHERE users.id = addresses.id AND
 addresses.email_address LIKE :email_address_1 || '%%'</pre>
 </div>
 <p>When using MySQL, columns from each table can be assigned to in the
-SET clause directly, using the dictionary form passed to <tt class="xref py py-meth docutils literal"><span class="pre">Update.values()</span></tt>:</p>
+SET clause directly, using the dictionary form passed to <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Update.values" title="sqlalchemy.sql.expression.Update.values"><tt class="xref py py-meth docutils literal"><span class="pre">Update.values()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span>\
         <span class="n">values</span><span class="p">({</span>
             <span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="s">&#39;ed wood&#39;</span><span class="p">,</span>
@@ -1396,18 +1408,18 @@ by the database if this syntax is not supported.</p>
 </div>
 </div>
 <div class="section" id="deletes">
-<span id="id2"></span><h2>Deletes<a class="headerlink" href="#deletes" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>Deletes<a class="headerlink" href="#deletes" title="Permalink to this headline">¶</a></h2>
 <p>Finally, a delete.  This is accomplished easily enough using the
 <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.delete" title="sqlalchemy.sql.expression.delete"><tt class="xref py py-func docutils literal"><span class="pre">delete()</span></tt></a> construct:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">delete</span><span class="p">())</span> 
 <div class='popup_sql'>DELETE FROM addresses
 ()
-COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x...&gt;</span>
+COMMIT</div><span class="go">&lt;sqlalchemy.engine.ResultProxy object at 0x...&gt;</span>
 
 <a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">&gt;</span> <span class="s">&#39;m&#39;</span><span class="p">))</span> 
 <div class='popup_sql'>DELETE FROM users WHERE users.name > ?
 ('m',)
-COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x...&gt;</span></pre></div>
+COMMIT</div><span class="go">&lt;sqlalchemy.engine.ResultProxy object at 0x...&gt;</span></pre></div>
 </div>
 </div>
 <div class="section" id="further-reference">

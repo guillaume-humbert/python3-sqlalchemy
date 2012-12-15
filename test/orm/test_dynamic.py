@@ -1,13 +1,13 @@
-from test.lib.testing import eq_, ne_
+from sqlalchemy.testing import eq_, ne_
 import operator
 from sqlalchemy.orm import dynamic_loader, backref, configure_mappers
-from test.lib import testing
+from sqlalchemy import testing
 from sqlalchemy import Integer, String, ForeignKey, desc, select, func, exc
-from test.lib.schema import Table, Column
-from sqlalchemy.orm import mapper, relationship, create_session, Query, attributes
+from sqlalchemy.testing.schema import Table, Column
+from sqlalchemy.orm import mapper, relationship, create_session, Query, attributes, exc as orm_exc
 from sqlalchemy.orm.dynamic import AppenderMixin
-from test.lib.testing import eq_, AssertsCompiledSQL, assert_raises_message, assert_raises
-from test.lib import fixtures
+from sqlalchemy.testing import eq_, AssertsCompiledSQL, assert_raises_message, assert_raises
+from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
 
 
@@ -55,6 +55,24 @@ class DynamicTest(_fixtures.FixtureTest, AssertsCompiledSQL):
             use_default_dialect=True
         )
 
+    def test_detached_raise(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
+        mapper(User, users, properties={
+            'addresses': dynamic_loader(mapper(Address, addresses))
+        })
+        sess = create_session()
+        u = sess.query(User).get(8)
+        sess.expunge(u)
+        assert_raises(
+            orm_exc.DetachedInstanceError,
+            u.addresses.filter_by,
+            email_address='e'
+        )
+
     def test_no_uselist_false(self):
         users, Address, addresses, User = (self.tables.users,
                                 self.classes.Address,
@@ -65,7 +83,7 @@ class DynamicTest(_fixtures.FixtureTest, AssertsCompiledSQL):
                 "addresses": relationship(Address, lazy='dynamic', uselist=False)
             })
         assert_raises_message(
-            exc.SAWarning,
+            exc.InvalidRequestError,
             "On relationship User.addresses, 'dynamic' loaders cannot be "
             "used with many-to-one/one-to-one relationships and/or "
             "uselist=False.",
@@ -82,7 +100,7 @@ class DynamicTest(_fixtures.FixtureTest, AssertsCompiledSQL):
             })
         mapper(User, users)
         assert_raises_message(
-            exc.SAWarning,
+            exc.InvalidRequestError,
             "On relationship Address.user, 'dynamic' loaders cannot be "
             "used with many-to-one/one-to-one relationships and/or "
             "uselist=False.",
@@ -96,7 +114,7 @@ class DynamicTest(_fixtures.FixtureTest, AssertsCompiledSQL):
                                 self.classes.User)
 
         mapper(User, users, properties={
-            'addresses': dynamic_loader(mapper(Address, addresses))
+            'addresses':dynamic_loader(mapper(Address, addresses))
         })
         sess = create_session()
         u = sess.query(User).get(8)

@@ -105,11 +105,13 @@ through the adapter, allowing for some very sophisticated behavior.
 import copy
 import inspect
 import operator
-import sys
 import weakref
 
-from sqlalchemy.sql import expression
-from sqlalchemy import schema, util, exc as sa_exc
+from ..sql import expression
+from .. import util, exc as sa_exc
+orm_util = util.importlater("sqlalchemy.orm", "util")
+attributes = util.importlater("sqlalchemy.orm", "attributes")
+
 
 __all__ = ['collection', 'collection_adapter',
            'mapped_collection', 'column_mapped_collection',
@@ -138,8 +140,8 @@ class _PlainColumnGetter(object):
         return self.cols
 
     def __call__(self, value):
-        state = instance_state(value)
-        m = _state_mapper(state)
+        state = attributes.instance_state(value)
+        m = orm_util._state_mapper(state)
 
         key = [
             m._get_state_attr_by_column(state, state.dict, col)
@@ -151,6 +153,7 @@ class _PlainColumnGetter(object):
         else:
             return key[0]
 
+
 class _SerializableColumnGetter(object):
     """Column-based getter used in version 0.7.6 only.
 
@@ -160,11 +163,13 @@ class _SerializableColumnGetter(object):
     def __init__(self, colkeys):
         self.colkeys = colkeys
         self.composite = len(colkeys) > 1
+
     def __reduce__(self):
         return _SerializableColumnGetter, (self.colkeys,)
+
     def __call__(self, value):
-        state = instance_state(value)
-        m = _state_mapper(state)
+        state = attributes.instance_state(value)
+        m = orm_util._state_mapper(state)
         key = [m._get_state_attr_by_column(
                         state, state.dict,
                         m.mapped_table.columns[k])
@@ -173,6 +178,7 @@ class _SerializableColumnGetter(object):
             return tuple(key)
         else:
             return key[0]
+
 
 class _SerializableColumnGetterV2(_PlainColumnGetter):
     """Updated serializable getter which deals with
@@ -219,8 +225,9 @@ class _SerializableColumnGetterV2(_PlainColumnGetter):
 def column_mapped_collection(mapping_spec):
     """A dictionary-based collection type with column-based keying.
 
-    Returns a :class:`.MappedCollection` factory with a keying function generated
-    from mapping_spec, which may be a Column or a sequence of Columns.
+    Returns a :class:`.MappedCollection` factory with a keying function
+    generated from mapping_spec, which may be a Column or a sequence
+    of Columns.
 
     The key value must be immutable for the lifetime of the object.  You
     can not, for example, map on foreign key values if those key values will
@@ -228,15 +235,12 @@ def column_mapped_collection(mapping_spec):
     after a session flush.
 
     """
-    global _state_mapper, instance_state
-    from sqlalchemy.orm.util import _state_mapper
-    from sqlalchemy.orm.attributes import instance_state
-
     cols = [expression._only_column_elements(q, "mapping_spec")
                 for q in util.to_list(mapping_spec)
             ]
     keyfunc = _PlainColumnGetter(cols)
     return lambda: MappedCollection(keyfunc)
+
 
 class _SerializableAttrGetter(object):
     def __init__(self, name):
@@ -248,6 +252,7 @@ class _SerializableAttrGetter(object):
 
     def __reduce__(self):
         return _SerializableAttrGetter, (self.name, )
+
 
 def attribute_mapped_collection(attr_name):
     """A dictionary-based collection type with attribute-based keying.
@@ -269,8 +274,9 @@ def attribute_mapped_collection(attr_name):
 def mapped_collection(keyfunc):
     """A dictionary-based collection type with arbitrary keying.
 
-    Returns a :class:`.MappedCollection` factory with a keying function generated
-    from keyfunc, a callable that takes an entity and returns a key value.
+    Returns a :class:`.MappedCollection` factory with a keying function
+    generated from keyfunc, a callable that takes an entity and returns a
+    key value.
 
     The key value must be immutable for the lifetime of the object.  You
     can not, for example, map on foreign key values if those key values will
@@ -279,6 +285,7 @@ def mapped_collection(keyfunc):
 
     """
     return lambda: MappedCollection(keyfunc)
+
 
 class collection(object):
     """Decorators for entity collection classes.
@@ -394,10 +401,11 @@ class collection(object):
     def internally_instrumented(fn):
         """Tag the method as instrumented.
 
-        This tag will prevent any decoration from being applied to the method.
-        Use this if you are orchestrating your own calls to :func:`.collection_adapter`
-        in one of the basic SQLAlchemy interface methods, or to prevent
-        an automatic ABC method decoration from wrapping your implementation::
+        This tag will prevent any decoration from being applied to the
+        method. Use this if you are orchestrating your own calls to
+        :func:`.collection_adapter` in one of the basic SQLAlchemy
+        interface methods, or to prevent an automatic ABC method
+        decoration from wrapping your implementation::
 
             # normally an 'extend' method on a list-like class would be
             # automatically intercepted and re-implemented in terms of
@@ -548,6 +556,7 @@ def collection_adapter(collection):
 
     return getattr(collection, '_sa_adapter', None)
 
+
 def collection_iter(collection):
     """Iterate over an object supporting the @iterator or __iter__ protocols.
 
@@ -577,11 +586,16 @@ class CollectionAdapter(object):
     of custom methods, such as to unwrap Zope security proxies.
 
     """
+    invalidated = False
+
     def __init__(self, attr, owner_state, data):
         self._key = attr.key
         self._data = weakref.ref(data)
         self.owner_state = owner_state
         self.link_to_self(data)
+
+    def _warn_invalidated(self):
+        util.warn("This collection has been invalidated.")
 
     @property
     def data(self):
@@ -702,12 +716,15 @@ class CollectionAdapter(object):
     def fire_append_event(self, item, initiator=None):
         """Notify that a entity has entered the collection.
 
-        Initiator is a token owned by the InstrumentedAttribute that initiated the membership
-        mutation, and should be left as None unless you are passing along
-        an initiator value from a chained operation.
+        Initiator is a token owned by the InstrumentedAttribute that
+        initiated the membership mutation, and should be left as None
+        unless you are passing along an initiator value from a chained
+        operation.
 
         """
-        if initiator is not False and item is not None:
+        if initiator is not False:
+            if self.invalidated:
+                self._warn_invalidated()
             return self.attr.fire_append_event(
                                     self.owner_state,
                                     self.owner_state.dict,
@@ -723,7 +740,9 @@ class CollectionAdapter(object):
         an initiator value from a chained operation.
 
         """
-        if initiator is not False and item is not None:
+        if initiator is not False:
+            if self.invalidated:
+                self._warn_invalidated()
             self.attr.fire_remove_event(
                                     self.owner_state,
                                     self.owner_state.dict,
@@ -736,6 +755,8 @@ class CollectionAdapter(object):
         fire_remove_event().
 
         """
+        if self.invalidated:
+            self._warn_invalidated()
         self.attr.fire_pre_remove_event(
                                     self.owner_state,
                                     self.owner_state.dict,
@@ -762,9 +783,11 @@ def bulk_replace(values, existing_adapter, new_adapter):
 
     :param values: An iterable of collection member instances
 
-    :param existing_adapter: A :class:`.CollectionAdapter` of instances to be replaced
+    :param existing_adapter: A :class:`.CollectionAdapter` of
+     instances to be replaced
 
-    :param new_adapter: An empty :class:`.CollectionAdapter` to load with ``values``
+    :param new_adapter: An empty :class:`.CollectionAdapter`
+     to load with ``values``
 
 
     """
@@ -785,6 +808,7 @@ def bulk_replace(values, existing_adapter, new_adapter):
     if existing_adapter:
         for member in removals:
             existing_adapter.remove_with_event(member)
+
 
 def prepare_instrumentation(factory):
     """Prepare a callable for future use as a collection class factory.
@@ -820,6 +844,7 @@ def prepare_instrumentation(factory):
 
     return factory
 
+
 def __converting_factory(original_factory):
     """Convert the type returned by collection factories on the fly.
 
@@ -847,10 +872,11 @@ def __converting_factory(original_factory):
         pass
     return wrapper
 
+
 def _instrument_class(cls):
     """Modify methods in a class and install instrumentation."""
 
-    # TODO: more formally document this as a decoratorless/Python 2.3
+    # this can be documented as a decoratorless
     # option for specifying instrumentation.  (likely doc'd here in code only,
     # not in online docs.)  Useful for C types too.
     #
@@ -956,6 +982,7 @@ def _instrument_class(cls):
 
     setattr(cls, '_sa_instrumented', id(cls))
 
+
 def _instrument_membership_mutator(method, before, argument, after):
     """Route method args and/or return value through the collection adapter."""
     # This isn't smart enough to handle @adds(1) for 'def fn(self, (a, b))'
@@ -1012,27 +1039,31 @@ def _instrument_membership_mutator(method, before, argument, after):
         pass
     return wrapper
 
+
 def __set(collection, item, _sa_initiator=None):
     """Run set events, may eventually be inlined into decorators."""
 
-    if _sa_initiator is not False and item is not None:
+    if _sa_initiator is not False:
         executor = getattr(collection, '_sa_adapter', None)
         if executor:
             item = getattr(executor, 'fire_append_event')(item, _sa_initiator)
     return item
 
+
 def __del(collection, item, _sa_initiator=None):
     """Run del events, may eventually be inlined into decorators."""
-    if _sa_initiator is not False and item is not None:
+    if _sa_initiator is not False:
         executor = getattr(collection, '_sa_adapter', None)
         if executor:
             getattr(executor, 'fire_remove_event')(item, _sa_initiator)
+
 
 def __before_delete(collection, _sa_initiator=None):
     """Special method to run 'commit existing value' methods"""
     executor = getattr(collection, '_sa_adapter', None)
     if executor:
         getattr(executor, 'fire_pre_remove_event')(_sa_initiator)
+
 
 def _list_decorators():
     """Tailored instrumentation wrappers for any list-like class."""
@@ -1171,6 +1202,7 @@ def _list_decorators():
     l.pop('_tidy')
     return l
 
+
 def _dict_decorators():
     """Tailored instrumentation wrappers for any dict-like mapping class."""
 
@@ -1235,32 +1267,23 @@ def _dict_decorators():
         _tidy(setdefault)
         return setdefault
 
-    if sys.version_info < (2, 4):
-        def update(fn):
-            def update(self, other):
-                for key in other.keys():
-                    if key not in self or self[key] is not other[key]:
-                        self[key] = other[key]
-            _tidy(update)
-            return update
-    else:
-        def update(fn):
-            def update(self, __other=Unspecified, **kw):
-                if __other is not Unspecified:
-                    if hasattr(__other, 'keys'):
-                        for key in __other.keys():
-                            if (key not in self or
-                                self[key] is not __other[key]):
-                                self[key] = __other[key]
-                    else:
-                        for key, value in __other:
-                            if key not in self or self[key] is not value:
-                                self[key] = value
-                for key in kw:
-                    if key not in self or self[key] is not kw[key]:
-                        self[key] = kw[key]
-            _tidy(update)
-            return update
+    def update(fn):
+        def update(self, __other=Unspecified, **kw):
+            if __other is not Unspecified:
+                if hasattr(__other, 'keys'):
+                    for key in __other.keys():
+                        if (key not in self or
+                            self[key] is not __other[key]):
+                            self[key] = __other[key]
+                else:
+                    for key, value in __other:
+                        if key not in self or self[key] is not value:
+                            self[key] = value
+            for key in kw:
+                if key not in self or self[key] is not kw[key]:
+                    self[key] = kw[key]
+        _tidy(update)
+        return update
 
     l = locals().copy()
     l.pop('_tidy')
@@ -1273,9 +1296,12 @@ else:
     import sets
     _set_binop_bases = (set, frozenset, sets.BaseSet)
 
+
 def _set_binops_check_strict(self, obj):
-    """Allow only set, frozenset and self.__class__-derived objects in binops."""
+    """Allow only set, frozenset and self.__class__-derived
+    objects in binops."""
     return isinstance(obj, _set_binop_bases + (self.__class__,))
+
 
 def _set_binops_check_loose(self, obj):
     """Allow anything set-like to participate in set binops."""
@@ -1301,23 +1327,15 @@ def _set_decorators():
         _tidy(add)
         return add
 
-    if sys.version_info < (2, 4):
-        def discard(fn):
-            def discard(self, value, _sa_initiator=None):
-                if value in self:
-                    self.remove(value, _sa_initiator)
-            _tidy(discard)
-            return discard
-    else:
-        def discard(fn):
-            def discard(self, value, _sa_initiator=None):
+    def discard(fn):
+        def discard(self, value, _sa_initiator=None):
+            # testlib.pragma exempt:__hash__
+            if value in self:
+                __del(self, value, _sa_initiator)
                 # testlib.pragma exempt:__hash__
-                if value in self:
-                    __del(self, value, _sa_initiator)
-                    # testlib.pragma exempt:__hash__
-                fn(self, value)
-            _tidy(discard)
-            return discard
+            fn(self, value)
+        _tidy(discard)
+        return discard
 
     def remove(fn):
         def remove(self, value, _sa_initiator=None):
@@ -1447,6 +1465,7 @@ class InstrumentedList(list):
        'remover': 'remove',
        'iterator': '__iter__', }
 
+
 class InstrumentedSet(set):
     """An instrumented version of the built-in set."""
 
@@ -1454,6 +1473,7 @@ class InstrumentedSet(set):
        'appender': 'add',
        'remover': 'remove',
        'iterator': '__iter__', }
+
 
 class InstrumentedDict(dict):
     """An instrumented version of the built-in dict."""
@@ -1493,13 +1513,14 @@ __interfaces = {
     None: {}
     }
 
+
 class MappedCollection(dict):
     """A basic dictionary-based collection class.
 
-    Extends dict with the minimal bag semantics that collection classes require.
-    ``set`` and ``remove`` are implemented in terms of a keying function: any
-    callable that takes an object and returns an object for use as a dictionary
-    key.
+    Extends dict with the minimal bag semantics that collection
+    classes require. ``set`` and ``remove`` are implemented in terms
+    of a keying function: any callable that takes an object and
+    returns an object for use as a dictionary key.
 
     """
 
@@ -1561,7 +1582,8 @@ class MappedCollection(dict):
             new_key = self.keyfunc(value)
             if incoming_key != new_key:
                 raise TypeError(
-                    "Found incompatible key %r for value %r; this collection's "
+                    "Found incompatible key %r for value %r; this "
+                    "collection's "
                     "keying function requires a key of %r for this value." % (
                     incoming_key, value, new_key))
             yield value
@@ -1575,4 +1597,3 @@ class MappedCollection(dict):
 _instrument_class(MappedCollection)
 _instrument_class(InstrumentedList)
 _instrument_class(InstrumentedSet)
-

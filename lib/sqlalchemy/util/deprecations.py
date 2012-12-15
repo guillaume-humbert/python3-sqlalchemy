@@ -7,16 +7,19 @@
 """Helpers related to deprecation of functions, methods, classes, other
 functionality."""
 
-from sqlalchemy import exc
+from .. import exc
 import warnings
 import re
 from langhelpers import decorator
 
+
 def warn_deprecated(msg, stacklevel=3):
     warnings.warn(msg, exc.SADeprecationWarning, stacklevel=stacklevel)
 
+
 def warn_pending_deprecation(msg, stacklevel=3):
     warnings.warn(msg, exc.SAPendingDeprecationWarning, stacklevel=stacklevel)
+
 
 def deprecated(version, message=None, add_deprecation_to_docstring=True):
     """Decorates a function and issues a deprecation warning on use.
@@ -46,6 +49,7 @@ def deprecated(version, message=None, add_deprecation_to_docstring=True):
             fn, exc.SADeprecationWarning,
             message % dict(func=fn.__name__), header)
     return decorate
+
 
 def pending_deprecation(version, message=None,
                         add_deprecation_to_docstring=True):
@@ -79,6 +83,7 @@ def pending_deprecation(version, message=None,
             fn, exc.SAPendingDeprecationWarning,
             message % dict(func=fn.__name__), header)
     return decorate
+
 
 def _sanitize_restructured_text(text):
     def repl(m):

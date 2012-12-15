@@ -1,15 +1,15 @@
 
-from test.lib.testing import eq_, assert_raises, \
+from sqlalchemy.testing import eq_, assert_raises, \
     assert_raises_message, assert_warnings
 from sqlalchemy import *
 from sqlalchemy.orm import attributes
 from sqlalchemy import exc as sa_exc, event
 from sqlalchemy.orm import exc as orm_exc
 from sqlalchemy.orm import *
-from test.lib.util import gc_collect
-from test.lib import testing
-from test.lib import fixtures
-from test.lib import engines
+from sqlalchemy.testing.util import gc_collect
+from sqlalchemy import testing
+from sqlalchemy.testing import fixtures
+from sqlalchemy.testing import engines
 from test.orm._fixtures import FixtureTest
 
 
@@ -111,7 +111,6 @@ class SessionTransactionTest(FixtureTest):
         User, users = self.classes.User, self.tables.users
 
         mapper(User, users)
-        users.delete().execute()
 
         s1 = create_session(bind=testing.db, autocommit=False)
         s2 = create_session(bind=testing.db, autocommit=False)
@@ -120,26 +119,6 @@ class SessionTransactionTest(FixtureTest):
         s1.flush()
 
         assert s2.query(User).all() == []
-
-    @testing.requires.savepoints
-    def test_rollback_ignores_clean_on_savepoint(self):
-        User, users = self.classes.User, self.tables.users
-
-        mapper(User, users)
-
-        s = Session(bind=testing.db)
-        u1 = User(name='u1')
-        u2 = User(name='u2')
-        s.add_all([u1, u2])
-        s.commit()
-        u1.name
-        u2.name
-        s.begin_nested()
-        u2.name = 'u2modified'
-        s.rollback()
-        assert 'name' not in u1.__dict__
-        assert 'name' not in u2.__dict__
-        eq_(u2.name, 'u2')
 
     @testing.requires.two_phase_transactions
     def test_twophase(self):
@@ -361,10 +340,6 @@ class SessionTransactionTest(FixtureTest):
         )
 
 
-
-
-
-
     def test_error_on_using_inactive_session_commands(self):
         users, User = self.tables.users, self.classes.User
 
@@ -521,6 +496,56 @@ class FixtureDataTest(_LocalFixture):
 
         assert u1.name == 'will'
 
+class CleanSavepointTest(FixtureTest):
+    """test the behavior for [ticket:2452] - rollback on begin_nested()
+    only expires objects tracked as being modified in that transaction.
+
+    """
+    run_inserts = None
+
+    def _run_test(self, update_fn):
+        User, users = self.classes.User, self.tables.users
+
+        mapper(User, users)
+
+        s = Session(bind=testing.db)
+        u1 = User(name='u1')
+        u2 = User(name='u2')
+        s.add_all([u1, u2])
+        s.commit()
+        u1.name
+        u2.name
+        s.begin_nested()
+        update_fn(s, u2)
+        eq_(u2.name, 'u2modified')
+        s.rollback()
+        eq_(u1.__dict__['name'], 'u1')
+        assert 'name' not in u2.__dict__
+        eq_(u2.name, 'u2')
+
+    @testing.requires.savepoints
+    def test_rollback_ignores_clean_on_savepoint(self):
+        User, users = self.classes.User, self.tables.users
+        def update_fn(s, u2):
+            u2.name = 'u2modified'
+        self._run_test(update_fn)
+
+    @testing.requires.savepoints
+    def test_rollback_ignores_clean_on_savepoint_agg_upd_eval(self):
+        User, users = self.classes.User, self.tables.users
+        def update_fn(s, u2):
+            s.query(User).filter_by(name='u2').update(dict(name='u2modified'),
+                                    synchronize_session='evaluate')
+        self._run_test(update_fn)
+
+    @testing.requires.savepoints
+    def test_rollback_ignores_clean_on_savepoint_agg_upd_fetch(self):
+        User, users = self.classes.User, self.tables.users
+        def update_fn(s, u2):
+            s.query(User).filter_by(name='u2').update(dict(name='u2modified'),
+                                    synchronize_session='fetch')
+        self._run_test(update_fn)
+
 class AutoExpireTest(_LocalFixture):
 
     def test_expunge_pending_on_rollback(self):
@@ -562,6 +587,7 @@ class AutoExpireTest(_LocalFixture):
         assert u1 in s
         assert u1 not in s.deleted
 
+    @testing.requires.predictable_gc
     def test_gced_delete_on_rollback(self):
         User, users = self.classes.User, self.tables.users
 
@@ -692,7 +718,7 @@ class RollbackRecoverTest(_LocalFixture):
         u1.name = 'edward'
         a1.email_address = 'foober'
         s.add(u2)
-        assert_raises(sa_exc.FlushError, s.commit)
+        assert_raises(orm_exc.FlushError, s.commit)
         assert_raises(sa_exc.InvalidRequestError, s.commit)
         s.rollback()
         assert u2 not in s
@@ -726,7 +752,7 @@ class RollbackRecoverTest(_LocalFixture):
         a1.email_address = 'foober'
         s.begin_nested()
         s.add(u2)
-        assert_raises(sa_exc.FlushError, s.commit)
+        assert_raises(orm_exc.FlushError, s.commit)
         assert_raises(sa_exc.InvalidRequestError, s.commit)
         s.rollback()
         assert u2 not in s
@@ -1127,7 +1153,89 @@ class NaturalPKRollbackTest(fixtures.MappedTest):
 
         session.rollback()
 
+    def test_key_replaced_by_update(self):
+        users, User = self.tables.users, self.classes.User
 
+        mapper(User, users)
 
+        u1 = User(name='u1')
+        u2 = User(name='u2')
+
+        s = Session()
+        s.add_all([u1, u2])
+        s.commit()
+
+        s.delete(u1)
+        s.flush()
+
+        u2.name = 'u1'
+        s.flush()
+
+        assert u1 not in s
+        s.rollback()
+
+        assert u1 in s
+        assert u2 in s
+
+        assert s.identity_map[(User, ('u1',))] is u1
+        assert s.identity_map[(User, ('u2',))] is u2
+
+    def test_multiple_key_replaced_by_update(self):
+        users, User = self.tables.users, self.classes.User
+
+        mapper(User, users)
+
+        u1 = User(name='u1')
+        u2 = User(name='u2')
+        u3 = User(name='u3')
+
+        s = Session()
+        s.add_all([u1, u2, u3])
+        s.commit()
+
+        s.delete(u1)
+        s.delete(u2)
+        s.flush()
+
+        u3.name = 'u1'
+        s.flush()
+
+        u3.name = 'u2'
+        s.flush()
+
+        s.rollback()
+
+        assert u1 in s
+        assert u2 in s
+        assert u3 in s
+
+        assert s.identity_map[(User, ('u1',))] is u1
+        assert s.identity_map[(User, ('u2',))] is u2
+        assert s.identity_map[(User, ('u3',))] is u3
+
+    def test_key_replaced_by_oob_insert(self):
+        users, User = self.tables.users, self.classes.User
+
+        mapper(User, users)
+
+        u1 = User(name='u1')
+
+        s = Session()
+        s.add(u1)
+        s.commit()
+
+        s.delete(u1)
+        s.flush()
+
+        s.execute(users.insert().values(name='u1'))
+        u2 = s.query(User).get('u1')
+
+        assert u1 not in s
+        s.rollback()
+
+        assert u1 in s
+        assert u2 not in s
+
+        assert s.identity_map[(User, ('u1',))] is u1
 
 

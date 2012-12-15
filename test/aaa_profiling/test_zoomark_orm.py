@@ -8,7 +8,8 @@ import sys
 import time
 from sqlalchemy import *
 from sqlalchemy.orm import *
-from test.lib import *
+from sqlalchemy.testing import fixtures, engines, profiling
+from sqlalchemy import testing
 ITERATIONS = 1
 dbapi_session = engines.ReplayableSession()
 metadata = None
@@ -326,12 +327,12 @@ class ZooMarkTest(fixtures.TestBase):
     def test_profile_0(self):
         global metadata, session
         player = lambda : dbapi_session.player()
-        engine = create_engine('postgresql:///', creator=player)
+        engine = create_engine('postgresql:///', creator=player,
+                    use_native_hstore=False)
         metadata = MetaData(engine)
         session = sessionmaker(engine)()
         engine.connect()
 
-    @profiling.function_call_count()
     def test_profile_1_create_tables(self):
         self.test_baseline_1_create_tables()
 
@@ -343,13 +344,9 @@ class ZooMarkTest(fixtures.TestBase):
     def test_profile_2_insert(self):
         self.test_baseline_2_insert()
 
-    # this number...
-
     @profiling.function_call_count()
     def test_profile_3_properties(self):
         self.test_baseline_3_properties()
-
-    # and this number go down slightly when using the C extensions
 
     @profiling.function_call_count()
     def test_profile_4_expressions(self):

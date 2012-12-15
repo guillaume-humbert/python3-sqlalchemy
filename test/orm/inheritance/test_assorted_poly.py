@@ -3,17 +3,18 @@ These are generally tests derived from specific user issues.
 
 """
 
-from test.lib.testing import eq_
+from sqlalchemy.testing import eq_
 from sqlalchemy import *
 from sqlalchemy import util
 from sqlalchemy.orm import *
 from sqlalchemy.orm.interfaces import MANYTOONE
-from test.lib import AssertsExecutionResults, testing
-from test.lib.util import function_named
-from test.lib import fixtures
+from sqlalchemy.testing import AssertsExecutionResults
+from sqlalchemy import testing
+from sqlalchemy.testing.util import function_named
+from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
-from test.lib.testing import eq_
-from test.lib.schema import Table, Column
+from sqlalchemy.testing import eq_
+from sqlalchemy.testing.schema import Table, Column
 
 class AttrSettable(object):
     def __init__(self, **kwargs):
@@ -639,7 +640,6 @@ class RelationshipTest7(fixtures.MappedTest):
                                     primary_key=True),
                 Column('category', String(70)))
 
-    @testing.uses_deprecated("fold_equivalents is deprecated.")
     def test_manytoone_lazyload(self):
         """test that lazy load clause to a polymorphic child mapper generates
         correctly [ticket:493]"""
@@ -686,8 +686,7 @@ class RelationshipTest7(fixtures.MappedTest):
         car_join = polymorphic_union(
             {
                 'car' : cars.outerjoin(offroad_cars).\
-                        select(offroad_cars.c.car_id == None,
-                                fold_equivalents=True),
+                        select(offroad_cars.c.car_id == None).reduce_columns(),
                 'offroad' : cars.join(offroad_cars)
             }, "type", 'car_join')
 

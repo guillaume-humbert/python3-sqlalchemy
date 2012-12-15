@@ -1,23 +1,24 @@
-from test.lib.testing import eq_, assert_raises, assert_raises_message
 import operator
 from sqlalchemy import MetaData, null, exists, text, union, literal, \
     literal_column, func, between, Unicode, desc, and_, bindparam, \
     select, distinct, or_, collate
+from sqlalchemy import inspect
 from sqlalchemy import exc as sa_exc, util
 from sqlalchemy.sql import compiler, table, column
 from sqlalchemy.sql import expression
 from sqlalchemy.engine import default
 from sqlalchemy.orm import attributes, mapper, relationship, backref, \
     configure_mappers, create_session, synonym, Session, class_mapper, \
-    aliased, column_property, joinedload_all, joinedload, Query
-from test.lib.assertsql import CompiledSQL
-from test.lib.testing import eq_
-from test.lib.schema import Table, Column
-
+    aliased, column_property, joinedload_all, joinedload, Query,\
+    util as orm_util
+from sqlalchemy.testing.assertsql import CompiledSQL
+from sqlalchemy.testing.schema import Table, Column
 import sqlalchemy as sa
-from test.lib import testing, AssertsCompiledSQL, engines
+from sqlalchemy import testing
+from sqlalchemy.testing.assertions import eq_, assert_raises, assert_raises_message
+from sqlalchemy.testing import AssertsCompiledSQL
 from test.orm import _fixtures
-from test.lib import fixtures
+from sqlalchemy.testing import fixtures, engines
 
 from sqlalchemy.orm.util import join, outerjoin, with_parent
 
@@ -29,45 +30,7 @@ class QueryTest(_fixtures.FixtureTest):
 
     @classmethod
     def setup_mappers(cls):
-        Node, composite_pk_table, users, Keyword, items, Dingaling, \
-            order_items, item_keywords, Item, User, dingalings, \
-            Address, keywords, CompositePk, nodes, Order, orders, \
-            addresses = cls.classes.Node, \
-            cls.tables.composite_pk_table, cls.tables.users, \
-            cls.classes.Keyword, cls.tables.items, \
-            cls.classes.Dingaling, cls.tables.order_items, \
-            cls.tables.item_keywords, cls.classes.Item, \
-            cls.classes.User, cls.tables.dingalings, \
-            cls.classes.Address, cls.tables.keywords, \
-            cls.classes.CompositePk, cls.tables.nodes, \
-            cls.classes.Order, cls.tables.orders, cls.tables.addresses
-
-        mapper(User, users, properties={
-            'addresses':relationship(Address, backref='user', order_by=addresses.c.id),
-            'orders':relationship(Order, backref='user', order_by=orders.c.id), # o2m, m2o
-        })
-        mapper(Address, addresses, properties={
-            'dingaling':relationship(Dingaling, uselist=False, backref="address")  #o2o
-        })
-        mapper(Dingaling, dingalings)
-        mapper(Order, orders, properties={
-            'items':relationship(Item, secondary=order_items, order_by=items.c.id),  #m2m
-            'address':relationship(Address),  # m2o
-        })
-        mapper(Item, items, properties={
-            'keywords':relationship(Keyword, secondary=item_keywords) #m2m
-        })
-        mapper(Keyword, keywords)
-
-        mapper(Node, nodes, properties={
-            'children':relationship(Node,
-                backref=backref('parent', remote_side=[nodes.c.id])
-            )
-        })
-
-        mapper(CompositePk, composite_pk_table)
-
-        configure_mappers()
+        cls._setup_stock_mapping()
 
 class MiscTest(QueryTest):
     run_create_tables = None
@@ -89,12 +52,12 @@ class RowTupleTest(QueryTest):
         User, users = self.classes.User, self.tables.users
 
         mapper(User, users, properties={
-            'uname':users.c.name
+            'uname': users.c.name
         })
 
         row  = create_session().\
                     query(User.id, User.uname).\
-                    filter(User.id==7).first()
+                    filter(User.id == 7).first()
         assert row.id == 7
         assert row.uname == 'jack'
 
@@ -144,7 +107,7 @@ class RowTupleTest(QueryTest):
                 sess.query(name_label, fn),
                 [
                     {'name':'uname', 'type':users.c.name.type,
-                                        'aliased':False,'expr':name_label},
+                                        'aliased':False, 'expr':name_label},
                     {'name':None, 'type':fn.type, 'aliased':False,
                         'expr':fn
                     },
@@ -155,6 +118,141 @@ class RowTupleTest(QueryTest):
                 q.column_descriptions,
                 asserted
             )
+
+    def test_unhashable_type(self):
+        from sqlalchemy.types import TypeDecorator, Integer
+        from sqlalchemy.sql import type_coerce
+
+        class MyType(TypeDecorator):
+            impl = Integer
+            hashable = False
+            def process_result_value(self, value, dialect):
+                return [value]
+
+        User, users = self.classes.User, self.tables.users
+
+        mapper(User, users)
+
+        s = Session()
+        q = s.\
+                    query(User, type_coerce(users.c.id, MyType).label('foo')).\
+                    filter(User.id == 7)
+        row = q.first()
+        eq_(
+            row, (User(id=7), [7])
+        )
+
+class RawSelectTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    def test_select_from_entity(self):
+        User = self.classes.User
+
+        self.assert_compile(
+            select(['*']).select_from(User),
+            "SELECT * FROM users"
+        )
+
+    def test_where_relationship(self):
+        User = self.classes.User
+
+        self.assert_compile(
+            select([User]).where(User.addresses),
+            "SELECT users.id, users.name FROM users, addresses "
+            "WHERE users.id = addresses.user_id"
+        )
+
+    def test_where_m2m_relationship(self):
+        Item = self.classes.Item
+
+        self.assert_compile(
+            select([Item]).where(Item.keywords),
+            "SELECT items.id, items.description FROM items, "
+            "item_keywords AS item_keywords_1, keywords "
+            "WHERE items.id = item_keywords_1.item_id "
+            "AND keywords.id = item_keywords_1.keyword_id"
+        )
+
+    def test_inline_select_from_entity(self):
+        User = self.classes.User
+
+        self.assert_compile(
+            select(['*'], from_obj=User),
+            "SELECT * FROM users"
+        )
+
+    def test_select_from_aliased_entity(self):
+        User = self.classes.User
+        ua = aliased(User, name="ua")
+        self.assert_compile(
+            select(['*']).select_from(ua),
+            "SELECT * FROM users AS ua"
+        )
+
+    def test_correlate_entity(self):
+        User = self.classes.User
+        Address = self.classes.Address
+
+        self.assert_compile(
+            select([User]).where(User.id == Address.user_id).
+                correlate(Address),
+            "SELECT users.id, users.name FROM users "
+            "WHERE users.id = addresses.user_id"
+        )
+
+    def test_correlate_aliased_entity(self):
+        User = self.classes.User
+        Address = self.classes.Address
+        aa = aliased(Address, name="aa")
+
+        self.assert_compile(
+            select([User]).where(User.id == aa.user_id).
+                correlate(aa),
+            "SELECT users.id, users.name FROM users "
+            "WHERE users.id = aa.user_id"
+        )
+
+    def test_columns_clause_entity(self):
+        User = self.classes.User
+
+        self.assert_compile(
+            select([User]),
+            "SELECT users.id, users.name FROM users"
+        )
+
+    def test_columns_clause_columns(self):
+        User = self.classes.User
+
+        self.assert_compile(
+            select([User.id, User.name]),
+            "SELECT users.id, users.name FROM users"
+        )
+
+    def test_columns_clause_aliased_columns(self):
+        User = self.classes.User
+        ua = aliased(User, name='ua')
+        self.assert_compile(
+            select([ua.id, ua.name]),
+            "SELECT ua.id, ua.name FROM users AS ua"
+        )
+
+    def test_columns_clause_aliased_entity(self):
+        User = self.classes.User
+        ua = aliased(User, name='ua')
+        self.assert_compile(
+            select([ua]),
+            "SELECT ua.id, ua.name FROM users AS ua"
+        )
+
+    def test_core_join(self):
+        User = self.classes.User
+        Address = self.classes.Address
+        from sqlalchemy.sql import join
+        self.assert_compile(
+            select([User]).select_from(join(User, Address)),
+            "SELECT users.id, users.name FROM users "
+            "JOIN addresses ON users.id = addresses.user_id"
+        )
 
 class GetTest(QueryTest):
     def test_get(self):
@@ -347,16 +445,6 @@ class GetTest(QueryTest):
         assert u.addresses[0].email_address == 'jack@bean.com'
         assert u.orders[1].items[2].description == 'item 5'
 
-    @testing.fails_on_everything_except('sqlite', '+pyodbc', '+zxjdbc', 'mysql+oursql')
-    def test_query_str(self):
-        User = self.classes.User
-
-        s = create_session()
-        q = s.query(User).filter(User.id==1)
-        eq_(
-            str(q).replace('\n',''),
-            'SELECT users.id AS users_id, users.name AS users_name FROM users WHERE users.id = ?'
-            )
 
 class InvalidGenerationsTest(QueryTest, AssertsCompiledSQL):
     def test_no_limit_offset(self):
@@ -623,7 +711,7 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
                     )
 
         u7 = User(id=7)
-        attributes.instance_state(u7).commit_all(attributes.instance_dict(u7))
+        attributes.instance_state(u7)._commit_all(attributes.instance_dict(u7))
 
         self._test(Address.user == u7, ":param_1 = addresses.user_id")
 
@@ -632,6 +720,14 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
         self._test(Address.user == None, "addresses.user_id IS NULL")
 
         self._test(Address.user != None, "addresses.user_id IS NOT NULL")
+
+    def test_foo(self):
+        Node = self.classes.Node
+        nalias = aliased(Node)
+        self._test(
+            nalias.parent.has(Node.data=='some data'),
+           "EXISTS (SELECT 1 FROM nodes WHERE nodes.id = nodes_1.parent_id AND nodes.data = :data_1)"
+        )
 
     def test_selfref_relationship(self):
         Node = self.classes.Node
@@ -837,6 +933,23 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
         eq_(a2.name, 'foo2')
         eq_(a3.name, '%%(%d anon)s' % id(a3))
 
+    def test_labeled_subquery(self):
+        User = self.classes.User
+
+        session = create_session()
+        a1 = session.query(User.id).filter(User.id == 7).subquery(with_labels=True)
+        assert a1.c.users_id is not None
+
+    def test_reduced_subquery(self):
+        User = self.classes.User
+        ua = aliased(User)
+
+        session = create_session()
+        a1 = session.query(User.id, ua.id, ua.name).\
+                filter(User.id == ua.id).subquery(reduce_columns=True)
+        self.assert_compile(a1,
+                "SELECT users.id, users_1.name FROM "
+                "users, users AS users_1 WHERE users.id = users_1.id")
 
     def test_label(self):
         User = self.classes.User
@@ -862,15 +975,15 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
                             'IN (SELECT users.id FROM users WHERE '
                             'users.id = :id_1)')
 
-    @testing.fails_on('mssql', "mssql doesn't allow col = <subquery>, sqla deprecated workaround")
     def test_param_transfer(self):
         User = self.classes.User
 
         session = create_session()
 
-        q = session.query(User.id).filter(User.id==bindparam('foo')).params(foo=7).subquery()
+        q = session.query(User.id).filter(User.id == bindparam('foo')).\
+                            params(foo=7).subquery()
 
-        q = session.query(User).filter(User.id==q)
+        q = session.query(User).filter(User.id.in_(q))
 
         eq_(User(id=7), q.one())
 
@@ -878,7 +991,8 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
         User, Address = self.classes.User, self.classes.Address
 
         session = create_session()
-        s = session.query(User.id).join(User.addresses).group_by(User.id).having(func.count(Address.id) > 2)
+        s = session.query(User.id).join(User.addresses).group_by(User.id).\
+                                    having(func.count(Address.id) > 2)
         eq_(
             session.query(User).filter(User.id.in_(s)).all(),
             [User(id=8)]
@@ -1039,6 +1153,15 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
             assert True
 
         #assert [User(id=7), User(id=9), User(id=10)] == sess.query(User).filter(User.addresses!=address).all()
+
+    def test_clause_element_ok(self):
+        User = self.classes.User
+        s = Session()
+        self.assert_compile(
+            s.query(User).filter(User.addresses),
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users, addresses WHERE users.id = addresses.user_id"
+        )
 
     def test_unique_binds_join_cond(self):
         """test that binds used when the lazyclause is used in criterion are unique"""
@@ -1301,8 +1424,8 @@ class SetOpsTest(QueryTest, AssertsCompiledSQL):
         self.assert_compile(
             q3,
             "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS anon_1_users_name,"
-            " anon_1.anon_2 AS anon_1_anon_2 FROM (SELECT users.id AS users_id, users.name AS"
-            " users_name, :param_1 AS anon_2 FROM users UNION SELECT users.id AS users_id, "
+            " anon_1.param_1 AS anon_1_param_1 FROM (SELECT users.id AS users_id, users.name AS"
+            " users_name, :param_1 AS param_1 FROM users UNION SELECT users.id AS users_id, "
             "users.name AS users_name, 'y' FROM users) AS anon_1"
         )
 
@@ -1324,7 +1447,7 @@ class SetOpsTest(QueryTest, AssertsCompiledSQL):
             ['User', 'foo']
         )
 
-        for q in (q3.order_by(User.id, "anon_1_anon_2"), q6.order_by(User.id, "foo")):
+        for q in (q3.order_by(User.id, "anon_1_param_1"), q6.order_by(User.id, "foo")):
             eq_(q.all(),
                 [
                     (User(id=7, name=u'jack'), u'x'),
@@ -1418,7 +1541,7 @@ class SetOpsTest(QueryTest, AssertsCompiledSQL):
         )
 
 
-    @testing.fails_on('mysql', "mysql doesn't support intersect")
+    @testing.requires.intersect
     def test_intersect(self):
         User = self.classes.User
 
@@ -2173,7 +2296,7 @@ class ExecutionOptionsTest(QueryTest):
 
 
 class OptionsTest(QueryTest):
-    """Test the _get_paths() method of PropertyOption."""
+    """Test the _process_paths() method of PropertyOption."""
 
     def _option_fixture(self, *arg):
         from sqlalchemy.orm import interfaces
@@ -2187,14 +2310,21 @@ class OptionsTest(QueryTest):
             if i % 2 == 0:
                 if isinstance(item, type):
                     item = class_mapper(item)
+            else:
+                if isinstance(item, basestring):
+                    item = inspect(r[-1]).mapper.attrs[item]
             r.append(item)
         return tuple(r)
 
-    def _assert_path_result(self, opt, q, paths, mappers):
+    def _make_path_registry(self, path):
+        return orm_util.PathRegistry.coerce(self._make_path(path))
+
+    def _assert_path_result(self, opt, q, paths):
+        q._attributes = q._attributes.copy()
+        assert_paths = opt._process_paths(q, False)
         eq_(
-            opt._get_paths(q, False),
-            ([self._make_path(p) for p in paths],
-            [class_mapper(c) for c in mappers])
+            [p.path for p in assert_paths],
+            [self._make_path(p) for p in paths]
         )
 
     def test_get_path_one_level_string(self):
@@ -2204,7 +2334,7 @@ class OptionsTest(QueryTest):
         q = sess.query(User)
 
         opt = self._option_fixture("addresses")
-        self._assert_path_result(opt, q, [(User, 'addresses')], [User])
+        self._assert_path_result(opt, q, [(User, 'addresses')])
 
     def test_get_path_one_level_attribute(self):
         User = self.classes.User
@@ -2213,7 +2343,7 @@ class OptionsTest(QueryTest):
         q = sess.query(User)
 
         opt = self._option_fixture(User.addresses)
-        self._assert_path_result(opt, q, [(User, 'addresses')], [User])
+        self._assert_path_result(opt, q, [(User, 'addresses')])
 
     def test_path_on_entity_but_doesnt_match_currentpath(self):
         User, Address = self.classes.User, self.classes.Address
@@ -2224,8 +2354,11 @@ class OptionsTest(QueryTest):
         sess = Session()
         q = sess.query(User)
         opt = self._option_fixture('email_address', 'id')
-        q = sess.query(Address)._with_current_path([class_mapper(User), 'addresses'])
-        self._assert_path_result(opt, q, [], [])
+        q = sess.query(Address)._with_current_path(
+                orm_util.PathRegistry.coerce([inspect(User),
+                        inspect(User).attrs.addresses])
+            )
+        self._assert_path_result(opt, q, [])
 
     def test_get_path_one_level_with_unrelated(self):
         Order = self.classes.Order
@@ -2233,7 +2366,7 @@ class OptionsTest(QueryTest):
         sess = Session()
         q = sess.query(Order)
         opt = self._option_fixture("addresses")
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
     def test_path_multilevel_string(self):
         Item, User, Order = (self.classes.Item,
@@ -2248,8 +2381,7 @@ class OptionsTest(QueryTest):
             (User, 'orders'),
             (User, 'orders', Order, 'items'),
             (User, 'orders', Order, 'items', Item, 'keywords')
-        ],
-        [User, Order, Item])
+        ])
 
     def test_path_multilevel_attribute(self):
         Item, User, Order = (self.classes.Item,
@@ -2264,8 +2396,7 @@ class OptionsTest(QueryTest):
             (User, 'orders'),
             (User, 'orders', Order, 'items'),
             (User, 'orders', Order, 'items', Item, 'keywords')
-        ],
-        [User, Order, Item])
+        ])
 
     def test_with_current_matching_string(self):
         Item, User, Order = (self.classes.Item,
@@ -2274,13 +2405,13 @@ class OptionsTest(QueryTest):
 
         sess = Session()
         q = sess.query(Item)._with_current_path(
-                self._make_path([User, 'orders', Order, 'items'])
+                self._make_path_registry([User, 'orders', Order, 'items'])
             )
 
         opt = self._option_fixture("orders.items.keywords")
         self._assert_path_result(opt, q, [
             (Item, 'keywords')
-        ], [Item])
+        ])
 
     def test_with_current_matching_attribute(self):
         Item, User, Order = (self.classes.Item,
@@ -2289,13 +2420,13 @@ class OptionsTest(QueryTest):
 
         sess = Session()
         q = sess.query(Item)._with_current_path(
-                self._make_path([User, 'orders', Order, 'items'])
+                self._make_path_registry([User, 'orders', Order, 'items'])
             )
 
         opt = self._option_fixture(User.orders, Order.items, Item.keywords)
         self._assert_path_result(opt, q, [
             (Item, 'keywords')
-        ], [Item])
+        ])
 
     def test_with_current_nonmatching_string(self):
         Item, User, Order = (self.classes.Item,
@@ -2304,14 +2435,14 @@ class OptionsTest(QueryTest):
 
         sess = Session()
         q = sess.query(Item)._with_current_path(
-                self._make_path([User, 'orders', Order, 'items'])
+                self._make_path_registry([User, 'orders', Order, 'items'])
             )
 
         opt = self._option_fixture("keywords")
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
         opt = self._option_fixture("items.keywords")
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
     def test_with_current_nonmatching_attribute(self):
         Item, User, Order = (self.classes.Item,
@@ -2320,14 +2451,14 @@ class OptionsTest(QueryTest):
 
         sess = Session()
         q = sess.query(Item)._with_current_path(
-                self._make_path([User, 'orders', Order, 'items'])
+                self._make_path_registry([User, 'orders', Order, 'items'])
             )
 
         opt = self._option_fixture(Item.keywords)
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
         opt = self._option_fixture(Order.items, Item.keywords)
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
     def test_from_base_to_subclass_attr(self):
         Dingaling, Address = self.classes.Dingaling, self.classes.Address
@@ -2336,13 +2467,13 @@ class OptionsTest(QueryTest):
         class SubAddr(Address):
             pass
         mapper(SubAddr, inherits=Address, properties={
-            'flub':relationship(Dingaling)
+            'flub': relationship(Dingaling)
         })
 
         q = sess.query(Address)
         opt = self._option_fixture(SubAddr.flub)
 
-        self._assert_path_result(opt, q, [(Address, 'flub')], [SubAddr])
+        self._assert_path_result(opt, q, [(SubAddr, 'flub')])
 
     def test_from_subclass_to_subclass_attr(self):
         Dingaling, Address = self.classes.Dingaling, self.classes.Address
@@ -2351,13 +2482,13 @@ class OptionsTest(QueryTest):
         class SubAddr(Address):
             pass
         mapper(SubAddr, inherits=Address, properties={
-            'flub':relationship(Dingaling)
+            'flub': relationship(Dingaling)
         })
 
         q = sess.query(SubAddr)
         opt = self._option_fixture(SubAddr.flub)
 
-        self._assert_path_result(opt, q, [(SubAddr, 'flub')], [SubAddr])
+        self._assert_path_result(opt, q, [(SubAddr, 'flub')])
 
     def test_from_base_to_base_attr_via_subclass(self):
         Dingaling, Address = self.classes.Dingaling, self.classes.Address
@@ -2366,13 +2497,14 @@ class OptionsTest(QueryTest):
         class SubAddr(Address):
             pass
         mapper(SubAddr, inherits=Address, properties={
-            'flub':relationship(Dingaling)
+            'flub': relationship(Dingaling)
         })
 
         q = sess.query(Address)
         opt = self._option_fixture(SubAddr.user)
 
-        self._assert_path_result(opt, q, [(Address, 'user')], [Address])
+        self._assert_path_result(opt, q,
+                [(Address, inspect(Address).attrs.user)])
 
     def test_of_type(self):
         User, Address = self.classes.User, self.classes.Address
@@ -2385,10 +2517,12 @@ class OptionsTest(QueryTest):
         q = sess.query(User)
         opt = self._option_fixture(User.addresses.of_type(SubAddr), SubAddr.user)
 
+        u_mapper = inspect(User)
+        a_mapper = inspect(Address)
         self._assert_path_result(opt, q, [
-            (User, 'addresses'),
-            (User, 'addresses', SubAddr, 'user')
-        ], [User, Address])
+            (u_mapper, u_mapper.attrs.addresses),
+            (u_mapper, u_mapper.attrs.addresses, a_mapper, a_mapper.attrs.user)
+        ])
 
     def test_of_type_plus_level(self):
         Dingaling, User, Address = (self.classes.Dingaling,
@@ -2399,16 +2533,18 @@ class OptionsTest(QueryTest):
         class SubAddr(Address):
             pass
         mapper(SubAddr, inherits=Address, properties={
-            'flub':relationship(Dingaling)
+            'flub': relationship(Dingaling)
         })
 
         q = sess.query(User)
         opt = self._option_fixture(User.addresses.of_type(SubAddr), SubAddr.flub)
 
+        u_mapper = inspect(User)
+        sa_mapper = inspect(SubAddr)
         self._assert_path_result(opt, q, [
-            (User, 'addresses'),
-            (User, 'addresses', SubAddr, 'flub')
-        ], [User, SubAddr])
+            (u_mapper, u_mapper.attrs.addresses),
+            (u_mapper, u_mapper.attrs.addresses, sa_mapper, sa_mapper.attrs.flub)
+        ])
 
     def test_aliased_single(self):
         User = self.classes.User
@@ -2417,7 +2553,7 @@ class OptionsTest(QueryTest):
         ualias = aliased(User)
         q = sess.query(ualias)
         opt = self._option_fixture(ualias.addresses)
-        self._assert_path_result(opt, q, [(ualias, 'addresses')], [User])
+        self._assert_path_result(opt, q, [(inspect(ualias), 'addresses')])
 
     def test_with_current_aliased_single(self):
         User, Address = self.classes.User, self.classes.Address
@@ -2425,10 +2561,10 @@ class OptionsTest(QueryTest):
         sess = Session()
         ualias = aliased(User)
         q = sess.query(ualias)._with_current_path(
-                        self._make_path([Address, 'user'])
+                        self._make_path_registry([Address, 'user'])
                 )
         opt = self._option_fixture(Address.user, ualias.addresses)
-        self._assert_path_result(opt, q, [(ualias, 'addresses')], [User])
+        self._assert_path_result(opt, q, [(inspect(ualias), 'addresses')])
 
     def test_with_current_aliased_single_nonmatching_option(self):
         User, Address = self.classes.User, self.classes.Address
@@ -2436,22 +2572,21 @@ class OptionsTest(QueryTest):
         sess = Session()
         ualias = aliased(User)
         q = sess.query(User)._with_current_path(
-                        self._make_path([Address, 'user'])
+                        self._make_path_registry([Address, 'user'])
                 )
         opt = self._option_fixture(Address.user, ualias.addresses)
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
-    @testing.fails_if(lambda: True, "Broken feature")
     def test_with_current_aliased_single_nonmatching_entity(self):
         User, Address = self.classes.User, self.classes.Address
 
         sess = Session()
         ualias = aliased(User)
         q = sess.query(ualias)._with_current_path(
-                        self._make_path([Address, 'user'])
+                        self._make_path_registry([Address, 'user'])
                 )
         opt = self._option_fixture(Address.user, User.addresses)
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
     def test_multi_entity_opt_on_second(self):
         Item = self.classes.Item
@@ -2459,7 +2594,7 @@ class OptionsTest(QueryTest):
         opt = self._option_fixture(Order.items)
         sess = Session()
         q = sess.query(Item, Order)
-        self._assert_path_result(opt, q, [(Order, "items")], [Order])
+        self._assert_path_result(opt, q, [(Order, "items")])
 
     def test_multi_entity_opt_on_string(self):
         Item = self.classes.Item
@@ -2467,7 +2602,7 @@ class OptionsTest(QueryTest):
         opt = self._option_fixture("items")
         sess = Session()
         q = sess.query(Item, Order)
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
     def test_multi_entity_no_mapped_entities(self):
         Item = self.classes.Item
@@ -2475,7 +2610,7 @@ class OptionsTest(QueryTest):
         opt = self._option_fixture("items")
         sess = Session()
         q = sess.query(Item.id, Order.id)
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
     def test_path_exhausted(self):
         User = self.classes.User
@@ -2484,9 +2619,9 @@ class OptionsTest(QueryTest):
         opt = self._option_fixture(User.orders)
         sess = Session()
         q = sess.query(Item)._with_current_path(
-                        self._make_path([User, 'orders', Order, 'items'])
+                        self._make_path_registry([User, 'orders', Order, 'items'])
                 )
-        self._assert_path_result(opt, q, [], [])
+        self._assert_path_result(opt, q, [])
 
 class OptionsNoPropTest(_fixtures.FixtureTest):
     """test the error messages emitted when using property
@@ -2703,8 +2838,8 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
                     cls.tables.addresses, cls.classes.Address,
                     cls.tables.orders, cls.classes.Order)
         mapper(User, users, properties={
-            'addresses':relationship(Address),
-            'orders':relationship(Order)
+            'addresses': relationship(Address),
+            'orders': relationship(Order)
         })
         mapper(Address, addresses)
         mapper(Order, orders)
@@ -2714,7 +2849,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
                                 cls.classes.Keyword,
                                 cls.classes.Item)
         mapper(Keyword, keywords, properties={
-            "keywords":column_property(keywords.c.name + "some keyword")
+            "keywords": column_property(keywords.c.name + "some keyword")
         })
         mapper(Item, items,
                properties=dict(keywords=relationship(Keyword,
@@ -2725,7 +2860,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
 
         q = create_session().query(*entity_list).\
                             options(joinedload(option))
-        key = ('loaderstrategy', (class_mapper(Item), 'keywords'))
+        key = ('loaderstrategy', (inspect(Item), inspect(Item).attrs.keywords))
         assert key in q._attributes
 
     def _assert_eager_with_entity_exception(self, entity_list, options,
@@ -2740,3 +2875,4 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         assert_raises_message(sa.exc.ArgumentError, message,
                               create_session().query(column).options,
                               joinedload(eager_option))
+

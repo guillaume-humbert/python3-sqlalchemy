@@ -11,7 +11,7 @@ Standards-Version: 3.9.3
 Homepage: http://www.sqlalchemy.org/
 Vcs-Svn: svn://svn.debian.org/python-modules/packages/sqlalchemy/trunk
 Vcs-Browser: http://svn.debian.org/viewsvn/python-modules/packages/sqlalchemy/trunk/
-XS-Python-Version: >= 2.4
+XS-Python-Version: >= 2.5
 
 Package: python-sqlalchemy
 Architecture: all

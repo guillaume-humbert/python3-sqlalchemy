@@ -3,11 +3,11 @@ from sqlalchemy.types import PickleType, TypeDecorator, VARCHAR
 from sqlalchemy.orm import mapper, Session, composite
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.orm.instrumentation import ClassManager
-from test.lib.schema import Table, Column
-from test.lib.testing import eq_, assert_raises_message
-from test.lib.util import picklers
-from test.lib import testing
-from test.lib import fixtures
+from sqlalchemy.testing.schema import Table, Column
+from sqlalchemy.testing import eq_, assert_raises_message
+from sqlalchemy.testing.util import picklers
+from sqlalchemy import testing
+from sqlalchemy.testing import fixtures
 import sys
 import pickle
 
@@ -28,40 +28,14 @@ class FooWithEq(object):
     def __eq__(self, other):
         return self.id == other.id
 
+from sqlalchemy.ext.mutable import MutableDict
+
 class _MutableDictTestBase(object):
     run_define_tables = 'each'
 
     @classmethod
     def _type_fixture(cls):
-        from sqlalchemy.ext.mutable import Mutable
-
-        # needed for pickle support
-        global MutationDict
-
-        class MutationDict(Mutable, dict):
-            @classmethod
-            def coerce(cls, key, value):
-                if not isinstance(value, MutationDict):
-                    if isinstance(value, dict):
-                        return MutationDict(value)
-                    return Mutable.coerce(key, value)
-                else:
-                    return value
-
-            def __getstate__(self):
-                return dict(self)
-
-            def __setstate__(self, state):
-                self.update(state)
-
-            def __setitem__(self, key, value):
-                dict.__setitem__(self, key, value)
-                self.changed()
-
-            def __delitem__(self, key):
-                dict.__delitem__(self, key)
-                self.changed()
-        return MutationDict
+        return MutableDict
 
     def setup_mappers(cls):
         foo = cls.tables.foo
@@ -85,35 +59,35 @@ class _MutableDictTestBase(object):
         assert_raises_message(
             ValueError,
             "Attribute 'data' does not accept objects of type",
-            Foo, data=set([1,2,3])
+            Foo, data=set([1, 2, 3])
         )
 
     def test_in_place_mutation(self):
         sess = Session()
 
-        f1 = Foo(data={'a':'b'})
+        f1 = Foo(data={'a': 'b'})
         sess.add(f1)
         sess.commit()
 
         f1.data['a'] = 'c'
         sess.commit()
 
-        eq_(f1.data, {'a':'c'})
+        eq_(f1.data, {'a': 'c'})
 
     def test_replace(self):
         sess = Session()
-        f1 = Foo(data={'a':'b'})
+        f1 = Foo(data={'a': 'b'})
         sess.add(f1)
         sess.flush()
 
-        f1.data = {'b':'c'}
+        f1.data = {'b': 'c'}
         sess.commit()
-        eq_(f1.data, {'b':'c'})
+        eq_(f1.data, {'b': 'c'})
 
     def test_pickle_parent(self):
         sess = Session()
 
-        f1 = Foo(data={'a':'b'})
+        f1 = Foo(data={'a': 'b'})
         sess.add(f1)
         sess.commit()
         f1.data
@@ -128,7 +102,7 @@ class _MutableDictTestBase(object):
 
     def test_unrelated_flush(self):
         sess = Session()
-        f1 = Foo(data={"a":"b"}, unrelated_data="unrelated")
+        f1 = Foo(data={"a": "b"}, unrelated_data="unrelated")
         sess.add(f1)
         sess.flush()
         f1.unrelated_data = "unrelated 2"
@@ -140,21 +114,21 @@ class _MutableDictTestBase(object):
     def _test_non_mutable(self):
         sess = Session()
 
-        f1 = Foo(non_mutable_data={'a':'b'})
+        f1 = Foo(non_mutable_data={'a': 'b'})
         sess.add(f1)
         sess.commit()
 
         f1.non_mutable_data['a'] = 'c'
         sess.commit()
 
-        eq_(f1.non_mutable_data, {'a':'b'})
+        eq_(f1.non_mutable_data, {'a': 'b'})
 
 class MutableWithScalarPickleTest(_MutableDictTestBase, fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
-        MutationDict = cls._type_fixture()
+        MutableDict = cls._type_fixture()
 
-        mutable_pickle = MutationDict.as_mutable(PickleType)
+        mutable_pickle = MutableDict.as_mutable(PickleType)
         Table('foo', metadata,
             Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('skip', mutable_pickle),
@@ -168,7 +142,7 @@ class MutableWithScalarPickleTest(_MutableDictTestBase, fixtures.MappedTest):
 
 class MutableWithScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
     # json introduced in 2.6
-    __skip_if__ = lambda : sys.version_info < (2, 6),
+    __skip_if__ = lambda: sys.version_info < (2, 6),
 
     @classmethod
     def define_tables(cls, metadata):
@@ -188,11 +162,11 @@ class MutableWithScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
                     value = json.loads(value)
                 return value
 
-        MutationDict = cls._type_fixture()
+        MutableDict = cls._type_fixture()
 
         Table('foo', metadata,
             Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
-            Column('data', MutationDict.as_mutable(JSONEncodedDict)),
+            Column('data', MutableDict.as_mutable(JSONEncodedDict)),
             Column('non_mutable_data', JSONEncodedDict),
             Column('unrelated_data', String(50))
         )
@@ -203,7 +177,6 @@ class MutableWithScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
 class MutableAssocWithAttrInheritTest(_MutableDictTestBase, fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
-        MutationDict = cls._type_fixture()
 
         Table('foo', metadata,
             Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
@@ -222,35 +195,35 @@ class MutableAssocWithAttrInheritTest(_MutableDictTestBase, fixtures.MappedTest)
 
         mapper(Foo, foo)
         mapper(SubFoo, subfoo, inherits=Foo)
-        MutationDict.associate_with_attribute(Foo.data)
+        MutableDict.associate_with_attribute(Foo.data)
 
     def test_in_place_mutation(self):
         sess = Session()
 
-        f1 = SubFoo(data={'a':'b'})
+        f1 = SubFoo(data={'a': 'b'})
         sess.add(f1)
         sess.commit()
 
         f1.data['a'] = 'c'
         sess.commit()
 
-        eq_(f1.data, {'a':'c'})
+        eq_(f1.data, {'a': 'c'})
 
     def test_replace(self):
         sess = Session()
-        f1 = SubFoo(data={'a':'b'})
+        f1 = SubFoo(data={'a': 'b'})
         sess.add(f1)
         sess.flush()
 
-        f1.data = {'b':'c'}
+        f1.data = {'b': 'c'}
         sess.commit()
-        eq_(f1.data, {'b':'c'})
+        eq_(f1.data, {'b': 'c'})
 
 class MutableAssociationScalarPickleTest(_MutableDictTestBase, fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
-        MutationDict = cls._type_fixture()
-        MutationDict.associate_with(PickleType)
+        MutableDict = cls._type_fixture()
+        MutableDict.associate_with(PickleType)
 
         Table('foo', metadata,
             Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
@@ -261,7 +234,7 @@ class MutableAssociationScalarPickleTest(_MutableDictTestBase, fixtures.MappedTe
 
 class MutableAssociationScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
     # json introduced in 2.6
-    __skip_if__ = lambda : sys.version_info < (2, 6),
+    __skip_if__ = lambda: sys.version_info < (2, 6),
 
     @classmethod
     def define_tables(cls, metadata):
@@ -281,11 +254,12 @@ class MutableAssociationScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest
                     value = json.loads(value)
                 return value
 
-        MutationDict = cls._type_fixture()
-        MutationDict.associate_with(JSONEncodedDict)
+        MutableDict = cls._type_fixture()
+        MutableDict.associate_with(JSONEncodedDict)
 
         Table('foo', metadata,
-            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('id', Integer, primary_key=True,
+                            test_needs_autoincrement=True),
             Column('data', JSONEncodedDict),
             Column('unrelated_data', String(50))
         )
@@ -295,11 +269,18 @@ class _CompositeTestBase(object):
     @classmethod
     def define_tables(cls, metadata):
         Table('foo', metadata,
-            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('id', Integer, primary_key=True,
+                            test_needs_autoincrement=True),
             Column('x', Integer),
             Column('y', Integer),
             Column('unrelated_data', String(50))
         )
+
+    def setup(self):
+        from sqlalchemy.ext import mutable
+        mutable._setup_composite_listener()
+        super(_CompositeTestBase, self).setup()
+
 
     def teardown(self):
         # clear out mapper events
@@ -310,7 +291,6 @@ class _CompositeTestBase(object):
     @classmethod
     def _type_fixture(cls):
 
-        from sqlalchemy.ext.mutable import Mutable
         from sqlalchemy.ext.mutable import MutableComposite
 
         global Point
@@ -348,7 +328,7 @@ class MutableCompositesUnpickleTest(_CompositeTestBase, fixtures.MappedTest):
         cls.Point = cls._type_fixture()
 
         mapper(FooWithEq, foo, properties={
-            'data':composite(cls.Point, foo.c.x, foo.c.y)
+            'data': composite(cls.Point, foo.c.x, foo.c.y)
         })
 
     def test_unpickle_modified_eq(self):
@@ -365,7 +345,7 @@ class MutableCompositesTest(_CompositeTestBase, fixtures.MappedTest):
         Point = cls._type_fixture()
 
         mapper(Foo, foo, properties={
-            'data':composite(Point, foo.c.x, foo.c.y)
+            'data': composite(Point, foo.c.x, foo.c.y)
         })
 
     def test_in_place_mutation(self):
@@ -429,6 +409,71 @@ class MutableCompositesTest(_CompositeTestBase, fixtures.MappedTest):
 
         eq_(f1.data.x, 5)
 
+class MutableCompositeCustomCoerceTest(_CompositeTestBase, fixtures.MappedTest):
+    @classmethod
+    def _type_fixture(cls):
+
+        from sqlalchemy.ext.mutable import MutableComposite
+
+        global Point
+
+        class Point(MutableComposite):
+            def __init__(self, x, y):
+                self.x = x
+                self.y = y
+
+            @classmethod
+            def coerce(cls, key, value):
+                if isinstance(value, tuple):
+                    value = Point(*value)
+                return value
+
+            def __setattr__(self, key, value):
+                object.__setattr__(self, key, value)
+                self.changed()
+
+            def __composite_values__(self):
+                return self.x, self.y
+
+            def __getstate__(self):
+                return self.x, self.y
+
+            def __setstate__(self, state):
+                self.x, self.y = state
+
+            def __eq__(self, other):
+                return isinstance(other, Point) and \
+                    other.x == self.x and \
+                    other.y == self.y
+        return Point
+
+
+    @classmethod
+    def setup_mappers(cls):
+        foo = cls.tables.foo
+
+        Point = cls._type_fixture()
+
+        mapper(Foo, foo, properties={
+            'data': composite(Point, foo.c.x, foo.c.y)
+        })
+
+    def test_custom_coerce(self):
+        f = Foo()
+        f.data = (3, 4)
+        eq_(f.data, Point(3, 4))
+
+    def test_round_trip_ok(self):
+        sess = Session()
+        f = Foo()
+        f.data = (3, 4)
+
+        sess.add(f)
+        sess.commit()
+
+        eq_(f.data, Point(3, 4))
+
+
 class MutableInheritedCompositesTest(_CompositeTestBase, fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
@@ -449,7 +494,7 @@ class MutableInheritedCompositesTest(_CompositeTestBase, fixtures.MappedTest):
         Point = cls._type_fixture()
 
         mapper(Foo, foo, properties={
-            'data':composite(Point, foo.c.x, foo.c.y)
+            'data': composite(Point, foo.c.x, foo.c.y)
         })
         mapper(SubFoo, subfoo, inherits=Foo)
 

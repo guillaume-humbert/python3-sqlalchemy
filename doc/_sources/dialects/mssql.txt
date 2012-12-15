@@ -109,7 +109,7 @@ pymssql
 -------
 .. automodule:: sqlalchemy.dialects.mssql.pymssql
 
-zxjdbc Notes
+zxjdbc
 --------------
 
 .. automodule:: sqlalchemy.dialects.mssql.zxjdbc

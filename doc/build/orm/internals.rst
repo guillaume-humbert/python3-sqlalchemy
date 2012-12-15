@@ -3,17 +3,25 @@
 ORM Internals
 =============
 
-Some key internal constructs are listed here.
+Key ORM constructs, not otherwise covered in other
+sections, are listed here.
 
 .. currentmodule: sqlalchemy.orm
+
+.. autoclass:: sqlalchemy.orm.state.AttributeState
+    :members:
+    :show-inheritance:
+    :inherited-members:
 
 .. autoclass:: sqlalchemy.orm.instrumentation.ClassManager
     :members:
     :show-inheritance:
+    :inherited-members:
 
 .. autoclass:: sqlalchemy.orm.properties.ColumnProperty
     :members:
     :show-inheritance:
+    :inherited-members:
 
 .. autoclass:: sqlalchemy.orm.descriptor_props.CompositeProperty
     :members:
@@ -23,6 +31,11 @@ Some key internal constructs are listed here.
     :members:
     :show-inheritance:
 
+.. autoclass:: sqlalchemy.orm.attributes.InstrumentedAttribute
+    :members:
+    :show-inheritance:
+    :inherited-members:
+
 .. autoclass:: sqlalchemy.orm.interfaces.MapperProperty
     :members:
     :show-inheritance:
@@ -30,16 +43,23 @@ Some key internal constructs are listed here.
 .. autoclass:: sqlalchemy.orm.interfaces.PropComparator
     :members:
     :show-inheritance:
+    :inherited-members:
 
 .. autoclass:: sqlalchemy.orm.properties.RelationshipProperty
     :members:
     :show-inheritance:
-
+    :inherited-members:
 
 .. autoclass:: sqlalchemy.orm.descriptor_props.SynonymProperty
     :members:
     :show-inheritance:
+    :inherited-members:
 
 .. autoclass:: sqlalchemy.orm.query.QueryContext
     :members:
     :show-inheritance:
+
+.. autoclass:: sqlalchemy.orm.attributes.QueryableAttribute
+    :members:
+    :show-inheritance:
+    :inherited-members:

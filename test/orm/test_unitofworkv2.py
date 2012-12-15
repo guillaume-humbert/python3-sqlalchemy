@@ -1,14 +1,15 @@
-from test.lib.testing import eq_, assert_raises, assert_raises_message
-from test.lib import testing, engines
-from test.lib.schema import Table, Column
+from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
+from sqlalchemy import testing
+from sqlalchemy.testing import engines
+from sqlalchemy.testing.schema import Table, Column
 from test.orm import _fixtures
-from test.lib import fixtures
+from sqlalchemy.testing import fixtures
 from sqlalchemy import Integer, String, ForeignKey, func
 from sqlalchemy.orm import mapper, relationship, backref, \
                             create_session, unitofwork, attributes,\
                             Session, class_mapper, sync, exc as orm_exc
 
-from test.lib.assertsql import AllOf, CompiledSQL
+from sqlalchemy.testing.assertsql import AllOf, CompiledSQL
 
 class AssertsUOW(object):
     def _get_test_uow(self, session):
@@ -1322,3 +1323,126 @@ class BatchInsertsTest(fixtures.MappedTest, testing.AssertsExecutionResults):
             ),
         )
 
+class LoadersUsingCommittedTest(UOWTest):
+        """Test that events which occur within a flush()
+        get the same attribute loading behavior as on the outside
+        of the flush, and that the unit of work itself uses the
+        "committed" version of primary/foreign key attributes
+        when loading a collection for historical purposes (this typically
+        has importance for when primary key values change).
+
+        """
+
+        def _mapper_setup(self, passive_updates=True):
+            users, Address, addresses, User = (self.tables.users,
+                                    self.classes.Address,
+                                    self.tables.addresses,
+                                    self.classes.User)
+
+            mapper(User, users, properties={
+                'addresses': relationship(Address,
+                    order_by=addresses.c.email_address,
+                    passive_updates=passive_updates,
+                    backref='user')
+            })
+            mapper(Address, addresses)
+            return create_session(autocommit=False)
+
+        def test_before_update_m2o(self):
+            """Expect normal many to one attribute load behavior
+            (should not get committed value)
+            from within public 'before_update' event"""
+            sess = self._mapper_setup()
+
+            Address, User = self.classes.Address, self.classes.User
+
+            def before_update(mapper, connection, target):
+                # if get committed is used to find target.user, then
+                # it will be still be u1 instead of u2
+                assert target.user.id == target.user_id == u2.id
+            from sqlalchemy import event
+            event.listen(Address, 'before_update', before_update)
+
+            a1 = Address(email_address='a1')
+            u1 = User(name='u1', addresses=[a1])
+            sess.add(u1)
+
+            u2 = User(name='u2')
+            sess.add(u2)
+            sess.commit()
+
+            sess.expunge_all()
+            # lookup an address and move it to the other user
+            a1 = sess.query(Address).get(a1.id)
+
+            # move address to another user's fk
+            assert a1.user_id == u1.id
+            a1.user_id = u2.id
+
+            sess.flush()
+
+        def test_before_update_o2m_passive(self):
+            """Expect normal one to many attribute load behavior
+            (should not get committed value)
+            from within public 'before_update' event"""
+            self._test_before_update_o2m(True)
+
+        def test_before_update_o2m_notpassive(self):
+            """Expect normal one to many attribute load behavior
+            (should not get committed value)
+            from within public 'before_update' event with
+            passive_updates=False
+
+            """
+            self._test_before_update_o2m(False)
+
+        def _test_before_update_o2m(self, passive_updates):
+            sess = self._mapper_setup(passive_updates=passive_updates)
+
+            Address, User = self.classes.Address, self.classes.User
+
+            class AvoidReferencialError(Exception):
+                """the test here would require ON UPDATE CASCADE on FKs
+                for the flush to fully succeed; this exception is used
+                to cancel the flush before we get that far.
+
+                """
+
+            def before_update(mapper, connection, target):
+                if passive_updates:
+                    # we shouldn't be using committed value.
+                    # so, having switched target's primary key,
+                    # we expect no related items in the collection
+                    # since we are using passive_updates
+                    # this is a behavior change since #2350
+                    assert 'addresses' not in target.__dict__
+                    eq_(target.addresses, [])
+                else:
+                    # in contrast with passive_updates=True,
+                    # here we expect the orm to have looked up the addresses
+                    # with the committed value (it needs to in order to
+                    # update the foreign keys).  So we expect addresses
+                    # collection to move with the user,
+                    # (just like they will be after the update)
+
+                    # collection is already loaded
+                    assert 'addresses' in target.__dict__
+                    eq_([a.id for a in target.addresses],
+                            [a.id for a in [a1, a2]])
+                raise AvoidReferencialError()
+            from sqlalchemy import event
+            event.listen(User, 'before_update', before_update)
+
+            a1 = Address(email_address='jack1')
+            a2 = Address(email_address='jack2')
+            u1 = User(id=1, name='jack', addresses=[a1, a2])
+            sess.add(u1)
+            sess.commit()
+
+            sess.expunge_all()
+            u1 = sess.query(User).get(u1.id)
+            u1.id = 2
+            try:
+                sess.flush()
+            except AvoidReferencialError:
+                pass

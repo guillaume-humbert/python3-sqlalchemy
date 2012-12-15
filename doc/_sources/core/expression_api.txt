@@ -105,10 +105,17 @@ Classes
 .. autoclass:: Alias
    :members:
    :show-inheritance:
+   :inherited-members:
 
-.. autoclass:: _BindParamClause
+.. autoclass:: BinaryExpression
    :members:
    :show-inheritance:
+   :inherited-members:
+
+.. autoclass:: BindParameter
+   :members:
+   :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: ClauseElement
    :members:
@@ -121,6 +128,7 @@ Classes
 .. autoclass:: ColumnClause
    :members:
    :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: ColumnCollection
    :members:
@@ -129,47 +137,32 @@ Classes
 .. autoclass:: ColumnElement
    :members:
    :show-inheritance:
-
-.. autoclass:: _CompareMixin
-  :members:
-  :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: sqlalchemy.sql.operators.ColumnOperators
    :members:
-   :undoc-members:
+   :special-members:
    :inherited-members:
    :show-inheritance:
 
-   .. automethod:: __eq__
-   .. automethod:: __ne__
-   .. automethod:: __gt__
-   .. automethod:: __ge__
-   .. automethod:: __lt__
-   .. automethod:: __le__
-   .. automethod:: __neg__
-   .. automethod:: __add__
-   .. automethod:: __mul__
-   .. automethod:: __div__
-   .. automethod:: __truediv__
-   .. automethod:: __sub__
-   .. automethod:: __radd__
-   .. automethod:: __rsub__
-   .. automethod:: __rtruediv__
-   .. automethod:: __rdiv__
-   .. automethod:: __rmul__
-   .. automethod:: __mod__
 
 .. autoclass:: CompoundSelect
    :members:
    :show-inheritance:
+   :inherited-members:
+
+.. autoclass:: sqlalchemy.sql.operators.custom_op
+   :members:
 
 .. autoclass:: CTE
    :members:
    :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: Delete
-   :members: where
+   :members:
    :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: Executable
    :members:
@@ -178,49 +171,56 @@ Classes
 .. autoclass:: FunctionElement
    :members:
    :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: Function
    :members:
    :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: FromClause
    :members:
    :show-inheritance:
 
 .. autoclass:: Insert
-   :members: prefix_with, values, returning
+   :members:
    :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: Join
    :members:
    :show-inheritance:
+   :inherited-members:
 
-.. autoclass:: sqlalchemy.sql.expression.Operators
+.. autoclass:: sqlalchemy.sql.operators.Operators
    :members:
-   :undoc-members:
-
-   .. automethod:: __and__
-   .. automethod:: __or__
-   .. automethod:: __invert__
+   :special-members:
 
 .. autoclass:: Select
    :members:
    :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: Selectable
    :members:
    :show-inheritance:
 
-.. autoclass:: _SelectBase
+.. autoclass:: SelectBase
    :members:
    :show-inheritance:
 
 .. autoclass:: TableClause
    :members:
    :show-inheritance:
+   :inherited-members:
+
+.. autoclass:: UnaryExpression
+   :members:
+   :show-inheritance:
 
 .. autoclass:: Update
   :members:
+  :inherited-members:
   :show-inheritance:
 
 .. autoclass:: UpdateBase

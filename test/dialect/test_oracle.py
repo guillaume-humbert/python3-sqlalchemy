@@ -1,16 +1,19 @@
 # coding: utf-8
+from __future__ import with_statement
 
-from test.lib.testing import eq_
+from sqlalchemy.testing import eq_
 from sqlalchemy import *
-from sqlalchemy import types as sqltypes, exc
+from sqlalchemy import types as sqltypes, exc, schema
 from sqlalchemy.sql import table, column
-from test.lib import *
-from test.lib.testing import eq_, assert_raises, assert_raises_message
-from test.lib.engines import testing_engine
+from sqlalchemy.testing import fixtures, AssertsExecutionResults, AssertsCompiledSQL
+from sqlalchemy import testing
+from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
+from sqlalchemy.testing.engines import testing_engine
 from sqlalchemy.dialects.oracle import cx_oracle, base as oracle
 from sqlalchemy.engine import default
 from sqlalchemy.util import jython
 from sqlalchemy.util.compat import decimal
+from sqlalchemy.testing.schema import Table, Column
 import datetime
 import os
 
@@ -47,10 +50,62 @@ create or replace procedure foo(x_in IN number, x_out OUT number, y_out OUT numb
     def teardown_class(cls):
          testing.db.execute("DROP PROCEDURE foo")
 
+class CXOracleArgsTest(fixtures.TestBase):
+    __only_on__ = 'oracle+cx_oracle'
+
+    def test_autosetinputsizes(self):
+        dialect = cx_oracle.dialect()
+        assert dialect.auto_setinputsizes
+
+        dialect = cx_oracle.dialect(auto_setinputsizes=False)
+        assert not dialect.auto_setinputsizes
+
+    def test_exclude_inputsizes_none(self):
+        dialect = cx_oracle.dialect(exclude_setinputsizes=None)
+        eq_(dialect.exclude_setinputsizes, set())
+
+    def test_exclude_inputsizes_custom(self):
+        import cx_Oracle
+        dialect = cx_oracle.dialect(dbapi=cx_Oracle,
+                            exclude_setinputsizes=('NCLOB',))
+        eq_(dialect.exclude_setinputsizes, set([cx_Oracle.NCLOB]))
+
+class QuotedBindRoundTripTest(fixtures.TestBase):
+
+    __only_on__ = 'oracle'
+
+    @testing.provide_metadata
+    def test_table_round_trip(self):
+        oracle.RESERVED_WORDS.remove('UNION')
+
+        metadata = self.metadata
+        table = Table("t1", metadata,
+            Column("option", Integer),
+            Column("plain", Integer, quote=True),
+            # test that quote works for a reserved word
+            # that the dialect isn't aware of when quote
+            # is set
+            Column("union", Integer, quote=True)
+        )
+        metadata.create_all()
+
+        table.insert().execute(
+            {"option":1, "plain":1, "union":1}
+        )
+        eq_(
+            testing.db.execute(table.select()).first(),
+            (1, 1, 1)
+        )
+        table.update().values(option=2, plain=2, union=2).execute()
+        eq_(
+            testing.db.execute(table.select()).first(),
+            (2, 2, 2)
+        )
+
 
 class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
 
-    __dialect__ = oracle.OracleDialect()
+    __dialect__ = oracle.dialect()
 
     def test_owner(self):
         meta = MetaData()
@@ -72,6 +127,26 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(s, "SELECT col1, col2 FROM (SELECT "
                                 "sometable.col1 AS col1, sometable.col2 "
                                 "AS col2 FROM sometable)")
+
+    def test_bindparam_quote(self):
+        """test that bound parameters take on quoting for reserved words,
+        column names quote flag enabled."""
+        # note: this is only in cx_oracle at the moment.  not sure
+        # what other hypothetical oracle dialects might need
+
+        self.assert_compile(
+            bindparam("option"), ':"option"'
+        )
+        self.assert_compile(
+            bindparam("plain"), ':plain'
+        )
+        t = Table("s", MetaData(), Column('plain', Integer, quote=True))
+        self.assert_compile(
+            t.insert().values(plain=5), 'INSERT INTO s ("plain") VALUES (:"plain")'
+        )
+        self.assert_compile(
+            t.update().values(plain=5), 'UPDATE s SET "plain"=:"plain"'
+        )
 
     def test_limit(self):
         t = table('sometable', column('col1'), column('col2'))
@@ -132,9 +207,18 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             ':ROWNUM_1) WHERE ora_rn > :ora_rn_1 FOR '
                             'UPDATE')
 
+    def test_limit_preserves_typing_information(self):
+        class MyType(TypeDecorator):
+            impl = Integer
+
+        stmt = select([type_coerce(column('x'), MyType).label('foo')]).limit(1)
+        dialect = oracle.dialect()
+        compiled = stmt.compile(dialect=dialect)
+        assert isinstance(compiled.result_map['foo'][-1], MyType)
+
     def test_use_binds_for_limits_disabled(self):
         t = table('sometable', column('col1'), column('col2'))
-        dialect = oracle.OracleDialect(use_binds_for_limits = False)
+        dialect = oracle.OracleDialect(use_binds_for_limits=False)
 
         self.assert_compile(select([t]).limit(10),
                 "SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, "
@@ -393,6 +477,39 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'addresses.user_id = :user_id_1 ORDER BY '
                             'addresses.id, address_types.id')
 
+    def test_returning_insert(self):
+        t1 = table('t1', column('c1'), column('c2'), column('c3'))
+        self.assert_compile(
+            t1.insert().values(c1=1).returning(t1.c.c2, t1.c.c3),
+            "INSERT INTO t1 (c1) VALUES (:c1) RETURNING "
+                "t1.c2, t1.c3 INTO :ret_0, :ret_1"
+        )
+
+    def test_returning_insert_functional(self):
+        t1 = table('t1', column('c1'), column('c2', String()), column('c3', String()))
+        fn = func.lower(t1.c.c2, type_=String())
+        stmt = t1.insert().values(c1=1).returning(fn, t1.c.c3)
+        compiled = stmt.compile(dialect=oracle.dialect())
+        eq_(
+            compiled.result_map,
+            {'ret_1': ('ret_1', (t1.c.c3, 'c3', 'c3'), t1.c.c3.type),
+            'ret_0': ('ret_0', (fn, 'lower', None), fn.type)}
+
+        )
+        self.assert_compile(
+            stmt,
+            "INSERT INTO t1 (c1) VALUES (:c1) RETURNING "
+                "lower(t1.c2), t1.c3 INTO :ret_0, :ret_1"
+        )
+
+    def test_returning_insert_labeled(self):
+        t1 = table('t1', column('c1'), column('c2'), column('c3'))
+        self.assert_compile(
+            t1.insert().values(c1=1).returning(t1.c.c2.label('c2_l'), t1.c.c3.label('c3_l')),
+            "INSERT INTO t1 (c1) VALUES (:c1) RETURNING "
+                "t1.c2, t1.c3 INTO :ret_0, :ret_1"
+        )
+
     def test_compound(self):
         t1 = table('t1', column('c1'), column('c2'), column('c3'))
         t2 = table('t2', column('c1'), column('c2'), column('c3'))
@@ -416,6 +533,16 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         ]:
             self.assert_compile(fn, expected)
 
+    def test_create_index_alt_schema(self):
+        m = MetaData()
+        t1 = Table('foo', m,
+                Column('x', Integer),
+                schema="alt_schema"
+            )
+        self.assert_compile(
+            schema.CreateIndex(Index("bar", t1.c.x)),
+            "CREATE INDEX alt_schema.bar ON alt_schema.foo (x)"
+        )
 class CompatFlagsTest(fixtures.TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
 
@@ -654,6 +781,76 @@ class ConstraintTest(fixtures.TestBase):
                     ForeignKeyConstraint(['foo_id'], ['foo.id'],
                     onupdate='CASCADE'))
         assert_raises(exc.SAWarning, bat.create)
+
+
+class TwoPhaseTest(fixtures.TablesTest):
+    """test cx_oracle two phase, which remains in a semi-broken state
+    so requires a carefully written test."""
+
+    __only_on__ = 'oracle+cx_oracle'
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('datatable', metadata,
+                Column('id', Integer, primary_key=True),
+                Column('data', String(50))
+            )
+
+    def _connection(self):
+        conn = testing.db.connect()
+        conn.detach()
+        return conn
+
+    def _assert_data(self, rows):
+        eq_(
+            testing.db.scalar("select count(*) from datatable"),
+            rows
+        )
+    def test_twophase_prepare_false(self):
+        conn = self._connection()
+        for i in xrange(2):
+            trans = conn.begin_twophase()
+            conn.execute("select 1 from dual")
+            trans.prepare()
+            trans.commit()
+        conn.close()
+        self._assert_data(0)
+
+    def test_twophase_prepare_true(self):
+        conn = self._connection()
+        for i in xrange(2):
+            trans = conn.begin_twophase()
+            conn.execute("insert into datatable (id, data) "
+                    "values (%s, 'somedata')" % i)
+            trans.prepare()
+            trans.commit()
+        conn.close()
+        self._assert_data(2)
+
+    def test_twophase_rollback(self):
+        conn = self._connection()
+        trans = conn.begin_twophase()
+        conn.execute("insert into datatable (id, data) "
+                "values (%s, 'somedata')" % 1)
+        trans.rollback()
+
+        trans = conn.begin_twophase()
+        conn.execute("insert into datatable (id, data) "
+                "values (%s, 'somedata')" % 1)
+        trans.prepare()
+        trans.commit()
+
+        conn.close()
+        self._assert_data(1)
+
+    def test_not_prepared(self):
+        conn = self._connection()
+        trans = conn.begin_twophase()
+        conn.execute("insert into datatable (id, data) "
+                "values (%s, 'somedata')" % 1)
+        trans.commit()
+        conn.close()
+        self._assert_data(1)
 
 class DialectTypesTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = oracle.OracleDialect()
@@ -1119,6 +1316,21 @@ class TypesTest(fixtures.TestBase):
         finally:
             t1.drop()
 
+    @testing.provide_metadata
+    def test_long_type(self):
+        metadata = self.metadata
+
+        t = Table('t', metadata,
+                Column('data', oracle.LONG)
+            )
+        metadata.create_all(testing.db)
+        testing.db.execute(t.insert(), data='xyz')
+        eq_(
+            testing.db.scalar(select([t.c.data])),
+            "xyz"
+        )
+
+
 
     def test_longstring(self):
         metadata = MetaData(testing.db)
@@ -1244,13 +1456,15 @@ class BufferedColumnTest(fixtures.TestBase, AssertsCompiledSQL):
         meta.drop_all()
 
     def test_fetch(self):
-        result = binary_table.select().execute().fetchall()
+        result = binary_table.select().order_by(binary_table.c.id).\
+                                    execute().fetchall()
         eq_(result, [(i, stream) for i in range(1, 11)])
 
     @testing.fails_on('+zxjdbc', 'FIXME: zxjdbc should support this')
     def test_fetch_single_arraysize(self):
-        eng = testing_engine(options={'arraysize':1})
-        result = eng.execute(binary_table.select()).fetchall()
+        eng = testing_engine(options={'arraysize': 1})
+        result = eng.execute(binary_table.select().
+                            order_by(binary_table.c.id)).fetchall()
         eq_(result, [(i, stream) for i in range(1, 11)])
 
 class UnsupportedIndexReflectTest(fixtures.TestBase):
@@ -1452,3 +1666,42 @@ class UnicodeSchemaTest(fixtures.TestBase):
         eq_(result, u'’é')
 
 
+class DBLinkReflectionTest(fixtures.TestBase):
+    __requires__ = 'oracle_test_dblink',
+    __only_on__ = 'oracle'
+
+    @classmethod
+    def setup_class(cls):
+        from sqlalchemy.testing import config
+        cls.dblink = config.file_config.get('sqla_testing', 'oracle_db_link')
+
+        with testing.db.connect() as conn:
+            conn.execute(
+                "create table test_table "
+                "(id integer primary key, data varchar2(50))")
+            conn.execute("create synonym test_table_syn "
+                "for test_table@%s" % cls.dblink)
+
+    @classmethod
+    def teardown_class(cls):
+        with testing.db.connect() as conn:
+            conn.execute("drop synonym test_table_syn")
+            conn.execute("drop table test_table")
+
+    def test_hello_world(self):
+        """test that the synonym/dblink is functional."""
+        testing.db.execute("insert into test_table_syn (id, data) "
+                            "values (1, 'some data')")
+        eq_(
+            testing.db.execute("select * from test_table_syn").first(),
+            (1, 'some data')
+        )
+
+    def test_reflection(self):
+        """test the resolution of the synonym/dblink. """
+        m = MetaData()
+
+        t = Table('test_table_syn', m, autoload=True,
+                autoload_with=testing.db, oracle_resolve_synonyms=True)
+        eq_(t.c.keys(), ['id', 'data'])
+        eq_(list(t.primary_key), [t.c.id])

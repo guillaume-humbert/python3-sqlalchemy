@@ -155,38 +155,37 @@ construction arguments, are as follows:
     :members: __init__
     :show-inheritance:
 
-
-MySQL-Python Notes
+MySQL-Python
 --------------------
 
 .. automodule:: sqlalchemy.dialects.mysql.mysqldb
 
-OurSQL Notes
+OurSQL
 --------------
 
 .. automodule:: sqlalchemy.dialects.mysql.oursql
 
-pymysql Notes
+pymysql
 -------------
 
 .. automodule:: sqlalchemy.dialects.mysql.pymysql
 
-MySQL-Connector Notes
+MySQL-Connector
 ----------------------
 
 .. automodule:: sqlalchemy.dialects.mysql.mysqlconnector
 
-Google App Engine Notes
+Google App Engine
 -----------------------
 
 .. automodule:: sqlalchemy.dialects.mysql.gaerdbms
 
-pyodbc Notes
---------------
+pyodbc
+------
 
 .. automodule:: sqlalchemy.dialects.mysql.pyodbc
 
-zxjdbc Notes
+zxjdbc
 --------------
 
 .. automodule:: sqlalchemy.dialects.mysql.zxjdbc

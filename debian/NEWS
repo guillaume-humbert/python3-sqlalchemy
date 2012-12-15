@@ -1,3 +1,13 @@
+python-sqlalchemy (0.8.0~b2-1) experimental; urgency=low
+
+  SQLAlchemy 0.7 → 0.8 migration notes can be found in the
+  python-sqlalchemy-doc package:
+  /usr/share/doc/python-sqlalchemy-doc/rst/changelog/migration_08.txt or
+  /usr/share/doc/python-sqlalchemy-doc/html/changelog/migration_08.html or
+  http://docs.sqlalchemy.org/en/rel_0_8/changelog/migration_08.html
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sat, 15 Dec 2012 17:51:14 +0100
+
 python-sqlalchemy (0.7~b1-1) experimental; urgency=low
 
   SQLAlchemy 0.6 -> 0.7 migration notes can be found on the wiki page:

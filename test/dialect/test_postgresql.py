@@ -1,18 +1,28 @@
 # coding: utf-8
-from test.lib.testing import eq_, assert_raises, assert_raises_message
-from test.lib import  engines
+
+from __future__ import with_statement
+
+from sqlalchemy.testing.assertions import eq_, assert_raises, \
+                assert_raises_message, is_, AssertsExecutionResults, \
+                AssertsCompiledSQL, ComparesTables
+from sqlalchemy.testing import engines, fixtures
+from sqlalchemy import testing
 import datetime
-from sqlalchemy import *
-from sqlalchemy.orm import *
+from sqlalchemy import Table, Column, select, MetaData, text, Integer, \
+            String, Sequence, ForeignKey, join, Numeric, \
+            PrimaryKeyConstraint, DateTime, tuple_, Float, BigInteger, \
+            func, literal_column, literal, bindparam, cast, extract, \
+            SmallInteger, Enum, REAL, update, insert, Index, delete, \
+            and_, Date, TypeDecorator, Time, Unicode, Interval, or_, Text
+from sqlalchemy.orm import Session, mapper, aliased
 from sqlalchemy import exc, schema, types
 from sqlalchemy.dialects.postgresql import base as postgresql
-from sqlalchemy.engine.strategies import MockEngineStrategy
+from sqlalchemy.dialects.postgresql import HSTORE, hstore, array, ARRAY
 from sqlalchemy.util.compat import decimal
-from test.lib import *
-from test.lib.util import round_decimal
+from sqlalchemy.testing.util import round_decimal
 from sqlalchemy.sql import table, column
-from test.lib.testing import eq_
 import logging
+import re
 
 class SequenceTest(fixtures.TestBase, AssertsCompiledSQL):
 
@@ -102,31 +112,6 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             '(%(name)s) RETURNING length(mytable.name) '
                             'AS length_1', dialect=dialect)
 
-    @testing.uses_deprecated('.*argument is deprecated.  Please use '
-                             'statement.returning.*')
-    def test_old_returning_names(self):
-        dialect = postgresql.dialect()
-        table1 = table('mytable', column('myid', Integer), column('name'
-                       , String(128)), column('description',
-                       String(128)))
-        u = update(table1, values=dict(name='foo'),
-                   postgres_returning=[table1.c.myid, table1.c.name])
-        self.assert_compile(u,
-                            'UPDATE mytable SET name=%(name)s '
-                            'RETURNING mytable.myid, mytable.name',
-                            dialect=dialect)
-        u = update(table1, values=dict(name='foo'),
-                   postgresql_returning=[table1.c.myid, table1.c.name])
-        self.assert_compile(u,
-                            'UPDATE mytable SET name=%(name)s '
-                            'RETURNING mytable.myid, mytable.name',
-                            dialect=dialect)
-        i = insert(table1, values=dict(name='foo'),
-                   postgres_returning=[table1.c.myid, table1.c.name])
-        self.assert_compile(i,
-                            'INSERT INTO mytable (name) VALUES '
-                            '(%(name)s) RETURNING mytable.myid, '
-                            'mytable.name', dialect=dialect)
 
     def test_create_partial_index(self):
         m = MetaData()
@@ -272,6 +257,137 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(x,
             '''SELECT pg_table.col1, pg_table."variadic" FROM pg_table''')
 
+    def test_array(self):
+        c = Column('x', postgresql.ARRAY(Integer))
+
+        self.assert_compile(
+            cast(c, postgresql.ARRAY(Integer)),
+            "CAST(x AS INTEGER[])"
+        )
+        self.assert_compile(
+            c[5],
+            "x[%(x_1)s]",
+            checkparams={'x_1': 5}
+        )
+
+        self.assert_compile(
+            c[5:7],
+            "x[%(x_1)s:%(x_2)s]",
+            checkparams={'x_2': 7, 'x_1': 5}
+        )
+        self.assert_compile(
+            c[5:7][2:3],
+            "x[%(x_1)s:%(x_2)s][%(param_1)s:%(param_2)s]",
+            checkparams={'x_2': 7, 'x_1': 5, 'param_1':2, 'param_2':3}
+        )
+        self.assert_compile(
+            c[5:7][3],
+            "x[%(x_1)s:%(x_2)s][%(param_1)s]",
+            checkparams={'x_2': 7, 'x_1': 5, 'param_1':3}
+        )
+
+        self.assert_compile(
+            c.contains([1]),
+            'x @> %(x_1)s',
+            checkparams={'x_1': [1]}
+        )
+        self.assert_compile(
+            c.contained_by([2]),
+            'x <@ %(x_1)s',
+            checkparams={'x_1': [2]}
+        )
+        self.assert_compile(
+            c.overlap([3]),
+            'x && %(x_1)s',
+            checkparams={'x_1': [3]}
+        )
+
+    def test_array_literal_type(self):
+        is_(postgresql.array([1, 2]).type._type_affinity, postgresql.ARRAY)
+        is_(postgresql.array([1, 2]).type.item_type._type_affinity, Integer)
+
+        is_(postgresql.array([1, 2], type_=String).
+                    type.item_type._type_affinity, String)
+
+    def test_array_literal(self):
+        self.assert_compile(
+            func.array_dims(postgresql.array([1, 2]) +
+                        postgresql.array([3, 4, 5])),
+            "array_dims(ARRAY[%(param_1)s, %(param_2)s] || "
+                    "ARRAY[%(param_3)s, %(param_4)s, %(param_5)s])",
+            checkparams={'param_5': 5, 'param_4': 4, 'param_1': 1,
+                'param_3': 3, 'param_2': 2}
+        )
+
+    def test_update_array_element(self):
+        m = MetaData()
+        t = Table('t', m, Column('data', postgresql.ARRAY(Integer)))
+        self.assert_compile(
+            t.update().values({t.c.data[5]: 1}),
+            "UPDATE t SET data[%(data_1)s]=%(param_1)s",
+            checkparams={'data_1': 5, 'param_1': 1}
+        )
+
+    def test_update_array_slice(self):
+        m = MetaData()
+        t = Table('t', m, Column('data', postgresql.ARRAY(Integer)))
+        self.assert_compile(
+            t.update().values({t.c.data[2:5]: 2}),
+            "UPDATE t SET data[%(data_1)s:%(data_2)s]=%(param_1)s",
+            checkparams={'param_1': 2, 'data_2': 5, 'data_1': 2}
+
+        )
+
+    def test_from_only(self):
+        m = MetaData()
+        tbl1 = Table('testtbl1', m, Column('id', Integer))
+        tbl2 = Table('testtbl2', m, Column('id', Integer))
+
+        stmt = tbl1.select().with_hint(tbl1, 'ONLY', 'postgresql')
+        expected = 'SELECT testtbl1.id FROM ONLY testtbl1'
+        self.assert_compile(stmt, expected)
+
+        talias1 = tbl1.alias('foo')
+        stmt = talias1.select().with_hint(talias1, 'ONLY', 'postgresql')
+        expected = 'SELECT foo.id FROM ONLY testtbl1 AS foo'
+        self.assert_compile(stmt, expected)
+
+        stmt = select([tbl1, tbl2]).with_hint(tbl1, 'ONLY', 'postgresql')
+        expected = ('SELECT testtbl1.id, testtbl2.id FROM ONLY testtbl1, '
+                    'testtbl2')
+        self.assert_compile(stmt, expected)
+
+        stmt = select([tbl1, tbl2]).with_hint(tbl2, 'ONLY', 'postgresql')
+        expected = ('SELECT testtbl1.id, testtbl2.id FROM testtbl1, ONLY '
+                    'testtbl2')
+        self.assert_compile(stmt, expected)
+
+        stmt = select([tbl1, tbl2])
+        stmt = stmt.with_hint(tbl1, 'ONLY', 'postgresql')
+        stmt = stmt.with_hint(tbl2, 'ONLY', 'postgresql')
+        expected = ('SELECT testtbl1.id, testtbl2.id FROM ONLY testtbl1, '
+                    'ONLY testtbl2')
+        self.assert_compile(stmt, expected)
+
+        stmt = update(tbl1, values=dict(id=1))
+        stmt = stmt.with_hint('ONLY', dialect_name='postgresql')
+        expected = 'UPDATE ONLY testtbl1 SET id=%(id)s'
+        self.assert_compile(stmt, expected)
+
+        stmt = delete(tbl1).with_hint('ONLY', selectable=tbl1, dialect_name='postgresql')
+        expected = 'DELETE FROM ONLY testtbl1'
+        self.assert_compile(stmt, expected)
+
+        tbl3 = Table('testtbl3', m, Column('id', Integer), schema='testschema')
+        stmt = tbl3.select().with_hint(tbl3, 'ONLY', 'postgresql')
+        expected = 'SELECT testschema.testtbl3.id FROM ONLY testschema.testtbl3'
+        self.assert_compile(stmt, expected)
+
+        assert_raises(
+            exc.CompileError,
+            tbl3.select().with_hint(tbl3, "FAKE", "postgresql").compile,
+            dialect=postgresql.dialect()
+        )
 
 class FloatCoercionTest(fixtures.TablesTest, AssertsExecutionResults):
     __only_on__ = 'postgresql'
@@ -1610,6 +1726,50 @@ class ReflectionTest(fixtures.TestBase):
         eq_(ind, [{'unique': False, 'column_names': [u'y'], 'name': u'idx1'}])
         conn.close()
 
+class CustomTypeReflectionTest(fixtures.TestBase):
+
+    class CustomType(object):
+        def __init__(self, arg1=None, arg2=None):
+            self.arg1 = arg1
+            self.arg2 = arg2
+
+    ischema_names = None
+
+    def setup(self):
+        ischema_names = postgresql.PGDialect.ischema_names
+        postgresql.PGDialect.ischema_names = ischema_names.copy()
+        self.ischema_names = ischema_names
+
+    def teardown(self):
+        postgresql.PGDialect.ischema_names = self.ischema_names
+        self.ischema_names = None
+
+    def _assert_reflected(self, dialect):
+        for sch, args in [
+            ('my_custom_type', (None, None)),
+            ('my_custom_type()', (None, None)),
+            ('my_custom_type(ARG1)', ('ARG1', None)),
+            ('my_custom_type(ARG1, ARG2)', ('ARG1', 'ARG2')),
+        ]:
+            column_info = dialect._get_column_info(
+                'colname', sch, None, False,
+                {}, {}, 'public')
+            assert isinstance(column_info['type'], self.CustomType)
+            eq_(column_info['type'].arg1, args[0])
+            eq_(column_info['type'].arg2, args[1])
+
+    def test_clslevel(self):
+        postgresql.PGDialect.ischema_names['my_custom_type'] = self.CustomType
+        dialect = postgresql.PGDialect()
+        self._assert_reflected(dialect)
+
+    def test_instancelevel(self):
+        dialect = postgresql.PGDialect()
+        dialect.ischema_names = dialect.ischema_names.copy()
+        dialect.ischema_names['my_custom_type'] = self.CustomType
+        self._assert_reflected(dialect)
+
+
 class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
 
     __only_on__ = 'postgresql'
@@ -1648,7 +1808,10 @@ class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
              'GCC gcc (GCC) 4.1.2 20070925 (Red Hat 4.1.2-33)', (8, 3,
              8)),
              ('PostgreSQL 8.5devel on x86_64-unknown-linux-gnu, '
-             'compiled by GCC gcc (GCC) 4.4.2, 64-bit', (8, 5))]:
+             'compiled by GCC gcc (GCC) 4.4.2, 64-bit', (8, 5)),
+             ('EnterpriseDB 9.1.2.2 on x86_64-unknown-linux-gnu, '
+             'compiled by gcc (GCC) 4.1.2 20080704 (Red Hat 4.1.2-50), '
+             '64-bit', (9, 1, 2))]:
             eq_(testing.db.dialect._get_server_version_info(MockConn(string)),
                 version)
 
@@ -1931,14 +2094,38 @@ class ArrayTest(fixtures.TestBase, AssertsExecutionResults):
 
     __only_on__ = 'postgresql'
 
+    __unsupported_on__ = 'postgresql+pg8000', 'postgresql+zxjdbc'
+
     @classmethod
     def setup_class(cls):
         global metadata, arrtable
         metadata = MetaData(testing.db)
-        arrtable = Table('arrtable', metadata, Column('id', Integer,
-                         primary_key=True), Column('intarr',
-                         postgresql.ARRAY(Integer)), Column('strarr',
-                         postgresql.ARRAY(Unicode()), nullable=False))
+
+        class ProcValue(TypeDecorator):
+            impl = postgresql.ARRAY(Integer, dimensions=2)
+
+            def process_bind_param(self, value, dialect):
+                if value is None:
+                    return None
+                return [
+                    [x + 5 for x in v]
+                    for v in value
+                ]
+
+            def process_result_value(self, value, dialect):
+                if value is None:
+                    return None
+                return [
+                    [x - 7 for x in v]
+                    for v in value
+                ]
+
+        arrtable = Table('arrtable', metadata,
+                        Column('id', Integer, primary_key=True),
+                        Column('intarr',postgresql.ARRAY(Integer)),
+                         Column('strarr',postgresql.ARRAY(Unicode())),
+                        Column('dimarr', ProcValue)
+                    )
         metadata.create_all()
 
     def teardown(self):
@@ -1956,8 +2143,6 @@ class ArrayTest(fixtures.TestBase, AssertsExecutionResults):
         assert isinstance(tbl.c.intarr.type.item_type, Integer)
         assert isinstance(tbl.c.strarr.type.item_type, String)
 
-    @testing.fails_on('postgresql+zxjdbc',
-                      'zxjdbc has no support for PG arrays')
     def test_insert_array(self):
         arrtable.insert().execute(intarr=[1, 2, 3], strarr=[u'abc',
                                   u'def'])
@@ -1966,10 +2151,6 @@ class ArrayTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(results[0]['intarr'], [1, 2, 3])
         eq_(results[0]['strarr'], ['abc', 'def'])
 
-    @testing.fails_on('postgresql+pg8000',
-                      'pg8000 has poor support for PG arrays')
-    @testing.fails_on('postgresql+zxjdbc',
-                      'zxjdbc has no support for PG arrays')
     def test_array_where(self):
         arrtable.insert().execute(intarr=[1, 2, 3], strarr=[u'abc',
                                   u'def'])
@@ -1979,24 +2160,14 @@ class ArrayTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(len(results), 1)
         eq_(results[0]['intarr'], [1, 2, 3])
 
-    @testing.fails_on('postgresql+pg8000',
-                      'pg8000 has poor support for PG arrays')
-    @testing.fails_on('postgresql+pypostgresql',
-                      'pypostgresql fails in coercing an array')
-    @testing.fails_on('postgresql+zxjdbc',
-                      'zxjdbc has no support for PG arrays')
     def test_array_concat(self):
-        arrtable.insert().execute(intarr=[1, 2, 3], strarr=[u'abc',
-                                  u'def'])
+        arrtable.insert().execute(intarr=[1, 2, 3],
+                    strarr=[u'abc', u'def'])
         results = select([arrtable.c.intarr + [4, 5,
                          6]]).execute().fetchall()
         eq_(len(results), 1)
         eq_(results[0][0], [ 1, 2, 3, 4, 5, 6, ])
 
-    @testing.fails_on('postgresql+pg8000',
-                      'pg8000 has poor support for PG arrays')
-    @testing.fails_on('postgresql+zxjdbc',
-                      'zxjdbc has no support for PG arrays')
     def test_array_subtype_resultprocessor(self):
         arrtable.insert().execute(intarr=[4, 5, 6],
                                   strarr=[[u'm\xe4\xe4'], [u'm\xf6\xf6'
@@ -2009,73 +2180,116 @@ class ArrayTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(results[0]['strarr'], [u'm\xe4\xe4', u'm\xf6\xf6'])
         eq_(results[1]['strarr'], [[u'm\xe4\xe4'], [u'm\xf6\xf6']])
 
-    @testing.fails_on('postgresql+pg8000',
-                      'pg8000 has poor support for PG arrays')
-    @testing.fails_on('postgresql+zxjdbc',
-                      'zxjdbc has no support for PG arrays')
-    def test_array_mutability(self):
+    def test_array_literal(self):
+        eq_(
+            testing.db.scalar(
+                select([
+                    postgresql.array([1, 2]) + postgresql.array([3, 4, 5])
+                ])
+                ), [1,2,3,4,5]
+        )
 
-        class Foo(object):
-            pass
+    def test_array_getitem_single_type(self):
+        is_(arrtable.c.intarr[1].type._type_affinity, Integer)
+        is_(arrtable.c.strarr[1].type._type_affinity, String)
 
-        footable = Table('foo', metadata,
-                        Column('id', Integer,primary_key=True),
-                        Column('intarr',
-                            postgresql.ARRAY(Integer, mutable=True),
-                            nullable=True))
-        mapper(Foo, footable)
-        metadata.create_all()
-        sess = create_session()
-        foo = Foo()
-        foo.id = 1
-        foo.intarr = [1, 2, 3]
-        sess.add(foo)
-        sess.flush()
-        sess.expunge_all()
-        foo = sess.query(Foo).get(1)
-        eq_(foo.intarr, [1, 2, 3])
-        foo.intarr.append(4)
-        sess.flush()
-        sess.expunge_all()
-        foo = sess.query(Foo).get(1)
-        eq_(foo.intarr, [1, 2, 3, 4])
-        foo.intarr = []
-        sess.flush()
-        sess.expunge_all()
-        eq_(foo.intarr, [])
-        foo.intarr = None
-        sess.flush()
-        sess.expunge_all()
-        eq_(foo.intarr, None)
+    def test_array_getitem_slice_type(self):
+        is_(arrtable.c.intarr[1:3].type._type_affinity, postgresql.ARRAY)
+        is_(arrtable.c.strarr[1:3].type._type_affinity, postgresql.ARRAY)
 
-        # Errors in r4217:
+    def test_array_getitem_single_exec(self):
+        with testing.db.connect() as conn:
+            conn.execute(
+                arrtable.insert(),
+                intarr=[4, 5, 6],
+                strarr=[u'abc', u'def']
+            )
+            eq_(
+                conn.scalar(select([arrtable.c.intarr[2]])),
+                5
+            )
+            conn.execute(
+                arrtable.update().values({arrtable.c.intarr[2]: 7})
+            )
+            eq_(
+                conn.scalar(select([arrtable.c.intarr[2]])),
+                7
+            )
 
-        foo = Foo()
-        foo.id = 2
-        sess.add(foo)
-        sess.flush()
+    def test_array_getitem_slice_exec(self):
+        with testing.db.connect() as conn:
+            conn.execute(
+                arrtable.insert(),
+                intarr=[4, 5, 6],
+                strarr=[u'abc', u'def']
+            )
+            eq_(
+                conn.scalar(select([arrtable.c.intarr[2:3]])),
+                [5, 6]
+            )
+            conn.execute(
+                arrtable.update().values({arrtable.c.intarr[2:3]: [7, 8]})
+            )
+            eq_(
+                conn.scalar(select([arrtable.c.intarr[2:3]])),
+                [7, 8]
+            )
 
-    @testing.fails_on('+zxjdbc',
-                      "Can't infer the SQL type to use for an instance "
-                      "of org.python.core.PyList.")
+    def test_array_contains_exec(self):
+        with testing.db.connect() as conn:
+            conn.execute(
+                arrtable.insert(),
+                intarr=[4, 5, 6]
+            )
+            eq_(
+                conn.scalar(
+                    select([arrtable.c.intarr]).
+                        where(arrtable.c.intarr.contains([4, 5]))
+                ),
+                [4, 5, 6]
+            )
+
+    def test_array_contained_by_exec(self):
+        with testing.db.connect() as conn:
+            conn.execute(
+                arrtable.insert(),
+                intarr=[6, 5, 4]
+            )
+            eq_(
+                conn.scalar(
+                    select([arrtable.c.intarr.contained_by([4, 5, 6, 7])])
+                ),
+                True
+            )
+
+    def test_array_overlap_exec(self):
+        with testing.db.connect() as conn:
+            conn.execute(
+                arrtable.insert(),
+                intarr=[4, 5, 6]
+            )
+            eq_(
+                conn.scalar(
+                    select([arrtable.c.intarr]).
+                        where(arrtable.c.intarr.overlap([7, 6]))
+                ),
+                [4, 5, 6]
+            )
+
     @testing.provide_metadata
     def test_tuple_flag(self):
         metadata = self.metadata
-        assert_raises_message(
-            exc.ArgumentError,
-            "mutable must be set to False if as_tuple is True.",
-            postgresql.ARRAY, Integer, mutable=True,
-                as_tuple=True)
 
         t1 = Table('t1', metadata,
             Column('id', Integer, primary_key=True),
-            Column('data', postgresql.ARRAY(String(5), as_tuple=True, mutable=False)),
-            Column('data2', postgresql.ARRAY(Numeric(asdecimal=False), as_tuple=True, mutable=False)),
+            Column('data', postgresql.ARRAY(String(5), as_tuple=True)),
+            Column('data2', postgresql.ARRAY(Numeric(asdecimal=False), as_tuple=True)),
         )
         metadata.create_all()
         testing.db.execute(t1.insert(), id=1, data=["1","2","3"], data2=[5.4, 5.6])
         testing.db.execute(t1.insert(), id=2, data=["4", "5", "6"], data2=[1.0])
-        testing.db.execute(t1.insert(), id=3, data=[["4", "5"], ["6", "7"]], data2=[[5.4, 5.6], [1.0, 1.1]])
+        testing.db.execute(t1.insert(), id=3, data=[["4", "5"], ["6", "7"]],
+                        data2=[[5.4, 5.6], [1.0, 1.1]])
 
         r = testing.db.execute(t1.select().order_by(t1.c.id)).fetchall()
         eq_(
@@ -2092,7 +2306,12 @@ class ArrayTest(fixtures.TestBase, AssertsExecutionResults):
             set([('1', '2', '3'), ('4', '5', '6'), (('4', '5'), ('6', '7'))])
         )
 
-
+    def test_dimension(self):
+        testing.db.execute(arrtable.insert(), dimarr=[[1, 2, 3], [4,5, 6]])
+        eq_(
+            testing.db.scalar(select([arrtable.c.dimarr])),
+            [[-1, 0, 1], [2, 3, 4]]
+        )
 
 class TimestampTest(fixtures.TestBase, AssertsExecutionResults):
     __only_on__ = 'postgresql'
@@ -2522,3 +2741,357 @@ class TupleTest(fixtures.TestBase):
                 ).scalar(),
                 exp
             )
+
+
+class HStoreTest(fixtures.TestBase):
+    def _assert_sql(self, construct, expected):
+        dialect = postgresql.dialect()
+        compiled = str(construct.compile(dialect=dialect))
+        compiled = re.sub(r'\s+', ' ', compiled)
+        expected = re.sub(r'\s+', ' ', expected)
+        eq_(compiled, expected)
+
+    def setup(self):
+        metadata = MetaData()
+        self.test_table = Table('test_table', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('hash', HSTORE)
+        )
+        self.hashcol = self.test_table.c.hash
+
+    def _test_where(self, whereclause, expected):
+        stmt = select([self.test_table]).where(whereclause)
+        self._assert_sql(
+            stmt,
+            "SELECT test_table.id, test_table.hash FROM test_table "
+            "WHERE %s" % expected
+        )
+
+    def _test_cols(self, colclause, expected, from_=True):
+        stmt = select([colclause])
+        self._assert_sql(
+            stmt,
+            (
+                "SELECT %s" +
+                (" FROM test_table" if from_ else "")
+            ) % expected
+        )
+
+    def test_bind_serialize_default(self):
+        from sqlalchemy.engine import default
+
+        dialect = default.DefaultDialect()
+        proc = self.test_table.c.hash.type._cached_bind_processor(dialect)
+        eq_(
+            proc({"key1": "value1", "key2": "value2"}),
+            '"key2"=>"value2", "key1"=>"value1"'
+        )
+
+    def test_parse_error(self):
+        from sqlalchemy.engine import default
+
+        dialect = default.DefaultDialect()
+        proc = self.test_table.c.hash.type._cached_result_processor(
+                    dialect, None)
+        assert_raises_message(
+            ValueError,
+            r'''After '\[\.\.\.\], "key1"=>"value1", ', could not parse '''
+            '''residual at position 36: 'crapcrapcrap, "key3"\[\.\.\.\]''',
+            proc,
+            '"key2"=>"value2", "key1"=>"value1", '
+                        'crapcrapcrap, "key3"=>"value3"'
+        )
+
+    def test_result_deserialize_default(self):
+        from sqlalchemy.engine import default
+
+        dialect = default.DefaultDialect()
+        proc = self.test_table.c.hash.type._cached_result_processor(
+                    dialect, None)
+        eq_(
+            proc('"key2"=>"value2", "key1"=>"value1"'),
+            {"key1": "value1", "key2": "value2"}
+        )
+
+    def test_bind_serialize_psycopg2(self):
+        from sqlalchemy.dialects.postgresql import psycopg2
+
+        dialect = psycopg2.PGDialect_psycopg2()
+        dialect._has_native_hstore = True
+        proc = self.test_table.c.hash.type._cached_bind_processor(dialect)
+        is_(proc, None)
+
+        dialect = psycopg2.PGDialect_psycopg2()
+        dialect._has_native_hstore = False
+        proc = self.test_table.c.hash.type._cached_bind_processor(dialect)
+        eq_(
+            proc({"key1": "value1", "key2": "value2"}),
+            '"key2"=>"value2", "key1"=>"value1"'
+        )
+
+    def test_result_deserialize_psycopg2(self):
+        from sqlalchemy.dialects.postgresql import psycopg2
+
+        dialect = psycopg2.PGDialect_psycopg2()
+        dialect._has_native_hstore = True
+        proc = self.test_table.c.hash.type._cached_result_processor(
+                    dialect, None)
+        is_(proc, None)
+
+        dialect = psycopg2.PGDialect_psycopg2()
+        dialect._has_native_hstore = False
+        proc = self.test_table.c.hash.type._cached_result_processor(
+                    dialect, None)
+        eq_(
+            proc('"key2"=>"value2", "key1"=>"value1"'),
+            {"key1": "value1", "key2": "value2"}
+        )
+
+    def test_where_has_key(self):
+        self._test_where(
+            # hide from 2to3
+            getattr(self.hashcol, 'has_key')('foo'),
+            "test_table.hash ? %(hash_1)s"
+        )
+
+    def test_where_has_all(self):
+        self._test_where(
+            self.hashcol.has_all(postgresql.array(['1', '2'])),
+            "test_table.hash ?& ARRAY[%(param_1)s, %(param_2)s]"
+        )
+
+    def test_where_has_any(self):
+        self._test_where(
+            self.hashcol.has_any(postgresql.array(['1', '2'])),
+            "test_table.hash ?| ARRAY[%(param_1)s, %(param_2)s]"
+        )
+
+    def test_where_defined(self):
+        self._test_where(
+            self.hashcol.defined('foo'),
+            "defined(test_table.hash, %(param_1)s)"
+        )
+
+    def test_where_contains(self):
+        self._test_where(
+            self.hashcol.contains({'foo': '1'}),
+            "test_table.hash @> %(hash_1)s"
+        )
+
+    def test_where_contained_by(self):
+        self._test_where(
+            self.hashcol.contained_by({'foo': '1', 'bar': None}),
+            "test_table.hash <@ %(hash_1)s"
+        )
+
+    def test_where_getitem(self):
+        self._test_where(
+            self.hashcol['bar'] == None,
+            "(test_table.hash -> %(hash_1)s) IS NULL"
+        )
+
+    def test_cols_get(self):
+        self._test_cols(
+            self.hashcol['foo'],
+            "test_table.hash -> %(hash_1)s AS anon_1",
+            True
+        )
+
+    def test_cols_delete_single_key(self):
+        self._test_cols(
+            self.hashcol.delete('foo'),
+            "delete(test_table.hash, %(param_1)s) AS delete_1",
+            True
+        )
+
+    def test_cols_delete_array_of_keys(self):
+        self._test_cols(
+            self.hashcol.delete(postgresql.array(['foo', 'bar'])),
+            ("delete(test_table.hash, ARRAY[%(param_1)s, %(param_2)s]) "
+             "AS delete_1"),
+            True
+        )
+
+    def test_cols_delete_matching_pairs(self):
+        self._test_cols(
+            self.hashcol.delete(hstore('1', '2')),
+            ("delete(test_table.hash, hstore(%(param_1)s, %(param_2)s)) "
+             "AS delete_1"),
+            True
+        )
+
+    def test_cols_slice(self):
+        self._test_cols(
+            self.hashcol.slice(postgresql.array(['1', '2'])),
+            ("slice(test_table.hash, ARRAY[%(param_1)s, %(param_2)s]) "
+             "AS slice_1"),
+            True
+        )
+
+    def test_cols_hstore_pair_text(self):
+        self._test_cols(
+            hstore('foo', '3')['foo'],
+            "hstore(%(param_1)s, %(param_2)s) -> %(hstore_1)s AS anon_1",
+            False
+        )
+
+    def test_cols_hstore_pair_array(self):
+        self._test_cols(
+            hstore(postgresql.array(['1', '2']),
+                   postgresql.array(['3', None]))['1'],
+            ("hstore(ARRAY[%(param_1)s, %(param_2)s], "
+             "ARRAY[%(param_3)s, NULL]) -> %(hstore_1)s AS anon_1"),
+            False
+        )
+
+    def test_cols_hstore_single_array(self):
+        self._test_cols(
+            hstore(postgresql.array(['1', '2', '3', None]))['3'],
+            ("hstore(ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, NULL]) "
+             "-> %(hstore_1)s AS anon_1"),
+            False
+        )
+
+    def test_cols_concat(self):
+        self._test_cols(
+            self.hashcol.concat(hstore(cast(self.test_table.c.id, Text), '3')),
+            ("test_table.hash || hstore(CAST(test_table.id AS TEXT), "
+             "%(param_1)s) AS anon_1"),
+            True
+        )
+
+    def test_cols_concat_op(self):
+        self._test_cols(
+            hstore('foo', 'bar') + self.hashcol,
+            "hstore(%(param_1)s, %(param_2)s) || test_table.hash AS anon_1",
+            True
+        )
+
+    def test_cols_concat_get(self):
+        self._test_cols(
+            (self.hashcol + self.hashcol)['foo'],
+            "test_table.hash || test_table.hash -> %(param_1)s AS anon_1"
+        )
+
+    def test_cols_keys(self):
+        self._test_cols(
+            # hide from 2to3
+            getattr(self.hashcol, 'keys')(),
+            "akeys(test_table.hash) AS akeys_1",
+            True
+        )
+
+    def test_cols_vals(self):
+        self._test_cols(
+            self.hashcol.vals(),
+            "avals(test_table.hash) AS avals_1",
+            True
+        )
+
+    def test_cols_array(self):
+        self._test_cols(
+            self.hashcol.array(),
+            "hstore_to_array(test_table.hash) AS hstore_to_array_1",
+            True
+        )
+
+    def test_cols_matrix(self):
+        self._test_cols(
+            self.hashcol.matrix(),
+            "hstore_to_matrix(test_table.hash) AS hstore_to_matrix_1",
+            True
+        )
+
+
+class HStoreRoundTripTest(fixtures.TablesTest):
+    __requires__ = 'hstore',
+    __dialect__ = 'postgresql'
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('data_table', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('name', String(30), nullable=False),
+            Column('data', HSTORE)
+        )
+
+    def _fixture_data(self, engine):
+        data_table = self.tables.data_table
+        engine.execute(
+                data_table.insert(),
+                {'name': 'r1', 'data': {"k1": "r1v1", "k2": "r1v2"}},
+                {'name': 'r2', 'data': {"k1": "r2v1", "k2": "r2v2"}},
+                {'name': 'r3', 'data': {"k1": "r3v1", "k2": "r3v2"}},
+                {'name': 'r4', 'data': {"k1": "r4v1", "k2": "r4v2"}},
+                {'name': 'r5', 'data': {"k1": "r5v1", "k2": "r5v2"}},
+        )
+
+    def _assert_data(self, compare):
+        data = testing.db.execute(
+            select([self.tables.data_table.c.data]).
+                order_by(self.tables.data_table.c.name)
+        ).fetchall()
+        eq_([d for d, in data], compare)
+
+    def _test_insert(self, engine):
+        engine.execute(
+            self.tables.data_table.insert(),
+            {'name': 'r1', 'data': {"k1": "r1v1", "k2": "r1v2"}}
+        )
+        self._assert_data([{"k1": "r1v1", "k2": "r1v2"}])
+
+    def _non_native_engine(self):
+        if testing.against("postgresql+psycopg2"):
+            engine = engines.testing_engine(options=dict(use_native_hstore=False))
+        else:
+            engine = testing.db
+        engine.connect()
+        return engine
+
+    @testing.only_on("postgresql+psycopg2")
+    def test_insert_native(self):
+        engine = testing.db
+        self._test_insert(engine)
+
+    def test_insert_python(self):
+        engine = self._non_native_engine()
+        self._test_insert(engine)
+
+    @testing.only_on("postgresql+psycopg2")
+    def test_criterion_native(self):
+        engine = testing.db
+        self._fixture_data(engine)
+        self._test_criterion(engine)
+
+    def test_criterion_python(self):
+        engine = self._non_native_engine()
+        self._fixture_data(engine)
+        self._test_criterion(engine)
+
+    def _test_criterion(self, engine):
+        data_table = self.tables.data_table
+        result = engine.execute(
+            select([data_table.c.data]).where(data_table.c.data['k1'] == 'r3v1')
+        ).first()
+        eq_(result, ({'k1': 'r3v1', 'k2': 'r3v2'},))
+
+    def _test_fixed_round_trip(self, engine):
+        s = select([
+                hstore(
+                    array(['key1', 'key2', 'key3']),
+                    array(['value1', 'value2', 'value3'])
+                )
+            ])
+        eq_(
+            engine.scalar(s),
+            {"key1": "value1", "key2": "value2", "key3": "value3"}
+        )
+
+    def test_fixed_round_trip_python(self):
+        engine = self._non_native_engine()
+        self._test_fixed_round_trip(engine)
+
+    @testing.only_on("postgresql+psycopg2")
+    def test_fixed_round_trip_native(self):
+        engine = testing.db
+        self._test_fixed_round_trip(engine)

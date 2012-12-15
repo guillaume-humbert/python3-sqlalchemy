@@ -2,14 +2,14 @@ from sqlalchemy import *
 from sqlalchemy.types import TypeEngine
 from sqlalchemy.sql.expression import ClauseElement, ColumnClause,\
                                     FunctionElement, Select, \
-                                    _BindParamClause
+                                    BindParameter
 
 from sqlalchemy.schema import DDLElement
-from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.ext.compiler import compiles, deregister
 from sqlalchemy import exc
 from sqlalchemy.sql import table, column, visitors
-from test.lib.testing import assert_raises_message
-from test.lib import *
+from sqlalchemy.testing import assert_raises_message
+from sqlalchemy.testing import fixtures, AssertsCompiledSQL
 
 class UserDefinedTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
@@ -321,10 +321,8 @@ class DefaultOnExistingTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     def teardown(self):
-        for cls in (Select, _BindParamClause):
-            if hasattr(cls, '_compiler_dispatcher'):
-                visitors._generate_dispatch(cls)
-                del cls._compiler_dispatcher
+        for cls in (Select, BindParameter):
+            deregister(cls)
 
     def test_select(self):
         t1 = table('t1', column('c1'), column('c2'))
@@ -351,7 +349,7 @@ class DefaultOnExistingTest(fixtures.TestBase, AssertsCompiledSQL):
             column('c')
         )
 
-        @compiles(_BindParamClause)
+        @compiles(BindParameter)
         def gen_bind(element, compiler, **kw):
             return "BIND(%s)" % compiler.visit_bindparam(element, **kw)
 
@@ -368,7 +366,7 @@ class DefaultOnExistingTest(fixtures.TestBase, AssertsCompiledSQL):
             column('c')
         )
 
-        @compiles(_BindParamClause)
+        @compiles(BindParameter)
         def gen_bind(element, compiler, **kw):
             return "BIND(%s)" % compiler.visit_bindparam(element, **kw)
 

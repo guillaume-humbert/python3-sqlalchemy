@@ -1,25 +1,21 @@
 # coding: utf-8
 """Tests unitofwork operations."""
 
-from test.lib.testing import eq_, assert_raises, assert_raises_message
+from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 import datetime
-import operator
 from sqlalchemy.orm import mapper as orm_mapper
 
 import sqlalchemy as sa
 from sqlalchemy import Integer, String, ForeignKey, literal_column, event
-from test.lib import engines, testing, pickleable
-from test.lib.schema import Table
-from test.lib.schema import Column
+from sqlalchemy.testing import engines
+from sqlalchemy import testing
+from sqlalchemy.testing.schema import Table
+from sqlalchemy.testing.schema import Column
 from sqlalchemy.orm import mapper, relationship, create_session, \
-    column_property, attributes, Session, reconstructor, object_session
-from test.lib.testing import eq_, ne_
-from test.lib.util import gc_collect
-from test.lib import fixtures
+    column_property, Session, exc as orm_exc
+from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
-from test.lib import fixtures
-from test.lib.assertsql import AllOf, CompiledSQL
-import gc
+from sqlalchemy.testing.assertsql import AllOf, CompiledSQL
 
 class UnitOfWorkTest(object):
     pass
@@ -1625,7 +1621,6 @@ class ManyToOneTest(_fixtures.FixtureTest):
             session.add(a)
 
         session.flush()
-
         objects[2].email_address = 'imnew@foo.bar'
         objects[3].user = User()
         objects[3].user.name = 'imnewlyadded'
@@ -2466,7 +2461,7 @@ class PartialNullPKTest(fixtures.MappedTest):
         t1 = s.query(T1).first()
         t1.col2 = 5
         assert_raises_message(
-            sa.exc.FlushError,
+            orm_exc.FlushError,
             "Can't update table using NULL for primary key value",
             s.commit
         )
@@ -2479,7 +2474,7 @@ class PartialNullPKTest(fixtures.MappedTest):
         t1 = s.query(T1).first()
         t1.col3 = 'hi'
         assert_raises_message(
-            sa.exc.FlushError,
+            orm_exc.FlushError,
             "Can't update table using NULL for primary key value",
             s.commit
         )
@@ -2492,7 +2487,7 @@ class PartialNullPKTest(fixtures.MappedTest):
         t1 = s.query(T1).first()
         s.delete(t1)
         assert_raises_message(
-            sa.exc.FlushError,
+            orm_exc.FlushError,
             "Can't delete from table using NULL for primary key value",
             s.commit
         )
@@ -2502,7 +2497,7 @@ class PartialNullPKTest(fixtures.MappedTest):
         s = Session()
         s.add(T1(col1=None, col2=None))
         assert_raises_message(
-            sa.exc.FlushError,
+            orm_exc.FlushError,
             r"Instance \<T1 at .+?\> has a NULL "
             "identity key.  If this is an auto-generated value, "
             "check that the database table allows generation ",

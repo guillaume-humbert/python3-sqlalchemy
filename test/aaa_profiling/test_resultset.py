@@ -1,6 +1,7 @@
 from sqlalchemy import *
-from test.lib import *
-from test.lib.testing import eq_
+from sqlalchemy.testing import fixtures, AssertsExecutionResults, profiling
+from sqlalchemy import testing
+from sqlalchemy.testing import eq_
 NUM_FIELDS = 10
 NUM_RECORDS = 1000
 
@@ -35,8 +36,6 @@ class ResultSetTest(fixtures.TestBase, AssertsExecutionResults):
     @profiling.function_call_count()
     def test_string(self):
         [tuple(row) for row in t.select().execute().fetchall()]
-
-    # sqlite3 returns native unicode.  so shouldn't be an increase here.
 
     @profiling.function_call_count()
     def test_unicode(self):
@@ -80,7 +79,7 @@ class RowProxyTest(fixtures.TestBase):
     __requires__ = 'cpython',
 
     def _rowproxy_fixture(self, keys, processors, row):
-        from sqlalchemy.engine.base import RowProxy
+        from sqlalchemy.engine.result import RowProxy
         class MockMeta(object):
             def __init__(self):
                 pass
