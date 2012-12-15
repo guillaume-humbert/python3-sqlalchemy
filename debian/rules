@@ -77,8 +77,8 @@ install-python%: build
 binary-indep: build install install-docs
 	dh_testdir -i
 	dh_testroot -i
-	dh_installchangelogs -i -p python-sqlalchemy-doc CHANGES
-	dh_installchangelogs -i
+	dh_installchangelogs -i -p python-sqlalchemy-doc -X doc/changelog -X CHANGES
+	dh_installchangelogs -i -N python-sqlalchemy-doc -X doc/changelog -X CHANGES
 	dh_installdocs -i
 	dh_installexamples -i
 	rm -rf $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/doc/build \
@@ -96,7 +96,7 @@ binary-indep: build install install-docs
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs -a
+	dh_installchangelogs -a -X doc/changelog -X CHANGES
 	dh_installdocs -a
 	dh_python2 -a
 	dh_python3 -a
