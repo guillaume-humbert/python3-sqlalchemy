@@ -1,5 +1,5 @@
 # orm/query.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -712,8 +712,8 @@ class Query(object):
 
         """
         self._yield_per = count
-        self._execution_options = self._execution_options.copy()
-        self._execution_options['stream_results'] = True
+        self._execution_options = self._execution_options.union(
+                                        {"stream_results": True})
 
     def get(self, ident):
         """Return an instance based on the given primary key identifier,

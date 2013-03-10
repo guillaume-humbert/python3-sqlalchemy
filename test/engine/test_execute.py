@@ -13,7 +13,7 @@ import sqlalchemy as tsa
 from sqlalchemy import testing
 from sqlalchemy.testing import engines
 from sqlalchemy.testing.engines import testing_engine
-import logging
+import logging.handlers
 from sqlalchemy.dialects.oracle.zxjdbc import ReturningParam
 from sqlalchemy.engine import result as _result, default
 from sqlalchemy.engine.base import Connection, Engine
@@ -110,7 +110,7 @@ class ExecuteTest(fixtures.TestBase):
 
     # some psycopg2 versions bomb this.
     @testing.fails_on_everything_except('mysql+mysqldb', 'mysql+pymysql',
-            'mysql+mysqlconnector', 'postgresql')
+            'mysql+cymysql', 'mysql+mysqlconnector', 'postgresql')
     @testing.fails_on('postgresql+zxjdbc', 'sprintf not supported')
     def test_raw_sprintf(self):
         def go(conn):
@@ -157,7 +157,7 @@ class ExecuteTest(fixtures.TestBase):
                      'db-api flaky')
     @testing.fails_on_everything_except('postgresql+psycopg2',
             'postgresql+pypostgresql', 'mysql+mysqlconnector',
-            'mysql+pymysql')
+            'mysql+pymysql', 'mysql+cymysql')
     def test_raw_python(self):
         def go(conn):
             conn.execute('insert into users (user_id, user_name) '

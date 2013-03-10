@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -208,7 +208,7 @@
     <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.orm.session">
-<span id="using-the-session"></span><h1>Using the Session<a class="headerlink" href="#module-sqlalchemy.orm.session" title="Permalink to this headline">¶</a></h1>
+<span id="using-the-session"></span><span id="session-toplevel"></span><h1>Using the Session<a class="headerlink" href="#module-sqlalchemy.orm.session" title="Permalink to this headline">¶</a></h1>
 <p>The <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">orm.mapper()</span></tt></a> function and <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> extensions
 are the primary configurational interface for the ORM. Once mappings are
 configured, the primary usage interface for persistence operations is the
@@ -869,7 +869,7 @@ expressed for collections which are already loaded. See the API docs for
 </div>
 </div>
 <div class="section" id="flushing">
-<h3>Flushing<a class="headerlink" href="#flushing" title="Permalink to this headline">¶</a></h3>
+<span id="session-flushing"></span><h3>Flushing<a class="headerlink" href="#flushing" title="Permalink to this headline">¶</a></h3>
 <p>When the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is used with its default
 configuration, the flush step is nearly always done transparently.
 Specifically, the flush occurs before any individual
@@ -904,7 +904,7 @@ been rolled back already - this is so that the overall nesting pattern of
 so-called &#8220;subtransactions&#8221; is consistently maintained.</p>
 </div>
 <div class="section" id="committing">
-<h3>Committing<a class="headerlink" href="#committing" title="Permalink to this headline">¶</a></h3>
+<span id="session-committing"></span><h3>Committing<a class="headerlink" href="#committing" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">commit()</span></tt></a> is used to commit the current
 transaction. It always issues <a class="reference internal" href="#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-meth docutils literal"><span class="pre">flush()</span></tt></a>
 beforehand to flush any remaining state to the database; this is independent
@@ -939,7 +939,7 @@ behaves in exactly the same way with regard to attribute state, except no
 transaction is present.</p>
 </div>
 <div class="section" id="rolling-back">
-<h3>Rolling Back<a class="headerlink" href="#rolling-back" title="Permalink to this headline">¶</a></h3>
+<span id="session-rollback"></span><h3>Rolling Back<a class="headerlink" href="#rolling-back" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">rollback()</span></tt></a> rolls back the current
 transaction. With a default configured session, the post-rollback state of the
 session is as follows:</p>
@@ -2417,10 +2417,15 @@ the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="
 <p>If a subtransaction is in effect (which occurs when begin() is called
 multiple times), the subtransaction will be closed, and the next call
 to <tt class="docutils literal"><span class="pre">commit()</span></tt> will operate on the enclosing transaction.</p>
-<p>For a session configured with autocommit=False, a new transaction will
+<p>When using the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> in its default mode of
+<tt class="docutils literal"><span class="pre">autocommit=False</span></tt>, a new transaction will
 be begun immediately after the commit, but note that the newly begun
 transaction does <em>not</em> use any connection resources until the first
 SQL is actually emitted.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#session-committing"><em>Committing</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3124,6 +3129,10 @@ as used by <a class="reference internal" href="query.html#sqlalchemy.orm.query.Q
 regardless of subtransactions being in effect.  All subtransactions up
 to the first real transaction are closed.  Subtransactions occur when
 begin() is called multiple times.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#session-rollback"><em>Rolling Back</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3384,7 +3393,7 @@ attribute.</p>
 attribute on an object is to use the <a class="reference internal" href="../core/inspection.html#sqlalchemy.inspection.inspect" title="sqlalchemy.inspection.inspect"><tt class="xref py py-func docutils literal"><span class="pre">inspect()</span></tt></a> function:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">inspect</span>
 
-<span class="n">hist</span> <span class="o">=</span> <span class="n">inspect</span><span class="p">(</span><span class="n">myobject</span><span class="p">)</span><span class="o">.</span><span class="n">attr</span><span class="o">.</span><span class="n">myattribute</span><span class="o">.</span><span class="n">history</span></pre></div>
+<span class="n">hist</span> <span class="o">=</span> <span class="n">inspect</span><span class="p">(</span><span class="n">myobject</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">myattribute</span><span class="o">.</span><span class="n">history</span></pre></div>
 </div>
 <p>Each tuple member is an iterable sequence:</p>
 <ul class="simple">
@@ -3443,7 +3452,7 @@ and no existing, unchanged state.</p>
         <a href="query.html" title="next chapter">Querying</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

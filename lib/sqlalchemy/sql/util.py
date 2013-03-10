@@ -1,5 +1,5 @@
 # sql/util.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -449,7 +449,7 @@ class Annotated(object):
     def _with_annotations(self, values):
         clone = self.__class__.__new__(self.__class__)
         clone.__dict__ = self.__dict__.copy()
-        expression.ColumnElement.comparator._reset(self)
+        expression.ColumnElement.comparator._reset(clone)
         clone._annotations = values
         return clone
 
@@ -507,6 +507,9 @@ class AnnotatedColumnElement(Annotated):
         """pull 'key' from parent, if not present"""
         return self._Annotated__element.key
 
+    @util.memoized_property
+    def info(self):
+        return self._Annotated__element.info
 
 # hard-generate Annotated subclasses.  this technique
 # is used instead of on-the-fly types (i.e. type.__new__())

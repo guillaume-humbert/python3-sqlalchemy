@@ -194,22 +194,33 @@ class RawSelectTest(QueryTest, AssertsCompiledSQL):
         Address = self.classes.Address
 
         self.assert_compile(
-            select([User]).where(User.id == Address.user_id).
-                correlate(Address),
-            "SELECT users.id, users.name FROM users "
-            "WHERE users.id = addresses.user_id"
+            select([User.name, Address.id,
+                    select([func.count(Address.id)]).\
+                    where(User.id == Address.user_id).\
+                    correlate(User).as_scalar()
+            ]),
+            "SELECT users.name, addresses.id, "
+            "(SELECT count(addresses.id) AS count_1 "
+                "FROM addresses WHERE users.id = addresses.user_id) AS anon_1 "
+            "FROM users, addresses"
         )
 
     def test_correlate_aliased_entity(self):
         User = self.classes.User
         Address = self.classes.Address
-        aa = aliased(Address, name="aa")
+        uu = aliased(User, name="uu")
 
         self.assert_compile(
-            select([User]).where(User.id == aa.user_id).
-                correlate(aa),
-            "SELECT users.id, users.name FROM users "
-            "WHERE users.id = aa.user_id"
+            select([uu.name, Address.id,
+                    select([func.count(Address.id)]).\
+                    where(uu.id == Address.user_id).\
+                    correlate(uu).as_scalar()
+            ]),
+            # curious, "address.user_id = uu.id" is reversed here
+            "SELECT uu.name, addresses.id, "
+            "(SELECT count(addresses.id) AS count_1 "
+                "FROM addresses WHERE addresses.user_id = uu.id) AS anon_1 "
+            "FROM users AS uu, addresses"
         )
 
     def test_columns_clause_entity(self):
@@ -1099,20 +1110,27 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
     def test_basic(self):
         User = self.classes.User
 
-        assert [User(id=7), User(id=8), User(id=9),User(id=10)] == create_session().query(User).all()
+        users = create_session().query(User).all()
+        eq_(
+            [User(id=7), User(id=8), User(id=9),User(id=10)],
+            users
+        )
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
-    def test_limit(self):
+    @testing.requires.offset
+    def test_limit_offset(self):
         User = self.classes.User
 
-        assert [User(id=8), User(id=9)] == create_session().query(User).order_by(User.id).limit(2).offset(1).all()
+        sess = create_session()
 
-        assert [User(id=8), User(id=9)] == list(create_session().query(User).order_by(User.id)[1:3])
+        assert [User(id=8), User(id=9)] == sess.query(User).order_by(User.id).limit(2).offset(1).all()
 
-        assert User(id=8) == create_session().query(User).order_by(User.id)[1]
+        assert [User(id=8), User(id=9)] == list(sess.query(User).order_by(User.id)[1:3])
 
-        assert [] == create_session().query(User).order_by(User.id)[3:3]
-        assert [] == create_session().query(User).order_by(User.id)[0:0]
+        assert User(id=8) == sess.query(User).order_by(User.id)[1]
+
+        assert [] == sess.query(User).order_by(User.id)[3:3]
+        assert [] == sess.query(User).order_by(User.id)[0:0]
+
 
     @testing.requires.boolean_col_expressions
     def test_exists(self):
@@ -1776,6 +1794,17 @@ class YieldTest(QueryTest):
             assert False
         except StopIteration:
             pass
+
+    def test_yield_per_and_execution_options(self):
+        User = self.classes.User
+
+        sess = create_session()
+        q = sess.query(User).yield_per(1)
+        q = q.execution_options(foo='bar')
+        assert q._yield_per
+        eq_(q._execution_options, {"stream_results": True, "foo": "bar"})
+
+
 
 class HintsTest(QueryTest, AssertsCompiledSQL):
     def test_hints(self):

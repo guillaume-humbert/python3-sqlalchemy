@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -1358,8 +1358,11 @@ subquery:</p>
             <span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">customer_id</span>
             <span class="p">])</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">customer_id</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span>
 
-<span class="n">customer_select</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">customers</span><span class="p">,</span><span class="n">subq</span><span class="p">])</span><span class="o">.</span>\
-            <span class="n">where</span><span class="p">(</span><span class="n">customers</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">customer_id</span><span class="o">==</span><span class="n">subq</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">customer_id</span><span class="p">)</span>
+<span class="n">customer_select</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">customers</span><span class="p">,</span> <span class="n">subq</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">select_from</span><span class="p">(</span>
+                <span class="n">join</span><span class="p">(</span><span class="n">customers</span><span class="p">,</span> <span class="n">subq</span><span class="p">,</span>
+                        <span class="n">customers</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">subq</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">customer_id</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span>
 
 <span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__table__</span> <span class="o">=</span> <span class="n">customer_select</span></pre></div>
@@ -1375,6 +1378,19 @@ those attributes.</p>
 primary key of the <tt class="docutils literal"><span class="pre">orders</span></tt> table is not represented in the mapping;  the ORM
 will only emit an INSERT into a table for which it has mapped the primary
 key.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The practice of mapping to arbitrary SELECT statements, especially
+complex ones as above, is
+almost never needed; it necessarily tends to produce complex queries
+which are often less efficient than that which would be produced
+by direct query construction.   The practice is to some degree
+based on the very early history of SQLAlchemy where the <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>
+construct was meant to represent the primary querying interface;
+in modern usage, the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object can be used to construct
+virtually any SELECT statement, including complex composites, and should
+be favored over the &#8220;map-to-selectable&#8221; approach.</p>
+</div>
 </div>
 <div class="section" id="multiple-mappers-for-one-class">
 <h2>Multiple Mappers for One Class<a class="headerlink" href="#multiple-mappers-for-one-class" title="Permalink to this headline">¶</a></h2>
@@ -1583,6 +1599,31 @@ between the two tables.</li>
 columns present are missing a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> configuration,
 this parameter can be used to specify which columns are &#8220;foreign&#8221;.
 In most cases can be left as <tt class="docutils literal"><span class="pre">None</span></tt>.</li>
+<li><strong>legacy_is_orphan</strong> &#8211; <p>Boolean, defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.
+When <tt class="docutils literal"><span class="pre">True</span></tt>, specifies that &#8220;legacy&#8221; orphan consideration
+is to be applied to objects mapped by this mapper, which means
+that a pending (that is, not persistent) object is auto-expunged
+from an owning <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> only when it is de-associated
+from <em>all</em> parents that specify a <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade towards
+this mapper.  The new default behavior is that the object is auto-expunged
+when it is de-associated with <em>any</em> of its parents that specify
+<tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade.  This behavior is more consistent with
+that of a persistent object, and allows behavior to be consistent
+in more scenarios independently of whether or not an orphanable
+object has been flushed yet or not.</p>
+<p>See the change note and example at <a class="reference internal" href="../changelog/migration_08.html#legacy-is-orphan-addition"><em>The consideration of a &#8220;pending&#8221; object as an &#8220;orphan&#8221; has been made more aggressive</em></a>
+for more detail on this change.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8: </span>- the consideration of a pending object as
+an &#8220;orphan&#8221; has been modified to more closely match the
+behavior as that of persistent objects, which is that the object
+is expunged from the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> as soon as it is
+de-associated from any of its orphan-enabled parents.  Previously,
+the pending object would be expunged only if de-associated
+from all of its orphan-enabled parents. The new flag <tt class="docutils literal"><span class="pre">legacy_is_orphan</span></tt>
+is added to <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">orm.mapper()</span></tt></a> which re-establishes the
+legacy behavior.</p>
+</li>
 <li><strong>non_primary</strong> &#8211; <p>Specify that this <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> is in addition
 to the &#8220;primary&#8221; mapper, that is, the one used for persistence.
 The <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> created here may be used for ad-hoc
@@ -1891,7 +1932,7 @@ can be set to False.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.mapper.Mapper">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.mapper.</tt><tt class="descname">Mapper</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.mapper.</tt><tt class="descname">Mapper</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em>, <em>legacy_is_orphan=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the correlation of class attributes to database table
 columns.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> object is instantiated using the
@@ -1917,7 +1958,7 @@ extension will also have its mapper available via the <tt class="docutils litera
 attribute.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em>, <em>legacy_is_orphan=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new mapper.</p>
 <p>Mappers are normally constructed via the
 <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> function.  See for details.</p>
@@ -1941,6 +1982,34 @@ the given MapperProperty is configured immediately.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sqlalchemy.orm.mapper.Mapper.all_orm_descriptors">
+<tt class="descname">all_orm_descriptors</tt><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.all_orm_descriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>A namespace of all <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces._InspectionAttr" title="sqlalchemy.orm.interfaces._InspectionAttr"><tt class="xref py py-class docutils literal"><span class="pre">_InspectionAttr</span></tt></a> attributes associated
+with the mapped class.</p>
+<p>These attributes are in all cases Python <a class="reference internal" href="../glossary.html#term-descriptors"><em class="xref std std-term">descriptors</em></a> associated
+with the mapped class or its superclasses.</p>
+<p>This namespace includes attributes that are mapped to the class
+as well as attributes declared by extension modules.
+It includes any Python descriptor type that inherits from
+<a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces._InspectionAttr" title="sqlalchemy.orm.interfaces._InspectionAttr"><tt class="xref py py-class docutils literal"><span class="pre">_InspectionAttr</span></tt></a>.  This includes <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.QueryableAttribute" title="sqlalchemy.orm.attributes.QueryableAttribute"><tt class="xref py py-class docutils literal"><span class="pre">QueryableAttribute</span></tt></a>,
+as well as extension types such as <a class="reference internal" href="extensions/hybrid.html#sqlalchemy.ext.hybrid.hybrid_property" title="sqlalchemy.ext.hybrid.hybrid_property"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_property</span></tt></a>,
+<a class="reference internal" href="extensions/hybrid.html#sqlalchemy.ext.hybrid.hybrid_method" title="sqlalchemy.ext.hybrid.hybrid_method"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_method</span></tt></a> and <a class="reference internal" href="extensions/associationproxy.html#sqlalchemy.ext.associationproxy.AssociationProxy" title="sqlalchemy.ext.associationproxy.AssociationProxy"><tt class="xref py py-class docutils literal"><span class="pre">AssociationProxy</span></tt></a>.</p>
+<p>To distinguish between mapped attributes and extension attributes,
+the attribute <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces._InspectionAttr.extension_type" title="sqlalchemy.orm.interfaces._InspectionAttr.extension_type"><tt class="xref py py-attr docutils literal"><span class="pre">_InspectionAttr.extension_type</span></tt></a> will refer
+to a constant that distinguishes between different extension types.</p>
+<p>When dealing with a <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.QueryableAttribute" title="sqlalchemy.orm.attributes.QueryableAttribute"><tt class="xref py py-class docutils literal"><span class="pre">QueryableAttribute</span></tt></a>, the
+<a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.QueryableAttribute.property" title="sqlalchemy.orm.attributes.QueryableAttribute.property"><tt class="xref py py-attr docutils literal"><span class="pre">QueryableAttribute.property</span></tt></a> attribute refers to the
+<a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a> property, which is what you get when referring
+to the collection of mapped properties via <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.attrs" title="sqlalchemy.orm.mapper.Mapper.attrs"><tt class="xref py py-attr docutils literal"><span class="pre">Mapper.attrs</span></tt></a>.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.0.</span></p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.attrs" title="sqlalchemy.orm.mapper.Mapper.attrs"><tt class="xref py py-attr docutils literal"><span class="pre">Mapper.attrs</span></tt></a></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sqlalchemy.orm.mapper.Mapper.attrs">
 <tt class="descname">attrs</tt><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.attrs" title="Permalink to this definition">¶</a></dt>
 <dd><p>A namespace of all <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a> objects
@@ -1956,6 +2025,10 @@ which would yield each <a class="reference internal" href="internals.html#sqlalc
 of this attribute which limit the types of properties
 returned, inclding <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.synonyms" title="sqlalchemy.orm.mapper.Mapper.synonyms"><tt class="xref py py-attr docutils literal"><span class="pre">synonyms</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.column_attrs" title="sqlalchemy.orm.mapper.Mapper.column_attrs"><tt class="xref py py-attr docutils literal"><span class="pre">column_attrs</span></tt></a>,
 <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.relationships" title="sqlalchemy.orm.mapper.Mapper.relationships"><tt class="xref py py-attr docutils literal"><span class="pre">relationships</span></tt></a>, and <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.composites" title="sqlalchemy.orm.mapper.Mapper.composites"><tt class="xref py py-attr docutils literal"><span class="pre">composites</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.all_orm_descriptors" title="sqlalchemy.orm.mapper.Mapper.all_orm_descriptors"><tt class="xref py py-attr docutils literal"><span class="pre">Mapper.all_orm_descriptors</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -2397,7 +2470,7 @@ default &#8220;polymorphic&#8221; query.</p>
         <a href="relationships.html" title="next chapter">Relationship Configuration</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

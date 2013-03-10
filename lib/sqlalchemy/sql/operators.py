@@ -1,5 +1,5 @@
 # sql/operators.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -356,6 +356,20 @@ class ColumnOperators(Operators):
 
         In a column context, produces the clause ``a LIKE other``.
 
+        E.g.::
+
+            select([sometable]).where(sometable.c.column.like("%foobar%"))
+
+        :param other: expression to be compared
+        :param escape: optional escape character, renders the ``ESCAPE``
+          keyword, e.g.::
+
+            somecolumn.like("foo/%bar", escape="/")
+
+        .. seealso::
+
+            :meth:`.ColumnOperators.ilike`
+
         """
         return self.operate(like_op, other, escape=escape)
 
@@ -363,6 +377,20 @@ class ColumnOperators(Operators):
         """Implement the ``ilike`` operator.
 
         In a column context, produces the clause ``a ILIKE other``.
+
+        E.g.::
+
+            select([sometable]).where(sometable.c.column.ilike("%foobar%"))
+
+        :param other: expression to be compared
+        :param escape: optional escape character, renders the ``ESCAPE``
+          keyword, e.g.::
+
+            somecolumn.ilike("foo/%bar", escape="/")
+
+        .. seealso::
+
+            :meth:`.ColumnOperators.like`
 
         """
         return self.operate(ilike_op, other, escape=escape)
@@ -730,7 +758,7 @@ def nullslast_op(a):
 
 _commutative = set([eq, ne, add, mul])
 
-_comparison = set([eq, ne, lt, gt, ge, le])
+_comparison = set([eq, ne, lt, gt, ge, le, between_op])
 
 
 def is_comparison(op):

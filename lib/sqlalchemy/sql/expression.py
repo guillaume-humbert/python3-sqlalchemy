@@ -1,5 +1,5 @@
 # sql/expression.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -2084,6 +2084,8 @@ class _DefaultColumnComparator(operators.ColumnOperators):
                     raise exc.InvalidRequestError('in() function accept'
                             's either a list of non-selectable values, '
                             'or a selectable: %r' % o)
+            elif o is None:
+                o = null()
             else:
                 o = expr._bind_param(op, o)
             args.append(o)
@@ -2602,7 +2604,14 @@ class FromClause(Selectable):
                     **params)
 
     def select(self, whereclause=None, **params):
-        """return a SELECT of this :class:`.FromClause`."""
+        """return a SELECT of this :class:`.FromClause`.
+
+        .. seealso::
+
+            :func:`~.sql.expression.select` - general purpose
+            method which allows for arbitrary column lists.
+
+        """
 
         return select([self], whereclause, **params)
 
@@ -4971,7 +4980,7 @@ class CompoundSelect(SelectBase):
     INTERSECT_ALL = util.symbol('INTERSECT ALL')
 
     def __init__(self, keyword, *selects, **kwargs):
-        self._should_correlate = kwargs.pop('correlate', False)
+        self._auto_correlate = kwargs.pop('correlate', False)
         self.keyword = keyword
         self.selects = []
 
@@ -5150,7 +5159,7 @@ class Select(HasPrefixes, SelectBase):
         :class:`SelectBase` superclass.
 
         """
-        self._should_correlate = correlate
+        self._auto_correlate = correlate
         if distinct is not False:
             if distinct is True:
                 self._distinct = True
@@ -5223,7 +5232,7 @@ class Select(HasPrefixes, SelectBase):
 
         return froms
 
-    def _get_display_froms(self, existing_froms=None):
+    def _get_display_froms(self, existing_froms=None, asfrom=False):
         """Return the full list of 'from' clauses to be displayed.
 
         Takes into account a set of existing froms which may be
@@ -5249,18 +5258,29 @@ class Select(HasPrefixes, SelectBase):
             # using a list to maintain ordering
             froms = [f for f in froms if f not in toremove]
 
-        if len(froms) > 1 or self._correlate or self._correlate_except:
+        if not asfrom:
             if self._correlate:
-                froms = [f for f in froms if f not in
-                        _cloned_intersection(froms,
-                        self._correlate)]
+                froms = [
+                    f for f in froms if f not in
+                    _cloned_intersection(
+                        _cloned_intersection(froms, existing_froms or ()),
+                        self._correlate
+                    )
+                ]
             if self._correlate_except:
-                froms = [f for f in froms if f in _cloned_intersection(froms,
-                        self._correlate_except)]
-            if self._should_correlate and existing_froms:
-                froms = [f for f in froms if f not in
-                        _cloned_intersection(froms,
-                        existing_froms)]
+                froms = [
+                    f for f in froms if f in
+                    _cloned_intersection(
+                        froms,
+                        self._correlate_except
+                    )
+                ]
+
+            if self._auto_correlate and existing_froms and len(froms) > 1:
+                froms = [
+                    f for f in froms if f not in
+                    _cloned_intersection(froms, existing_froms)
+                ]
 
                 if not len(froms):
                     raise exc.InvalidRequestError("Select statement '%s"
@@ -5633,7 +5653,7 @@ class Select(HasPrefixes, SelectBase):
             :ref:`correlated_subqueries`
 
         """
-        self._should_correlate = False
+        self._auto_correlate = False
         if fromclauses and fromclauses[0] is None:
             self._correlate = ()
         else:
@@ -5653,7 +5673,7 @@ class Select(HasPrefixes, SelectBase):
             :ref:`correlated_subqueries`
 
         """
-        self._should_correlate = False
+        self._auto_correlate = False
         if fromclauses and fromclauses[0] is None:
             self._correlate_except = ()
         else:
@@ -5664,7 +5684,7 @@ class Select(HasPrefixes, SelectBase):
         """append the given correlation expression to this select()
         construct."""
 
-        self._should_correlate = False
+        self._auto_correlate = False
         self._correlate = set(self._correlate).union(
                 _interpret_as_from(f) for f in fromclause)
 

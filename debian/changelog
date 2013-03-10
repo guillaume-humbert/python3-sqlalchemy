@@ -1,3 +1,10 @@
+sqlalchemy (0.8.0-1) experimental; urgency=low
+
+  * New upstream release
+  * Bump dependencies in .pydist files
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 10 Mar 2013 23:07:14 +0100
+
 sqlalchemy (0.8.0~b2-1) experimental; urgency=low
 
   * New upstream release

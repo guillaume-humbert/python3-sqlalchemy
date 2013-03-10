@@ -1,5 +1,5 @@
 # mssql/pyodbc.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -114,7 +114,7 @@ for unix + PyODBC.
 from .base import MSExecutionContext, MSDialect
 from ...connectors.pyodbc import PyODBCConnector
 from ... import types as sqltypes, util
-from ...util.compat import decimal
+import decimal
 
 
 class _MSNumeric_pyodbc(sqltypes.Numeric):

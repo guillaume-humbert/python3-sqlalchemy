@@ -1,5 +1,5 @@
 # firebird/kinterbasdb.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -50,8 +50,8 @@ __ http://kinterbasdb.sourceforge.net/dist_docs/usage.html#special_issue_concurr
 
 from .base import FBDialect, FBExecutionContext
 from ... import util, types as sqltypes
-from ...util.compat import decimal
 from re import match
+import decimal
 
 
 class _FBNumeric_kinterbasdb(sqltypes.Numeric):
@@ -120,7 +120,8 @@ class FBDialect_kinterbasdb(FBDialect):
             initialized = getattr(self.dbapi, 'initialized', None)
             if initialized is None:
                 # CVS rev 1.96 changed the name of the attribute:
-                # http://kinterbasdb.cvs.sourceforge.net/viewvc/kinterbasdb/Kinterbasdb-3.0/__init__.py?r1=1.95&r2=1.96
+                # http://kinterbasdb.cvs.sourceforge.net/viewvc/kinterbasdb/
+                # Kinterbasdb-3.0/__init__.py?r1=1.95&r2=1.96
                 initialized = getattr(self.dbapi, '_initialized', False)
             if not initialized:
                 self.dbapi.init(type_conv=type_conv,

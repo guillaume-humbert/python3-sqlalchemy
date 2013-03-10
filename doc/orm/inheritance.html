@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -221,7 +221,7 @@ columns), and in most cases a foreign key reference to the parent table:</p>
         <span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;engineer&#39;</span><span class="p">,</span>
     <span class="p">}</span>
 
-<span class="k">class</span> <span class="nc">Manager</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Manager</span><span class="p">(</span><span class="n">Employee</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;manager&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;employee.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">manager_name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
@@ -514,11 +514,9 @@ of employees which are associated with a <tt class="docutils literal"><span clas
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;company&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
-
     <span class="n">employees</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Employee&quot;</span><span class="p">,</span>
                     <span class="n">backref</span><span class="o">=</span><span class="s">&#39;company&#39;</span><span class="p">,</span>
                     <span class="n">cascade</span><span class="o">=</span><span class="s">&#39;all, delete-orphan&#39;</span><span class="p">)</span>
-
 
 <span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;employee&#39;</span>
@@ -527,18 +525,20 @@ of employees which are associated with a <tt class="docutils literal"><span clas
     <span class="n">company_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;company.id&#39;</span><span class="p">))</span>
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;polymorphic_on&#39;</span><span class="p">:</span><span class="nb">type</span><span class="p">,</span>
-        <span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="n">employee</span><span class="s">&#39;,</span>
+        <span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;employee&#39;</span><span class="p">,</span>
         <span class="s">&#39;with_polymorphic&#39;</span><span class="p">:</span><span class="s">&#39;*&#39;</span>
     <span class="p">}</span>
 
 <span class="k">class</span> <span class="nc">Engineer</span><span class="p">(</span><span class="n">Employee</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;engineer&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;employee.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">engineer_info</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;engineer&#39;</span><span class="p">}</span>
 
 <span class="k">class</span> <span class="nc">Manager</span><span class="p">(</span><span class="n">Employee</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;manager&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;employee.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">manager_data</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;manager&#39;</span><span class="p">}</span></pre></div>
 </div>
 <p>When querying from <tt class="docutils literal"><span class="pre">Company</span></tt> onto the <tt class="docutils literal"><span class="pre">Employee</span></tt> relationship, the
@@ -580,7 +580,7 @@ function to create a polymorphic selectable:</p>
 so that the right hand side of the join between <tt class="docutils literal"><span class="pre">Company</span></tt> and <tt class="docutils literal"><span class="pre">manager_and_engineer</span></tt>
 is converted into an aliased subquery.  Some backends, such as SQLite and older
 versions of MySQL can&#8217;t handle a FROM clause of the following form:</p>
-<div class="highlight-python"><pre>FROM x JOIN (y JOIN z ON &lt;onclause&gt;) ON &lt;onclause&gt;`` - using ``aliased=True</pre>
+<div class="highlight-python"><pre>FROM x JOIN (y JOIN z ON &lt;onclause&gt;) ON &lt;onclause&gt;</pre>
 </div>
 <p>Using <tt class="docutils literal"><span class="pre">aliased=True</span></tt> instead renders it more like:</p>
 <div class="highlight-python"><pre>FROM x JOIN (SELECT * FROM y JOIN z ON &lt;onclause&gt;) AS anon_1 ON &lt;onclause&gt;</pre>
@@ -895,7 +895,7 @@ bidirectionally reference <tt class="docutils literal"><span class="pre">C</span
         <a href="session.html" title="next chapter">Using the Session</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

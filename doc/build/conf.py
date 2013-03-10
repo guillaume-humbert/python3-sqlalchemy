@@ -74,7 +74,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'SQLAlchemy'
-copyright = u'2007-2012, the SQLAlchemy authors and contributors'
+copyright = u'2007-2013, the SQLAlchemy authors and contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -83,9 +83,9 @@ copyright = u'2007-2012, the SQLAlchemy authors and contributors'
 # The short X.Y version.
 version = "0.8"
 # The full version, including alpha/beta/rc tags.
-release = "0.8.0b2"
+release = "0.8.0"
 
-release_date = "December 14, 2012"
+release_date = "March 9, 2013"
 
 site_base = "http://www.sqlalchemy.org"
 
@@ -280,7 +280,7 @@ man_pages = [
 epub_title = u'SQLAlchemy'
 epub_author = u'SQLAlchemy authors'
 epub_publisher = u'SQLAlchemy authors'
-epub_copyright = u'2011, SQLAlchemy authors'
+epub_copyright = u'2013, SQLAlchemy authors'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
@@ -300,7 +300,7 @@ epub_copyright = u'2011, SQLAlchemy authors'
 # The format is a list of tuples containing the path and title.
 #epub_pre_files = []
 
-# HTML files shat should be inserted after the pages created by sphinx.
+# HTML files that should be inserted after the pages created by sphinx.
 # The format is a list of tuples containing the path and title.
 #epub_post_files = []
 

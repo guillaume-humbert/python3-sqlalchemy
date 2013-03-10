@@ -7,9 +7,10 @@ What's New in SQLAlchemy 0.8?
     This document describes changes between SQLAlchemy version 0.7,
     undergoing maintenance releases as of October, 2012,
     and SQLAlchemy version 0.8, which is expected for release
-    in late 2012.
+    in early 2013.
 
     Document date: October 25, 2012
+    Updated: March 9, 2013
 
 Introduction
 ============
@@ -582,6 +583,23 @@ Dogpile.cache is a rewrite of the caching portion
 of Beaker, featuring vastly simpler and faster operation,
 as well as support for distributed locking.
 
+Note that the SQLAlchemy APIs used by the Dogpile example as well
+as the previous Beaker example have changed slightly, in particular
+this change is needed as illustrated in the Beaker example::
+
+    --- examples/beaker_caching/caching_query.py
+    +++ examples/beaker_caching/caching_query.py
+    @@ -222,7 +222,8 @@
+
+             """
+             if query._current_path:
+    -            mapper, key = query._current_path[-2:]
+    +            mapper, prop = query._current_path[-2:]
+    +            key = prop.key
+
+                 for cls in mapper.class_.__mro__:
+                     if (cls, key) in self._relationship_options:
+
 .. seealso::
 
     :mod:`dogpile_caching`
@@ -947,6 +965,124 @@ on :func:`.insert`, :func:`.select` and :class:`.Query`.
 Behavioral Changes
 ==================
 
+.. _legacy_is_orphan_addition:
+
+The consideration of a "pending" object as an "orphan" has been made more aggressive
+------------------------------------------------------------------------------------
+
+This is a late add to the 0.8 series, however it is hoped that the new behavior
+is generally more consistent and intuitive in a wider variety of
+situations.   The ORM has since at least version 0.4 included behavior
+such that an object that's "pending", meaning that it's
+associated with a :class:`.Session` but hasn't been inserted into the database
+yet, is automatically expunged from the :class:`.Session` when it becomes an "orphan",
+which means it has been de-associated with a parent object that refers to it
+with ``delete-orphan`` cascade on the configured :func:`.relationship`.   This
+behavior is intended to approximately mirror the behavior of a persistent
+(that is, already inserted) object, where the ORM will emit a DELETE for such
+objects that become orphans based on the interception of detachment events.
+
+The behavioral change comes into play for objects that
+are referred to by multiple kinds of parents that each specify ``delete-orphan``; the
+typical example is an :ref:`association object <association_pattern>` that bridges two other kinds of objects
+in a many-to-many pattern.   Previously, the behavior was such that the
+pending object would be expunged only when de-associated with *all* of its parents.
+With the behavioral change, the pending object
+is expunged as soon as it is de-associated from *any* of the parents that it was
+previously associated with.  This behavior is intended to more closely
+match that of persistent objects, which are deleted as soon
+as they are de-associated from any parent.
+
+The rationale for the older behavior dates back
+at least to version 0.4, and was basically a defensive decision to try to alleviate
+confusion when an object was still being constructed for INSERT.   But the reality
+is that the object is re-associated with the :class:`.Session` as soon as it is
+attached to any new parent in any case.
+
+It's still possible to flush an object
+that is not associated with all of its required parents, if the object was either
+not associated with those parents in the first place, or if it was expunged, but then
+re-associated with a :class:`.Session` via a subsequent attachment event but still
+not fully associated.   In this situation, it is expected that the database
+would emit an integrity error, as there are likely NOT NULL foreign key columns
+that are unpopulated.   The ORM makes the decision to let these INSERT attempts
+occur, based on the judgment that an object that is only partially associated with
+its required parents but has been actively associated with some of them,
+is more often than not a user error, rather than an intentional
+omission which should be silently skipped - silently skipping the INSERT here would
+make user errors of this nature very hard to debug.
+
+The old behavior, for applications that might have been relying upon it, can be re-enabled for
+any :class:`.Mapper` by specifying the flag ``legacy_is_orphan`` as a mapper
+option.
+
+The new behavior allows the following test case to work::
+
+    from sqlalchemy import Column, Integer, String, ForeignKey
+    from sqlalchemy.orm import relationship, backref
+    from sqlalchemy.ext.declarative import declarative_base
+
+    Base = declarative_base()
+
+    class User(Base):
+        __tablename__ = 'user'
+        id = Column(Integer, primary_key=True)
+        name = Column(String(64))
+
+    class UserKeyword(Base):
+        __tablename__ = 'user_keyword'
+        user_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+        keyword_id = Column(Integer, ForeignKey('keyword.id'), primary_key=True)
+
+        user = relationship(User,
+                    backref=backref("user_keywords",
+                                    cascade="all, delete-orphan")
+                )
+
+        keyword = relationship("Keyword",
+                    backref=backref("user_keywords",
+                                    cascade="all, delete-orphan")
+                )
+
+        # uncomment this to enable the old behavior
+        # __mapper_args__ = {"legacy_is_orphan": True}
+
+    class Keyword(Base):
+        __tablename__ = 'keyword'
+        id = Column(Integer, primary_key=True)
+        keyword = Column('keyword', String(64))
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
+    # note we're using Postgresql to ensure that referential integrity
+    # is enforced, for demonstration purposes.
+    e = create_engine("postgresql://scott:tiger@localhost/test", echo=True)
+
+    Base.metadata.drop_all(e)
+    Base.metadata.create_all(e)
+
+    session = Session(e)
+
+    u1 = User(name="u1")
+    k1 = Keyword(keyword="k1")
+
+    session.add_all([u1, k1])
+
+    uk1 = UserKeyword(keyword=k1, user=u1)
+
+    # previously, if session.flush() were called here,
+    # this operation would succeed, but if session.flush()
+    # were not called here, the operation fails with an
+    # integrity error.
+    # session.flush()
+    del u1.user_keywords[0]
+
+    session.commit()
+
+
+:ticket:`2655`
+
 The after_attach event fires after the item is associated with the Session instead of before; before_attach added
 -----------------------------------------------------------------------------------------------------------------
 
@@ -975,6 +1111,8 @@ use cases should use the new "before_attach" event:
                                                 first()
 
 :ticket:`2464`
+
+
 
 Query now auto-correlates like a select() does
 ----------------------------------------------
@@ -1007,6 +1145,76 @@ like in ``select()``, correlation can be disabled by calling
 entity, ``query.correlate(someentity)``.
 
 :ticket:`2179`
+
+.. _correlation_context_specific:
+
+Correlation is now always context-specific
+------------------------------------------
+
+To allow a wider variety of correlation scenarios, the behavior of
+:meth:`.Select.correlate` and :meth:`.Query.correlate` has changed slightly
+such that the SELECT statement will omit the "correlated" target from the
+FROM clause only if the statement is actually used in that context.  Additionally,
+it's no longer possible for a SELECT statement that's placed as a FROM
+in an enclosing SELECT statement to "correlate" (i.e. omit) a FROM clause.
+
+This change only makes things better as far as rendering SQL, in that it's no
+longer possible to render illegal SQL where there are insufficient FROM
+objects relative to what's being selected::
+
+    from sqlalchemy.sql import table, column, select
+
+    t1 = table('t1', column('x'))
+    t2 = table('t2', column('y'))
+    s = select([t1, t2]).correlate(t1)
+
+    print(s)
+
+Prior to this change, the above would return::
+
+    SELECT t1.x, t2.y FROM t2
+
+which is invalid SQL as "t1" is not referred to in any FROM clause.
+
+Now, in the absense of an enclosing SELECT, it returns::
+
+    SELECT t1.x, t2.y FROM t1, t2
+
+Within a SELECT, the correlation takes effect as expected::
+
+    s2 = select([t1, t2]).where(t1.c.x == t2.c.y).where(t1.c.x == s)
+
+    print (s2)
+
+    SELECT t1.x, t2.y FROM t1, t2
+    WHERE t1.x = t2.y AND t1.x =
+        (SELECT t1.x, t2.y FROM t2)
+
+This change is not expected to impact any existing applications, as
+the correlation behavior remains identical for properly constructed
+expressions.  Only an application that relies, most likely within a
+testing scenario, on the invalid string output of a correlated
+SELECT used in a non-correlating context would see any change.
+
+:ticket:`2668`
+
+
+.. _metadata_create_drop_tables:
+
+create_all() and drop_all() will now honor an empty list as such
+----------------------------------------------------------------
+
+The methods :meth:`.MetaData.create_all` and :meth:`.MetaData.drop_all`
+will now accept a list of :class:`.Table` objects that is empty,
+and will not emit any CREATE or DROP statements.  Previously,
+an empty list was interepreted the same as passing ``None``
+for a collection, and CREATE/DROP would be emitted for all
+items unconditionally.
+
+This is a bug fix but some applications may have been relying upon
+the previous behavior.
+
+:ticket:`2664`
 
 Repaired the Event Targeting of :class:`.InstrumentationEvents`
 ----------------------------------------------------------------

@@ -1,5 +1,5 @@
 # sql/compiler.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -63,6 +63,17 @@ BIND_TEMPLATES = {
     'numeric': ":[_POSITION]",
     'named': ":%(name)s"
 }
+
+REQUIRED = util.symbol('REQUIRED', """
+Placeholder for the value within a :class:`.BindParameter`
+which is required to be present when the statement is passed
+to :meth:`.Connection.execute`.
+
+This symbol is typically used when a :func:`.expression.insert`
+or :func:`.expression.update` statement is compiled without parameter
+values present.
+
+""")
 
 
 OPERATORS = {
@@ -1075,14 +1086,9 @@ class SQLCompiler(engine.Compiled):
                             positional_names=None, **kwargs):
         entry = self.stack and self.stack[-1] or {}
 
-        if not asfrom:
-            existingfroms = entry.get('from', None)
-        else:
-            # don't render correlations if we're rendering a FROM list
-            # entry
-            existingfroms = []
+        existingfroms = entry.get('from', None)
 
-        froms = select._get_display_froms(existingfroms)
+        froms = select._get_display_froms(existingfroms, asfrom=asfrom)
 
         correlate_froms = set(sql._from_objects(*froms))
 
@@ -1236,6 +1242,11 @@ class SQLCompiler(engine.Compiled):
             return " FOR UPDATE"
         else:
             return ""
+
+    def returning_clause(self, stmt, returning_cols):
+        raise exc.CompileError(
+                    "RETURNING is not supported by this "
+                    "dialect's statement compiler.")
 
     def limit_clause(self, select):
         text = ""
@@ -1496,8 +1507,6 @@ class SQLCompiler(engine.Compiled):
                         for c in stmt.table.columns
                     ]
 
-        required = object()
-
         if stmt._has_multi_parameters:
             stmt_parameters = stmt.parameters[0]
         else:
@@ -1508,7 +1517,7 @@ class SQLCompiler(engine.Compiled):
         if self.column_keys is None:
             parameters = {}
         else:
-            parameters = dict((sql._column_as_key(key), required)
+            parameters = dict((sql._column_as_key(key), REQUIRED)
                               for key in self.column_keys
                               if not stmt_parameters or
                               key not in stmt_parameters)
@@ -1560,7 +1569,7 @@ class SQLCompiler(engine.Compiled):
                         value = normalized_params[c]
                         if sql._is_literal(value):
                             value = self._create_crud_bind_param(
-                                c, value, required=value is required)
+                                c, value, required=value is REQUIRED)
                         else:
                             self.postfetch.append(c)
                             value = self.process(value.self_group())
@@ -1594,7 +1603,7 @@ class SQLCompiler(engine.Compiled):
                 value = parameters.pop(c.key)
                 if sql._is_literal(value):
                     value = self._create_crud_bind_param(
-                                    c, value, required=value is required,
+                                    c, value, required=value is REQUIRED,
                                     name=c.key
                                         if not stmt._has_multi_parameters
                                         else "%s_0" % c.key
@@ -1924,20 +1933,17 @@ class DDLCompiler(engine.Compiled):
     def visit_drop_view(self, drop):
         return "\nDROP VIEW " + self.preparer.format_table(drop.element)
 
-    def _index_identifier(self, ident):
-        if isinstance(ident, sql._truncated_label):
-            max = self.dialect.max_index_name_length or \
-                        self.dialect.max_identifier_length
-            if len(ident) > max:
-                ident = ident[0:max - 8] + \
-                                "_" + util.md5_hex(ident)[-4:]
-        else:
-            self.dialect.validate_identifier(ident)
 
-        return ident
+    def _verify_index_table(self, index):
+        if index.table is None:
+            raise exc.CompileError("Index '%s' is not associated "
+                            "with any table." % index.name)
 
-    def visit_create_index(self, create, include_schema=False):
+
+    def visit_create_index(self, create, include_schema=False,
+                                include_table_schema=True):
         index = create.element
+        self._verify_index_table(index)
         preparer = self.preparer
         text = "CREATE "
         if index.unique:
@@ -1946,9 +1952,13 @@ class DDLCompiler(engine.Compiled):
                     % (
                         self._prepared_index_name(index,
                                 include_schema=include_schema),
-                       preparer.format_table(index.table),
-                       ', '.join(preparer.quote(c.name, c.quote)
-                                 for c in index.columns))
+                       preparer.format_table(index.table,
+                                    use_schema=include_table_schema),
+                       ', '.join(
+                            self.sql_compiler.process(expr,
+                                include_table=False) for
+                                expr in index.expressions)
+                        )
         return text
 
     def visit_drop_index(self, drop):
@@ -1964,8 +1974,18 @@ class DDLCompiler(engine.Compiled):
         else:
             schema_name = None
 
+        ident = index.name
+        if isinstance(ident, sql._truncated_label):
+            max_ = self.dialect.max_index_name_length or \
+                        self.dialect.max_identifier_length
+            if len(ident) > max_:
+                ident = ident[0:max_ - 8] + \
+                                "_" + util.md5_hex(ident)[-4:]
+        else:
+            self.dialect.validate_identifier(ident)
+
         index_name = self.preparer.quote(
-                            self._index_identifier(index.name),
+                                    ident,
                                     index.quote)
 
         if schema_name:

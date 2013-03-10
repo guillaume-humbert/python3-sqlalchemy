@@ -1,5 +1,5 @@
 # sqlalchemy/pool.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -736,8 +736,8 @@ class QueuePool(Pool):
         self._overflow = 0 - pool_size
         self._max_overflow = max_overflow
         self._timeout = timeout
-        self._overflow_lock = self._max_overflow > -1 and \
-                                    threading.Lock() or DummyLock()
+        self._overflow_lock = threading.Lock() if self._max_overflow > -1 \
+                                    else DummyLock()
 
     def _do_return_conn(self, conn):
         try:

@@ -361,6 +361,7 @@ lib/sqlalchemy/dialects/mssql/pyodbc.py
 lib/sqlalchemy/dialects/mssql/zxjdbc.py
 lib/sqlalchemy/dialects/mysql/__init__.py
 lib/sqlalchemy/dialects/mysql/base.py
+lib/sqlalchemy/dialects/mysql/cymysql.py
 lib/sqlalchemy/dialects/mysql/gaerdbms.py
 lib/sqlalchemy/dialects/mysql/mysqlconnector.py
 lib/sqlalchemy/dialects/mysql/mysqldb.py
@@ -465,6 +466,8 @@ lib/sqlalchemy/testing/suite/__init__.py
 lib/sqlalchemy/testing/suite/test_ddl.py
 lib/sqlalchemy/testing/suite/test_insert.py
 lib/sqlalchemy/testing/suite/test_reflection.py
+lib/sqlalchemy/testing/suite/test_results.py
+lib/sqlalchemy/testing/suite/test_sequence.py
 lib/sqlalchemy/testing/suite/test_types.py
 lib/sqlalchemy/testing/suite/test_update_delete.py
 lib/sqlalchemy/util/__init__.py
@@ -506,6 +509,7 @@ test/dialect/test_suite.py
 test/dialect/test_sybase.py
 test/engine/__init__.py
 test/engine/test_bind.py
+test/engine/test_ddlemit.py
 test/engine/test_ddlevents.py
 test/engine/test_execute.py
 test/engine/test_parseconnect.py

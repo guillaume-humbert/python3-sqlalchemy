@@ -274,7 +274,7 @@ exists with a value of ``None`` on our ``User`` instance due to the ``id``
 column we declared in our mapping.  By
 default, the ORM creates class attributes for all columns present
 in the table being mapped.   These class attributes exist as
-`Python descriptors <http://docs.python.org/howto/descriptor.html>`_, and
+:term:`descriptors`, and
 define **instrumentation** for the mapped class. The
 functionality of this instrumentation includes the ability to fire on change
 events, track modifications, and to automatically load new data from the database when
@@ -1806,6 +1806,8 @@ Uh oh, they're still there ! Analyzing the flush SQL, we can see that the
 ``user_id`` column of each address was set to NULL, but the rows weren't
 deleted. SQLAlchemy doesn't assume that deletes cascade, you have to tell it
 to do so.
+
+.. _tutorial_delete_cascade:
 
 Configuring delete/delete-orphan Cascade
 ----------------------------------------

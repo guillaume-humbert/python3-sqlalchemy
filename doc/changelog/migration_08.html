@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -146,8 +146,11 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#behavioral-changes">Behavioral Changes</a><ul>
+<li><a class="reference internal" href="#the-consideration-of-a-pending-object-as-an-orphan-has-been-made-more-aggressive">The consideration of a &#8220;pending&#8221; object as an &#8220;orphan&#8221; has been made more aggressive</a></li>
 <li><a class="reference internal" href="#the-after-attach-event-fires-after-the-item-is-associated-with-the-session-instead-of-before-before-attach-added">The after_attach event fires after the item is associated with the Session instead of before; before_attach added</a></li>
 <li><a class="reference internal" href="#query-now-auto-correlates-like-a-select-does">Query now auto-correlates like a select() does</a></li>
+<li><a class="reference internal" href="#correlation-is-now-always-context-specific">Correlation is now always context-specific</a></li>
+<li><a class="reference internal" href="#create-all-and-drop-all-will-now-honor-an-empty-list-as-such">create_all() and drop_all() will now honor an empty list as such</a></li>
 <li><a class="reference internal" href="#repaired-the-event-targeting-of-instrumentationevents">Repaired the Event Targeting of <tt class="docutils literal"><span class="pre">InstrumentationEvents</span></tt></a></li>
 <li><a class="reference internal" href="#no-more-magic-coercion-of-to-in-when-comparing-to-subquery-in-ms-sql">No more magic coercion of &#8220;=&#8221; to IN when comparing to subquery in MS-SQL</a></li>
 <li><a class="reference internal" href="#fixed-the-behavior-of-session-is-modified">Fixed the behavior of <tt class="docutils literal"><span class="pre">Session.is_modified()</span></tt></a></li>
@@ -202,8 +205,9 @@
 <p>This document describes changes between SQLAlchemy version 0.7,
 undergoing maintenance releases as of October, 2012,
 and SQLAlchemy version 0.8, which is expected for release
-in late 2012.</p>
-<p class="last">Document date: October 25, 2012</p>
+in early 2013.</p>
+<p class="last">Document date: October 25, 2012
+Updated: March 9, 2013</p>
 </div>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
@@ -719,6 +723,22 @@ that were not flushed in the current transaction.</p>
 Dogpile.cache is a rewrite of the caching portion
 of Beaker, featuring vastly simpler and faster operation,
 as well as support for distributed locking.</p>
+<p>Note that the SQLAlchemy APIs used by the Dogpile example as well
+as the previous Beaker example have changed slightly, in particular
+this change is needed as illustrated in the Beaker example:</p>
+<div class="highlight-python"><pre>--- examples/beaker_caching/caching_query.py
++++ examples/beaker_caching/caching_query.py
+@@ -222,7 +222,8 @@
+
+         """
+         if query._current_path:
+-            mapper, key = query._current_path[-2:]
++            mapper, prop = query._current_path[-2:]
++            key = prop.key
+
+             for cls in mapper.class_.__mro__:
+                 if (cls, key) in self._relationship_options:</pre>
+</div>
 <div class="admonition-see-also admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/examples.html#module-dogpile_caching" title="dogpile_caching"><tt class="xref py py-mod docutils literal"><span class="pre">dogpile_caching</span></tt></a></p>
@@ -1031,6 +1051,114 @@ on <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sq
 </div>
 <div class="section" id="behavioral-changes">
 <h2>Behavioral Changes<a class="headerlink" href="#behavioral-changes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="the-consideration-of-a-pending-object-as-an-orphan-has-been-made-more-aggressive">
+<span id="legacy-is-orphan-addition"></span><h3>The consideration of a &#8220;pending&#8221; object as an &#8220;orphan&#8221; has been made more aggressive<a class="headerlink" href="#the-consideration-of-a-pending-object-as-an-orphan-has-been-made-more-aggressive" title="Permalink to this headline">¶</a></h3>
+<p>This is a late add to the 0.8 series, however it is hoped that the new behavior
+is generally more consistent and intuitive in a wider variety of
+situations.   The ORM has since at least version 0.4 included behavior
+such that an object that&#8217;s &#8220;pending&#8221;, meaning that it&#8217;s
+associated with a <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> but hasn&#8217;t been inserted into the database
+yet, is automatically expunged from the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> when it becomes an &#8220;orphan&#8221;,
+which means it has been de-associated with a parent object that refers to it
+with <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade on the configured <a class="reference internal" href="../orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.   This
+behavior is intended to approximately mirror the behavior of a persistent
+(that is, already inserted) object, where the ORM will emit a DELETE for such
+objects that become orphans based on the interception of detachment events.</p>
+<p>The behavioral change comes into play for objects that
+are referred to by multiple kinds of parents that each specify <tt class="docutils literal"><span class="pre">delete-orphan</span></tt>; the
+typical example is an <a class="reference internal" href="../orm/relationships.html#association-pattern"><em>association object</em></a> that bridges two other kinds of objects
+in a many-to-many pattern.   Previously, the behavior was such that the
+pending object would be expunged only when de-associated with <em>all</em> of its parents.
+With the behavioral change, the pending object
+is expunged as soon as it is de-associated from <em>any</em> of the parents that it was
+previously associated with.  This behavior is intended to more closely
+match that of persistent objects, which are deleted as soon
+as they are de-associated from any parent.</p>
+<p>The rationale for the older behavior dates back
+at least to version 0.4, and was basically a defensive decision to try to alleviate
+confusion when an object was still being constructed for INSERT.   But the reality
+is that the object is re-associated with the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> as soon as it is
+attached to any new parent in any case.</p>
+<p>It&#8217;s still possible to flush an object
+that is not associated with all of its required parents, if the object was either
+not associated with those parents in the first place, or if it was expunged, but then
+re-associated with a <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> via a subsequent attachment event but still
+not fully associated.   In this situation, it is expected that the database
+would emit an integrity error, as there are likely NOT NULL foreign key columns
+that are unpopulated.   The ORM makes the decision to let these INSERT attempts
+occur, based on the judgment that an object that is only partially associated with
+its required parents but has been actively associated with some of them,
+is more often than not a user error, rather than an intentional
+omission which should be silently skipped - silently skipping the INSERT here would
+make user errors of this nature very hard to debug.</p>
+<p>The old behavior, for applications that might have been relying upon it, can be re-enabled for
+any <a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> by specifying the flag <tt class="docutils literal"><span class="pre">legacy_is_orphan</span></tt> as a mapper
+option.</p>
+<p>The new behavior allows the following test case to work:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">backref</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">64</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">UserKeyword</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user_keyword&#39;</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">keyword_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;keyword.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">User</span><span class="p">,</span>
+                <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s">&quot;user_keywords&quot;</span><span class="p">,</span>
+                                <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;all, delete-orphan&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="n">keyword</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Keyword&quot;</span><span class="p">,</span>
+                <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s">&quot;user_keywords&quot;</span><span class="p">,</span>
+                                <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;all, delete-orphan&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="c"># uncomment this to enable the old behavior</span>
+    <span class="c"># __mapper_args__ = {&quot;legacy_is_orphan&quot;: True}</span>
+
+<span class="k">class</span> <span class="nc">Keyword</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;keyword&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">keyword</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;keyword&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">64</span><span class="p">))</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">Session</span>
+
+<span class="c"># note we&#39;re using Postgresql to ensure that referential integrity</span>
+<span class="c"># is enforced, for demonstration purposes.</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://scott:tiger@localhost/test&quot;</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">drop_all</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+<span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+<span class="n">u1</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;u1&quot;</span><span class="p">)</span>
+<span class="n">k1</span> <span class="o">=</span> <span class="n">Keyword</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&quot;k1&quot;</span><span class="p">)</span>
+
+<span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">([</span><span class="n">u1</span><span class="p">,</span> <span class="n">k1</span><span class="p">])</span>
+
+<span class="n">uk1</span> <span class="o">=</span> <span class="n">UserKeyword</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="n">k1</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">u1</span><span class="p">)</span>
+
+<span class="c"># previously, if session.flush() were called here,</span>
+<span class="c"># this operation would succeed, but if session.flush()</span>
+<span class="c"># were not called here, the operation fails with an</span>
+<span class="c"># integrity error.</span>
+<span class="c"># session.flush()</span>
+<span class="k">del</span> <span class="n">u1</span><span class="o">.</span><span class="n">user_keywords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></pre></div>
+</div>
+<p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2655">#2655</a></p>
+</div>
 <div class="section" id="the-after-attach-event-fires-after-the-item-is-associated-with-the-session-instead-of-before-before-attach-added">
 <h3>The after_attach event fires after the item is associated with the Session instead of before; before_attach added<a class="headerlink" href="#the-after-attach-event-fires-after-the-item-is-associated-with-the-session-instead-of-before-before-attach-added" title="Permalink to this headline">¶</a></h3>
 <p>Event handlers which use after_attach can now assume the
@@ -1076,6 +1204,60 @@ The above statement in 0.8 will correlate automatically:</p>
 <tt class="docutils literal"><span class="pre">query.correlate(None)</span></tt> or manually set by passing an
 entity, <tt class="docutils literal"><span class="pre">query.correlate(someentity)</span></tt>.</p>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2179">#2179</a></p>
+</div>
+<div class="section" id="correlation-is-now-always-context-specific">
+<span id="correlation-context-specific"></span><h3>Correlation is now always context-specific<a class="headerlink" href="#correlation-is-now-always-context-specific" title="Permalink to this headline">¶</a></h3>
+<p>To allow a wider variety of correlation scenarios, the behavior of
+<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate()</span></tt></a> and <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.correlate" title="sqlalchemy.orm.query.Query.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Query.correlate()</span></tt></a> has changed slightly
+such that the SELECT statement will omit the &#8220;correlated&#8221; target from the
+FROM clause only if the statement is actually used in that context.  Additionally,
+it&#8217;s no longer possible for a SELECT statement that&#8217;s placed as a FROM
+in an enclosing SELECT statement to &#8220;correlate&#8221; (i.e. omit) a FROM clause.</p>
+<p>This change only makes things better as far as rendering SQL, in that it&#8217;s no
+longer possible to render illegal SQL where there are insufficient FROM
+objects relative to what&#8217;s being selected:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t1</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t1&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+<span class="n">t2</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t2&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">))</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">])</span><span class="o">.</span><span class="n">correlate</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></pre></div>
+</div>
+<p>Prior to this change, the above would return:</p>
+<div class="highlight-python"><pre>SELECT t1.x, t2.y FROM t2</pre>
+</div>
+<p>which is invalid SQL as &#8220;t1&#8221; is not referred to in any FROM clause.</p>
+<p>Now, in the absense of an enclosing SELECT, it returns:</p>
+<div class="highlight-python"><pre>SELECT t1.x, t2.y FROM t1, t2</pre>
+</div>
+<p>Within a SELECT, the correlation takes effect as expected:</p>
+<div class="highlight-python"><pre>s2 = select([t1, t2]).where(t1.c.x == t2.c.y).where(t1.c.x == s)
+
+print (s2)
+
+SELECT t1.x, t2.y FROM t1, t2
+WHERE t1.x = t2.y AND t1.x =
+    (SELECT t1.x, t2.y FROM t2)</pre>
+</div>
+<p>This change is not expected to impact any existing applications, as
+the correlation behavior remains identical for properly constructed
+expressions.  Only an application that relies, most likely within a
+testing scenario, on the invalid string output of a correlated
+SELECT used in a non-correlating context would see any change.</p>
+<p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2668">#2668</a></p>
+</div>
+<div class="section" id="create-all-and-drop-all-will-now-honor-an-empty-list-as-such">
+<span id="metadata-create-drop-tables"></span><h3>create_all() and drop_all() will now honor an empty list as such<a class="headerlink" href="#create-all-and-drop-all-will-now-honor-an-empty-list-as-such" title="Permalink to this headline">¶</a></h3>
+<p>The methods <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a> and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a>
+will now accept a list of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects that is empty,
+and will not emit any CREATE or DROP statements.  Previously,
+an empty list was interepreted the same as passing <tt class="docutils literal"><span class="pre">None</span></tt>
+for a collection, and CREATE/DROP would be emitted for all
+items unconditionally.</p>
+<p>This is a bug fix but some applications may have been relying upon
+the previous behavior.</p>
+<p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2664">#2664</a></p>
 </div>
 <div class="section" id="repaired-the-event-targeting-of-instrumentationevents">
 <h3>Repaired the Event Targeting of <a class="reference internal" href="../orm/events.html#sqlalchemy.orm.events.InstrumentationEvents" title="sqlalchemy.orm.events.InstrumentationEvents"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationEvents</span></tt></a><a class="headerlink" href="#repaired-the-event-targeting-of-instrumentationevents" title="Permalink to this headline">¶</a></h3>
@@ -1323,7 +1505,7 @@ taking it out entirely to eliminate any of that confusion.</p>
         <a href="changelog_08.html" title="next chapter">0.8 Changelog</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

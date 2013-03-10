@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -992,7 +992,7 @@ reference a common target class via many-to-one:</p>
 primaryjoin, order_by etc. expressions should use the string forms
 for these arguments, so that they are evaluated as late as possible.
 To reference the mixin class in these expressions, use the given <tt class="docutils literal"><span class="pre">cls</span></tt>
-to get it&#8217;s name:</p>
+to get its name:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">RefTargetMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="nd">@declared_attr</span>
     <span class="k">def</span> <span class="nf">target_id</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
@@ -1321,7 +1321,7 @@ setup using <tt class="xref py py-class docutils literal"><span class="pre">scop
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x10ad2d0c8&gt;</em>, <em>class_registry=None</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.api.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x10b6c2e60&gt;</em>, <em>class_registry=None</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.api.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that produces
 appropriate <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and makes
@@ -1625,7 +1625,7 @@ separately, e.g.:</p>
         <a href="mutable.html" title="next chapter">Mutation Tracking</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
