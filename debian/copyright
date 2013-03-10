@@ -12,7 +12,7 @@ Copyright:
 
  This is the MIT license: http://www.opensource.org/licenses/mit-license.php
 
- Copyright (c) 2005-2011 Michael Bayer and contributors. 
+ Copyright (c) 2005-2013 Michael Bayer and contributors. 
  SQLAlchemy is a trademark of Michael Bayer.
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -37,6 +37,7 @@ Copyright:
 
 lib/sqlalchemy/interfaces.py file:
 
+ Copyright (C) 2007-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
  Copyright (C) 2007 Jason Kirtland jek@discorporate.us
 
  This module is part of SQLAlchemy and is released under
@@ -46,18 +47,21 @@ lib/sqlalchemy/interfaces.py file:
 
 lib/sqlalchemy/dialects/sybase/base.py file:
 
- Copyright (C) 2007 Fisch Asset Management AG http://www.fam.ch
- Coding: Alexander Houben alexander.houben@thor-solutions.ch
+ Copyright (C) 2010-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
+ get_select_precolumns(), limit_clause() implementation
+ copyright (C) 2007 Fisch Asset Management
+ AG http://www.fam.ch, with coding by Alexander Houben
+ alexander.houben@thor-solutions.ch
 
  This module is part of SQLAlchemy and is released under
  the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 -----------------------------------------------------------
 
-lib/sqlalchemy/dialects/access/base.py file:
+lib/sqlalchemy/dialects/drizzle/base.py file:
 
- Copyright (C) 2007 Paul Johnston, paj@pajhome.org.uk
- Portions derived from jet2sql.py by Matt Keranen, mksql@yahoo.com
+ Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
+ Copyright (C) 2010-2011 Monty Taylor <mordred@inaugust.com>
 
  This module is part of SQLAlchemy and is released under
  the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -66,6 +70,7 @@ lib/sqlalchemy/dialects/access/base.py file:
 
 lib/sqlalchemy/cextension/processors.c and resultproxy.c files:
 
+ Copyright (C) 2010-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
  Copyright (C) 2010 Gaetan de Menten gdementen@gmail.com
 
  This module is part of SQLAlchemy and is released under
@@ -75,14 +80,19 @@ lib/sqlalchemy/cextension/processors.c and resultproxy.c files:
 
 doc/_static/jquery.js file:
  
- Copyright (c) 2008 John Resig (jquery.com)
- Dual licensed under the MIT (MIT-LICENSE.txt)
- and GPL (GPL-LICENSE.txt) licenses.
+ Copyright 2010, John Resig
+ Dual licensed under the MIT or GPL Version 2 licenses.
+ http://jquery.org/license
+ 
+ Includes Sizzle.js
+ http://sizzlejs.com/
+ Copyright 2010, The Dojo Foundation
+ Released under the MIT, BSD, and GPL Licenses.
 
 -----------------------------------------------------------
 
 The Debian packaging is © 2006 Tommi Virtanen <tv@debian.org>,
-© 2007-2011 Piotr Ożarowski <piotr@debian.org> and is licensed under
+© 2007-2013 Piotr Ożarowski <piotr@debian.org> and is licensed under
 the MIT license.
 
 On Debian systems, the complete text of the GNU General Public License
