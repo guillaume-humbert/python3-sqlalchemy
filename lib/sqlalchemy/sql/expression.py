@@ -181,10 +181,10 @@ def select(columns=None, whereclause=None, from_obj=[], **kwargs):
     string arguments, which will be converted as appropriate into
     either :func:`text()` or :func:`literal_column()` constructs.
 
-    See also:
+    .. seealso::
 
-    :ref:`coretutorial_selecting` - Core Tutorial description of
-    :func:`.select`.
+        :ref:`coretutorial_selecting` - Core Tutorial description of
+        :func:`.select`.
 
     :param columns:
       A list of :class:`.ClauseElement` objects, typically
@@ -464,7 +464,7 @@ def update(table, whereclause=None, values=None, inline=False, **kwargs):
                         as_scalar()
             )
 
-    See also:
+    .. seealso::
 
         :ref:`inserts_and_updates` - SQL Expression
         Language Tutorial
@@ -493,7 +493,7 @@ def delete(table, whereclause=None, **kwargs):
       condition of the ``UPDATE`` statement. Note that the
       :meth:`~Delete.where()` generative method may be used instead.
 
-    See also:
+    .. seealso::
 
         :ref:`deletes` - SQL Expression Tutorial
 
@@ -1591,7 +1591,9 @@ def _interpret_as_from(element):
 
 
 def _const_expr(element):
-    if element is None:
+    if isinstance(element, (Null, False_, True_)):
+        return element
+    elif element is None:
         return null()
     elif element is False:
         return false()
@@ -2011,18 +2013,33 @@ class _DefaultColumnComparator(operators.ColumnOperators):
         return op, other_comparator.type
 
     def _boolean_compare(self, expr, op, obj, negate=None, reverse=False,
-                        **kwargs
-        ):
-        if obj is None or isinstance(obj, Null):
-            if op in (operators.eq, operators.is_):
-                return BinaryExpression(expr, null(), operators.is_,
-                        negate=operators.isnot)
-            elif op in (operators.ne, operators.isnot):
-                return BinaryExpression(expr, null(), operators.isnot,
-                        negate=operators.is_)
+                        **kwargs):
+        if isinstance(obj, (util.NoneType, bool, Null, True_, False_)):
+
+            # allow x ==/!= True/False to be treated as a literal.
+            # this comes out to "== / != true/false" or "1/0" if those
+            # constants aren't supported and works on all platforms
+            if op in (operators.eq, operators.ne) and \
+                    isinstance(obj, (bool, True_, False_)):
+                return BinaryExpression(expr,
+                                obj,
+                                op,
+                                type_=sqltypes.BOOLEANTYPE,
+                                negate=negate, modifiers=kwargs)
             else:
-                raise exc.ArgumentError("Only '='/'!=' operators can "
-                        "be used with NULL")
+                # all other None/True/False uses IS, IS NOT
+                if op in (operators.eq, operators.is_):
+                    return BinaryExpression(expr, _const_expr(obj),
+                            operators.is_,
+                            negate=operators.isnot)
+                elif op in (operators.ne, operators.isnot):
+                    return BinaryExpression(expr, _const_expr(obj),
+                            operators.isnot,
+                            negate=operators.is_)
+                else:
+                    raise exc.ArgumentError(
+                        "Only '=', '!=', 'is_()', 'isnot()' operators can "
+                        "be used with None/True/False")
         else:
             obj = self._check_literal(expr, op, obj)
 
@@ -2873,6 +2890,8 @@ class BindParameter(ColumnElement):
     __visit_name__ = 'bindparam'
     quote = None
 
+    _is_crud = False
+
     def __init__(self, key, value, type_=None, unique=False,
                             callable_=None,
                             isoutparam=False, required=False,
@@ -3073,7 +3092,7 @@ class Executable(Generative):
         See :meth:`.Connection.execution_options` for a full list of
         possible options.
 
-        See also:
+        .. seealso::
 
             :meth:`.Connection.execution_options()`
 
@@ -3251,6 +3270,8 @@ class False_(ColumnElement):
     def __init__(self):
         self.type = sqltypes.BOOLEANTYPE
 
+    def compare(self, other):
+        return isinstance(other, False_)
 
 class True_(ColumnElement):
     """Represent the ``true`` keyword in a SQL statement.
@@ -3263,6 +3284,9 @@ class True_(ColumnElement):
 
     def __init__(self):
         self.type = sqltypes.BOOLEANTYPE
+
+    def compare(self, other):
+        return isinstance(other, True_)
 
 
 class ClauseList(ClauseElement):
@@ -3444,15 +3468,15 @@ class Case(ColumnElement):
 class FunctionElement(Executable, ColumnElement, FromClause):
     """Base for SQL function-oriented constructs.
 
-    See also:
+    .. seealso::
 
-    :class:`.Function` - named SQL function.
+        :class:`.Function` - named SQL function.
 
-    :data:`.func` - namespace which produces registered or ad-hoc
-    :class:`.Function` instances.
+        :data:`.func` - namespace which produces registered or ad-hoc
+        :class:`.Function` instances.
 
-    :class:`.GenericFunction` - allows creation of registered function
-    types.
+        :class:`.GenericFunction` - allows creation of registered function
+        types.
 
     """
 
@@ -3571,15 +3595,13 @@ class Function(FunctionElement):
     See the superclass :class:`.FunctionElement` for a description
     of public methods.
 
-    See also:
+    .. seealso::
 
-    See also:
+        :data:`.func` - namespace which produces registered or ad-hoc
+        :class:`.Function` instances.
 
-    :data:`.func` - namespace which produces registered or ad-hoc
-    :class:`.Function` instances.
-
-    :class:`.GenericFunction` - allows creation of registered function
-    types.
+        :class:`.GenericFunction` - allows creation of registered function
+        types.
 
     """
 
@@ -3887,7 +3909,7 @@ class Join(FromClause):
 
     def is_derived_from(self, fromclause):
         return fromclause is self or \
-                self.left.is_derived_from(fromclause) or\
+                self.left.is_derived_from(fromclause) or \
                 self.right.is_derived_from(fromclause)
 
     def self_group(self, against=None):
@@ -4725,7 +4747,9 @@ class SelectBase(Executable, FromClause):
         """return a 'scalar' representation of this selectable, embedded as a
         subquery with a label.
 
-        See also :meth:`~.SelectBase.as_scalar`.
+        .. seealso::
+
+            :meth:`~.SelectBase.as_scalar`.
 
         """
         return self.as_scalar().label(name)
@@ -4843,9 +4867,9 @@ class SelectBase(Executable, FromClause):
             result = conn.execute(statement).fetchall()
 
 
-        See also:
+        .. seealso::
 
-        :meth:`.orm.query.Query.cte` - ORM version of :meth:`.SelectBase.cte`.
+            :meth:`.orm.query.Query.cte` - ORM version of :meth:`.SelectBase.cte`.
 
         """
         return CTE(self, name=name, recursive=recursive)
@@ -4914,6 +4938,10 @@ class SelectBase(Executable, FromClause):
 
         The criterion will be appended to any pre-existing ORDER BY criterion.
 
+        This is an **in-place** mutation method; the
+        :meth:`~.SelectBase.order_by` method is preferred, as it provides standard
+        :term:`method chaining`.
+
         """
         if len(clauses) == 1 and clauses[0] is None:
             self._order_by_clause = ClauseList()
@@ -4926,6 +4954,10 @@ class SelectBase(Executable, FromClause):
         """Append the given GROUP BY criterion applied to this selectable.
 
         The criterion will be appended to any pre-existing GROUP BY criterion.
+
+        This is an **in-place** mutation method; the
+        :meth:`~.SelectBase.group_by` method is preferred, as it provides standard
+        :term:`method chaining`.
 
         """
         if len(clauses) == 1 and clauses[0] is None:
@@ -5120,13 +5152,13 @@ class HasPrefixes(object):
 class Select(HasPrefixes, SelectBase):
     """Represents a ``SELECT`` statement.
 
-    See also:
+    .. seealso::
 
-    :func:`~.expression.select` - the function which creates
-     a :class:`.Select` object.
+        :func:`~.expression.select` - the function which creates
+        a :class:`.Select` object.
 
-    :ref:`coretutorial_selecting` - Core Tutorial description
-     of :func:`.select`.
+        :ref:`coretutorial_selecting` - Core Tutorial description
+        of :func:`.select`.
 
     """
 
@@ -5682,7 +5714,13 @@ class Select(HasPrefixes, SelectBase):
 
     def append_correlation(self, fromclause):
         """append the given correlation expression to this select()
-        construct."""
+        construct.
+
+        This is an **in-place** mutation method; the
+        :meth:`~.Select.correlate` method is preferred, as it provides standard
+        :term:`method chaining`.
+
+        """
 
         self._auto_correlate = False
         self._correlate = set(self._correlate).union(
@@ -5691,6 +5729,10 @@ class Select(HasPrefixes, SelectBase):
     def append_column(self, column):
         """append the given column expression to the columns clause of this
         select() construct.
+
+        This is an **in-place** mutation method; the
+        :meth:`~.Select.column` method is preferred, as it provides standard
+        :term:`method chaining`.
 
         """
         self._reset_exported()
@@ -5705,6 +5747,10 @@ class Select(HasPrefixes, SelectBase):
         """append the given columns clause prefix expression to this select()
         construct.
 
+        This is an **in-place** mutation method; the
+        :meth:`~.Select.prefix_with` method is preferred, as it provides standard
+        :term:`method chaining`.
+
         """
         clause = _literal_as_text(clause)
         self._prefixes = self._prefixes + (clause,)
@@ -5714,6 +5760,10 @@ class Select(HasPrefixes, SelectBase):
         criterion.
 
         The expression will be joined to existing WHERE criterion via AND.
+
+        This is an **in-place** mutation method; the
+        :meth:`~.Select.where` method is preferred, as it provides standard
+        :term:`method chaining`.
 
         """
         self._reset_exported()
@@ -5730,6 +5780,10 @@ class Select(HasPrefixes, SelectBase):
 
         The expression will be joined to existing HAVING criterion via AND.
 
+        This is an **in-place** mutation method; the
+        :meth:`~.Select.having` method is preferred, as it provides standard
+        :term:`method chaining`.
+
         """
         if self._having is not None:
             self._having = and_(self._having, _literal_as_text(having))
@@ -5740,18 +5794,56 @@ class Select(HasPrefixes, SelectBase):
         """append the given FromClause expression to this select() construct's
         FROM clause.
 
+        This is an **in-place** mutation method; the
+        :meth:`~.Select.select_from` method is preferred, as it provides standard
+        :term:`method chaining`.
+
         """
         self._reset_exported()
         fromclause = _interpret_as_from(fromclause)
         self._from_obj = self._from_obj.union([fromclause])
 
+
+    @_memoized_property
+    def _columns_plus_names(self):
+        if self.use_labels:
+            names = set()
+            def name_for_col(c):
+                if c._label is None:
+                    return (None, c)
+                name = c._label
+                if name in names:
+                    name = c.anon_label
+                else:
+                    names.add(name)
+                return name, c
+
+            return [
+                name_for_col(c)
+                for c in util.unique_list(_select_iterables(self._raw_columns))
+            ]
+        else:
+            return [
+                (None, c)
+                for c in util.unique_list(_select_iterables(self._raw_columns))
+            ]
+
     def _populate_column_collection(self):
-        for c in self.inner_columns:
-            if hasattr(c, '_make_proxy'):
-                c._make_proxy(self,
-                        name=c._label if self.use_labels else None,
-                        key=c._key_label if self.use_labels else None,
-                        name_is_truncatable=True)
+        for name, c in self._columns_plus_names:
+            if not hasattr(c, '_make_proxy'):
+                continue
+            if name is None:
+                key = None
+            elif self.use_labels:
+                key = c._key_label
+                if key is not None and key in self.c:
+                    key = c.anon_label
+            else:
+                key = None
+
+            c._make_proxy(self, key=key,
+                    name=name,
+                    name_is_truncatable=True)
 
     def _refresh_for_new_column(self, column):
         for fromclause in self._froms:
@@ -6135,9 +6227,9 @@ class Insert(ValuesBase):
     The :class:`.Insert` object is created using the
     :func:`~.expression.insert()` function.
 
-    See also:
+    .. seealso::
 
-    :ref:`coretutorial_insert_expressions`
+        :ref:`coretutorial_insert_expressions`
 
     """
     __visit_name__ = 'insert'

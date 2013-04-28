@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -483,6 +483,24 @@ that method for usage examples.</p>
 <p>Note that the <tt class="docutils literal"><span class="pre">stream_results</span></tt> execution option is enabled
 automatically if the <a class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per" title="sqlalchemy.orm.query.Query.yield_per"><tt class="xref py py-meth docutils literal"><span class="pre">yield_per()</span></tt></a>
 method is used.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.exists">
+<tt class="descname">exists</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convenience method that turns a query into an EXISTS subquery
+of the form EXISTS (SELECT 1 FROM ... WHERE ...).</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;fred&#39;</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">exists</span><span class="p">())</span></pre></div>
+</div>
+<p>Producing SQL similar to:</p>
+<div class="highlight-python"><pre>SELECT EXISTS (
+    SELECT 1 FROM users WHERE users.name = :name_1
+) AS anon_1</pre>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.1.</span></p>
 </dd></dl>
 
 <dl class="method">
@@ -912,7 +930,7 @@ to a scalar subquery with a label of the given name.</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.orm.query.Query.logger">
-<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x1028986d0&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x10385ead0&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1643,7 +1661,7 @@ with the exception that the dictionary returned is <strong>not</strong> ordered.
 
 <dl class="function">
 <dt id="sqlalchemy.orm.join">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">join</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em>, <em>join_to_left=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.join" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">join</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em>, <em>join_to_left=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.join" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce an inner join between left and right clauses.</p>
 <p><a class="reference internal" href="#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">orm.join()</span></tt></a> is an extension to the core join interface
 provided by <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">sql.expression.join()</span></tt></a>, where the
@@ -1652,10 +1670,6 @@ objects such as <a class="reference internal" href="../core/schema.html#sqlalche
 <a class="reference internal" href="#sqlalchemy.orm.util.AliasedClass" title="sqlalchemy.orm.util.AliasedClass"><tt class="xref py py-class docutils literal"><span class="pre">AliasedClass</span></tt></a> instances.   The &#8220;on&#8221; clause can
 be a SQL expression, or an attribute or string name
 referencing a configured <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</p>
-<p><tt class="docutils literal"><span class="pre">join_to_left</span></tt> indicates to attempt aliasing the ON clause,
-in whatever form it is passed, to the selectable
-passed as the left side.  If False, the onclause
-is used as is.</p>
 <p><a class="reference internal" href="#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">orm.join()</span></tt></a> is not commonly needed in modern usage,
 as its functionality is encapsulated within that of the
 <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a> method, which features a
@@ -1676,11 +1690,14 @@ succinctly as:</p>
 </div>
 <p>See <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a> for information on modern usage
 of ORM level joins.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8.1: </span>- the <tt class="docutils literal"><span class="pre">join_to_left</span></tt> parameter
+is no longer used, and is deprecated.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.outerjoin">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">outerjoin</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>join_to_left=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.outerjoin" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">outerjoin</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>join_to_left=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce a left outer join between left and right clauses.</p>
 <p>This is the &#8220;outer join&#8221; version of the <a class="reference internal" href="#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">orm.join()</span></tt></a> function,
 featuring the same behavior except that an OUTER JOIN is generated.

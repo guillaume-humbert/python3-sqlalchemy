@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -64,7 +64,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -151,6 +151,32 @@ of a relationship where the column in some cases needs to be expressed
 in terms of one particular table alias or another, based on its position
 within the join expression.</p>
 </dd>
+<dt id="term-correlates"><span id="term-correlated-subquery"></span><span id="term-correlated-subqueries"></span>correlates<br />correlated subquery<br />correlated subqueries</dt>
+<dd><p class="first">A <em class="xref std std-term">subquery</em> is correlated if it depends on data in the
+enclosing <tt class="docutils literal"><span class="pre">SELECT</span></tt>.</p>
+<p>Below, a subquery selects the aggregate value <tt class="docutils literal"><span class="pre">MIN(a.id)</span></tt>
+from the <tt class="docutils literal"><span class="pre">email_address</span></tt> table, such that
+it will be invoked for each value of <tt class="docutils literal"><span class="pre">user_account.id</span></tt>, correlating
+the value of this column against the <tt class="docutils literal"><span class="pre">email_address.user_account_id</span></tt>
+column:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="n">user_account</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">email_address</span><span class="p">.</span><span class="n">email</span>
+ <span class="k">FROM</span> <span class="n">user_account</span>
+ <span class="k">JOIN</span> <span class="n">email_address</span> <span class="k">ON</span> <span class="n">user_account</span><span class="p">.</span><span class="n">id</span><span class="o">=</span><span class="n">email_address</span><span class="p">.</span><span class="n">user_account_id</span>
+ <span class="k">WHERE</span> <span class="n">email_address</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="k">MIN</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">id</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">email_address</span> <span class="k">AS</span> <span class="n">a</span>
+    <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">user_account_id</span><span class="o">=</span><span class="n">user_account</span><span class="p">.</span><span class="n">id</span>
+ <span class="p">)</span></pre></div>
+</div>
+<p>The above subquery refers to the <tt class="docutils literal"><span class="pre">user_account</span></tt> table, which is not itself
+in the <tt class="docutils literal"><span class="pre">FROM</span></tt> clause of this nested query.   Instead, the <tt class="docutils literal"><span class="pre">user_account</span></tt>
+table is recieved from the enclosing query, where each row selected from
+<tt class="docutils literal"><span class="pre">user_account</span></tt> results in a distinct execution of the subquery.</p>
+<p class="last">A correlated subquery is nearly always present in the <em class="xref std std-term">WHERE clause</em>
+or <em class="xref std std-term">columns clause</em> of the enclosing <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement, and never
+in the <em class="xref std std-term">FROM clause</em>; this is because
+the correlation can only proceed once the original source rows from the enclosing
+statement&#8217;s FROM clause are available.</p>
+</dd>
 <dt id="term-dbapi">DBAPI</dt>
 <dd><p class="first">DBAPI is shorthand for the phrase &#8220;Python Database API
 Specification&#8221;.  This is a widely used specification
@@ -217,6 +243,9 @@ of a hierarchy mapping using inheritance mapping.</p>
 <p class="last"><a class="reference internal" href="orm/inheritance.html"><em>Mapping Class Inheritance Hierarchies</em></a></p>
 </div>
 </dd>
+<dt id="term-generative">generative</dt>
+<dd>A term that SQLAlchemy uses to refer what&#8217;s normally known
+as <a class="reference internal" href="#term-method-chaining"><em class="xref std std-term">method chaining</em></a>; see that term for details.</dd>
 <dt id="term-instrumentation"><span id="term-instrumented"></span>instrumentation<br />instrumented</dt>
 <dd>Instrumentation refers to the process of augmenting the functionality
 and attribute set of a particular class.   Ideally, the
@@ -252,6 +281,32 @@ class with a database table or other <em class="xref std std-term">selectable</e
 construct, so that instances of it can be persisted
 using a <a class="reference internal" href="orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> as well as loaded using a
 <a class="reference internal" href="orm/query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</dd>
+<dt id="term-method-chaining">method chaining</dt>
+<dd><p class="first">An object-oriented technique whereby the state of an object
+is constructed by calling methods on the object.   The
+object features any number of methods, each of which return
+a new object (or in some cases the same object) with
+additional state added to the object.</p>
+<p>The two SQLAlchemy objects that make the most use of
+method chaining are the <a class="reference internal" href="core/expression_api.html#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>
+object and the <a class="reference internal" href="orm/query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object.
+For example, a <a class="reference internal" href="core/expression_api.html#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object can
+be assigned two expressions to its WHERE clause as well
+as an ORDER BY clause by calling upon the <a class="reference internal" href="core/expression_api.html#sqlalchemy.sql.expression.Select.where" title="sqlalchemy.sql.expression.Select.where"><tt class="xref py py-meth docutils literal"><span class="pre">where()</span></tt></a>
+and <a class="reference internal" href="core/expression_api.html#sqlalchemy.sql.expression.Select.order_by" title="sqlalchemy.sql.expression.Select.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> methods:</p>
+<div class="highlight-python"><pre>stmt = select([user.c.name]).\
+            where(user.c.id &gt; 5).\
+            where(user.c.name.like('e%').\
+            order_by(user.c.name)</pre>
+</div>
+<p>Each method call above returns a copy of the original
+<a class="reference internal" href="core/expression_api.html#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object with additional qualifiers
+added.</p>
+<div class="admonition-see-also last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#term-generative"><em class="xref std std-term">generative</em></a></p>
+</div>
+</dd>
 <dt id="term-n-plus-one-problem">N plus one problem</dt>
 <dd><p class="first">The N plus one problem is a common side effect of the
 <a class="reference internal" href="#term-lazy-load"><em class="xref std std-term">lazy load</em></a> pattern, whereby an application wishes

@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -1723,7 +1723,7 @@ they serialize and deserialize with _state.<a class="changeset-link reference in
 <li><p id="change-0.4.2-8"><span class="target" id="change-9d03199c53171e51a07d7087bbc50381"><strong>[orm] </strong></span>new synonym() behavior: an attribute will be placed on the mapped
 class, if one does not exist already, in all cases. if a property
 already exists on the class, the synonym will decorate the property
-with the appropriate comparison operators so that it can be used in in
+with the appropriate comparison operators so that it can be used in
 column expressions just like any other mapped attribute (i.e. usable in
 filter(), etc.) the &#8220;proxy=True&#8221; flag is deprecated and no longer means
 anything. Additionally, the flag &#8220;map_column=True&#8221; will automatically
@@ -2362,7 +2362,7 @@ PostgreSQL 8.2+.<a class="changeset-link reference internal" href="#change-a888d
 </p>
 </li>
 <li><p id="change-0.4.0-16"><span class="target" id="change-737ba18b8c4d08ef01910aa20772d16a"></span>PG reflection, upon seeing the default schema name being used explicitly
-as the &#8220;schema&#8221; argument in a Table, will assume that this is the the
+as the &#8220;schema&#8221; argument in a Table, will assume that this is the
 user&#8217;s desired convention, and will explicitly set the &#8220;schema&#8221; argument
 in foreign-key-related reflected tables, thus making them match only
 with Table constructors that also use the explicit &#8220;schema&#8221; argument
@@ -2394,9 +2394,9 @@ should fix<a class="changeset-link reference internal" href="#change-528c46ca19c
 <li><p id="change-0.4.0-23"><span class="target" id="change-a9a8ada8cf6f9e910f573eaa9489415b"></span>Firebird now uses dialect.preparer to format sequences names<a class="changeset-link reference internal" href="#change-a9a8ada8cf6f9e910f573eaa9489415b">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.0-24"><span class="target" id="change-e3c0950e4ff233de4813710c704f6774"></span>Fixed breakage with postgres and multiple two-phase transactions. Two-phase
-commits and and rollbacks didn&#8217;t automatically end up with a new transaction
-as the usual dbapi commits/rollbacks do.<a class="changeset-link reference internal" href="#change-e3c0950e4ff233de4813710c704f6774">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/810">#810</a></p>
+<li><p id="change-0.4.0-24"><span class="target" id="change-3a7b59bf8fe3093a054925308b7f4799"></span>Fixed breakage with postgres and multiple two-phase transactions. Two-phase
+commits and rollbacks didn&#8217;t automatically end up with a new transaction
+as the usual dbapi commits/rollbacks do.<a class="changeset-link reference internal" href="#change-3a7b59bf8fe3093a054925308b7f4799">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/810">#810</a></p>
 </p>
 </li>
 <li><p id="change-0.4.0-25"><span class="target" id="change-dcfcc254bf2beebefed7c884d53fdbbc"></span>Added an option to the _ScopedExt mapper extension to not automatically

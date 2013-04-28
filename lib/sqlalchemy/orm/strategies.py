@@ -719,7 +719,7 @@ class SubqueryLoader(AbstractRelationshipLoader):
         # produce a subquery from it.
         left_alias = self._generate_from_original_query(
                             orig_query, leftmost_mapper,
-                            leftmost_attr
+                            leftmost_attr, entity.mapper
         )
 
         # generate another Query that will join the
@@ -772,15 +772,18 @@ class SubqueryLoader(AbstractRelationshipLoader):
 
     def _generate_from_original_query(self,
             orig_query, leftmost_mapper,
-            leftmost_attr
+            leftmost_attr, entity_mapper
     ):
         # reformat the original query
         # to look only for significant columns
         q = orig_query._clone().correlate(None)
 
-        # TODO: why does polymporphic etc. require hardcoding
-        # into _adapt_col_list ?  Does query.add_columns(...) work
-        # with polymorphic loading ?
+        # set a real "from" if not present, as this is more
+        # accurate than just going off of the column expression
+        if not q._from_obj and entity_mapper.isa(leftmost_mapper):
+            q._set_select_from(entity_mapper)
+
+        # select from the identity columns of the outer
         q._set_entities(q._adapt_col_list(leftmost_attr))
 
         if q._order_by is False:
@@ -792,6 +795,7 @@ class SubqueryLoader(AbstractRelationshipLoader):
 
         # the original query now becomes a subquery
         # which we'll join onto.
+
         embed_q = q.with_labels().subquery()
         left_alias = orm_util.AliasedClass(leftmost_mapper, embed_q,
                             use_mapper_path=True)
@@ -1148,7 +1152,6 @@ class JoinedLoader(AbstractRelationshipLoader):
 
         towrap = context.eager_joins.setdefault(entity_key, default_towrap)
 
-        join_to_left = False
         if adapter:
             if getattr(adapter, 'aliased_class', None):
                 onclause = getattr(
@@ -1164,11 +1167,6 @@ class JoinedLoader(AbstractRelationshipLoader):
                                 self.key, self.parent_property
                             )
 
-            if onclause is self.parent_property:
-                # TODO: this is a temporary hack to
-                # account for polymorphic eager loads where
-                # the eagerload is referencing via of_type().
-                join_to_left = True
         else:
             onclause = self.parent_property
 
@@ -1178,7 +1176,6 @@ class JoinedLoader(AbstractRelationshipLoader):
                                             towrap,
                                             clauses.aliased_class,
                                             onclause,
-                                            join_to_left=join_to_left,
                                             isouter=not innerjoin
                                             )
 

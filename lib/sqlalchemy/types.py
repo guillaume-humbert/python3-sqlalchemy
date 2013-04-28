@@ -1184,7 +1184,9 @@ class Text(String):
 
     In SQL, usually corresponds to CLOB or TEXT. Can also take Python
     unicode objects and encode to the database's encoding in bind
-    params (and the reverse for result sets.)
+    params (and the reverse for result sets.)  In general, TEXT objects
+    do not have a length; while some databases will accept a length
+    argument here, it will be rejected by others.
 
     """
     __visit_name__ = 'text'
@@ -1711,8 +1713,15 @@ class _Binary(TypeEngine):
         return process
 
     # Python 3 has native bytes() type
-    # both sqlite3 and pg8000 seem to return it
-    # (i.e. and not 'memoryview')
+    # both sqlite3 and pg8000 seem to return it,
+    # psycopg2 as of 2.5 returns 'memoryview'
+    # Py3K
+    #def result_processor(self, dialect, coltype):
+    #    def process(value):
+    #        if value is not None:
+    #            value = bytes(value)
+    #        return value
+    #    return process
     # Py2K
     def result_processor(self, dialect, coltype):
         if util.jython:

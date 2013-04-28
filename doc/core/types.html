@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -751,7 +751,9 @@ strings from a column with varied or corrupted encodings.</li>
 <p>A variably sized string type.</p>
 <p>In SQL, usually corresponds to CLOB or TEXT. Can also take Python
 unicode objects and encode to the database&#8217;s encoding in bind
-params (and the reverse for result sets.)</p>
+params (and the reverse for result sets.)  In general, TEXT objects
+do not have a length; while some databases will accept a length
+argument here, it will be rejected by others.</p>
 </dd></dl>
 
 <dl class="class">
@@ -2210,7 +2212,7 @@ associated with the <a class="reference internal" href="#sqlalchemy.types.Intege
 </div>
 <p>The implementation for <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__add__" title="sqlalchemy.sql.operators.ColumnOperators.__add__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__add__()</span></tt></a> is consulted
 by an owning SQL expression, by instantiating the <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a> with
-itself as as the <tt class="docutils literal"><span class="pre">expr</span></tt> attribute.   The mechanics of the expression
+itself as the <tt class="docutils literal"><span class="pre">expr</span></tt> attribute.   The mechanics of the expression
 system are such that operations continue recursively until an
 expression object produces a new SQL expression construct. Above, we
 could just as well have said <tt class="docutils literal"><span class="pre">self.expr.op(&quot;goofy&quot;)(other)</span></tt> instead

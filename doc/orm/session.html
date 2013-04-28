@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -1424,7 +1424,7 @@ compatible with the Python 2.6 <tt class="docutils literal"><span class="pre">wi
 <div class="section" id="using-subtransactions-with-autocommit">
 <span id="session-subtransactions"></span><h4>Using Subtransactions with Autocommit<a class="headerlink" href="#using-subtransactions-with-autocommit" title="Permalink to this headline">¶</a></h4>
 <p>A subtransaction indicates usage of the <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Session.begin()</span></tt></a> method in conjunction with
-the <tt class="docutils literal"><span class="pre">subtransactions=True</span></tt> flag.  This produces a a non-transactional, delimiting construct that
+the <tt class="docutils literal"><span class="pre">subtransactions=True</span></tt> flag.  This produces a non-transactional, delimiting construct that
 allows nesting of calls to <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-meth docutils literal"><span class="pre">begin()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">commit()</span></tt></a>.
 It&#8217;s purpose is to allow the construction of code that can function within a transaction
 both independently of any external code that starts a transaction,

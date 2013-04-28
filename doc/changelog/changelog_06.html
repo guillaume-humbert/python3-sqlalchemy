@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -1076,12 +1076,12 @@ results.   This regression is now fixed.<a class="changeset-link reference inter
 <div class="section" id="change-0.6.6-oracle">
 <h3>oracle<a class="headerlink" href="#change-0.6.6-oracle" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.6-33"><span class="target" id="change-493631728d799308cb45959285c8cfc8"><strong>[oracle] </strong></span>The cx_oracle &#8220;decimal detection&#8221; logic, which takes place
-for for result set columns with ambiguous numeric characteristics,
+<li><p id="change-0.6.6-33"><span class="target" id="change-2ccadf16ce306a495b45d7e349e3a56d"><strong>[oracle] </strong></span>The cx_oracle &#8220;decimal detection&#8221; logic, which takes place
+for result set columns with ambiguous numeric characteristics,
 now uses the decimal point character determined by the locale/
 NLS_LANG setting, using an on-first-connect detection of
 this character.  cx_oracle 5.0.3 or greater is also required
-when using a non-period-decimal-point NLS_LANG setting..<a class="changeset-link reference internal" href="#change-493631728d799308cb45959285c8cfc8">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1953">#1953</a></p>
+when using a non-period-decimal-point NLS_LANG setting..<a class="changeset-link reference internal" href="#change-2ccadf16ce306a495b45d7e349e3a56d">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1953">#1953</a></p>
 </p>
 </li>
 </ul>
@@ -2575,9 +2575,9 @@ level create/drop events.<a class="changeset-link reference internal" href="#cha
 <div class="section" id="change-0.6.0-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.6.0-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.0-20"><span class="target" id="change-8afabacad201a3db7f8d109f39ec2c9d"><strong>[postgresql] </strong></span>Postgresql now reflects sequence names associated with
-SERIAL columns correctly, after the name of of the sequence
-has been changed.  Thanks to Kumar McMillan for the patch.<a class="changeset-link reference internal" href="#change-8afabacad201a3db7f8d109f39ec2c9d">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1071">#1071</a></p>
+<li><p id="change-0.6.0-20"><span class="target" id="change-4a1523bb9932656419cad5bb47984b8f"><strong>[postgresql] </strong></span>Postgresql now reflects sequence names associated with
+SERIAL columns correctly, after the name of the sequence
+has been changed.  Thanks to Kumar McMillan for the patch.<a class="changeset-link reference internal" href="#change-4a1523bb9932656419cad5bb47984b8f">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1071">#1071</a></p>
 </p>
 </li>
 <li><p id="change-0.6.0-21"><span class="target" id="change-f9a992cccbd35a7929c4a9fc18106789"><strong>[postgresql] </strong></span>Repaired missing import in psycopg2._PGNumeric type when

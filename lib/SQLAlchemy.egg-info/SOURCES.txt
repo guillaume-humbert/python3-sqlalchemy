@@ -619,8 +619,10 @@ test/sql/test_compiler.py
 test/sql/test_constraints.py
 test/sql/test_cte.py
 test/sql/test_defaults.py
+test/sql/test_delete.py
 test/sql/test_functions.py
 test/sql/test_generative.py
+test/sql/test_insert.py
 test/sql/test_inspect.py
 test/sql/test_labels.py
 test/sql/test_metadata.py
