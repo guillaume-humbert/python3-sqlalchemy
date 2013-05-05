@@ -1,3 +1,9 @@
+sqlalchemy (0.8.1-2) UNRELEASED; urgency=low
+
+  * Use canonical URIs for Vcs-* fields.
+
+ -- Jakub Wilk <jwilk@debian.org>  Sun, 05 May 2013 16:04:02 +0200
+
 sqlalchemy (0.8.1-1) experimental; urgency=low
 
   * New upstream release
