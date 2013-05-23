@@ -1,6 +1,11 @@
 sqlalchemy (0.8.1-2) UNRELEASED; urgency=low
 
+  [ Jakub Wilk ]
   * Use canonical URIs for Vcs-* fields.
+
+  [ Piotr Ożarowski ]
+  * Build depend on python3-all instead of -dev, extensions are not built for
+    Python 3.X 
 
  -- Jakub Wilk <jwilk@debian.org>  Sun, 05 May 2013 16:04:02 +0200
 
