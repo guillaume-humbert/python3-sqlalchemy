@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.1',
+          VERSION:     '0.8.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
+        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
 
 
     </div>
@@ -128,6 +128,7 @@
 <li><a class="reference internal" href="#dialect-firebird-fdb-url">DBAPI</a></li>
 <li><a class="reference internal" href="#dialect-firebird-fdb-connect">Connecting</a></li>
 <li><a class="reference internal" href="#status">Status</a></li>
+<li><a class="reference internal" href="#id1">Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -235,35 +236,23 @@ the SQLAlchemy <tt class="docutils literal"><span class="pre">returning()</span>
 </div>
 <div class="section" id="arguments">
 <h3>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h3>
-<p>Kinterbasedb backend specific keyword arguments are:</p>
-<ul>
-<li><p class="first">type_conv - select the kind of mapping done on the types: by default
-SQLAlchemy uses 200 with Unicode, datetime and decimal support (see
-<a href="#id5"><span class="problematic" id="id6">details__</span></a>).</p>
-</li>
-<li><p class="first">concurrency_level - set the backend policy with regards to threading
-issues: by default SQLAlchemy uses policy 1 (see <a href="#id5"><span class="problematic" id="id7">details__</span></a>).</p>
-</li>
-<li><p class="first">enable_rowcount - True by default, setting this to False disables
-the usage of &#8220;cursor.rowcount&#8221; with the
-Kinterbasdb dialect, which SQLAlchemy ordinarily calls upon automatically
-after any UPDATE or DELETE statement.   When disabled, SQLAlchemy&#8217;s
-ResultProxy will return -1 for result.rowcount.   The rationale here is
-that Kinterbasdb requires a second round trip to the database when
-.rowcount is called -  since SQLA&#8217;s resultproxy automatically closes
-the cursor after a non-result-returning statement, rowcount must be
-called, if at all, before the result object is returned.   Additionally,
-cursor.rowcount may not return correct results with older versions
-of Firebird, and setting this flag to False will also cause the
-SQLAlchemy ORM to ignore its usage. The behavior can also be controlled on a
-per-execution basis using the <cite>enable_rowcount</cite> option with
-<tt class="xref py py-meth docutils literal"><span class="pre">execution_options()</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">conn</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span><span class="o">.</span><span class="n">execution_options</span><span class="p">(</span><span class="n">enable_rowcount</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">r</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span>
-<span class="k">print</span> <span class="n">r</span><span class="o">.</span><span class="n">rowcount</span></pre></div>
-</div>
-</li>
+<p>The Kinterbasdb backend accepts the <tt class="docutils literal"><span class="pre">enable_rowcount</span></tt> and <tt class="docutils literal"><span class="pre">retaining</span></tt>
+arguments accepted by the <a class="reference internal" href="#module-sqlalchemy.dialects.firebird.fdb" title="sqlalchemy.dialects.firebird.fdb"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.dialects.firebird.fdb</span></tt></a> dialect.   In addition, it
+also accepts the following:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">type_conv</span></tt> - select the kind of mapping done on the types: by default
+SQLAlchemy uses 200 with Unicode, datetime and decimal support.  See
+the linked documents below for further information.</li>
+<li><tt class="docutils literal"><span class="pre">concurrency_level</span></tt> - set the backend policy with regards to threading
+issues: by default SQLAlchemy uses policy 1.  See the linked documents
+below for futher information.</li>
 </ul>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference external" href="http://sourceforge.net/projects/kinterbasdb">http://sourceforge.net/projects/kinterbasdb</a></p>
+<p><a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#adv_param_conv_dynamic_type_translation">http://kinterbasdb.sourceforge.net/dist_docs/usage.html#adv_param_conv_dynamic_type_translation</a></p>
+<p class="last"><a class="reference external" href="http://kinterbasdb.sourceforge.net/dist_docs/usage.html#special_issue_concurrency">http://kinterbasdb.sourceforge.net/dist_docs/usage.html#special_issue_concurrency</a></p>
+</div>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.firebird.fdb">
@@ -286,6 +275,48 @@ per-execution basis using the <cite>enable_rowcount</cite> option with
 <div class="section" id="status">
 <h3>Status<a class="headerlink" href="#status" title="Permalink to this headline">¶</a></h3>
 <p>The fdb dialect is new and not yet tested (can&#8217;t get fdb to build).</p>
+</div>
+<div class="section" id="id1">
+<h3>Arguments<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>The <tt class="docutils literal"><span class="pre">fdb</span></tt> dialect is based on the <a class="reference internal" href="#module-sqlalchemy.dialects.firebird.kinterbasdb" title="sqlalchemy.dialects.firebird.kinterbasdb"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.dialects.firebird.kinterbasdb</span></tt></a>
+dialect, however does not accept every argument that Kinterbasdb does.</p>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">enable_rowcount</span></tt> - True by default, setting this to False disables
+the usage of &#8220;cursor.rowcount&#8221; with the
+Kinterbasdb dialect, which SQLAlchemy ordinarily calls upon automatically
+after any UPDATE or DELETE statement.   When disabled, SQLAlchemy&#8217;s
+ResultProxy will return -1 for result.rowcount.   The rationale here is
+that Kinterbasdb requires a second round trip to the database when
+.rowcount is called -  since SQLA&#8217;s resultproxy automatically closes
+the cursor after a non-result-returning statement, rowcount must be
+called, if at all, before the result object is returned.   Additionally,
+cursor.rowcount may not return correct results with older versions
+of Firebird, and setting this flag to False will also cause the
+SQLAlchemy ORM to ignore its usage. The behavior can also be controlled on a
+per-execution basis using the <tt class="docutils literal"><span class="pre">enable_rowcount</span></tt> option with
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">conn</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span><span class="o">.</span><span class="n">execution_options</span><span class="p">(</span><span class="n">enable_rowcount</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">r</span><span class="o">.</span><span class="n">rowcount</span></pre></div>
+</div>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">retaining</span></tt> - True by default.   Leaving this on True will pass the
+<tt class="docutils literal"><span class="pre">retaining=True</span></tt> keyword argument to the <tt class="docutils literal"><span class="pre">.commit()</span></tt> and <tt class="docutils literal"><span class="pre">.rollback()</span></tt>
+methods of the DBAPI connection, which can improve performance in some
+situations, but apparently with significant caveats.
+Please read the fdb and/or kinterbasdb DBAPI documentation in order to
+understand the implications of this flag.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2: </span>- <tt class="docutils literal"><span class="pre">retaining</span></tt> keyword argument specifying
+transaction retaining behavior.  This flag will <strong>default to False</strong>
+in 0.9.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="http://pythonhosted.org/fdb/usage-guide.html#retaining-transactions">http://pythonhosted.org/fdb/usage-guide.html#retaining-transactions</a> - information
+on the &#8220;retaining&#8221; flag.</p>
+</div>
+</li>
+</ul>
 </div>
 </div>
 </div>

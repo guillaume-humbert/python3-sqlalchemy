@@ -19,6 +19,7 @@ from .. import sql, util, exc as sa_exc, schema
 from . import attributes, sync, exc as orm_exc, evaluator
 from .util import _state_mapper, state_str, _attr_as_key
 from ..sql import expression
+from . import loading
 
 
 def save_obj(base_mapper, states, uowtransaction, single=False):
@@ -148,6 +149,9 @@ def _organize_states_for_save(base_mapper, states, uowtransaction):
             mapper.dispatch.before_insert(mapper, connection, state)
         else:
             mapper.dispatch.before_update(mapper, connection, state)
+
+        if mapper._validate_polymorphic_identity:
+            mapper._validate_polymorphic_identity(mapper, state, dict_)
 
         # detect if we have a "pending" instance (i.e. has
         # no instance_key attached to it), and another instance
@@ -699,7 +703,6 @@ def _finalize_insert_update_commands(base_mapper, uowtransaction,
         # refresh whatever has been expired.
         if base_mapper.eager_defaults and state.unloaded:
             state.key = base_mapper._identity_key_from_state(state)
-            from . import loading
             loading.load_on_ident(
                 uowtransaction.session.query(base_mapper),
                 state.key, refresh_state=state,

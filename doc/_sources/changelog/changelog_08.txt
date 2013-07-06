@@ -4,6 +4,369 @@
 ==============
 
 .. changelog::
+    :version: 0.8.2
+    :released: July 3, 2013
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 2768
+
+        Fixed bug when using multi-table UPDATE where a supplemental
+        table is a SELECT with its own bound parameters, where the positioning
+        of the bound parameters would be reversed versus the statement
+        itself when using MySQL's special syntax.
+
+    .. change::
+        :tags: bug, sqlite
+        :tickets: 2764
+
+        Added :class:`.BIGINT` to the list of type names that can be
+        reflected by the SQLite dialect; courtesy Russell Stuart.
+
+    .. change::
+        :tags: feature, orm, declarative
+        :tickets: 2761
+
+        ORM descriptors such as hybrid properties can now be referenced
+        by name in a string argument used with ``order_by``,
+        ``primaryjoin``, or similar in :func:`.relationship`,
+        in addition to column-bound attributes.
+
+    .. change::
+        :tags: feature, firebird
+        :tickets: 2763
+
+        Added new flag ``retaining=True`` to the kinterbasdb and fdb dialects.
+        This controls the value of the ``retaining`` flag sent to the
+        ``commit()`` and ``rollback()`` methods of the DBAPI connection.
+        Due to historical concerns, this flag defaults to ``True``, however
+        in 0.9 this flag will be defaulted to ``False``.
+
+    .. change::
+        :tags: requirements
+
+        The Python `mock <https://pypi.python.org/pypi/mock>`_ library
+        is now required in order to run the unit test suite.  While part
+        of the standard library as of Python 3.3, previous Python installations
+        will need to install this in order to run unit tests or to
+        use the ``sqlalchemy.testing`` package for external dialects.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2750
+
+        A warning is emitted when trying to flush an object of an inherited
+        class where the polymorphic discriminator has been assigned
+        to a value that is invalid for the class.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 2740
+
+        The behavior of :func:`.extract` has been simplified on the
+        Postgresql dialect to no longer inject a hardcoded ``::timestamp``
+        or similar cast into the given expression, as this interfered
+        with types such as timezone-aware datetimes, but also
+        does not appear to be at all necessary with modern versions
+        of psycopg2.
+
+
+    .. change::
+        :tags: bug, firebird
+        :tickets: 2757
+
+        Type lookup when reflecting the Firebird types LONG and
+        INT64 has been fixed so that LONG is treated as INTEGER,
+        INT64 treated as BIGINT, unless the type has a "precision"
+        in which case it's treated as NUMERIC.  Patch courtesy
+        Russell Stuart.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 2766
+
+        Fixed bug in HSTORE type where keys/values that contained
+        backslashed quotes would not be escaped correctly when
+        using the "non native" (i.e. non-psycopg2) means
+        of translating HSTORE data.  Patch courtesy Ryan Kelly.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 2767
+
+        Fixed bug where the order of columns in a multi-column
+        Postgresql index would be reflected in the wrong order.
+        Courtesy Roman Podolyaka.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2746, 2668
+
+        Multiple fixes to the correlation behavior of
+        :class:`.Select` constructs, first introduced in 0.8.0:
+
+        * To satisfy the use case where FROM entries should be
+          correlated outwards to a SELECT that encloses another,
+          which then encloses this one, correlation now works
+          across multiple levels when explicit correlation is
+          established via :meth:`.Select.correlate`, provided
+          that the target select is somewhere along the chain
+          contained by a WHERE/ORDER BY/columns clause, not
+          just nested FROM clauses. This makes
+          :meth:`.Select.correlate` act more compatibly to
+          that of 0.7 again while still maintaining the new
+          "smart" correlation.
+
+        * When explicit correlation is not used, the usual
+          "implicit" correlation limits its behavior to just
+          the immediate enclosing SELECT, to maximize compatibility
+          with 0.7 applications, and also prevents correlation
+          across nested FROMs in this case, maintaining compatibility
+          with 0.8.0/0.8.1.
+
+        * The :meth:`.Select.correlate_except` method was not
+          preventing the given FROM clauses from correlation in
+          all cases, and also would cause FROM clauses to be incorrectly
+          omitted entirely (more like what 0.7 would do),
+          this has been fixed.
+
+        * Calling `select.correlate_except(None)` will enter
+          all FROM clauses into correlation as would be expected.
+
+    .. change::
+        :tags: bug, ext
+
+        Fixed bug whereby if a composite type were set up
+        with a function instead of a class, the mutable extension
+        would trip up when it tried to check that column
+        for being a :class:`.MutableComposite` (which it isn't).
+        Courtesy asldevi.
+
+    .. change::
+        :tags: feature, sql
+        :tickets: 2744, 2734
+
+        Provided a new attribute for :class:`.TypeDecorator`
+        called :attr:`.TypeDecorator.coerce_to_is_types`,
+        to make it easier to control how comparisons using
+        ``==`` or ``!=`` to ``None`` and boolean types goes
+        about producing an ``IS`` expression, or a plain
+        equality expression with a bound parameter.
+
+    .. change::
+        :tags: feature, postgresql
+
+        Support for Postgresql 9.2 range types has been added.
+        Currently, no type translation is provided, so works
+        directly with strings or psycopg2 2.5 range extension types
+        at the moment.  Patch courtesy Chris Withers.
+
+    .. change::
+        :tags: bug, examples
+
+        Fixed an issue with the "versioning" recipe whereby a many-to-one
+        reference could produce a meaningless version for the target,
+        even though it was not changed, when backrefs were present.
+        Patch courtesy Matt Chisholm.
+
+    .. change::
+        :tags: feature, postgresql
+        :tickets: 2072
+
+        Added support for "AUTOCOMMIT" isolation when using the psycopg2
+        DBAPI.   The keyword is available via the ``isolation_level``
+        execution option.  Patch courtesy Roman Podolyaka.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2759
+
+        Fixed bug in polymorphic SQL generation where multiple joined-inheritance
+        entities against the same base class joined to each other as well
+        would not track columns on the base table independently of each other if
+        the string of joins were more than two entities long.
+
+    .. change::
+        :tags: bug, engine
+        :pullreq: 6
+
+        Fixed bug where the ``reset_on_return`` argument to various :class:`.Pool`
+        implementations would not be propagated when the pool was regenerated.
+        Courtesy Eevee.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2754
+
+        Fixed bug where sending a composite attribute into :meth:`.Query.order_by`
+        would produce a parenthesized expression not accepted by some databases.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2755
+
+        Fixed the interaction between composite attributes and
+        the :func:`.aliased` function.  Previously, composite attributes
+        wouldn't work correctly in comparison operations when aliasing
+        was applied.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 2715
+
+        Added another conditional to the ``mysql+gaerdbms`` dialect to
+        detect so-called "development" mode, where we should use the
+        ``rdbms_mysqldb`` DBAPI.  Patch courtesy Brett Slatkin.
+
+    .. change::
+        :tags: feature, mysql
+        :tickets: 2704
+
+        The ``mysql_length`` parameter used with :class:`.Index` can now
+        be passed as a dictionary of column names/lengths, for use
+        with composite indexes.  Big thanks to Roman Podolyaka for the
+        patch.
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 2747
+
+        When querying the information schema on SQL Server 2000, removed
+        a CAST call that was added in 0.8.1 to help with driver issues,
+        which apparently is not compatible on 2000.
+        The CAST remains in place for SQL Server 2005 and greater.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 2721
+
+        The ``deferrable`` keyword argument on :class:`.ForeignKey` and
+        :class:`.ForeignKeyConstraint` will not render the ``DEFERRABLE`` keyword
+        on the MySQL dialect.  For a long time we left this in place because
+        a non-deferrable foreign key would act very differently than a deferrable
+        one, but some environments just disable FKs on MySQL, so we'll be less
+        opinionated here.
+
+    .. change::
+        :tags: bug, ext, orm
+        :tickets: 2730
+
+        Fixed bug where :class:`.MutableDict` didn't report a change event
+        when ``clear()`` was called.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2738
+
+        Fixed bug whereby joining a select() of a table "A" with multiple
+        foreign key paths to a table "B", to that table "B", would fail
+        to produce the "ambiguous join condition" error that would be
+        reported if you join table "A" directly to "B"; it would instead
+        produce a join condition with multiple criteria.
+
+    .. change::
+        :tags: bug, sql, reflection
+        :tickets: 2728
+
+        Fixed bug whereby using :meth:`.MetaData.reflect` across a remote
+        schema as well as a local schema could produce wrong results
+        in the case where both schemas had a table of the same name.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2726
+
+        Removed the "not implemented" ``__iter__()`` call from the base
+        :class:`.ColumnOperators` class, while this was introduced
+        in 0.8.0 to prevent an endless, memory-growing loop when one also
+        implements a ``__getitem__()`` method on a custom
+        operator and then calls erroneously ``list()`` on that object,
+        it had the effect of causing column elements to report that they
+        were in fact iterable types which then throw an error when you try
+        to iterate.   There's no real way to have both sides here so we
+        stick with Python best practices.  Careful with implementing
+        ``__getitem__()`` on your custom operators!
+
+    .. change::
+      :tags: feature, orm
+      :tickets: 2736
+
+      Added a new method :meth:`.Query.select_entity_from` which
+      will in 0.9 replace part of the functionality of
+      :meth:`.Query.select_from`.  In 0.8, the two methods perform
+      the same function, so that code can be migrated to use the
+      :meth:`.Query.select_entity_from` method as appropriate.
+      See the 0.9 migration guide for details.
+
+    .. change::
+      :tags: bug, orm
+      :tickets: 2737
+
+      Fixed a regression caused by :ticket:`2682` whereby the
+      evaluation invoked by :meth:`.Query.update` and :meth:`.Query.delete`
+      would hit upon unsupported ``True`` and ``False`` symbols
+      which now appear due to the usage of ``IS``.
+
+    .. change::
+      :tags: bug, postgresql
+      :tickets: 2735
+
+      Fixed the HSTORE type to correctly encode/decode for unicode.
+      This is always on, as the hstore is a textual type, and
+      matches the behavior of psycopg2 when using Python 3.
+      Courtesy Dmitry Mugtasimov.
+
+    .. change::
+      :tags: bug, examples
+
+      Fixed a small bug in the dogpile example where the generation
+      of SQL cache keys wasn't applying deduping labels to the
+      statement the same way :class:`.Query` normally does.
+
+    .. change::
+      :tags: bug, engine, sybase
+      :tickets: 2732
+
+      Fixed a bug where the routine to detect the correct kwargs
+      being sent to :func:`.create_engine` would fail in some cases,
+      such as with the Sybase dialect.
+
+    .. change::
+      :tags: bug, orm
+      :tickets: 2481
+
+      Fixed a regression from 0.7 caused by this ticket, which
+      made the check for recursion overflow in self-referential
+      eager joining too loose, missing a particular circumstance
+      where a subclass had lazy="joined" or "subquery" configured
+      and the load was a "with_polymorphic" against the base.
+
+    .. change::
+      :tags: bug, orm
+      :tickets: 2718
+
+      Fixed a regression from 0.7 where the contextmanager feature
+      of :meth:`.Session.begin_nested` would fail to correctly
+      roll back the transaction when a flush error occurred, instead
+      raising its own exception while leaving the session still
+      pending a rollback.
+
+    .. change::
+      :tags: bug, mysql
+
+      Updated mysqlconnector dialect to check for disconnect based
+      on the apparent string message sent in the exception; tested
+      against mysqlconnector 1.0.9.
+
+    .. change::
+      :tags: bug, sql, mssql
+      :tickets: 2682
+
+      Regression from this ticket caused the unsupported keyword
+      "true" to render, added logic to convert this to 1/0
+      for SQL server.
+
+.. changelog::
     :version: 0.8.1
     :released: April 27, 2013
 

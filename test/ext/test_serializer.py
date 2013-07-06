@@ -114,6 +114,7 @@ class SerializeTest(fixtures.MappedTest):
             Address(email='ed@lala.com'),
             Address(email='ed@bettyboop.com')])
 
+    @testing.skip_if(lambda: util.pypy, "problems with pypy pickle reported")
     def test_query_two(self):
         q = \
             Session.query(User).join(User.addresses).\
@@ -121,8 +122,9 @@ class SerializeTest(fixtures.MappedTest):
         q2 = serializer.loads(serializer.dumps(q, -1), users.metadata,
                               Session)
         eq_(q2.all(), [User(name='fred')])
-        eq_(list(q2.values(User.id, User.name)), [(9, u'fred')])
+        eq_(list(q2.values(User.id, User.name)), [(9, 'fred')])
 
+    @testing.requires.bulletproof_pickle
     def test_query_three(self):
         ua = aliased(User)
         q = \
@@ -136,6 +138,7 @@ class SerializeTest(fixtures.MappedTest):
         ua_2 = q2._entities[0].entity_zero.entity
         eq_(list(q2.values(ua_2.id, ua_2.name)), [(9, u'fred')])
 
+    @testing.skip_if(lambda: util.pypy, "problems with pypy pickle reported")
     def test_orm_join(self):
         from sqlalchemy.orm.util import join
 

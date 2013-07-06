@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.1',
+          VERSION:     '0.8.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
+        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
 
 
     </div>
@@ -732,7 +732,7 @@ to create a JOIN along the natural foreign key relationship between
 two entities:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span></pre></div>
 </div>
-<p>The above calling form of <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.join" title="sqlalchemy.sql.expression.FunctionElement.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> will raise an error if
+<p>The above calling form of <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.CompoundSelect.join" title="sqlalchemy.sql.expression.CompoundSelect.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> will raise an error if
 either there are no foreign keys between the two entities, or if
 there are multiple foreign key linkages between them.   In the
 above calling form, <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> is called upon to
@@ -930,7 +930,7 @@ to a scalar subquery with a label of the given name.</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.orm.query.Query.logger">
-<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x10385ead0&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">logger</tt><em class="property"> = &lt;logging.Logger object at 0x102e17d50&gt;</em><a class="headerlink" href="#sqlalchemy.orm.query.Query.logger" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1096,18 +1096,137 @@ raises MultipleResultsFound.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="sqlalchemy.orm.query.Query.select_entity_from">
+<tt class="descname">select_entity_from</tt><big>(</big><em>from_obj</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.select_entity_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the FROM clause of this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> to a
+core selectable, applying it as a replacement FROM clause
+for corresponding mapped entities.</p>
+<p>This method is currently equivalent to the
+<a class="reference internal" href="#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a> method, but in 0.9 these two
+methods will diverge in functionality.</p>
+<p>In addition to changing the FROM list, the method will
+also apply the given selectable
+to replace the FROM which the selected entities would normally
+select from.</p>
+<p>The given <tt class="docutils literal"><span class="pre">from_obj</span></tt> must be an instance of a <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>,
+e.g. a <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> or <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> construct.</p>
+<p>An example would be a <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> that selects <tt class="docutils literal"><span class="pre">User</span></tt> entities,
+but uses <a class="reference internal" href="#sqlalchemy.orm.query.Query.select_entity_from" title="sqlalchemy.orm.query.Query.select_entity_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_entity_from()</span></tt></a> to have the entities
+selected from a <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct instead of the
+base <tt class="docutils literal"><span class="pre">user</span></tt> table:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select_stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">User</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">7</span><span class="p">)</span>
+
+<span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+        <span class="n">select_entity_from</span><span class="p">(</span><span class="n">select_stmt</span><span class="p">)</span><span class="o">.</span>\
+        <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;ed&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>The query generated will select <tt class="docutils literal"><span class="pre">User</span></tt> entities directly
+from the given <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct, and will be:</p>
+<div class="highlight-python"><pre>SELECT anon_1.id AS anon_1_id, anon_1.name AS anon_1_name
+FROM (SELECT "user".id AS id, "user".name AS name
+FROM "user"
+WHERE "user".id = :id_1) AS anon_1
+WHERE anon_1.name = :name_1</pre>
+</div>
+<p>Notice above that even the WHERE criterion was &#8220;adapted&#8221; such that
+the <tt class="docutils literal"><span class="pre">anon_1</span></tt> subquery effectively replaces all references to the
+<tt class="docutils literal"><span class="pre">user</span></tt> table, except for the one that it refers to internally.</p>
+<p>Compare this to <a class="reference internal" href="#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a>, which as of
+version 0.9, does not affect existing entities.  The
+statement below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+        <span class="n">select_from</span><span class="p">(</span><span class="n">select_stmt</span><span class="p">)</span><span class="o">.</span>\
+        <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;ed&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>Produces SQL where both the <tt class="docutils literal"><span class="pre">user</span></tt> table as well as the
+<tt class="docutils literal"><span class="pre">select_stmt</span></tt> construct are present as separate elements
+in the FROM clause.  No &#8220;adaptation&#8221; of the <tt class="docutils literal"><span class="pre">user</span></tt> table
+is applied:</p>
+<div class="highlight-python"><pre>SELECT "user".id AS user_id, "user".name AS user_name
+FROM "user", (SELECT "user".id AS id, "user".name AS name
+FROM "user"
+WHERE "user".id = :id_1) AS anon_1
+WHERE "user".name = :name_1</pre>
+</div>
+<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.select_entity_from" title="sqlalchemy.orm.query.Query.select_entity_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_entity_from()</span></tt></a> maintains an older
+behavior of <a class="reference internal" href="#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a>.  In modern usage,
+similar results can also be achieved using <a class="reference internal" href="#sqlalchemy.orm.aliased" title="sqlalchemy.orm.aliased"><tt class="xref py py-func docutils literal"><span class="pre">aliased()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select_stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">User</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">7</span><span class="p">)</span>
+<span class="n">user_from_select</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">select_stmt</span><span class="o">.</span><span class="n">alias</span><span class="p">())</span>
+
+<span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">user_from_select</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>from_obj</strong> &#8211; a <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object that will replace
+the FROM clause of this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a></p>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2: </span><a class="reference internal" href="#sqlalchemy.orm.query.Query.select_entity_from" title="sqlalchemy.orm.query.Query.select_entity_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_entity_from()</span></tt></a> was added to specify
+the specific behavior of entity replacement, however
+the <a class="reference internal" href="#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a> maintains this behavior
+as well until 0.9.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.orm.query.Query.select_from">
 <tt class="descname">select_from</tt><big>(</big><em>*from_obj</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.select_from" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the FROM clause of this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> explicitly.</p>
-<p>Sending a mapped class or entity here effectively replaces the
+<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a> is often used in conjunction with
+<a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a> in order to control which entity is selected
+from on the &#8220;left&#8221; side of the join.</p>
+<p>The entity or selectable object here effectively replaces the
 &#8220;left edge&#8221; of any calls to <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a>, when no
 joinpoint is otherwise established - usually, the default &#8220;join
 point&#8221; is the leftmost entity in the <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object&#8217;s
 list of entities to be selected.</p>
-<p>Mapped entities or plain <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or other selectables
-can be sent here which will form the default FROM clause.</p>
-<p>See the example in <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> for a typical
-usage of <a class="reference internal" href="#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">select_from()</span></tt></a>.</p>
+<p>A typical example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+    <span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span><span class="o">.</span>\
+    <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;ed&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>Which produces SQL equivalent to:</p>
+<div class="highlight-python"><pre>SELECT address.* FROM user
+JOIN address ON user.id=address.user_id
+WHERE user.name = :name_1</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>*from_obj</strong> &#8211; collection of one or more entities to apply
+to the FROM clause.  Entities can be mapped classes,
+<a class="reference internal" href="#sqlalchemy.orm.util.AliasedClass" title="sqlalchemy.orm.util.AliasedClass"><tt class="xref py py-class docutils literal"><span class="pre">AliasedClass</span></tt></a> objects, <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> objects
+as well as core <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> elements like subqueries.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a> features a deprecated behavior
+whereby when passed a <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> element,
+such as a select construct, it will apply that select
+construct to <em>replace</em> the FROM clause that an existing
+entity is joined from.  This behavior is being removed
+in SQLAlchemy 0.9, to be replaced with the
+<a class="reference internal" href="#sqlalchemy.orm.query.Query.select_entity_from" title="sqlalchemy.orm.query.Query.select_entity_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_entity_from()</span></tt></a> method.  Applications
+which rely on this behavior to re-base query entities to
+an arbitrary selectable should transition to this
+method before upgrading to 0.9.</p>
+</div>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.query.Query.select_entity_from" title="sqlalchemy.orm.query.Query.select_entity_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_entity_from()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">

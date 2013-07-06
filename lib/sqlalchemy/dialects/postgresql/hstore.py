@@ -10,6 +10,7 @@ from .base import ARRAY, ischema_names
 from ... import types as sqltypes
 from ...sql import functions as sqlfunc
 from ...sql.operators import custom_op
+from ... import util
 
 __all__ = ('HSTORE', 'hstore')
 
@@ -67,11 +68,11 @@ def _parse_hstore(hstore_str):
     pair_match = HSTORE_PAIR_RE.match(hstore_str)
 
     while pair_match is not None:
-        key = pair_match.group('key')
+        key = pair_match.group('key').replace(r'\"', '"').replace("\\\\", "\\")
         if pair_match.group('value_null'):
             value = None
         else:
-            value = pair_match.group('value').replace(r'\"', '"')
+            value = pair_match.group('value').replace(r'\"', '"').replace("\\\\", "\\")
         result[key] = value
 
         pos += pair_match.end()
@@ -97,7 +98,7 @@ def _serialize_hstore(val):
         if position == 'value' and s is None:
             return 'NULL'
         elif isinstance(s, basestring):
-            return '"%s"' % s.replace('"', r'\"')
+            return '"%s"' % s.replace("\\", "\\\\").replace('"', r'\"')
         else:
             raise ValueError("%r in %s position is not a string." %
                              (s, position))
@@ -260,19 +261,35 @@ class HSTORE(sqltypes.Concatenable, sqltypes.TypeEngine):
                 _adapt_expression(self, op, other_comparator)
 
     def bind_processor(self, dialect):
-        def process(value):
-            if isinstance(value, dict):
-                return _serialize_hstore(value)
-            else:
-                return value
+        if util.py2k:
+            encoding = dialect.encoding
+            def process(value):
+                if isinstance(value, dict):
+                    return _serialize_hstore(value).encode(encoding)
+                else:
+                    return value
+        else:
+            def process(value):
+                if isinstance(value, dict):
+                    return _serialize_hstore(value)
+                else:
+                    return value
         return process
 
     def result_processor(self, dialect, coltype):
-        def process(value):
-            if value is not None:
-                return _parse_hstore(value)
-            else:
-                return value
+        if util.py2k:
+            encoding = dialect.encoding
+            def process(value):
+                if value is not None:
+                    return _parse_hstore(value.decode(encoding))
+                else:
+                    return value
+        else:
+            def process(value):
+                if value is not None:
+                    return _parse_hstore(value)
+                else:
+                    return value
         return process
 
 

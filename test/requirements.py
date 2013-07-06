@@ -240,6 +240,13 @@ class DefaultRequirements(SuiteRequirements):
                     "firebird"
                 ], "no schema support")
 
+    @property
+    def cross_schema_fk_reflection(self):
+        """target system must support reflection of inter-schema foreign keys
+        """
+        return only_on([
+                    "postgresql"
+                ])
 
     @property
     def update_nowait(self):
@@ -557,6 +564,14 @@ class DefaultRequirements(SuiteRequirements):
              )
 
     @property
+    def bulletproof_pickle(self):
+        from sqlalchemy.util import pickle
+        return only_if(
+            lambda: pickle.__name__ == 'cPickle' and sys.version_info < (3, 0),
+            "Needs Python 2.x cPickle"
+        )
+
+    @property
     def predictable_gc(self):
         """target platform must remove all cycles unconditionally when
         gc.collect() is called, as well as clean out unreferenced subclasses.
@@ -576,6 +591,21 @@ class DefaultRequirements(SuiteRequirements):
                 return False
 
         return only_if(check_hstore)
+
+    @property
+    def range_types(self):
+        def check_range_types():
+            if not against("postgresql+psycopg2"):
+                return False
+            try:
+                self.db.execute("select '[1,2)'::int4range;")
+                # only supported in psycopg 2.5+
+                from psycopg2.extras import NumericRange
+                return True
+            except:
+                return False
+
+        return only_if(check_range_types)
 
     @property
     def sqlite(self):
@@ -606,6 +636,18 @@ class DefaultRequirements(SuiteRequirements):
 
         return skip_if(self._has_mysql_on_windows,
                 "Not supported on MySQL + Windows"
+            )
+
+    @property
+    def threading_with_mock(self):
+        """Mark tests that use threading and mock at the same time - stability
+        issues have been observed with coverage + python 3.3
+
+        """
+        return skip_if(
+                lambda: util.py3k and
+                    self.config.options.enable_plugin_coverage,
+                "Stability issues with coverage + py3k"
             )
 
     @property

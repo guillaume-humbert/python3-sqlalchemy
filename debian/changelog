@@ -1,3 +1,16 @@
+sqlalchemy (0.8.2-1) unstable; urgency=low
+
+  [ Jakub Wilk ]
+  * Use canonical URIs for Vcs-* fields.
+
+  [ Piotr Ożarowski ]
+  * New upstream release
+  * Upload to unstable
+  * Build depend on python3-all instead of -dev, extensions are not built for
+    Python 3.X 
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sat, 06 Jul 2013 20:53:52 +0200
+
 sqlalchemy (0.8.1-1) experimental; urgency=low
 
   * New upstream release

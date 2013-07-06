@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.8.1',
+          VERSION:     '0.8.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -64,7 +64,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
+        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
 
 
     </div>
@@ -151,8 +151,20 @@ of a relationship where the column in some cases needs to be expressed
 in terms of one particular table alias or another, based on its position
 within the join expression.</p>
 </dd>
+<dt id="term-columns-clause">columns clause</dt>
+<dd><p class="first">The portion of the <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement which enumerates the
+SQL expressions to be returned in the result set.  The expressions
+follow the <tt class="docutils literal"><span class="pre">SELECT</span></tt> keyword directly and are a comma-separated
+list of individual expressions.</p>
+<p>E.g.:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="n">user_account</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">user_account</span><span class="p">.</span><span class="n">email</span>
+<span class="k">FROM</span> <span class="n">user_account</span> <span class="k">WHERE</span> <span class="n">user_account</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;fred&#39;</span></pre></div>
+</div>
+<p class="last">Above, the list of columns <tt class="docutils literal"><span class="pre">user_acount.name</span></tt>,
+<tt class="docutils literal"><span class="pre">user_account.email</span></tt> is the columns clause of the <tt class="docutils literal"><span class="pre">SELECT</span></tt>.</p>
+</dd>
 <dt id="term-correlates"><span id="term-correlated-subquery"></span><span id="term-correlated-subqueries"></span>correlates<br />correlated subquery<br />correlated subqueries</dt>
-<dd><p class="first">A <em class="xref std std-term">subquery</em> is correlated if it depends on data in the
+<dd><p class="first">A <a class="reference internal" href="#term-subquery"><em class="xref std std-term">subquery</em></a> is correlated if it depends on data in the
 enclosing <tt class="docutils literal"><span class="pre">SELECT</span></tt>.</p>
 <p>Below, a subquery selects the aggregate value <tt class="docutils literal"><span class="pre">MIN(a.id)</span></tt>
 from the <tt class="docutils literal"><span class="pre">email_address</span></tt> table, such that
@@ -171,11 +183,27 @@ column:</p>
 in the <tt class="docutils literal"><span class="pre">FROM</span></tt> clause of this nested query.   Instead, the <tt class="docutils literal"><span class="pre">user_account</span></tt>
 table is recieved from the enclosing query, where each row selected from
 <tt class="docutils literal"><span class="pre">user_account</span></tt> results in a distinct execution of the subquery.</p>
-<p class="last">A correlated subquery is nearly always present in the <em class="xref std std-term">WHERE clause</em>
-or <em class="xref std std-term">columns clause</em> of the enclosing <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement, and never
-in the <em class="xref std std-term">FROM clause</em>; this is because
-the correlation can only proceed once the original source rows from the enclosing
-statement&#8217;s FROM clause are available.</p>
+<p>A correlated subquery is in most cases present in the <a class="reference internal" href="#term-where-clause"><em class="xref std std-term">WHERE clause</em></a>
+or <a class="reference internal" href="#term-columns-clause"><em class="xref std std-term">columns clause</em></a> of the immediately enclosing <tt class="docutils literal"><span class="pre">SELECT</span></tt>
+statement, as well as in the ORDER BY or HAVING clause.</p>
+<p>In less common cases, a correlated subquery may be present in the
+<a class="reference internal" href="#term-from-clause"><em class="xref std std-term">FROM clause</em></a> of an enclosing <tt class="docutils literal"><span class="pre">SELECT</span></tt>; in these cases the
+correlation is typically due to the enclosing <tt class="docutils literal"><span class="pre">SELECT</span></tt> itself being
+enclosed in the WHERE,
+ORDER BY, columns or HAVING clause of another <tt class="docutils literal"><span class="pre">SELECT</span></tt>, such as:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="n">parent</span><span class="p">.</span><span class="n">id</span> <span class="k">FROM</span> <span class="n">parent</span>
+<span class="k">WHERE</span> <span class="k">EXISTS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="p">(</span>
+        <span class="k">SELECT</span> <span class="n">child</span><span class="p">.</span><span class="n">id</span> <span class="k">AS</span> <span class="n">id</span><span class="p">,</span> <span class="n">child</span><span class="p">.</span><span class="n">parent_id</span> <span class="k">AS</span> <span class="n">parent_id</span><span class="p">,</span> <span class="n">child</span><span class="p">.</span><span class="n">pos</span> <span class="k">AS</span> <span class="n">pos</span>
+        <span class="k">FROM</span> <span class="n">child</span>
+        <span class="k">WHERE</span> <span class="n">child</span><span class="p">.</span><span class="n">parent_id</span> <span class="o">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">id</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">child</span><span class="p">.</span><span class="n">pos</span>
+    <span class="k">LIMIT</span> <span class="mi">3</span><span class="p">)</span>
+<span class="k">WHERE</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">7</span><span class="p">)</span></pre></div>
+</div>
+<p class="last">Correlation from one <tt class="docutils literal"><span class="pre">SELECT</span></tt> directly to one which encloses the correlated
+query via its <tt class="docutils literal"><span class="pre">FROM</span></tt>
+clause is not possible, because the correlation can only proceed once the
+original source rows from the enclosing statement&#8217;s FROM clause are available.</p>
 </dd>
 <dt id="term-dbapi">DBAPI</dt>
 <dd><p class="first">DBAPI is shorthand for the phrase &#8220;Python Database API
@@ -241,6 +269,22 @@ of a hierarchy mapping using inheritance mapping.</p>
 <div class="admonition-see-also last admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="orm/inheritance.html"><em>Mapping Class Inheritance Hierarchies</em></a></p>
+</div>
+</dd>
+<dt id="term-from-clause">FROM clause</dt>
+<dd><p class="first">The portion of the <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement which incicates the initial
+source of rows.</p>
+<p>A simple <tt class="docutils literal"><span class="pre">SELECT</span></tt> will feature one or more table names in its
+FROM clause.  Multiple sources are separated by a comma:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="k">user</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">.</span><span class="n">email_address</span>
+<span class="k">FROM</span> <span class="k">user</span><span class="p">,</span> <span class="n">address</span>
+<span class="k">WHERE</span> <span class="k">user</span><span class="p">.</span><span class="n">id</span><span class="o">=</span><span class="n">address</span><span class="p">.</span><span class="n">user_id</span></pre></div>
+</div>
+<p>The FROM clause is also where explicit joins are specified.  We can
+rewrite the above <tt class="docutils literal"><span class="pre">SELECT</span></tt> using a single <tt class="docutils literal"><span class="pre">FROM</span></tt> element which consists
+of a <tt class="docutils literal"><span class="pre">JOIN</span></tt> of the two tables:</p>
+<div class="last highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="k">user</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">.</span><span class="n">email_address</span>
+<span class="k">FROM</span> <span class="k">user</span> <span class="k">JOIN</span> <span class="n">address</span> <span class="k">ON</span> <span class="k">user</span><span class="p">.</span><span class="n">id</span><span class="o">=</span><span class="n">address</span><span class="p">.</span><span class="n">user_id</span></pre></div>
 </div>
 </dd>
 <dt id="term-generative">generative</dt>
@@ -372,6 +416,43 @@ of operations.</p>
 <p class="last"><a class="reference internal" href="core/pooling.html"><em>Connection Pooling</em></a></p>
 </div>
 </dd>
+<dt id="term-subquery">subquery</dt>
+<dd><p class="first">Refers to a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement that is embedded within an enclosing
+<tt class="docutils literal"><span class="pre">SELECT</span></tt>.</p>
+<p>A subquery comes in two general flavors, one known as a &#8220;scalar select&#8221;
+which specifically must return exactly one row and one column, and the
+other form which acts as a &#8220;derived table&#8221; and serves as a source of
+rows for the FROM clause of another select.  A scalar select is eligble
+to be placed in the <a class="reference internal" href="#term-where-clause"><em class="xref std std-term">WHERE clause</em></a>, <a class="reference internal" href="#term-columns-clause"><em class="xref std std-term">columns clause</em></a>,
+ORDER BY clause or HAVING clause of the enclosing select, whereas the
+derived table form is eligible to be placed in the FROM clause of the
+enclosing <tt class="docutils literal"><span class="pre">SELECT</span></tt>.</p>
+<p>Examples:</p>
+<ol class="last arabic">
+<li><p class="first">a scalar subquery placed in the <a class="reference internal" href="#term-columns-clause"><em class="xref std std-term">columns clause</em></a> of an enclosing
+<tt class="docutils literal"><span class="pre">SELECT</span></tt>.  The subquery in this example is a <a class="reference internal" href="#term-correlated-subquery"><em class="xref std std-term">correlated subquery</em></a> because part
+of the rows which it selects from are given via the enclosing statement.</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="p">(</span><span class="k">SELECT</span> <span class="n">name</span> <span class="k">FROM</span> <span class="n">address</span> <span class="k">WHERE</span> <span class="n">address</span><span class="p">.</span><span class="n">user_id</span><span class="o">=</span><span class="k">user</span><span class="p">.</span><span class="n">id</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="k">user</span></pre></div>
+</div>
+</li>
+<li><p class="first">a scalar subquery placed in the <a class="reference internal" href="#term-where-clause"><em class="xref std std-term">WHERE clause</em></a> of an enclosing
+<tt class="docutils literal"><span class="pre">SELECT</span></tt>.  This subquery in this example is not correlated as it selects a fixed result.</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="n">name</span> <span class="k">FROM</span> <span class="k">user</span>
+<span class="k">WHERE</span> <span class="n">status</span><span class="o">=</span><span class="p">(</span><span class="k">SELECT</span> <span class="n">status_id</span> <span class="k">FROM</span> <span class="n">status_code</span> <span class="k">WHERE</span> <span class="n">code</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+<li><p class="first">a derived table subquery placed in the <a class="reference internal" href="#term-from-clause"><em class="xref std std-term">FROM clause</em></a> of an enclosing
+<tt class="docutils literal"><span class="pre">SELECT</span></tt>.   Such a subquery is almost always given an alias name.</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="k">user</span><span class="p">.</span><span class="n">id</span><span class="p">,</span> <span class="k">user</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ad_subq</span><span class="p">.</span><span class="n">email_address</span>
+<span class="k">FROM</span>
+    <span class="k">user</span> <span class="k">JOIN</span>
+    <span class="p">(</span><span class="k">select</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">email_address</span> <span class="k">FROM</span> <span class="n">address</span> <span class="k">WHERE</span> <span class="n">address_type</span><span class="o">=</span><span class="s1">&#39;Q&#39;</span><span class="p">)</span> <span class="k">AS</span> <span class="n">ad_subq</span>
+    <span class="k">ON</span> <span class="k">user</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">ad_subq</span><span class="p">.</span><span class="n">user_id</span></pre></div>
+</div>
+</li>
+</ol>
+</dd>
 <dt id="term-unit-of-work">unit of work</dt>
 <dd><p class="first">This pattern is where the system transparently keeps
 track of changes to objects and periodically flushes all those
@@ -383,6 +464,17 @@ Hibernate.</p>
 <p><a class="reference external" href="http://martinfowler.com/eaaCatalog/unitOfWork.html">Unit of Work by Martin Fowler</a></p>
 <p class="last"><a class="reference internal" href="orm/session.html"><em>Using the Session</em></a></p>
 </div>
+</dd>
+<dt id="term-where-clause">WHERE clause</dt>
+<dd><p class="first">The portion of the <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement which indicates criteria
+by which rows should be filtered.   It is a single SQL expression
+which follows the keyword <tt class="docutils literal"><span class="pre">WHERE</span></tt>.</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="n">user_account</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">user_account</span><span class="p">.</span><span class="n">email</span>
+<span class="k">FROM</span> <span class="n">user_account</span>
+<span class="k">WHERE</span> <span class="n">user_account</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;fred&#39;</span> <span class="k">AND</span> <span class="n">user_account</span><span class="p">.</span><span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;E&#39;</span></pre></div>
+</div>
+<p class="last">Above, the phrase <tt class="docutils literal"><span class="pre">WHERE</span> <span class="pre">user_account.name</span> <span class="pre">=</span> <span class="pre">'fred'</span> <span class="pre">AND</span> <span class="pre">user_account.status</span> <span class="pre">=</span> <span class="pre">'E'</span></tt>
+comprises the WHERE clause of the <tt class="docutils literal"><span class="pre">SELECT</span></tt>.</p>
 </dd>
 </dl>
 </div>

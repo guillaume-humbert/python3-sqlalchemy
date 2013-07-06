@@ -16,7 +16,8 @@ they originate from :mod:`sqlalchemy.types` or from the local dialect::
         ARRAY, BIGINT, BIT, BOOLEAN, BYTEA, CHAR, CIDR, DATE, \
         DOUBLE_PRECISION, ENUM, FLOAT, HSTORE, INET, INTEGER, \
         INTERVAL, MACADDR, NUMERIC, REAL, SMALLINT, TEXT, TIME, \
-        TIMESTAMP, UUID, VARCHAR
+        TIMESTAMP, UUID, VARCHAR, INT4RANGE, INT8RANGE, NUMRANGE, \
+        DATERANGE, TSRANGE, TSTZRANGE
 
 Types which are specific to PostgreSQL, or have PostgreSQL-specific
 construction arguments, are as follows:
@@ -80,6 +81,67 @@ construction arguments, are as follows:
 .. autoclass:: UUID
     :members: __init__
     :show-inheritance:
+
+Range Types
+~~~~~~~~~~~
+
+The new range column types founds in PostgreSQL 9.2 onwards are
+catered for by the following types:
+
+.. autoclass:: INT4RANGE
+   :show-inheritance:
+
+.. autoclass:: INT8RANGE
+   :show-inheritance:
+
+.. autoclass:: NUMRANGE
+   :show-inheritance:
+
+.. autoclass:: DATERANGE
+   :show-inheritance:
+
+.. autoclass:: TSRANGE
+   :show-inheritance:
+
+.. autoclass:: TSTZRANGE
+   :show-inheritance:
+
+The types above get most of their functionality from the following
+mixin:
+
+.. autoclass:: sqlalchemy.dialects.postgresql.ranges.RangeOperators
+    :members:
+
+.. warning::
+
+  The range type DDL support should work with any Postgres DBAPI
+  driver, however the data types returned may vary. If you are using
+  ``psycopg2``, it's recommended to upgrade to version 2.5 or later
+  before using these column types.
+
+
+PostgreSQL Constraint Types
+---------------------------
+
+SQLAlchemy supports Postgresql EXCLUDE constraints via the
+:class:`ExcludeConstraint` class:
+
+.. autoclass:: ExcludeConstraint
+   :show-inheritance:
+   :members: __init__
+
+For example::
+
+  from sqlalchemy.dialects.postgresql import ExcludeConstraint, TSRANGE
+
+  class RoomBookings(Base):
+
+      room = Column(Integer(), primary_key=True)
+      during = Column(TSRANGE())
+
+      __table_args__ = (
+          ExcludeConstraint(('room', '='), ('during', '&&')),
+      )
 
 psycopg2
 --------------

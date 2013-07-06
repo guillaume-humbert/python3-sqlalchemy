@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.1',
+          VERSION:     '0.8.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
+        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
 
 
     </div>
@@ -126,7 +126,11 @@
 <li><a class="reference internal" href="#index-types">Index Types</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#postgresql-data-types">PostgreSQL Data Types</a></li>
+<li><a class="reference internal" href="#postgresql-data-types">PostgreSQL Data Types</a><ul>
+<li><a class="reference internal" href="#range-types">Range Types</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#postgresql-constraint-types">PostgreSQL Constraint Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.psycopg2">psycopg2</a><ul>
 <li><a class="reference internal" href="#dialect-postgresql-psycopg2-url">DBAPI</a></li>
 <li><a class="reference internal" href="#dialect-postgresql-psycopg2-connect">Connecting</a></li>
@@ -135,7 +139,7 @@
 <li><a class="reference internal" href="#per-statement-connection-execution-options">Per-Statement/Connection Execution Options</a></li>
 <li><a class="reference internal" href="#unicode">Unicode</a></li>
 <li><a class="reference internal" href="#transactions">Transactions</a></li>
-<li><a class="reference internal" href="#psycopg2-isolation">Transaction Isolation Level</a></li>
+<li><a class="reference internal" href="#psycopg2-transaction-isolation-level">Psycopg2 Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#notice-logging">NOTICE logging</a></li>
 <li><a class="reference internal" href="#hstore-type">HSTORE type</a></li>
 </ul>
@@ -148,7 +152,7 @@
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.pg8000">pg8000</a><ul>
 <li><a class="reference internal" href="#dialect-postgresql-pg8000-url">DBAPI</a></li>
 <li><a class="reference internal" href="#dialect-postgresql-pg8000-connect">Connecting</a></li>
-<li><a class="reference internal" href="#id2">Unicode</a></li>
+<li><a class="reference internal" href="#id3">Unicode</a></li>
 <li><a class="reference internal" href="#interval">Interval</a></li>
 </ul>
 </li>
@@ -227,20 +231,33 @@ case.</p>
 <tt class="docutils literal"><span class="pre">implicit_returning=False</span></tt> to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
 </div>
 <div class="section" id="transaction-isolation-level">
-<h2>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter which results
-in the command <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span> <span class="pre">CHARACTERISTICS</span> <span class="pre">AS</span> <span class="pre">TRANSACTION</span> <span class="pre">ISOLATION</span> <span class="pre">LEVEL</span>
-<span class="pre">&lt;level&gt;</span></tt> being invoked for every new connection. Valid values for this
-parameter are <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt>,
-and <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>:</p>
+<span id="postgresql-isolation-level"></span><h2>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h2>
+<p>All Postgresql dialects support setting of transaction isolation level
+both via a dialect-specific parameter <tt class="docutils literal"><span class="pre">isolation_level</span></tt>
+accepted by <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>,
+as well as the <tt class="docutils literal"><span class="pre">isolation_level</span></tt> argument as passed to <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a>.
+When using a non-psycopg2 dialect, this feature works by issuing the
+command <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span> <span class="pre">CHARACTERISTICS</span> <span class="pre">AS</span> <span class="pre">TRANSACTION</span> <span class="pre">ISOLATION</span> <span class="pre">LEVEL</span>
+<span class="pre">&lt;level&gt;</span></tt> for each new connection.</p>
+<p>To set isolation level using <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span>
                 <span class="s">&quot;postgresql+pg8000://scott:tiger@localhost/test&quot;</span><span class="p">,</span>
                 <span class="n">isolation_level</span><span class="o">=</span><span class="s">&quot;READ UNCOMMITTED&quot;</span>
             <span class="p">)</span></pre></div>
 </div>
-<p>When using the psycopg2 dialect, a psycopg2-specific method of setting
-transaction isolation level is used, but the API of <tt class="docutils literal"><span class="pre">isolation_level</span></tt>
-remains the same - see <a class="reference internal" href="#psycopg2-isolation"><em>Transaction Isolation Level</em></a>.</p>
+<p>To set using per-connection execution options:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">connection</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execution_options</span><span class="p">(</span><span class="n">isolation_level</span><span class="o">=</span><span class="s">&quot;READ COMMITTED&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>Valid values for <tt class="docutils literal"><span class="pre">isolation_level</span></tt> include:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt></li>
+</ul>
+<p>The <a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.psycopg2" title="sqlalchemy.dialects.postgresql.psycopg2"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> dialect also offers the special level <tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt>.  See
+<a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a> for details.</p>
 </div>
 <div class="section" id="remote-cross-schema-table-introspection">
 <h2>Remote / Cross-Schema Table Introspection<a class="headerlink" href="#remote-cross-schema-table-introspection" title="Permalink to this headline">¶</a></h2>
@@ -362,7 +379,8 @@ they originate from <a class="reference internal" href="../core/types.html#modul
     <span class="n">ARRAY</span><span class="p">,</span> <span class="n">BIGINT</span><span class="p">,</span> <span class="n">BIT</span><span class="p">,</span> <span class="n">BOOLEAN</span><span class="p">,</span> <span class="n">BYTEA</span><span class="p">,</span> <span class="n">CHAR</span><span class="p">,</span> <span class="n">CIDR</span><span class="p">,</span> <span class="n">DATE</span><span class="p">,</span> \
     <span class="n">DOUBLE_PRECISION</span><span class="p">,</span> <span class="n">ENUM</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> <span class="n">HSTORE</span><span class="p">,</span> <span class="n">INET</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> \
     <span class="n">INTERVAL</span><span class="p">,</span> <span class="n">MACADDR</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">REAL</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> \
-    <span class="n">TIMESTAMP</span><span class="p">,</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">VARCHAR</span></pre></div>
+    <span class="n">TIMESTAMP</span><span class="p">,</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">,</span> <span class="n">INT4RANGE</span><span class="p">,</span> <span class="n">INT8RANGE</span><span class="p">,</span> <span class="n">NUMRANGE</span><span class="p">,</span> \
+    <span class="n">DATERANGE</span><span class="p">,</span> <span class="n">TSRANGE</span><span class="p">,</span> <span class="n">TSTZRANGE</span></pre></div>
 </div>
 <p>Types which are specific to PostgreSQL, or have PostgreSQL-specific
 construction arguments, are as follows:</p>
@@ -387,7 +405,7 @@ construction arguments, are as follows:</p>
 </div>
 <p>An instance of <a class="reference internal" href="#sqlalchemy.dialects.postgresql.array" title="sqlalchemy.dialects.postgresql.array"><tt class="xref py py-class docutils literal"><span class="pre">array</span></tt></a> will always have the datatype
 <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">ARRAY</span></tt></a>.  The &#8220;inner&#8221; type of the array is inferred from
-the values present, unless the &#8220;<a href="#id3"><span class="problematic" id="id4">type_</span></a>&#8221; keyword argument is passed:</p>
+the values present, unless the <tt class="docutils literal"><span class="pre">type_</span></tt> keyword argument is passed:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">array</span><span class="p">([</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">],</span> <span class="n">type_</span><span class="o">=</span><span class="n">CHAR</span><span class="p">)</span></pre></div>
 </div>
 <p class="versionadded">
@@ -1085,6 +1103,211 @@ DBAPI.</td>
 
 </dd></dl>
 
+<div class="section" id="range-types">
+<h3>Range Types<a class="headerlink" href="#range-types" title="Permalink to this headline">¶</a></h3>
+<p>The new range column types founds in PostgreSQL 9.2 onwards are
+catered for by the following types:</p>
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.INT4RANGE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INT4RANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INT4RANGE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>Represent the Postgresql INT4RANGE type.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2.</span></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.INT8RANGE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INT8RANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INT8RANGE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>Represent the Postgresql INT8RANGE type.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2.</span></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.NUMRANGE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">NUMRANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.NUMRANGE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>Represent the Postgresql NUMRANGE type.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2.</span></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.DATERANGE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">DATERANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DATERANGE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>Represent the Postgresql DATERANGE type.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2.</span></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.TSRANGE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">TSRANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSRANGE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>Represent the Postgresql TSRANGE type.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2.</span></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.TSTZRANGE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">TSTZRANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSTZRANGE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>Represent the Postgresql TSTZRANGE type.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2.</span></p>
+</dd></dl>
+
+<p>The types above get most of their functionality from the following
+mixin:</p>
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.ranges.</tt><tt class="descname">RangeOperators</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="Permalink to this definition">¶</a></dt>
+<dd><p>This mixin provides functionality for the Range Operators
+listed in Table 9-44 of the <a class="reference external" href="http://www.postgresql.org/docs/devel/static/functions-range.html">postgres documentation</a> for Range
+Functions and Operators. It is used by all the range types
+provided in the <tt class="docutils literal"><span class="pre">postgres</span></tt> dialect and can likely be used for
+any range types you create yourself.</p>
+<p>No extra support is provided for the Range Functions listed in
+Table 9-45 of the postgres documentation. For these, the normal
+<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-func docutils literal"><span class="pre">func()</span></tt></a> object should be used.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2: </span>Support for Postgresql RANGE operations.</p>
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory">
+<em class="property">class </em><tt class="descname">comparator_factory</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define comparison operations for range types.</p>
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.__ne__">
+<tt class="descname">__ne__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.__ne__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expression. Returns true if two ranges are not equal</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.adjacent_to">
+<tt class="descname">adjacent_to</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.adjacent_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expression. Returns true if the range in the column
+is adjacent to the range in the operand.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.contained_by">
+<tt class="descname">contained_by</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.contained_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expression. Returns true if the column is contained
+within the right hand operand.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.contains">
+<tt class="descname">contains</tt><big>(</big><em>other</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expression. Returns true if the right hand operand,
+which can be an element or a range, is contained within the
+column.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.not_extend_left_of">
+<tt class="descname">not_extend_left_of</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.not_extend_left_of" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expression. Returns true if the range in the column
+does not extend left of the range in the operand.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.not_extend_right_of">
+<tt class="descname">not_extend_right_of</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.not_extend_right_of" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expression. Returns true if the range in the column
+does not extend right of the range in the operand.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.overlaps">
+<tt class="descname">overlaps</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.overlaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expression. Returns true if the column overlaps
+(has points in common with) the right hand operand.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.strictly_left_of">
+<tt class="descname">strictly_left_of</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.strictly_left_of" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expression. Returns true if the column is strictly
+left of the right hand operand.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.strictly_right_of">
+<tt class="descname">strictly_right_of</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.strictly_right_of" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean expression. Returns true if the column is strictly
+right of the right hand operand.</p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The range type DDL support should work with any Postgres DBAPI
+driver, however the data types returned may vary. If you are using
+<tt class="docutils literal"><span class="pre">psycopg2</span></tt>, it&#8217;s recommended to upgrade to version 2.5 or later
+before using these column types.</p>
+</div>
+</div>
+</div>
+<div class="section" id="postgresql-constraint-types">
+<h2>PostgreSQL Constraint Types<a class="headerlink" href="#postgresql-constraint-types" title="Permalink to this headline">¶</a></h2>
+<p>SQLAlchemy supports Postgresql EXCLUDE constraints via the
+<a class="reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint" title="sqlalchemy.dialects.postgresql.ExcludeConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ExcludeConstraint</span></tt></a> class:</p>
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.ExcludeConstraint">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">ExcludeConstraint</tt><big>(</big><em>*elements</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ColumnCollectionConstraint" title="sqlalchemy.schema.ColumnCollectionConstraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionConstraint</span></tt></a></p>
+<p>A table-level EXCLUDE constraint.</p>
+<p>Defines an EXCLUDE constraint as described in the <a class="reference external" href="http://www.postgresql.org/docs/9.0/static/sql-createtable.html#SQL-CREATETABLE-EXCLUDE">postgres
+documentation</a>.</p>
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>*elements</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>*elements</strong> &#8211; A sequence of two tuples of the form <tt class="docutils literal"><span class="pre">(column,</span> <span class="pre">operator)</span></tt> where
+column must be a column name or Column object and operator must
+be a string containing the operator to use.</li>
+<li><strong>name</strong> &#8211; Optional, the in-database name of this constraint.</li>
+<li><strong>deferrable</strong> &#8211; Optional bool.  If set, emit DEFERRABLE or NOT DEFERRABLE when
+issuing DDL for this constraint.</li>
+<li><strong>initially</strong> &#8211; Optional string.  If set, emit INITIALLY &lt;value&gt; when issuing DDL
+for this constraint.</li>
+<li><strong>using</strong> &#8211; Optional string.  If set, emit USING &lt;index_method&gt; when issuing DDL
+for this constraint. Defaults to &#8216;gist&#8217;.</li>
+<li><strong>where</strong> &#8211; Optional string.  If set, emit WHERE &lt;predicate&gt; when issuing DDL
+for this constraint.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">ExcludeConstraint</span><span class="p">,</span> <span class="n">TSRANGE</span>
+
+<span class="k">class</span> <span class="nc">RoomBookings</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+
+    <span class="n">room</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">during</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TSRANGE</span><span class="p">())</span>
+
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ExcludeConstraint</span><span class="p">((</span><span class="s">&#39;room&#39;</span><span class="p">,</span> <span class="s">&#39;=&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;during&#39;</span><span class="p">,</span> <span class="s">&#39;&amp;&amp;&#39;</span><span class="p">)),</span>
+    <span class="p">)</span></pre></div>
+</div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.postgresql.psycopg2">
 <span id="psycopg2"></span><h2>psycopg2<a class="headerlink" href="#module-sqlalchemy.dialects.postgresql.psycopg2" title="Permalink to this headline">¶</a></h2>
@@ -1105,7 +1328,7 @@ DBAPI.</td>
 <p>psycopg2-specific keyword arguments which are accepted by
 <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
 <ul class="simple">
-<li><em>server_side_cursors</em> - Enable the usage of &#8220;server side cursors&#8221; for SQL
+<li><tt class="docutils literal"><span class="pre">server_side_cursors</span></tt>: Enable the usage of &#8220;server side cursors&#8221; for SQL
 statements which support this feature. What this essentially means from a
 psycopg2 point of view is that the cursor is created using a name, e.g.
 <tt class="docutils literal"><span class="pre">connection.cursor('some</span> <span class="pre">name')</span></tt>, which has the effect that result rows are
@@ -1116,8 +1339,11 @@ behavior when this feature is enabled, such that groups of 100 rows at a
 time are fetched over the wire to reduce conversational overhead.
 Note that the <tt class="docutils literal"><span class="pre">stream_results=True</span></tt> execution option is a more targeted
 way of enabling this mode on a per-execution basis.</li>
-<li><em>use_native_unicode</em> - Enable the usage of Psycopg2 &#8220;native unicode&#8221; mode
-per connection. True by default.</li>
+<li><tt class="docutils literal"><span class="pre">use_native_unicode</span></tt>: Enable the usage of Psycopg2 &#8220;native unicode&#8221; mode
+per connection.  True by default.</li>
+<li><tt class="docutils literal"><span class="pre">isolation_level</span></tt>: This option, available for all Posgtresql dialects,
+includes the <tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt> isolation level when using the psycopg2
+dialect.  See <a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a>.</li>
 </ul>
 </div>
 <div class="section" id="unix-domain-connections">
@@ -1144,9 +1370,10 @@ using <tt class="docutils literal"><span class="pre">host</span></tt> as an addi
 <ul class="simple">
 <li>isolation_level - Set the transaction isolation level for the lifespan of a
 <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> (can only be set on a connection, not a statement
-or query). This includes the options <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>, <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt>,
-<tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt> and <tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt>.</li>
-<li>stream_results - Enable or disable usage of server side cursors.
+or query).   See <a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a>.</li>
+<li>stream_results - Enable or disable usage of psycopg2 server side cursors -
+this feature makes use of &#8220;named&#8221; cursors in combination with special
+result handling methods so that result rows are not fully buffered.
 If <tt class="docutils literal"><span class="pre">None</span></tt> or not set, the <tt class="docutils literal"><span class="pre">server_side_cursors</span></tt> option of the
 <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is used.</li>
 </ul>
@@ -1192,13 +1419,27 @@ Python 3; in modern usage psycopg2 should be relied upon to handle unicode.</p>
 <h3>Transactions<a class="headerlink" href="#transactions" title="Permalink to this headline">¶</a></h3>
 <p>The psycopg2 dialect fully supports SAVEPOINT and two-phase commit operations.</p>
 </div>
-<div class="section" id="psycopg2-isolation">
-<span id="id1"></span><h3>Transaction Isolation Level<a class="headerlink" href="#psycopg2-isolation" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter of <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> here makes use
+<div class="section" id="psycopg2-transaction-isolation-level">
+<span id="psycopg2-isolation-level"></span><h3>Psycopg2 Transaction Isolation Level<a class="headerlink" href="#psycopg2-transaction-isolation-level" title="Permalink to this headline">¶</a></h3>
+<p>As discussed in <a class="reference internal" href="#postgresql-isolation-level"><em>Transaction Isolation Level</em></a>,
+all Postgresql dialects support setting of transaction isolation level
+both via the <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter passed to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>,
+as well as the <tt class="docutils literal"><span class="pre">isolation_level</span></tt> argument used by <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a>.
+When using the psycopg2 dialect, these options make use of
 psycopg2&#8217;s <tt class="docutils literal"><span class="pre">set_isolation_level()</span></tt> connection method, rather than
-issuing a <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span> <span class="pre">CHARACTERISTICS</span></tt> command.   This because psycopg2
-resets the isolation level on each new transaction, and needs to know
-at the API level what level should be used.</p>
+emitting a Postgresql directive; this is because psycopg2&#8217;s API-level
+setting is always emitted at the start of each transaction in any case.</p>
+<p>The psycopg2 dialect supports these constants for isolation level:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt></li>
+</ul>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2: </span>support for AUTOCOMMIT isolation level when using
+psycopg2.</p>
 </div>
 <div class="section" id="notice-logging">
 <h3>NOTICE logging<a class="headerlink" href="#notice-logging" title="Permalink to this headline">¶</a></h3>
@@ -1245,8 +1486,8 @@ effect for other DBAPIs.</p>
 </div>
 </p>
 </div>
-<div class="section" id="id2">
-<h3>Unicode<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>Unicode<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>pg8000 requires that the postgresql client encoding be
 configured in the postgresql.conf file in order to use encodings
 other than ascii. Set this value to the same value as the

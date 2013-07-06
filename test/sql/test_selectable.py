@@ -6,7 +6,7 @@ from sqlalchemy import *
 from sqlalchemy.testing import fixtures, AssertsCompiledSQL, \
     AssertsExecutionResults
 from sqlalchemy import testing
-from sqlalchemy.sql import util as sql_util, visitors
+from sqlalchemy.sql import util as sql_util, visitors, expression
 from sqlalchemy import exc
 from sqlalchemy.sql import table, column, null
 from sqlalchemy import util
@@ -147,6 +147,48 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
         t = table('t', c)
         s = select([t])._clone()
         assert c in s.c.bar.proxy_set
+
+    def test_cloned_intersection(self):
+        t1 = table('t1', column('x'))
+        t2 = table('t2', column('x'))
+
+        s1 = t1.select()
+        s2 = t2.select()
+        s3 = t1.select()
+
+        s1c1 = s1._clone()
+        s1c2 = s1._clone()
+        s2c1 = s2._clone()
+        s3c1 = s3._clone()
+
+        eq_(
+            expression._cloned_intersection(
+                [s1c1, s3c1], [s2c1, s1c2]
+            ),
+            set([s1c1])
+        )
+
+    def test_cloned_difference(self):
+        t1 = table('t1', column('x'))
+        t2 = table('t2', column('x'))
+
+        s1 = t1.select()
+        s2 = t2.select()
+        s3 = t1.select()
+
+        s1c1 = s1._clone()
+        s1c2 = s1._clone()
+        s2c1 = s2._clone()
+        s2c2 = s2._clone()
+        s3c1 = s3._clone()
+
+        eq_(
+            expression._cloned_difference(
+                [s1c1, s2c1, s3c1], [s2c1, s1c2]
+            ),
+            set([s3c1])
+        )
+
 
     def test_distance_on_aliases(self):
         a1 = table1.alias('a1')
@@ -781,15 +823,21 @@ class JoinConditionTest(fixtures.TestBase, AssertsExecutionResults):
     def test_join_condition(self):
         m = MetaData()
         t1 = Table('t1', m, Column('id', Integer))
-        t2 = Table('t2', m, Column('id', Integer), Column('t1id',
-                   ForeignKey('t1.id')))
-        t3 = Table('t3', m, Column('id', Integer), Column('t1id',
-                   ForeignKey('t1.id')), Column('t2id',
-                   ForeignKey('t2.id')))
-        t4 = Table('t4', m, Column('id', Integer), Column('t2id',
-                   ForeignKey('t2.id')))
+        t2 = Table('t2', m, Column('id', Integer),
+                    Column('t1id', ForeignKey('t1.id')))
+        t3 = Table('t3', m,
+                    Column('id', Integer),
+                    Column('t1id', ForeignKey('t1.id')),
+                    Column('t2id', ForeignKey('t2.id')))
+        t4 = Table('t4', m, Column('id', Integer),
+                    Column('t2id', ForeignKey('t2.id')))
+        t5 = Table('t5', m,
+                    Column('t1id1', ForeignKey('t1.id')),
+                    Column('t1id2', ForeignKey('t1.id')),
+            )
         t1t2 = t1.join(t2)
         t2t3 = t2.join(t3)
+
         for (left, right, a_subset, expected) in [
             (t1, t2, None, t1.c.id == t2.c.t1id),
             (t1t2, t3, t2, t1t2.c.t2_id == t3.c.t2id),
@@ -803,12 +851,15 @@ class JoinConditionTest(fixtures.TestBase, AssertsExecutionResults):
             assert expected.compare(sql_util.join_condition(left,
                                     right, a_subset=a_subset))
 
+
         # these are ambiguous, or have no joins
         for left, right, a_subset in [
             (t1t2, t3, None),
             (t2t3, t1, None),
             (t1, t4, None),
             (t1t2, t2t3, None),
+            (t5, t1, None),
+            (t5.select(use_labels=True), t1, None)
         ]:
             assert_raises(
                 exc.ArgumentError,
@@ -1592,7 +1643,7 @@ class WithLabelsTest(fixtures.TestBase):
     def _assert_labels_warning(self, s):
         assert_raises_message(
             exc.SAWarning,
-            "replaced by another column with the same key",
+            r"replaced by Column.*, which has the same key",
             lambda: s.c
         )
 

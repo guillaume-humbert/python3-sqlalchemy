@@ -3,6 +3,7 @@ from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy import *
 from sqlalchemy import exc as sa_exc, util, event
 from sqlalchemy.orm import *
+from sqlalchemy.orm.util import instance_str
 from sqlalchemy.orm import exc as orm_exc, attributes
 from sqlalchemy.testing.assertsql import AllOf, CompiledSQL
 from sqlalchemy.sql import table, column
@@ -554,11 +555,12 @@ class PolymorphicAttributeManagementTest(fixtures.MappedTest):
         Table('table_b', metadata,
            Column('id', Integer, ForeignKey('table_a.id'),
                                 primary_key=True),
-           Column('class_name', String(50))
+           Column('class_name', String(50)),
         )
         Table('table_c', metadata,
            Column('id', Integer, ForeignKey('table_b.id'),
-                                primary_key=True)
+                                primary_key=True),
+           Column('data', String(10))
         )
 
     @classmethod
@@ -573,6 +575,8 @@ class PolymorphicAttributeManagementTest(fixtures.MappedTest):
             pass
         class C(B):
             pass
+        class D(B):
+            pass
 
         mapper(A, table_a,
                         polymorphic_on=table_a.c.class_name,
@@ -582,6 +586,8 @@ class PolymorphicAttributeManagementTest(fixtures.MappedTest):
                         polymorphic_identity='b')
         mapper(C, table_c, inherits=B,
                         polymorphic_identity='c')
+        mapper(D, inherits=B,
+                        polymorphic_identity='d')
 
     def test_poly_configured_immediate(self):
         A, C, B = (self.classes.A,
@@ -611,16 +617,103 @@ class PolymorphicAttributeManagementTest(fixtures.MappedTest):
 
         assert isinstance(sess.query(A).first(), C)
 
-    def test_assignment(self):
-        C, B = self.classes.C, self.classes.B
+    def test_valid_assignment_upwards(self):
+        """test that we can assign 'd' to a B, since B/D
+        both involve the same set of tables.
+        """
+        D, B = self.classes.D, self.classes.B
+
+        sess = Session()
+        b1 = B()
+        b1.class_name = 'd'
+        sess.add(b1)
+        sess.commit()
+        sess.close()
+        assert isinstance(sess.query(B).first(), D)
+
+    def test_invalid_assignment_downwards(self):
+        """test that we warn on assign of 'b' to a C, since this adds
+        a row to the C table we'd never load.
+        """
+        C = self.classes.C
+
+        sess = Session()
+        c1 = C()
+        c1.class_name = 'b'
+        sess.add(c1)
+        assert_raises_message(
+            sa_exc.SAWarning,
+            "Flushing object %s with incompatible "
+            "polymorphic identity 'b'; the object may not "
+            "refresh and/or load correctly" % instance_str(c1),
+            sess.flush
+        )
+
+    def test_invalid_assignment_upwards(self):
+        """test that we warn on assign of 'c' to a B, since we will have a
+        "C" row that has no joined row, which will cause object
+        deleted errors.
+        """
+        B = self.classes.B
 
         sess = Session()
         b1 = B()
         b1.class_name = 'c'
         sess.add(b1)
+        assert_raises_message(
+            sa_exc.SAWarning,
+            "Flushing object %s with incompatible "
+            "polymorphic identity 'c'; the object may not "
+            "refresh and/or load correctly" % instance_str(b1),
+            sess.flush
+        )
+
+    def test_entirely_oob_assignment(self):
+        """test warn on an unknown polymorphic identity.
+        """
+        B = self.classes.B
+
+        sess = Session()
+        b1 = B()
+        b1.class_name = 'xyz'
+        sess.add(b1)
+        assert_raises_message(
+            sa_exc.SAWarning,
+            "Flushing object %s with incompatible "
+            "polymorphic identity 'xyz'; the object may not "
+            "refresh and/or load correctly" % instance_str(b1),
+            sess.flush
+        )
+
+    def test_not_set_on_upate(self):
+        C = self.classes.C
+
+        sess = Session()
+        c1 = C()
+        sess.add(c1)
         sess.commit()
-        sess.close()
-        assert isinstance(sess.query(B).first(), C)
+        sess.expire(c1)
+
+        c1.data = 'foo'
+        sess.flush()
+
+    def test_validate_on_upate(self):
+        C = self.classes.C
+
+        sess = Session()
+        c1 = C()
+        sess.add(c1)
+        sess.commit()
+        sess.expire(c1)
+
+        c1.class_name = 'b'
+        assert_raises_message(
+            sa_exc.SAWarning,
+            "Flushing object %s with incompatible "
+            "polymorphic identity 'b'; the object may not "
+            "refresh and/or load correctly" % instance_str(c1),
+            sess.flush
+        )
 
 class CascadeTest(fixtures.MappedTest):
     """that cascades on polymorphic relationships continue

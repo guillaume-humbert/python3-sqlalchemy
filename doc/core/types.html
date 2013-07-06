@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.1',
+          VERSION:     '0.8.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
+        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
 
 
     </div>
@@ -1168,373 +1168,9 @@ value is assumed to be a date and will be treated as a <tt class="docutils liter
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span></pre></div>
 </div>
-<dl class="class">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator">
-<em class="property">class </em><tt class="descname">Comparator</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression._DefaultColumnComparator</span></tt></p>
-<p>Base class for custom comparison operations defined at the
-type level.  See <a class="reference internal" href="#sqlalchemy.types.TypeEngine.comparator_factory" title="sqlalchemy.types.TypeEngine.comparator_factory"><tt class="xref py py-attr docutils literal"><span class="pre">TypeEngine.comparator_factory</span></tt></a>.</p>
-<p>The public base class for <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a>
-is <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a>.</p>
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.__eq__">
-<tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.__eq__" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__eq__" title="sqlalchemy.sql.operators.ColumnOperators.__eq__"><tt class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">==</span></tt> operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">=</span> <span class="pre">b</span></tt>.
-If the target is <tt class="docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NULL</span></tt>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.__le__">
-<tt class="descname">__le__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.__le__" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__le__" title="sqlalchemy.sql.operators.ColumnOperators.__le__"><tt class="xref py py-meth docutils literal"><span class="pre">__le__()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">&lt;=</span></tt> operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">&lt;=</span> <span class="pre">b</span></tt>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.__lt__">
-<tt class="descname">__lt__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.__lt__" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__lt__" title="sqlalchemy.sql.operators.ColumnOperators.__lt__"><tt class="xref py py-meth docutils literal"><span class="pre">__lt__()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">&lt;</span></tt> operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">&lt;</span> <span class="pre">b</span></tt>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.__ne__">
-<tt class="descname">__ne__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.__ne__" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__ne__" title="sqlalchemy.sql.operators.ColumnOperators.__ne__"><tt class="xref py py-meth docutils literal"><span class="pre">__ne__()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">!=</span></tt> operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">!=</span> <span class="pre">b</span></tt>.
-If the target is <tt class="docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NOT</span> <span class="pre">NULL</span></tt>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.asc">
-<tt class="descname">asc</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.asc" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.asc" title="sqlalchemy.sql.operators.ColumnOperators.asc"><tt class="xref py py-meth docutils literal"><span class="pre">asc()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Produce a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a> clause against the
-parent object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.between">
-<tt class="descname">between</tt><big>(</big><em>cleft</em>, <em>cright</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.between" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.between" title="sqlalchemy.sql.operators.ColumnOperators.between"><tt class="xref py py-meth docutils literal"><span class="pre">between()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Produce a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.between" title="sqlalchemy.sql.expression.between"><tt class="xref py py-func docutils literal"><span class="pre">between()</span></tt></a> clause against
-the parent object, given the lower and upper range.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.collate">
-<tt class="descname">collate</tt><big>(</big><em>collation</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.collate" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.collate" title="sqlalchemy.sql.operators.ColumnOperators.collate"><tt class="xref py py-meth docutils literal"><span class="pre">collate()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Produce a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.collate" title="sqlalchemy.sql.expression.collate"><tt class="xref py py-func docutils literal"><span class="pre">collate()</span></tt></a> clause against
-the parent object, given the collation string.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.concat">
-<tt class="descname">concat</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.concat" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.concat" title="sqlalchemy.sql.operators.ColumnOperators.concat"><tt class="xref py py-meth docutils literal"><span class="pre">concat()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the &#8216;concat&#8217; operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">||</span> <span class="pre">b</span></tt>,
-or uses the <tt class="docutils literal"><span class="pre">concat()</span></tt> operator on MySQL.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.contains">
-<tt class="descname">contains</tt><big>(</big><em>other</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.contains" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.contains" title="sqlalchemy.sql.operators.ColumnOperators.contains"><tt class="xref py py-meth docutils literal"><span class="pre">contains()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the &#8216;contains&#8217; operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">LIKE</span> <span class="pre">'%&lt;other&gt;%'</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.desc">
-<tt class="descname">desc</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.desc" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.desc" title="sqlalchemy.sql.operators.ColumnOperators.desc"><tt class="xref py py-meth docutils literal"><span class="pre">desc()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Produce a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a> clause against the
-parent object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.distinct">
-<tt class="descname">distinct</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.distinct" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.distinct" title="sqlalchemy.sql.operators.ColumnOperators.distinct"><tt class="xref py py-meth docutils literal"><span class="pre">distinct()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Produce a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.distinct" title="sqlalchemy.sql.expression.distinct"><tt class="xref py py-func docutils literal"><span class="pre">distinct()</span></tt></a> clause against the
-parent object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.endswith">
-<tt class="descname">endswith</tt><big>(</big><em>other</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.endswith" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.endswith" title="sqlalchemy.sql.operators.ColumnOperators.endswith"><tt class="xref py py-meth docutils literal"><span class="pre">endswith()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the &#8216;endswith&#8217; operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">LIKE</span> <span class="pre">'%&lt;other&gt;'</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.ilike">
-<tt class="descname">ilike</tt><big>(</big><em>other</em>, <em>escape=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.ilike" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
-<p>E.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other</strong> &#8211; expression to be compared</li>
-<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
-keyword, e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
-</div>
-</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.in_">
-<tt class="descname">in_</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.in_" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">in_()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">in</span></tt> operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IN</span> <span class="pre">other</span></tt>.
-&#8220;other&#8221; may be a tuple/list of column expressions,
-or a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.is_">
-<tt class="descname">is_</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.is_" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.is_" title="sqlalchemy.sql.operators.ColumnOperators.is_"><tt class="xref py py-meth docutils literal"><span class="pre">is_()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">IS</span></tt> operator.</p>
-<p>Normally, <tt class="docutils literal"><span class="pre">IS</span></tt> is generated automatically when comparing to a
-value of <tt class="docutils literal"><span class="pre">None</span></tt>, which resolves to <tt class="docutils literal"><span class="pre">NULL</span></tt>.  However, explicit
-usage of <tt class="docutils literal"><span class="pre">IS</span></tt> may be desirable if comparing to boolean values
-on certain platforms.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.9.</span></p>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.isnot" title="sqlalchemy.sql.operators.ColumnOperators.isnot"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.isnot()</span></tt></a></p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.isnot">
-<tt class="descname">isnot</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.isnot" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.isnot" title="sqlalchemy.sql.operators.ColumnOperators.isnot"><tt class="xref py py-meth docutils literal"><span class="pre">isnot()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">IS</span> <span class="pre">NOT</span></tt> operator.</p>
-<p>Normally, <tt class="docutils literal"><span class="pre">IS</span> <span class="pre">NOT</span></tt> is generated automatically when comparing to a
-value of <tt class="docutils literal"><span class="pre">None</span></tt>, which resolves to <tt class="docutils literal"><span class="pre">NULL</span></tt>.  However, explicit
-usage of <tt class="docutils literal"><span class="pre">IS</span> <span class="pre">NOT</span></tt> may be desirable if comparing to boolean values
-on certain platforms.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.9.</span></p>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.is_" title="sqlalchemy.sql.operators.ColumnOperators.is_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.is_()</span></tt></a></p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.like">
-<tt class="descname">like</tt><big>(</big><em>other</em>, <em>escape=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.like" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">like()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
-<p>E.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other</strong> &#8211; expression to be compared</li>
-<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
-keyword, e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
-</div>
-</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.match">
-<tt class="descname">match</tt><big>(</big><em>other</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.match" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.match" title="sqlalchemy.sql.operators.ColumnOperators.match"><tt class="xref py py-meth docutils literal"><span class="pre">match()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implements the &#8216;match&#8217; operator.</p>
-<p>In a column context, this produces a MATCH clause, i.e.
-<tt class="docutils literal"><span class="pre">MATCH</span> <span class="pre">'&lt;other&gt;'</span></tt>.  The allowed contents of <tt class="docutils literal"><span class="pre">other</span></tt>
-are database backend specific.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.notilike">
-<tt class="descname">notilike</tt><big>(</big><em>other</em>, <em>escape=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.notilike" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.notilike" title="sqlalchemy.sql.operators.ColumnOperators.notilike"><tt class="xref py py-meth docutils literal"><span class="pre">notilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>implement the <tt class="docutils literal"><span class="pre">NOT</span> <span class="pre">ILIKE</span></tt> operator.</p>
-<p>This is equivalent to using negation with
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a>, i.e. <tt class="docutils literal"><span class="pre">~x.ilike(y)</span></tt>.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.</span></p>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.notin_">
-<tt class="descname">notin_</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.notin_" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.notin_" title="sqlalchemy.sql.operators.ColumnOperators.notin_"><tt class="xref py py-meth docutils literal"><span class="pre">notin_()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>implement the <tt class="docutils literal"><span class="pre">NOT</span> <span class="pre">IN</span></tt> operator.</p>
-<p>This is equivalent to using negation with <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a>,
-i.e. <tt class="docutils literal"><span class="pre">~x.in_(y)</span></tt>.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.</span></p>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a></p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.notlike">
-<tt class="descname">notlike</tt><big>(</big><em>other</em>, <em>escape=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.notlike" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.notlike" title="sqlalchemy.sql.operators.ColumnOperators.notlike"><tt class="xref py py-meth docutils literal"><span class="pre">notlike()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>implement the <tt class="docutils literal"><span class="pre">NOT</span> <span class="pre">LIKE</span></tt> operator.</p>
-<p>This is equivalent to using negation with
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a>, i.e. <tt class="docutils literal"><span class="pre">~x.like(y)</span></tt>.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.</span></p>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.nullsfirst">
-<tt class="descname">nullsfirst</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.nullsfirst" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.nullsfirst" title="sqlalchemy.sql.operators.ColumnOperators.nullsfirst"><tt class="xref py py-meth docutils literal"><span class="pre">nullsfirst()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Produce a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.nullsfirst" title="sqlalchemy.sql.expression.nullsfirst"><tt class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></tt></a> clause against the
-parent object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.nullslast">
-<tt class="descname">nullslast</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.nullslast" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.nullslast" title="sqlalchemy.sql.operators.ColumnOperators.nullslast"><tt class="xref py py-meth docutils literal"><span class="pre">nullslast()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Produce a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.nullslast" title="sqlalchemy.sql.expression.nullslast"><tt class="xref py py-func docutils literal"><span class="pre">nullslast()</span></tt></a> clause against the
-parent object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.op">
-<tt class="descname">op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.op" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.Operators.op" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-meth docutils literal"><span class="pre">op()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.Operators" title="sqlalchemy.sql.operators.Operators"><tt class="xref py py-class docutils literal"><span class="pre">Operators</span></tt></a></div>
-<p>produce a generic operator function.</p>
-<p>e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">)(</span><span class="mi">5</span><span class="p">)</span></pre></div>
-</div>
-<p>produces:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span> <span class="o">*</span> <span class="mi">5</span></pre></div>
-</div>
-<p>This function can also be used to make bitwise operators explicit. For
-example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s">&#39;&amp;&#39;</span><span class="p">)(</span><span class="mh">0xff</span><span class="p">)</span></pre></div>
-</div>
-<p>is a bitwise AND of the value in <tt class="docutils literal"><span class="pre">somecolumn</span></tt>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>operator</strong> &#8211; a string which will be output as the infix operator
-between this element and the expression passed to the
-generated function.</li>
-<li><strong>precedence</strong> &#8211; <p>precedence to apply to the operator, when
-parenthesizing expressions.  A lower number will cause the expression
-to be parenthesized when applied against another operator with
-higher precedence.  The default value of <tt class="docutils literal"><span class="pre">0</span></tt> is lower than all
-operators except for the comma (<tt class="docutils literal"><span class="pre">,</span></tt>) and <tt class="docutils literal"><span class="pre">AS</span></tt> operators.
-A value of 100 will be higher or equal to all operators, and -100
-will be lower than or equal to all operators.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8: </span>- added the &#8216;precedence&#8217; argument.</p>
-</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#types-operators"><em>Redefining and Creating New Operators</em></a></p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.TypeDecorator.Comparator.startswith">
-<tt class="descname">startswith</tt><big>(</big><em>other</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.Comparator.startswith" title="Permalink to this definition">¶</a></dt>
-<dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.startswith" title="sqlalchemy.sql.operators.ColumnOperators.startswith"><tt class="xref py py-meth docutils literal"><span class="pre">startswith()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implement the <tt class="docutils literal"><span class="pre">startwith</span></tt> operator.</p>
-<p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">LIKE</span> <span class="pre">'&lt;other&gt;%'</span></tt></p>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.__init__">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
 <p>Arguments sent here are passed to the constructor
 of the class assigned to the <tt class="docutils literal"><span class="pre">impl</span></tt> class level attribute,
@@ -1550,7 +1186,7 @@ of <tt class="docutils literal"><span class="pre">self.impl</span></tt> entirely
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.adapt">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">adapt</tt><big>(</big><em>cls</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.adapt" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">adapt</tt><big>(</big><em>cls</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.adapt" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine.adapt" title="sqlalchemy.types.TypeEngine.adapt"><tt class="xref py py-meth docutils literal"><span class="pre">adapt()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a></div>
 <p>Produce an &#8220;adapted&#8221; form of this type, given an &#8220;impl&#8221; class
@@ -1562,7 +1198,7 @@ dialect.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.bind_expression">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">bind_expression</tt><big>(</big><em>bindvalue</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_expression" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">bind_expression</tt><big>(</big><em>bindvalue</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_expression" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine.bind_expression" title="sqlalchemy.types.TypeEngine.bind_expression"><tt class="xref py py-meth docutils literal"><span class="pre">bind_expression()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a></div>
 <p>&#8220;Given a bind value (i.e. a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> instance),
@@ -1585,7 +1221,7 @@ of bound parameter sets.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.bind_processor">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_processor" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a bound value processing function for the
 given <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
 <p>This is the method that fulfills the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>
@@ -1609,7 +1245,7 @@ the processing provided by <tt class="docutils literal"><span class="pre">self.i
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.coerce_compared_value">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">coerce_compared_value</tt><big>(</big><em>op</em>, <em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.coerce_compared_value" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">coerce_compared_value</tt><big>(</big><em>op</em>, <em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.coerce_compared_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Suggest a type for a &#8216;coerced&#8217; Python value in an expression.</p>
 <p>By default, returns self.   This method is called by
 the expression system when an object using this type is
@@ -1623,9 +1259,29 @@ and <tt class="docutils literal"><span class="pre">35</span></tt>.  The return v
 be used for <tt class="docutils literal"><span class="pre">35</span></tt> for this particular operation.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.types.TypeDecorator.coerce_to_is_types">
+<tt class="descname">coerce_to_is_types</tt><em class="property"> = (&lt;type 'NoneType'&gt;,)</em><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.coerce_to_is_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify those Python types which should be coerced at the expression
+level to &#8220;IS &lt;constant&gt;&#8221; when compared using <tt class="docutils literal"><span class="pre">==</span></tt> (and same for</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">IS</span> <span class="pre">NOT</span></tt> in conjunction with <tt class="docutils literal"><span class="pre">!=</span></tt>.</div></blockquote>
+<p>For most SQLAlchemy types, this includes <tt class="docutils literal"><span class="pre">NoneType</span></tt>, as well as <tt class="docutils literal"><span class="pre">bool</span></tt>.</p>
+<p><a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> modifies this list to only include <tt class="docutils literal"><span class="pre">NoneType</span></tt>,
+as typedecorator implementations that deal with boolean types are common.</p>
+<p>Custom <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> classes can override this attribute to
+return an empty tuple, in which case no values will be coerced to
+constants.</p>
+<dl class="docutils">
+<dt>..versionadded:: 0.8.2</dt>
+<dd>Added <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.coerce_to_is_types" title="sqlalchemy.types.TypeDecorator.coerce_to_is_types"><tt class="xref py py-attr docutils literal"><span class="pre">TypeDecorator.coerce_to_is_types</span></tt></a> to allow for easier
+control of <tt class="docutils literal"><span class="pre">__eq__()</span></tt> <tt class="docutils literal"><span class="pre">__ne__()</span></tt> operations.</dd>
+</dl>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.column_expression">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">column_expression</tt><big>(</big><em>colexpr</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.column_expression" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">column_expression</tt><big>(</big><em>colexpr</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.column_expression" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine.column_expression" title="sqlalchemy.types.TypeEngine.column_expression"><tt class="xref py py-meth docutils literal"><span class="pre">column_expression()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a></div>
 <p>Given a SELECT column expression, return a wrapping SQL expression.</p>
@@ -1644,7 +1300,7 @@ to statement construction time.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.compare_values">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.compare_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.compare_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given two values, compare them for equality.</p>
 <p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.compare_values" title="sqlalchemy.types.TypeEngine.compare_values"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.compare_values()</span></tt></a>
 of the underlying &#8220;impl&#8221;, which in turn usually
@@ -1657,7 +1313,7 @@ has occurred.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.compile">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">compile</tt><big>(</big><em>dialect=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.compile" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">compile</tt><big>(</big><em>dialect=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.compile" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine.compile" title="sqlalchemy.types.TypeEngine.compile"><tt class="xref py py-meth docutils literal"><span class="pre">compile()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a></div>
 <p>Produce a string-compiled form of this <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>.</p>
@@ -1675,7 +1331,7 @@ to produce a string result.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.copy">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce a copy of this <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> instance.</p>
 <p>This is a shallow copy and is provided to fulfill part of
 the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> contract.  It usually does not
@@ -1685,7 +1341,7 @@ has local state that should be deep-copied.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.dialect_impl">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">dialect_impl</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.dialect_impl" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dialect_impl</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.dialect_impl" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine.dialect_impl" title="sqlalchemy.types.TypeEngine.dialect_impl"><tt class="xref py py-meth docutils literal"><span class="pre">dialect_impl()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a></div>
 <p>Return a dialect-specific implementation for this
@@ -1694,7 +1350,7 @@ has local state that should be deep-copied.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.get_dbapi_type">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the DBAPI type object represented by this
 <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
 <p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.get_dbapi_type" title="sqlalchemy.types.TypeEngine.get_dbapi_type"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.get_dbapi_type()</span></tt></a> of the
@@ -1703,7 +1359,7 @@ underlying &#8220;impl&#8221;.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.load_dialect_impl">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">load_dialect_impl</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">load_dialect_impl</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object corresponding to a dialect.</p>
 <p>This is an end-user override hook that can be used to provide
 differing types depending on the given dialect.  It is used
@@ -1715,7 +1371,7 @@ for a given <a class="reference internal" href="#sqlalchemy.types.TypeDecorator"
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.process_bind_param">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">process_bind_param</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">process_bind_param</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive a bound parameter value to be converted.</p>
 <p>Subclasses override this method to return the
 value that should be passed along to the underlying
@@ -1744,7 +1400,7 @@ this method in the subclass.  Can be <tt class="docutils literal"><span class="p
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.process_result_value">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">process_result_value</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">process_result_value</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive a result-row column value to be converted.</p>
 <p>Subclasses should implement this method to operate on data
 fetched from the database.</p>
@@ -1775,7 +1431,7 @@ the &#8220;process_bind_param&#8221; method of this class.</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.types.TypeDecorator.python_type">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">python_type</tt><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.python_type" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">python_type</tt><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.python_type" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine.python_type" title="sqlalchemy.types.TypeEngine.python_type"><tt class="xref py py-attr docutils literal"><span class="pre">python_type</span></tt></a> <em>attribute of</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a></div>
 <p>Return the Python type object expected to be returned
@@ -1792,7 +1448,7 @@ in practice.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.result_processor">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">result_processor</tt><big>(</big><em>dialect</em>, <em>coltype</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.result_processor" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">result_processor</tt><big>(</big><em>dialect</em>, <em>coltype</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.result_processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a result value processing function for the given
 <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
 <p>This is the method that fulfills the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>
@@ -1820,7 +1476,7 @@ the processing provided by <tt class="docutils literal"><span class="pre">self.i
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.type_engine">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">type_engine</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.type_engine" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">type_engine</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.type_engine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dialect-specific <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> instance
 for this <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
 <p>In most cases this returns a dialect-adapted form of
@@ -1833,7 +1489,7 @@ Behavior can be customized here by overriding
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.with_variant">
-<tt class="descclassname">TypeDecorator.</tt><tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.with_variant" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.with_variant" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a></div>
 <p>Produce a new type object that will utilize the given
