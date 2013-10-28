@@ -1,3 +1,9 @@
+sqlalchemy (0.8.3-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Mon, 28 Oct 2013 22:29:40 +0100
+
 sqlalchemy (0.8.2-1) unstable; urgency=low
 
   [ Jakub Wilk ]
