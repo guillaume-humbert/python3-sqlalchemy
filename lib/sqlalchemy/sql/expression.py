@@ -913,8 +913,8 @@ def type_coerce(expr, type_):
     """
     type_ = sqltypes.to_instance(type_)
 
-    if hasattr(expr, '__clause_expr__'):
-        return type_coerce(expr.__clause_expr__())
+    if hasattr(expr, '__clause_element__'):
+        return type_coerce(expr.__clause_element__(), type_)
     elif isinstance(expr, BindParameter):
         bp = expr._clone()
         bp.type = type_
@@ -1593,6 +1593,14 @@ def _interpret_as_from(element):
         return insp.selectable
     raise exc.ArgumentError("FROM expression expected")
 
+def _interpret_as_select(element):
+    element = _interpret_as_from(element)
+    if isinstance(element, Alias):
+        element = element.original
+    if not isinstance(element, Select):
+        element = element.select()
+    return element
+
 
 def _const_expr(element):
     if isinstance(element, (Null, False_, True_)):
@@ -2126,7 +2134,10 @@ class _DefaultColumnComparator(operators.ColumnOperators):
                       'contradiction, which nonetheless can be '
                       'expensive to evaluate.  Consider alternative '
                       'strategies for improved performance.' % expr)
-            return expr != expr
+            if op is operators.in_op:
+                return expr != expr
+            else:
+                return expr == expr
 
         return self._boolean_compare(expr, op,
                               ClauseList(*args).self_group(against=op),
@@ -2354,7 +2365,10 @@ class ColumnElement(ClauseElement, ColumnOperators):
         """
         if name is None:
             name = self.anon_label
-            key = str(self)
+            try:
+                key = str(self)
+            except exc.UnsupportedCompilationError:
+                key = self.anon_label
         else:
             key = name
         co = ColumnClause(_as_truncated(name) if name_is_truncatable else name,
@@ -4139,10 +4153,10 @@ class CTE(Alias):
     def __init__(self, selectable,
                         name=None,
                         recursive=False,
-                        cte_alias=False,
+                        _cte_alias=None,
                         _restates=frozenset()):
         self.recursive = recursive
-        self.cte_alias = cte_alias
+        self._cte_alias = _cte_alias
         self._restates = _restates
         super(CTE, self).__init__(selectable, name=name)
 
@@ -4151,8 +4165,8 @@ class CTE(Alias):
             self.original,
             name=name,
             recursive=self.recursive,
-            cte_alias=self.name
-        )
+            _cte_alias=self,
+          )
 
     def union(self, other):
         return CTE(
@@ -4332,6 +4346,9 @@ class Label(ColumnElement):
         self._type = type_
         self.quote = element.quote
         self._proxies = [element]
+
+    def __reduce__(self):
+        return self.__class__, (self.name, self._element, self._type)
 
     @util.memoized_property
     def type(self):
@@ -4688,7 +4705,7 @@ class TableClause(Immutable, FromClause):
 
 
 class SelectBase(Executable, FromClause):
-    """Base class for :class:`.Select` and ``CompoundSelects``."""
+    """Base class for :class:`.Select` and :class:`.CompoundSelect`."""
 
     _order_by_clause = ClauseList()
     _group_by_clause = ClauseList()
@@ -5007,7 +5024,23 @@ class ScalarSelect(Generative, Grouping):
 
 class CompoundSelect(SelectBase):
     """Forms the basis of ``UNION``, ``UNION ALL``, and other
-        SELECT-based set operations."""
+        SELECT-based set operations.
+
+       .. seealso::
+
+          :func:`.union`
+
+          :func:`.union_all`
+
+          :func:`.intersect`
+
+          :func:`.intersect_all`
+
+          :func:`.except`
+
+          :func:`.except_all`
+
+    """
 
     __visit_name__ = 'compound_select'
 
@@ -5258,6 +5291,9 @@ class Select(HasPrefixes, SelectBase):
 
         def add(items):
             for item in items:
+                if item is self:
+                    raise exc.InvalidRequestError(
+                            "select() construct refers to itself as a FROM")
                 if translate and item in translate:
                     item = translate[item]
                 if not seen.intersection(item._cloned_set):
@@ -6147,9 +6183,10 @@ class ValuesBase(UpdateBase):
 
     _supports_multi_parameters = False
     _has_multi_parameters = False
+    select = None
 
     def __init__(self, table, values, prefixes):
-        self.table = table
+        self.table = _interpret_as_from(table)
         self.parameters, self._has_multi_parameters = \
                             self._process_colparams(values)
         if prefixes:
@@ -6248,6 +6285,9 @@ class ValuesBase(UpdateBase):
             :func:`~.expression.update` - produce an ``UPDATE`` statement
 
         """
+        if self.select is not None:
+            raise exc.InvalidRequestError(
+                        "This construct already inserts from a SELECT")
         if self._has_multi_parameters and kwargs:
             raise exc.InvalidRequestError(
                         "This construct already has multiple parameter sets.")
@@ -6328,9 +6368,55 @@ class Insert(ValuesBase):
         else:
             return ()
 
+    @_generative
+    def from_select(self, names, select):
+        """Return a new :class:`.Insert` construct which represents
+        an ``INSERT...FROM SELECT`` statement.
+
+        e.g.::
+
+            sel = select([table1.c.a, table1.c.b]).where(table1.c.c > 5)
+            ins = table2.insert().from_select(['a', 'b'], sel)
+
+        :param names: a sequence of string column names or :class:`.Column`
+         objects representing the target columns.
+        :param select: a :func:`.select` construct, :class:`.FromClause`
+         or other construct which resolves into a :class:`.FromClause`,
+         such as an ORM :class:`.Query` object, etc.  The order of
+         columns returned from this FROM clause should correspond to the
+         order of columns sent as the ``names`` parameter;  while this
+         is not checked before passing along to the database, the database
+         would normally raise an exception if these column lists don't
+         correspond.
+
+        .. note::
+
+           Depending on backend, it may be necessary for the :class:`.Insert`
+           statement to be constructed using the ``inline=True`` flag; this
+           flag will prevent the implicit usage of ``RETURNING`` when the
+           ``INSERT`` statement is rendered, which isn't supported on a backend
+           such as Oracle in conjunction with an ``INSERT..SELECT`` combination::
+
+             sel = select([table1.c.a, table1.c.b]).where(table1.c.c > 5)
+             ins = table2.insert(inline=True).from_select(['a', 'b'], sel)
+
+        .. versionadded:: 0.8.3
+
+        """
+        if self.parameters:
+            raise exc.InvalidRequestError(
+                        "This construct already inserts value expressions")
+
+        self.parameters, self._has_multi_parameters = \
+                self._process_colparams(dict((n, null()) for n in names))
+
+        self.select = _interpret_as_select(select)
+
     def _copy_internals(self, clone=_clone, **kw):
         # TODO: coverage
         self.parameters = self.parameters.copy()
+        if self.select is not None:
+            self.select = _clone(self.select)
 
 
 class Update(ValuesBase):
@@ -6417,7 +6503,7 @@ class Delete(UpdateBase):
             prefixes=None,
             **kwargs):
         self._bind = bind
-        self.table = table
+        self.table = _interpret_as_from(table)
         self._returning = returning
 
         if prefixes:

@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -66,7 +66,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -185,9 +185,64 @@ Language provides a schema-centric usage paradigm.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="expression_api.html">SQL Statements and Expressions API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="expression_api.html#functions">Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="expression_api.html#classes">Classes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="expression_api.html#generic-functions">Generic Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqlelement.html">Column Elements and Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selectable.html">Selectables, Tables, FROM objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dml.html">Insert, Updates, Deletes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html">SQL and Generic Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">Column and Data Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="types.html#generic-types">Generic Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#sql-standard-types">SQL Standard Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#vendor-specific-types">Vendor-Specific Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#custom-types">Custom Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#base-type-api">Base Type API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema Definition Language</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="metadata.html">Describing Databases with MetaData</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.html#accessing-tables-and-columns">Accessing Tables and Columns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.html#creating-and-dropping-database-tables">Creating and Dropping Database Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.html#altering-schemas-through-migrations">Altering Schemas through Migrations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.html#specifying-the-schema-name">Specifying the Schema Name</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.html#backend-specific-options">Backend-Specific Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.html#column-table-metadata-api">Column, Table, MetaData API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reflection.html">Reflecting Database Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reflection.html#overriding-reflected-columns">Overriding Reflected Columns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reflection.html#reflecting-views">Reflecting Views</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reflection.html#reflecting-all-tables-at-once">Reflecting All Tables at Once</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reflection.html#fine-grained-reflection-with-inspector">Fine Grained Reflection with Inspector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reflection.html#limitations-of-reflection">Limitations of Reflection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="defaults.html">Column Insert/Update Defaults</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="defaults.html#scalar-defaults">Scalar Defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaults.html#python-executed-functions">Python-Executed Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaults.html#sql-expressions">SQL Expressions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaults.html#server-side-defaults">Server Side Defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaults.html#triggered-columns">Triggered Columns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaults.html#defining-sequences">Defining Sequences</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaults.html#default-objects-api">Default Objects API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="constraints.html">Defining Constraints and Indexes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#defining-foreign-keys">Defining Foreign Keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#unique-constraint">UNIQUE Constraint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#check-constraint">CHECK Constraint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#setting-up-constraints-when-using-the-declarative-orm-extension">Setting up Constraints when using the Declarative ORM Extension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#constraints-api">Constraints API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#indexes">Indexes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#index-api">Index API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ddl.html">Customizing DDL</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ddl.html#controlling-ddl-sequences">Controlling DDL Sequences</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ddl.html#custom-ddl">Custom DDL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ddl.html#ddl-expression-constructs-api">DDL Expression Constructs API</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="engines.html">Engine Configuration</a><ul>
@@ -237,68 +292,6 @@ Language provides a schema-centric usage paradigm.</p>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="pooling.html#api-documentation-available-pool-implementations">API Documentation - Available Pool Implementations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pooling.html#pooling-plain-db-api-connections">Pooling Plain DB-API Connections</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema Definition Language</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="schema.html#describing-databases-with-metadata">Describing Databases with MetaData</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#accessing-tables-and-columns">Accessing Tables and Columns</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#creating-and-dropping-database-tables">Creating and Dropping Database Tables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#altering-schemas-through-migrations">Altering Schemas through Migrations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#specifying-the-schema-name">Specifying the Schema Name</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#backend-specific-options">Backend-Specific Options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#column-table-metadata-api">Column, Table, MetaData API</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="schema.html#reflecting-database-objects">Reflecting Database Objects</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#overriding-reflected-columns">Overriding Reflected Columns</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#reflecting-views">Reflecting Views</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#reflecting-all-tables-at-once">Reflecting All Tables at Once</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#fine-grained-reflection-with-inspector">Fine Grained Reflection with Inspector</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="schema.html#column-insert-update-defaults">Column Insert/Update Defaults</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#scalar-defaults">Scalar Defaults</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#python-executed-functions">Python-Executed Functions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#sql-expressions">SQL Expressions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#server-side-defaults">Server Side Defaults</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#triggered-columns">Triggered Columns</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#defining-sequences">Defining Sequences</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#default-objects-api">Default Objects API</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="schema.html#defining-constraints-and-indexes">Defining Constraints and Indexes</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#defining-foreign-keys">Defining Foreign Keys</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#unique-constraint">UNIQUE Constraint</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#check-constraint">CHECK Constraint</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#setting-up-constraints-when-using-the-declarative-orm-extension">Setting up Constraints when using the Declarative ORM Extension</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#constraints-api">Constraints API</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#indexes">Indexes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#index-api">Index API</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="schema.html#customizing-ddl">Customizing DDL</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#controlling-ddl-sequences">Controlling DDL Sequences</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#custom-ddl">Custom DDL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="schema.html#ddl-expression-constructs-api">DDL Expression Constructs API</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="types.html">Column and Data Types</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="types.html#generic-types">Generic Types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="types.html#sql-standard-types">SQL Standard Types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="types.html#vendor-specific-types">Vendor-Specific Types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="types.html#custom-types">Custom Types</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="types.html#overriding-type-compilation">Overriding Type Compilation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="types.html#augmenting-existing-types">Augmenting Existing Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="types.html#typedecorator-recipes">TypeDecorator Recipes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="types.html#replacing-the-bind-result-processing-of-existing-types">Replacing the Bind/Result Processing of Existing Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="types.html#applying-sql-level-bind-result-processing">Applying SQL-level Bind/Result Processing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="types.html#redefining-and-creating-new-operators">Redefining and Creating New Operators</a></li>
-<li class="toctree-l3"><a class="reference internal" href="types.html#creating-new-types">Creating New Types</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="types.html#base-type-api">Base Type API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="event.html">Events</a><ul>
@@ -362,7 +355,7 @@ Language provides a schema-centric usage paradigm.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

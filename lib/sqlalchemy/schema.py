@@ -121,9 +121,9 @@ class Table(SchemaItem, expression.TableClause):
     a second time will return the *same* :class:`.Table` object - in this way
     the :class:`.Table` constructor acts as a registry function.
 
-    See also:
+    .. seealso::
 
-    :ref:`metadata_describing` - Introduction to database metadata
+        :ref:`metadata_describing` - Introduction to database metadata
 
     Constructor arguments are as follows:
 
@@ -603,7 +603,9 @@ class Table(SchemaItem, expression.TableClause):
         :class:`.Table`, using the given :class:`.Connectable`
         for connectivity.
 
-        See also :meth:`.MetaData.create_all`.
+        .. seealso::
+
+             :meth:`.MetaData.create_all`.
 
         """
 
@@ -618,7 +620,9 @@ class Table(SchemaItem, expression.TableClause):
         :class:`.Table`, using the given :class:`.Connectable`
         for connectivity.
 
-        See also :meth:`.MetaData.drop_all`.
+        .. seealso::
+
+            :meth:`.MetaData.drop_all`.
 
         """
         if bind is None:
@@ -892,6 +896,18 @@ class Column(SchemaItem, expression.ColumnClause):
              an explicit name, use the :class:`.UniqueConstraint` or
              :class:`.Index` constructs explicitly.
 
+        :param system: When ``True``, indicates this is a "system" column,
+             that is a column which is automatically made available by the
+             database, and should not be included in the columns list for a
+             ``CREATE TABLE`` statement.
+
+             For more elaborate scenarios where columns should be conditionally
+             rendered differently on different backends, consider custom
+             compilation rules for :class:`.CreateColumn`.
+
+             ..versionadded:: 0.8.3 Added the ``system=True`` parameter to
+               :class:`.Column`.
+
         """
 
         name = kwargs.pop('name', None)
@@ -923,8 +939,14 @@ class Column(SchemaItem, expression.ColumnClause):
         self.default = kwargs.pop('default', None)
         self.server_default = kwargs.pop('server_default', None)
         self.server_onupdate = kwargs.pop('server_onupdate', None)
+
+        # these default to None because .index and .unique is *not*
+        # an informational flag about Column - there can still be an
+        # Index or UniqueConstraint referring to this Column.
         self.index = kwargs.pop('index', None)
         self.unique = kwargs.pop('unique', None)
+
+        self.system = kwargs.pop('system', False)
         self.quote = kwargs.pop('quote', None)
         self.doc = kwargs.pop('doc', None)
         self.onupdate = kwargs.pop('onupdate', None)
@@ -1075,7 +1097,7 @@ class Column(SchemaItem, expression.ColumnClause):
                     "To create indexes with a specific name, create an "
                     "explicit Index object external to the Table.")
             Index(expression._truncated_label('ix_%s' % self._label),
-                                    self, unique=self.unique)
+                                    self, unique=bool(self.unique))
         elif self.unique:
             if isinstance(self.unique, basestring):
                 raise exc.ArgumentError(
@@ -1114,6 +1136,7 @@ class Column(SchemaItem, expression.ColumnClause):
                 primary_key=self.primary_key,
                 nullable=self.nullable,
                 unique=self.unique,
+                system=self.system,
                 quote=self.quote,
                 index=self.index,
                 autoincrement=self.autoincrement,
@@ -1282,6 +1305,8 @@ class ForeignKey(SchemaItem):
             DDL for this constraint. Typical values include SIMPLE, PARTIAL
             and FULL.
 
+        :param schema: Deprecated; this flag does nothing and will be removed
+            in 0.9.
         """
 
         self._colspec = column
@@ -1301,6 +1326,12 @@ class ForeignKey(SchemaItem):
         self.initially = initially
         self.link_to_name = link_to_name
         self.match = match
+
+        if schema:
+            util.warn_deprecated(
+                "'schema' argument on ForeignKey has no effect - "
+                "please specify the target as "
+                "<schemaname>.<tablename>.<colname>.")
 
     def __repr__(self):
         return "ForeignKey(%r)" % self._get_colspec()
@@ -1702,7 +1733,11 @@ class Sequence(DefaultGenerator):
     be emitted as well.   For platforms that don't support sequences,
     the :class:`.Sequence` construct is ignored.
 
-    See also: :class:`.CreateSequence` :class:`.DropSequence`
+    .. seealso::
+
+        :class:`.CreateSequence`
+
+        :class:`.DropSequence`
 
     """
 
@@ -2350,9 +2385,34 @@ class UniqueConstraint(ColumnCollectionConstraint):
 class Index(ColumnCollectionMixin, SchemaItem):
     """A table-level INDEX.
 
-    Defines a composite (one or more column) INDEX. For a no-frills, single
-    column index, adding ``index=True`` to the ``Column`` definition is
-    a shorthand equivalent for an unnamed, single column :class:`.Index`.
+    Defines a composite (one or more column) INDEX.
+
+    E.g.::
+
+        sometable = Table("sometable", metadata,
+                        Column("name", String(50)),
+                        Column("address", String(100))
+                    )
+
+        Index("some_index", sometable.c.name)
+
+    For a no-frills, single column index, adding
+    :class:`.Column` also supports ``index=True``::
+
+        sometable = Table("sometable", metadata,
+                        Column("name", String(50), index=True)
+                    )
+
+    For a composite index, multiple columns can be specified::
+
+        Index("some_index", sometable.c.name, sometable.c.address)
+
+    Functional indexes are supported as well, keeping in mind that at least
+    one :class:`.Column` must be present::
+
+        Index("some_index", func.lower(sometable.c.name))
+
+    .. versionadded:: 0.8 support for functional and expression-based indexes.
 
     .. seealso::
 
@@ -2378,13 +2438,7 @@ class Index(ColumnCollectionMixin, SchemaItem):
           The name of the index
 
         :param \*expressions:
-          Column expressions to include in the index.   The expressions
-          are normally instances of :class:`.Column`, but may also
-          be arbitrary SQL expressions which ultmately refer to a
-          :class:`.Column`.
-
-          .. versionadded:: 0.8 :class:`.Index` supports SQL expressions as
-             well as plain columns.
+          Column or SQL expressions.
 
         :param unique:
             Defaults to False: create a unique index.
@@ -2455,7 +2509,9 @@ class Index(ColumnCollectionMixin, SchemaItem):
         :class:`.Index`, using the given :class:`.Connectable`
         for connectivity.
 
-        See also :meth:`.MetaData.create_all`.
+        .. seealso::
+
+            :meth:`.MetaData.create_all`.
 
         """
         if bind is None:
@@ -2468,7 +2524,9 @@ class Index(ColumnCollectionMixin, SchemaItem):
         :class:`.Index`, using the given :class:`.Connectable`
         for connectivity.
 
-        See also :meth:`.MetaData.drop_all`.
+        .. seealso::
+
+            :meth:`.MetaData.drop_all`.
 
         """
         if bind is None:
@@ -2510,12 +2568,9 @@ class MetaData(SchemaItem):
     MetaData is a thread-safe object after tables have been explicitly defined
     or loaded via reflection.
 
-    See also:
+    .. seealso::
 
-    :ref:`metadata_describing` - Introduction to database metadata
-
-    .. index::
-      single: thread safety; MetaData
+        :ref:`metadata_describing` - Introduction to database metadata
 
     """
 
@@ -2917,7 +2972,7 @@ class DDLElement(expression.Executable, _DDLCompiles):
             AddConstraint(constraint).execute_if(dialect='postgresql')
         )
 
-    See also:
+    .. seealso::
 
         :class:`.DDL`
 
@@ -3069,7 +3124,7 @@ class DDLElement(expression.Executable, _DDLCompiles):
         :param state: any value which will be passed to the callable_
           as the ``state`` keyword argument.
 
-        See also:
+        .. seealso::
 
             :class:`.DDLEvents`
 
@@ -3233,9 +3288,10 @@ class DDL(DDLElement):
           default when ``execute()`` is invoked without a bind argument.
 
 
-        See also:
+        .. seealso::
 
             :class:`.DDLEvents`
+
             :mod:`sqlalchemy.event`
 
         """
@@ -3436,6 +3492,40 @@ class CreateColumn(_DDLCompiles):
                 z SPECIAL DIRECTIVE VARCHAR(20),
             PRIMARY KEY (x)
         )
+
+    The :class:`.CreateColumn` construct can also be used to skip certain
+    columns when producing a ``CREATE TABLE``.  This is accomplished by
+    creating a compilation rule that conditionally returns ``None``.
+    This is essentially how to produce the same effect as using the
+    ``system=True`` argument on :class:`.Column`, which marks a column
+    as an implicitly-present "system" column.
+
+    For example, suppose we wish to produce a :class:`.Table` which skips
+    rendering of the Postgresql ``xmin`` column against the Postgresql backend,
+    but on other backends does render it, in anticipation of a triggered rule.
+    A conditional compilation rule could skip this name only on Postgresql::
+
+        from sqlalchemy.schema import CreateColumn
+
+        @compiles(CreateColumn, "postgresql")
+        def skip_xmin(element, compiler, **kw):
+            if element.element.name == 'xmin':
+                return None
+            else:
+                return compiler.visit_create_column(element, **kw)
+
+
+        my_table = Table('mytable', metadata,
+                    Column('id', Integer, primary_key=True),
+                    Column('xmin', Integer)
+                )
+
+    Above, a :class:`.CreateTable` construct will generate a ``CREATE TABLE``
+    which only includes the ``id`` column in the string; the ``xmin`` column
+    will be omitted, but only against the Postgresql backend.
+
+    .. versionadded:: 0.8.3 The :class:`.CreateColumn` construct supports
+       skipping of columns by returning ``None`` from a custom compilation rule.
 
     .. versionadded:: 0.8 The :class:`.CreateColumn` construct was added
        to support custom column creation styles.

@@ -567,7 +567,8 @@ class DefaultRequirements(SuiteRequirements):
     def bulletproof_pickle(self):
         from sqlalchemy.util import pickle
         return only_if(
-            lambda: pickle.__name__ == 'cPickle' and sys.version_info < (3, 0),
+            lambda: pickle.__name__ == 'cPickle' and \
+                sys.version_info < (3, 0) and not util.pypy,
             "Needs Python 2.x cPickle"
         )
 
@@ -645,9 +646,9 @@ class DefaultRequirements(SuiteRequirements):
 
         """
         return skip_if(
-                lambda: util.py3k and
+                lambda: (util.py3k or not util.py26) and
                     self.config.options.enable_plugin_coverage,
-                "Stability issues with coverage + py3k"
+                "Stability issues with coverage + py3k, py2.5"
             )
 
     @property

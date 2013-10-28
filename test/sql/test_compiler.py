@@ -2409,6 +2409,46 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         )
 
 
+class UnsupportedTest(fixtures.TestBase):
+    def test_unsupported_element_str_visit_name(self):
+        from sqlalchemy.sql.expression import ClauseElement
+        class SomeElement(ClauseElement):
+            __visit_name__ = 'some_element'
+
+        assert_raises_message(
+            exc.UnsupportedCompilationError,
+            r"Compiler <sqlalchemy.sql.compiler.SQLCompiler .*"
+            r"can't render element of type <class '.*SomeElement'>",
+            SomeElement().compile
+        )
+
+    def test_unsupported_element_meth_visit_name(self):
+        from sqlalchemy.sql.expression import ClauseElement
+        class SomeElement(ClauseElement):
+            @classmethod
+            def __visit_name__(cls):
+                return "some_element"
+
+        assert_raises_message(
+            exc.UnsupportedCompilationError,
+            r"Compiler <sqlalchemy.sql.compiler.SQLCompiler .*"
+            r"can't render element of type <class '.*SomeElement'>",
+            SomeElement().compile
+        )
+
+    def test_unsupported_operator(self):
+        from sqlalchemy.sql.expression import BinaryExpression
+        def myop(x, y):
+            pass
+        binary = BinaryExpression(column("foo"), column("bar"), myop)
+        assert_raises_message(
+            exc.UnsupportedCompilationError,
+            r"Compiler <sqlalchemy.sql.compiler.SQLCompiler .*"
+            r"can't render element of type <function.*",
+            binary.compile
+        )
+
+
 class KwargPropagationTest(fixtures.TestBase):
 
     @classmethod
@@ -2685,6 +2725,22 @@ class DDLTest(fixtures.TestBase, AssertsCompiledSQL):
             exc.CompileError,
             ur"\(in table 't', column 'méil'\): Couldn't compile type",
             schema.CreateTable(t1).compile
+        )
+
+    def test_system_flag(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer),
+                            Column('y', Integer, system=True),
+                            Column('z', Integer))
+        self.assert_compile(
+            schema.CreateTable(t),
+            "CREATE TABLE t (x INTEGER, z INTEGER)"
+        )
+        m2 = MetaData()
+        t2 = t.tometadata(m2)
+        self.assert_compile(
+            schema.CreateTable(t2),
+            "CREATE TABLE t (x INTEGER, z INTEGER)"
         )
 
 

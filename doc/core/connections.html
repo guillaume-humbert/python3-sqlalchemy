@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -351,9 +351,9 @@ the ORM, as the <a class="reference internal" href="../orm/session.html#sqlalche
 ongoing <a class="reference internal" href="#sqlalchemy.engine.Transaction" title="sqlalchemy.engine.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>.</p>
 <p>Full control of the &#8220;autocommit&#8221; behavior is available using the generative
 <a class="reference internal" href="#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> method provided on <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>,
-<a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a>, using the &#8220;autocommit&#8221; flag which will
+<a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a>, using the &#8220;autocommit&#8221; flag which will
 turn on or off the autocommit for the selected scope. For example, a
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct representing a stored procedure that commits might use
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct representing a stored procedure that commits might use
 it so that a SELECT statement will issue a COMMIT:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s">&quot;SELECT my_mutating_procedure()&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">execution_options</span><span class="p">(</span><span class="n">autocommit</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></pre></div>
 </div>
@@ -370,8 +370,8 @@ of <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalch
     <span class="k">print</span> <span class="s">&quot;username:&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]</span></pre></div>
 </div>
 <p>In addition to &#8220;connectionless&#8221; execution, it is also possible
-to use the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method of
-any <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> construct, which is a marker for SQL expression objects
+to use the <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method of
+any <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> construct, which is a marker for SQL expression objects
 that support execution.   The SQL expression object itself references an
 <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> known as the <strong>bind</strong>, which it uses
 in order to provide so-called &#8220;implicit&#8221; execution services.</p>
@@ -401,16 +401,16 @@ in order to provide so-called &#8220;implicit&#8221; execution services.</p>
     <span class="c"># ....</span>
 <span class="n">result</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
 </div>
-<p>Implicit execution is also connectionless, and makes usage of the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method
+<p>Implicit execution is also connectionless, and makes usage of the <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method
 on the expression itself.   This method is provided as part of the
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> class, which refers to a SQL statement that is sufficient
+<a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> class, which refers to a SQL statement that is sufficient
 for being invoked against the database.    The method makes usage of
 the assumption that either an
 <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or
 <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> has been <strong>bound</strong> to the expression
-object.   By &#8220;bound&#8221; we mean that the special attribute <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.bind" title="sqlalchemy.schema.MetaData.bind"><tt class="xref py py-attr docutils literal"><span class="pre">MetaData.bind</span></tt></a>
+object.   By &#8220;bound&#8221; we mean that the special attribute <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.bind" title="sqlalchemy.schema.MetaData.bind"><tt class="xref py py-attr docutils literal"><span class="pre">MetaData.bind</span></tt></a>
 has been used to associate a series of
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and all SQL constructs derived from them with a specific
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and all SQL constructs derived from them with a specific
 engine:</p>
 <div class="highlight-python"><pre>engine = create_engine('sqlite:///file.db')
 meta.bind = engine
@@ -419,21 +419,21 @@ for row in result:
     # ....
 result.close()</pre>
 </div>
-<p>Above, we associate an <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> with a <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object using
-the special attribute <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.bind" title="sqlalchemy.schema.MetaData.bind"><tt class="xref py py-attr docutils literal"><span class="pre">MetaData.bind</span></tt></a>.  The <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct produced
-from the <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object has a method <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a>, which will
-search for an <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> that&#8217;s &#8220;bound&#8221; to the <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
+<p>Above, we associate an <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> with a <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object using
+the special attribute <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.bind" title="sqlalchemy.schema.MetaData.bind"><tt class="xref py py-attr docutils literal"><span class="pre">MetaData.bind</span></tt></a>.  The <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct produced
+from the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object has a method <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a>, which will
+search for an <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> that&#8217;s &#8220;bound&#8221; to the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
 <p>Overall, the usage of &#8220;bound metadata&#8221; has three general effects:</p>
 <ul class="simple">
-<li>SQL statement objects gain an <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execute()</span></tt></a> method which automatically
+<li>SQL statement objects gain an <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execute()</span></tt></a> method which automatically
 locates a &#8220;bind&#8221; with which to execute themselves.</li>
 <li>The ORM <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> object supports using &#8220;bound metadata&#8221; in order
 to establish which <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> should be used to invoke SQL statements
 on behalf of a particular mapped class, though the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
 also features its own explicit system of establishing complex <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>/
 mapped class configurations.</li>
-<li>The <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a>, <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a>, <a class="reference internal" href="schema.html#sqlalchemy.schema.Table.create" title="sqlalchemy.schema.Table.create"><tt class="xref py py-meth docutils literal"><span class="pre">Table.create()</span></tt></a>,
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Table.drop" title="sqlalchemy.schema.Table.drop"><tt class="xref py py-meth docutils literal"><span class="pre">Table.drop()</span></tt></a>, and &#8220;autoload&#8221; features all make usage of the bound
+<li>The <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a>, <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a>, <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table.create" title="sqlalchemy.schema.Table.create"><tt class="xref py py-meth docutils literal"><span class="pre">Table.create()</span></tt></a>,
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table.drop" title="sqlalchemy.schema.Table.drop"><tt class="xref py py-meth docutils literal"><span class="pre">Table.drop()</span></tt></a>, and &#8220;autoload&#8221; features all make usage of the bound
 <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> automatically without the need to pass it explicitly.</li>
 </ul>
 <div class="admonition note">
@@ -443,9 +443,9 @@ While they offer some convenience, they are no longer required by any API and
 are never necessary.</p>
 <p>In applications where multiple <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> objects are present, each one logically associated
 with a certain set of tables (i.e. <em>vertical sharding</em>), the &#8220;bound metadata&#8221; technique can be used
-so that individual <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> can refer to the appropriate <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> automatically;
+so that individual <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> can refer to the appropriate <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> automatically;
 in particular this is supported within the ORM via the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> object
-as a means to associate <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects with an appropriate <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
+as a means to associate <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects with an appropriate <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
 as an alternative to using the bind arguments accepted directly by the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</p>
 <p>However, the &#8220;implicit execution&#8221; technique is not at all appropriate for use with the
 ORM, as it bypasses the transactional context maintained by the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</p>
@@ -458,7 +458,7 @@ which lead to problems later on.</p>
 <p class="last">Modern SQLAlchemy usage, especially the ORM, places a heavy stress on working within the context
 of a transaction at all times; the &#8220;implicit execution&#8221; concept makes the job of
 associating statement execution with a particular transaction much more difficult.
-The <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execute()</span></tt></a> method on a particular SQL statement
+The <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable.execute" title="sqlalchemy.sql.expression.Executable.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execute()</span></tt></a> method on a particular SQL statement
 usually implies that the execution is not part of any particular transaction, which is
 usually not the desired effect.</p>
 </div>
@@ -580,8 +580,9 @@ the need for separate installation.   Use the <tt class="docutils literal"><span
 </div>
 <p>The above will respond to <tt class="docutils literal"><span class="pre">create_engine(&quot;mysql+foodialect://&quot;)</span></tt> and load the
 <tt class="docutils literal"><span class="pre">MyMySQLDialect</span></tt> class from the <tt class="docutils literal"><span class="pre">myapp.dialect</span></tt> module.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.8.</span></p>
+</div>
 </div>
 </div>
 <div class="section" id="connection-engine-api">
@@ -589,10 +590,10 @@ the need for separate installation.   Use the <tt class="docutils literal"><span
 <dl class="class">
 <dt id="sqlalchemy.engine.Connection">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.</tt><tt class="descname">Connection</tt><big>(</big><em>engine</em>, <em>connection=None</em>, <em>close_with_result=False</em>, <em>_branch=False</em>, <em>_execution_options=None</em>, <em>_dispatch=None</em>, <em>_has_events=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Connection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.interfaces.Connectable</span></tt></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.Connectable" title="sqlalchemy.engine.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.Connectable</span></tt></a></p>
 <p>Provides high-level functionality for a wrapped DB-API connection.</p>
 <p>Provides execution support for string-based SQL statements as well as
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>, <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> and <a class="reference internal" href="schema.html#sqlalchemy.schema.DefaultGenerator" title="sqlalchemy.schema.DefaultGenerator"><tt class="xref py py-class docutils literal"><span class="pre">DefaultGenerator</span></tt></a>
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>, <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> and <a class="reference internal" href="defaults.html#sqlalchemy.schema.DefaultGenerator" title="sqlalchemy.schema.DefaultGenerator"><tt class="xref py py-class docutils literal"><span class="pre">DefaultGenerator</span></tt></a>
 objects. Provides a <a class="reference internal" href="#sqlalchemy.engine.Connection.begin" title="sqlalchemy.engine.Connection.begin"><tt class="xref py py-meth docutils literal"><span class="pre">begin()</span></tt></a> method to return <a class="reference internal" href="#sqlalchemy.engine.Transaction" title="sqlalchemy.engine.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>
 objects.</p>
 <p>The Connection object is <strong>not</strong> thread-safe.  While a Connection can be
@@ -764,14 +765,14 @@ connection pool.</p>
 one of:</p>
 <ul>
 <li>a plain string</li>
-<li>any <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> construct that is also
-a subclass of <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a>, such as a
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct</li>
-<li>a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.FunctionElement" title="sqlalchemy.sql.expression.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a>, such as that generated
+<li>any <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> construct that is also
+a subclass of <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a>, such as a
+<a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct</li>
+<li>a <tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt>, such as that generated
 by <tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt>, will be automatically wrapped in
 a SELECT statement, which is then executed.</li>
-<li>a <a class="reference internal" href="schema.html#sqlalchemy.schema.DDLElement" title="sqlalchemy.schema.DDLElement"><tt class="xref py py-class docutils literal"><span class="pre">DDLElement</span></tt></a> object</li>
-<li>a <a class="reference internal" href="schema.html#sqlalchemy.schema.DefaultGenerator" title="sqlalchemy.schema.DefaultGenerator"><tt class="xref py py-class docutils literal"><span class="pre">DefaultGenerator</span></tt></a> object</li>
+<li>a <a class="reference internal" href="ddl.html#sqlalchemy.schema.DDLElement" title="sqlalchemy.schema.DDLElement"><tt class="xref py py-class docutils literal"><span class="pre">DDLElement</span></tt></a> object</li>
+<li>a <a class="reference internal" href="defaults.html#sqlalchemy.schema.DefaultGenerator" title="sqlalchemy.schema.DefaultGenerator"><tt class="xref py py-class docutils literal"><span class="pre">DefaultGenerator</span></tt></a> object</li>
 <li>a <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> object</li>
 </ul>
 </li>
@@ -809,7 +810,7 @@ in use, which may be any of &#8220;qmark&#8221;, &#8220;named&#8221;, &#8220;pyf
 &#8220;numeric&#8221;.   See <a class="reference external" href="http://www.python.org/dev/peps/pep-0249/">pep-249</a>
 for details on paramstyle.</p>
 <p>To execute a textual SQL statement which uses bound parameters in a
-DBAPI-agnostic way, use the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct.</p>
+DBAPI-agnostic way, use the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct.</p>
 </li>
 </ul>
 </td>
@@ -838,7 +839,7 @@ would be discarded immediately, which is implicit if used as in:</p>
 is suitable for usage by end-user schemes to communicate with
 event listeners, for example.</p>
 <p>The keywords that are currently recognized by SQLAlchemy itself
-include all those listed under <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execution_options()</span></tt></a>,
+include all those listed under <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execution_options()</span></tt></a>,
 as well as others that are specific to <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -900,8 +901,9 @@ containing percent signs (and possibly other characters)
 that is neutral regarding whether it&#8217;s executed by the DBAPI
 or piped into a script that&#8217;s later invoked by
 command line tools.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.6.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.7.6.</span></p>
+</div>
 </li>
 <li><strong>stream_results</strong> &#8211; Available on: Connection, statement.
 Indicate to the dialect that results should be
@@ -1019,8 +1021,7 @@ context</p>
 <dl class="class">
 <dt id="sqlalchemy.engine.Connectable">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.</tt><tt class="descname">Connectable</tt><a class="headerlink" href="#sqlalchemy.engine.Connectable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Interface for an object which supports execution of SQL constructs.</p>
+<dd><p>Interface for an object which supports execution of SQL constructs.</p>
 <p>The two implementations of <a class="reference internal" href="#sqlalchemy.engine.Connectable" title="sqlalchemy.engine.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> are
 <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> and <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
 <p>Connectable must also implement the &#8216;dialect&#8217; member which references a
@@ -1050,16 +1051,18 @@ of <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalch
 <dt id="sqlalchemy.engine.Connectable.create">
 <tt class="descname">create</tt><big>(</big><em>entity</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Connectable.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>Emit CREATE statements for the given schema entity.</p>
-<p class="deprecated">
-<span class="versionmodified">Deprecated since version 0.7: </span>Use the create() method on the given schema object directly, i.e. <a class="reference internal" href="schema.html#sqlalchemy.schema.Table.create" title="sqlalchemy.schema.Table.create"><tt class="xref py py-meth docutils literal"><span class="pre">Table.create()</span></tt></a>, <a class="reference internal" href="schema.html#sqlalchemy.schema.Index.create" title="sqlalchemy.schema.Index.create"><tt class="xref py py-meth docutils literal"><span class="pre">Index.create()</span></tt></a>, <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a></p>
+<div class="deprecated">
+<p><span>Deprecated since version 0.7: </span>Use the create() method on the given schema object directly, i.e. <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table.create" title="sqlalchemy.schema.Table.create"><tt class="xref py py-meth docutils literal"><span class="pre">Table.create()</span></tt></a>, <a class="reference internal" href="constraints.html#sqlalchemy.schema.Index.create" title="sqlalchemy.schema.Index.create"><tt class="xref py py-meth docutils literal"><span class="pre">Index.create()</span></tt></a>, <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.Connectable.drop">
 <tt class="descname">drop</tt><big>(</big><em>entity</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Connectable.drop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Emit DROP statements for the given schema entity.</p>
-<p class="deprecated">
-<span class="versionmodified">Deprecated since version 0.7: </span>Use the drop() method on the given schema object directly, i.e. <a class="reference internal" href="schema.html#sqlalchemy.schema.Table.drop" title="sqlalchemy.schema.Table.drop"><tt class="xref py py-meth docutils literal"><span class="pre">Table.drop()</span></tt></a>, <a class="reference internal" href="schema.html#sqlalchemy.schema.Index.drop" title="sqlalchemy.schema.Index.drop"><tt class="xref py py-meth docutils literal"><span class="pre">Index.drop()</span></tt></a>, <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a></p>
+<div class="deprecated">
+<p><span>Deprecated since version 0.7: </span>Use the drop() method on the given schema object directly, i.e. <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table.drop" title="sqlalchemy.schema.Table.drop"><tt class="xref py py-meth docutils literal"><span class="pre">Table.drop()</span></tt></a>, <a class="reference internal" href="constraints.html#sqlalchemy.schema.Index.drop" title="sqlalchemy.schema.Index.drop"><tt class="xref py py-meth docutils literal"><span class="pre">Index.drop()</span></tt></a>, <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1080,7 +1083,7 @@ of <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalch
 <dl class="class">
 <dt id="sqlalchemy.engine.Engine">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.</tt><tt class="descname">Engine</tt><big>(</big><em>pool</em>, <em>dialect</em>, <em>url</em>, <em>logging_name=None</em>, <em>echo=None</em>, <em>proxy=None</em>, <em>execution_options=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.interfaces.Connectable</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.log.Identified</span></tt></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.Connectable" title="sqlalchemy.engine.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.Connectable</span></tt></a>, <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.log.Identified</span></tt></p>
 <p>Connects a <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> and
 <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> together to provide a
 source of database connectivity and behavior.</p>
@@ -1109,8 +1112,9 @@ is complete.   When set to <tt class="docutils literal"><span class="pre">True</
 <a class="reference internal" href="#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> returned by the first call to
 <a class="reference internal" href="#sqlalchemy.engine.Connection.execute" title="sqlalchemy.engine.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execute()</span></tt></a> will close the <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> when
 that <a class="reference internal" href="#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> has exhausted all result rows.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.6.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.7.6.</span></p>
+</div>
 <p>See also:</p>
 <p><a class="reference internal" href="#sqlalchemy.engine.Engine.connect" title="sqlalchemy.engine.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a> - procure a <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> from
 an <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.</p>
@@ -1253,9 +1257,10 @@ storage space that follows the DBAPI connection:</p>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;use </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">shards</span><span class="p">[</span><span class="n">shard_id</span><span class="p">])</span>
         <span class="n">conn</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s">&quot;current_shard&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shard_id</span></pre></div>
 </div>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.</span></p>
-<div class="admonition-see-also admonition seealso">
+<div class="versionadded">
+<p><span>New in version 0.8.</span></p>
+</div>
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> - update execution options
 on a <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object.</p>
@@ -1365,7 +1370,7 @@ default execution options that will be used for
 all connections.  The initial contents of this dictionary
 can be sent via the <tt class="docutils literal"><span class="pre">execution_options</span></tt> parameter
 to <a class="reference internal" href="engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.engine.Engine.execution_options" title="sqlalchemy.engine.Engine.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.execution_options()</span></tt></a></p>
@@ -1456,13 +1461,13 @@ Else the cursor is automatically closed and None is returned.</p>
 <p>The return value is a list of scalar values
 corresponding to the list of primary key columns
 in the target table.</p>
-<p>This only applies to single row <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a>
+<p>This only applies to single row <a class="reference internal" href="dml.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a>
 constructs which did not explicitly specify
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Insert.returning" title="sqlalchemy.sql.expression.Insert.returning"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.returning()</span></tt></a>.</p>
+<a class="reference internal" href="dml.html#sqlalchemy.sql.expression.Insert.returning" title="sqlalchemy.sql.expression.Insert.returning"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.returning()</span></tt></a>.</p>
 <p>Note that primary key columns which specify a
 server_default clause,
 or otherwise do not qualify as &#8220;autoincrement&#8221;
-columns (see the notes at <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>), and were
+columns (see the notes at <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>), and were
 generated using the database-side default, will
 appear in this list as <tt class="docutils literal"><span class="pre">None</span></tt> unless the backend
 supports &#8220;returning&#8221; and the insert statement executed
@@ -1477,7 +1482,7 @@ or is not an insert() construct.</p>
 <tt class="descname">is_insert</tt><a class="headerlink" href="#sqlalchemy.engine.ResultProxy.is_insert" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if this <a class="reference internal" href="#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> is the result
 of a executing an expression language compiled
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">expression.insert()</span></tt></a> construct.</p>
+<a class="reference internal" href="dml.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">expression.insert()</span></tt></a> construct.</p>
 <p>When True, this implies that the
 <a class="reference internal" href="#sqlalchemy.engine.ResultProxy.inserted_primary_key" title="sqlalchemy.engine.ResultProxy.inserted_primary_key"><tt class="xref py py-attr docutils literal"><span class="pre">inserted_primary_key</span></tt></a> attribute is accessible,
 assuming the statement did not include
@@ -1629,7 +1634,8 @@ rowcount.</li>
 <dl class="class">
 <dt id="sqlalchemy.engine.RowProxy">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.</tt><tt class="descname">RowProxy</tt><big>(</big><em>parent</em>, <em>row</em>, <em>processors</em>, <em>keymap</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.RowProxy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Proxy values from a single cursor row.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.result.BaseRowProxy</span></tt></p>
+<p>Proxy values from a single cursor row.</p>
 <p>Mostly follows &#8220;ordered dictionary&#8221; behavior, mapping result
 values to the string-based column name, the integer position of
 the result in the row, as well as Column instances which can be
@@ -1658,8 +1664,7 @@ results that correspond to constructed SQL expressions).</p>
 <dl class="class">
 <dt id="sqlalchemy.engine.Transaction">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.</tt><tt class="descname">Transaction</tt><big>(</big><em>connection</em>, <em>parent</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Transaction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Represent a database transaction in progress.</p>
+<dd><p>Represent a database transaction in progress.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.engine.Transaction" title="sqlalchemy.engine.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> object is procured by
 calling the <a class="reference internal" href="#sqlalchemy.engine.Connection.begin" title="sqlalchemy.engine.Connection.begin"><tt class="xref py py-meth docutils literal"><span class="pre">begin()</span></tt></a> method of
 <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>:</p>
@@ -1739,7 +1744,7 @@ with the addition of the <a class="reference internal" href="#sqlalchemy.engine.
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -160,8 +160,8 @@ their own instrumentation.  It is not intended for general use.</p>
 </div>
 <p>For examples of how the instrumentation extension is used,
 see the example <a class="reference internal" href="../examples.html#examples-instrumentation"><em>Attribute Instrumentation</em></a>.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.8: </span>The <tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.orm.instrumentation</span></tt> was split out so
+<div class="versionchanged">
+<p><span>Changed in version 0.8: </span>The <tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.orm.instrumentation</span></tt> was split out so
 that all functionality having to do with non-standard
 instrumentation was moved out to <a class="reference internal" href="#module-sqlalchemy.ext.instrumentation" title="sqlalchemy.ext.instrumentation"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.instrumentation</span></tt></a>.
 When imported, the module installs itself within
@@ -170,6 +170,7 @@ takes effect, including recognition of
 <tt class="docutils literal"><span class="pre">__sa_instrumentation_manager__</span></tt> on mapped classes, as
 well <tt class="xref py py-attr docutils literal"><span class="pre">instrumentation_finders</span></tt>
 being used to determine class instrumentation resolution.</p>
+</div>
 <div class="section" id="api-reference">
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
@@ -211,10 +212,11 @@ for regular usage.  For interception of class instrumentation
 events, see <a class="reference internal" href="../events.html#sqlalchemy.orm.events.InstrumentationEvents" title="sqlalchemy.orm.events.InstrumentationEvents"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationEvents</span></tt></a>.</p>
 <p>The API for this class should be considered as semi-stable,
 and may change slightly with new releases.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.8: </span><a class="reference internal" href="#sqlalchemy.ext.instrumentation.InstrumentationManager" title="sqlalchemy.ext.instrumentation.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a> was moved from
+<div class="versionchanged">
+<p><span>Changed in version 0.8: </span><a class="reference internal" href="#sqlalchemy.ext.instrumentation.InstrumentationManager" title="sqlalchemy.ext.instrumentation.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a> was moved from
 <tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.orm.instrumentation</span></tt> to
 <a class="reference internal" href="#module-sqlalchemy.ext.instrumentation" title="sqlalchemy.ext.instrumentation"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.instrumentation</span></tt></a>.</p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.ext.instrumentation.InstrumentationManager.dict_getter">
 <tt class="descname">dict_getter</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.instrumentation.InstrumentationManager.dict_getter" title="Permalink to this definition">¶</a></dt>
@@ -299,7 +301,7 @@ and may change slightly with new releases.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.ext.instrumentation.instrumentation_finders">
-<tt class="descclassname">sqlalchemy.ext.instrumentation.</tt><tt class="descname">instrumentation_finders</tt><em class="property"> = [&lt;function find_native_user_instrumentation_hook at 0x10b64b758&gt;]</em><a class="headerlink" href="#sqlalchemy.ext.instrumentation.instrumentation_finders" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.instrumentation.</tt><tt class="descname">instrumentation_finders</tt><em class="property"> = [&lt;function find_native_user_instrumentation_hook at 0x10de79668&gt;]</em><a class="headerlink" href="#sqlalchemy.ext.instrumentation.instrumentation_finders" title="Permalink to this definition">¶</a></dt>
 <dd><p>An extensible sequence of callables which return instrumentation
 implementations</p>
 <p>When a class is registered, each callable will be passed a class object.
@@ -319,6 +321,14 @@ ClassManager instrumentation is used.</p>
 <p>Extends <tt class="xref py py-class docutils literal"><span class="pre">InstrumentationFactory</span></tt> with additional
 bookkeeping, to accommodate multiple types of
 class managers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Members :</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -336,7 +346,7 @@ class managers.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

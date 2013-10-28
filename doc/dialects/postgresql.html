@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -210,7 +210,7 @@ creating tables, SQLAlchemy will issue the <tt class="docutils literal"><span cl
 integer-based primary key columns, which generates a sequence and server side
 default corresponding to the column.</p>
 <p>To specify a specific named sequence to be used for primary key generation,
-use the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-func docutils literal"><span class="pre">Sequence()</span></tt></a> construct:</p>
+use the <a class="reference internal" href="../core/defaults.html#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-func docutils literal"><span class="pre">Sequence()</span></tt></a> construct:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;sometable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
         <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;some_id_seq&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="p">)</span></pre></div>
@@ -223,7 +223,7 @@ place if Postgresql 8.2 or later is in use. As a fallback approach, the
 sequence, whether specified explicitly or implicitly via <tt class="docutils literal"><span class="pre">SERIAL</span></tt>, is
 executed independently beforehand, the returned value to be used in the
 subsequent insert. Note that when an
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> construct is executed using
+<a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> construct is executed using
 &#8220;executemany&#8221; semantics, the &#8220;last inserted identifier&#8221; functionality does not
 apply; no RETURNING clause is emitted nor is the sequence pre-executed in this
 case.</p>
@@ -263,24 +263,25 @@ command <tt class="docutils literal"><span class="pre">SET</span> <span class="p
 <h2>Remote / Cross-Schema Table Introspection<a class="headerlink" href="#remote-cross-schema-table-introspection" title="Permalink to this headline">¶</a></h2>
 <p>Tables can be introspected from any accessible schema, including
 inter-schema foreign key relationships.   However, care must be taken
-when specifying the &#8220;schema&#8221; argument for a given <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, when
+when specifying the &#8220;schema&#8221; argument for a given <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, when
 the given schema is also present in PostgreSQL&#8217;s <tt class="docutils literal"><span class="pre">search_path</span></tt> variable
 for the current connection.</p>
 <p>If a FOREIGN KEY constraint reports that the remote table&#8217;s schema is within
 the current <tt class="docutils literal"><span class="pre">search_path</span></tt>, the &#8220;schema&#8221; attribute of the resulting
-<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be set to <tt class="docutils literal"><span class="pre">None</span></tt>, unless the actual schema of the
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be set to <tt class="docutils literal"><span class="pre">None</span></tt>, unless the actual schema of the
 remote table matches that of the referencing table, and the &#8220;schema&#8221; argument
 was explicitly stated on the referencing table.</p>
 <p>The best practice here is to not use the <tt class="docutils literal"><span class="pre">schema</span></tt> argument
-on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> for any schemas that are present in <tt class="docutils literal"><span class="pre">search_path</span></tt>.
+on <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> for any schemas that are present in <tt class="docutils literal"><span class="pre">search_path</span></tt>.
 <tt class="docutils literal"><span class="pre">search_path</span></tt> defaults to &#8220;public&#8221;, but care should be taken
 to inspect the actual value using:</p>
 <div class="highlight-python"><pre>SHOW search_path;</pre>
 </div>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.7.3: </span>Prior to this version, cross-schema foreign keys when the schemas
+<div class="versionchanged">
+<p><span>Changed in version 0.7.3: </span>Prior to this version, cross-schema foreign keys when the schemas
 were also in the <tt class="docutils literal"><span class="pre">search_path</span></tt> could make an incorrect assumption
-if the schemas were explicitly stated on each <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
+if the schemas were explicitly stated on each <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
+</div>
 <p>Background on PG&#8217;s <tt class="docutils literal"><span class="pre">search_path</span></tt> is at:
 <a class="reference external" href="http://www.postgresql.org/docs/9.0/static/ddl-schemas.html#DDL-SCHEMAS-PATH">http://www.postgresql.org/docs/9.0/static/ddl-schemas.html#DDL-SCHEMAS-PATH</a></p>
 </div>
@@ -327,12 +328,12 @@ syntaxes. It uses SQLAlchemy&#8217;s hints mechanism:</p>
 </div>
 <div class="section" id="postgresql-specific-index-options">
 <span id="postgresql-indexes"></span><h2>Postgresql-Specific Index Options<a class="headerlink" href="#postgresql-specific-index-options" title="Permalink to this headline">¶</a></h2>
-<p>Several extensions to the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct are available, specific
+<p>Several extensions to the <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct are available, specific
 to the PostgreSQL dialect.</p>
 <div class="section" id="partial-indexes">
 <h3>Partial Indexes<a class="headerlink" href="#partial-indexes" title="Permalink to this headline">¶</a></h3>
 <p>Partial indexes add criterion to the index definition so that the index is
-applied to a subset of rows.   These can be specified on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>
+applied to a subset of rows.   These can be specified on <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>
 using the <tt class="docutils literal"><span class="pre">postgresql_where</span></tt> keyword argument:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">postgresql_where</span><span class="o">=</span><span class="n">tbl</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">)</span></pre></div>
 </div>
@@ -342,7 +343,7 @@ using the <tt class="docutils literal"><span class="pre">postgresql_where</span>
 <p>PostgreSQL allows the specification of an <em>operator class</em> for each column of
 an index (see
 <a class="reference external" href="http://www.postgresql.org/docs/8.3/interactive/indexes-opclass.html">http://www.postgresql.org/docs/8.3/interactive/indexes-opclass.html</a>).
-The <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct allows these to be specified via the
+The <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct allows these to be specified via the
 <tt class="docutils literal"><span class="pre">postgresql_ops</span></tt> keyword argument:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
                         <span class="n">postgresql_ops</span><span class="o">=</span><span class="p">{</span>
@@ -350,11 +351,12 @@ The <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.In
                             <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;int4_ops&#39;</span>
                         <span class="p">})</span></pre></div>
 </div>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.2: </span><tt class="docutils literal"><span class="pre">postgresql_ops</span></tt> keyword argument to <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
+<div class="versionadded">
+<p><span>New in version 0.7.2: </span><tt class="docutils literal"><span class="pre">postgresql_ops</span></tt> keyword argument to <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
+</div>
 <p>Note that the keys in the <tt class="docutils literal"><span class="pre">postgresql_ops</span></tt> dictionary are the &#8220;key&#8221; name of
-the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, i.e. the name used to access it from the <tt class="docutils literal"><span class="pre">.c</span></tt>
-collection of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, which can be configured to be different than
+the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, i.e. the name used to access it from the <tt class="docutils literal"><span class="pre">.c</span></tt>
+collection of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, which can be configured to be different than
 the actual name of the column as expressed in the database.</p>
 </div>
 <div class="section" id="index-types">
@@ -362,7 +364,7 @@ the actual name of the column as expressed in the database.</p>
 <p>PostgreSQL provides several index types: B-Tree, Hash, GiST, and GIN, as well
 as the ability for users to create their own (see
 <a class="reference external" href="http://www.postgresql.org/docs/8.3/static/indexes-types.html">http://www.postgresql.org/docs/8.3/static/indexes-types.html</a>). These can be
-specified on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> using the <tt class="docutils literal"><span class="pre">postgresql_using</span></tt> keyword argument:</p>
+specified on <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> using the <tt class="docutils literal"><span class="pre">postgresql_using</span></tt> keyword argument:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">postgresql_using</span><span class="o">=</span><span class="s">&#39;gin&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>The value passed to the keyword argument will be simply passed through to the
@@ -387,7 +389,8 @@ construction arguments, are as follows:</p>
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.array">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">array</tt><big>(</big><em>clauses</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.array" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Postgresql ARRAY literal.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Tuple</span></tt></p>
+<p>A Postgresql ARRAY literal.</p>
 <p>This is used to produce ARRAY literals in SQL expressions, e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">array</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.dialects</span> <span class="kn">import</span> <span class="n">postgresql</span>
@@ -408,8 +411,9 @@ construction arguments, are as follows:</p>
 the values present, unless the <tt class="docutils literal"><span class="pre">type_</span></tt> keyword argument is passed:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">array</span><span class="p">([</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">],</span> <span class="n">type_</span><span class="o">=</span><span class="n">CHAR</span><span class="p">)</span></pre></div>
 </div>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8: </span>Added the <a class="reference internal" href="#sqlalchemy.dialects.postgresql.array" title="sqlalchemy.dialects.postgresql.array"><tt class="xref py py-class docutils literal"><span class="pre">array</span></tt></a> literal type.</p>
+<div class="versionadded">
+<p><span>New in version 0.8: </span>Added the <a class="reference internal" href="#sqlalchemy.dialects.postgresql.array" title="sqlalchemy.dialects.postgresql.array"><tt class="xref py py-class docutils literal"><span class="pre">array</span></tt></a> literal type.</p>
+</div>
 <p>See also:</p>
 <p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a></p>
 </dd></dl>
@@ -442,9 +446,9 @@ of dimensions:</p>
     <span class="p">)</span></pre></div>
 </div>
 <p>This has the effect of the <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">ARRAY</span></tt></a> type
-specifying that number of bracketed blocks when a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
+specifying that number of bracketed blocks when a <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 is used in a CREATE TABLE statement, or when the type is used
-within a <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">expression.cast()</span></tt></a> construct; it also causes
+within a <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">expression.cast()</span></tt></a> construct; it also causes
 the bind parameter and result set processing of the type
 to optimize itself to expect exactly that number of dimensions.
 Note that Postgresql itself still allows N dimensions with such a type.</p>
@@ -456,7 +460,7 @@ constructs which will produce the appropriate SQL, both for
 SELECT statements:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">7</span><span class="p">]])</span></pre></div>
 </div>
-<p>as well as UPDATE statements when the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Update.values" title="sqlalchemy.sql.expression.Update.values"><tt class="xref py py-meth docutils literal"><span class="pre">Update.values()</span></tt></a> method
+<p>as well as UPDATE statements when the <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Update.values" title="sqlalchemy.sql.expression.Update.values"><tt class="xref py py-meth docutils literal"><span class="pre">Update.values()</span></tt></a> method
 is used:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mytable</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">({</span>
     <span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="mi">7</span><span class="p">,</span>
@@ -468,49 +472,15 @@ e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">contains</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span></pre></div>
 </div>
 <p>For a full list of special methods see <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator" title="sqlalchemy.dialects.postgresql.ARRAY.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">ARRAY.Comparator</span></tt></a>.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8: </span>Added support for index and slice operations
+<div class="versionadded">
+<p><span>New in version 0.8: </span>Added support for index and slice operations
 to the <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">ARRAY</span></tt></a> type, including support for UPDATE
 statements, and special array containment operations.</p>
+</div>
 <p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">ARRAY</span></tt></a> type may not be supported on all DBAPIs.
 It is known to work on psycopg2 and not pg8000.</p>
 <p>See also:</p>
 <p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.array" title="sqlalchemy.dialects.postgresql.array"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.array</span></tt></a> - produce a literal array value.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.ARRAY.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>item_type</em>, <em>as_tuple=False</em>, <em>dimensions=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct an ARRAY.</p>
-<p>E.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;myarray&#39;</span><span class="p">,</span> <span class="n">ARRAY</span><span class="p">(</span><span class="n">Integer</span><span class="p">))</span></pre></div>
-</div>
-<p>Arguments are:</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>item_type</strong> &#8211; The data type of items of this array. Note that
-dimensionality is irrelevant here, so multi-dimensional arrays like
-<tt class="docutils literal"><span class="pre">INTEGER[][]</span></tt>, are constructed as <tt class="docutils literal"><span class="pre">ARRAY(Integer)</span></tt>, not as
-<tt class="docutils literal"><span class="pre">ARRAY(ARRAY(Integer))</span></tt> or such.</li>
-<li><strong>as_tuple=False</strong> &#8211; Specify whether return results
-should be converted to tuples from lists. DBAPIs such
-as psycopg2 return lists by default. When tuples are
-returned, the results are hashable.</li>
-<li><strong>dimensions</strong> &#8211; if non-None, the ARRAY will assume a fixed
-number of dimensions.  This will cause the DDL emitted for this
-ARRAY to include the exact number of bracket clauses <tt class="docutils literal"><span class="pre">[]</span></tt>,
-and will also optimize the performance of the type overall.
-Note that PG arrays are always implicitly &#8220;non-dimensioned&#8221;,
-meaning they can store any number of dimensions no matter how
-they were declared.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.ARRAY.Comparator">
 <em class="property">class </em><tt class="descname">Comparator</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator" title="Permalink to this definition">¶</a></dt>
@@ -545,7 +515,7 @@ package, defaults to <tt class="xref py py-func docutils literal"><span class="p
 </tr>
 </tbody>
 </table>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.All" title="sqlalchemy.dialects.postgresql.All"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.All</span></tt></a></p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.any" title="sqlalchemy.dialects.postgresql.ARRAY.Comparator.any"><tt class="xref py py-meth docutils literal"><span class="pre">postgresql.ARRAY.Comparator.any()</span></tt></a></p>
@@ -581,7 +551,7 @@ package, defaults to <tt class="xref py py-func docutils literal"><span class="p
 </tr>
 </tbody>
 </table>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.Any" title="sqlalchemy.dialects.postgresql.Any"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.Any</span></tt></a></p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.all" title="sqlalchemy.dialects.postgresql.ARRAY.Comparator.all"><tt class="xref py py-meth docutils literal"><span class="pre">postgresql.ARRAY.Comparator.all()</span></tt></a></p>
@@ -611,14 +581,50 @@ an argument array expression.</p>
 
 </dd></dl>
 
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ARRAY.__init__">
+<tt class="descclassname">ARRAY.</tt><tt class="descname">__init__</tt><big>(</big><em>item_type</em>, <em>as_tuple=False</em>, <em>dimensions=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct an ARRAY.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;myarray&#39;</span><span class="p">,</span> <span class="n">ARRAY</span><span class="p">(</span><span class="n">Integer</span><span class="p">))</span></pre></div>
+</div>
+<p>Arguments are:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>item_type</strong> &#8211; The data type of items of this array. Note that
+dimensionality is irrelevant here, so multi-dimensional arrays like
+<tt class="docutils literal"><span class="pre">INTEGER[][]</span></tt>, are constructed as <tt class="docutils literal"><span class="pre">ARRAY(Integer)</span></tt>, not as
+<tt class="docutils literal"><span class="pre">ARRAY(ARRAY(Integer))</span></tt> or such.</li>
+<li><strong>as_tuple=False</strong> &#8211; Specify whether return results
+should be converted to tuples from lists. DBAPIs such
+as psycopg2 return lists by default. When tuples are
+returned, the results are hashable.</li>
+<li><strong>dimensions</strong> &#8211; if non-None, the ARRAY will assume a fixed
+number of dimensions.  This will cause the DDL emitted for this
+ARRAY to include the exact number of bracket clauses <tt class="docutils literal"><span class="pre">[]</span></tt>,
+and will also optimize the performance of the type overall.
+Note that PG arrays are always implicitly &#8220;non-dimensioned&#8221;,
+meaning they can store any number of dimensions no matter how
+they were declared.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.Any">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">Any</tt><big>(</big><em>left</em>, <em>right</em>, <em>operator=&lt;built-in function eq&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.Any" title="Permalink to this definition">¶</a></dt>
-<dd><p>Represent the clause <tt class="docutils literal"><span class="pre">left</span> <span class="pre">operator</span> <span class="pre">ANY</span> <span class="pre">(right)</span></tt>.  <tt class="docutils literal"><span class="pre">right</span></tt> must be
+<dd><p>Bases: <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a></p>
+<p>Represent the clause <tt class="docutils literal"><span class="pre">left</span> <span class="pre">operator</span> <span class="pre">ANY</span> <span class="pre">(right)</span></tt>.  <tt class="docutils literal"><span class="pre">right</span></tt> must be
 an array expression.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a></p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.any" title="sqlalchemy.dialects.postgresql.ARRAY.Comparator.any"><tt class="xref py py-meth docutils literal"><span class="pre">postgresql.ARRAY.Comparator.any()</span></tt></a> - ARRAY-bound method</p>
@@ -628,9 +634,10 @@ an array expression.</p>
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.All">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">All</tt><big>(</big><em>left</em>, <em>right</em>, <em>operator=&lt;built-in function eq&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.All" title="Permalink to this definition">¶</a></dt>
-<dd><p>Represent the clause <tt class="docutils literal"><span class="pre">left</span> <span class="pre">operator</span> <span class="pre">ALL</span> <span class="pre">(right)</span></tt>.  <tt class="docutils literal"><span class="pre">right</span></tt> must be
+<dd><p>Bases: <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a></p>
+<p>Represent the clause <tt class="docutils literal"><span class="pre">left</span> <span class="pre">operator</span> <span class="pre">ALL</span> <span class="pre">(right)</span></tt>.  <tt class="docutils literal"><span class="pre">right</span></tt> must be
 an array expression.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a></p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.all" title="sqlalchemy.dialects.postgresql.ARRAY.Comparator.all"><tt class="xref py py-meth docutils literal"><span class="pre">postgresql.ARRAY.Comparator.all()</span></tt></a> - ARRAY-bound method</p>
@@ -762,8 +769,9 @@ without access to the actual database -
 the <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.create" title="sqlalchemy.dialects.postgresql.ENUM.create"><tt class="xref py py-meth docutils literal"><span class="pre">create()</span></tt></a> and
 <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.drop" title="sqlalchemy.dialects.postgresql.ENUM.drop"><tt class="xref py py-meth docutils literal"><span class="pre">drop()</span></tt></a> methods can
 be used to emit SQL to a target bind.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.4.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.7.4.</span></p>
+</div>
 </td>
 </tr>
 </tbody>
@@ -861,8 +869,10 @@ if the type actually exists before dropping.</li>
 <p>For usage with the SQLAlchemy ORM, it may be desirable to combine
 the usage of <a class="reference internal" href="#sqlalchemy.dialects.postgresql.HSTORE" title="sqlalchemy.dialects.postgresql.HSTORE"><tt class="xref py py-class docutils literal"><span class="pre">HSTORE</span></tt></a> with <a class="reference internal" href="../orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableDict" title="sqlalchemy.ext.mutable.MutableDict"><tt class="xref py py-class docutils literal"><span class="pre">MutableDict</span></tt></a> dictionary
 now part of the <a class="reference internal" href="../orm/extensions/mutable.html#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a>
-extension.  This extension will allow in-place changes to dictionary
-values to be detected by the unit of work:</p>
+extension.  This extension will allow &#8220;in-place&#8221; changes to the
+dictionary, e.g. addition of new keys or replacement/removal of existing
+keys to/from the current dictionary, to produce events which will be detected
+by the unit of work:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.mutable</span> <span class="kn">import</span> <span class="n">MutableDict</span>
 
 <span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -879,9 +889,14 @@ values to be detected by the unit of work:</p>
 
 <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></pre></div>
 </div>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.</span></p>
-<div class="admonition-see-also admonition seealso">
+<p>When the <a class="reference internal" href="../orm/extensions/mutable.html#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> extension is not used, the ORM
+will not be alerted to any changes to the contents of an existing dictionary,
+unless that dictionary value is re-assigned to the HSTORE-attribute itself,
+thus generating a change event.</p>
+<div class="versionadded">
+<p><span>New in version 0.8.</span></p>
+</div>
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.hstore" title="sqlalchemy.dialects.postgresql.hstore"><tt class="xref py py-class docutils literal"><span class="pre">hstore</span></tt></a> - render the Postgresql <tt class="docutils literal"><span class="pre">hstore()</span></tt> function.</p>
 </div>
@@ -978,7 +993,7 @@ array of keys.</p>
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.hstore">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">hstore</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.hstore" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.functions.GenericFunction" title="sqlalchemy.sql.functions.GenericFunction"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.functions.GenericFunction</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="../core/functions.html#sqlalchemy.sql.functions.GenericFunction" title="sqlalchemy.sql.functions.GenericFunction"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.functions.GenericFunction</span></tt></a></p>
 <p>Construct an hstore value within a SQL expression using the
 Postgresql <tt class="docutils literal"><span class="pre">hstore()</span></tt> function.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.hstore" title="sqlalchemy.dialects.postgresql.hstore"><tt class="xref py py-class docutils literal"><span class="pre">hstore</span></tt></a> function accepts one or two arguments as described
@@ -995,9 +1010,10 @@ in the Postgresql documentation.</p>
         <span class="p">)</span>
     <span class="p">])</span></pre></div>
 </div>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.</span></p>
-<div class="admonition-see-also admonition seealso">
+<div class="versionadded">
+<p><span>New in version 0.8.</span></p>
+</div>
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.HSTORE" title="sqlalchemy.dialects.postgresql.HSTORE"><tt class="xref py py-class docutils literal"><span class="pre">HSTORE</span></tt></a> - the Postgresql <tt class="docutils literal"><span class="pre">HSTORE</span></tt> datatype.</p>
 </div>
@@ -1112,8 +1128,9 @@ catered for by the following types:</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INT4RANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INT4RANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql INT4RANGE type.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.2.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.8.2.</span></p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -1121,8 +1138,9 @@ catered for by the following types:</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INT8RANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INT8RANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql INT8RANGE type.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.2.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.8.2.</span></p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -1130,8 +1148,9 @@ catered for by the following types:</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">NUMRANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.NUMRANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql NUMRANGE type.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.2.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.8.2.</span></p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -1139,8 +1158,9 @@ catered for by the following types:</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">DATERANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DATERANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql DATERANGE type.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.2.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.8.2.</span></p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -1148,8 +1168,9 @@ catered for by the following types:</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">TSRANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSRANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql TSRANGE type.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.2.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.8.2.</span></p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -1157,8 +1178,9 @@ catered for by the following types:</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">TSTZRANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSTZRANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql TSTZRANGE type.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.2.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.8.2.</span></p>
+</div>
 </dd></dl>
 
 <p>The types above get most of their functionality from the following
@@ -1173,13 +1195,15 @@ provided in the <tt class="docutils literal"><span class="pre">postgres</span></
 any range types you create yourself.</p>
 <p>No extra support is provided for the Range Functions listed in
 Table 9-45 of the postgres documentation. For these, the normal
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-func docutils literal"><span class="pre">func()</span></tt></a> object should be used.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.2: </span>Support for Postgresql RANGE operations.</p>
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-func docutils literal"><span class="pre">func()</span></tt></a> object should be used.</p>
+<div class="versionadded">
+<p><span>New in version 0.8.2: </span>Support for Postgresql RANGE operations.</p>
+</div>
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory">
 <em class="property">class </em><tt class="descname">comparator_factory</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define comparison operations for range types.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Comparator</span></tt></p>
+<p>Define comparison operations for range types.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.__ne__">
 <tt class="descname">__ne__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.__ne__" title="Permalink to this definition">¶</a></dt>
@@ -1263,7 +1287,7 @@ before using these column types.</p>
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.ExcludeConstraint">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">ExcludeConstraint</tt><big>(</big><em>*elements</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ColumnCollectionConstraint" title="sqlalchemy.schema.ColumnCollectionConstraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionConstraint</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ColumnCollectionConstraint" title="sqlalchemy.schema.ColumnCollectionConstraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionConstraint</span></tt></a></p>
 <p>A table-level EXCLUDE constraint.</p>
 <p>Defines an EXCLUDE constraint as described in the <a class="reference external" href="http://www.postgresql.org/docs/9.0/static/sql-createtable.html#SQL-CREATETABLE-EXCLUDE">postgres
 documentation</a>.</p>
@@ -1365,7 +1389,7 @@ using <tt class="docutils literal"><span class="pre">host</span></tt> as an addi
 <div class="section" id="per-statement-connection-execution-options">
 <h3>Per-Statement/Connection Execution Options<a class="headerlink" href="#per-statement-connection-execution-options" title="Permalink to this headline">¶</a></h3>
 <p>The following DBAPI-specific options are respected when used with
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a>, <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execution_options()</span></tt></a>,
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a>, <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execution_options()</span></tt></a>,
 <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a>, in addition to those not specific to DBAPIs:</p>
 <ul class="simple">
 <li>isolation_level - Set the transaction isolation level for the lifespan of a
@@ -1399,9 +1423,10 @@ on all new connections based on the value passed to
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://user:pass@host/dbname&quot;</span><span class="p">,</span> <span class="n">client_encoding</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>This overrides the encoding specified in the Postgresql client configuration.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.3: </span>The psycopg2-specific <tt class="docutils literal"><span class="pre">client_encoding</span></tt> parameter to
+<div class="versionadded">
+<p><span>New in version 0.7.3: </span>The psycopg2-specific <tt class="docutils literal"><span class="pre">client_encoding</span></tt> parameter to
 <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
+</div>
 <p>SQLAlchemy can also be instructed to skip the usage of the psycopg2
 <tt class="docutils literal"><span class="pre">UNICODE</span></tt> extension and to instead utilize it&#8217;s own unicode encode/decode
 services, which are normally reserved only for those DBAPIs that don&#8217;t
@@ -1437,9 +1462,10 @@ setting is always emitted at the start of each transaction in any case.</p>
 <li><tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt></li>
 <li><tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt></li>
 </ul>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.2: </span>support for AUTOCOMMIT isolation level when using
+<div class="versionadded">
+<p><span>New in version 0.8.2: </span>support for AUTOCOMMIT isolation level when using
 psycopg2.</p>
+</div>
 </div>
 <div class="section" id="notice-logging">
 <h3>NOTICE logging<a class="headerlink" href="#notice-logging" title="Permalink to this headline">¶</a></h3>
@@ -1528,7 +1554,7 @@ yet.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

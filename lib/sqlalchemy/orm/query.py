@@ -299,11 +299,8 @@ class Query(object):
 
     @property
     def _mapper_entities(self):
-        # TODO: this is wrong, its hardcoded to "primary entity" when
-        # for the case of __all_equivs() it should not be
-        # the name of this accessor is wrong too
         for ent in self._entities:
-            if hasattr(ent, 'primary_entity'):
+            if isinstance(ent, _MapperEntity):
                 yield ent
 
     def _joinpoint_zero(self):
@@ -575,6 +572,13 @@ class Query(object):
 
     @property
     def selectable(self):
+        """Return the :class:`.Select` object emitted by this :class:`.Query`.
+
+        Used for :func:`.inspect` compatibility, this is equivalent to::
+
+            query.enable_eagerloads(False).with_labels().statement
+
+        """
         return self.__clause_element__()
 
     def __clause_element__(self):
@@ -714,12 +718,12 @@ class Query(object):
         loading, the full result for all rows is fetched which generally
         defeats the purpose of :meth:`~sqlalchemy.orm.query.Query.yield_per`.
 
-        Also note that many DBAPIs do not "stream" results, pre-buffering
-        all rows before making them available, including mysql-python and
-        psycopg2.  :meth:`~sqlalchemy.orm.query.Query.yield_per` will also
-        set the ``stream_results`` execution
-        option to ``True``, which currently is only understood by psycopg2
-        and causes server side cursors to be used.
+        Also note that while :meth:`~sqlalchemy.orm.query.Query.yield_per`
+        will set the ``stream_results`` execution option to True, currently
+        this is only understood by :mod:`~sqlalchemy.dialects.postgresql.psycopg2` dialect
+        which will stream results using server side cursors instead of pre-buffer
+        all rows for this query. Other DBAPIs pre-buffer all rows before
+        making them available.
 
         """
         self._yield_per = count
@@ -2488,7 +2492,7 @@ class Query(object):
         .. versionadded:: 0.8.1
 
         """
-        return sql.exists(self.with_entities('1').statement)
+        return sql.exists(self.statement.with_only_columns(['1']))
 
     def count(self):
         """Return a count of rows this Query would return.
@@ -2559,19 +2563,37 @@ class Query(object):
             The expression evaluator currently doesn't account for differing
             string collations between the database and Python.
 
-        Returns the number of rows deleted, excluding any cascades.
+        :return: the count of rows matched as returned by the database's
+          "row count" feature.
 
-        The method does *not* offer in-Python cascading of relationships - it
-        is assumed that ON DELETE CASCADE is configured for any foreign key
-        references which require it. The Session needs to be expired (occurs
-        automatically after commit(), or call expire_all()) in order for the
-        state of dependent objects subject to delete or delete-orphan cascade
-        to be correctly represented.
+        This method has several key caveats:
 
-        Note that the :meth:`.MapperEvents.before_delete` and
-        :meth:`.MapperEvents.after_delete`
-        events are **not** invoked from this method.  It instead
-        invokes :meth:`.SessionEvents.after_bulk_delete`.
+        * The method does **not** offer in-Python cascading of relationships - it
+          is assumed that ON DELETE CASCADE/SET NULL/etc. is configured for any foreign key
+          references which require it, otherwise the database may emit an
+          integrity violation if foreign key references are being enforced.
+
+          After the DELETE, dependent objects in the :class:`.Session` which
+          were impacted by an ON DELETE may not contain the current
+          state, or may have been deleted. This issue is resolved once the
+          :class:`.Session` is expired,
+          which normally occurs upon :meth:`.Session.commit` or can be forced
+          by using :meth:`.Session.expire_all`.  Accessing an expired object
+          whose row has been deleted will invoke a SELECT to locate the
+          row; when the row is not found, an :class:`.ObjectDeletedError`
+          is raised.
+
+        * The :meth:`.MapperEvents.before_delete` and
+          :meth:`.MapperEvents.after_delete`
+          events are **not** invoked from this method.  Instead, the
+          :meth:`.SessionEvents.after_bulk_delete` method is provided to act
+          upon a mass DELETE of entity rows.
+
+        .. seealso::
+
+            :meth:`.Query.update`
+
+            :ref:`inserts_and_updates` - Core SQL tutorial
 
         """
         #TODO: cascades need handling.
@@ -2610,20 +2632,50 @@ class Query(object):
             The expression evaluator currently doesn't account for differing
             string collations between the database and Python.
 
-        Returns the number of rows matched by the update.
+        :return: the count of rows matched as returned by the database's
+          "row count" feature.
 
-        The method does *not* offer in-Python cascading of relationships - it
-        is assumed that ON UPDATE CASCADE is configured for any foreign key
-        references which require it.
+        This method has several key caveats:
 
-        The Session needs to be expired (occurs automatically after commit(),
-        or call expire_all()) in order for the state of dependent objects
-        subject foreign key cascade to be correctly represented.
+        * The method does **not** offer in-Python cascading of relationships - it
+          is assumed that ON UPDATE CASCADE is configured for any foreign key
+          references which require it, otherwise the database may emit an
+          integrity violation if foreign key references are being enforced.
 
-        Note that the :meth:`.MapperEvents.before_update` and
-        :meth:`.MapperEvents.after_update`
-        events are **not** invoked from this method.  It instead
-        invokes :meth:`.SessionEvents.after_bulk_update`.
+          After the UPDATE, dependent objects in the :class:`.Session` which
+          were impacted by an ON UPDATE CASCADE may not contain the current
+          state; this issue is resolved once the :class:`.Session` is expired,
+          which normally occurs upon :meth:`.Session.commit` or can be forced
+          by using :meth:`.Session.expire_all`.
+
+        * As of 0.8, this method will support multiple table updates, as detailed
+          in :ref:`multi_table_updates`, and this behavior does extend to support
+          updates of joined-inheritance and other multiple table mappings.  However,
+          the **join condition of an inheritance mapper is currently not
+          automatically rendered**.
+          Care must be taken in any multiple-table update to explicitly include
+          the joining condition between those tables, even in mappings where
+          this is normally automatic.
+          E.g. if a class ``Engineer`` subclasses ``Employee``, an UPDATE of the
+          ``Engineer`` local table using criteria against the ``Employee``
+          local table might look like::
+
+                session.query(Engineer).\\
+                    filter(Engineer.id == Employee.id).\\
+                    filter(Employee.name == 'dilbert').\\
+                    update({"engineer_type": "programmer"})
+
+        * The :meth:`.MapperEvents.before_update` and
+          :meth:`.MapperEvents.after_update`
+          events are **not** invoked from this method.  Instead, the
+          :meth:`.SessionEvents.after_bulk_update` method is provided to act
+          upon a mass UPDATE of entity rows.
+
+        .. seealso::
+
+            :meth:`.Query.delete`
+
+            :ref:`inserts_and_updates` - Core SQL tutorial
 
         """
 

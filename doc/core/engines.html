@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -35,7 +35,7 @@
     <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Working with Engines and Connections" href="connections.html" />
-        <link rel="prev" title="SQL Statements and Expressions API" href="expression_api.html" />
+        <link rel="prev" title="Customizing DDL" href="ddl.html" />
 
     </head>
     <body>
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -78,7 +78,7 @@
     <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
-            <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
+            <a href="ddl.html" title="previous chapter">Customizing DDL</a>
             </li>
             <li>Next:
             <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
@@ -136,7 +136,7 @@
 
     <h4>Previous Topic</h4>
     <p>
-    <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
+    <a href="ddl.html" title="previous chapter">Customizing DDL</a>
     </p>
     <h4>Next Topic</h4>
     <p>
@@ -241,9 +241,10 @@ establish any actual DBAPI connections directly.</p>
 <li><strong>case_sensitive=True</strong> &#8211; <p>if False, result column names
 will match in a case-insensitive fashion, that is,
 <tt class="docutils literal"><span class="pre">row['SomeColumn']</span></tt>.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.8: </span>By default, result row names match case-sensitively.
+<div class="versionchanged">
+<p><span>Changed in version 0.8: </span>By default, result row names match case-sensitively.
 In version 0.7 and prior, all matches were case-insensitive.</p>
+</div>
 </li>
 <li><strong>connect_args</strong> &#8211; a dictionary of options which will be
 passed directly to the DBAPI&#8217;s <tt class="docutils literal"><span class="pre">connect()</span></tt> method as
@@ -395,8 +396,9 @@ behavior of the pool, which is whether <tt class="docutils literal"><span class=
 <tt class="docutils literal"><span class="pre">commit()</span></tt>, or nothing is called upon connections
 being returned to the pool.  See the docstring for
 <tt class="docutils literal"><span class="pre">reset_on_return</span></tt> at <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.6.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.7.6.</span></p>
+</div>
 </li>
 <li><strong>pool_timeout=30</strong> &#8211; number of seconds to wait before giving
 up on getting a connection from the pool. This is only used
@@ -482,7 +484,7 @@ is the JDBC-DBAPI bridge included with Jython.</p>
 </div>
 <div class="section" id="oracle">
 <h3>Oracle<a class="headerlink" href="#oracle" title="Permalink to this headline">¶</a></h3>
-<p>cx_oracle is usualjy used here:</p>
+<p>cx_oracle is usually used here:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@127.0.0.1:1521/sidname&#39;</span><span class="p">)</span>
 
 <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle+cx_oracle://scott:tiger@tnsname&#39;</span><span class="p">)</span></pre></div>
@@ -689,13 +691,13 @@ after the current transaction ends and a new one begins).</p>
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
         Previous:
-        <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
+        <a href="ddl.html" title="previous chapter">Customizing DDL</a>
         Next:
         <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

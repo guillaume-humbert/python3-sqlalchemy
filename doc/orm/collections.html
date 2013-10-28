@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -404,7 +404,7 @@ is added to the <tt class="docutils literal"><span class="pre">Item.notes</span>
 <span class="go">{(&#39;a&#39;, &#39;atext&#39;): &lt;__main__.Note object at 0x2eaaf0&gt;}</span></pre></div>
 </div>
 <p>Other built-in dictionary types include <a class="reference internal" href="#sqlalchemy.orm.collections.column_mapped_collection" title="sqlalchemy.orm.collections.column_mapped_collection"><tt class="xref py py-func docutils literal"><span class="pre">column_mapped_collection()</span></tt></a>,
-which is almost like <a class="reference internal" href="#sqlalchemy.orm.collections.attribute_mapped_collection" title="sqlalchemy.orm.collections.attribute_mapped_collection"><tt class="xref py py-func docutils literal"><span class="pre">attribute_mapped_collection()</span></tt></a> except given the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
+which is almost like <a class="reference internal" href="#sqlalchemy.orm.collections.attribute_mapped_collection" title="sqlalchemy.orm.collections.attribute_mapped_collection"><tt class="xref py py-func docutils literal"><span class="pre">attribute_mapped_collection()</span></tt></a> except given the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
 object directly:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm.collections</span> <span class="kn">import</span> <span class="n">column_mapped_collection</span>
 
@@ -878,7 +878,8 @@ methods before used in a custom subclass.</p>
 <dl class="class">
 <dt id="sqlalchemy.orm.collections.MappedCollection">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">MappedCollection</tt><big>(</big><em>keyfunc</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.MappedCollection" title="Permalink to this definition">¶</a></dt>
-<dd><p>A basic dictionary-based collection class.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">__builtin__.dict</span></tt></p>
+<p>A basic dictionary-based collection class.</p>
 <p>Extends dict with the minimal bag semantics that collection
 classes require. <tt class="docutils literal"><span class="pre">set</span></tt> and <tt class="docutils literal"><span class="pre">remove</span></tt> are implemented in terms
 of a keying function: any callable that takes an object and
@@ -1032,19 +1033,22 @@ of custom methods, such as to unwrap Zope security proxies.</p>
 <dl class="class">
 <dt id="sqlalchemy.orm.collections.InstrumentedDict">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">InstrumentedDict</tt><a class="headerlink" href="#sqlalchemy.orm.collections.InstrumentedDict" title="Permalink to this definition">¶</a></dt>
-<dd><p>An instrumented version of the built-in dict.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">__builtin__.dict</span></tt></p>
+<p>An instrumented version of the built-in dict.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.collections.InstrumentedList">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">InstrumentedList</tt><a class="headerlink" href="#sqlalchemy.orm.collections.InstrumentedList" title="Permalink to this definition">¶</a></dt>
-<dd><p>An instrumented version of the built-in list.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">__builtin__.list</span></tt></p>
+<p>An instrumented version of the built-in list.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.collections.InstrumentedSet">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">InstrumentedSet</tt><a class="headerlink" href="#sqlalchemy.orm.collections.InstrumentedSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>An instrumented version of the built-in set.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">__builtin__.set</span></tt></p>
+<p>An instrumented version of the built-in set.</p>
 </dd></dl>
 
 <dl class="function">
@@ -1073,7 +1077,7 @@ into the run-time behavior of collection_class=InstrumentedList.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

@@ -680,7 +680,7 @@ class importlater(object):
 
         from mypackage.somemodule import somesubmod
 
-    except evaluted upon attribute access to "somesubmod".
+    except evaluated upon attribute access to "somesubmod".
 
     importlater() currently requires that resolve_all() be
     called, typically at the bottom of a package's __init__.py.
@@ -1038,9 +1038,21 @@ def warn(msg, stacklevel=3):
         warnings.warn(msg, stacklevel=stacklevel)
 
 
+def only_once(fn):
+    """Decorate the given function to be a no-op after it is called exactly
+    once."""
+
+    once = [fn]
+    def go(*arg, **kw):
+        if once:
+            once_fn = once.pop()
+            return once_fn(*arg, **kw)
+
+    return update_wrapper(go, fn)
+
+
 _SQLA_RE = re.compile(r'sqlalchemy/([a-z_]+/){0,2}[a-z_]+\.py')
 _UNITTEST_RE = re.compile(r'unit(?:2|test2?/)')
-
 
 def chop_traceback(tb, exclude_prefix=_UNITTEST_RE, exclude_suffix=_SQLA_RE):
     """Chop extraneous lines off beginning and end of a traceback.

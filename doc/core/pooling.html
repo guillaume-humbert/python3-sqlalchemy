@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -34,7 +34,7 @@
         <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
-        <link rel="next" title="Schema Definition Language" href="schema.html" />
+        <link rel="next" title="Events" href="event.html" />
         <link rel="prev" title="Working with Engines and Connections" href="connections.html" />
 
     </head>
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -81,7 +81,7 @@
             <a href="connections.html" title="previous chapter">Working with Engines and Connections</a>
             </li>
             <li>Next:
-            <a href="schema.html" title="next chapter">Schema Definition Language</a>
+            <a href="event.html" title="next chapter">Events</a>
             </li>
 
         <li>
@@ -140,7 +140,7 @@
     </p>
     <h4>Next Topic</h4>
     <p>
-    <a href="schema.html" title="next chapter">Schema Definition Language</a>
+    <a href="event.html" title="next chapter">Events</a>
     </p>
 
 
@@ -414,7 +414,8 @@ server at the point at which the script pauses for input:</p>
 <dl class="class">
 <dt id="sqlalchemy.pool.Pool">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">Pool</tt><big>(</big><em>creator</em>, <em>recycle=-1</em>, <em>echo=None</em>, <em>use_threadlocal=False</em>, <em>logging_name=None</em>, <em>reset_on_return=True</em>, <em>listeners=None</em>, <em>events=None</em>, <em>_dispatch=None</em>, <em>_dialect=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract base class for connection pools.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.log.Identified</span></tt></p>
+<p>Abstract base class for connection pools.</p>
 <dl class="method">
 <dt id="sqlalchemy.pool.Pool.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>creator</em>, <em>recycle=-1</em>, <em>echo=None</em>, <em>use_threadlocal=False</em>, <em>logging_name=None</em>, <em>reset_on_return=True</em>, <em>listeners=None</em>, <em>events=None</em>, <em>_dispatch=None</em>, <em>_dialect=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool.__init__" title="Permalink to this definition">¶</a></dt>
@@ -448,10 +449,10 @@ returned yet.  Offers a slight performance advantage at the
 cost of individual transactions by default.  The
 <tt class="xref py py-meth docutils literal"><span class="pre">unique_connection()</span></tt> method is provided to bypass the
 threadlocal behavior installed into <a class="reference internal" href="#sqlalchemy.pool.Pool.connect" title="sqlalchemy.pool.Pool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt></a>.</li>
-<li><strong>reset_on_return</strong> &#8211; If true, reset the database state of
-connections returned to the pool.  This is typically a
-ROLLBACK to release locks and transaction resources.
-Disable at your own peril.  Defaults to True.</li>
+<li><strong>reset_on_return</strong> &#8211; Configures the action to take
+on connections as they are returned to the pool.
+See the argument description in <a class="reference internal" href="#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a> for
+more detail.</li>
 <li><strong>events</strong> &#8211; a list of 2-tuples, each of the form
 <tt class="docutils literal"><span class="pre">(callable,</span> <span class="pre">target)</span></tt> which will be passed to event.listen()
 upon construction.   Provided here so that event listeners
@@ -589,8 +590,9 @@ state.</li>
 <li>False - same as None, this is here for
 backwards compatibility.</li>
 </ul>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.7.6: </span><tt class="docutils literal"><span class="pre">reset_on_return</span></tt> accepts values.</p>
+<div class="versionchanged">
+<p><span>Changed in version 0.7.6: </span><tt class="docutils literal"><span class="pre">reset_on_return</span></tt> accepts values.</p>
+</div>
 </li>
 <li><strong>listeners</strong> &#8211; A list of
 <a class="reference internal" href="interfaces.html#sqlalchemy.interfaces.PoolListener" title="sqlalchemy.interfaces.PoolListener"><tt class="xref py py-class docutils literal"><span class="pre">PoolListener</span></tt></a>-like objects or
@@ -642,10 +644,11 @@ any given time.</p>
 <p>This will raise an exception if more than one connection is checked out
 at a time.  Useful for debugging code that is using more connections
 than desired.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.7: </span><a class="reference internal" href="#sqlalchemy.pool.AssertionPool" title="sqlalchemy.pool.AssertionPool"><tt class="xref py py-class docutils literal"><span class="pre">AssertionPool</span></tt></a> also logs a traceback of where
+<div class="versionchanged">
+<p><span>Changed in version 0.7: </span><a class="reference internal" href="#sqlalchemy.pool.AssertionPool" title="sqlalchemy.pool.AssertionPool"><tt class="xref py py-class docutils literal"><span class="pre">AssertionPool</span></tt></a> also logs a traceback of where
 the original connection was checked out, and reports
 this in the assertion error raised.</p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -658,9 +661,10 @@ per each connection open/close.</p>
 <p>Reconnect-related functions such as <tt class="docutils literal"><span class="pre">recycle</span></tt> and connection
 invalidation are not supported by this Pool implementation, since
 no connections are held persistently.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.7: </span><a class="reference internal" href="#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> is used by the SQlite dialect automatically
+<div class="versionchanged">
+<p><span>Changed in version 0.7: </span><a class="reference internal" href="#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> is used by the SQlite dialect automatically
 when a file-based database is used. See <a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -756,11 +760,11 @@ pooling.  Defaults to <a class="reference internal" href="#sqlalchemy.pool.Queue
         Previous:
         <a href="connections.html" title="previous chapter">Working with Engines and Connections</a>
         Next:
-        <a href="schema.html" title="next chapter">Schema Definition Language</a>
+        <a href="event.html" title="next chapter">Events</a>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

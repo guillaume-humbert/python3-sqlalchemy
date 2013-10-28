@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -365,7 +365,7 @@ mapping which relates a <tt class="docutils literal"><span class="pre">User</spa
             <span class="n">account</span> <span class="o">=</span> <span class="n">Account</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">account</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accounts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">account</span><span class="o">.</span><span class="n">balance</span> <span class="o">=</span> <span class="n">balance</span>
+        <span class="n">account</span><span class="o">.</span><span class="n">balance</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@balance.expression</span>
     <span class="k">def</span> <span class="nf">balance</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
@@ -402,7 +402,7 @@ would use an outer join:</p>
 <h3>Correlated Subquery Relationship Hybrid<a class="headerlink" href="#correlated-subquery-relationship-hybrid" title="Permalink to this headline">¶</a></h3>
 <p>We can, of course, forego being dependent on the enclosing query&#8217;s usage
 of joins in favor of the correlated subquery, which can portably be packed
-into a single colunn expression. A correlated subquery is more portable, but
+into a single column expression. A correlated subquery is more portable, but
 often performs more poorly at the SQL level. Using the same technique
 illustrated at <a class="reference internal" href="../mapper_config.html#mapper-column-property-sql-expressions"><em>Using column_property</em></a>,
 we can adjust our <tt class="docutils literal"><span class="pre">SavingsAccount</span></tt> example to aggregate the balances for
@@ -490,9 +490,9 @@ SQL function to both sides:</p>
 <span class="go">WHERE lower(searchword.word) = lower(:lower_1)</span></pre></div>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">CaseInsensitiveComparator</span></tt> above implements part of the
-<a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a> interface.   A &#8220;coercion&#8221; operation like
+<a class="reference internal" href="../../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a> interface.   A &#8220;coercion&#8221; operation like
 lowercasing can be applied to all comparison operations (i.e. <tt class="docutils literal"><span class="pre">eq</span></tt>,
-<tt class="docutils literal"><span class="pre">lt</span></tt>, <tt class="docutils literal"><span class="pre">gt</span></tt>, etc.) using <a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.operators.Operators.operate" title="sqlalchemy.sql.operators.Operators.operate"><tt class="xref py py-meth docutils literal"><span class="pre">Operators.operate()</span></tt></a>:</p>
+<tt class="docutils literal"><span class="pre">lt</span></tt>, <tt class="docutils literal"><span class="pre">gt</span></tt>, etc.) using <a class="reference internal" href="../../core/sqlelement.html#sqlalchemy.sql.operators.Operators.operate" title="sqlalchemy.sql.operators.Operators.operate"><tt class="xref py py-meth docutils literal"><span class="pre">Operators.operate()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">CaseInsensitiveComparator</span><span class="p">(</span><span class="n">Comparator</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">operate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clause_element__</span><span class="p">()),</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">other</span><span class="p">))</span></pre></div>
@@ -589,7 +589,7 @@ here):</p>
 <p>The Hybrid Value pattern is very useful for any kind of value that may
 have multiple representations, such as timestamps, time deltas, units
 of measurement, currencies and encrypted passwords.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference external" href="http://techspot.zzzeek.org/2011/10/21/hybrids-and-value-agnostic-types/">Hybrids and Value Agnostic Types</a> -
 on the techspot.zzzeek.org blog</p>
@@ -666,7 +666,7 @@ filtered based on the given criterion:</p>
         <span class="k">return</span> <span class="n">GrandparentTransformer</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span></pre></div>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">GrandparentTransformer</span></tt> overrides the core
-<a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.operators.Operators.operate" title="sqlalchemy.sql.operators.Operators.operate"><tt class="xref py py-meth docutils literal"><span class="pre">Operators.operate()</span></tt></a> method at the base of the
+<a class="reference internal" href="../../core/sqlelement.html#sqlalchemy.sql.operators.Operators.operate" title="sqlalchemy.sql.operators.Operators.operate"><tt class="xref py py-meth docutils literal"><span class="pre">Operators.operate()</span></tt></a> method at the base of the
 <a class="reference internal" href="#sqlalchemy.ext.hybrid.Comparator" title="sqlalchemy.ext.hybrid.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">Comparator</span></tt></a> hierarchy to return a query-transforming
 callable, which then runs the given comparison operation in a
 particular context. Such as, in the example above, the <tt class="docutils literal"><span class="pre">operate</span></tt>
@@ -734,7 +734,8 @@ there&#8217;s probably a whole lot of amazing things it can be used for.</p>
 <dl class="class">
 <dt id="sqlalchemy.ext.hybrid.hybrid_method">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.ext.hybrid.</tt><tt class="descname">hybrid_method</tt><big>(</big><em>func</em>, <em>expr=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.hybrid.hybrid_method" title="Permalink to this definition">¶</a></dt>
-<dd><p>A decorator which allows definition of a Python object method with both
+<dd><p>Bases: <a class="reference internal" href="../internals.html#sqlalchemy.orm.interfaces._InspectionAttr" title="sqlalchemy.orm.interfaces._InspectionAttr"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.interfaces._InspectionAttr</span></tt></a></p>
+<p>A decorator which allows definition of a Python object method with both
 instance-level and class-level behavior.</p>
 <dl class="method">
 <dt id="sqlalchemy.ext.hybrid.hybrid_method.__init__">
@@ -766,7 +767,8 @@ SQL-expression producing method.</p>
 <dl class="class">
 <dt id="sqlalchemy.ext.hybrid.hybrid_property">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.ext.hybrid.</tt><tt class="descname">hybrid_property</tt><big>(</big><em>fget</em>, <em>fset=None</em>, <em>fdel=None</em>, <em>expr=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.hybrid.hybrid_property" title="Permalink to this definition">¶</a></dt>
-<dd><p>A decorator which allows definition of a Python descriptor with both
+<dd><p>Bases: <a class="reference internal" href="../internals.html#sqlalchemy.orm.interfaces._InspectionAttr" title="sqlalchemy.orm.interfaces._InspectionAttr"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.interfaces._InspectionAttr</span></tt></a></p>
+<p>A decorator which allows definition of a Python descriptor with both
 instance-level and class-level behavior.</p>
 <dl class="method">
 <dt id="sqlalchemy.ext.hybrid.hybrid_property.__init__">
@@ -851,7 +853,7 @@ classes for usage with hybrids.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

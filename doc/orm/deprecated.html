@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -64,7 +64,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -132,10 +132,11 @@
 <p>This section describes the class-based ORM event interface which first
 existed in SQLAlchemy 0.1, which progressed with more kinds of events up
 until SQLAlchemy 0.5.  The non-ORM analogue is described at <a class="reference internal" href="../core/interfaces.html"><em>Deprecated Event Interfaces</em></a>.</p>
-<p class="deprecated">
-<span class="versionmodified">Deprecated since version 0.7: </span>As of SQLAlchemy 0.7, the new event system described in
+<div class="deprecated">
+<p><span>Deprecated since version 0.7: </span>As of SQLAlchemy 0.7, the new event system described in
 <a class="reference internal" href="../core/event.html"><em>Events</em></a> replaces the extension/proxy/listener system, providing
 a consistent interface to all events without the need for subclassing.</p>
+</div>
 <div class="section" id="mapper-events">
 <h2>Mapper Events<a class="headerlink" href="#mapper-events" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -354,11 +355,12 @@ used to populate eagerly loaded collections.</p>
 proceed normally.  If any other value or None is returned,
 instance population will not proceed, giving this extension an
 opportunity to populate the instance itself, if desired.</p>
-<p class="deprecated">
-<span class="versionmodified">Deprecated since version 0.5: </span>Most usages of this hook are obsolete.  For a
+<div class="deprecated">
+<p><span>Deprecated since version 0.5: </span>Most usages of this hook are obsolete.  For a
 generic &#8220;object has been newly created from a row&#8221; hook, use
 <tt class="docutils literal"><span class="pre">reconstruct_instance()</span></tt>, or the <tt class="docutils literal"><span class="pre">&#64;orm.reconstructor</span></tt>
 decorator.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -602,7 +604,7 @@ set.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

@@ -270,13 +270,17 @@ def expression_as_ddl(clause):
      into detached column constructs so that the parent table
      identifier is not included.
 
+     .. deprecated:: this function is removed in 0.9.0.
+
     """
     def repl(element):
         if isinstance(element, expression.BindParameter):
             return expression.literal_column(_quote_ddl_expr(element.value))
         elif isinstance(element, expression.ColumnClause) and \
                 element.table is not None:
-            return expression.column(element.name)
+            col = expression.column(element.name)
+            col.quote = element.quote
+            return col
         else:
             return None
 
@@ -495,7 +499,7 @@ class Annotated(object):
 class AnnotatedColumnElement(Annotated):
     def __init__(self, element, values):
         Annotated.__init__(self, element, values)
-        for attr in ('name', 'key'):
+        for attr in ('name', 'key', 'table'):
             if self.__dict__.get(attr, False) is None:
                 self.__dict__.pop(attr)
 
@@ -503,6 +507,11 @@ class AnnotatedColumnElement(Annotated):
     def name(self):
         """pull 'name' from parent, if not present"""
         return self._Annotated__element.name
+
+    @util.memoized_property
+    def table(self):
+        """pull 'table' from parent, if not present"""
+        return self._Annotated__element.table
 
     @util.memoized_property
     def key(self):
