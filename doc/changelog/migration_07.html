@@ -9,25 +9,39 @@
             
     
                 What&#8217;s New in SQLAlchemy 0.7?
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="What&#8217;s New in SQLAlchemy 0.6?" href="migration_06.html" />
         <link rel="prev" title="0.1 Changelog" href="changelog_01.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 What&#8217;s New in SQLAlchemy 0.7?
-             
+            
 
         <h2>
             
@@ -458,15 +476,14 @@ unchanged:</p>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1923">#1923</a></p>
 </div>
 <div class="section" id="mutation-event-extension-supersedes-mutable-true">
-<h3>Mutation event extension, supersedes &#8220;mutable=True&#8221;<a class="headerlink" href="#mutation-event-extension-supersedes-mutable-true" title="Permalink to this headline">¶</a></h3>
-<p>A new extension, <a class="reference external" href="http://www.sqlalchemy.org/docs/07/orm/extensions/mutable.html">Mutation Tracking</a>, provides a
+<span id="migration-mutation-extension"></span><h3>Mutation event extension, supersedes &#8220;mutable=True&#8221;<a class="headerlink" href="#mutation-event-extension-supersedes-mutable-true" title="Permalink to this headline">¶</a></h3>
+<p>A new extension, <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>, provides a
 mechanism by which user-defined datatypes can provide change
 events back to the owning parent or parents.   The extension
 includes an approach for scalar database values, such as
-those managed by <tt class="docutils literal"><span class="pre">PickleType</span></tt>, <tt class="docutils literal"><span class="pre">postgresql.ARRAY</span></tt>, or
+those managed by <a class="reference internal" href="../core/types.html#sqlalchemy.types.PickleType" title="sqlalchemy.types.PickleType"><tt class="xref py py-class docutils literal"><span class="pre">PickleType</span></tt></a>, <tt class="docutils literal"><span class="pre">postgresql.ARRAY</span></tt>, or
 other custom <tt class="docutils literal"><span class="pre">MutableType</span></tt> classes, as well as an approach
-for ORM &#8220;composites&#8221;, those configured using <a href="#id2"><span class="problematic" id="id3">:ref:`composite()
-&lt;mapper_composite&gt;`_</span></a>.</p>
+for ORM &#8220;composites&#8221;, those configured using <a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a>.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a></p>

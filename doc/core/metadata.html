@@ -9,25 +9,39 @@
             
     
                 Describing Databases with MetaData
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Schema Definition Language" href="schema.html" />
         <link rel="next" title="Reflecting Database Objects" href="reflection.html" />
         <link rel="prev" title="Schema Definition Language" href="schema.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -98,7 +116,7 @@
                 » <a href="schema.html" title="Schema Definition Language">Schema Definition Language</a>
         » 
                 Describing Databases with MetaData
-             
+            
 
         <h2>
             
@@ -576,7 +594,7 @@ x TEXT DEFAULT 'val'</pre>
 </div>
 <p>A <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> expression will be
 rendered as-is, without quotes:</p>
-<div class="highlight-python"><pre>Column('y', DateTime, server_default=text('NOW()'))0
+<div class="highlight-python"><pre>Column('y', DateTime, server_default=text('NOW()'))
 
 y DATETIME DEFAULT NOW()</pre>
 </div>
@@ -687,7 +705,7 @@ parent object.</p>
 <dt id="sqlalchemy.schema.Column.base_columns">
 <tt class="descname">base_columns</tt><a class="headerlink" href="#sqlalchemy.schema.Column.base_columns" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">base_columns</span></tt> <em>attribute of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
+<em>inherited from the</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement.base_columns" title="sqlalchemy.sql.expression.ColumnElement.base_columns"><tt class="xref py py-attr docutils literal"><span class="pre">base_columns</span></tt></a> <em>attribute of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
 </dd></dl>
 
 <dl class="method">
@@ -717,7 +735,7 @@ the parent object, given the collation string.</p>
 <dt id="sqlalchemy.schema.Column.comparator">
 <tt class="descname">comparator</tt><a class="headerlink" href="#sqlalchemy.schema.Column.comparator" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">comparator</span></tt> <em>attribute of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
+<em>inherited from the</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement.comparator" title="sqlalchemy.sql.expression.ColumnElement.comparator"><tt class="xref py py-attr docutils literal"><span class="pre">comparator</span></tt></a> <em>attribute of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
 </dd></dl>
 
 <dl class="method">
@@ -1160,7 +1178,7 @@ will be lower than or equal to all operators.</p>
 <dt id="sqlalchemy.schema.Column.operate">
 <tt class="descname">operate</tt><big>(</big><em>op</em>, <em>*other</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Column.operate" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <tt class="xref py py-meth docutils literal"><span class="pre">operate()</span></tt> <em>method of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
+<em>inherited from the</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement.operate" title="sqlalchemy.sql.expression.ColumnElement.operate"><tt class="xref py py-meth docutils literal"><span class="pre">operate()</span></tt></a> <em>method of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
 </dd></dl>
 
 <dl class="method">
@@ -1179,7 +1197,7 @@ will be lower than or equal to all operators.</p>
 <dt id="sqlalchemy.schema.Column.proxy_set">
 <tt class="descname">proxy_set</tt><a class="headerlink" href="#sqlalchemy.schema.Column.proxy_set" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">proxy_set</span></tt> <em>attribute of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
+<em>inherited from the</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement.proxy_set" title="sqlalchemy.sql.expression.ColumnElement.proxy_set"><tt class="xref py py-attr docutils literal"><span class="pre">proxy_set</span></tt></a> <em>attribute of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
 </dd></dl>
 
 <dl class="attribute">
@@ -1198,7 +1216,7 @@ key.</p>
 <dt id="sqlalchemy.schema.Column.reverse_operate">
 <tt class="descname">reverse_operate</tt><big>(</big><em>op</em>, <em>other</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Column.reverse_operate" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <tt class="xref py py-meth docutils literal"><span class="pre">reverse_operate()</span></tt> <em>method of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
+<em>inherited from the</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement.reverse_operate" title="sqlalchemy.sql.expression.ColumnElement.reverse_operate"><tt class="xref py py-meth docutils literal"><span class="pre">reverse_operate()</span></tt></a> <em>method of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
 </dd></dl>
 
 <dl class="method">
@@ -1276,7 +1294,7 @@ has a common ancestor to this <a class="reference internal" href="sqlelement.htm
 <dt id="sqlalchemy.schema.Column.type">
 <tt class="descname">type</tt><a class="headerlink" href="#sqlalchemy.schema.Column.type" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">type</span></tt> <em>attribute of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
+<em>inherited from the</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement.type" title="sqlalchemy.sql.expression.ColumnElement.type"><tt class="xref py py-attr docutils literal"><span class="pre">type</span></tt></a> <em>attribute of</em> <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a></div>
 </dd></dl>
 
 <dl class="method">

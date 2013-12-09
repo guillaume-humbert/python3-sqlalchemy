@@ -9,25 +9,39 @@
             
     
                 Selectables, Tables, FROM objects
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="SQL Statements and Expressions API" href="expression_api.html" />
         <link rel="next" title="Insert, Updates, Deletes" href="dml.html" />
         <link rel="prev" title="Column Elements and Expressions" href="sqlelement.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -98,7 +116,7 @@
                 » <a href="expression_api.html" title="SQL Statements and Expressions API">SQL Statements and Expressions API</a>
         » 
                 Selectables, Tables, FROM objects
-             
+            
 
         <h2>
             
@@ -850,7 +868,7 @@ used as a column expression.</p>
 <p>Typically, a select statement which has only one column in its columns
 clause is eligible to be used as a scalar expression.</p>
 <p>The returned object is an instance of
-<tt class="xref py py-class docutils literal"><span class="pre">ScalarSelect</span></tt>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.ScalarSelect" title="sqlalchemy.sql.expression.ScalarSelect"><tt class="xref py py-class docutils literal"><span class="pre">ScalarSelect</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2039,6 +2057,19 @@ used.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="sqlalchemy.sql.expression.ScalarSelect">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ScalarSelect</tt><big>(</big><em>element</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ScalarSelect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Generative</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Grouping</span></tt></p>
+<dl class="method">
+<dt id="sqlalchemy.sql.expression.ScalarSelect.where">
+<tt class="descname">where</tt><big>(</big><em>crit</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ScalarSelect.where" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a WHERE clause to the SELECT statement referred to
+by this <a class="reference internal" href="#sqlalchemy.sql.expression.ScalarSelect" title="sqlalchemy.sql.expression.ScalarSelect"><tt class="xref py py-class docutils literal"><span class="pre">ScalarSelect</span></tt></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="sqlalchemy.sql.expression.Select">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Select</tt><big>(</big><em>columns</em>, <em>whereclause=None</em>, <em>from_obj=None</em>, <em>distinct=False</em>, <em>having=None</em>, <em>correlate=True</em>, <em>prefixes=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.HasPrefixes</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.SelectBase</span></tt></a></p>
@@ -2183,7 +2214,7 @@ used as a column expression.</p>
 <p>Typically, a select statement which has only one column in its columns
 clause is eligible to be used as a scalar expression.</p>
 <p>The returned object is an instance of
-<tt class="xref py py-class docutils literal"><span class="pre">ScalarSelect</span></tt>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.ScalarSelect" title="sqlalchemy.sql.expression.ScalarSelect"><tt class="xref py py-class docutils literal"><span class="pre">ScalarSelect</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3115,7 +3146,7 @@ used as a column expression.</p>
 <p>Typically, a select statement which has only one column in its columns
 clause is eligible to be used as a scalar expression.</p>
 <p>The returned object is an instance of
-<tt class="xref py py-class docutils literal"><span class="pre">ScalarSelect</span></tt>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.ScalarSelect" title="sqlalchemy.sql.expression.ScalarSelect"><tt class="xref py py-class docutils literal"><span class="pre">ScalarSelect</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">

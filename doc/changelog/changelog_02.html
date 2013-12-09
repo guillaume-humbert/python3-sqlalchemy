@@ -9,25 +9,39 @@
             
     
                 0.2 Changelog
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="0.1 Changelog" href="changelog_01.html" />
         <link rel="prev" title="0.3 Changelog" href="changelog_03.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 0.2 Changelog
-             
+            
 
         <h2>
             
@@ -257,8 +275,8 @@ returns datetimes with tzinfo&#8217;s if available, which can create confusion
 against datetimes that dont).<a class="changeset-link reference internal" href="#change-76b257b9178528b6903fdfbacb5deb90">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.2.8-19"><span class="target" id="change-d92fa56b4ff96e8bbe8a715b461710ef"></span>fix to using query.count() with distinct, <a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs with SelectResults
-count()<a class="changeset-link reference internal" href="#change-d92fa56b4ff96e8bbe8a715b461710ef">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/287">#287</a></p>
+<li><p id="change-0.2.8-19"><span class="target" id="change-4c9c98073c450c62d75b6c9e1c6be295"></span>fix to using query.count() with distinct, **kwargs with SelectResults
+count()<a class="changeset-link reference internal" href="#change-4c9c98073c450c62d75b6c9e1c6be295">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/287">#287</a></p>
 </p>
 </li>
 <li><p id="change-0.2.8-20"><span class="target" id="change-cbd4157fde09c2e29b1106f3ba99d5bb"></span>deregister Table from MetaData when autoload fails;<a class="changeset-link reference internal" href="#change-cbd4157fde09c2e29b1106f3ba99d5bb">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/289">#289</a></p>
@@ -279,7 +297,7 @@ Released: Sat Aug 12 2006<ul class="simple">
 turned on for individual table, schema, and column identifiers when
 used in all queries/creates/drops.  Enabled via &#8220;quote=True&#8221; in
 Table or Column, as well as &#8220;quote_schema=True&#8221; in Table.  Thanks to
-Aaron Spike for his excellent efforts.<a class="changeset-link reference internal" href="#change-f68d31c5108f5178cd9ca5ed2f52188e">(link)</a><p></p>
+Aaron Spike for the excellent efforts.<a class="changeset-link reference internal" href="#change-f68d31c5108f5178cd9ca5ed2f52188e">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.7-1"><span class="target" id="change-28022343f9e0c1b8eec8a5cfa8770f0c"></span>assignmapper was setting is_primary=True, causing all sorts of mayhem

@@ -9,25 +9,39 @@
             
     
                 0.3 Changelog
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="0.2 Changelog" href="changelog_02.html" />
         <link rel="prev" title="0.4 Changelog" href="changelog_04.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 0.3 Changelog
-             
+            
 
         <h2>
             
@@ -703,8 +721,8 @@ from the association table by a delete operation matches the
 expected results<a class="changeset-link reference internal" href="#change-cb313a2a343c37587dcb6a44a61e9cd5">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.3.8-5"><span class="target" id="change-54897ff1003859d627b70ac40c8e9c58"><strong>[orm] </strong></span>session.get() and session.load() propagate <a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs through to
-query<a class="changeset-link reference internal" href="#change-54897ff1003859d627b70ac40c8e9c58">(link)</a><p></p>
+<li><p id="change-0.3.8-5"><span class="target" id="change-903aed08735804f496b188549879ab4f"><strong>[orm] </strong></span>session.get() and session.load() propagate **kwargs through to
+query<a class="changeset-link reference internal" href="#change-903aed08735804f496b188549879ab4f">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.3.8-6"><span class="target" id="change-4900a187a33ec9e4b25fecb93f373349"><strong>[orm] </strong></span>fix to polymorphic query which allows the original
@@ -972,8 +990,8 @@ dbapis<a class="changeset-link reference internal" href="#change-6f431b2f1da5df6
 an argument of NULL<a class="changeset-link reference internal" href="#change-62f64e15e5caee27d5fdb304138a3d64">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.3.7-24"><span class="target" id="change-0a8f61fa87fa2100ea72c52733d4d2da"><strong>[sql] </strong></span>query strings in unicode URLs get keys encoded to ascii
-for <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs compat<a class="changeset-link reference internal" href="#change-0a8f61fa87fa2100ea72c52733d4d2da">(link)</a><p></p>
+<li><p id="change-0.3.7-24"><span class="target" id="change-8406340520cd47aabf06707f06d707e7"><strong>[sql] </strong></span>query strings in unicode URLs get keys encoded to ascii
+for **kwargs compat<a class="changeset-link reference internal" href="#change-8406340520cd47aabf06707f06d707e7">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.3.7-25"><span class="target" id="change-d6bccf2e2942ba9e7fc42b6359f5e1c5"><strong>[sql] </strong></span>slight tweak to raw execute() change to also support tuples
@@ -989,8 +1007,8 @@ WHEN condition as the return type of the case statement<a class="changeset-link 
 <div class="section" id="change-0.3.7-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.3.7-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.3.7-27"><span class="target" id="change-692e1565645dbe8b9ef8164203b1c946"><strong>[mysql] </strong></span>support for SSL arguments given as inline within URL query string,
-prefixed with &#8220;<a href="#id15"><span class="problematic" id="id16">ssl_</span></a>&#8221;, courtesy <a class="reference external" href="mailto:terjeros&#37;&#52;&#48;gmail&#46;com">terjeros<span>&#64;</span>gmail<span>&#46;</span>com</a>.<a class="changeset-link reference internal" href="#change-692e1565645dbe8b9ef8164203b1c946">(link)</a><p></p>
+<li><p id="change-0.3.7-27"><span class="target" id="change-ea9d36d40ea288b0955dc117004baab9"><strong>[mysql] </strong></span>support for SSL arguments given as inline within URL query string,
+prefixed with &#8220;ssl_&#8221;, courtesy <a class="reference external" href="mailto:terjeros&#37;&#52;&#48;gmail&#46;com">terjeros<span>&#64;</span>gmail<span>&#46;</span>com</a>.<a class="changeset-link reference internal" href="#change-ea9d36d40ea288b0955dc117004baab9">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.3.7-28"><span class="target" id="change-40376dca5b9584c8cc73f958c6409a48"><strong>[mysql] [&lt;schemaname&gt;] </strong></span>mysql uses &#8220;DESCRIBE.&lt;tablename&gt;&#8221;, catching exceptions
@@ -1098,16 +1116,17 @@ into a new set of methods available off of Query.  These methods
 all provide &#8220;generative&#8221; behavior, whereby the Query is copied
 and a new one returned with additional criterion added.
 The new methods include:<blockquote>
-<div>filter() - applies select criterion to the query
-filter_by() - applies &#8220;by&#8221;-style criterion to the query
-avg() - return the avg() function on the given column
-join() - join to a property (or across a list of properties)
-outerjoin() - like join() but uses LEFT OUTER JOIN
-limit()/offset() - apply LIMIT/OFFSET
-range-based access which applies limit/offset:<blockquote>
-<div>session.query(Foo)[3:5]</div></blockquote>
-<p>distinct() - apply DISTINCT
-list() - evaluate the criterion and return results</p>
+<div><ul>
+<li>filter() - applies select criterion to the query</li>
+<li>filter_by() - applies &#8220;by&#8221;-style criterion to the query</li>
+<li>avg() - return the avg() function on the given column</li>
+<li>join() - join to a property (or across a list of properties)</li>
+<li>outerjoin() - like join() but uses LEFT OUTER JOIN</li>
+<li>limit()/offset() - apply LIMIT/OFFSET range-based access
+which applies limit/offset: session.query(Foo)[3:5]</li>
+<li>distinct() - apply DISTINCT</li>
+<li>list() - evaluate the criterion and return results</li>
+</ul>
 </div></blockquote>
 <p>no incompatible changes have been made to Query&#8217;s API and no methods
 have been deprecated.  Existing methods like select(), select_by(),
@@ -1132,8 +1151,8 @@ you can get full cartesian products). result set is the list of
 tuples, non-uniqued.<a class="changeset-link reference internal" href="#change-2795377646e93c3cb6cd134003d5dbe1">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.3.6-3"><span class="target" id="change-9075bb25cf6ce0ef7196609ee5a05d53"><strong>[orm] </strong></span>strings and columns can also be sent to the <a href="#id5"><span class="problematic" id="id6">*</span></a>args of instances()
-where those exact result columns will be part of the result tuples.<a class="changeset-link reference internal" href="#change-9075bb25cf6ce0ef7196609ee5a05d53">(link)</a><p></p>
+<li><p id="change-0.3.6-3"><span class="target" id="change-9d692f0426fa9d69b169b9e1078dae86"><strong>[orm] </strong></span>strings and columns can also be sent to the *args of instances()
+where those exact result columns will be part of the result tuples.<a class="changeset-link reference internal" href="#change-9d692f0426fa9d69b169b9e1078dae86">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.3.6-4"><span class="target" id="change-1dc867b13e1759c636e371363f6ce297"><strong>[orm] </strong></span>a full select() construct can be passed to query.select() (which
@@ -1265,8 +1284,8 @@ easy method of limiting a traversal (just pass flags which are
 picked up by appropriate get_children() methods).<a class="changeset-link reference internal" href="#change-11779379f1cac1ecc01fc15ac543b303">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/501">#501</a></p>
 </p>
 </li>
-<li><p id="change-0.3.6-25"><span class="target" id="change-d0eb64e664c7f936e458f5f319b4fc50"><strong>[sql] </strong></span>the &#8220;<a href="#id17"><span class="problematic" id="id18">else_</span></a>&#8221; parameter to the case statement now properly works when
-set to zero.<a class="changeset-link reference internal" href="#change-d0eb64e664c7f936e458f5f319b4fc50">(link)</a><p></p>
+<li><p id="change-0.3.6-25"><span class="target" id="change-d3cf951f12ffc0a70ad1ada85b66a0a6"><strong>[sql] </strong></span>the &#8220;else_&#8221; parameter to the case statement now properly works when
+set to zero.<a class="changeset-link reference internal" href="#change-d3cf951f12ffc0a70ad1ada85b66a0a6">(link)</a><p></p>
 </p>
 </li>
 </ul>
@@ -1274,8 +1293,8 @@ set to zero.<a class="changeset-link reference internal" href="#change-d0eb64e66
 <div class="section" id="change-0.3.6-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.3.6-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.3.6-26"><span class="target" id="change-43de82f16ecdf78ba1849a1f444b2345"><strong>[mysql] </strong></span>added a catchall <a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs to MSString, to help reflection of
-obscure types (like &#8220;varchar() binary&#8221; in MS 4.0)<a class="changeset-link reference internal" href="#change-43de82f16ecdf78ba1849a1f444b2345">(link)</a><p></p>
+<li><p id="change-0.3.6-26"><span class="target" id="change-f0982bef56faed4137f772fe21cd4c31"><strong>[mysql] </strong></span>added a catchall **kwargs to MSString, to help reflection of
+obscure types (like &#8220;varchar() binary&#8221; in MS 4.0)<a class="changeset-link reference internal" href="#change-f0982bef56faed4137f772fe21cd4c31">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.3.6-27"><span class="target" id="change-1af85a8922781c43c7653e350c30801f"><strong>[mysql] </strong></span>added explicit MSTimeStamp type which takes effect when using
@@ -1445,10 +1464,10 @@ executing...such as, you can execute a &#8220;select&#8221;, but not a &#8220;Ta
 &#8220;Join&#8221;.<a class="changeset-link reference internal" href="#change-6c984550b02caf3742ce38d0ea98e80f">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.3.5-20"><span class="target" id="change-9b9ffe3d4441e568d85ecf8bf0a912dd"><strong>[sql] </strong></span>fixed argument passing to straight textual execute() on engine,
-connection. can handle <a href="#id9"><span class="problematic" id="id10">*</span></a>args or a list instance for positional, <a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs
+<li><p id="change-0.3.5-20"><span class="target" id="change-468f50da50e57a2dec8feb5e1ee1d75f"><strong>[sql] </strong></span>fixed argument passing to straight textual execute() on engine,
+connection. can handle *args or a list instance for positional, **kwargs
 or a dict instance for named args, or a list of list or dicts to invoke
-executemany()<a class="changeset-link reference internal" href="#change-9b9ffe3d4441e568d85ecf8bf0a912dd">(link)</a><p></p>
+executemany()<a class="changeset-link reference internal" href="#change-468f50da50e57a2dec8feb5e1ee1d75f">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.3.5-21"><span class="target" id="change-799305b1c45d8b2c0b35daf24d651579"><strong>[sql] </strong></span>small fix to BoundMetaData to accept unicode or string URLs<a class="changeset-link reference internal" href="#change-799305b1c45d8b2c0b35daf24d651579">(link)</a><p></p>
@@ -1976,10 +1995,10 @@ the instance is an &#8220;orphan&#8221; only if its not attached to <em>any</em>
 <li><p id="change-0.3.1-13"><span class="target" id="change-d05d5b0d7cbdb72d11dda30dba80e253"><strong>[engine/pool] </strong></span>fixed direct execution of Compiled objects<a class="changeset-link reference internal" href="#change-d05d5b0d7cbdb72d11dda30dba80e253">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.3.1-14"><span class="target" id="change-1885d87fb351efb5bff2f68a1b5f237e"><strong>[engine/pool] </strong></span>create_engine() reworked to be strict about incoming <a href="#id13"><span class="problematic" id="id14">**</span></a>kwargs.  all keyword
+<li><p id="change-0.3.1-14"><span class="target" id="change-c6dec82e7a9a007a628f587642c8adc7"><strong>[engine/pool] </strong></span>create_engine() reworked to be strict about incoming **kwargs.  all keyword
 arguments must be consumed by one of the dialect, connection pool, and engine
 constructors, else a TypeError is thrown which describes the full set of
-invalid kwargs in relation to the selected dialect/pool/engine configuration.<a class="changeset-link reference internal" href="#change-1885d87fb351efb5bff2f68a1b5f237e">(link)</a><p></p>
+invalid kwargs in relation to the selected dialect/pool/engine configuration.<a class="changeset-link reference internal" href="#change-c6dec82e7a9a007a628f587642c8adc7">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.3.1-15"><span class="target" id="change-95a6b3fd67d1f8a92d5fc7d3c4a72cd3"><strong>[databases/types] </strong></span>MySQL catches exception on &#8220;describe&#8221; and reports as NoSuchTableError<a class="changeset-link reference internal" href="#change-95a6b3fd67d1f8a92d5fc7d3c4a72cd3">(link)</a><p></p>

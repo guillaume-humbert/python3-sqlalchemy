@@ -9,25 +9,39 @@
             
     
                 Relationship Loading Techniques
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Events" href="events.html" />
         <link rel="prev" title="Querying" href="query.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Relationship Loading Techniques
-             
+            
 
         <h2>
             
@@ -283,8 +301,9 @@ of all <a class="reference internal" href="relationships.html#sqlalchemy.orm.rel
 except for those which use the <tt class="docutils literal"><span class="pre">'dynamic'</span></tt> style of loading.
 If some relationships specify
 <tt class="docutils literal"><span class="pre">lazy='joined'</span></tt> or <tt class="docutils literal"><span class="pre">lazy='subquery'</span></tt>, for example,
-using <tt class="docutils literal"><span class="pre">default_strategy(lazy='select')</span></tt> will unilaterally
-cause all those relationships to use <tt class="docutils literal"><span class="pre">'select'</span></tt> loading.</p>
+using <tt class="docutils literal"><span class="pre">lazyload('*')</span></tt> will unilaterally
+cause all those relationships to use <tt class="docutils literal"><span class="pre">'select'</span></tt> loading, e.g. emit a
+SELECT statement when each attribute is accessed.</p>
 <p>The option does not supercede loader options stated in the
 query, such as <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a>,
 <a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, etc.  The query below will still use joined loading

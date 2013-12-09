@@ -9,25 +9,39 @@
             
     
                 Examples
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Exceptions" href="exceptions.html" />
         <link rel="prev" title="Alternate Class Instrumentation" href="extensions/instrumentation.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Examples
-             
+            
 
         <h2>
             
@@ -262,14 +280,15 @@ demo a second time will utilize the cache files already present, and
 exactly one SQL statement against two tables will be emitted - the
 displayed result however will utilize dozens of lazyloads that all
 pull from cache.</p>
-<p>The demo scripts themselves, in order of complexity, are run as follows:</p>
-<div class="highlight-python"><pre>python examples/dogpile_caching/helloworld.py
+<p>The demo scripts themselves, in order of complexity, are run as Python
+modules so that relative imports work:</p>
+<div class="highlight-python"><pre>python -m examples.dogpile_caching.helloworld
 
-python examples/dogpile_caching/relationship_caching.py
+python -m examples.dogpile_caching.relationship_caching
 
-python examples/dogpile_caching/advanced.py
+python -m examples.dogpile_caching.advanced
 
-python examples/dogpile_caching/local_session_caching.py</pre>
+python -m examples.dogpile_caching.local_session_caching</pre>
 </div>
 <p>Listing of files:</p>
 <blockquote>

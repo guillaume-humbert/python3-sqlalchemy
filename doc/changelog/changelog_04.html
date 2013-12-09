@@ -9,25 +9,39 @@
             
     
                 0.4 Changelog
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="0.3 Changelog" href="changelog_03.html" />
         <link rel="prev" title="0.5 Changelog" href="changelog_05.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 0.4 Changelog
-             
+            
 
         <h2>
             
@@ -307,17 +325,12 @@ only Python unicode objects are accepted;
 Released: Thu Jul 31 2008<div class="section" id="change-0.4.7p1-orm">
 <h3>orm<a class="headerlink" href="#change-0.4.7p1-orm" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.4.7p1-0"><span class="target" id="change-ca86704307b8ec36130159c1a86b7082"><strong>[orm] </strong></span>Added &#8220;add()&#8221; and &#8220;add_all()&#8221; to scoped_session
-methods.  Workaround for 0.4.7:<blockquote>
-<div>from sqlalchemy.orm.scoping import ScopedSession,instrument
-setattr(<blockquote>
-<div>ScopedSession, &#8220;add&#8221;, instrument(&#8220;add&#8221;))</div></blockquote>
-<dl class="docutils">
-<dt>setattr(</dt>
-<dd>ScopedSession, &#8220;add_all&#8221;, instrument(&#8220;add_all&#8221;))</dd>
-</dl>
-</div></blockquote>
-<a class="changeset-link reference internal" href="#change-ca86704307b8ec36130159c1a86b7082">(link)</a><p></p>
+<li><p id="change-0.4.7p1-0"><span class="target" id="change-8845ae575ef66cb76fb504e32b6b0e26"><strong>[orm] </strong></span>Added &#8220;add()&#8221; and &#8220;add_all()&#8221; to scoped_session
+methods.  Workaround for 0.4.7:<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm.scoping</span> <span class="kn">import</span> <span class="n">ScopedSession</span><span class="p">,</span> <span class="n">instrument</span>
+<span class="nb">setattr</span><span class="p">(</span><span class="n">ScopedSession</span><span class="p">,</span> <span class="s">&quot;add&quot;</span><span class="p">,</span> <span class="n">instrument</span><span class="p">(</span><span class="s">&quot;add&quot;</span><span class="p">))</span>
+<span class="nb">setattr</span><span class="p">(</span><span class="n">ScopedSession</span><span class="p">,</span> <span class="s">&quot;add_all&quot;</span><span class="p">,</span> <span class="n">instrument</span><span class="p">(</span><span class="s">&quot;add_all&quot;</span><span class="p">))</span></pre></div>
+</div>
+<a class="changeset-link reference internal" href="#change-8845ae575ef66cb76fb504e32b6b0e26">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.4.7p1-1"><span class="target" id="change-8150f6bc3321b0e5940f462af85fea59"><strong>[orm] </strong></span>Fixed non-2.3 compatible usage of set() and generator
@@ -526,10 +539,10 @@ conflicts with a subquery or column of the same name
 on the parent object.<a class="changeset-link reference internal" href="#change-71081f223b7ec2f83fe88a95bb74c96b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1019">#1019</a></p>
 </p>
 </li>
-<li><p id="change-0.4.6-12"><span class="target" id="change-4f3b65db5c0882da0c3b53a68e19daf1"><strong>[orm] </strong></span>set-based collections <a href="#id1"><span class="problematic" id="id2">|</span></a>=, -=, ^= and &amp;= are stricter about
+<li><p id="change-0.4.6-12"><span class="target" id="change-1e0e2c1b7d8337b2961576a28f6152dd"><strong>[orm] </strong></span>set-based collections |=, -=, ^= and &amp;= are stricter about
 their operands and only operate on sets, frozensets or
 subclasses of the collection type. Previously, they would
-accept any duck-typed set.<a class="changeset-link reference internal" href="#change-4f3b65db5c0882da0c3b53a68e19daf1">(link)</a><p></p>
+accept any duck-typed set.<a class="changeset-link reference internal" href="#change-1e0e2c1b7d8337b2961576a28f6152dd">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.4.6-13"><span class="target" id="change-b1518ae6a45f510afd237e22960d4dbc"><strong>[orm] </strong></span>added an example dynamic_dict/dynamic_dict.py, illustrating
@@ -619,10 +632,10 @@ returned.  This flag is only safe to use with a database
 which does not support transactions (i.e. MySQL/MyISAM).<a class="changeset-link reference internal" href="#change-1026db7afd8b57d4eb7e9698f6304feb">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.6-25"><span class="target" id="change-84780c3bfb869675d5cab997b68aca56"><strong>[ext] </strong></span>set-based association proxies <a href="#id3"><span class="problematic" id="id4">|</span></a>=, -=, ^= and &amp;= are
+<li><p id="change-0.4.6-25"><span class="target" id="change-68c00352100f06ff96b4b08752086944"><strong>[ext] </strong></span>set-based association proxies |=, -=, ^= and &amp;= are
 stricter about their operands and only operate on sets,
 frozensets or other association proxies. Previously, they
-would accept any duck-typed set.<a class="changeset-link reference internal" href="#change-84780c3bfb869675d5cab997b68aca56">(link)</a><p></p>
+would accept any duck-typed set.<a class="changeset-link reference internal" href="#change-68c00352100f06ff96b4b08752086944">(link)</a><p></p>
 </p>
 </li>
 </ul>
@@ -690,14 +703,11 @@ completely removed and replaced with the newer,
 more flexible approach.</p>
 <p>The new approach also automatically allows eager loads
 to work for subclasses, if they are present, for
-example</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>sess.query(Company).options(</dt>
-<dd>eagerload_all(</dd>
-</dl>
-<p>))</p>
-</div></blockquote>
+example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span>
+ <span class="n">eagerload_all</span><span class="p">(</span>
+<span class="p">))</span></pre></div>
+</div>
 <p>to load Company objects, their employees, and the
 &#8216;machines&#8217; collection of employees who happen to be
 Engineers. A &#8220;with_polymorphic&#8221; Query option should be
@@ -710,7 +720,7 @@ control of with_polymorphic() on relations.</p>
 &#8220;experimental&#8221; in that their specific name/behavior
 is not carved in stone just yet:  _values() and
 _from_self().  We&#8217;d like feedback on these.<ul>
-<li>_values(<a href="#id5"><span class="problematic" id="id6">*</span></a>columns) is given a list of column
+<li>_values(*columns) is given a list of column
 expressions, and returns a new Query that only
 returns those columns. When evaluated, the return
 value is a list of tuples just like when using
@@ -739,9 +749,9 @@ on the naming choice.</li>
 <a class="changeset-link reference internal" href="#change-8b57d2ed0d6bbe58c75f64223341c1c8">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-7"><span class="target" id="change-092e151b59ef8f702823a709f4e6554f"><strong>[orm] </strong></span>query.order_by() and query.group_by() will accept
-multiple arguments using <a href="#id7"><span class="problematic" id="id8">*</span></a>args (like select()
-already does).<a class="changeset-link reference internal" href="#change-092e151b59ef8f702823a709f4e6554f">(link)</a><p></p>
+<li><p id="change-0.4.5-7"><span class="target" id="change-2deb85fd835bde751f8cfd2461527a8e"><strong>[orm] </strong></span>query.order_by() and query.group_by() will accept
+multiple arguments using *args (like select()
+already does).<a class="changeset-link reference internal" href="#change-2deb85fd835bde751f8cfd2461527a8e">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.4.5-8"><span class="target" id="change-86eb8853972534a7dafcbff8b9986332"><strong>[orm] </strong></span>Added some convenience descriptors to Query:
@@ -1638,8 +1648,8 @@ criterion, fixed<a class="changeset-link reference internal" href="#change-11b27
 defaults.<a class="changeset-link reference internal" href="#change-266d2296f2e6b99bc2514a5fd438deae">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.2p3-19"><span class="target" id="change-2b9880fefdc9457fbd869f68062a0344"><strong>[ext] </strong></span>&#8216;+&#8217;, &#8216;*&#8217;, &#8216;+=&#8217; and &#8216;<a href="#id9"><span class="problematic" id="id10">*</span></a>=&#8217; support for association
-proxied lists.<a class="changeset-link reference internal" href="#change-2b9880fefdc9457fbd869f68062a0344">(link)</a><p></p>
+<li><p id="change-0.4.2p3-19"><span class="target" id="change-564eaa28aa3238cb8107b93c413f59d9"><strong>[ext] </strong></span>&#8216;+&#8217;, &#8216;*&#8217;, &#8216;+=&#8217; and &#8216;*=&#8217; support for association
+proxied lists.<a class="changeset-link reference internal" href="#change-564eaa28aa3238cb8107b93c413f59d9">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.4.2p3-20"><span class="target" id="change-88e678f937cdc36ead073631a00ca08b"><strong>[dialects] </strong></span>mssql - narrowed down the test for &#8220;date&#8221;/&#8221;datetime&#8221;
@@ -1706,8 +1716,8 @@ now get automatically deferred during load.<a class="changeset-link reference in
 </p>
 </li>
 <li><p id="change-0.4.2-5"><span class="target" id="change-63184f50e7524cf31995dceb7eba804c"><strong>[orm] </strong></span>mapped classes which extend &#8220;object&#8221; and do not provide an
-__init__() method will now raise TypeError if non-empty <a href="#id13"><span class="problematic" id="id14">*</span></a>args
-or <a href="#id15"><span class="problematic" id="id16">**</span></a>kwargs are present at instance construction time (and are
+__init__() method will now raise TypeError if non-empty *args
+or **kwargs are present at instance construction time (and are
 not consumed by any extensions such as the scoped_session mapper),
 consistent with the behavior of normal Python classes<a class="changeset-link reference internal" href="#change-63184f50e7524cf31995dceb7eba804c">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/908">#908</a></p>
 </p>
@@ -1914,14 +1924,14 @@ bug where disconnect detect was not being called for cursor(), rollback(),
 or commit().<a class="changeset-link reference internal" href="#change-50091a15ff9c9366b36b0868152e0df2">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.2-37"><span class="target" id="change-1ffbc5d8441dc26e5cb653d24d639fe8"><strong>[sql] </strong></span>added new flag to String and create_engine(),
-assert_unicode=(True|False|&#8217;warn&#8217;<a href="#id11"><span class="problematic" id="id12">|</span></a>None). Defaults to <cite>False</cite> or <cite>None</cite> on
+<li><p id="change-0.4.2-37"><span class="target" id="change-4abfbfe6bea22beedb689afde26eee55"><strong>[sql] </strong></span>added new flag to String and create_engine(),
+assert_unicode=(True|False|&#8217;warn&#8217;|None). Defaults to <cite>False</cite> or <cite>None</cite> on
 create_engine() and String, <cite>&#8216;warn&#8217;</cite> on the Unicode type. When <cite>True</cite>,
 results in all unicode conversion operations raising an exception when a
 non-unicode bytestring is passed as a bind parameter. &#8216;warn&#8217; results
 in a warning. It is strongly advised that all unicode-aware applications
 make proper use of Python unicode objects (i.e. u&#8217;hello&#8217; and not &#8216;hello&#8217;)
-so that data round trips accurately.<a class="changeset-link reference internal" href="#change-1ffbc5d8441dc26e5cb653d24d639fe8">(link)</a><p></p>
+so that data round trips accurately.<a class="changeset-link reference internal" href="#change-4abfbfe6bea22beedb689afde26eee55">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.4.2-38"><span class="target" id="change-1943253ba506b5613bb311d47f20a9de"><strong>[sql] </strong></span>generation of &#8220;unique&#8221; bind parameters has been simplified to use the same
@@ -2327,12 +2337,17 @@ _requires_quotes.<a class="changeset-link reference internal" href="#change-6931
 to False due to ticket #370 (right way).<a class="changeset-link reference internal" href="#change-5a64dfccda02d75cc5a717a5d72f1d75">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.0-9"><span class="target" id="change-1bcf58972727282d29a05407f163e6d8"></span>Improvements and fixes on Firebird reflection:
-. FBDialect now mimics OracleDialect, regarding case-sensitivity of TABLE and<blockquote>
-<div>COLUMN names (see &#8216;case_sensitive remotion&#8217; topic on this current file).</div></blockquote>
-<p>. FBDialect.table_names() doesn&#8217;t bring system tables (ticket:796).
-. FB now reflects Column&#8217;s nullable property correctly.</p>
-<a class="changeset-link reference internal" href="#change-1bcf58972727282d29a05407f163e6d8">(link)</a><p></p>
+<li><p id="change-0.4.0-9"><span class="target" id="change-a9896a5318c3109f7c89af2ad2c36bc9"></span><dl class="docutils">
+<dt>Improvements and fixes on Firebird reflection:</dt>
+<dd><ul class="first last">
+<li>FBDialect now mimics OracleDialect, regarding case-sensitivity of TABLE and
+COLUMN names (see &#8216;case_sensitive remotion&#8217; topic on this current file).</li>
+<li>FBDialect.table_names() doesn&#8217;t bring system tables (ticket:796).</li>
+<li>FB now reflects Column&#8217;s nullable property correctly.</li>
+</ul>
+</dd>
+</dl>
+<a class="changeset-link reference internal" href="#change-a9896a5318c3109f7c89af2ad2c36bc9">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.4.0-10"><span class="target" id="change-7a9f394245eb8aa496bcd282b6cb9d91"></span>Fixed SQL compiler&#8217;s awareness of top-level column labels as used
@@ -2414,9 +2429,9 @@ slightly faster.<a class="changeset-link reference internal" href="#change-2d010
 BLOB SUB_TYPE for TEXT and Binary types.<a class="changeset-link reference internal" href="#change-1aa7ff5a74776a60681a3dc879294a54">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.0-29"><span class="target" id="change-70b221b5159f758f606d12b23aaabc2d"></span>Changed the API for the <a href="#id23"><span class="problematic" id="id24">in_</span></a> operator. in_() now accepts a single argument
+<li><p id="change-0.4.0-29"><span class="target" id="change-90371ac2603990896e47a63773b4be24"></span>Changed the API for the in_ operator. in_() now accepts a single argument
 that is a sequence of values or a selectable. The old API of passing in
-values as varargs still works but is deprecated.<a class="changeset-link reference internal" href="#change-70b221b5159f758f606d12b23aaabc2d">(link)</a><p></p>
+values as varargs still works but is deprecated.<a class="changeset-link reference internal" href="#change-90371ac2603990896e47a63773b4be24">(link)</a><p></p>
 </p>
 </li>
 </ul>
@@ -2595,7 +2610,7 @@ does not report proper rowcount for executemany().<a class="changeset-link refer
 <div class="section" id="change-0.4.0beta4">
 <h2>0.4.0beta4<a class="headerlink" href="#change-0.4.0beta4" title="Permalink to this headline">¶</a></h2>
 Released: Wed Aug 22 2007<ul class="simple">
-<li><p id="change-0.4.0beta4-0"><span class="target" id="change-16ce819dd53e355c3664e0a6a73d080f"></span>Tidied up what ends up in your namespace when you &#8216;from sqlalchemy import <a href="#id17"><span class="problematic" id="id18">*</span></a>&#8216;:<a class="changeset-link reference internal" href="#change-16ce819dd53e355c3664e0a6a73d080f">(link)</a><p></p>
+<li><p id="change-0.4.0beta4-0"><span class="target" id="change-f4d29dc7b02b99ed3260ef11c8fe9840"></span>Tidied up what ends up in your namespace when you &#8216;from sqlalchemy import *&#8217;:<a class="changeset-link reference internal" href="#change-f4d29dc7b02b99ed3260ef11c8fe9840">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.4.0beta4-1"><span class="target" id="change-6890b669137922b1f67f9c81c9e393cd"></span>&#8216;table&#8217; and &#8216;column&#8217; are no longer imported.  They remain available by
@@ -2964,10 +2979,10 @@ completely deterministic.<a class="changeset-link reference internal" href="#cha
 is represented by more than one column, when using the ORM.  Objects of
 the new type are fully functional in query expressions, comparisons,
 query.get() clauses, etc. and act as though they are regular single-column
-scalars... except they&#8217;re not!  Use the function composite(cls, <a href="#id19"><span class="problematic" id="id20">*</span></a>columns)
+scalars... except they&#8217;re not!  Use the function composite(cls, *columns)
 inside of the mapper&#8217;s &#8220;properties&#8221; dict, and instances of cls will be
 created/mapped to a single attribute, comprised of the values correponding
-to <a href="#id21"><span class="problematic" id="id22">*</span></a>columns.<a class="changeset-link reference internal" href="#change-3ee39648a350e0ce7f6e88a460ef4222">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/211">#211</a></p>
+to *columns.<a class="changeset-link reference internal" href="#change-3ee39648a350e0ce7f6e88a460ef4222">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/211">#211</a></p>
 </p>
 </li>
 <li><p id="change-0.4.0beta1-31"><span class="target" id="change-5e44b305ff3b453bab31a4f4dd315202"><strong>[orm] </strong></span>Improved support for custom column_property() attributes which feature
@@ -3032,7 +3047,7 @@ improvement of the statement construction/compilation overhead of 0.3.<a class="
 </p>
 </li>
 <li><p id="change-0.4.0beta1-41"><span class="target" id="change-78c937a453ae2a2e9d60a9d7a1b498ac"><strong>[sql] </strong></span>All &#8220;type&#8221; keyword arguments, such as those to bindparam(), column(),
-Column(), and func.&lt;something&gt;(), renamed to &#8220;<a href="#id25"><span class="problematic" id="id26">type_</span></a>&#8221;.  Those objects still
+Column(), and func.&lt;something&gt;(), renamed to &#8220;type_&#8221;.  Those objects still
 name their &#8220;type&#8221; attribute as &#8220;type&#8221;.<a class="changeset-link reference internal" href="#change-78c937a453ae2a2e9d60a9d7a1b498ac">(link)</a><p></p>
 </p>
 </li>

@@ -9,25 +9,39 @@
             
     
                 0.5 Changelog
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="0.4 Changelog" href="changelog_04.html" />
         <link rel="prev" title="0.6 Changelog" href="changelog_06.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 0.5 Changelog
-             
+            
 
         <h2>
             
@@ -1159,7 +1177,7 @@ flush([objects]) feature altogether.<a class="changeset-link reference internal"
 </li>
 <li><p id="change-0.5.3-6"><span class="target" id="change-e39483da4bef1d4c9c7a2563d9fd396f"><strong>[orm] </strong></span>Session.scalar() now converts raw SQL strings to text()
 the same way Session.execute() does and accepts same
-alternative <a href="#id1"><span class="problematic" id="id2">**</span></a>kw args.<a class="changeset-link reference internal" href="#change-e39483da4bef1d4c9c7a2563d9fd396f">(link)</a><p></p>
+alternative **kw args.<a class="changeset-link reference internal" href="#change-e39483da4bef1d4c9c7a2563d9fd396f">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.5.3-7"><span class="target" id="change-a502af23359ad8929b580406382ab22f"><strong>[orm] </strong></span>improvements to the &#8220;determine direction&#8221; logic of
@@ -1475,8 +1493,8 @@ operation, greatly simplifying typical usage patterns
 within declarative.<a class="changeset-link reference internal" href="#change-d942c9f0feaf7f8fe8d86dd5f3846838">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1269">#1269</a></p>
 </p>
 </li>
-<li><p id="change-0.5.1-11"><span class="target" id="change-416c9d23f7d9c487d7528a094d184204"><strong>[orm] </strong></span>ColumnProperty (and front-end helpers such as <tt class="docutils literal"><span class="pre">deferred</span></tt>) no
-longer ignores unknown <a href="#id3"><span class="problematic" id="id4">**</span></a>keyword arguments.<a class="changeset-link reference internal" href="#change-416c9d23f7d9c487d7528a094d184204">(link)</a><p></p>
+<li><p id="change-0.5.1-11"><span class="target" id="change-82c422d444d39214d5378d7961dd511b"><strong>[orm] </strong></span>ColumnProperty (and front-end helpers such as <tt class="docutils literal"><span class="pre">deferred</span></tt>) no
+longer ignores unknown **keyword arguments.<a class="changeset-link reference internal" href="#change-82c422d444d39214d5378d7961dd511b">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.5.1-12"><span class="target" id="change-1cae8adff596e0421b11143747cac92f"><strong>[orm] </strong></span>Fixed a bug with the unitofwork&#8217;s &#8220;row switch&#8221; mechanism,
@@ -2507,13 +2525,13 @@ Released: Thu Sep 11 2008<div class="section" id="change-0.5.0rc1-orm">
 to perform bulk deletes/updates with the Query object.<a class="changeset-link reference internal" href="#change-8c84c46f35760eb2ceb74f595d9c2088">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.5.0rc1-1"><span class="target" id="change-fa65abea280fdd090a1388d966f791ec"><strong>[orm] </strong></span>The RowTuple object returned by Query(<a href="#id5"><span class="problematic" id="id6">*</span></a>cols) now features
+<li><p id="change-0.5.0rc1-1"><span class="target" id="change-653915646165f193a73800ec694ef476"><strong>[orm] </strong></span>The RowTuple object returned by Query(*cols) now features
 keynames which prefer mapped attribute names over column keys,
 column keys over column names, i.e.  Query(Class.foo,
 Class.bar) will have names &#8220;foo&#8221; and &#8220;bar&#8221; even if those are
 not the names of the underlying Column objects.  Direct Column
 objects such as Query(table.c.col) will return the &#8220;key&#8221;
-attribute of the Column.<a class="changeset-link reference internal" href="#change-fa65abea280fdd090a1388d966f791ec">(link)</a><p></p>
+attribute of the Column.<a class="changeset-link reference internal" href="#change-653915646165f193a73800ec694ef476">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.5.0rc1-2"><span class="target" id="change-bc299fb9b9d12f2bc21df15e57b86e7d"><strong>[orm] </strong></span>Added scalar() and value() methods to Query, each return a
@@ -2563,8 +2581,8 @@ as &#64;reconstructor, and marks a method as validating
 one or more mapped attributes.<a class="changeset-link reference internal" href="#change-ef2dee6873ef902b11bbee01803f4ae5">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.5.0rc1-9"><span class="target" id="change-c002193ca635a30c27ec4425b7e5e4fd"><strong>[orm] </strong></span>class.someprop.in_() raises NotImplementedError pending the
-implementation of &#8220;<a href="#id9"><span class="problematic" id="id10">in_</span></a>&#8221; for relation<a class="changeset-link reference internal" href="#change-c002193ca635a30c27ec4425b7e5e4fd">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1140">#1140</a></p>
+<li><p id="change-0.5.0rc1-9"><span class="target" id="change-0f7d684617407aa815e6b0691cd80152"><strong>[orm] </strong></span>class.someprop.in_() raises NotImplementedError pending the
+implementation of &#8220;in_&#8221; for relation<a class="changeset-link reference internal" href="#change-0f7d684617407aa815e6b0691cd80152">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1140">#1140</a></p>
 </p>
 </li>
 <li><p id="change-0.5.0rc1-10"><span class="target" id="change-e53c35f85da237cfc80b6dd06a426a1d"><strong>[orm] </strong></span>Fixed primary key update for many-to-many collections where
@@ -2956,7 +2974,7 @@ strings to insert after CREATE in the CREATE TABLE statement.<a class="changeset
 </li>
 <li><p id="change-0.5.0beta2-12"><span class="target" id="change-8a11f0840cf8a84fce22bd2015c35557"><strong>[schema] </strong></span>Unicode, UnicodeText types now set &#8220;assert_unicode&#8221; and
 &#8220;convert_unicode&#8221; by default, but accept overriding
-<a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs for these values.<a class="changeset-link reference internal" href="#change-8a11f0840cf8a84fce22bd2015c35557">(link)</a><p></p>
+**kwargs for these values.<a class="changeset-link reference internal" href="#change-8a11f0840cf8a84fce22bd2015c35557">(link)</a><p></p>
 </p>
 </li>
 </ul>

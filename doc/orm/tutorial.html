@@ -9,25 +9,39 @@
             
     
                 Object Relational Tutorial
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mapper_config.html" />
         <link rel="prev" title="SQLAlchemy ORM" href="index.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Object Relational Tutorial
-             
+            
 
         <h2>
             
@@ -549,7 +567,7 @@ primary key within the session.</p>
 <span class="o">...</span>     <span class="n">User</span><span class="p">(</span><span class="s">&#39;mary&#39;</span><span class="p">,</span> <span class="s">&#39;Mary Contrary&#39;</span><span class="p">,</span> <span class="s">&#39;xxg527&#39;</span><span class="p">),</span>
 <span class="o">...</span>     <span class="n">User</span><span class="p">(</span><span class="s">&#39;fred&#39;</span><span class="p">,</span> <span class="s">&#39;Fred Flinstone&#39;</span><span class="p">,</span> <span class="s">&#39;blah&#39;</span><span class="p">)])</span></pre></div>
 </div>
-<p>Also, Ed has already decided his password isn&#8217;t too secure, so lets change it:</p>
+<p>Also, we&#8217;ve decided the password for Ed isn&#8217;t too secure, so lets change it:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">ed_user</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="s">&#39;f8s7ccs&#39;</span></pre></div>
 </div>
 <p>The <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is paying attention. It knows,
@@ -1214,9 +1232,10 @@ using any SQL:</p>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">user</span>
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
-<p>Let&#8217;s add and commit <tt class="docutils literal"><span class="pre">Jack</span> <span class="pre">Bean</span></tt> to the database. <tt class="docutils literal"><span class="pre">jack</span></tt> as well as the
-two <tt class="docutils literal"><span class="pre">Address</span></tt> members in his <tt class="docutils literal"><span class="pre">addresses</span></tt> collection are both added to the
-session at once, using a process known as <strong>cascading</strong>:</p>
+<p>Let&#8217;s add and commit <tt class="docutils literal"><span class="pre">Jack</span> <span class="pre">Bean</span></tt> to the database. <tt class="docutils literal"><span class="pre">jack</span></tt> as well
+as the two <tt class="docutils literal"><span class="pre">Address</span></tt> members in the corresponding <tt class="docutils literal"><span class="pre">addresses</span></tt>
+collection are both added to the session at once, using a process
+known as <strong>cascading</strong>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">jack</span><span class="p">)</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 <div class='popup_sql'>INSERT INTO users (name, fullname, password) VALUES (?, ?, ?)
@@ -1716,8 +1735,8 @@ including the cascade configuration (we&#8217;ll leave the constructor out too):
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="gp">... </span>       <span class="k">return</span> <span class="s">&quot;&lt;User(&#39;</span><span class="si">%s</span><span class="s">&#39;,&#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fullname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">)</span></pre></div>
 </div>
-<p>Then we recreate <tt class="docutils literal"><span class="pre">Address</span></tt>, noting that in this case we&#8217;ve created the <tt class="docutils literal"><span class="pre">Address.user</span></tt> relationship
-via the <tt class="docutils literal"><span class="pre">User</span></tt> class already:</p>
+<p>Then we recreate <tt class="docutils literal"><span class="pre">Address</span></tt>, noting that in this case we&#8217;ve created
+the <tt class="docutils literal"><span class="pre">Address.user</span></tt> relationship via the <tt class="docutils literal"><span class="pre">User</span></tt> class already:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;addresses&#39;</span>
 <span class="gp">... </span>    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -1727,9 +1746,10 @@ via the <tt class="docutils literal"><span class="pre">User</span></tt> class al
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="gp">... </span>        <span class="k">return</span> <span class="s">&quot;&lt;Address(&#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">email_address</span></pre></div>
 </div>
-<p>Now when we load Jack (below using <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt></a>, which loads by primary key),
-removing an address from his <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will result in that
-<tt class="docutils literal"><span class="pre">Address</span></tt> being deleted:</p>
+<p>Now when we load the user <tt class="docutils literal"><span class="pre">jack</span></tt> (below using <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt></a>,
+which loads by primary key), removing an address from the
+corresponding <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will result in that <tt class="docutils literal"><span class="pre">Address</span></tt>
+being deleted:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># load Jack by primary key</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>    
 <div class='popup_sql'>BEGIN (implicit)
@@ -1762,7 +1782,8 @@ FROM addresses
 WHERE addresses.email_address IN (?, ?)) AS anon_1
 ('jack@google.com', 'j25@yahoo.com')</div><span class="mi">1</span></pre></div>
 </div>
-<p>Deleting Jack will delete both Jack and his remaining <tt class="docutils literal"><span class="pre">Address</span></tt>:</p>
+<p>Deleting Jack will delete both Jack and the remaining <tt class="docutils literal"><span class="pre">Address</span></tt> associated
+with the user:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">jack</span><span class="p">)</span>
 
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> 
@@ -1954,8 +1975,8 @@ WHERE EXISTS (SELECT 1
         AND keywords.keyword = ?)
 ('firstpost',)</div><span class="p">[</span><span class="n">BlogPost</span><span class="p">(</span><span class="s">&quot;Wendy&#39;s Blog Post&quot;</span><span class="p">,</span> <span class="s">&#39;This is a test&#39;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;wendy&#39;</span><span class="p">,</span><span class="s">&#39;Wendy Williams&#39;</span><span class="p">,</span> <span class="s">&#39;foobar&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)]</span></pre></div>
 </div>
-<p>If we want to look up just Wendy&#8217;s posts, we can tell the query to narrow down
-to her as a parent:</p>
+<p>If we want to look up posts owned by the user <tt class="docutils literal"><span class="pre">wendy</span></tt>, we can tell
+the query to narrow down to that <tt class="docutils literal"><span class="pre">User</span></tt> object as a parent:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BlogPost</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>             <span class="nb">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">author</span><span class="o">==</span><span class="n">wendy</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>             <span class="nb">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span>\

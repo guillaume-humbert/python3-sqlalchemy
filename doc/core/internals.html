@@ -9,25 +9,39 @@
             
     
                 Core Internals
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Dialects" href="../dialects/index.html" />
         <link rel="prev" title="Core Exceptions" href="exceptions.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Core Internals
-             
+            
 
         <h2>
             
@@ -548,6 +566,22 @@ instead implement this method directly.</p>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_table_names" title="sqlalchemy.engine.interfaces.Dialect.get_table_names"><tt class="xref py py-meth docutils literal"><span class="pre">get_table_names()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a></div>
 <p>Return a list of table names for <cite>schema</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.engine.default.DefaultDialect.get_unique_constraints">
+<tt class="descname">get_unique_constraints</tt><big>(</big><em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.get_unique_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_unique_constraints" title="sqlalchemy.engine.interfaces.Dialect.get_unique_constraints"><tt class="xref py py-meth docutils literal"><span class="pre">get_unique_constraints()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a></div>
+<p>Return information about unique constraints in <cite>table_name</cite>.</p>
+<p>Given a string <cite>table_name</cite> and an optional string <cite>schema</cite>, return
+unique constraint information as a list of dicts with these keys:</p>
+<dl class="docutils">
+<dt>name</dt>
+<dd>the unique constraint&#8217;s name</dd>
+<dt>column_names</dt>
+<dd>list of column names in order</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -1141,6 +1175,20 @@ instead implement this method directly.</p>
 <dt id="sqlalchemy.engine.interfaces.Dialect.get_table_names">
 <tt class="descname">get_table_names</tt><big>(</big><em>connection</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.interfaces.Dialect.get_table_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of table names for <cite>schema</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.engine.interfaces.Dialect.get_unique_constraints">
+<tt class="descname">get_unique_constraints</tt><big>(</big><em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.interfaces.Dialect.get_unique_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return information about unique constraints in <cite>table_name</cite>.</p>
+<p>Given a string <cite>table_name</cite> and an optional string <cite>schema</cite>, return
+unique constraint information as a list of dicts with these keys:</p>
+<dl class="docutils">
+<dt>name</dt>
+<dd>the unique constraint&#8217;s name</dd>
+<dt>column_names</dt>
+<dd>list of column names in order</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">

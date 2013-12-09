@@ -9,25 +9,39 @@
             
     
                 PostgreSQL
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 PostgreSQL
-             
+            
 
         <h2>
             
@@ -389,7 +407,7 @@ construction arguments, are as follows:</p>
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.array">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">array</tt><big>(</big><em>clauses</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Tuple</span></tt></p>
+<dd><p>Bases: <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.Tuple" title="sqlalchemy.sql.expression.Tuple"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Tuple</span></tt></a></p>
 <p>A Postgresql ARRAY literal.</p>
 <p>This is used to produce ARRAY literals in SQL expressions, e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">array</span>

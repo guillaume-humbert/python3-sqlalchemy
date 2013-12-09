@@ -9,25 +9,39 @@
             
     
                 0.6 Changelog
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="0.5 Changelog" href="changelog_05.html" />
         <link rel="prev" title="0.7 Changelog" href="changelog_07.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 0.6 Changelog
-             
+            
 
         <h2>
             
@@ -1136,7 +1154,7 @@ loading, not &#8216;joined&#8217; or &#8216;subquery&#8217;, is desired.<a class
 <li><p id="change-0.6.5-1"><span class="target" id="change-10955dae4ce54a020b91ac0a8757e360"><strong>[orm] </strong></span>New Query methods: query.label(name), query.as_scalar(),
 return the query&#8217;s statement as a scalar subquery
 with /without label;
-query.with_entities(<a href="#id1"><span class="problematic" id="id2">*</span></a>ent), replaces the SELECT list of
+query.with_entities(*ent), replaces the SELECT list of
 the query with new entities.
 Roughly equivalent to a generative form of query.values()
 which accepts mapped entities as well as column
@@ -1361,11 +1379,11 @@ Behavior can be user-overridden in exactly the same way
 as before to the same effect.<a class="changeset-link reference internal" href="#change-2b8e904daae0d182fbf0aaa6bca9d64b">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-32"><span class="target" id="change-5f6436f4c6adbb07cdec29782b336960"><strong>[sql] </strong></span>Added type_coerce(expr, <a href="#id15"><span class="problematic" id="id16">type_</span></a>) expression element.
+<li><p id="change-0.6.5-32"><span class="target" id="change-29fd8b04b0c6aef95c9455c804c96892"><strong>[sql] </strong></span>Added type_coerce(expr, type_) expression element.
 Treats the given expression as the given type when evaluating
 expressions and processing result rows, but does not
 affect the generation of SQL, other than an anonymous
-label.<a class="changeset-link reference internal" href="#change-5f6436f4c6adbb07cdec29782b336960">(link)</a><p></p>
+label.<a class="changeset-link reference internal" href="#change-29fd8b04b0c6aef95c9455c804c96892">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.6.5-33"><span class="target" id="change-6c855e196152b57c304b333e9770fa07"><strong>[sql] </strong></span>Table.tometadata() now copies Index objects associated
@@ -2721,9 +2739,9 @@ wouldn&#8217;t eagerload anything, but using eagerload(&#8220;b.c&#8221;) would
 work fine.<a class="changeset-link reference internal" href="#change-69588e4d5fc29aebd7af673e5d4ec0ae">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta3-7"><span class="target" id="change-3bae9af3e07a2b3db696089c0e843fea"><strong>[orm] </strong></span>Query gains an add_columns(<a href="#id3"><span class="problematic" id="id4">*</span></a>columns) method which is a multi-
+<li><p id="change-0.6beta3-7"><span class="target" id="change-f79b8419ad3bbd5244a090f0a35e6c22"><strong>[orm] </strong></span>Query gains an add_columns(*columns) method which is a multi-
 version of add_column(col).  add_column(col) is future
-deprecated.<a class="changeset-link reference internal" href="#change-3bae9af3e07a2b3db696089c0e843fea">(link)</a><p></p>
+deprecated.<a class="changeset-link reference internal" href="#change-f79b8419ad3bbd5244a090f0a35e6c22">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.6beta3-8"><span class="target" id="change-965b0258f91345cb3a06eb1191ba4dd6"><strong>[orm] </strong></span>Query.join() will detect if the end result will be
@@ -2991,12 +3009,12 @@ version_id_col was in use.<a class="changeset-link reference internal" href="#ch
 <div class="section" id="change-0.6beta2-orm-declarative">
 <h3>orm declarative<a class="headerlink" href="#change-0.6beta2-orm-declarative" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta2-26"><span class="target" id="change-f03d84f79ae875801309e3cf1d11c2c6"><strong>[declarative] [orm] </strong></span>DeclarativeMeta exclusively uses cls.__dict__ (not <a href="#id17"><span class="problematic" id="id18">dict_</span></a>)
+<li><p id="change-0.6beta2-26"><span class="target" id="change-17e6d2319b8bfe217416295a2d06d196"><strong>[declarative] [orm] </strong></span>DeclarativeMeta exclusively uses cls.__dict__ (not dict_)
 as the source of class information; _as_declarative exclusively
-uses the  <a href="#id19"><span class="problematic" id="id20">dict_</span></a> passed to it as the source of class information
+uses the  dict_ passed to it as the source of class information
 (which when using DeclarativeMeta is cls.__dict__).  This should
 in theory make it easier for custom metaclasses to modify
-the state passed into _as_declarative.<a class="changeset-link reference internal" href="#change-f03d84f79ae875801309e3cf1d11c2c6">(link)</a><p></p>
+the state passed into _as_declarative.<a class="changeset-link reference internal" href="#change-17e6d2319b8bfe217416295a2d06d196">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.6beta2-27"><span class="target" id="change-a6fb16c5b4efc1b1336ae57e0611eb05"><strong>[declarative] [orm] </strong></span>declarative now accepts mixin classes directly, as a means
@@ -3599,10 +3617,10 @@ behavior is now automatic.</li>
 <li>Passing a single list of elements to eagerload(),
 eagerload_all(), contains_eager(), lazyload(),
 defer(), and undefer() instead of multiple positional
-<a href="#id5"><span class="problematic" id="id6">*</span></a>args is deprecated.</li>
+*args is deprecated.</li>
 <li>Passing a single list of elements to query.order_by(),
 query.group_by(), query.join(), or query.outerjoin()
-instead of multiple positional <a href="#id7"><span class="problematic" id="id8">*</span></a>args is deprecated.</li>
+instead of multiple positional *args is deprecated.</li>
 <li>query.iterate_instances() is removed.  Use query.instances().</li>
 <li>Query.query_from_parent() is removed.  Use the
 sqlalchemy.orm.with_parent() function to produce a
@@ -3743,9 +3761,8 @@ so a naming conflict will never occur.<a class="changeset-link reference interna
 before issuing the usual &#8220;expr != expr&#8221; clause.  The
 &#8220;expr != expr&#8221; can be very expensive, and it&#8217;s preferred
 that the user not issue in_() if the list is empty,
-instead simply not querying, or modifying the criterion<blockquote>
-<div>as appropriate for more complex situations.</div></blockquote>
-<a class="changeset-link reference internal" href="#change-1577657989ab5d5a2f90784ad84ebc9c">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1628">#1628</a></p>
+instead simply not querying, or modifying the criterion
+as appropriate for more complex situations.<a class="changeset-link reference internal" href="#change-1577657989ab5d5a2f90784ad84ebc9c">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1628">#1628</a></p>
 </p>
 </li>
 <li><p id="change-0.6beta1-44"><span class="target" id="change-68e1263644f8e10f85069545aa29651b"><strong>[sql] </strong></span>Added &#8220;execution_options()&#8221; to select()/text(), which set the
@@ -4266,7 +4283,7 @@ public via dialect.default_schema_name.</li>
 <li>the &#8220;connection&#8221; argument from engine.transaction() and
 engine.run_callable() is removed - Connection itself
 now has those methods.   All four methods accept
-<a href="#id9"><span class="problematic" id="id10">*</span></a>args and <a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs which are passed to the given callable,
+*args and **kwargs which are passed to the given callable,
 as well as the operating connection.</li>
 </ul>
 </dd>
@@ -4316,24 +4333,30 @@ linked to a compiler using the sqlalchemy.ext.compiler extension.</p>
 <a class="changeset-link reference internal" href="#change-a6a9a63e0053aafa663dea40ade905f0">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta1-125"><span class="target" id="change-63a49f0fdf1563dacaaa9a23d4c73d3a"><strong>[ddl] </strong></span>The signature of the &#8220;on&#8221; callable passed to DDL() and
+<li><p id="change-0.6beta1-125"><span class="target" id="change-5db087b2333b39be3609cd5ea92c38fe"><strong>[ddl] </strong></span>The signature of the &#8220;on&#8221; callable passed to DDL() and
 DDLElement() is revised as follows:<blockquote>
-<div>&#8220;ddl&#8221; - the DDLElement object itself.
-&#8220;event&#8221; - the string event name.
-&#8220;target&#8221; - previously &#8220;schema_item&#8221;, the Table or
-MetaData object triggering the event.
-&#8220;connection&#8221; - the Connection object in use for the operation.
-<a href="#id13"><span class="problematic" id="id14">**</span></a>kw - keyword arguments.  In the case of MetaData before/after<blockquote>
-<div>create/drop, the list of Table objects for which
+<div><dl class="docutils">
+<dt>ddl</dt>
+<dd>the DDLElement object itself</dd>
+<dt>event</dt>
+<dd>the string event name.</dd>
+<dt>target</dt>
+<dd>previously &#8220;schema_item&#8221;, the Table or MetaData object triggering the event.</dd>
+<dt>connection</dt>
+<dd>the Connection object in use for the operation.</dd>
+<dt>**kw</dt>
+<dd>keyword arguments.  In the case of MetaData before/after
+create/drop, the list of Table objects for which
 CREATE/DROP DDL is to be issued is passed as the kw
 argument &#8220;tables&#8221;. This is necessary for metadata-level
-DDL that is dependent on the presence of specific tables.</div></blockquote>
+DDL that is dependent on the presence of specific tables.</dd>
+</dl>
 </div></blockquote>
-<ul>
-<li>the &#8220;schema_item&#8221; attribute of DDL has been renamed to
-&#8220;target&#8221;.</li>
-</ul>
-<a class="changeset-link reference internal" href="#change-63a49f0fdf1563dacaaa9a23d4c73d3a">(link)</a><p></p>
+<dl class="docutils">
+<dt>The &#8220;schema_item&#8221; attribute of DDL has been renamed to</dt>
+<dd>&#8220;target&#8221;.</dd>
+</dl>
+<a class="changeset-link reference internal" href="#change-5db087b2333b39be3609cd5ea92c38fe">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.6beta1-126"><span class="target" id="change-309ea6a05094c41ff3447b7aeb64cd22"><strong>[dialect] [refactor] </strong></span>Dialect modules are now broken into database dialects
