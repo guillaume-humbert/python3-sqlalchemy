@@ -3,11 +3,12 @@ Section: python
 Priority: optional
 Maintainer: Piotr Ożarowski <piotr@debian.org>
 Uploaders: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-Build-Depends: debhelper (>= 7),
- python-all-dev (>= 2.6.5-2~), python3-all (>= 3.1.2-8~),
- python-setuptools (>= 0.6b3-1~), python3-setuptools
-Build-Depends-Indep: python-sphinx (>= 1.1.2), python-mako (>= 0.4.1)
-Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 9),
+ python-all-dev (>= 2.6.5-2~), python3-all-dev (>= 3.1.2-8~),
+ python-setuptools (>= 0.6b3-1~), python3-setuptools,
+Build-Depends-Indep: python-sphinx (>= 1.1.2), python-mako (>= 0.4.1),
+ python-changelog, python-sphinx-paramlinks
+Standards-Version: 3.9.5
 Homepage: http://www.sqlalchemy.org/
 Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/sqlalchemy/trunk/
 Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/sqlalchemy/trunk/
@@ -111,11 +112,10 @@ Description: SQL toolkit and Object Relational Mapper for Python 3
     an architecture that supports custom datatypes, custom SQL extensions, and
     ORM plugins which can augment or extend mapping functionality.
 
-#Package: python3-sqlalchemy-ext
-#Architecture: any
-#Depends: python-sqlalchemy (= ${source:Version}), ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}
-#Provides: ${python:Provides}
-#Description: SQL toolkit and Object Relational Mapper for Python3 - C extension
-# SQLAlchemy is an SQL database abstraction library for Python.
-# .
-# This package contains C coded extension accelerator for SQLAlchemy.
+Package: python3-sqlalchemy-ext
+Architecture: any
+Depends: python3-sqlalchemy (= ${source:Version}), ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}
+Description: SQL toolkit and Object Relational Mapper for Python3 - C extension
+ SQLAlchemy is an SQL database abstraction library for Python.
+ .
+ This package contains C coded extension accelerator for SQLAlchemy.
