@@ -10,7 +10,7 @@
     
                 Mapping Class Inheritance Hierarchies
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Using the Session" href="session.html" />
         <link rel="prev" title="Collection Configuration and Techniques" href="collections.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Mapping Class Inheritance Hierarchies
@@ -438,7 +439,7 @@ followed by a selectable:</p>
 will override the mapper-level <tt class="docutils literal"><span class="pre">with_polymorphic</span></tt> setting.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.with_polymorphic">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">with_polymorphic</tt><big>(</big><em>base</em>, <em>classes</em>, <em>selectable=False</em>, <em>polymorphic_on=None</em>, <em>aliased=False</em>, <em>innerjoin=False</em>, <em>_use_mapper_path=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.with_polymorphic" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">with_polymorphic</tt><big>(</big><em>base</em>, <em>classes</em>, <em>selectable=False</em>, <em>flat=False</em>, <em>polymorphic_on=None</em>, <em>aliased=False</em>, <em>innerjoin=False</em>, <em>_use_mapper_path=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.with_polymorphic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce an <a class="reference internal" href="query.html#sqlalchemy.orm.util.AliasedClass" title="sqlalchemy.orm.util.AliasedClass"><tt class="xref py py-class docutils literal"><span class="pre">AliasedClass</span></tt></a> construct which specifies
 columns for descendant mappers of the given base.</p>
 <div class="versionadded">
@@ -457,18 +458,33 @@ no &#8220;post fetch&#8221; of those columns will be required.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>base</strong> &#8211; Base class to be aliased.</li>
-<li><strong>classes</strong> &#8211; a single class or mapper, or list of
+<li><span class="target" id="sqlalchemy.orm.with_polymorphic.params.base"></span><strong>base</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.with_polymorphic.params.base">¶</a> &#8211; Base class to be aliased.</li>
+<li><span class="target" id="sqlalchemy.orm.with_polymorphic.params.classes"></span><strong>classes</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.with_polymorphic.params.classes">¶</a> &#8211; a single class or mapper, or list of
 class/mappers, which inherit from the base class.
 Alternatively, it may also be the string <tt class="docutils literal"><span class="pre">'*'</span></tt>, in which case
 all descending mapped classes will be added to the FROM clause.</li>
-<li><strong>aliased</strong> &#8211; when True, the selectable will be wrapped in an
+<li><span class="target" id="sqlalchemy.orm.with_polymorphic.params.aliased"></span><strong>aliased</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.with_polymorphic.params.aliased">¶</a> &#8211; when True, the selectable will be wrapped in an
 alias, that is <tt class="docutils literal"><span class="pre">(SELECT</span> <span class="pre">*</span> <span class="pre">FROM</span> <span class="pre">&lt;fromclauses&gt;)</span> <span class="pre">AS</span> <span class="pre">anon_1</span></tt>.
 This can be important when using the with_polymorphic()
 to create the target of a JOIN on a backend that does not
 support parenthesized joins, such as SQLite and older
 versions of MySQL.</li>
-<li><strong>selectable</strong> &#8211; a table or select() statement that will
+<li><span class="target" id="sqlalchemy.orm.with_polymorphic.params.flat"></span><strong>flat</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.with_polymorphic.params.flat">¶</a> &#8211; <p>Boolean, will be passed through to the <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a>
+call so that aliases of <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> objects don&#8217;t include an enclosing
+SELECT.  This can lead to more efficient queries in many circumstances.
+A JOIN against a nested JOIN will be rewritten as a JOIN against an aliased
+SELECT subquery on backends that don&#8217;t support this syntax.</p>
+<p>Setting <tt class="docutils literal"><span class="pre">flat</span></tt> to <tt class="docutils literal"><span class="pre">True</span></tt> implies the <tt class="docutils literal"><span class="pre">aliased</span></tt> flag is
+also <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Join.alias" title="sqlalchemy.sql.expression.Join.alias"><tt class="xref py py-meth docutils literal"><span class="pre">Join.alias()</span></tt></a></p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.orm.with_polymorphic.params.selectable"></span><strong>selectable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.with_polymorphic.params.selectable">¶</a> &#8211; a table or select() statement that will
 be used in place of the generated FROM clause. This argument is
 required if any of the desired classes use concrete table
 inheritance, since SQLAlchemy currently cannot generate UNIONs
@@ -477,12 +493,12 @@ must represent the full set of tables and columns mapped by every
 mapped class. Otherwise, the unaccounted mapped columns will
 result in their table being appended directly to the FROM clause
 which will usually lead to incorrect results.</li>
-<li><strong>polymorphic_on</strong> &#8211; a column to be used as the &#8220;discriminator&#8221;
+<li><span class="target" id="sqlalchemy.orm.with_polymorphic.params.polymorphic_on"></span><strong>polymorphic_on</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.with_polymorphic.params.polymorphic_on">¶</a> &#8211; a column to be used as the &#8220;discriminator&#8221;
 column for the given selectable. If not given, the polymorphic_on
 attribute of the base classes&#8217; mapper will be used, if any. This
 is useful for mappings that don&#8217;t have polymorphic loading
 behavior by default.</li>
-<li><strong>innerjoin</strong> &#8211; if True, an INNER JOIN will be used.  This should
+<li><span class="target" id="sqlalchemy.orm.with_polymorphic.params.innerjoin"></span><strong>innerjoin</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.with_polymorphic.params.innerjoin">¶</a> &#8211; if True, an INNER JOIN will be used.  This should
 only be specified if querying for one specific subtype only</li>
 </ul>
 </td>
@@ -652,9 +668,12 @@ with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.j
 paths which make use of <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a>.
 Below we load <tt class="docutils literal"><span class="pre">Company</span></tt> rows while eagerly loading related <tt class="docutils literal"><span class="pre">Engineer</span></tt>
 objects, querying the <tt class="docutils literal"><span class="pre">employee</span></tt> and <tt class="docutils literal"><span class="pre">engineer</span></tt> tables simultaneously:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span>\
-    <span class="n">options</span><span class="p">(</span><span class="n">subqueryload_all</span><span class="p">(</span><span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">of_type</span><span class="p">(</span><span class="n">Engineer</span><span class="p">),</span>
-                    <span class="n">Engineer</span><span class="o">.</span><span class="n">machines</span><span class="p">))</span></pre></div>
+<div class="highlight-python"><pre>session.query(Company).\
+    options(
+        subqueryload(Company.employees.of_type(Engineer)).
+        subqueryload("machines")
+        )
+    )</pre>
 </div>
 <div class="versionadded">
 <p><span>New in version 0.8: </span><a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> and <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a> support
@@ -918,7 +937,7 @@ bidirectionally reference <tt class="docutils literal"><span class="pre">C</span
         <a href="session.html" title="next chapter">Using the Session</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

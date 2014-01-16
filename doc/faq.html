@@ -10,7 +10,7 @@
     
                 Frequently Asked Questions
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    './',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="index.html" />
     <!-- end layout.mako headers -->
 
 
@@ -70,7 +71,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -82,7 +83,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -102,7 +103,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="index.html">SQLAlchemy 0.9 Documentation</a>
         » 
                 Frequently Asked Questions
             
@@ -497,8 +498,34 @@ using the Python warnings filter (see <a class="reference external" href="http:/
 <div class="section" id="orm-configuration">
 <h2>ORM Configuration<a class="headerlink" href="#orm-configuration" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="how-do-i-map-a-table-that-has-no-primary-key">
-<h3>How do I map a table that has no primary key?<a class="headerlink" href="#how-do-i-map-a-table-that-has-no-primary-key" title="Permalink to this headline">¶</a></h3>
-<p>In almost all cases, a table does have a so-called <em class="xref std std-term">candidate key</em>, which is a column or series
+<span id="faq-mapper-primary-key"></span><h3>How do I map a table that has no primary key?<a class="headerlink" href="#how-do-i-map-a-table-that-has-no-primary-key" title="Permalink to this headline">¶</a></h3>
+<p>The SQLAlchemy ORM, in order to map to a particular table, needs there to be
+at least one column denoted as a primary key column; multiple-column,
+i.e. composite, primary keys are of course entirely feasible as well.  These
+columns do <strong>not</strong> need to be actually known to the database as primary key
+columns, though it&#8217;s a good idea that they are.  It&#8217;s only necessary that the columns
+<em>behave</em> as a primary key does, e.g. as a unique and not nullable identifier
+for a row.</p>
+<p>Most ORMs require that objects have some kind of primary key defined
+because the object in memory must correspond to a uniquely identifiable
+row in the database table; at the very least, this allows the
+object can be targeted for UPDATE and DELETE statements which will affect only
+that object&#8217;s row and no other.   However, the importance of the primary key
+goes far beyond that.  In SQLAlchemy, all ORM-mapped objects are at all times
+linked uniquely within a <a class="reference internal" href="orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+to their specific database row using a pattern called the <a class="reference internal" href="glossary.html#term-identity-map"><em class="xref std std-term">identity map</em></a>,
+a pattern that&#8217;s central to the unit of work system employed by SQLAlchemy,
+and is also key to the most common (and not-so-common) patterns of ORM usage.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It&#8217;s important to note that we&#8217;re only talking about the SQLAlchemy ORM; an
+application which builds on Core and deals only with <a class="reference internal" href="core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects,
+<a class="reference internal" href="core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> constructs and the like, <strong>does not</strong> need any primary key
+to be present on or associated with a table in any way (though again, in SQL, all tables
+should really have some kind of primary key, lest you need to actually
+update or delete specific rows).</p>
+</div>
+<p>In almost all cases, a table does have a so-called <a class="reference internal" href="glossary.html#term-candidate-key"><em class="xref std std-term">candidate key</em></a>, which is a column or series
 of columns that uniquely identify a row.  If a table truly doesn&#8217;t have this, and has actual
 fully duplicate rows, the table is not corresponding to <a class="reference external" href="http://en.wikipedia.org/wiki/First_normal_form">first normal form</a> and cannot be mapped.   Otherwise, whatever columns comprise the best candidate key can be
 applied directly to the mapper:</p>
@@ -971,36 +998,73 @@ set <tt class="docutils literal"><span class="pre">o.foo</span></tt> is to do ju
 </div>
 <p>Manipulation of foreign key attributes is of course entirely legal.  However,
 setting a foreign-key attribute to a new value currently does not trigger
-an &#8220;expire&#8221; event of the <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> in which it&#8217;s involved (this may
-be implemented in the future).  This means
+an &#8220;expire&#8221; event of the <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> in which it&#8217;s involved.  This means
 that for the following sequence:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">o</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">o</span><span class="o">.</span><span class="n">foo</span> <span class="ow">is</span> <span class="bp">None</span>
+<span class="k">assert</span> <span class="n">o</span><span class="o">.</span><span class="n">foo</span> <span class="ow">is</span> <span class="bp">None</span>  <span class="c"># accessing an un-set attribute sets it to None</span>
 <span class="n">o</span><span class="o">.</span><span class="n">foo_id</span> <span class="o">=</span> <span class="mi">7</span></pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">o.foo</span></tt> is loaded when we checked it for <tt class="docutils literal"><span class="pre">None</span></tt>.  Setting
-<tt class="docutils literal"><span class="pre">o.foo_id=7</span></tt> will have the value of &#8220;7&#8221; as pending, but no flush
-has occurred.</p>
+<p><tt class="docutils literal"><span class="pre">o.foo</span></tt> is initialized to <tt class="docutils literal"><span class="pre">None</span></tt> when we first accessed it.  Setting
+<tt class="docutils literal"><span class="pre">o.foo_id</span> <span class="pre">=</span> <span class="pre">7</span></tt> will have the value of &#8220;7&#8221; as pending, but no flush
+has occurred - so <tt class="docutils literal"><span class="pre">o.foo</span></tt> is still <tt class="docutils literal"><span class="pre">None</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># attribute is already set to None, has not been</span>
+<span class="c"># reconciled with o.foo_id = 7 yet</span>
+<span class="k">assert</span> <span class="n">o</span><span class="o">.</span><span class="n">foo</span> <span class="ow">is</span> <span class="bp">None</span></pre></div>
+</div>
 <p>For <tt class="docutils literal"><span class="pre">o.foo</span></tt> to load based on the foreign key mutation is usually achieved
 naturally after the commit, which both flushes the new foreign key value
 and expires all state:</p>
-<div class="highlight-python"><pre>Session.commit()
-assert o.foo is &lt;Foo object with id 7&gt;</pre>
-</div>
-<p>A more minimal operation is to expire the attribute individually.  The
-<a class="reference internal" href="orm/session.html#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-meth docutils literal"><span class="pre">Session.flush()</span></tt></a> is also needed if the object is pending (hasn&#8217;t been INSERTed yet),
-or if the relationship is many-to-one prior to 0.6.5:</p>
-<div class="highlight-python"><pre>Session.expire(o, ['foo'])
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c"># expires all attributes</span>
 
-Session.flush()
+<span class="n">foo_7</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
 
-assert o.foo is &lt;Foo object with id 7&gt;</pre>
+<span class="k">assert</span> <span class="n">o</span><span class="o">.</span><span class="n">foo</span> <span class="ow">is</span> <span class="n">foo_7</span>  <span class="c"># o.foo lazyloads on access</span></pre></div>
 </div>
-<p>Where above, expiring the attribute triggers a lazy load on the next access of <tt class="docutils literal"><span class="pre">o.foo</span></tt>.</p>
-<p>The object does not &#8220;autoflush&#8221; on access of <tt class="docutils literal"><span class="pre">o.foo</span></tt> if the object is pending, since
-it is usually desirable that a pending object doesn&#8217;t autoflush prematurely and/or
-excessively, while its state is still being populated.</p>
-<p>Also see the recipe <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/UsageRecipes/ExpireRelationshipOnFKChange">ExpireRelationshipOnFKChange</a>, which features a mechanism to actually achieve this behavior to a reasonable degree in simple situations.</p>
+<p>A more minimal operation is to expire the attribute individually - this can
+be performed for any <a class="reference internal" href="glossary.html#term-persistent"><em class="xref std std-term">persistent</em></a> object using <a class="reference internal" href="orm/session.html#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">o</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="n">o</span><span class="o">.</span><span class="n">foo_id</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="n">Session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;foo&#39;</span><span class="p">])</span>  <span class="c"># object must be persistent for this</span>
+
+<span class="n">foo_7</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">o</span><span class="o">.</span><span class="n">foo</span> <span class="ow">is</span> <span class="n">foo_7</span>  <span class="c"># o.foo lazyloads on access</span></pre></div>
+</div>
+<p>Note that if the object is not persistent but present in the <a class="reference internal" href="orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>,
+it&#8217;s known as <a class="reference internal" href="glossary.html#term-pending"><em class="xref std std-term">pending</em></a>.   This means the row for the object has not been
+INSERTed into the database yet.  For such an object, setting <tt class="docutils literal"><span class="pre">foo_id</span></tt> does not
+have meaning until the row is inserted; otherwise there is no row yet:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">new_obj</span> <span class="o">=</span> <span class="n">SomeClass</span><span class="p">()</span>
+<span class="n">new_obj</span><span class="o">.</span><span class="n">foo_id</span> <span class="o">=</span> <span class="mi">7</span>
+
+<span class="n">Session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_obj</span><span class="p">)</span>
+
+<span class="c"># accessing an un-set attribute sets it to None</span>
+<span class="k">assert</span> <span class="n">new_obj</span><span class="o">.</span><span class="n">foo</span> <span class="ow">is</span> <span class="bp">None</span>
+
+<span class="n">Session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>  <span class="c"># emits INSERT</span>
+
+<span class="c"># expire this because we already set .foo to None</span>
+<span class="n">Session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;foo&#39;</span><span class="p">])</span>
+
+<span class="k">assert</span> <span class="n">new_obj</span><span class="o">.</span><span class="n">foo</span> <span class="ow">is</span> <span class="n">foo_7</span>  <span class="c"># now it loads</span></pre></div>
+</div>
+<div class="topic">
+<p class="topic-title first">Attribute loading for non-persistent objects</p>
+<p>One variant on the &#8220;pending&#8221; behavior above is if we use the flag
+<tt class="docutils literal"><span class="pre">load_on_pending</span></tt> on <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.   When this flag is set, the
+lazy loader will emit for <tt class="docutils literal"><span class="pre">new_obj.foo</span></tt> before the INSERT proceeds; another
+variant of this is to use the <a class="reference internal" href="orm/session.html#sqlalchemy.orm.session.Session.enable_relationship_loading" title="sqlalchemy.orm.session.Session.enable_relationship_loading"><tt class="xref py py-meth docutils literal"><span class="pre">Session.enable_relationship_loading()</span></tt></a>
+method, which can &#8220;attach&#8221; an object to a <a class="reference internal" href="orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> in such a way that
+many-to-one relationships load as according to foreign key attributes
+regardless of the object being in any particular state.
+Both techniques are <strong>not recommended for general use</strong>; they were added to suit
+specfic programming scenarios encountered by users which involve the repurposing
+of the ORM&#8217;s usual object states.</p>
+</div>
+<p>The recipe <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/UsageRecipes/ExpireRelationshipOnFKChange">ExpireRelationshipOnFKChange</a> features an example using SQLAlchemy events
+in order to coordinate the setting of foreign key attributes with many-to-one
+relationships.</p>
 </div>
 <div class="section" id="is-there-a-way-to-automagically-have-only-unique-keywords-or-other-kinds-of-objects-without-doing-a-query-for-the-keyword-and-getting-a-reference-to-the-row-containing-that-keyword">
 <h3>Is there a way to automagically have only unique keywords (or other kinds of objects) without doing a query for the keyword and getting a reference to the row containing that keyword?<a class="headerlink" href="#is-there-a-way-to-automagically-have-only-unique-keywords-or-other-kinds-of-objects-without-doing-a-query-for-the-keyword-and-getting-a-reference-to-the-row-containing-that-keyword" title="Permalink to this headline">¶</a></h3>
@@ -1019,7 +1083,7 @@ Which is somewhat inconvenient.</p>
 <div id="docs-bottom-navigation" class="docs-navigation-links">
 
     <div id="docs-copyright">
-        &copy; <a href="copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

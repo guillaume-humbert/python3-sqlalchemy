@@ -1,6 +1,7 @@
-"""Model.   We are modeling Person objects with a collection
-of Address objects.  Each Address has a PostalCode, which
-in turn references a City and then a Country:
+"""model.py
+
+The datamodel, which represents Person that has multiple
+Address objects, each with PostalCode, City, Country.
 
 Person --(1..n)--> Address
 Address --(has a)--> PostalCode
@@ -10,8 +11,8 @@ City --(has a)--> Country
 """
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from caching_query import FromCache, RelationshipCache
-from environment import Base, bootstrap
+from .caching_query import FromCache, RelationshipCache
+from .environment import Base, bootstrap
 
 class Country(Base):
     __tablename__ = 'country'

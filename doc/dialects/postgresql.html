@@ -10,7 +10,7 @@
     
                 PostgreSQL
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 PostgreSQL
@@ -137,6 +138,7 @@
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#remote-cross-schema-table-introspection">Remote / Cross-Schema Table Introspection</a></li>
 <li><a class="reference internal" href="#insert-update-returning">INSERT/UPDATE...RETURNING</a></li>
+<li><a class="reference internal" href="#full-text-search">Full Text Search</a></li>
 <li><a class="reference internal" href="#from-only">FROM ONLY ...</a></li>
 <li><a class="reference internal" href="#postgresql-specific-index-options">Postgresql-Specific Index Options</a><ul>
 <li><a class="reference internal" href="#partial-indexes">Partial Indexes</a></li>
@@ -326,6 +328,35 @@ use the <tt class="xref py py-meth docutils literal"><span class="pre">_UpdateBa
 <span class="k">print</span> <span class="n">result</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
 </div>
+<div class="section" id="full-text-search">
+<span id="postgresql-match"></span><h2>Full Text Search<a class="headerlink" href="#full-text-search" title="Permalink to this headline">¶</a></h2>
+<p>SQLAlchemy makes available the Postgresql <tt class="docutils literal"><span class="pre">&#64;&#64;</span></tt> operator via the
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.match" title="sqlalchemy.sql.expression.ColumnElement.match"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.match()</span></tt></a> method on any textual column expression.
+On a Postgresql dialect, an expression like the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&quot;search string&quot;</span><span class="p">)])</span></pre></div>
+</div>
+<p>will emit to the database:</p>
+<div class="highlight-python"><pre>SELECT text @@ to_tsquery('search string') FROM table</pre>
+</div>
+<p>The Postgresql text search functions such as <tt class="docutils literal"><span class="pre">to_tsquery()</span></tt>
+and <tt class="docutils literal"><span class="pre">to_tsvector()</span></tt> are available
+explicitly using the standard <tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt> construct.  For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span>
+    <span class="n">func</span><span class="o">.</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s">&#39;fat cats ate rats&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;cat &amp; rat&#39;</span><span class="p">)</span>
+<span class="p">])</span></pre></div>
+</div>
+<p>Emits the equivalent of:</p>
+<div class="highlight-python"><pre>SELECT to_tsvector('fat cats ate rats') @@ to_tsquery('cat &amp; rat')</pre>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.TSVECTOR" title="sqlalchemy.dialects.postgresql.TSVECTOR"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.TSVECTOR</span></tt></a> type can provide for explicit CAST:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">TSVECTOR</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">select</span><span class="p">,</span> <span class="n">cast</span>
+<span class="n">select</span><span class="p">([</span><span class="n">cast</span><span class="p">(</span><span class="s">&quot;some text&quot;</span><span class="p">,</span> <span class="n">TSVECTOR</span><span class="p">)])</span></pre></div>
+</div>
+<p>produces a statement equivalent to:</p>
+<div class="highlight-python"><pre>SELECT CAST('some text' AS TSVECTOR) AS anon_1</pre>
+</div>
+</div>
 <div class="section" id="from-only">
 <h2>FROM ONLY ...<a class="headerlink" href="#from-only" title="Permalink to this headline">¶</a></h2>
 <p>The dialect supports PostgreSQL&#8217;s ONLY keyword for targeting only a particular
@@ -398,9 +429,9 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> \
     <span class="n">ARRAY</span><span class="p">,</span> <span class="n">BIGINT</span><span class="p">,</span> <span class="n">BIT</span><span class="p">,</span> <span class="n">BOOLEAN</span><span class="p">,</span> <span class="n">BYTEA</span><span class="p">,</span> <span class="n">CHAR</span><span class="p">,</span> <span class="n">CIDR</span><span class="p">,</span> <span class="n">DATE</span><span class="p">,</span> \
     <span class="n">DOUBLE_PRECISION</span><span class="p">,</span> <span class="n">ENUM</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> <span class="n">HSTORE</span><span class="p">,</span> <span class="n">INET</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> \
-    <span class="n">INTERVAL</span><span class="p">,</span> <span class="n">MACADDR</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">REAL</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> \
+    <span class="n">INTERVAL</span><span class="p">,</span> <span class="n">JSON</span><span class="p">,</span> <span class="n">MACADDR</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">REAL</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> \
     <span class="n">TIMESTAMP</span><span class="p">,</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">,</span> <span class="n">INT4RANGE</span><span class="p">,</span> <span class="n">INT8RANGE</span><span class="p">,</span> <span class="n">NUMRANGE</span><span class="p">,</span> \
-    <span class="n">DATERANGE</span><span class="p">,</span> <span class="n">TSRANGE</span><span class="p">,</span> <span class="n">TSTZRANGE</span></pre></div>
+    <span class="n">DATERANGE</span><span class="p">,</span> <span class="n">TSRANGE</span><span class="p">,</span> <span class="n">TSTZRANGE</span><span class="p">,</span> <span class="n">TSVECTOR</span></pre></div>
 </div>
 <p>Types which are specific to PostgreSQL, or have PostgreSQL-specific
 construction arguments, are as follows:</p>
@@ -524,8 +555,8 @@ expression to be on the right hand-side.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other</strong> &#8211; expression to be compared</li>
-<li><strong>operator</strong> &#8211; an operator object from the
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.Comparator.all.params.other"></span><strong>other</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.all.params.other">¶</a> &#8211; expression to be compared</li>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.Comparator.all.params.operator"></span><strong>operator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.all.params.operator">¶</a> &#8211; an operator object from the
 <tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.sql.operators</span></tt>
 package, defaults to <tt class="xref py py-func docutils literal"><span class="pre">operators.eq()</span></tt>.</li>
 </ul>
@@ -560,8 +591,8 @@ expression to be on the right hand-side.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other</strong> &#8211; expression to be compared</li>
-<li><strong>operator</strong> &#8211; an operator object from the
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.Comparator.any.params.other"></span><strong>other</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.any.params.other">¶</a> &#8211; expression to be compared</li>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.Comparator.any.params.operator"></span><strong>operator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.any.params.operator">¶</a> &#8211; an operator object from the
 <tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.sql.operators</span></tt>
 package, defaults to <tt class="xref py py-func docutils literal"><span class="pre">operators.eq()</span></tt>.</li>
 </ul>
@@ -612,15 +643,15 @@ an argument array expression.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>item_type</strong> &#8211; The data type of items of this array. Note that
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.__init__.params.item_type"></span><strong>item_type</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__.params.item_type">¶</a> &#8211; The data type of items of this array. Note that
 dimensionality is irrelevant here, so multi-dimensional arrays like
 <tt class="docutils literal"><span class="pre">INTEGER[][]</span></tt>, are constructed as <tt class="docutils literal"><span class="pre">ARRAY(Integer)</span></tt>, not as
 <tt class="docutils literal"><span class="pre">ARRAY(ARRAY(Integer))</span></tt> or such.</li>
-<li><strong>as_tuple=False</strong> &#8211; Specify whether return results
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.__init__.params.as_tuple"></span><strong>as_tuple=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__.params.as_tuple">¶</a> &#8211; Specify whether return results
 should be converted to tuples from lists. DBAPIs such
 as psycopg2 return lists by default. When tuples are
 returned, the results are hashable.</li>
-<li><strong>dimensions</strong> &#8211; if non-None, the ARRAY will assume a fixed
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.__init__.params.dimensions"></span><strong>dimensions</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__.params.dimensions">¶</a> &#8211; if non-None, the ARRAY will assume a fixed
 number of dimensions.  This will cause the DDL emitted for this
 ARRAY to include the exact number of bracket clauses <tt class="docutils literal"><span class="pre">[]</span></tt>,
 and will also optimize the performance of the type overall.
@@ -680,7 +711,7 @@ an array expression.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.BYTEA.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.BYTEA.__init__.params.length">¶</a> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
@@ -697,35 +728,47 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.CIDR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">CIDR</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.CIDR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">CIDR</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.CIDR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.postgresql.CIDR.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.CIDR.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.CIDR.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>decimal_return_scale=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>decimal_return_scale=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a Float.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>precision</strong> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt>.</li>
-<li><strong>asdecimal</strong> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
+<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.asdecimal">¶</a> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
 defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
-<li><strong>**kwargs</strong> &#8211; deprecated.  Additional arguments here are ignored
+<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
+from floats to Python decimals.  Floating point values will typically
+be much longer due to decimal inaccuracy, and most floating point
+database types don&#8217;t have a notion of &#8220;scale&#8221;, so by default the
+float type looks for the first ten decimal places when converting.
+Specfiying this value will override that length.  Note that the
+MySQL float types, which do include &#8220;scale&#8221;, will use &#8220;scale&#8221;
+as the default for decimal_return_scale, if not otherwise specified.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.**kwargs"></span><strong>**kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.**kwargs">¶</a> &#8211; deprecated.  Additional arguments here are ignored
 by the default <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific
 floats that support additional arguments, see that dialect&#8217;s
 documentation for details, such as
@@ -769,7 +812,7 @@ the following parameters.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>create_type</strong> &#8211; <p>Defaults to True.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.ENUM.__init__.params.create_type"></span><strong>create_type</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.__init__.params.create_type">¶</a> &#8211; <p>Defaults to True.
 Indicates that <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TYPE</span></tt> should be
 emitted, after optionally checking for the
 presence of the type, when the parent
@@ -808,10 +851,10 @@ Postgresql CREATE TYPE, no action is taken.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>bind</strong> &#8211; a connectable <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ENUM.create.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.create.params.bind">¶</a> &#8211; a connectable <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
 <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, or similar object to emit
 SQL.</li>
-<li><strong>checkfirst</strong> &#8211; if <tt class="docutils literal"><span class="pre">True</span></tt>, a query against
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ENUM.create.params.checkfirst"></span><strong>checkfirst</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.create.params.checkfirst">¶</a> &#8211; if <tt class="docutils literal"><span class="pre">True</span></tt>, a query against
 the PG catalog will be first performed to see
 if the type does not exist already before
 creating.</li>
@@ -834,10 +877,10 @@ Postgresql DROP TYPE, no action is taken.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>bind</strong> &#8211; a connectable <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ENUM.drop.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.drop.params.bind">¶</a> &#8211; a connectable <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
 <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, or similar object to emit
 SQL.</li>
-<li><strong>checkfirst</strong> &#8211; if <tt class="docutils literal"><span class="pre">True</span></tt>, a query against
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ENUM.drop.params.checkfirst"></span><strong>checkfirst</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.drop.params.checkfirst">¶</a> &#8211; if <tt class="docutils literal"><span class="pre">True</span></tt>, a query against
 the PG catalog will be first performed to see
 if the type actually exists before dropping.</li>
 </ul>
@@ -851,7 +894,7 @@ if the type actually exists before dropping.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.HSTORE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">HSTORE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.HSTORE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">HSTORE</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.HSTORE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Concatenable" title="sqlalchemy.types.Concatenable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Concatenable</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql HSTORE type.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.HSTORE" title="sqlalchemy.dialects.postgresql.HSTORE"><tt class="xref py py-class docutils literal"><span class="pre">HSTORE</span></tt></a> type stores dictionaries containing strings, e.g.:</p>
@@ -1045,12 +1088,12 @@ in the Postgresql documentation.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.INET">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INET</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INET" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INET</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INET" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.postgresql.INET.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INET.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INET.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
@@ -1065,37 +1108,164 @@ It is known to work on psycopg2 and not pg8000 or zxjdbc.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.MACADDR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">MACADDR</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.MACADDR" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.JSON">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">JSON</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSON" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>Represent the Postgresql JSON type.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSON" title="sqlalchemy.dialects.postgresql.JSON"><tt class="xref py py-class docutils literal"><span class="pre">JSON</span></tt></a> type stores arbitrary JSON format data, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">data_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;data_table&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">JSON</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="o">.</span><span class="n">insert</span><span class="p">(),</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;key1&quot;</span><span class="p">:</span> <span class="s">&quot;value1&quot;</span><span class="p">,</span> <span class="s">&quot;key2&quot;</span><span class="p">:</span> <span class="s">&quot;value2&quot;</span><span class="p">}</span>
+    <span class="p">)</span></pre></div>
+</div>
+<p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSON" title="sqlalchemy.dialects.postgresql.JSON"><tt class="xref py py-class docutils literal"><span class="pre">JSON</span></tt></a> provides several operations:</p>
+<ul>
+<li><p class="first">Index operations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">data_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;some key&#39;</span><span class="p">]</span></pre></div>
+</div>
+</li>
+<li><p class="first">Index operations returning text (required for text comparison):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">data_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;some key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astext</span> <span class="o">==</span> <span class="s">&#39;some value&#39;</span></pre></div>
+</div>
+</li>
+<li><p class="first">Index operations with a built-in CAST call:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">data_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;some key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span></pre></div>
+</div>
+</li>
+<li><p class="first">Path index operations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">data_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[(</span><span class="s">&#39;key_1&#39;</span><span class="p">,</span> <span class="s">&#39;key_2&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="s">&#39;key_n&#39;</span><span class="p">)]</span></pre></div>
+</div>
+</li>
+<li><p class="first">Path index operations returning text (required for text comparison):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">data_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[(</span><span class="s">&#39;key_1&#39;</span><span class="p">,</span> <span class="s">&#39;key_2&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="s">&#39;key_n&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">astext</span> <span class="o">==</span> <span class="s">&#39;some value&#39;</span></pre></div>
+</div>
+</li>
+</ul>
+<p>Index operations return an instance of <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement" title="sqlalchemy.dialects.postgresql.JSONElement"><tt class="xref py py-class docutils literal"><span class="pre">JSONElement</span></tt></a>, which represents
+an expression such as <tt class="docutils literal"><span class="pre">column</span> <span class="pre">-&gt;</span> <span class="pre">index</span></tt>.  This element then defines
+methods such as <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement.astext" title="sqlalchemy.dialects.postgresql.JSONElement.astext"><tt class="xref py py-attr docutils literal"><span class="pre">JSONElement.astext</span></tt></a> and <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement.cast" title="sqlalchemy.dialects.postgresql.JSONElement.cast"><tt class="xref py py-meth docutils literal"><span class="pre">JSONElement.cast()</span></tt></a>
+for setting up type behavior.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSON" title="sqlalchemy.dialects.postgresql.JSON"><tt class="xref py py-class docutils literal"><span class="pre">JSON</span></tt></a> type, when used with the SQLAlchemy ORM, does not detect
+in-place mutations to the structure.  In order to detect these, the
+<a class="reference internal" href="../orm/extensions/mutable.html#module-sqlalchemy.ext.mutable" title="sqlalchemy.ext.mutable"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt></a> extension must be used.  This extension will
+allow &#8220;in-place&#8221; changes to the datastructure to produce events which
+will be detected by the unit of work.  See the example at <a class="reference internal" href="#sqlalchemy.dialects.postgresql.HSTORE" title="sqlalchemy.dialects.postgresql.HSTORE"><tt class="xref py py-class docutils literal"><span class="pre">HSTORE</span></tt></a>
+for a simple example involving a dictionary.</p>
+<p>Custom serializers and deserializers are specified at the dialect level,
+that is using <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.  The reason for this is that when
+using psycopg2, the DBAPI only allows serializers at the per-cursor
+or per-connection level.   E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://scott:tiger@localhost/test&quot;</span><span class="p">,</span>
+                        <span class="n">json_serializer</span><span class="o">=</span><span class="n">my_serialize_fn</span><span class="p">,</span>
+                        <span class="n">json_deserializer</span><span class="o">=</span><span class="n">my_deserialize_fn</span>
+                <span class="p">)</span></pre></div>
+</div>
+<p>When using the psycopg2 dialect, the json_deserializer is registered
+against the database using <tt class="docutils literal"><span class="pre">psycopg2.extras.register_default_json</span></tt>.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.</span></p>
+</div>
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.JSON.comparator_factory">
+<em class="property">class </em><tt class="descname">comparator_factory</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSON.comparator_factory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Comparator</span></tt></p>
+<p>Define comparison operations for <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSON" title="sqlalchemy.dialects.postgresql.JSON"><tt class="xref py py-class docutils literal"><span class="pre">JSON</span></tt></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.JSONElement">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">JSONElement</tt><big>(</big><em>left</em>, <em>right</em>, <em>astext=False</em>, <em>opstring=None</em>, <em>result_type=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSONElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.BinaryExpression" title="sqlalchemy.sql.expression.BinaryExpression"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.BinaryExpression</span></tt></a></p>
+<p>Represents accessing an element of a <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSON" title="sqlalchemy.dialects.postgresql.JSON"><tt class="xref py py-class docutils literal"><span class="pre">JSON</span></tt></a> value.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement" title="sqlalchemy.dialects.postgresql.JSONElement"><tt class="xref py py-class docutils literal"><span class="pre">JSONElement</span></tt></a> is produced whenever using the Python index
+operator on an expression that has the type <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSON" title="sqlalchemy.dialects.postgresql.JSON"><tt class="xref py py-class docutils literal"><span class="pre">JSON</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">expr</span> <span class="o">=</span> <span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">json_data</span><span class="p">[</span><span class="s">&#39;some_key&#39;</span><span class="p">]</span></pre></div>
+</div>
+<p>The expression typically compiles to a JSON access such as <tt class="docutils literal"><span class="pre">col</span> <span class="pre">-&gt;</span> <span class="pre">key</span></tt>.
+Modifiers are then available for typing behavior, including <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement.cast" title="sqlalchemy.dialects.postgresql.JSONElement.cast"><tt class="xref py py-meth docutils literal"><span class="pre">JSONElement.cast()</span></tt></a>
+and <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement.astext" title="sqlalchemy.dialects.postgresql.JSONElement.astext"><tt class="xref py py-attr docutils literal"><span class="pre">JSONElement.astext</span></tt></a>.</p>
+<dl class="attribute">
+<dt id="sqlalchemy.dialects.postgresql.JSONElement.astext">
+<tt class="descname">astext</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSONElement.astext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert this <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement" title="sqlalchemy.dialects.postgresql.JSONElement"><tt class="xref py py-class docutils literal"><span class="pre">JSONElement</span></tt></a> to use the &#8216;astext&#8217; operator
+when evaluated.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">data_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;some key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astext</span><span class="p">])</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement.cast" title="sqlalchemy.dialects.postgresql.JSONElement.cast"><tt class="xref py py-meth docutils literal"><span class="pre">JSONElement.cast()</span></tt></a></p>
+</div>
+</dd></dl>
+
 <dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.JSONElement.cast">
+<tt class="descname">cast</tt><big>(</big><em>type_</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSONElement.cast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert this <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement" title="sqlalchemy.dialects.postgresql.JSONElement"><tt class="xref py py-class docutils literal"><span class="pre">JSONElement</span></tt></a> to apply both the &#8216;astext&#8217; operator
+as well as an explicit type cast when evaulated.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">data_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;some key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Integer</span><span class="p">)])</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONElement.astext" title="sqlalchemy.dialects.postgresql.JSONElement.astext"><tt class="xref py py-attr docutils literal"><span class="pre">JSONElement.astext</span></tt></a></p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.MACADDR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">MACADDR</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.MACADDR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.postgresql.MACADDR.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.MACADDR.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.MACADDR.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.REAL">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.REAL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>decimal_return_scale=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.REAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
 <p>The SQL REAL type.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.REAL.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.REAL.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>decimal_return_scale=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.REAL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a Float.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>precision</strong> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.__init__.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt>.</li>
-<li><strong>asdecimal</strong> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
+<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.__init__.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.__init__.params.asdecimal">¶</a> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
 defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
-<li><strong>**kwargs</strong> &#8211; deprecated.  Additional arguments here are ignored
+<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.__init__.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.__init__.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
+from floats to Python decimals.  Floating point values will typically
+be much longer due to decimal inaccuracy, and most floating point
+database types don&#8217;t have a notion of &#8220;scale&#8221;, so by default the
+float type looks for the first ten decimal places when converting.
+Specfiying this value will override that length.  Note that the
+MySQL float types, which do include &#8220;scale&#8221;, will use &#8220;scale&#8221;
+as the default for decimal_return_scale, if not otherwise specified.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.__init__.params.**kwargs"></span><strong>**kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.__init__.params.**kwargs">¶</a> &#8211; deprecated.  Additional arguments here are ignored
 by the default <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific
 floats that support additional arguments, see that dialect&#8217;s
 documentation for details, such as
@@ -1105,6 +1275,29 @@ documentation for details, such as
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.TSVECTOR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">TSVECTOR</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSVECTOR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.TSVECTOR" title="sqlalchemy.dialects.postgresql.TSVECTOR"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.TSVECTOR</span></tt></a> type implements the Postgresql
+text search type TSVECTOR.</p>
+<p>It can be used to do full text queries on natural language
+documents.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#postgresql-match"><em>Full Text Search</em></a></p>
+</div>
+<dl class="attribute">
+<dt id="sqlalchemy.dialects.postgresql.TSVECTOR.__init__">
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSVECTOR.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
@@ -1127,7 +1320,7 @@ It is known to work on psycopg2 and not pg8000.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>as_uuid=False</strong> &#8211; if True, values will be interpreted
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.UUID.__init__.params.as_uuid"></span><strong>as_uuid=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.UUID.__init__.params.as_uuid">¶</a> &#8211; if True, values will be interpreted
 as Python uuid objects, converting to/from string via the
 DBAPI.</td>
 </tr>
@@ -1143,7 +1336,7 @@ DBAPI.</td>
 catered for by the following types:</p>
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.INT4RANGE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INT4RANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INT4RANGE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INT4RANGE</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INT4RANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql INT4RANGE type.</p>
 <div class="versionadded">
@@ -1153,7 +1346,7 @@ catered for by the following types:</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.INT8RANGE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INT8RANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INT8RANGE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INT8RANGE</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INT8RANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql INT8RANGE type.</p>
 <div class="versionadded">
@@ -1163,7 +1356,7 @@ catered for by the following types:</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.NUMRANGE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">NUMRANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.NUMRANGE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">NUMRANGE</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.NUMRANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql NUMRANGE type.</p>
 <div class="versionadded">
@@ -1173,7 +1366,7 @@ catered for by the following types:</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.DATERANGE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">DATERANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DATERANGE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">DATERANGE</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DATERANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql DATERANGE type.</p>
 <div class="versionadded">
@@ -1183,7 +1376,7 @@ catered for by the following types:</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.TSRANGE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">TSRANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSRANGE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">TSRANGE</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSRANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql TSRANGE type.</p>
 <div class="versionadded">
@@ -1193,7 +1386,7 @@ catered for by the following types:</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.TSTZRANGE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">TSTZRANGE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSTZRANGE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">TSTZRANGE</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.TSTZRANGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ranges.RangeOperators" title="sqlalchemy.dialects.postgresql.ranges.RangeOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.ranges.RangeOperators</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql TSTZRANGE type.</p>
 <div class="versionadded">
@@ -1317,17 +1510,17 @@ documentation</a>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>*elements</strong> &#8211; A sequence of two tuples of the form <tt class="docutils literal"><span class="pre">(column,</span> <span class="pre">operator)</span></tt> where
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.*elements"></span><strong>*elements</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.*elements">¶</a> &#8211; A sequence of two tuples of the form <tt class="docutils literal"><span class="pre">(column,</span> <span class="pre">operator)</span></tt> where
 column must be a column name or Column object and operator must
 be a string containing the operator to use.</li>
-<li><strong>name</strong> &#8211; Optional, the in-database name of this constraint.</li>
-<li><strong>deferrable</strong> &#8211; Optional bool.  If set, emit DEFERRABLE or NOT DEFERRABLE when
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.name">¶</a> &#8211; Optional, the in-database name of this constraint.</li>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.deferrable"></span><strong>deferrable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.deferrable">¶</a> &#8211; Optional bool.  If set, emit DEFERRABLE or NOT DEFERRABLE when
 issuing DDL for this constraint.</li>
-<li><strong>initially</strong> &#8211; Optional string.  If set, emit INITIALLY &lt;value&gt; when issuing DDL
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.initially"></span><strong>initially</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.initially">¶</a> &#8211; Optional string.  If set, emit INITIALLY &lt;value&gt; when issuing DDL
 for this constraint.</li>
-<li><strong>using</strong> &#8211; Optional string.  If set, emit USING &lt;index_method&gt; when issuing DDL
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.using"></span><strong>using</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.using">¶</a> &#8211; Optional string.  If set, emit USING &lt;index_method&gt; when issuing DDL
 for this constraint. Defaults to &#8216;gist&#8217;.</li>
-<li><strong>where</strong> &#8211; Optional string.  If set, emit WHERE &lt;predicate&gt; when issuing DDL
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.where"></span><strong>where</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.where">¶</a> &#8211; Optional string.  If set, emit WHERE &lt;predicate&gt; when issuing DDL
 for this constraint.</li>
 </ul>
 </td>
@@ -1571,7 +1764,7 @@ yet.</p>
         <a href="sqlite.html" title="next chapter">SQLite</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

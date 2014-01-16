@@ -28,7 +28,7 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
                         )
             con.execute('CREATE DOMAIN img_domain AS BLOB SUB_TYPE '
                         'BINARY')
-        except ProgrammingError, e:
+        except ProgrammingError as e:
             if not 'attempt to store duplicate value' in str(e):
                 raise e
         con.execute('''CREATE GENERATOR gen_testtable_id''')
@@ -352,6 +352,15 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         for type_, args, kw, res in columns:
             self.assert_compile(type_(*args, **kw), res)
 
+    def test_quoting_initial_chars(self):
+        self.assert_compile(
+            column("_somecol"),
+            '"_somecol"'
+        )
+        self.assert_compile(
+            column("$somecol"),
+            '"$somecol"'
+        )
 class TypesTest(fixtures.TestBase):
     __only_on__ = 'firebird'
 
@@ -474,7 +483,7 @@ class ArgumentTest(fixtures.TestBase):
 
     def test_retaining_flag_default_kinterbasdb(self):
         engine = self._engine("kinterbasdb")
-        self._assert_retaining(engine, True)
+        self._assert_retaining(engine, False)
 
     def test_retaining_flag_true_kinterbasdb(self):
         engine = self._engine("kinterbasdb", retaining=True)
@@ -486,7 +495,7 @@ class ArgumentTest(fixtures.TestBase):
 
     def test_retaining_flag_default_fdb(self):
         engine = self._engine("fdb")
-        self._assert_retaining(engine, True)
+        self._assert_retaining(engine, False)
 
     def test_retaining_flag_true_fdb(self):
         engine = self._engine("fdb", retaining=True)

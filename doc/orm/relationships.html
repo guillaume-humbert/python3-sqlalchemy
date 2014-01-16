@@ -10,7 +10,7 @@
     
                 Relationship Configuration
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Collection Configuration and Techniques" href="collections.html" />
         <link rel="prev" title="Mapper Configuration" href="mapper_config.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Relationship Configuration
@@ -1459,7 +1460,7 @@ mutating primary key, not throughout the database.</p>
 <h2>Relationships API<a class="headerlink" href="#relationships-api" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.orm.relationship">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">relationship</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.relationship" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">relationship</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>primaryjoin=None</em>, <em>secondaryjoin=None</em>, <em>foreign_keys=None</em>, <em>uselist=None</em>, <em>order_by=False</em>, <em>backref=None</em>, <em>back_populates=None</em>, <em>post_update=False</em>, <em>cascade=False</em>, <em>extension=None</em>, <em>viewonly=False</em>, <em>lazy=True</em>, <em>collection_class=None</em>, <em>passive_deletes=False</em>, <em>passive_updates=True</em>, <em>remote_side=None</em>, <em>enable_typechecks=True</em>, <em>join_depth=None</em>, <em>comparator_factory=None</em>, <em>single_parent=False</em>, <em>innerjoin=False</em>, <em>distinct_target_key=None</em>, <em>doc=None</em>, <em>active_history=False</em>, <em>cascade_backrefs=True</em>, <em>load_on_pending=False</em>, <em>strategy_class=None</em>, <em>_local_remote_pairs=None</em>, <em>query_class=None</em>, <em>info=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.relationship" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a relationship of a primary Mapper to a secondary Mapper.</p>
 <p>This corresponds to a parent-child or associative table relationship.  The
 constructed class is an instance of <a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty" title="sqlalchemy.orm.properties.RelationshipProperty"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt></a>.</p>
@@ -1503,13 +1504,13 @@ import related classes at all into the local module space:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>argument</strong> &#8211; <p>a mapped class, or actual <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> instance, representing the
+<li><span class="target" id="sqlalchemy.orm.relationship.params.argument"></span><strong>argument</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.argument">¶</a> &#8211; <p>a mapped class, or actual <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> instance, representing the
 target of the relationship.</p>
 <p><tt class="docutils literal"><span class="pre">argument</span></tt> may also be passed as a callable function
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
-<li><strong>secondary</strong> &#8211; <p>for a many-to-many relationship, specifies the intermediary
+<li><span class="target" id="sqlalchemy.orm.relationship.params.secondary"></span><strong>secondary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.secondary">¶</a> &#8211; <p>for a many-to-many relationship, specifies the intermediary
 table, and is an instance of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  The <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword
 argument should generally only
 be used for a table that is not otherwise expressed in any class
@@ -1519,7 +1520,7 @@ conflicting persistence operations can occur.</p>
 also be passed as a callable function which is evaluated at
 mapper initialization time.</p>
 </li>
-<li><strong>active_history=False</strong> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
+<li><span class="target" id="sqlalchemy.orm.relationship.params.active_history"></span><strong>active_history=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.active_history">¶</a> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
 many-to-one reference should be loaded when replaced, if
 not already loaded. Normally, history tracking logic for
 simple many-to-ones only needs to be aware of the &#8220;new&#8221;
@@ -1527,18 +1528,18 @@ value in order to perform a flush. This flag is available
 for applications that make use of
 <a class="reference internal" href="session.html#sqlalchemy.orm.attributes.get_history" title="sqlalchemy.orm.attributes.get_history"><tt class="xref py py-func docutils literal"><span class="pre">attributes.get_history()</span></tt></a> which also need to know
 the &#8220;previous&#8221; value of the attribute.</li>
-<li><strong>backref</strong> &#8211; indicates the string name of a property to be placed on the related
+<li><span class="target" id="sqlalchemy.orm.relationship.params.backref"></span><strong>backref</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.backref">¶</a> &#8211; indicates the string name of a property to be placed on the related
 mapper&#8217;s class that will handle this relationship in the other
 direction. The other property will be created automatically
 when the mappers are configured.  Can also be passed as a
 <a class="reference internal" href="#sqlalchemy.orm.backref" title="sqlalchemy.orm.backref"><tt class="xref py py-func docutils literal"><span class="pre">backref()</span></tt></a> object to control the configuration of the
 new relationship.</li>
-<li><strong>back_populates</strong> &#8211; Takes a string name and has the same meaning as <tt class="docutils literal"><span class="pre">backref</span></tt>,
+<li><span class="target" id="sqlalchemy.orm.relationship.params.back_populates"></span><strong>back_populates</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.back_populates">¶</a> &#8211; Takes a string name and has the same meaning as <tt class="docutils literal"><span class="pre">backref</span></tt>,
 except the complementing property is <strong>not</strong> created automatically,
 and instead must be configured explicitly on the other mapper.  The
 complementing property should also indicate <tt class="docutils literal"><span class="pre">back_populates</span></tt>
 to this relationship to ensure proper functioning.</li>
-<li><strong>cascade</strong> &#8211; <blockquote>
+<li><span class="target" id="sqlalchemy.orm.relationship.params.cascade"></span><strong>cascade</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.cascade">¶</a> &#8211; <blockquote>
 <div>a comma-separated list of cascade rules which determines how
 Session operations should be &#8220;cascaded&#8221; from parent to child.
 This defaults to <tt class="docutils literal"><span class="pre">False</span></tt>, which means the default cascade
@@ -1575,7 +1576,7 @@ expunge, delete&#8221;</li>
 <p>See the section <a class="reference internal" href="session.html#unitofwork-cascades"><em>Cascades</em></a> for more background
 on configuring cascades.</p>
 </li>
-<li><strong>cascade_backrefs=True</strong> &#8211; <p>a boolean value indicating if the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade should
+<li><span class="target" id="sqlalchemy.orm.relationship.params.cascade_backrefs"></span><strong>cascade_backrefs=True</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.cascade_backrefs">¶</a> &#8211; <p>a boolean value indicating if the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade should
 operate along an assignment event intercepted by a backref.
 When set to <tt class="docutils literal"><span class="pre">False</span></tt>,
 the attribute managed by this relationship will not cascade
@@ -1600,20 +1601,19 @@ a transient <tt class="docutils literal"><span class="pre">A()</span></tt> into 
 <p>See the section <a class="reference internal" href="session.html#unitofwork-cascades"><em>Cascades</em></a> for more background
 on configuring cascades.</p>
 </li>
-<li><strong>collection_class</strong> &#8211; a class or callable that returns a new list-holding object. will
+<li><span class="target" id="sqlalchemy.orm.relationship.params.collection_class"></span><strong>collection_class</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.collection_class">¶</a> &#8211; a class or callable that returns a new list-holding object. will
 be used in place of a plain list for storing elements.
 Behavior of this attribute is described in detail at
 <a class="reference internal" href="collections.html#custom-collections"><em>Customizing Collection Access</em></a>.</li>
-<li><strong>comparator_factory</strong> &#8211; a class which extends <a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty.Comparator</span></tt></a> which
+<li><span class="target" id="sqlalchemy.orm.relationship.params.comparator_factory"></span><strong>comparator_factory</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.comparator_factory">¶</a> &#8211; a class which extends <a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty.Comparator</span></tt></a> which
 provides custom SQL clause generation for comparison operations.</li>
-<li><strong>distinct_target_key=False</strong> &#8211; <p>Indicate if a &#8220;subquery&#8221; eager load should apply the DISTINCT
-keyword to the innermost SELECT statement.  When set to <tt class="docutils literal"><span class="pre">None</span></tt>,
+<li><span class="target" id="sqlalchemy.orm.relationship.params.distinct_target_key"></span><strong>distinct_target_key=None</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.distinct_target_key">¶</a> &#8211; <p>Indicate if a &#8220;subquery&#8221; eager load should apply the DISTINCT
+keyword to the innermost SELECT statement.  When left as <tt class="docutils literal"><span class="pre">None</span></tt>,
 the DISTINCT keyword will be applied in those cases when the target
 columns do not comprise the full primary key of the target table.
 When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the DISTINCT keyword is applied to the innermost
 SELECT unconditionally.</p>
-<p>This flag defaults as False in 0.8 but will default to None in 0.9.
-It may be desirable to set this flag to False when the DISTINCT is
+<p>It may be desirable to set this flag to False when the DISTINCT is
 reducing performance of the innermost subquery beyond that of what
 duplicate innermost rows may be causing.</p>
 <div class="versionadded">
@@ -1621,13 +1621,19 @@ duplicate innermost rows may be causing.</p>
 subquery eager loader to apply a DISTINCT modifier to the
 innermost SELECT.</p>
 </div>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.0: </span>- distinct_target_key now defaults to
+<tt class="docutils literal"><span class="pre">None</span></tt>, so that the feature enables itself automatically for
+those cases where the innermost query targets a non-unique
+key.</p>
+</div>
 </li>
-<li><strong>doc</strong> &#8211; docstring which will be applied to the resulting descriptor.</li>
-<li><strong>extension</strong> &#8211; an <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance, or list of extensions,
+<li><span class="target" id="sqlalchemy.orm.relationship.params.doc"></span><strong>doc</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.doc">¶</a> &#8211; docstring which will be applied to the resulting descriptor.</li>
+<li><span class="target" id="sqlalchemy.orm.relationship.params.extension"></span><strong>extension</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.extension">¶</a> &#8211; an <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance, or list of extensions,
 which will be prepended to the list of attribute listeners for
 the resulting descriptor placed on the class.
 <strong>Deprecated.</strong>  Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</li>
-<li><strong>foreign_keys</strong> &#8211; <p>a list of columns which are to be used as &#8220;foreign key&#8221; columns,
+<li><span class="target" id="sqlalchemy.orm.relationship.params.foreign_keys"></span><strong>foreign_keys</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.foreign_keys">¶</a> &#8211; <p>a list of columns which are to be used as &#8220;foreign key&#8221; columns,
 or columns which refer to the value in a remote column, within the
 context of this <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> object&#8217;s <tt class="docutils literal"><span class="pre">primaryjoin</span></tt>
 condition.   That is, if the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> condition of this
@@ -1686,13 +1692,13 @@ more specific system of describing which columns in a particular
 <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> should be considered &#8220;foreign&#8221;.</p>
 </div>
 </li>
-<li><strong>info</strong> &#8211; <p>Optional data dictionary which will be populated into the
+<li><span class="target" id="sqlalchemy.orm.relationship.params.info"></span><strong>info</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.info">¶</a> &#8211; <p>Optional data dictionary which will be populated into the
 <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.MapperProperty.info" title="sqlalchemy.orm.interfaces.MapperProperty.info"><tt class="xref py py-attr docutils literal"><span class="pre">MapperProperty.info</span></tt></a> attribute of this object.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.</span></p>
 </div>
 </li>
-<li><strong>innerjoin=False</strong> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, joined eager loads will use an inner join to join
+<li><span class="target" id="sqlalchemy.orm.relationship.params.innerjoin"></span><strong>innerjoin=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.innerjoin">¶</a> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, joined eager loads will use an inner join to join
 against related tables instead of an outer join.  The purpose
 of this option is generally one of performance, as inner joins
 generally perform better than outer joins. Another reason can be
@@ -1702,7 +1708,7 @@ object via many-to-one using local foreign keys that are not nullable,
 or when the reference is one-to-one or a collection that is guaranteed
 to have one or at least one entry.</p>
 </li>
-<li><strong>join_depth</strong> &#8211; when non-<tt class="docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels
+<li><span class="target" id="sqlalchemy.orm.relationship.params.join_depth"></span><strong>join_depth</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.join_depth">¶</a> &#8211; when non-<tt class="docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels
 deep &#8220;eager&#8221; loaders should join on a self-referring or cyclical
 relationship.  The number counts how many times the same Mapper
 shall be present in the loading condition along a particular join
@@ -1710,7 +1716,7 @@ branch.  When left at its default of <tt class="docutils literal"><span class="p
 will stop chaining when they encounter a the same target mapper
 which is already higher up in the chain.  This option applies
 both to joined- and subquery- eager loaders.</li>
-<li><strong>lazy=&#8217;select&#8217;</strong> &#8211; <p>specifies
+<li><span class="target" id="sqlalchemy.orm.relationship.params.lazy"></span><strong>lazy=&#8217;select&#8217;</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.lazy">¶</a> &#8211; <p>specifies
 how the related items should be loaded.  Default value is
 <tt class="docutils literal"><span class="pre">select</span></tt>.  Values include:</p>
 <ul>
@@ -1744,11 +1750,7 @@ the section <a class="reference internal" href="collections.html#dynamic-relatio
 </ul>
 <p>Detailed discussion of loader strategies is at <a class="reference internal" href="loading.html"><em>Relationship Loading Techniques</em></a>.</p>
 </li>
-<li><strong>load_on_pending=False</strong> &#8211; <p>Indicates loading behavior for transient or pending parent objects.</p>
-<div class="versionchanged">
-<p><span>Changed in version 0.8: </span>load_on_pending is superseded by
-<a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.enable_relationship_loading" title="sqlalchemy.orm.session.Session.enable_relationship_loading"><tt class="xref py py-meth docutils literal"><span class="pre">Session.enable_relationship_loading()</span></tt></a>.</p>
-</div>
+<li><span class="target" id="sqlalchemy.orm.relationship.params.load_on_pending"></span><strong>load_on_pending=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.load_on_pending">¶</a> &#8211; <p>Indicates loading behavior for transient or pending parent objects.</p>
 <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, causes the lazy-loader to
 issue a query for a parent object that is not persistent, meaning it has
 never been flushed.  This may take effect for a pending object when
@@ -1763,8 +1765,14 @@ is not not intended for general use.</p>
 <div class="versionadded">
 <p><span>New in version 0.6.5.</span></p>
 </div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.enable_relationship_loading" title="sqlalchemy.orm.session.Session.enable_relationship_loading"><tt class="xref py py-meth docutils literal"><span class="pre">Session.enable_relationship_loading()</span></tt></a> - this method establishes
+&#8220;load on pending&#8221; behavior for the whole object, and also allows
+loading on objects that remain transient or detached.</p>
+</div>
 </li>
-<li><strong>order_by</strong> &#8211; <p>indicates the ordering that should be applied when loading these
+<li><span class="target" id="sqlalchemy.orm.relationship.params.order_by"></span><strong>order_by</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.order_by">¶</a> &#8211; <p>indicates the ordering that should be applied when loading these
 items.  <tt class="docutils literal"><span class="pre">order_by</span></tt> is expected to refer to one of the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
 objects to which the target class is mapped, or
 the attribute itself bound to the target class which refers
@@ -1773,7 +1781,7 @@ to the column.</p>
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
-<li><strong>passive_deletes=False</strong> &#8211; <p>Indicates loading behavior during delete operations.</p>
+<li><span class="target" id="sqlalchemy.orm.relationship.params.passive_deletes"></span><strong>passive_deletes=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.passive_deletes">¶</a> &#8211; <p>Indicates loading behavior during delete operations.</p>
 <p>A value of True indicates that unloaded child items should not
 be loaded during a delete operation on the parent.  Normally,
 when a parent item is deleted, all child items are loaded so
@@ -1791,7 +1799,7 @@ attributes on in-session child objects will not be changed
 after a flush occurs so this is a very special use-case
 setting.</p>
 </li>
-<li><strong>passive_updates=True</strong> &#8211; <p>Indicates loading and INSERT/UPDATE/DELETE behavior when the
+<li><span class="target" id="sqlalchemy.orm.relationship.params.passive_updates"></span><strong>passive_updates=True</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.passive_updates">¶</a> &#8211; <p>Indicates loading and INSERT/UPDATE/DELETE behavior when the
 source of a foreign key value changes (i.e. an &#8220;on update&#8221;
 cascade), which are typically the primary key columns of the
 source row.</p>
@@ -1816,7 +1824,7 @@ are expected and the database in use doesn&#8217;t support CASCADE
 <p>A future SQLAlchemy release will provide a &#8220;detect&#8221; feature for
 this flag.</p>
 </li>
-<li><strong>post_update</strong> &#8211; this indicates that the relationship should be handled by a
+<li><span class="target" id="sqlalchemy.orm.relationship.params.post_update"></span><strong>post_update</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.post_update">¶</a> &#8211; this indicates that the relationship should be handled by a
 second UPDATE statement after an INSERT or before a
 DELETE. Currently, it also will issue an UPDATE after the
 instance was UPDATEd as well, although this technically should
@@ -1832,7 +1840,7 @@ list (i.e. both tables contain a foreign key to each other). If
 a <tt class="docutils literal"><span class="pre">flush()</span></tt> operation returns an error that a &#8220;cyclical
 dependency&#8221; was detected, this is a cue that you might want to
 use <tt class="docutils literal"><span class="pre">post_update</span></tt> to &#8220;break&#8221; the cycle.</li>
-<li><strong>primaryjoin</strong> &#8211; <p>a SQL expression that will be used as the primary
+<li><span class="target" id="sqlalchemy.orm.relationship.params.primaryjoin"></span><strong>primaryjoin</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.primaryjoin">¶</a> &#8211; <p>a SQL expression that will be used as the primary
 join of this child object against the parent object, or in a
 many-to-many relationship the join of the primary object to the
 association table. By default, this value is computed based on the
@@ -1842,7 +1850,7 @@ table).</p>
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
-<li><strong>remote_side</strong> &#8211; <p>used for self-referential relationships, indicates the column or
+<li><span class="target" id="sqlalchemy.orm.relationship.params.remote_side"></span><strong>remote_side</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.remote_side">¶</a> &#8211; <p>used for self-referential relationships, indicates the column or
 list of columns that form the &#8220;remote side&#8221; of the relationship.</p>
 <p><tt class="docutils literal"><span class="pre">remote_side</span></tt> may also be passed as a callable function
 which is evaluated at mapper initialization time, and may be passed as a
@@ -1854,12 +1862,12 @@ more specific system of describing which columns in a particular
 <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> should be considered &#8220;remote&#8221;.</p>
 </div>
 </li>
-<li><strong>query_class</strong> &#8211; a <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> subclass that will be used as the base of the
+<li><span class="target" id="sqlalchemy.orm.relationship.params.query_class"></span><strong>query_class</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.query_class">¶</a> &#8211; a <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> subclass that will be used as the base of the
 &#8220;appender query&#8221; returned by a &#8220;dynamic&#8221; relationship, that
 is, a relationship that specifies <tt class="docutils literal"><span class="pre">lazy=&quot;dynamic&quot;</span></tt> or was
 otherwise constructed using the <a class="reference internal" href="#sqlalchemy.orm.dynamic_loader" title="sqlalchemy.orm.dynamic_loader"><tt class="xref py py-func docutils literal"><span class="pre">orm.dynamic_loader()</span></tt></a>
 function.</li>
-<li><strong>secondaryjoin</strong> &#8211; <p>a SQL expression that will be used as the join of
+<li><span class="target" id="sqlalchemy.orm.relationship.params.secondaryjoin"></span><strong>secondaryjoin</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.secondaryjoin">¶</a> &#8211; <p>a SQL expression that will be used as the join of
 an association table to the child object. By default, this value is
 computed based on the foreign key relationships of the association and
 child tables.</p>
@@ -1867,20 +1875,20 @@ child tables.</p>
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
-<li><strong>single_parent=(True|False)</strong> &#8211; when True, installs a validator which will prevent objects
+<li><span class="target" id="sqlalchemy.orm.relationship.params.single_parent"></span><strong>single_parent=(True|False)</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.single_parent">¶</a> &#8211; when True, installs a validator which will prevent objects
 from being associated with more than one parent at a time.
 This is used for many-to-one or many-to-many relationships that
 should be treated either as one-to-one or one-to-many.  Its
 usage is optional unless delete-orphan cascade is also
 set on this relationship(), in which case its required.</li>
-<li><strong>uselist=(True|False)</strong> &#8211; a boolean that indicates if this property should be loaded as a
+<li><span class="target" id="sqlalchemy.orm.relationship.params.uselist"></span><strong>uselist=(True|False)</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.uselist">¶</a> &#8211; a boolean that indicates if this property should be loaded as a
 list or a scalar. In most cases, this value is determined
 automatically by <tt class="docutils literal"><span class="pre">relationship()</span></tt>, based on the type and direction
 of the relationship - one to many forms a list, many to one
 forms a scalar, many to many is a list. If a scalar is desired
 where normally a list would be present, such as a bi-directional
 one-to-one relationship, set uselist to False.</li>
-<li><strong>viewonly=False</strong> &#8211; when set to True, the relationship is used only for loading objects
+<li><span class="target" id="sqlalchemy.orm.relationship.params.viewonly"></span><strong>viewonly=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.viewonly">¶</a> &#8211; when set to True, the relationship is used only for loading objects
 within the relationship, and has no effect on the unit-of-work
 flush process.  Relationships with viewonly can specify any kind of
 join conditions to provide additional views of related objects
@@ -1980,7 +1988,7 @@ description of use.</p>
         <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

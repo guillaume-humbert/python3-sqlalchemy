@@ -1,18 +1,18 @@
 # engine/base.py
-# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
-
+from __future__ import with_statement
 
 """Defines :class:`.Connection` and :class:`.Engine`.
 
 """
 
-from __future__ import with_statement
+
 import sys
-from .. import exc, schema, util, log, interfaces
-from ..sql import expression, util as sql_util
+from .. import exc, util, log, interfaces
+from ..sql import expression, util as sql_util, schema, ddl
 from .interfaces import Connectable, Compiled
 from .util import _distill_params
 import contextlib
@@ -46,7 +46,7 @@ class Connection(Connectable):
     def __init__(self, engine, connection=None, close_with_result=False,
                  _branch=False, _execution_options=None,
                  _dispatch=None,
-                 _has_events=False):
+                 _has_events=None):
         """Construct a new Connection.
 
         The constructor here is not public and is only called only by an
@@ -67,7 +67,8 @@ class Connection(Connectable):
             self.dispatch = _dispatch
         elif engine._has_events:
             self.dispatch = self.dispatch._join(engine.dispatch)
-        self._has_events = _has_events or engine._has_events
+        self._has_events = _has_events or (
+                                _has_events is None and engine._has_events)
 
         self._echo = self.engine._should_log_info()
         if _execution_options:
@@ -75,6 +76,9 @@ class Connection(Connectable):
                 engine._execution_options.union(_execution_options)
         else:
             self._execution_options = engine._execution_options
+
+        if self._has_events:
+            self.dispatch.engine_connect(self, _branch)
 
     def _branch(self):
         """Return a new Connection which references this Connection's
@@ -200,15 +204,10 @@ class Connection(Connectable):
         """
         c = self._clone()
         c._execution_options = c._execution_options.union(opt)
-        if 'isolation_level' in opt:
-            c._set_isolation_level()
+        if self._has_events:
+            self.dispatch.set_connection_execution_options(c, opt)
+        self.dialect.set_connection_execution_options(c, opt)
         return c
-
-    def _set_isolation_level(self):
-        self.dialect.set_isolation_level(self.connection,
-                                self._execution_options['isolation_level'])
-        self.connection._connection_record.finalize_callback = \
-                    self.dialect.reset_isolation_level
 
     @property
     def closed(self):
@@ -460,7 +459,7 @@ class Connection(Connectable):
 
         try:
             self.engine.dialect.do_begin(self.connection)
-        except Exception, e:
+        except Exception as e:
             self._handle_dbapi_exception(e, None, None, None, None)
 
     def _rollback_impl(self):
@@ -473,7 +472,7 @@ class Connection(Connectable):
             try:
                 self.engine.dialect.do_rollback(self.connection)
                 self.__transaction = None
-            except Exception, e:
+            except Exception as e:
                 self._handle_dbapi_exception(e, None, None, None, None)
         else:
             self.__transaction = None
@@ -487,7 +486,7 @@ class Connection(Connectable):
         try:
             self.engine.dialect.do_commit(self.connection)
             self.__transaction = None
-        except Exception, e:
+        except Exception as e:
             self._handle_dbapi_exception(e, None, None, None, None)
 
     def _savepoint_impl(self, name=None):
@@ -653,17 +652,16 @@ class Connection(Connectable):
          DBAPI-agnostic way, use the :func:`~.expression.text` construct.
 
         """
-        for c in type(object).__mro__:
-            if c in Connection.executors:
-                return Connection.executors[c](
-                                                self,
-                                                object,
-                                                multiparams,
-                                                params)
-        else:
+        if isinstance(object, util.string_types[0]):
+            return self._execute_text(object, multiparams, params)
+        try:
+            meth = object._execute_on_connection
+        except AttributeError:
             raise exc.InvalidRequestError(
                                 "Unexecutable object type: %s" %
                                 type(object))
+        else:
+            return meth(self, multiparams, params)
 
     def _execute_function(self, func, multiparams, params):
         """Execute a sql.FunctionElement object."""
@@ -688,7 +686,7 @@ class Connection(Connectable):
             dialect = self.dialect
             ctx = dialect.execution_ctx_cls._init_default(
                                 dialect, self, conn)
-        except Exception, e:
+        except Exception as e:
             self._handle_dbapi_exception(e, None, None, None, None)
 
         ret = ctx._exec_default(default, None)
@@ -734,6 +732,8 @@ class Connection(Connectable):
 
         distilled_params = _distill_params(multiparams, params)
         if distilled_params:
+            # note this is usually dict but we support RowProxy
+            # as well; but dict.keys() as an iterator is OK
             keys = distilled_params[0].keys()
         else:
             keys = []
@@ -822,7 +822,7 @@ class Connection(Connectable):
                 conn = self._revalidate_connection()
 
             context = constructor(dialect, self, conn, *args)
-        except Exception, e:
+        except Exception as e:
             self._handle_dbapi_exception(e,
                         util.text_type(statement), parameters,
                         None, None)
@@ -865,7 +865,7 @@ class Connection(Connectable):
                                     statement,
                                     parameters,
                                     context)
-        except Exception, e:
+        except Exception as e:
             self._handle_dbapi_exception(
                                 e,
                                 statement,
@@ -897,6 +897,11 @@ class Connection(Connectable):
             elif not context._is_explicit_returning:
                 result.close(_autoclose_connection=False)
                 result._metadata = None
+        elif context.isupdate and context._is_implicit_returning:
+            context._fetch_implicit_update_returning(result)
+            result.close(_autoclose_connection=False)
+            result._metadata = None
+
         elif result._metadata is None:
             # no results, get rowcount
             # (which requires open cursor on some drivers
@@ -939,7 +944,7 @@ class Connection(Connectable):
                                 cursor,
                                 statement,
                                 parameters)
-        except Exception, e:
+        except Exception as e:
             self._handle_dbapi_exception(
                                 e,
                                 statement,
@@ -954,17 +959,11 @@ class Connection(Connectable):
         """
         try:
             cursor.close()
-        except Exception, e:
-            try:
-                ex_text = str(e)
-            except TypeError:
-                ex_text = repr(e)
-            if not self.closed:
-                self.connection._logger.warn(
-                            "Error closing cursor: %s", ex_text)
-
-            if isinstance(e, (SystemExit, KeyboardInterrupt)):
-                raise
+        except (SystemExit, KeyboardInterrupt):
+            raise
+        except Exception:
+            self.connection._logger.error(
+                                    "Error closing cursor", exc_info=True)
 
     _reentrant_error = False
     _is_disconnect = False
@@ -1037,16 +1036,6 @@ class Connection(Connectable):
                     self.engine.dispose()
             if self.should_close_with_result:
                 self.close()
-
-    # poor man's multimethod/generic function thingy
-    executors = {
-        expression.FunctionElement: _execute_function,
-        expression.ClauseElement: _execute_clauseelement,
-        Compiled: _execute_compiled,
-        schema.SchemaItem: _execute_default,
-        schema.DDLElement: _execute_ddl,
-        basestring: _execute_text
-    }
 
     def default_schema_name(self):
         return self.engine.dialect.get_default_schema_name(self)
@@ -1340,15 +1329,10 @@ class Engine(Connectable, log.Identified):
             :meth:`.Engine.execution_options`
 
         """
-        if 'isolation_level' in opt:
-            raise exc.ArgumentError(
-                "'isolation_level' execution option may "
-                "only be specified on Connection.execution_options(). "
-                "To set engine-wide isolation level, "
-                "use the isolation_level argument to create_engine()."
-            )
         self._execution_options = \
                 self._execution_options.union(opt)
+        self.dispatch.set_engine_execution_options(self, opt)
+        self.dialect.set_engine_execution_options(self, opt)
 
     def execution_options(self, **opt):
         """Return a new :class:`.Engine` that will provide
@@ -1677,6 +1661,17 @@ class Engine(Connectable, log.Identified):
             return self.dialect.get_table_names(conn, schema)
 
     def has_table(self, table_name, schema=None):
+        """Return True if the given backend has a table of the given name.
+
+        .. seealso::
+
+            :ref:`metadata_reflection_inspector` - detailed schema inspection using
+            the :class:`.Inspector` interface.
+
+            :class:`.quoted_name` - used to pass quoting information along
+            with a schema identifier.
+
+        """
         return self.run_callable(self.dialect.has_table, table_name, schema)
 
     def raw_connection(self):

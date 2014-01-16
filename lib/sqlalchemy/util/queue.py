@@ -1,5 +1,5 @@
 # util/queue.py
-# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -25,14 +25,7 @@ within QueuePool.
 from collections import deque
 from time import time as _time
 from .compat import threading
-import sys
 
-if sys.version_info < (2, 6):
-    def notify_all(condition):
-        condition.notify()
-else:
-    def notify_all(condition):
-        condition.notify_all()
 
 __all__ = ['Empty', 'Full', 'Queue', 'SAAbort']
 
@@ -201,7 +194,7 @@ class Queue:
             # note that this is now optional
             # as the waiters in get() both loop around
             # to check the _sqla_abort_context flag periodically
-            notify_all(self.not_empty)
+            self.not_empty.notify_all()
         finally:
             self.not_full.release()
 

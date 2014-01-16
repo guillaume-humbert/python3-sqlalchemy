@@ -10,7 +10,7 @@
     
                 MySQL
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Oracle" href="oracle.html" />
         <link rel="prev" title="Microsoft SQL Server" href="mssql.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 MySQL
@@ -468,10 +469,9 @@ type for your MySQL storage engine.</p>
 <span id="mysql-foreign-keys"></span><h2>MySQL Foreign Key Options<a class="headerlink" href="#mysql-foreign-key-options" title="Permalink to this headline">¶</a></h2>
 <p>MySQL does not support the foreign key arguments &#8220;DEFERRABLE&#8221;, &#8220;INITIALLY&#8221;,
 or &#8220;MATCH&#8221;.  Using the <tt class="docutils literal"><span class="pre">deferrable</span></tt> or <tt class="docutils literal"><span class="pre">initially</span></tt> keyword argument with
-<a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> will have the effect of
-these keywords being ignored in a DDL expression along with a warning, however this behavior
-<strong>will change</strong> in a future release.</p>
-<p>In order to use these keywords on a foreign key while having them ignored
+<a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> will have the effect of these keywords being
+rendered in a DDL expression, which will then raise an error on MySQL.
+In order to use these keywords on a foreign key while having them ignored
 on a MySQL backend, use a custom compile rule:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">ForeignKeyConstraint</span>
@@ -482,22 +482,20 @@ on a MySQL backend, use a custom compile rule:</p>
     <span class="k">return</span> <span class="n">compiler</span><span class="o">.</span><span class="n">visit_foreign_key_constraint</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span></pre></div>
 </div>
 <div class="versionchanged">
-<p><span>Changed in version 0.8.3: </span>- the MySQL backend will emit a warning when the
+<p><span>Changed in version 0.9.0: </span>- the MySQL backend no longer silently ignores
 the <tt class="docutils literal"><span class="pre">deferrable</span></tt> or <tt class="docutils literal"><span class="pre">initially</span></tt> keyword arguments of <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
-and <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> are used.  The arguments will no longer be
-ignored in 0.9.</p>
+and <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.</p>
 </div>
-<p>The &#8220;MATCH&#8221; keyword is in fact more insidious, and in a future release will be
-explicitly disallowed
+<p>The &#8220;MATCH&#8221; keyword is in fact more insidious, and is explicitly disallowed
 by SQLAlchemy in conjunction with the MySQL backend.  This argument is silently
 ignored by MySQL, but in addition has the effect of ON UPDATE and ON DELETE options
 also being ignored by the backend.   Therefore MATCH should never be used with the
 MySQL backend; as is the case with DEFERRABLE and INITIALLY, custom compilation
 rules can be used to correct a MySQL ForeignKeyConstraint at DDL definition time.</p>
 <div class="versionadded">
-<p><span>New in version 0.8.3: </span>- the MySQL backend will emit a warning when
-the <tt class="docutils literal"><span class="pre">match</span></tt> keyword is used with <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
-or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.  This will be a <tt class="xref py py-class docutils literal"><span class="pre">CompileError</span></tt> in 0.9.</p>
+<p><span>New in version 0.9.0: </span>- the MySQL backend will raise a <tt class="xref py py-class docutils literal"><span class="pre">CompileError</span></tt>
+when the <tt class="docutils literal"><span class="pre">match</span></tt> keyword is used with <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
+or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.</p>
 </div>
 </div>
 <div class="section" id="mysql-data-types">
@@ -527,9 +525,9 @@ construction arguments, are as follows:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.BIGINT.__init__.params.display_width"></span><strong>display_width</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.BIGINT.__init__.params.display_width">¶</a> &#8211; Optional, maximum display width for this number.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.BIGINT.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.BIGINT.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.BIGINT.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.BIGINT.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -565,7 +563,7 @@ type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; Optional, number of bits.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.mysql.BIT.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.BIT.__init__.params.length">¶</a> &#8211; Optional, number of bits.</td>
 </tr>
 </tbody>
 </table>
@@ -586,7 +584,7 @@ type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.mysql.BLOB.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.BLOB.__init__.params.length">¶</a> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
@@ -615,10 +613,10 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>create_constraint</strong> &#8211; defaults to True.  If the boolean
+<li><span class="target" id="sqlalchemy.dialects.mysql.BOOLEAN.__init__.params.create_constraint"></span><strong>create_constraint</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.BOOLEAN.__init__.params.create_constraint">¶</a> &#8211; defaults to True.  If the boolean
 is generated as an int/smallint, also create a CHECK constraint
 on the table that ensures 1 or 0 as a value.</li>
-<li><strong>name</strong> &#8211; if a CHECK constraint is generated, specify
+<li><span class="target" id="sqlalchemy.dialects.mysql.BOOLEAN.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.BOOLEAN.__init__.params.name">¶</a> &#8211; if a CHECK constraint is generated, specify
 the name of the constraint.</li>
 </ul>
 </td>
@@ -643,11 +641,11 @@ the name of the constraint.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; Maximum data length, in characters.</li>
-<li><strong>binary</strong> &#8211; Optional, use the default binary collation for the
+<li><span class="target" id="sqlalchemy.dialects.mysql.CHAR.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.CHAR.__init__.params.length">¶</a> &#8211; Maximum data length, in characters.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.CHAR.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.CHAR.__init__.params.binary">¶</a> &#8211; Optional, use the default binary collation for the
 national character set.  This does not affect the type of data
 stored, use a BINARY type for binary data.</li>
-<li><strong>collation</strong> &#8211; Optional, request a particular collation.  Must be
+<li><span class="target" id="sqlalchemy.dialects.mysql.CHAR.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.CHAR.__init__.params.collation">¶</a> &#8211; Optional, request a particular collation.  Must be
 compatible with the national character set.</li>
 </ul>
 </td>
@@ -660,13 +658,13 @@ compatible with the national character set.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.DATE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">DATE</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">DATE</tt><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Date" title="sqlalchemy.types.Date"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Date</span></tt></a></p>
 <p>The SQL DATE type.</p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.mysql.DATE.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATE.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATE.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
@@ -684,13 +682,13 @@ compatible with the national character set.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.mysql.DATETIME.__init__.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DATETIME.__init__.params.timezone">¶</a> &#8211; boolean.  If True, and supported by the
+backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
+that don&#8217;t support timezone aware timestamps, has no
+effect.</td>
 </tr>
 </tbody>
 </table>
-<p>backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
-that don&#8217;t support timezone aware timestamps, has no
-effect.</p>
 </dd></dl>
 
 </dd></dl>
@@ -709,11 +707,11 @@ effect.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.mysql.DECIMAL.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DECIMAL.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.DECIMAL.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DECIMAL.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.DECIMAL.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DECIMAL.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.DECIMAL.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DECIMAL.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -735,16 +733,24 @@ numeric.</li>
 <dt id="sqlalchemy.dialects.mysql.DOUBLE.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.DOUBLE.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a DOUBLE.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="#sqlalchemy.dialects.mysql.DOUBLE" title="sqlalchemy.dialects.mysql.DOUBLE"><tt class="xref py py-class docutils literal"><span class="pre">DOUBLE</span></tt></a> type by default converts from float
+to Decimal, using a truncation that defaults to 10 digits.  Specify
+either <tt class="docutils literal"><span class="pre">scale=n</span></tt> or <tt class="docutils literal"><span class="pre">decimal_return_scale=n</span></tt> in order to change
+this scale, or <tt class="docutils literal"><span class="pre">asdecimal=False</span></tt> to return values directly as
+Python floating points.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.mysql.DOUBLE.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DOUBLE.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.DOUBLE.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DOUBLE.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.DOUBLE.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DOUBLE.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.DOUBLE.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DOUBLE.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -760,41 +766,41 @@ numeric.</li>
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.ENUM">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">ENUM</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.ENUM" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Enum</span></tt></a>, <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt></p>
+<dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Enum</span></tt></a>, <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._EnumeratedValues</span></tt></p>
 <p>MySQL ENUM type.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.mysql.ENUM.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.ENUM.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an ENUM.</p>
-<p>Example:</p>
-<blockquote>
-<div>Column(&#8216;myenum&#8217;, MSEnum(&#8220;foo&#8221;, &#8220;bar&#8221;, &#8220;baz&#8221;))</div></blockquote>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;myenum&#39;</span><span class="p">,</span> <span class="n">ENUM</span><span class="p">(</span><span class="s">&quot;foo&quot;</span><span class="p">,</span> <span class="s">&quot;bar&quot;</span><span class="p">,</span> <span class="s">&quot;baz&quot;</span><span class="p">))</span></pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>enums</strong> &#8211; The range of valid values for this ENUM.  Values will be
+<li><span class="target" id="sqlalchemy.dialects.mysql.ENUM.__init__.params.enums"></span><strong>enums</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.ENUM.__init__.params.enums">¶</a> &#8211; The range of valid values for this ENUM.  Values will be
 quoted when generating the schema according to the quoting flag (see
 below).</li>
-<li><strong>strict</strong> &#8211; Defaults to False: ensure that a given value is in this
+<li><span class="target" id="sqlalchemy.dialects.mysql.ENUM.__init__.params.strict"></span><strong>strict</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.ENUM.__init__.params.strict">¶</a> &#8211; Defaults to False: ensure that a given value is in this
 ENUM&#8217;s range of permissible values when inserting or updating rows.
 Note that MySQL will not raise a fatal error if you attempt to store
 an out of range value- an alternate value will be stored instead.
 (See MySQL ENUM documentation.)</li>
-<li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.ENUM.__init__.params.charset"></span><strong>charset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.ENUM.__init__.params.charset">¶</a> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.ENUM.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.ENUM.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><strong>ascii</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.ENUM.__init__.params.ascii"></span><strong>ascii</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.ENUM.__init__.params.ascii">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
 character set, generates ASCII in schema.</li>
-<li><strong>unicode</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.ENUM.__init__.params.unicode"></span><strong>unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.ENUM.__init__.params.unicode">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
 character set, generates UNICODE in schema.</li>
-<li><strong>binary</strong> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.mysql.ENUM.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.ENUM.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>
-<li><strong>quoting</strong> &#8211; <p>Defaults to &#8216;auto&#8217;: automatically determine enum value
+<li><span class="target" id="sqlalchemy.dialects.mysql.ENUM.__init__.params.quoting"></span><strong>quoting</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.ENUM.__init__.params.quoting">¶</a> &#8211; <p>Defaults to &#8216;auto&#8217;: automatically determine enum value
 quoting.  If all enum values are surrounded by the same quoting
 character, then use &#8216;quoted&#8217; mode.  Otherwise, use &#8216;unquoted&#8217; mode.</p>
 <p>&#8216;quoted&#8217;: values in enums are already quoted, they will be used
@@ -828,11 +834,11 @@ literals for you.  This is a transitional option.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.mysql.FLOAT.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.FLOAT.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.FLOAT.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.FLOAT.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.FLOAT.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.FLOAT.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.FLOAT.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.FLOAT.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -859,9 +865,9 @@ numeric.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.INTEGER.__init__.params.display_width"></span><strong>display_width</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.INTEGER.__init__.params.display_width">¶</a> &#8211; Optional, maximum display width for this number.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.INTEGER.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.INTEGER.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.INTEGER.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.INTEGER.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -895,17 +901,17 @@ numeric.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.charset"></span><strong>charset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.charset">¶</a> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><strong>ascii</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.ascii"></span><strong>ascii</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.ascii">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
 character set, generates ASCII in schema.</li>
-<li><strong>unicode</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.unicode"></span><strong>unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.unicode">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
 character set, generates UNICODE in schema.</li>
-<li><strong>national</strong> &#8211; Optional. If true, use the server&#8217;s configured
+<li><span class="target" id="sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.national"></span><strong>national</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.national">¶</a> &#8211; Optional. If true, use the server&#8217;s configured
 national character set.</li>
-<li><strong>binary</strong> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.LONGTEXT.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>
@@ -939,9 +945,9 @@ only the collation of character data.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.MEDIUMINT.__init__.params.display_width"></span><strong>display_width</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.MEDIUMINT.__init__.params.display_width">¶</a> &#8211; Optional, maximum display width for this number.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.MEDIUMINT.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.MEDIUMINT.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.MEDIUMINT.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.MEDIUMINT.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -968,17 +974,17 @@ numeric.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.charset"></span><strong>charset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.charset">¶</a> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><strong>ascii</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.ascii"></span><strong>ascii</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.ascii">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
 character set, generates ASCII in schema.</li>
-<li><strong>unicode</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.unicode"></span><strong>unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.unicode">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
 character set, generates UNICODE in schema.</li>
-<li><strong>national</strong> &#8211; Optional. If true, use the server&#8217;s configured
+<li><span class="target" id="sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.national"></span><strong>national</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.national">¶</a> &#8211; Optional. If true, use the server&#8217;s configured
 national character set.</li>
-<li><strong>binary</strong> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.MEDIUMTEXT.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>
@@ -1007,11 +1013,11 @@ character set.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; Maximum data length, in characters.</li>
-<li><strong>binary</strong> &#8211; Optional, use the default binary collation for the
+<li><span class="target" id="sqlalchemy.dialects.mysql.NCHAR.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NCHAR.__init__.params.length">¶</a> &#8211; Maximum data length, in characters.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.NCHAR.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NCHAR.__init__.params.binary">¶</a> &#8211; Optional, use the default binary collation for the
 national character set.  This does not affect the type of data
 stored, use a BINARY type for binary data.</li>
-<li><strong>collation</strong> &#8211; Optional, request a particular collation.  Must be
+<li><span class="target" id="sqlalchemy.dialects.mysql.NCHAR.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NCHAR.__init__.params.collation">¶</a> &#8211; Optional, request a particular collation.  Must be
 compatible with the national character set.</li>
 </ul>
 </td>
@@ -1036,11 +1042,11 @@ compatible with the national character set.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.mysql.NUMERIC.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NUMERIC.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.NUMERIC.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NUMERIC.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.NUMERIC.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NUMERIC.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.NUMERIC.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NUMERIC.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -1069,11 +1075,11 @@ character set.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; Maximum data length, in characters.</li>
-<li><strong>binary</strong> &#8211; Optional, use the default binary collation for the
+<li><span class="target" id="sqlalchemy.dialects.mysql.NVARCHAR.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NVARCHAR.__init__.params.length">¶</a> &#8211; Maximum data length, in characters.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.NVARCHAR.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NVARCHAR.__init__.params.binary">¶</a> &#8211; Optional, use the default binary collation for the
 national character set.  This does not affect the type of data
 stored, use a BINARY type for binary data.</li>
-<li><strong>collation</strong> &#8211; Optional, request a particular collation.  Must be
+<li><span class="target" id="sqlalchemy.dialects.mysql.NVARCHAR.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.NVARCHAR.__init__.params.collation">¶</a> &#8211; Optional, request a particular collation.  Must be
 compatible with the national character set.</li>
 </ul>
 </td>
@@ -1093,16 +1099,24 @@ compatible with the national character set.</li>
 <dt id="sqlalchemy.dialects.mysql.REAL.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.REAL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a REAL.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="#sqlalchemy.dialects.mysql.REAL" title="sqlalchemy.dialects.mysql.REAL"><tt class="xref py py-class docutils literal"><span class="pre">REAL</span></tt></a> type by default converts from float
+to Decimal, using a truncation that defaults to 10 digits.  Specify
+either <tt class="docutils literal"><span class="pre">scale=n</span></tt> or <tt class="docutils literal"><span class="pre">decimal_return_scale=n</span></tt> in order to change
+this scale, or <tt class="docutils literal"><span class="pre">asdecimal=False</span></tt> to return values directly as
+Python floating points.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>precision</strong> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.mysql.REAL.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.REAL.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><strong>scale</strong> &#8211; The number of digits after the decimal point.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.REAL.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.REAL.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.REAL.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.REAL.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.REAL.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.REAL.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -1118,37 +1132,54 @@ numeric.</li>
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.SET">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">SET</tt><big>(</big><em>*values</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.SET" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._StringType</span></tt></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mysql.base._EnumeratedValues</span></tt></p>
 <p>MySQL SET type.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.mysql.SET.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>*values</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.SET.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a SET.</p>
-<p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;myset&#39;</span><span class="p">,</span> <span class="n">MSSet</span><span class="p">(</span><span class="s">&quot;&#39;foo&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;bar&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;baz&#39;&quot;</span><span class="p">))</span></pre></div>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;myset&#39;</span><span class="p">,</span> <span class="n">SET</span><span class="p">(</span><span class="s">&quot;foo&quot;</span><span class="p">,</span> <span class="s">&quot;bar&quot;</span><span class="p">,</span> <span class="s">&quot;baz&quot;</span><span class="p">))</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>values</strong> &#8211; The range of valid values for this SET.  Values will be
-used exactly as they appear when generating schemas.  Strings must
-be quoted, as in the example above.  Single-quotes are suggested for
-ANSI compatibility and are required for portability to servers with
-ANSI_QUOTES enabled.</li>
-<li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.SET.__init__.params.values"></span><strong>values</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SET.__init__.params.values">¶</a> &#8211; <p>The range of valid values for this SET.  Values will be
+quoted when generating the schema according to the quoting flag (see
+below).</p>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.0: </span>quoting is applied automatically to
+<a class="reference internal" href="#sqlalchemy.dialects.mysql.SET" title="sqlalchemy.dialects.mysql.SET"><tt class="xref py py-class docutils literal"><span class="pre">mysql.SET</span></tt></a> in the same way as for <a class="reference internal" href="#sqlalchemy.dialects.mysql.ENUM" title="sqlalchemy.dialects.mysql.ENUM"><tt class="xref py py-class docutils literal"><span class="pre">mysql.ENUM</span></tt></a>.</p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.SET.__init__.params.charset"></span><strong>charset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SET.__init__.params.charset">¶</a> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.SET.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SET.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><strong>ascii</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.SET.__init__.params.ascii"></span><strong>ascii</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SET.__init__.params.ascii">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
 character set, generates ASCII in schema.</li>
-<li><strong>unicode</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.SET.__init__.params.unicode"></span><strong>unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SET.__init__.params.unicode">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
 character set, generates UNICODE in schema.</li>
-<li><strong>binary</strong> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.mysql.SET.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SET.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.SET.__init__.params.quoting"></span><strong>quoting</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SET.__init__.params.quoting">¶</a> &#8211; <p>Defaults to &#8216;auto&#8217;: automatically determine enum value
+quoting.  If all enum values are surrounded by the same quoting
+character, then use &#8216;quoted&#8217; mode.  Otherwise, use &#8216;unquoted&#8217; mode.</p>
+<p>&#8216;quoted&#8217;: values in enums are already quoted, they will be used
+directly when generating the schema - this usage is deprecated.</p>
+<p>&#8216;unquoted&#8217;: values in enums are not quoted, they will be escaped and
+surrounded by single quotes when generating the schema.</p>
+<p>Previous versions of this type always required manually quoted
+values to be supplied; future versions will always quote the string
+literals for you.  This is a transitional option.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -1172,9 +1203,9 @@ only the collation of character data.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.SMALLINT.__init__.params.display_width"></span><strong>display_width</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SMALLINT.__init__.params.display_width">¶</a> &#8211; Optional, maximum display width for this number.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.SMALLINT.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SMALLINT.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.SMALLINT.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.SMALLINT.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -1201,20 +1232,20 @@ numeric.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; Optional, if provided the server may optimize storage
+<li><span class="target" id="sqlalchemy.dialects.mysql.TEXT.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TEXT.__init__.params.length">¶</a> &#8211; Optional, if provided the server may optimize storage
 by substituting the smallest TEXT type sufficient to store
 <tt class="docutils literal"><span class="pre">length</span></tt> characters.</li>
-<li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.TEXT.__init__.params.charset"></span><strong>charset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TEXT.__init__.params.charset">¶</a> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.TEXT.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TEXT.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><strong>ascii</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.TEXT.__init__.params.ascii"></span><strong>ascii</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TEXT.__init__.params.ascii">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
 character set, generates ASCII in schema.</li>
-<li><strong>unicode</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.TEXT.__init__.params.unicode"></span><strong>unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TEXT.__init__.params.unicode">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
 character set, generates UNICODE in schema.</li>
-<li><strong>national</strong> &#8211; Optional. If true, use the server&#8217;s configured
+<li><span class="target" id="sqlalchemy.dialects.mysql.TEXT.__init__.params.national"></span><strong>national</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TEXT.__init__.params.national">¶</a> &#8211; Optional. If true, use the server&#8217;s configured
 national character set.</li>
-<li><strong>binary</strong> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.mysql.TEXT.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TEXT.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>
@@ -1246,8 +1277,8 @@ include support.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>timezone</strong> &#8211; not used by the MySQL dialect.</li>
-<li><strong>fsp</strong> &#8211; fractional seconds precision value.
+<li><span class="target" id="sqlalchemy.dialects.mysql.TIME.__init__.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TIME.__init__.params.timezone">¶</a> &#8211; not used by the MySQL dialect.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.TIME.__init__.params.fsp"></span><strong>fsp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TIME.__init__.params.fsp">¶</a> &#8211; fractional seconds precision value.
 MySQL 5.6 supports storage of fractional seconds;
 this parameter will be used when emitting DDL
 for the TIME type.  Note that many DBAPI drivers
@@ -1279,13 +1310,13 @@ type as well as fractional seconds support.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.mysql.TIMESTAMP.__init__.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TIMESTAMP.__init__.params.timezone">¶</a> &#8211; boolean.  If True, and supported by the
+backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
+that don&#8217;t support timezone aware timestamps, has no
+effect.</td>
 </tr>
 </tbody>
 </table>
-<p>backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
-that don&#8217;t support timezone aware timestamps, has no
-effect.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1311,9 +1342,9 @@ effect.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>display_width</strong> &#8211; Optional, maximum display width for this number.</li>
-<li><strong>unsigned</strong> &#8211; a boolean, optional.</li>
-<li><strong>zerofill</strong> &#8211; Optional. If true, values will be stored as strings
+<li><span class="target" id="sqlalchemy.dialects.mysql.TINYINT.__init__.params.display_width"></span><strong>display_width</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TINYINT.__init__.params.display_width">¶</a> &#8211; Optional, maximum display width for this number.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.TINYINT.__init__.params.unsigned"></span><strong>unsigned</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TINYINT.__init__.params.unsigned">¶</a> &#8211; a boolean, optional.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.TINYINT.__init__.params.zerofill"></span><strong>zerofill</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TINYINT.__init__.params.zerofill">¶</a> &#8211; Optional. If true, values will be stored as strings
 left-padded with zeros. Note that this does not effect the values
 returned by the underlying database API, which continue to be
 numeric.</li>
@@ -1340,17 +1371,17 @@ numeric.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.charset"></span><strong>charset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.charset">¶</a> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><strong>ascii</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.ascii"></span><strong>ascii</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.ascii">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
 character set, generates ASCII in schema.</li>
-<li><strong>unicode</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.unicode"></span><strong>unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.unicode">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
 character set, generates UNICODE in schema.</li>
-<li><strong>national</strong> &#8211; Optional. If true, use the server&#8217;s configured
+<li><span class="target" id="sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.national"></span><strong>national</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.national">¶</a> &#8211; Optional. If true, use the server&#8217;s configured
 national character set.</li>
-<li><strong>binary</strong> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TINYTEXT.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>
@@ -1384,17 +1415,17 @@ only the collation of character data.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>charset</strong> &#8211; Optional, a column-level character set for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.VARCHAR.__init__.params.charset"></span><strong>charset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.VARCHAR.__init__.params.charset">¶</a> &#8211; Optional, a column-level character set for this string
 value.  Takes precedence to &#8216;ascii&#8217; or &#8216;unicode&#8217; short-hand.</li>
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.mysql.VARCHAR.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.VARCHAR.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><strong>ascii</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.VARCHAR.__init__.params.ascii"></span><strong>ascii</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.VARCHAR.__init__.params.ascii">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">latin1</span></tt>
 character set, generates ASCII in schema.</li>
-<li><strong>unicode</strong> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
+<li><span class="target" id="sqlalchemy.dialects.mysql.VARCHAR.__init__.params.unicode"></span><strong>unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.VARCHAR.__init__.params.unicode">¶</a> &#8211; Defaults to False: short-hand for the <tt class="docutils literal"><span class="pre">ucs2</span></tt>
 character set, generates UNICODE in schema.</li>
-<li><strong>national</strong> &#8211; Optional. If true, use the server&#8217;s configured
+<li><span class="target" id="sqlalchemy.dialects.mysql.VARCHAR.__init__.params.national"></span><strong>national</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.VARCHAR.__init__.params.national">¶</a> &#8211; Optional. If true, use the server&#8217;s configured
 national character set.</li>
-<li><strong>binary</strong> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.mysql.VARCHAR.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.VARCHAR.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>
@@ -1628,7 +1659,7 @@ overriden via a <tt class="docutils literal"><span class="pre">create_engine</sp
         <a href="oracle.html" title="next chapter">Oracle</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

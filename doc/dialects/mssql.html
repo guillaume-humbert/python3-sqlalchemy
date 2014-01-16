@@ -10,7 +10,7 @@
     
                 Microsoft SQL Server
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,10 +47,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="MySQL" href="mysql.html" />
-        <link rel="prev" title="Informix" href="informix.html" />
+        <link rel="prev" title="Firebird" href="firebird.html" />
     <!-- end layout.mako headers -->
 
 
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -96,7 +97,7 @@
     <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
-            <a href="informix.html" title="previous chapter">Informix</a>
+            <a href="firebird.html" title="previous chapter">Firebird</a>
             </li>
             <li>Next:
             <a href="mysql.html" title="next chapter">MySQL</a>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 Microsoft SQL Server
@@ -185,7 +186,7 @@
 
     <h4>Previous Topic</h4>
     <p>
-    <a href="informix.html" title="previous chapter">Informix</a>
+    <a href="firebird.html" title="previous chapter">Firebird</a>
     </p>
     <h4>Next Topic</h4>
     <p>
@@ -413,12 +414,12 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 construction arguments, are as follows:</p>
 <dl class="class">
 <dt id="sqlalchemy.dialects.mssql.BIT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">BIT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.BIT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">BIT</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.BIT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.mssql.BIT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.BIT.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.BIT.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
@@ -437,14 +438,14 @@ construction arguments, are as follows:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<li><span class="target" id="sqlalchemy.dialects.mssql.CHAR.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.CHAR.__init__.params.length">¶</a> &#8211; optional, a length for the column for use in
 DDL and CAST expressions.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <tt class="docutils literal"><span class="pre">length</span></tt> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>collation</strong> &#8211; <p>Optional, a column-level collation for
+<li><span class="target" id="sqlalchemy.dialects.mssql.CHAR.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.CHAR.__init__.params.collation">¶</a> &#8211; <p>Optional, a column-level collation for
 use in DDL and CAST expressions.  Renders using the
 COLLATE keyword supported by SQLite, MySQL, and Postgresql.
 E.g.:</p>
@@ -457,7 +458,7 @@ E.g.:</p>
 string types.</p>
 </div>
 </li>
-<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
+<li><span class="target" id="sqlalchemy.dialects.mssql.CHAR.__init__.params.convert_unicode"></span><strong>convert_unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.CHAR.__init__.params.convert_unicode">¶</a> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
 and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
@@ -470,7 +471,7 @@ value of the <tt class="docutils literal"><span class="pre">encoding</span></tt>
 unicode objects, this flag generally does not
 need to be set.  For columns that are explicitly
 intended to store non-ASCII data, the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>
-or <tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt>
+or <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a>
 types should be used regardless, which feature
 the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but
 also indicate an underlying column type that
@@ -482,7 +483,7 @@ the value <tt class="docutils literal"><span class="pre">force</span></tt> can b
 cause SQLAlchemy&#8217;s encode/decode services to be
 used unconditionally.</p>
 </li>
-<li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
+<li><span class="target" id="sqlalchemy.dialects.mssql.CHAR.__init__.params.unicode_error"></span><strong>unicode_error</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.CHAR.__init__.params.unicode_error">¶</a> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
 the standard library&#8217;s <tt class="docutils literal"><span class="pre">string.decode()</span></tt> functions.   This flag
 requires that <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is set to <tt class="docutils literal"><span class="pre">force</span></tt> - otherwise,
@@ -525,7 +526,7 @@ strings from a column with varied or corrupted encodings.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.mssql.IMAGE.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.IMAGE.__init__.params.length">¶</a> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
@@ -542,12 +543,12 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mssql.MONEY">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">MONEY</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.MONEY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">MONEY</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.MONEY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.mssql.MONEY.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.MONEY.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.MONEY.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
@@ -619,37 +620,37 @@ defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.mssql.SMALLDATETIME.__init__.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.SMALLDATETIME.__init__.params.timezone">¶</a> &#8211; boolean.  If True, and supported by the
+backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
+that don&#8217;t support timezone aware timestamps, has no
+effect.</td>
 </tr>
 </tbody>
 </table>
-<p>backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
-that don&#8217;t support timezone aware timestamps, has no
-effect.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mssql.SMALLMONEY">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">SMALLMONEY</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLMONEY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">SMALLMONEY</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLMONEY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.mssql.SMALLMONEY.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLMONEY.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.SMALLMONEY.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mssql.SQL_VARIANT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">SQL_VARIANT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SQL_VARIANT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">SQL_VARIANT</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.SQL_VARIANT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.mssql.SQL_VARIANT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.SQL_VARIANT.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.SQL_VARIANT.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
@@ -668,14 +669,14 @@ effect.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<li><span class="target" id="sqlalchemy.dialects.mssql.TEXT.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.TEXT.__init__.params.length">¶</a> &#8211; optional, a length for the column for use in
 DDL and CAST expressions.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <tt class="docutils literal"><span class="pre">length</span></tt> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>collation</strong> &#8211; <p>Optional, a column-level collation for
+<li><span class="target" id="sqlalchemy.dialects.mssql.TEXT.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.TEXT.__init__.params.collation">¶</a> &#8211; <p>Optional, a column-level collation for
 use in DDL and CAST expressions.  Renders using the
 COLLATE keyword supported by SQLite, MySQL, and Postgresql.
 E.g.:</p>
@@ -688,7 +689,7 @@ E.g.:</p>
 string types.</p>
 </div>
 </li>
-<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
+<li><span class="target" id="sqlalchemy.dialects.mssql.TEXT.__init__.params.convert_unicode"></span><strong>convert_unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.TEXT.__init__.params.convert_unicode">¶</a> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
 and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
@@ -701,7 +702,7 @@ value of the <tt class="docutils literal"><span class="pre">encoding</span></tt>
 unicode objects, this flag generally does not
 need to be set.  For columns that are explicitly
 intended to store non-ASCII data, the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>
-or <tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt>
+or <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a>
 types should be used regardless, which feature
 the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but
 also indicate an underlying column type that
@@ -713,7 +714,7 @@ the value <tt class="docutils literal"><span class="pre">force</span></tt> can b
 cause SQLAlchemy&#8217;s encode/decode services to be
 used unconditionally.</p>
 </li>
-<li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
+<li><span class="target" id="sqlalchemy.dialects.mssql.TEXT.__init__.params.unicode_error"></span><strong>unicode_error</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.TEXT.__init__.params.unicode_error">¶</a> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
 the standard library&#8217;s <tt class="docutils literal"><span class="pre">string.decode()</span></tt> functions.   This flag
 requires that <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is set to <tt class="docutils literal"><span class="pre">force</span></tt> - otherwise,
@@ -740,24 +741,24 @@ strings from a column with varied or corrupted encodings.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mssql.TINYINT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">TINYINT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TINYINT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">TINYINT</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.TINYINT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.mssql.TINYINT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.TINYINT.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.TINYINT.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">UNIQUEIDENTIFIER</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mssql.</tt><tt class="descname">UNIQUEIDENTIFIER</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Support implementations that were passing arguments</p>
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
@@ -776,14 +777,14 @@ strings from a column with varied or corrupted encodings.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<li><span class="target" id="sqlalchemy.dialects.mssql.VARCHAR.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.VARCHAR.__init__.params.length">¶</a> &#8211; optional, a length for the column for use in
 DDL and CAST expressions.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <tt class="docutils literal"><span class="pre">length</span></tt> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>collation</strong> &#8211; <p>Optional, a column-level collation for
+<li><span class="target" id="sqlalchemy.dialects.mssql.VARCHAR.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.VARCHAR.__init__.params.collation">¶</a> &#8211; <p>Optional, a column-level collation for
 use in DDL and CAST expressions.  Renders using the
 COLLATE keyword supported by SQLite, MySQL, and Postgresql.
 E.g.:</p>
@@ -796,7 +797,7 @@ E.g.:</p>
 string types.</p>
 </div>
 </li>
-<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
+<li><span class="target" id="sqlalchemy.dialects.mssql.VARCHAR.__init__.params.convert_unicode"></span><strong>convert_unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.VARCHAR.__init__.params.convert_unicode">¶</a> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
 and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
@@ -809,7 +810,7 @@ value of the <tt class="docutils literal"><span class="pre">encoding</span></tt>
 unicode objects, this flag generally does not
 need to be set.  For columns that are explicitly
 intended to store non-ASCII data, the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>
-or <tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt>
+or <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a>
 types should be used regardless, which feature
 the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but
 also indicate an underlying column type that
@@ -821,7 +822,7 @@ the value <tt class="docutils literal"><span class="pre">force</span></tt> can b
 cause SQLAlchemy&#8217;s encode/decode services to be
 used unconditionally.</p>
 </li>
-<li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
+<li><span class="target" id="sqlalchemy.dialects.mssql.VARCHAR.__init__.params.unicode_error"></span><strong>unicode_error</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mssql.VARCHAR.__init__.params.unicode_error">¶</a> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
 the standard library&#8217;s <tt class="docutils literal"><span class="pre">string.decode()</span></tt> functions.   This flag
 requires that <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is set to <tt class="docutils literal"><span class="pre">force</span></tt> - otherwise,
@@ -1057,12 +1058,12 @@ above at this time.</p>
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
         Previous:
-        <a href="informix.html" title="previous chapter">Informix</a>
+        <a href="firebird.html" title="previous chapter">Firebird</a>
         Next:
         <a href="mysql.html" title="next chapter">MySQL</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

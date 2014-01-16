@@ -16,6 +16,7 @@ from sqlalchemy.dialects.postgresql import base as postgresql
 from sqlalchemy.dialects.postgresql import TSRANGE
 from sqlalchemy.orm import mapper, aliased, Session
 from sqlalchemy.sql import table, column, operators
+from sqlalchemy.util import u
 
 class SequenceTest(fixtures.TestBase, AssertsCompiledSQL):
 
@@ -105,6 +106,45 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             '(%(name)s) RETURNING length(mytable.name) '
                             'AS length_1', dialect=dialect)
 
+
+    def test_create_drop_enum(self):
+        # test escaping and unicode within CREATE TYPE for ENUM
+        typ = postgresql.ENUM(
+                    "val1", "val2", "val's 3", u('méil'), name="myname")
+        self.assert_compile(postgresql.CreateEnumType(typ),
+            u("CREATE TYPE myname AS ENUM ('val1', 'val2', 'val''s 3', 'méil')")
+        )
+
+        typ = postgresql.ENUM(
+                    "val1", "val2", "val's 3", name="PleaseQuoteMe")
+        self.assert_compile(postgresql.CreateEnumType(typ),
+            "CREATE TYPE \"PleaseQuoteMe\" AS ENUM "
+                "('val1', 'val2', 'val''s 3')"
+        )
+
+    def test_generic_enum(self):
+        e1 = Enum('x', 'y', 'z', name='somename')
+        e2 = Enum('x', 'y', 'z', name='somename', schema='someschema')
+        self.assert_compile(postgresql.CreateEnumType(e1),
+                            "CREATE TYPE somename AS ENUM ('x', 'y', 'z')"
+                            )
+        self.assert_compile(postgresql.CreateEnumType(e2),
+                            "CREATE TYPE someschema.somename AS ENUM "
+                            "('x', 'y', 'z')")
+        self.assert_compile(postgresql.DropEnumType(e1),
+                            'DROP TYPE somename')
+        self.assert_compile(postgresql.DropEnumType(e2),
+                            'DROP TYPE someschema.somename')
+        t1 = Table('sometable', MetaData(), Column('somecolumn', e1))
+        self.assert_compile(schema.CreateTable(t1),
+                            'CREATE TABLE sometable (somecolumn '
+                            'somename)')
+        t1 = Table('sometable', MetaData(), Column('somecolumn',
+                   Enum('x', 'y', 'z', native_enum=False)))
+        self.assert_compile(schema.CreateTable(t1),
+                            "CREATE TABLE sometable (somecolumn "
+                            "VARCHAR(1), CHECK (somecolumn IN ('x', "
+                            "'y', 'z')))")
 
     def test_create_partial_index(self):
         m = MetaData()
@@ -249,6 +289,68 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'SUBSTRING(%(substring_1)s FROM %(substring_2)s)')
 
 
+    def test_for_update(self):
+        table1 = table('mytable',
+                    column('myid'), column('name'), column('description'))
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).with_for_update(),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s FOR UPDATE")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).with_for_update(nowait=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s FOR UPDATE NOWAIT")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).with_for_update(read=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s FOR SHARE")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                    with_for_update(read=True, nowait=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s FOR SHARE NOWAIT")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                    with_for_update(of=table1.c.myid),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s "
+            "FOR UPDATE OF mytable")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                with_for_update(read=True, nowait=True, of=table1),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s "
+            "FOR SHARE OF mytable NOWAIT")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                with_for_update(read=True, nowait=True, of=table1.c.myid),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s "
+            "FOR SHARE OF mytable NOWAIT")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                with_for_update(read=True, nowait=True,
+                        of=[table1.c.myid, table1.c.name]),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %(myid_1)s "
+            "FOR SHARE OF mytable NOWAIT")
+
+        ta = table1.alias()
+        self.assert_compile(
+            ta.select(ta.c.myid == 7).
+                with_for_update(of=[ta.c.myid, ta.c.name]),
+            "SELECT mytable_1.myid, mytable_1.name, mytable_1.description "
+            "FROM mytable AS mytable_1 "
+            "WHERE mytable_1.myid = %(myid_1)s FOR UPDATE OF mytable_1"
+        )
 
 
     def test_reserved_words(self):

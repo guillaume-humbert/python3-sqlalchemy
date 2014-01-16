@@ -4,7 +4,8 @@ from sqlalchemy.testing import eq_, is_, is_not_
 import sqlalchemy as sa
 from sqlalchemy import testing
 from sqlalchemy.orm import joinedload, deferred, undefer, \
-    joinedload_all, backref, eagerload, Session, immediateload
+    joinedload_all, backref, eagerload, Session, immediateload,\
+    defaultload, Load
 from sqlalchemy import Integer, String, Date, ForeignKey, and_, select, \
     func
 from sqlalchemy.testing.schema import Table, Column
@@ -23,6 +24,7 @@ import datetime
 class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
     run_inserts = 'once'
     run_deletes = None
+    __dialect__ = 'default'
 
     def test_basic(self):
         users, Address, addresses, User = (self.tables.users,
@@ -598,7 +600,6 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
         assert 'orders' not in noeagers[0].__dict__
         assert 'addresses' not in noeagers[0].__dict__
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_limit(self):
         """Limit operations combined with lazy-load relationships."""
 
@@ -653,7 +654,6 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             eq_(self.static.user_address_result, l)
         self.assert_sql_count(testing.db, go, 1)
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_limit_2(self):
         keywords, items, item_keywords, Keyword, Item = (self.tables.keywords,
                                 self.tables.items,
@@ -675,7 +675,6 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
 
         eq_(self.static.item_keyword_result[1:3], l)
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_limit_3(self):
         """test that the ORDER BY is propagated from the inner
         select to the outer select, when using the
@@ -707,7 +706,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
 
         q = sess.query(User)
 
-        if not testing.against('maxdb', 'mssql'):
+        if not testing.against('mssql'):
             l = q.join('orders').order_by(Order.user_id.desc()).limit(2).offset(1)
             eq_([
                 User(id=9,
@@ -747,11 +746,11 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
 
         sess = create_session()
         eq_(sess.query(User).first(),
-            User(name=u'jack',orders=[
-                Order(address_id=1,description=u'order 1',isopen=0,user_id=7,id=1),
-                Order(address_id=1,description=u'order 3',isopen=1,user_id=7,id=3),
-                Order(address_id=None,description=u'order 5',isopen=0,user_id=7,id=5)],
-            email_address=u'jack@bean.com',id=7)
+            User(name='jack',orders=[
+                Order(address_id=1,description='order 1',isopen=0,user_id=7,id=1),
+                Order(address_id=1,description='order 3',isopen=1,user_id=7,id=3),
+                Order(address_id=None,description='order 5',isopen=0,user_id=7,id=5)],
+            email_address='jack@bean.com',id=7)
         )
 
     def test_useget_cancels_eager(self):
@@ -787,7 +786,8 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
         """test that the subquery wrapping only occurs with
         limit/offset and m2m or o2m joins present."""
 
-        users, items, order_items, Order, Item, User, Address, orders, addresses = (self.tables.users,
+        users, items, order_items, Order, Item, User, \
+                    Address, orders, addresses = (self.tables.users,
                                 self.tables.items,
                                 self.tables.order_items,
                                 self.classes.Order,
@@ -802,7 +802,8 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             orders=relationship(Order, backref='user')
         ))
         mapper(Order, orders, properties=odict([
-            ('items', relationship(Item, secondary=order_items, backref='orders')),
+            ('items', relationship(Item, secondary=order_items,
+                        backref='orders')),
             ('address', relationship(Address))
             ]))
         mapper(Address, addresses)
@@ -812,63 +813,86 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
 
         self.assert_compile(
             sess.query(User).options(joinedload(User.orders)).limit(10),
-            "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS anon_1_users_name, "
-            "orders_1.id AS orders_1_id, orders_1.user_id AS orders_1_user_id, orders_1.address_id AS "
-            "orders_1_address_id, orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
+            "SELECT anon_1.users_id AS anon_1_users_id, "
+            "anon_1.users_name AS anon_1_users_name, "
+            "orders_1.id AS orders_1_id, orders_1.user_id AS orders_1_user_id, "
+            "orders_1.address_id AS "
+            "orders_1_address_id, orders_1.description AS orders_1_description, "
+            "orders_1.isopen AS orders_1_isopen "
             "FROM (SELECT users.id AS users_id, users.name AS users_name "
             "FROM users "
-            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = orders_1.user_id",
-            {'param_1':10},
-            use_default_dialect=True
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN orders AS orders_1 "
+            "ON anon_1.users_id = orders_1.user_id",
+            {'param_1':10}
         )
 
         self.assert_compile(
             sess.query(Order).options(joinedload(Order.user)).limit(10),
-            "SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, orders.address_id AS "
-            "orders_address_id, orders.description AS orders_description, orders.isopen AS orders_isopen, "
-            "users_1.id AS users_1_id, users_1.name AS users_1_name FROM orders LEFT OUTER JOIN users AS "
+            "SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, "
+            "orders.address_id AS "
+            "orders_address_id, orders.description AS orders_description, "
+            "orders.isopen AS orders_isopen, "
+            "users_1.id AS users_1_id, users_1.name AS users_1_name "
+            "FROM orders LEFT OUTER JOIN users AS "
             "users_1 ON users_1.id = orders.user_id LIMIT :param_1",
-            {'param_1':10},
-            use_default_dialect=True
+            {'param_1':10}
         )
 
         self.assert_compile(
-            sess.query(Order).options(joinedload(Order.user, innerjoin=True)).limit(10),
-            "SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, orders.address_id AS "
-            "orders_address_id, orders.description AS orders_description, orders.isopen AS orders_isopen, "
-            "users_1.id AS users_1_id, users_1.name AS users_1_name FROM orders JOIN users AS "
+            sess.query(Order).options(
+                        joinedload(Order.user, innerjoin=True)).limit(10),
+            "SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, "
+            "orders.address_id AS "
+            "orders_address_id, orders.description AS orders_description, "
+            "orders.isopen AS orders_isopen, "
+            "users_1.id AS users_1_id, users_1.name AS users_1_name "
+            "FROM orders JOIN users AS "
             "users_1 ON users_1.id = orders.user_id LIMIT :param_1",
-            {'param_1':10},
-            use_default_dialect=True
+            {'param_1':10}
         )
 
         self.assert_compile(
-            sess.query(User).options(joinedload_all("orders.address")).limit(10),
-            "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS anon_1_users_name, "
-            "addresses_1.id AS addresses_1_id, addresses_1.user_id AS addresses_1_user_id, "
-            "addresses_1.email_address AS addresses_1_email_address, orders_1.id AS orders_1_id, "
-            "orders_1.user_id AS orders_1_user_id, orders_1.address_id AS orders_1_address_id, "
-            "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen FROM "
-            "(SELECT users.id AS users_id, users.name AS users_name FROM users LIMIT :param_1) AS anon_1 "
-            "LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = orders_1.user_id LEFT OUTER JOIN "
+            sess.query(User).options(
+                        joinedload_all("orders.address")).limit(10),
+            "SELECT anon_1.users_id AS anon_1_users_id, "
+            "anon_1.users_name AS anon_1_users_name, "
+            "addresses_1.id AS addresses_1_id, "
+            "addresses_1.user_id AS addresses_1_user_id, "
+            "addresses_1.email_address AS addresses_1_email_address, "
+            "orders_1.id AS orders_1_id, "
+            "orders_1.user_id AS orders_1_user_id, "
+            "orders_1.address_id AS orders_1_address_id, "
+            "orders_1.description AS orders_1_description, "
+            "orders_1.isopen AS orders_1_isopen FROM "
+            "(SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users LIMIT :param_1) AS anon_1 "
+            "LEFT OUTER JOIN orders AS orders_1 "
+            "ON anon_1.users_id = orders_1.user_id LEFT OUTER JOIN "
             "addresses AS addresses_1 ON addresses_1.id = orders_1.address_id",
-            {'param_1':10},
-            use_default_dialect=True
+            {'param_1':10}
         )
 
         self.assert_compile(
-            sess.query(User).options(joinedload_all("orders.items"), joinedload("orders.address")),
-            "SELECT users.id AS users_id, users.name AS users_name, items_1.id AS items_1_id, "
-            "items_1.description AS items_1_description, addresses_1.id AS addresses_1_id, "
-            "addresses_1.user_id AS addresses_1_user_id, addresses_1.email_address AS "
-            "addresses_1_email_address, orders_1.id AS orders_1_id, orders_1.user_id AS "
-            "orders_1_user_id, orders_1.address_id AS orders_1_address_id, orders_1.description "
-            "AS orders_1_description, orders_1.isopen AS orders_1_isopen FROM users LEFT OUTER JOIN "
-            "orders AS orders_1 ON users.id = orders_1.user_id LEFT OUTER JOIN order_items AS "
-            "order_items_1 ON orders_1.id = order_items_1.order_id LEFT OUTER JOIN items AS "
-            "items_1 ON items_1.id = order_items_1.item_id LEFT OUTER JOIN addresses AS "
-            "addresses_1 ON addresses_1.id = orders_1.address_id"
-            ,use_default_dialect=True
+            sess.query(User).options(joinedload_all("orders.items"),
+                                joinedload("orders.address")),
+            "SELECT users.id AS users_id, users.name AS users_name, "
+                        "items_1.id AS items_1_id, "
+            "items_1.description AS items_1_description, "
+                        "addresses_1.id AS addresses_1_id, "
+            "addresses_1.user_id AS addresses_1_user_id, "
+            "addresses_1.email_address AS "
+            "addresses_1_email_address, orders_1.id AS orders_1_id, "
+            "orders_1.user_id AS "
+            "orders_1_user_id, orders_1.address_id AS orders_1_address_id, "
+            "orders_1.description "
+            "AS orders_1_description, orders_1.isopen AS orders_1_isopen "
+            "FROM users LEFT OUTER JOIN orders AS orders_1 "
+            "ON users.id = orders_1.user_id "
+            "LEFT OUTER JOIN (order_items AS order_items_1 "
+            "JOIN items AS items_1 ON items_1.id = order_items_1.item_id) "
+            "ON orders_1.id = order_items_1.order_id "
+            "LEFT OUTER JOIN addresses AS addresses_1 "
+            "ON addresses_1.id = orders_1.address_id"
         )
 
         self.assert_compile(
@@ -882,8 +906,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "FROM users "
             "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = "
             "orders_1.user_id LEFT OUTER JOIN addresses AS addresses_1 ON addresses_1.id = orders_1.address_id",
-            {'param_1':10},
-            use_default_dialect=True
+            {'param_1':10}
         )
 
         self.assert_compile(
@@ -898,8 +921,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "FROM users "
             "LIMIT :param_1) AS anon_1 JOIN orders AS orders_1 ON anon_1.users_id = "
             "orders_1.user_id JOIN addresses AS addresses_1 ON addresses_1.id = orders_1.address_id",
-            {'param_1':10},
-            use_default_dialect=True
+            {'param_1':10}
         )
 
     def test_one_to_many_scalar(self):
@@ -919,7 +941,6 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             eq_([User(id=7, address=Address(id=1))], l)
         self.assert_sql_count(testing.db, go, 1)
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_many_to_one(self):
         users, Address, addresses, User = (self.tables.users,
                                 self.classes.Address,
@@ -1159,8 +1180,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                 "SELECT users.id AS users_id, users.name AS users_name, "
                 "addresses_1.id AS addresses_1_id, addresses_1.user_id AS addresses_1_user_id, "
                 "addresses_1.email_address AS addresses_1_email_address FROM users JOIN "
-                "addresses AS addresses_1 ON users.id = addresses_1.user_id ORDER BY addresses_1.id"
-        , use_default_dialect=True)
+                "addresses AS addresses_1 ON users.id = addresses_1.user_id ORDER BY addresses_1.id")
 
     def test_inner_join_chaining_options(self):
         users, items, order_items, Order, Item, User, orders = (self.tables.users,
@@ -1191,8 +1211,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "orders_1.isopen AS orders_1_isopen FROM users JOIN orders AS orders_1 ON "
             "users.id = orders_1.user_id JOIN order_items AS order_items_1 ON orders_1.id = "
             "order_items_1.order_id JOIN items AS items_1 ON items_1.id = "
-            "order_items_1.item_id",
-            use_default_dialect=True
+            "order_items_1.item_id"
         )
 
         self.assert_compile(
@@ -1201,11 +1220,12 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "items_1_id, items_1.description AS items_1_description, orders_1.id AS "
             "orders_1_id, orders_1.user_id AS orders_1_user_id, orders_1.address_id AS "
             "orders_1_address_id, orders_1.description AS orders_1_description, "
-            "orders_1.isopen AS orders_1_isopen FROM users LEFT OUTER JOIN orders AS orders_1 ON "
-            "users.id = orders_1.user_id LEFT OUTER JOIN order_items AS order_items_1 ON orders_1.id = "
-            "order_items_1.order_id LEFT OUTER JOIN items AS items_1 ON items_1.id = "
-            "order_items_1.item_id",
-            use_default_dialect=True
+            "orders_1.isopen AS orders_1_isopen "
+            "FROM users LEFT OUTER JOIN orders AS orders_1 "
+            "ON users.id = orders_1.user_id "
+            "LEFT OUTER JOIN (order_items AS order_items_1 "
+            "JOIN items AS items_1 ON items_1.id = order_items_1.item_id) "
+            "ON orders_1.id = order_items_1.order_id"
         )
 
         self.assert_compile(
@@ -1214,11 +1234,70 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "items_1_id, items_1.description AS items_1_description, orders_1.id AS "
             "orders_1_id, orders_1.user_id AS orders_1_user_id, orders_1.address_id AS "
             "orders_1_address_id, orders_1.description AS orders_1_description, "
-            "orders_1.isopen AS orders_1_isopen FROM users JOIN orders AS orders_1 ON "
-            "users.id = orders_1.user_id LEFT OUTER JOIN order_items AS order_items_1 ON orders_1.id = "
-            "order_items_1.order_id LEFT OUTER JOIN items AS items_1 ON items_1.id = "
-            "order_items_1.item_id",
-            use_default_dialect=True
+            "orders_1.isopen AS orders_1_isopen "
+            "FROM users JOIN orders AS orders_1 ON users.id = orders_1.user_id "
+            "LEFT OUTER JOIN (order_items AS order_items_1 "
+            "JOIN items AS items_1 ON items_1.id = order_items_1.item_id) "
+            "ON orders_1.id = order_items_1.order_id"
+
+        )
+
+    def test_catch_the_right_target(self):
+        # test eager join chaining to the "nested" join on the left,
+        # a new feature as of [ticket:2369]
+
+        users, Keyword, orders, items, order_items, Order, Item, \
+                User, keywords, item_keywords = (self.tables.users,
+                                self.classes.Keyword,
+                                self.tables.orders,
+                                self.tables.items,
+                                self.tables.order_items,
+                                self.classes.Order,
+                                self.classes.Item,
+                                self.classes.User,
+                                self.tables.keywords,
+                                self.tables.item_keywords)
+
+        mapper(User, users, properties={
+            'orders':relationship(Order, backref='user'), # o2m, m2o
+        })
+        mapper(Order, orders, properties={
+            'items':relationship(Item, secondary=order_items,
+                                        order_by=items.c.id),  #m2m
+        })
+        mapper(Item, items, properties={
+            'keywords':relationship(Keyword, secondary=item_keywords,
+                                        order_by=keywords.c.id) #m2m
+        })
+        mapper(Keyword, keywords)
+
+        sess = create_session()
+        q = sess.query(User).join(User.orders).join(Order.items).\
+                options(joinedload_all("orders.items.keywords"))
+
+        # here, the eager join for keywords can catch onto
+        # join(Order.items) or the nested (orders LEFT OUTER JOIN items),
+        # it should catch the latter
+        self.assert_compile(
+            q,
+            "SELECT users.id AS users_id, users.name AS users_name, "
+            "keywords_1.id AS keywords_1_id, keywords_1.name AS keywords_1_name, "
+            "items_1.id AS items_1_id, items_1.description AS items_1_description, "
+            "orders_1.id AS orders_1_id, orders_1.user_id AS orders_1_user_id, "
+            "orders_1.address_id AS orders_1_address_id, "
+            "orders_1.description AS orders_1_description, "
+            "orders_1.isopen AS orders_1_isopen "
+            "FROM users JOIN orders ON users.id = orders.user_id "
+            "JOIN order_items AS order_items_1 ON orders.id = order_items_1.order_id "
+            "JOIN items ON items.id = order_items_1.item_id "
+            "LEFT OUTER JOIN orders AS orders_1 ON users.id = orders_1.user_id "
+            "LEFT OUTER JOIN (order_items AS order_items_2 "
+            "JOIN items AS items_1 ON items_1.id = order_items_2.item_id) "
+            "ON orders_1.id = order_items_2.order_id "
+            "LEFT OUTER JOIN (item_keywords AS item_keywords_1 "
+            "JOIN keywords AS keywords_1 ON keywords_1.id = item_keywords_1.keyword_id) "
+            "ON items_1.id = item_keywords_1.item_id "
+            "ORDER BY items_1.id, keywords_1.id"
         )
 
     def test_inner_join_chaining_fixed(self):
@@ -1249,10 +1328,10 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "orders_1_id, orders_1.user_id AS orders_1_user_id, orders_1.address_id AS "
             "orders_1_address_id, orders_1.description AS orders_1_description, "
             "orders_1.isopen AS orders_1_isopen FROM users LEFT OUTER JOIN orders AS orders_1 ON "
-            "users.id = orders_1.user_id LEFT OUTER JOIN order_items AS order_items_1 ON orders_1.id = "
-            "order_items_1.order_id LEFT OUTER JOIN items AS items_1 ON items_1.id = "
-            "order_items_1.item_id",
-            use_default_dialect=True
+            "users.id = orders_1.user_id LEFT OUTER JOIN "
+            "(order_items AS order_items_1 JOIN items AS items_1 ON items_1.id = "
+            "order_items_1.item_id) ON orders_1.id = "
+            "order_items_1.order_id"
         )
 
         # joining just from Order, innerjoin=True can be respected
@@ -1264,8 +1343,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "AS items_1_id, items_1.description AS items_1_description FROM "
             "orders JOIN order_items AS order_items_1 ON orders.id = "
             "order_items_1.order_id JOIN items AS items_1 ON items_1.id = "
-            "order_items_1.item_id",
-            use_default_dialect=True
+            "order_items_1.item_id"
         )
 
 
@@ -1291,8 +1369,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "SELECT users.id AS users_id, users.name AS users_name, orders_1.id AS orders_1_id, "
             "orders_1.user_id AS orders_1_user_id, orders_1.address_id AS orders_1_address_id, "
             "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
-            "FROM users JOIN orders AS orders_1 ON users.id = orders_1.user_id ORDER BY orders_1.id"
-        , use_default_dialect=True)
+            "FROM users JOIN orders AS orders_1 ON users.id = orders_1.user_id ORDER BY orders_1.id")
 
         self.assert_compile(sess.query(User).options(joinedload_all(User.orders, Order.items, innerjoin=True)),
             "SELECT users.id AS users_id, users.name AS users_name, items_1.id AS items_1_id, "
@@ -1301,8 +1378,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
             "FROM users JOIN orders AS orders_1 ON users.id = orders_1.user_id JOIN order_items AS "
             "order_items_1 ON orders_1.id = order_items_1.order_id JOIN items AS items_1 ON "
-            "items_1.id = order_items_1.item_id ORDER BY orders_1.id, items_1.id"
-        , use_default_dialect=True)
+            "items_1.id = order_items_1.item_id ORDER BY orders_1.id, items_1.id")
 
         def go():
             eq_(
@@ -1330,9 +1406,54 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "orders_address_id, orders.description AS orders_description, orders.isopen AS "
             "orders_isopen, users_1.id AS users_1_id, users_1.name AS users_1_name "
             "FROM orders JOIN users AS users_1 ON users_1.id = orders.user_id "
-            "WHERE orders.description = :description_1",
-            use_default_dialect=True
+            "WHERE orders.description = :description_1"
         )
+
+    def test_propagated_lazyload_wildcard_unbound(self):
+        self._test_propagated_lazyload_wildcard(False)
+
+    def test_propagated_lazyload_wildcard_bound(self):
+        self._test_propagated_lazyload_wildcard(True)
+
+    def _test_propagated_lazyload_wildcard(self, use_load):
+        users, items, order_items, Order, Item, User, orders = (self.tables.users,
+                                self.tables.items,
+                                self.tables.order_items,
+                                self.classes.Order,
+                                self.classes.Item,
+                                self.classes.User,
+                                self.tables.orders)
+
+        mapper(User, users, properties=dict(
+            orders=relationship(Order, lazy="select")
+        ))
+        mapper(Order, orders, properties=dict(
+            items=relationship(Item, secondary=order_items, lazy="joined")
+        ))
+        mapper(Item, items)
+
+        sess = create_session()
+
+        if use_load:
+            opt = Load(User).defaultload("orders").lazyload("*")
+        else:
+            opt = defaultload("orders").lazyload("*")
+
+        q = sess.query(User).filter(User.id == 7).options(opt)
+
+        def go():
+            for u in q:
+                u.orders
+
+        self.sql_eq_(go, [
+            ("SELECT users.id AS users_id, users.name AS users_name "
+                "FROM users WHERE users.id = :id_1", {"id_1": 7}),
+            ("SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, "
+            "orders.address_id AS orders_address_id, "
+            "orders.description AS orders_description, "
+            "orders.isopen AS orders_isopen FROM orders "
+            "WHERE :param_1 = orders.user_id", {"param_1": 7}),
+        ])
 
 
 
@@ -1386,8 +1507,7 @@ class SubqueryAliasingTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
             "AS anon_1_a_id, b_1.id AS b_1_id, b_1.a_id AS "
             "b_1_a_id, b_1.value AS b_1_value FROM (SELECT "
             "(SELECT sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
-            "AS anon_2, a.id AS a_id FROM a ORDER BY (SELECT "
-            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "AS anon_2, a.id AS a_id FROM a ORDER BY anon_2 "
             "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 ON "
             "anon_1.a_id = b_1.a_id ORDER BY anon_1.anon_2"
         )
@@ -1409,8 +1529,7 @@ class SubqueryAliasingTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
             "AS anon_1_a_id, b_1.id AS b_1_id, b_1.a_id AS "
             "b_1_a_id, b_1.value AS b_1_value FROM (SELECT "
             "(SELECT sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
-            "AS anon_2, a.id AS a_id FROM a ORDER BY (SELECT "
-            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) DESC "
+            "AS anon_2, a.id AS a_id FROM a ORDER BY anon_2 DESC "
             "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 ON "
             "anon_1.a_id = b_1.a_id ORDER BY anon_1.anon_2 DESC"
         )
@@ -1433,8 +1552,7 @@ class SubqueryAliasingTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
             "AS anon_1_a_id, b_1.id AS b_1_id, b_1.a_id AS "
             "b_1_a_id, b_1.value AS b_1_value FROM (SELECT "
             "(SELECT sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
-            "AS anon_2, a.id AS a_id FROM a ORDER BY (SELECT "
-            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "AS anon_2, a.id AS a_id FROM a ORDER BY anon_2 "
             "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 ON "
             "anon_1.a_id = b_1.a_id ORDER BY anon_1.anon_2"
         )
@@ -1479,8 +1597,7 @@ class SubqueryAliasingTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
             "AS anon_1_foo, b_1.id AS b_1_id, b_1.a_id AS "
             "b_1_a_id, b_1.value AS b_1_value FROM (SELECT a.id "
             "AS a_id, (SELECT sum(b.value) AS sum_1 FROM b WHERE "
-            "b.a_id = a.id) AS foo FROM a ORDER BY (SELECT "
-            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "b.a_id = a.id) AS foo FROM a ORDER BY foo "
             "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 "
             "ON anon_1.a_id = b_1.a_id ORDER BY "
             "anon_1.foo"
@@ -1801,7 +1918,6 @@ class SelfReferentialEagerTest(fixtures.MappedTest):
             Column('parent_id', Integer, ForeignKey('nodes.id')),
             Column('data', String(30)))
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_basic(self):
         nodes = self.tables.nodes
 
@@ -1987,7 +2103,6 @@ class SelfReferentialEagerTest(fixtures.MappedTest):
             )
         )
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_no_depth(self):
         nodes = self.tables.nodes
 
@@ -2092,7 +2207,8 @@ class MixedSelfReferentialEagerTest(fixtures.MappedTest):
                     options(
                                 joinedload('parent_b1'),
                                 joinedload('parent_b2'),
-                                joinedload('parent_z')).
+                                joinedload('parent_z')
+                            ).
                             filter(B.id.in_([2, 8, 11])).order_by(B.id).all(),
                 [
                     B(id=2, parent_z=A(id=1), parent_b1=B(id=1), parent_b2=None),
@@ -2107,7 +2223,7 @@ class SelfReferentialM2MEagerTest(fixtures.MappedTest):
     def define_tables(cls, metadata):
         Table('widget', metadata,
             Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
-            Column('name', sa.Unicode(40), nullable=False, unique=True),
+            Column('name', sa.String(40), nullable=False, unique=True),
         )
 
         Table('widget_rel', metadata,
@@ -2131,20 +2247,21 @@ class SelfReferentialM2MEagerTest(fixtures.MappedTest):
         })
 
         sess = create_session()
-        w1 = Widget(name=u'w1')
-        w2 = Widget(name=u'w2')
+        w1 = Widget(name='w1')
+        w2 = Widget(name='w2')
         w1.children.append(w2)
         sess.add(w1)
         sess.flush()
         sess.expunge_all()
 
         eq_([Widget(name='w1', children=[Widget(name='w2')])],
-            sess.query(Widget).filter(Widget.name==u'w1').all())
+            sess.query(Widget).filter(Widget.name=='w1').all())
 
 class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
     run_setup_mappers = 'once'
     run_inserts = 'once'
     run_deletes = None
+    __dialect__ = 'default'
 
     @classmethod
     def setup_mappers(cls):
@@ -2223,24 +2340,24 @@ class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             eq_(
                 [
                     (
-                        User(addresses=[Address(email_address=u'fred@fred.com')], name=u'fred'),
-                        Order(description=u'order 2', isopen=0, items=[Item(description=u'item 1'), Item(description=u'item 2'), Item(description=u'item 3')]),
-                        User(addresses=[Address(email_address=u'jack@bean.com')], name=u'jack'),
-                        Order(description=u'order 3', isopen=1, items=[Item(description=u'item 3'), Item(description=u'item 4'), Item(description=u'item 5')])
+                        User(addresses=[Address(email_address='fred@fred.com')], name='fred'),
+                        Order(description='order 2', isopen=0, items=[Item(description='item 1'), Item(description='item 2'), Item(description='item 3')]),
+                        User(addresses=[Address(email_address='jack@bean.com')], name='jack'),
+                        Order(description='order 3', isopen=1, items=[Item(description='item 3'), Item(description='item 4'), Item(description='item 5')])
                     ),
 
                     (
-                        User(addresses=[Address(email_address=u'fred@fred.com')], name=u'fred'),
-                        Order(description=u'order 2', isopen=0, items=[Item(description=u'item 1'), Item(description=u'item 2'), Item(description=u'item 3')]),
-                        User(addresses=[Address(email_address=u'jack@bean.com')], name=u'jack'),
-                        Order(address_id=None, description=u'order 5', isopen=0, items=[Item(description=u'item 5')])
+                        User(addresses=[Address(email_address='fred@fred.com')], name='fred'),
+                        Order(description='order 2', isopen=0, items=[Item(description='item 1'), Item(description='item 2'), Item(description='item 3')]),
+                        User(addresses=[Address(email_address='jack@bean.com')], name='jack'),
+                        Order(address_id=None, description='order 5', isopen=0, items=[Item(description='item 5')])
                     ),
 
                     (
-                        User(addresses=[Address(email_address=u'fred@fred.com')], name=u'fred'),
-                        Order(description=u'order 4', isopen=1, items=[Item(description=u'item 1'), Item(description=u'item 5')]),
-                        User(addresses=[Address(email_address=u'jack@bean.com')], name=u'jack'),
-                        Order(address_id=None, description=u'order 5', isopen=0, items=[Item(description=u'item 5')])
+                        User(addresses=[Address(email_address='fred@fred.com')], name='fred'),
+                        Order(description='order 4', isopen=1, items=[Item(description='item 1'), Item(description='item 5')]),
+                        User(addresses=[Address(email_address='jack@bean.com')], name='jack'),
+                        Order(address_id=None, description='order 5', isopen=0, items=[Item(description='item 5')])
                     ),
                 ],
                 sess.query(User, Order, u1, o1).\
@@ -2253,7 +2370,7 @@ class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
 
 
 
-    def test_aliased_entity(self):
+    def test_aliased_entity_one(self):
         Item, Order, User, Address = (self.classes.Item,
                                 self.classes.Order,
                                 self.classes.User,
@@ -2276,6 +2393,17 @@ class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             )
         self.assert_sql_count(testing.db, go, 1)
 
+    def test_aliased_entity_two(self):
+        Item, Order, User, Address = (self.classes.Item,
+                                self.classes.Order,
+                                self.classes.User,
+                                self.classes.Address)
+
+        sess = create_session()
+
+        oalias = sa.orm.aliased(Order)
+
+
         # one FROM clause
         def go():
             eq_(
@@ -2291,19 +2419,35 @@ class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             )
         self.assert_sql_count(testing.db, go, 1)
 
-        from sqlalchemy.engine.default import DefaultDialect
+
+    def test_aliased_entity_three(self):
+        Item, Order, User, Address = (self.classes.Item,
+                                self.classes.Order,
+                                self.classes.User,
+                                self.classes.Address)
+
+        sess = create_session()
+
+        oalias = sa.orm.aliased(Order)
+
 
         # improper setup: oalias in the columns clause but join to usual
         # orders alias.  this should create two FROM clauses even though the
         # query has a from_clause set up via the join
-        self.assert_compile(sess.query(User, oalias).join(User.orders).options(joinedload(oalias.items)).with_labels().statement,
-        "SELECT users.id AS users_id, users.name AS users_name, orders_1.id AS orders_1_id, "\
-        "orders_1.user_id AS orders_1_user_id, orders_1.address_id AS orders_1_address_id, "\
-        "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen, items_1.id AS items_1_id, "\
-        "items_1.description AS items_1_description FROM users JOIN orders ON users.id = orders.user_id, "\
-        "orders AS orders_1 LEFT OUTER JOIN order_items AS order_items_1 ON orders_1.id = order_items_1.order_id "\
-        "LEFT OUTER JOIN items AS items_1 ON items_1.id = order_items_1.item_id ORDER BY items_1.id",
-        dialect=DefaultDialect()
+        self.assert_compile(
+                sess.query(User, oalias).join(User.orders).
+                    options(joinedload(oalias.items)).with_labels().statement,
+        "SELECT users.id AS users_id, users.name AS users_name, "
+        "orders_1.id AS orders_1_id, "
+        "orders_1.user_id AS orders_1_user_id, "
+        "orders_1.address_id AS orders_1_address_id, "
+        "orders_1.description AS orders_1_description, "
+        "orders_1.isopen AS orders_1_isopen, items_1.id AS items_1_id, "
+        "items_1.description AS items_1_description FROM users "
+        "JOIN orders ON users.id = orders.user_id, "
+        "orders AS orders_1 LEFT OUTER JOIN (order_items AS order_items_1 "
+        "JOIN items AS items_1 ON items_1.id = order_items_1.item_id) "
+        "ON orders_1.id = order_items_1.order_id ORDER BY items_1.id"
         )
 
 
@@ -2634,16 +2778,15 @@ class CyclicalInheritingEagerTestTwo(fixtures.DeclarativeMappedTest,
         self.assert_compile(
             s.query(Director).options(joinedload('*')),
             "SELECT director.id AS director_id, persistent.id AS persistent_id, "
-            "director.name AS director_name, anon_1.movie_id AS anon_1_movie_id, "
-            "anon_1.persistent_id AS anon_1_persistent_id, "
-            "anon_1.movie_director_id AS anon_1_movie_director_id, "
-            "anon_1.movie_title AS anon_1_movie_title "
+            "director.name AS director_name, movie_1.id AS movie_1_id, "
+            "persistent_1.id AS persistent_1_id, "
+            "movie_1.director_id AS movie_1_director_id, "
+            "movie_1.title AS movie_1_title "
             "FROM persistent JOIN director ON persistent.id = director.id "
             "LEFT OUTER JOIN "
-            "(SELECT persistent.id AS persistent_id, movie.id AS movie_id, "
-                "movie.director_id AS movie_director_id, movie.title AS movie_title "
-                "FROM persistent JOIN movie ON persistent.id = movie.id) AS anon_1 "
-            "ON director.id = anon_1.movie_director_id"
+            "(persistent AS persistent_1 JOIN movie AS movie_1 "
+                "ON persistent_1.id = movie_1.id) "
+            "ON director.id = movie_1.director_id"
         )
 
     def test_integrate(self):
@@ -2651,9 +2794,9 @@ class CyclicalInheritingEagerTestTwo(fixtures.DeclarativeMappedTest,
         Movie = self.classes.Movie
 
         session = Session(testing.db)
-        rscott = Director(name=u"Ridley Scott")
-        alien = Movie(title=u"Alien")
-        brunner = Movie(title=u"Blade Runner")
+        rscott = Director(name="Ridley Scott")
+        alien = Movie(title="Alien")
+        brunner = Movie(title="Blade Runner")
         rscott.movies.append(brunner)
         rscott.movies.append(alien)
         session.add_all([rscott, alien, brunner])
@@ -2703,18 +2846,15 @@ class CyclicalInheritingEagerTestThree(fixtures.DeclarativeMappedTest,
         Director = self.classes.Director
         sess = create_session()
         self.assert_compile(
-            sess.query(PersistentObject).options(joinedload(Director.other, join_depth=1)),
+            sess.query(PersistentObject).options(joinedload(Director.other)),
             "SELECT persistent.id AS persistent_id, director.id AS director_id, "
             "director.other_id AS director_other_id, "
-            "director.name AS director_name, anon_1.persistent_id AS "
-            "anon_1_persistent_id, anon_1.director_id AS anon_1_director_id, "
-            "anon_1.director_other_id AS anon_1_director_other_id, "
-            "anon_1.director_name AS anon_1_director_name "
+            "director.name AS director_name, persistent_1.id AS "
+            "persistent_1_id, director_1.id AS director_1_id, "
+            "director_1.other_id AS director_1_other_id, "
+            "director_1.name AS director_1_name "
             "FROM persistent LEFT OUTER JOIN director ON director.id = persistent.id "
-            "LEFT OUTER JOIN (SELECT persistent.id AS persistent_id, "
-                "director.id AS director_id, director.other_id AS director_other_id, "
-                "director.name AS director_name "
-                "FROM persistent LEFT OUTER JOIN director ON "
-                "director.id = persistent.id) "
-            "AS anon_1 ON director.other_id = anon_1.persistent_id"
+            "LEFT OUTER JOIN (persistent AS persistent_1 LEFT OUTER JOIN director AS director_1 ON "
+                "director_1.id = persistent_1.id) "
+            "ON director.other_id = persistent_1.id"
         )

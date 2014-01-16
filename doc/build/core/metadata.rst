@@ -1,5 +1,7 @@
 .. _metadata_toplevel:
+
 .. _metadata_describing_toplevel:
+
 .. _metadata_describing:
 
 ==================================

@@ -10,7 +10,7 @@
     
                 Hybrid Attributes
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Alternate Class Instrumentation" href="instrumentation.html" />
         <link rel="prev" title="Horizontal Sharding" href="horizontal_shard.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -752,7 +753,7 @@ there&#8217;s probably a whole lot of amazing things it can be used for.</p>
 <dl class="class">
 <dt id="sqlalchemy.ext.hybrid.hybrid_method">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.ext.hybrid.</tt><tt class="descname">hybrid_method</tt><big>(</big><em>func</em>, <em>expr=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.hybrid.hybrid_method" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../internals.html#sqlalchemy.orm.interfaces._InspectionAttr" title="sqlalchemy.orm.interfaces._InspectionAttr"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.interfaces._InspectionAttr</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.base._InspectionAttr</span></tt></p>
 <p>A decorator which allows definition of a Python object method with both
 instance-level and class-level behavior.</p>
 <dl class="method">
@@ -785,7 +786,7 @@ SQL-expression producing method.</p>
 <dl class="class">
 <dt id="sqlalchemy.ext.hybrid.hybrid_property">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.ext.hybrid.</tt><tt class="descname">hybrid_property</tt><big>(</big><em>fget</em>, <em>fset=None</em>, <em>fdel=None</em>, <em>expr=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.hybrid.hybrid_property" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../internals.html#sqlalchemy.orm.interfaces._InspectionAttr" title="sqlalchemy.orm.interfaces._InspectionAttr"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.interfaces._InspectionAttr</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.base._InspectionAttr</span></tt></p>
 <p>A decorator which allows definition of a Python descriptor with both
 instance-level and class-level behavior.</p>
 <dl class="method">
@@ -848,12 +849,12 @@ classes for usage with hybrids.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.ext.hybrid.HYBRID_METHOD">
-<tt class="descclassname">sqlalchemy.ext.hybrid.</tt><tt class="descname">HYBRID_METHOD</tt><em class="property"> = &lt;symbol 'HYBRID_METHOD&gt;</em><a class="headerlink" href="#sqlalchemy.ext.hybrid.HYBRID_METHOD" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.hybrid.</tt><tt class="descname">HYBRID_METHOD</tt><em class="property"> = symbol('HYBRID_METHOD')</em><a class="headerlink" href="#sqlalchemy.ext.hybrid.HYBRID_METHOD" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
 <dt id="sqlalchemy.ext.hybrid.HYBRID_PROPERTY">
-<tt class="descclassname">sqlalchemy.ext.hybrid.</tt><tt class="descname">HYBRID_PROPERTY</tt><em class="property"> = &lt;symbol 'HYBRID_PROPERTY&gt;</em><a class="headerlink" href="#sqlalchemy.ext.hybrid.HYBRID_PROPERTY" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.hybrid.</tt><tt class="descname">HYBRID_PROPERTY</tt><em class="property"> = symbol('HYBRID_PROPERTY')</em><a class="headerlink" href="#sqlalchemy.ext.hybrid.HYBRID_PROPERTY" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -870,7 +871,7 @@ classes for usage with hybrids.</p>
         <a href="instrumentation.html" title="next chapter">Alternate Class Instrumentation</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

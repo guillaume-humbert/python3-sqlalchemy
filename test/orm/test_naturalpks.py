@@ -2,7 +2,7 @@
 Primary key changing capabilities and passive/non-passive cascading updates.
 
 """
-from __future__ import with_statement
+
 from sqlalchemy.testing import eq_, ne_, \
                         assert_raises, assert_raises_message
 import sqlalchemy as sa
@@ -391,7 +391,7 @@ class NaturalPKTest(fixtures.MappedTest):
     # mysqldb executemany() of the association table fails to
     # report the correct row count
     @testing.fails_if(lambda: testing.against('mysql')
-                            and not testing.against('+zxjdbc'))
+        and not (testing.against('+zxjdbc') or testing.against('+cymysql')))
     def test_manytomany_nonpassive(self):
         self._test_manytomany(False)
 
@@ -499,7 +499,7 @@ class ReversePKsTest(fixtures.MappedTest):
             'user', metadata,
             Column('code', Integer, primary_key=True),
             Column('status', Integer, primary_key=True),
-            Column('username', Unicode(50), nullable=False),
+            Column('username', String(50), nullable=False),
             )
 
     @classmethod
@@ -519,11 +519,11 @@ class ReversePKsTest(fixtures.MappedTest):
 
         session = sa.orm.sessionmaker()()
 
-        a_published = User(1, PUBLISHED, u'a')
+        a_published = User(1, PUBLISHED, 'a')
         session.add(a_published)
         session.commit()
 
-        a_editable = User(1, EDITABLE, u'a')
+        a_editable = User(1, EDITABLE, 'a')
 
         session.add(a_editable)
         session.commit()

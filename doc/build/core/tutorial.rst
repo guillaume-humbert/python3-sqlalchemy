@@ -50,13 +50,13 @@ Version Check
 =============
 
 
-A quick check to verify that we are on at least **version 0.8** of SQLAlchemy:
+A quick check to verify that we are on at least **version 0.9** of SQLAlchemy:
 
 .. sourcecode:: pycon+sql
 
     >>> import sqlalchemy
     >>> sqlalchemy.__version__ # doctest:+SKIP
-    0.8.0
+    0.9.0
 
 Connecting
 ==========
@@ -281,7 +281,7 @@ did not specify the ``id`` column in our
 value would have been used. In either case, SQLAlchemy always knows how to get
 at a newly generated primary key value, even though the method of generating
 them is different across different databases; each database's
-:class:`~sqlalchemy.engine.base.Dialect` knows the specific steps needed to
+:class:`~sqlalchemy.engine.interfaces.Dialect` knows the specific steps needed to
 determine the correct value (or values; note that ``inserted_primary_key``
 returns a list so that it supports composite primary keys).
 

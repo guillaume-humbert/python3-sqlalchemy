@@ -81,7 +81,7 @@ class TestORMInspection(_fixtures.FixtureTest):
         ualias = aliased(Address)
         insp = inspect(ualias)
         is_(insp.mapper, inspect(Address))
-        is_(insp.selectable, ualias._AliasedClass__adapter.selectable)
+        is_(insp.selectable, ualias._aliased_insp.selectable)
         assert not insp.is_selectable
         assert insp.is_aliased_class
 
@@ -142,7 +142,7 @@ class TestORMInspection(_fixtures.FixtureTest):
             [insp.get_property('id'), insp.get_property('name')]
         )
         eq_(
-            insp.column_attrs.keys(),
+            list(insp.column_attrs.keys()),
             ['id', 'name']
         )
         is_(
@@ -274,7 +274,7 @@ class TestORMInspection(_fixtures.FixtureTest):
         insp = inspect(SomeSubClass)
         eq_(
             dict((k, v.extension_type)
-                for k, v in insp.all_orm_descriptors.items()
+                for k, v in list(insp.all_orm_descriptors.items())
             ),
             {
                 'id': NOT_EXTENSION,
@@ -365,7 +365,7 @@ class TestORMInspection(_fixtures.FixtureTest):
             []
         )
 
-    def test_instance_state_attr_hist(self):
+    def test_instance_state_collection_attr_hist(self):
         User = self.classes.User
         u1 = User(name='ed')
         insp = inspect(u1)
@@ -378,6 +378,48 @@ class TestORMInspection(_fixtures.FixtureTest):
         eq_(
             hist.unchanged, []
         )
+
+    def test_instance_state_scalar_attr_hist(self):
+        User = self.classes.User
+        u1 = User(name='ed')
+        sess = Session()
+        sess.add(u1)
+        sess.commit()
+        assert 'name' not in u1.__dict__
+        insp = inspect(u1)
+        hist = insp.attrs.name.history
+        eq_(
+            hist.unchanged, None
+        )
+        assert 'name' not in u1.__dict__
+
+    def test_instance_state_collection_attr_load_hist(self):
+        User = self.classes.User
+        u1 = User(name='ed')
+        insp = inspect(u1)
+        hist = insp.attrs.addresses.load_history()
+        eq_(
+            hist.unchanged, ()
+        )
+        u1.addresses
+        hist = insp.attrs.addresses.load_history()
+        eq_(
+            hist.unchanged, []
+        )
+
+    def test_instance_state_scalar_attr_hist_load(self):
+        User = self.classes.User
+        u1 = User(name='ed')
+        sess = Session()
+        sess.add(u1)
+        sess.commit()
+        assert 'name' not in u1.__dict__
+        insp = inspect(u1)
+        hist = insp.attrs.name.load_history()
+        eq_(
+            hist.unchanged, ['ed']
+        )
+        assert 'name' in u1.__dict__
 
     def test_instance_state_ident_transient(self):
         User = self.classes.User

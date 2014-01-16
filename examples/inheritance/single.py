@@ -1,3 +1,5 @@
+"""Single-table inheritance example."""
+
 from sqlalchemy import MetaData, Table, Column, Integer, String, \
     ForeignKey, create_engine
 from sqlalchemy.orm import mapper, relationship, sessionmaker
@@ -23,7 +25,7 @@ employees_table = Table('employees', metadata,
 
 class Person(object):
     def __init__(self, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(self, key, value)
     def __repr__(self):
         return "Ordinary person %s" % self.name
@@ -39,7 +41,7 @@ class Manager(Person):
                     (self.name, self.status, self.manager_name)
 class Company(object):
     def __init__(self, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(self, key, value)
     def __repr__(self):
         return "Company %s" % self.name
@@ -79,9 +81,9 @@ session.commit()
 
 c = session.query(Company).get(1)
 for e in c.employees:
-    print e, e.company
+    print(e, e.company)
 
-print "\n"
+print("\n")
 
 dilbert = session.query(Person).filter_by(name='dilbert').one()
 dilbert2 = session.query(Engineer).filter_by(name='dilbert').one()
@@ -94,7 +96,7 @@ session.expunge_all()
 
 c = session.query(Company).get(1)
 for e in c.employees:
-    print e
+    print(e)
 
 session.delete(c)
 session.commit()

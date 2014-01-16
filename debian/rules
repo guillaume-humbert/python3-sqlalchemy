@@ -22,7 +22,7 @@ clean:
 
 build: build-arch
 
-build-arch: $(PYVERS:%=build-python%)
+build-arch: $(PYVERS:%=build-python%) $(PY3VERS:%=build-python%)
 
 build-python%:
 	python$* ./setup.py --with-cextensions build
@@ -59,11 +59,6 @@ install-docs: build-docs
 	touch $@
 
 install: build $(PYVERS:%=install-python%) $(PY3VERS:%=install-python%)
-
-install-python3.%:
-	# no extension for 3.X yet...
-	python3.$* ./setup.py install $(py_setup_install_args) \
-		--root $(call pkgdir,3.X)
 
 install-python%: build
 	python$* ./setup.py install --skip-build \

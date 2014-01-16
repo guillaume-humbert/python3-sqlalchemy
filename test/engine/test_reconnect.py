@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 import time
 from sqlalchemy import select, MetaData, Integer, String, create_engine, pool
@@ -8,12 +6,11 @@ import sqlalchemy as tsa
 from sqlalchemy import testing
 from sqlalchemy.testing import engines
 from sqlalchemy.testing.util import gc_collect
-from sqlalchemy import exc
+from sqlalchemy import exc, util
 from sqlalchemy.testing import fixtures
 from sqlalchemy.testing.engines import testing_engine
 from sqlalchemy.testing import is_not_
 from sqlalchemy.testing.mock import Mock, call
-from sqlalchemy import util
 
 class MockError(Exception):
     pass
@@ -405,7 +402,7 @@ def _assert_invalidated(fn, *args):
     try:
         fn(*args)
         assert False
-    except tsa.exc.DBAPIError, e:
+    except tsa.exc.DBAPIError as e:
         if not e.connection_invalidated:
             raise
 
@@ -416,8 +413,6 @@ class RealReconnectTest(fixtures.TestBase):
     def teardown(self):
         self.engine.dispose()
 
-    @testing.fails_on('+informixdb',
-                      "Wrong error thrown, fix in informixdb?")
     def test_reconnect(self):
         conn = self.engine.connect()
 
@@ -506,6 +501,9 @@ class RealReconnectTest(fixtures.TestBase):
         conn.invalidate()
         conn.invalidate()
 
+    @testing.skip_if(
+        [lambda: util.py3k, "oracle+cx_oracle"],
+        "Crashes on py3k+cx_oracle")
     def test_explode_in_initializer(self):
         engine = engines.testing_engine()
         def broken_initialize(connection):
@@ -539,8 +537,6 @@ class RealReconnectTest(fixtures.TestBase):
         # pool was recreated
         assert engine.pool is not p1
 
-    @testing.fails_on('+informixdb',
-                      "Wrong error thrown, fix in informixdb?")
     def test_null_pool(self):
         engine = \
             engines.reconnecting_engine(options=dict(poolclass=pool.NullPool))
@@ -554,8 +550,6 @@ class RealReconnectTest(fixtures.TestBase):
         eq_(conn.execute(select([1])).scalar(), 1)
         assert not conn.invalidated
 
-    @testing.fails_on('+informixdb',
-                      "Wrong error thrown, fix in informixdb?")
     def test_close(self):
         conn = self.engine.connect()
         eq_(conn.execute(select([1])).scalar(), 1)
@@ -569,8 +563,6 @@ class RealReconnectTest(fixtures.TestBase):
         conn = self.engine.connect()
         eq_(conn.execute(select([1])).scalar(), 1)
 
-    @testing.fails_on('+informixdb',
-                      "Wrong error thrown, fix in informixdb?")
     def test_with_transaction(self):
         conn = self.engine.connect()
         trans = conn.begin()
@@ -651,12 +643,10 @@ class InvalidateDuringResultTest(fixtures.TestBase):
                     '+cymysql', '+pymysql', '+pg8000'
                     ], "Buffers the result set and doesn't check for "
                         "connection close")
-    @testing.fails_on('+informixdb',
-                      "Wrong error thrown, fix in informixdb?")
     def test_invalidate_on_results(self):
         conn = self.engine.connect()
         result = conn.execute('select * from sometable')
-        for x in xrange(20):
+        for x in range(20):
             result.fetchone()
         self.engine.test_shutdown()
         _assert_invalidated(result.fetchone)

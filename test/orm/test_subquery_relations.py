@@ -10,6 +10,7 @@ from sqlalchemy.testing import eq_, assert_raises, \
     assert_raises_message
 from sqlalchemy.testing.assertsql import CompiledSQL
 from sqlalchemy.testing import fixtures
+from sqlalchemy.testing.entities import ComparableEntity
 from test.orm import _fixtures
 import sqlalchemy as sa
 
@@ -632,7 +633,6 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             ], q.all())
         self.assert_sql_count(testing.db, go, 6)
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_limit(self):
         """Limit operations combined with lazy-load relationships."""
 
@@ -706,7 +706,6 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             eq_([User(id=7, address=Address(id=1))], l)
         self.assert_sql_count(testing.db, go, 2)
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_many_to_one(self):
         users, Address, addresses, User = (self.tables.users,
                                 self.classes.Address,
@@ -1144,7 +1143,6 @@ class SelfReferentialTest(fixtures.MappedTest):
             Column('parent_id', Integer, ForeignKey('nodes.id')),
             Column('data', String(30)))
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_basic(self):
         nodes = self.tables.nodes
 
@@ -1309,7 +1307,6 @@ class SelfReferentialTest(fixtures.MappedTest):
             ]), d)
         self.assert_sql_count(testing.db, go, 3)
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_no_depth(self):
         """no join depth is set, so no eager loading occurs."""
 
@@ -1533,28 +1530,27 @@ class CyclicalInheritingEagerTestTwo(fixtures.DeclarativeMappedTest,
         q = ctx.attributes[('subquery',
                         (inspect(Director), inspect(Director).attrs.movies))]
         self.assert_compile(q,
-            "SELECT anon_1.movie_id AS anon_1_movie_id, "
-            "anon_1.persistent_id AS anon_1_persistent_id, "
-            "anon_1.movie_director_id AS anon_1_movie_director_id, "
-            "anon_1.movie_title AS anon_1_movie_title, "
-            "anon_2.director_id AS anon_2_director_id FROM "
-            "(SELECT director.id AS director_id FROM persistent JOIN director "
-            "ON persistent.id = director.id) AS anon_2 "
-            "JOIN (SELECT persistent.id AS persistent_id, movie.id AS movie_id, "
+            "SELECT movie.id AS movie_id, persistent.id AS persistent_id, "
             "movie.director_id AS movie_director_id, "
-            "movie.title AS movie_title FROM persistent JOIN movie "
-            "ON persistent.id = movie.id) AS anon_1 "
-            "ON anon_2.director_id = anon_1.movie_director_id "
-            "ORDER BY anon_2.director_id")
+            "movie.title AS movie_title, "
+            "anon_1.director_id AS anon_1_director_id "
+            "FROM (SELECT director.id AS director_id "
+                "FROM persistent JOIN director "
+                "ON persistent.id = director.id) AS anon_1 "
+            "JOIN (persistent JOIN movie ON persistent.id = movie.id) "
+            "ON anon_1.director_id = movie.director_id "
+            "ORDER BY anon_1.director_id",
+            dialect="default"
+        )
 
     def test_integrate(self):
         Director = self.classes.Director
         Movie = self.classes.Movie
 
         session = Session(testing.db)
-        rscott = Director(name=u"Ridley Scott")
-        alien = Movie(title=u"Alien")
-        brunner = Movie(title=u"Blade Runner")
+        rscott = Director(name="Ridley Scott")
+        alien = Movie(title="Alien")
+        brunner = Movie(title="Blade Runner")
         rscott.movies.append(brunner)
         rscott.movies.append(alien)
         session.add_all([rscott, alien, brunner])
@@ -1650,8 +1646,8 @@ class SubqueryloadDistinctTest(fixtures.DeclarativeMappedTest,
         q = (
             s.query(Movie)
             .options(
-                subqueryload(Movie.director),
-                subqueryload(Movie.director, Director.photos)
+                subqueryload(Movie.director)
+                .subqueryload(Director.photos)
             )
         )
         ctx = q._compile_context()
@@ -1704,12 +1700,13 @@ class SubqueryloadDistinctTest(fixtures.DeclarativeMappedTest,
         result = s.execute(q3)
         rows = result.fetchall()
         if expect_distinct:
-            eq_(set(tuple(r) for r in rows), set([
+            eq_(set(tuple(t) for t in rows), set([
                 (1, u'/1.jpg', 1, 1),
                 (2, u'/2.jpg', 1, 1),
             ]))
         else:
-            eq_(set(tuple(r) for r in rows), set([
+            # oracle might not order the way we expect here
+            eq_(set(tuple(t) for t in rows), set([
                 (1, u'/1.jpg', 1, 1),
                 (2, u'/2.jpg', 1, 1),
                 (1, u'/1.jpg', 1, 1),
@@ -1731,16 +1728,13 @@ class SubqueryloadDistinctTest(fixtures.DeclarativeMappedTest,
         Movie = self.classes.Movie
         Credit = self.classes.Credit
 
-        Credit.movie.property.distinct_target_key = False
-        Movie.director.property.distinct_target_key = False
-
         s = create_session()
 
         q = (
             s.query(Credit)
             .options(
-                subqueryload(Credit.movie),
-                subqueryload(Credit.movie, Movie.director)
+                subqueryload(Credit.movie)
+                .subqueryload(Movie.director)
             )
         )
 
@@ -1754,13 +1748,63 @@ class SubqueryloadDistinctTest(fixtures.DeclarativeMappedTest,
             ('subquery', (inspect(Movie), Movie.director.property))
         ]
 
-        # three rows due to dupe at Credit.movie level
-        # as well as Movie.director level
         result = s.execute(q3)
         eq_(
             result.fetchall(),
             [
                 (1, 'Woody Allen', 1), (1, 'Woody Allen', 1),
-                    (1, 'Woody Allen', 1)
             ]
         )
+
+
+class JoinedNoLoadConflictTest(fixtures.DeclarativeMappedTest):
+    """test for [ticket:2887]"""
+
+    @classmethod
+    def setup_classes(cls):
+        Base = cls.DeclarativeBasic
+
+        class Parent(ComparableEntity, Base):
+            __tablename__ = 'parent'
+
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
+            name = Column(String(20))
+
+            children = relationship('Child',
+                                back_populates='parent',
+                                lazy='noload'
+                            )
+
+        class Child(ComparableEntity, Base):
+            __tablename__ = 'child'
+
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
+            name = Column(String(20))
+            parent_id = Column(Integer, ForeignKey('parent.id'))
+
+            parent = relationship('Parent', back_populates='children', lazy='joined')
+
+    @classmethod
+    def insert_data(cls):
+        Parent = cls.classes.Parent
+        Child = cls.classes.Child
+
+        s = Session()
+        s.add(Parent(name='parent', children=[Child(name='c1')]))
+        s.commit()
+
+    def test_subqueryload_on_joined_noload(self):
+        Parent = self.classes.Parent
+        Child = self.classes.Child
+
+        s = Session()
+
+        # here we have Parent->subqueryload->Child->joinedload->parent->noload->children.
+        # the actual subqueryload has to emit *after* we've started populating
+        # Parent->subqueryload->child.
+        parent = s.query(Parent).options([subqueryload('children')]).first()
+        eq_(
+            parent.children,
+            [Child(name='c1')]
+        )
+

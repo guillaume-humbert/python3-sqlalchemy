@@ -14,7 +14,7 @@ A high level view and getting set up.
 :ref:`Overview <overview>` |
 :ref:`Installation Guide <installation>` |
 :doc:`Frequently Asked Questions <faq>` |
-:doc:`Migration from 0.7 <changelog/migration_08>` |
+:doc:`Migration from 0.8 <changelog/migration_09>` |
 :doc:`Glossary <glossary>` |
 :doc:`Changelog catalog <changelog/index>`
 
@@ -39,6 +39,7 @@ of Python objects, proceed first to the tutorial.
   :doc:`Declarative Extension <orm/extensions/declarative>` |
   :doc:`Association Proxy <orm/extensions/associationproxy>` |
   :doc:`Hybrid Attributes <orm/extensions/hybrid>` |
+  :doc:`Automap <orm/extensions/automap>` (**new**) |
   :doc:`Mutable Scalars <orm/extensions/mutable>` |
   :doc:`Ordered List <orm/extensions/orderinglist>`
 

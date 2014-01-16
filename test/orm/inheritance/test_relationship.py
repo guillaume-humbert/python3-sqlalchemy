@@ -154,6 +154,7 @@ class SelfReferentialJ2JTest(fixtures.MappedTest):
                         managers.c.person_id == engineers.c.reports_to_id,
                     backref='engineers')})
 
+
     def test_has(self):
         m1 = Manager(name='dogbert')
         e1 = Engineer(name='dilbert', primary_language='java', reports_to=m1)
@@ -287,7 +288,7 @@ class SelfReferentialJ2JSelfTest(fixtures.MappedTest):
     def _five_obj_fixture(self):
         sess = Session()
         e1, e2, e3, e4, e5 = [
-            Engineer(name='e%d' % (i + 1)) for i in xrange(5)
+            Engineer(name='e%d' % (i + 1)) for i in range(5)
         ]
         e3.reports_to = e1
         e4.reports_to = e2
@@ -415,7 +416,6 @@ class M2MFilterTest(fixtures.MappedTest):
         sess = create_session()
         e1 = sess.query(Person).filter(Engineer.name == 'e1').one()
 
-        # this works
         eq_(sess.query(Organization)
                 .filter(~Organization.engineers
                     .of_type(Engineer)
@@ -448,6 +448,7 @@ class M2MFilterTest(fixtures.MappedTest):
             [Organization(name='org1')])
 
 class SelfReferentialM2MTest(fixtures.MappedTest, AssertsCompiledSQL):
+    __dialect__ = "default"
 
     @classmethod
     def define_tables(cls, metadata):
@@ -546,13 +547,11 @@ class SelfReferentialM2MTest(fixtures.MappedTest, AssertsCompiledSQL):
             "SELECT child2.id AS child2_id, parent.id AS parent_id, "
             "parent.cls AS parent_cls FROM secondary AS secondary_1, "
             "parent JOIN child2 ON parent.id = child2.id JOIN secondary AS "
-            "secondary_2 ON parent.id = secondary_2.left_id JOIN (SELECT "
-            "parent.id AS parent_id, parent.cls AS parent_cls, child1.id AS "
-            "child1_id FROM parent JOIN child1 ON parent.id = child1.id) AS "
-            "anon_1 ON anon_1.parent_id = secondary_2.right_id WHERE "
-            "anon_1.parent_id = secondary_1.right_id AND :param_1 = "
-            "secondary_1.left_id",
-            dialect=default.DefaultDialect()
+            "secondary_2 ON parent.id = secondary_2.left_id JOIN "
+            "(parent AS parent_1 JOIN child1 AS child1_1 ON parent_1.id = child1_1.id) "
+            "ON parent_1.id = secondary_2.right_id WHERE "
+            "parent_1.id = secondary_1.right_id AND :param_1 = "
+            "secondary_1.left_id"
         )
 
     def test_eager_join(self):
@@ -569,18 +568,17 @@ class SelfReferentialM2MTest(fixtures.MappedTest, AssertsCompiledSQL):
         self.assert_compile(q.limit(1).with_labels().statement,
             "SELECT anon_1.child1_id AS anon_1_child1_id, anon_1.parent_id "
             "AS anon_1_parent_id, anon_1.parent_cls AS anon_1_parent_cls, "
-            "anon_2.child2_id AS anon_2_child2_id, anon_2.parent_id AS "
-            "anon_2_parent_id, anon_2.parent_cls AS anon_2_parent_cls FROM "
+            "child2_1.id AS child2_1_id, parent_1.id AS "
+            "parent_1_id, parent_1.cls AS parent_1_cls FROM "
             "(SELECT child1.id AS child1_id, parent.id AS parent_id, "
-            "parent.cls AS parent_cls FROM parent JOIN child1 ON parent.id = "
-            "child1.id LIMIT :param_1) AS anon_1 LEFT OUTER JOIN secondary "
-            "AS secondary_1 ON anon_1.parent_id = secondary_1.right_id LEFT "
-            "OUTER JOIN (SELECT parent.id AS parent_id, parent.cls AS "
-            "parent_cls, child2.id AS child2_id FROM parent JOIN child2 ON "
-            "parent.id = child2.id) AS anon_2 ON anon_2.parent_id = "
-            "secondary_1.left_id",
-            {'param_1':1},
-            dialect=default.DefaultDialect())
+            "parent.cls AS parent_cls "
+            "FROM parent JOIN child1 ON parent.id = child1.id "
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN "
+            "(secondary AS secondary_1 JOIN "
+            "(parent AS parent_1 JOIN child2 AS child2_1 "
+            "ON parent_1.id = child2_1.id) ON parent_1.id = secondary_1.left_id) "
+            "ON anon_1.parent_id = secondary_1.right_id",
+            {'param_1':1})
 
         # another way to check
         assert q.limit(1).with_labels().subquery().count().scalar() == 1
@@ -1224,40 +1222,30 @@ class SubClassToSubClassMultiTest(AssertsCompiledSQL, fixtures.MappedTest):
                 join(Sub2.ep1).
                 join(Sub2.ep2),
             "SELECT parent.id AS parent_id, parent.data AS parent_data "
-            "FROM parent JOIN (SELECT base1.id AS base1_id, "
-            "base1.data AS base1_data, sub1.id AS sub1_id, "
-            "sub1.parent_id AS sub1_parent_id, sub1.subdata AS sub1_subdata "
-            "FROM base1 JOIN sub1 ON base1.id = sub1.id) AS anon_1 "
-            "ON parent.id = anon_1.sub1_parent_id JOIN "
-            "(SELECT base2.id AS base2_id, base2.base1_id AS base2_base1_id, "
-            "base2.data AS base2_data, sub2.id AS sub2_id, "
-            "sub2.subdata AS sub2_subdata FROM base2 JOIN sub2 "
-            "ON base2.id = sub2.id) AS anon_2 "
-            "ON anon_1.base1_id = anon_2.base2_base1_id "
-            "JOIN ep1 ON anon_2.base2_id = ep1.base2_id "
-            "JOIN ep2 ON anon_2.base2_id = ep2.base2_id"
+            "FROM parent JOIN (base1 JOIN sub1 ON base1.id = sub1.id) "
+            "ON parent.id = sub1.parent_id JOIN "
+            "(base2 JOIN sub2 "
+            "ON base2.id = sub2.id) "
+            "ON base1.id = base2.base1_id "
+            "JOIN ep1 ON base2.id = ep1.base2_id "
+            "JOIN ep2 ON base2.id = ep2.base2_id"
         )
 
     def test_two(self):
         Parent, Base1, Base2, Sub1, Sub2, EP1, EP2 = self._classes()
 
-        s2a = aliased(Sub2)
+        s2a = aliased(Sub2, flat=True)
 
         s = Session()
         self.assert_compile(
             s.query(Parent).join(Parent.sub1).
                 join(s2a, Sub1.sub2),
             "SELECT parent.id AS parent_id, parent.data AS parent_data "
-            "FROM parent JOIN (SELECT base1.id AS base1_id, "
-            "base1.data AS base1_data, sub1.id AS sub1_id, "
-            "sub1.parent_id AS sub1_parent_id, sub1.subdata AS sub1_subdata "
-            "FROM base1 JOIN sub1 ON base1.id = sub1.id) AS anon_1 "
-            "ON parent.id = anon_1.sub1_parent_id JOIN "
-            "(SELECT base2.id AS base2_id, base2.base1_id AS base2_base1_id, "
-            "base2.data AS base2_data, sub2.id AS sub2_id, "
-            "sub2.subdata AS sub2_subdata FROM base2 JOIN sub2 "
-            "ON base2.id = sub2.id) AS anon_2 "
-            "ON anon_1.base1_id = anon_2.base2_base1_id"
+            "FROM parent JOIN (base1 JOIN sub1 ON base1.id = sub1.id) "
+            "ON parent.id = sub1.parent_id JOIN "
+            "(base2 AS base2_1 JOIN sub2 AS sub2_1 "
+            "ON base2_1.id = sub2_1.id) "
+            "ON base1.id = base2_1.base1_id"
         )
 
     def test_three(self):
@@ -1269,13 +1257,11 @@ class SubClassToSubClassMultiTest(AssertsCompiledSQL, fixtures.MappedTest):
                 join(Sub2.ep1).\
                 join(Sub2.ep2),
             "SELECT base1.id AS base1_id, base1.data AS base1_data "
-            "FROM base1 JOIN (SELECT base2.id AS base2_id, base2.base1_id "
-            "AS base2_base1_id, base2.data AS base2_data, sub2.id AS sub2_id, "
-            "sub2.subdata AS sub2_subdata FROM base2 JOIN sub2 "
-            "ON base2.id = sub2.id) AS anon_1 ON base1.id = "
-            "anon_1.base2_base1_id "
-            "JOIN ep1 ON anon_1.base2_id = ep1.base2_id "
-            "JOIN ep2 ON anon_1.base2_id = ep2.base2_id"
+            "FROM base1 JOIN (base2 JOIN sub2 "
+            "ON base2.id = sub2.id) ON base1.id = "
+            "base2.base1_id "
+            "JOIN ep1 ON base2.id = ep1.base2_id "
+            "JOIN ep2 ON base2.id = ep2.base2_id"
         )
 
     def test_four(self):
@@ -1308,11 +1294,8 @@ class SubClassToSubClassMultiTest(AssertsCompiledSQL, fixtures.MappedTest):
             "sub2.subdata AS sub2_subdata "
             "FROM base2 JOIN sub2 ON base2.id = sub2.id "
             "JOIN "
-            "(SELECT base1.id AS base1_id, base1.data AS base1_data, "
-                "sub1.id AS sub1_id, sub1.parent_id AS sub1_parent_id, "
-                "sub1.subdata AS sub1_subdata "
-                "FROM base1 JOIN sub1 ON base1.id = sub1.id) AS anon_1 "
-            "ON anon_1.sub1_id = base2.base1_id "
+            "(base1 JOIN sub1 ON base1.id = sub1.id) "
+            "ON sub1.id = base2.base1_id "
             "JOIN ep1 ON base2.id = ep1.base2_id "
             "JOIN ep2 ON base2.id = ep2.base2_id"
         )
@@ -1352,29 +1335,23 @@ class SubClassToSubClassMultiTest(AssertsCompiledSQL, fixtures.MappedTest):
                 join(Sub2.ep2),
             "SELECT anon_1.parent_id AS anon_1_parent_id, "
             "anon_1.parent_data AS anon_1_parent_data, "
-            "anon_1.anon_2_sub2_id AS anon_1_anon_2_sub2_id, "
-            "anon_1.anon_2_base2_id AS anon_1_anon_2_base2_id, "
-            "anon_1.anon_2_base2_base1_id AS anon_1_anon_2_base2_base1_id, "
-            "anon_1.anon_2_base2_data AS anon_1_anon_2_base2_data, "
-            "anon_1.anon_2_sub2_subdata AS anon_1_anon_2_sub2_subdata "
+            "anon_1.sub2_id AS anon_1_sub2_id, "
+            "anon_1.base2_id AS anon_1_base2_id, "
+            "anon_1.base2_base1_id AS anon_1_base2_base1_id, "
+            "anon_1.base2_data AS anon_1_base2_data, "
+            "anon_1.sub2_subdata AS anon_1_sub2_subdata "
             "FROM (SELECT parent.id AS parent_id, parent.data AS parent_data, "
-            "anon_2.sub2_id AS anon_2_sub2_id, "
-            "anon_2.base2_id AS anon_2_base2_id, "
-            "anon_2.base2_base1_id AS anon_2_base2_base1_id, "
-            "anon_2.base2_data AS anon_2_base2_data, "
-            "anon_2.sub2_subdata AS anon_2_sub2_subdata "
-            "FROM parent JOIN (SELECT base1.id AS base1_id, "
-            "base1.data AS base1_data, sub1.id AS sub1_id, "
-            "sub1.parent_id AS sub1_parent_id, sub1.subdata AS sub1_subdata "
-            "FROM base1 JOIN sub1 ON base1.id = sub1.id) AS anon_3 "
-            "ON parent.id = anon_3.sub1_parent_id JOIN "
-            "(SELECT base2.id AS base2_id, base2.base1_id AS base2_base1_id, "
-            "base2.data AS base2_data, sub2.id AS sub2_id, "
+            "sub2.id AS sub2_id, "
+            "base2.id AS base2_id, "
+            "base2.base1_id AS base2_base1_id, "
+            "base2.data AS base2_data, "
             "sub2.subdata AS sub2_subdata "
-            "FROM base2 JOIN sub2 ON base2.id = sub2.id) AS anon_2 "
-            "ON anon_3.base1_id = anon_2.base2_base1_id) AS anon_1 "
-            "JOIN ep1 ON anon_1.anon_2_base2_id = ep1.base2_id "
-            "JOIN ep2 ON anon_1.anon_2_base2_id = ep2.base2_id"
+            "FROM parent JOIN (base1 JOIN sub1 ON base1.id = sub1.id) "
+            "ON parent.id = sub1.parent_id JOIN "
+            "(base2 JOIN sub2 ON base2.id = sub2.id) "
+            "ON base1.id = base2.base1_id) AS anon_1 "
+            "JOIN ep1 ON anon_1.base2_id = ep1.base2_id "
+            "JOIN ep2 ON anon_1.base2_id = ep2.base2_id"
         )
 
 class MultipleAdaptUsesEntityOverTableTest(AssertsCompiledSQL, fixtures.MappedTest):
@@ -1432,10 +1409,17 @@ class MultipleAdaptUsesEntityOverTableTest(AssertsCompiledSQL, fixtures.MappedTe
 
         btoc = q._from_obj[0].left
 
-        ac_adapted = btoc.right
+        ac_adapted = btoc.right.element.left
+        c_adapted = btoc.right.element.right
 
+        is_(ac_adapted.element, a)
+        is_(c_adapted.element, c)
 
         ctod = q._from_obj[0].right
+        ad_adapted = ctod.left
+        d_adapted = ctod.right
+        is_(ad_adapted.element, a)
+        is_(d_adapted.element, d)
 
         bname, cname, dname = q._entities
 
@@ -1447,17 +1431,16 @@ class MultipleAdaptUsesEntityOverTableTest(AssertsCompiledSQL, fixtures.MappedTe
                                         q, dname.column, None)
 
         assert bool(b_name_adapted == a.c.name)
-        assert bool(c_name_adapted == ac_adapted.corresponding_column(a.c.name))
-        assert bool(d_name_adapted == ctod.corresponding_column(a.c.name))
+        assert bool(c_name_adapted == ac_adapted.c.name)
+        assert bool(d_name_adapted == ad_adapted.c.name)
 
     def test_two_joins_sql(self):
         q = self._two_join_fixture()
         self.assert_compile(q,
-            "SELECT a.name AS a_name, anon_1.a_name AS anon_1_a_name, "
-            "anon_2.a_name AS anon_2_a_name FROM a JOIN b ON a.id = b.id "
-            "JOIN (SELECT a.id AS a_id, a.name AS a_name, c.id AS c_id, "
-            "c.bid AS c_bid FROM a JOIN c ON a.id = c.id) AS anon_1 ON "
-            "anon_1.c_bid = b.id JOIN (SELECT a.id AS a_id, a.name AS a_name, "
-            "d.id AS d_id, d.cid AS d_cid FROM a JOIN d ON a.id = d.id) "
-            "AS anon_2 ON anon_2.d_cid = anon_1.c_id"
+            "SELECT a.name AS a_name, a_1.name AS a_1_name, "
+            "a_2.name AS a_2_name "
+            "FROM a JOIN b ON a.id = b.id JOIN "
+            "(a AS a_1 JOIN c AS c_1 ON a_1.id = c_1.id) ON c_1.bid = b.id "
+            "JOIN (a AS a_2 JOIN d AS d_1 ON a_2.id = d_1.id) "
+            "ON d_1.cid = c_1.id"
         )

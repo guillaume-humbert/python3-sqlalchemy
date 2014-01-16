@@ -294,6 +294,7 @@ class AttributesTest(fixtures.ORMTest):
         assert state.obj() is None
         assert state.dict == {}
 
+    @testing.requires.predictable_gc
     def test_object_dereferenced_error(self):
         class Foo(object):
             pass
@@ -317,7 +318,8 @@ class AttributesTest(fixtures.ORMTest):
         )
 
     def test_deferred(self):
-        class Foo(object):pass
+        class Foo(object):
+            pass
 
         data = {'a':'this is a', 'b':12}
         def loader(state, keys):
@@ -848,7 +850,7 @@ class AttributesTest(fixtures.ORMTest):
             attributes.register_attribute(Foo, 'collection',
                     uselist=True, typecallable=dict, useobject=True)
             assert False
-        except sa_exc.ArgumentError, e:
+        except sa_exc.ArgumentError as e:
             assert str(e) \
                 == 'Type InstrumentedDict must elect an appender '\
                 'method to be a collection class'
@@ -875,7 +877,7 @@ class AttributesTest(fixtures.ORMTest):
             attributes.register_attribute(Foo, 'collection',
                     uselist=True, typecallable=MyColl, useobject=True)
             assert False
-        except sa_exc.ArgumentError, e:
+        except sa_exc.ArgumentError as e:
             assert str(e) \
                 == 'Type MyColl must elect an appender method to be a '\
                 'collection class'
@@ -899,7 +901,7 @@ class AttributesTest(fixtures.ORMTest):
         try:
             Foo().collection
             assert True
-        except sa_exc.ArgumentError, e:
+        except sa_exc.ArgumentError as e:
             assert False
 
 class GetNoValueTest(fixtures.ORMTest):
@@ -1162,12 +1164,8 @@ class BackrefTest(fixtures.ORMTest):
         p2.children.append(c1)
         assert c1.parent is p2
 
-        # note its still in p1.children -
-        # the event model currently allows only
-        # one level deep.  without the parent_token,
-        # it keeps going until a ValueError is raised
-        # and this condition changes.
-        assert c1 in p1.children
+        # event propagates to remove as of [ticket:2789]
+        assert c1 not in p1.children
 
 class CyclicBackrefAssertionTest(fixtures.TestBase):
     """test that infinite recursion due to incorrect backref assignments
@@ -1341,7 +1339,7 @@ class PendingBackrefTest(fixtures.ORMTest):
             ]
         )
 
-    def test_lazy_history(self):
+    def test_lazy_history_collection(self):
         Post, Blog, lazy_posts = self._fixture()
 
         p1, p2, p3 = Post("post 1"), Post("post 2"), Post("post 3")
@@ -1503,7 +1501,7 @@ class HistoryTest(fixtures.TestBase):
         class Foo(fixtures.BasicEntity):
             pass
         class Bar(fixtures.BasicEntity):
-            def __nonzero__(self):
+            def __bool__(self):
                 assert False
 
         instrumentation.register_class(Foo)
@@ -1513,6 +1511,12 @@ class HistoryTest(fixtures.TestBase):
         return Foo, Bar
 
     def _someattr_history(self, f, **kw):
+        passive = kw.pop('passive', None)
+        if passive is True:
+            kw['passive'] = attributes.PASSIVE_NO_INITIALIZE
+        elif passive is False:
+            kw['passive'] = attributes.PASSIVE_OFF
+
         return attributes.get_state_history(
                     attributes.instance_state(f),
                     'someattr', **kw)
@@ -1687,19 +1691,19 @@ class HistoryTest(fixtures.TestBase):
         Foo = self._fixture(uselist=True, useobject=True,
                                 active_history=True)
         f = Foo()
-        eq_(self._someattr_history(f, passive=True), ((), (), ()))
+        eq_(self._someattr_history(f, passive=True), (None, None, None))
 
     def test_scalar_obj_never_set(self):
         Foo = self._fixture(uselist=False, useobject=True,
                                 active_history=True)
         f = Foo()
-        eq_(self._someattr_history(f, passive=True), ((), (), ()))
+        eq_(self._someattr_history(f, passive=True), (None, None, None))
 
     def test_scalar_never_set(self):
         Foo = self._fixture(uselist=False, useobject=False,
                                 active_history=True)
         f = Foo()
-        eq_(self._someattr_history(f, passive=True), ((), (), ()))
+        eq_(self._someattr_history(f, passive=True), (None, None, None))
 
     def test_scalar_active_set(self):
         Foo = self._fixture(uselist=False, useobject=False,
@@ -1795,6 +1799,24 @@ class HistoryTest(fixtures.TestBase):
         eq_(self._someattr_history(f), (['two'], (), ()))
 
 
+    def test_scalar_passive_flag(self):
+        Foo = self._fixture(uselist=False, useobject=False,
+                                active_history=True)
+        f = Foo()
+        f.someattr = 'one'
+        eq_(self._someattr_history(f), (['one'], (), ()))
+
+        self._commit_someattr(f)
+
+        state = attributes.instance_state(f)
+        state._expire_attribute_pre_commit(state.dict, 'someattr')
+
+        def scalar_loader(state, toload):
+            state.dict['someattr'] = 'one'
+        state.manager.deferred_scalar_loader = scalar_loader
+
+        eq_(self._someattr_history(f), ((), ['one'], ()))
+
 
     def test_scalar_inplace_mutation_set(self):
         Foo = self._fixture(uselist=False, useobject=False,
@@ -1849,6 +1871,7 @@ class HistoryTest(fixtures.TestBase):
         eq_(self._someattr_history(f), ([{'a': 'b'}], (), ()))
         f.someattr = ['a']
         eq_(self._someattr_history(f), ([['a']], (), ()))
+
 
     def test_use_object_init(self):
         Foo, Bar = self._two_obj_fixture(uselist=False)

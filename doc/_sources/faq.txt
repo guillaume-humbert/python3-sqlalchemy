@@ -296,8 +296,39 @@ using the Python warnings filter (see http://docs.python.org/library/warnings.ht
 ORM Configuration
 ==================
 
+.. _faq_mapper_primary_key:
+
 How do I map a table that has no primary key?
 ---------------------------------------------
+
+The SQLAlchemy ORM, in order to map to a particular table, needs there to be
+at least one column denoted as a primary key column; multiple-column,
+i.e. composite, primary keys are of course entirely feasible as well.  These
+columns do **not** need to be actually known to the database as primary key
+columns, though it's a good idea that they are.  It's only necessary that the columns
+*behave* as a primary key does, e.g. as a unique and not nullable identifier
+for a row.
+
+Most ORMs require that objects have some kind of primary key defined
+because the object in memory must correspond to a uniquely identifiable
+row in the database table; at the very least, this allows the
+object can be targeted for UPDATE and DELETE statements which will affect only
+that object's row and no other.   However, the importance of the primary key
+goes far beyond that.  In SQLAlchemy, all ORM-mapped objects are at all times
+linked uniquely within a :class:`.Session`
+to their specific database row using a pattern called the :term:`identity map`,
+a pattern that's central to the unit of work system employed by SQLAlchemy,
+and is also key to the most common (and not-so-common) patterns of ORM usage.
+
+
+.. note::
+
+	It's important to note that we're only talking about the SQLAlchemy ORM; an
+	application which builds on Core and deals only with :class:`.Table` objects,
+	:func:`.select` constructs and the like, **does not** need any primary key
+	to be present on or associated with a table in any way (though again, in SQL, all tables
+	should really have some kind of primary key, lest you need to actually
+	update or delete specific rows).
 
 In almost all cases, a table does have a so-called :term:`candidate key`, which is a column or series
 of columns that uniquely identify a row.  If a table truly doesn't have this, and has actual
@@ -825,42 +856,79 @@ set ``o.foo`` is to do just that - set it!::
 
 Manipulation of foreign key attributes is of course entirely legal.  However,
 setting a foreign-key attribute to a new value currently does not trigger
-an "expire" event of the :func:`.relationship` in which it's involved (this may
-be implemented in the future).  This means
+an "expire" event of the :func:`.relationship` in which it's involved.  This means
 that for the following sequence::
 
 	o = Session.query(SomeClass).first()
-	assert o.foo is None
+	assert o.foo is None  # accessing an un-set attribute sets it to None
 	o.foo_id = 7
 
-``o.foo`` is loaded when we checked it for ``None``.  Setting
-``o.foo_id=7`` will have the value of "7" as pending, but no flush
-has occurred.
+``o.foo`` is initialized to ``None`` when we first accessed it.  Setting
+``o.foo_id = 7`` will have the value of "7" as pending, but no flush
+has occurred - so ``o.foo`` is still ``None``::
+
+	# attribute is already set to None, has not been
+	# reconciled with o.foo_id = 7 yet
+	assert o.foo is None
 
 For ``o.foo`` to load based on the foreign key mutation is usually achieved
 naturally after the commit, which both flushes the new foreign key value
 and expires all state::
 
-	Session.commit()
-	assert o.foo is <Foo object with id 7>
+	Session.commit()  # expires all attributes
 
-A more minimal operation is to expire the attribute individually.  The
-:meth:`.Session.flush` is also needed if the object is pending (hasn't been INSERTed yet),
-or if the relationship is many-to-one prior to 0.6.5::
+	foo_7 = Session.query(Foo).get(7)
 
+	assert o.foo is foo_7  # o.foo lazyloads on access
+
+A more minimal operation is to expire the attribute individually - this can
+be performed for any :term:`persistent` object using :meth:`.Session.expire`::
+
+	o = Session.query(SomeClass).first()
+	o.foo_id = 7
+	Session.expire(o, ['foo'])  # object must be persistent for this
+
+	foo_7 = Session.query(Foo).get(7)
+
+	assert o.foo is foo_7  # o.foo lazyloads on access
+
+Note that if the object is not persistent but present in the :class:`.Session`,
+it's known as :term:`pending`.   This means the row for the object has not been
+INSERTed into the database yet.  For such an object, setting ``foo_id`` does not
+have meaning until the row is inserted; otherwise there is no row yet::
+
+	new_obj = SomeClass()
+	new_obj.foo_id = 7
+
+	Session.add(new_obj)
+
+	# accessing an un-set attribute sets it to None
+	assert new_obj.foo is None
+
+	Session.flush()  # emits INSERT
+
+	# expire this because we already set .foo to None
 	Session.expire(o, ['foo'])
 
-	Session.flush()
+	assert new_obj.foo is foo_7  # now it loads
 
-	assert o.foo is <Foo object with id 7>
 
-Where above, expiring the attribute triggers a lazy load on the next access of ``o.foo``.
+.. topic:: Attribute loading for non-persistent objects
 
-The object does not "autoflush" on access of ``o.foo`` if the object is pending, since
-it is usually desirable that a pending object doesn't autoflush prematurely and/or
-excessively, while its state is still being populated.
+	One variant on the "pending" behavior above is if we use the flag
+	``load_on_pending`` on :func:`.relationship`.   When this flag is set, the
+	lazy loader will emit for ``new_obj.foo`` before the INSERT proceeds; another
+	variant of this is to use the :meth:`.Session.enable_relationship_loading`
+	method, which can "attach" an object to a :class:`.Session` in such a way that
+	many-to-one relationships load as according to foreign key attributes
+	regardless of the object being in any particular state.
+	Both techniques are **not recommended for general use**; they were added to suit
+	specfic programming scenarios encountered by users which involve the repurposing
+	of the ORM's usual object states.
 
-Also see the recipe `ExpireRelationshipOnFKChange <http://www.sqlalchemy.org/trac/wiki/UsageRecipes/ExpireRelationshipOnFKChange>`_, which features a mechanism to actually achieve this behavior to a reasonable degree in simple situations.
+The recipe `ExpireRelationshipOnFKChange <http://www.sqlalchemy.org/trac/wiki/UsageRecipes/ExpireRelationshipOnFKChange>`_ features an example using SQLAlchemy events
+in order to coordinate the setting of foreign key attributes with many-to-one
+relationships.
 
 Is there a way to automagically have only unique keywords (or other kinds of objects) without doing a query for the keyword and getting a reference to the row containing that keyword?
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

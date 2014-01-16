@@ -1,5 +1,9 @@
-"""An extension to the basic_association.py example, which illustrates
-the usage of sqlalchemy.ext.associationproxy.
+"""proxied_association.py
+
+same example as basic_association, adding in
+usage of :mod:`sqlalchemy.ext.associationproxy` to make explicit references
+to ``OrderItem`` optional.
+
 
 """
 
@@ -86,16 +90,16 @@ if __name__ == '__main__':
     order = session.query(Order).filter_by(customer_name='john smith').one()
 
     # print items based on the OrderItem collection directly
-    print [(assoc.item.description, assoc.price, assoc.item.price)
-           for assoc in order.order_items]
+    print([(assoc.item.description, assoc.price, assoc.item.price)
+           for assoc in order.order_items])
 
     # print items based on the "proxied" items collection
-    print [(item.description, item.price)
-           for item in order.items]
+    print([(item.description, item.price)
+           for item in order.items])
 
     # print customers who bought 'MySQL Crowbar' on sale
     orders = session.query(Order).\
                     join('order_items', 'item').\
                     filter(Item.description == 'MySQL Crowbar').\
                     filter(Item.price > OrderItem.price)
-    print [o.customer_name for o in orders]
+    print([o.customer_name for o in orders])

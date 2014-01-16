@@ -10,7 +10,7 @@
     
                 Defining Constraints and Indexes
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Schema Definition Language" href="schema.html" />
         <link rel="next" title="Customizing DDL" href="ddl.html" />
         <link rel="prev" title="Column Insert/Update Defaults" href="defaults.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
                 » <a href="schema.html" title="Schema Definition Language">Schema Definition Language</a>
         » 
@@ -177,7 +178,7 @@
         
 <span class="target" id="module-sqlalchemy.schema"><span id="metadata-constraints"></span><span id="metadata-constraints-toplevel"></span></span><div class="section" id="defining-constraints-and-indexes">
 <h1>Defining Constraints and Indexes<a class="headerlink" href="#defining-constraints-and-indexes" title="Permalink to this headline">¶</a></h1>
-<p id="metadata-foreignkeys">This section will discuss SQL <em class="xref std std-term">constraints</em> and indexes.  In SQLAlchemy
+<p id="metadata-foreignkeys">This section will discuss SQL <a class="reference internal" href="../glossary.html#term-constraints"><em class="xref std std-term">constraints</em></a> and indexes.  In SQLAlchemy
 the key classes include <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> and <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>.</p>
 <div class="section" id="defining-foreign-keys">
 <h2>Defining Foreign Keys<a class="headerlink" href="#defining-foreign-keys" title="Permalink to this headline">¶</a></h2>
@@ -410,7 +411,7 @@ described at <a class="reference internal" href="../orm/extensions/declarative.h
 
 <dl class="class">
 <dt id="sqlalchemy.schema.ForeignKey">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKey</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>schema=None</em>, <em>initially=None</em>, <em>link_to_name=False</em>, <em>match=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKey</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em>, <em>match=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="metadata.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>Defines a dependency between two columns.</p>
 <p><tt class="docutils literal"><span class="pre">ForeignKey</span></tt> is specified as an argument to a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object,
@@ -442,7 +443,7 @@ of that column.</p>
 <em class="xref std std-ref">metadata_foreignkeys</em>.</p>
 <dl class="method">
 <dt id="sqlalchemy.schema.ForeignKey.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>schema=None</em>, <em>initially=None</em>, <em>link_to_name=False</em>, <em>match=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em>, <em>match=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a column-level FOREIGN KEY.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> object when constructed generates a
 <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> which is associated with the parent
@@ -452,7 +453,7 @@ of that column.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>column</strong> &#8211; <p>A single target column for the key relationship. A
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.column">¶</a> &#8211; <p>A single target column for the key relationship. A
 <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object or a column name as a string:
 <tt class="docutils literal"><span class="pre">tablename.columnkey</span></tt> or <tt class="docutils literal"><span class="pre">schema.tablename.columnkey</span></tt>.
 <tt class="docutils literal"><span class="pre">columnkey</span></tt> is the <tt class="docutils literal"><span class="pre">key</span></tt> which has been assigned to the column
@@ -464,30 +465,28 @@ underlying <a class="reference internal" href="metadata.html#sqlalchemy.schema.M
 be used.</p>
 </div>
 </li>
-<li><strong>name</strong> &#8211; Optional string. An in-database name for the key if
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.name">¶</a> &#8211; Optional string. An in-database name for the key if
 <cite>constraint</cite> is not provided.</li>
-<li><strong>onupdate</strong> &#8211; Optional string. If set, emit ON UPDATE &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.onupdate"></span><strong>onupdate</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.onupdate">¶</a> &#8211; Optional string. If set, emit ON UPDATE &lt;value&gt; when
 issuing DDL for this constraint. Typical values include CASCADE,
 DELETE and RESTRICT.</li>
-<li><strong>ondelete</strong> &#8211; Optional string. If set, emit ON DELETE &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.ondelete"></span><strong>ondelete</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.ondelete">¶</a> &#8211; Optional string. If set, emit ON DELETE &lt;value&gt; when
 issuing DDL for this constraint. Typical values include CASCADE,
 DELETE and RESTRICT.</li>
-<li><strong>deferrable</strong> &#8211; Optional bool. If set, emit DEFERRABLE or NOT
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.deferrable"></span><strong>deferrable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.deferrable">¶</a> &#8211; Optional bool. If set, emit DEFERRABLE or NOT
 DEFERRABLE when issuing DDL for this constraint.</li>
-<li><strong>initially</strong> &#8211; Optional string. If set, emit INITIALLY &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.initially"></span><strong>initially</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.initially">¶</a> &#8211; Optional string. If set, emit INITIALLY &lt;value&gt; when
 issuing DDL for this constraint.</li>
-<li><strong>link_to_name</strong> &#8211; if True, the string name given in <tt class="docutils literal"><span class="pre">column</span></tt> is
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.link_to_name"></span><strong>link_to_name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.link_to_name">¶</a> &#8211; if True, the string name given in <tt class="docutils literal"><span class="pre">column</span></tt> is
 the rendered name of the referenced column, not its locally
 assigned <tt class="docutils literal"><span class="pre">key</span></tt>.</li>
-<li><strong>use_alter</strong> &#8211; passed to the underlying
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.use_alter"></span><strong>use_alter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.use_alter">¶</a> &#8211; passed to the underlying
 <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> to indicate the constraint should be
 generated/dropped externally from the CREATE TABLE/ DROP TABLE
 statement. See that classes&#8217; constructor for details.</li>
-<li><strong>match</strong> &#8211; Optional string. If set, emit MATCH &lt;value&gt; when issuing
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.match"></span><strong>match</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.match">¶</a> &#8211; Optional string. If set, emit MATCH &lt;value&gt; when issuing
 DDL for this constraint. Typical values include SIMPLE, PARTIAL
 and FULL.</li>
-<li><strong>schema</strong> &#8211; Deprecated; this flag does nothing and will be removed
-in 0.9.</li>
 </ul>
 </td>
 </tr>
@@ -500,14 +499,13 @@ in 0.9.</li>
 <tt class="descname">column</tt><a class="headerlink" href="#sqlalchemy.schema.ForeignKey.column" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the target <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> referenced by this
 <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.</p>
-<p>If this <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> was created using a
-string-based target column specification, this
-attribute will on first access initiate a resolution
-process to locate the referenced remote
-<a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.  The resolution process traverses
-to the parent <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, and
-<a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> to proceed - if any of these aren&#8217;t
-yet present, an error is raised.</p>
+<p>If no target column has been established, an exception
+is raised.</p>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.0: </span>Foreign key target column resolution now occurs as soon as both
+the ForeignKey object and the remote Column to which it refers
+are both associated with the same MetaData object.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -523,7 +521,7 @@ and <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>schema</strong> &#8211; The returned <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> will
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.schema.ForeignKey.copy.params.schema"></span><strong>schema</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.copy.params.schema">¶</a> &#8211; The returned <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> will
 reference the original table and column name, qualified
 by the given string schema name.</td>
 </tr>
@@ -577,27 +575,27 @@ equivalent for an unnamed, single column <a class="reference internal" href="#sq
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>columns</strong> &#8211; A sequence of local column names. The named columns
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.columns"></span><strong>columns</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.columns">¶</a> &#8211; A sequence of local column names. The named columns
 must be defined and present in the parent Table. The names should
 match the <tt class="docutils literal"><span class="pre">key</span></tt> given to each column (defaults to the name) unless
 <tt class="docutils literal"><span class="pre">link_to_name</span></tt> is True.</li>
-<li><strong>refcolumns</strong> &#8211; A sequence of foreign column names or Column
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.refcolumns"></span><strong>refcolumns</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.refcolumns">¶</a> &#8211; A sequence of foreign column names or Column
 objects. The columns must all be located within the same Table.</li>
-<li><strong>name</strong> &#8211; Optional, the in-database name of the key.</li>
-<li><strong>onupdate</strong> &#8211; Optional string. If set, emit ON UPDATE &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.name">¶</a> &#8211; Optional, the in-database name of the key.</li>
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.onupdate"></span><strong>onupdate</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.onupdate">¶</a> &#8211; Optional string. If set, emit ON UPDATE &lt;value&gt; when
 issuing DDL for this constraint. Typical values include CASCADE,
 DELETE and RESTRICT.</li>
-<li><strong>ondelete</strong> &#8211; Optional string. If set, emit ON DELETE &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.ondelete"></span><strong>ondelete</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.ondelete">¶</a> &#8211; Optional string. If set, emit ON DELETE &lt;value&gt; when
 issuing DDL for this constraint. Typical values include CASCADE,
 DELETE and RESTRICT.</li>
-<li><strong>deferrable</strong> &#8211; Optional bool. If set, emit DEFERRABLE or NOT
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.deferrable"></span><strong>deferrable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.deferrable">¶</a> &#8211; Optional bool. If set, emit DEFERRABLE or NOT
 DEFERRABLE when issuing DDL for this constraint.</li>
-<li><strong>initially</strong> &#8211; Optional string. If set, emit INITIALLY &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.initially"></span><strong>initially</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.initially">¶</a> &#8211; Optional string. If set, emit INITIALLY &lt;value&gt; when
 issuing DDL for this constraint.</li>
-<li><strong>link_to_name</strong> &#8211; if True, the string name given in <tt class="docutils literal"><span class="pre">column</span></tt> is
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.link_to_name"></span><strong>link_to_name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.link_to_name">¶</a> &#8211; if True, the string name given in <tt class="docutils literal"><span class="pre">column</span></tt> is
 the rendered name of the referenced column, not its locally assigned
 <tt class="docutils literal"><span class="pre">key</span></tt>.</li>
-<li><strong>use_alter</strong> &#8211; If True, do not emit the DDL for this constraint as
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.use_alter"></span><strong>use_alter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.use_alter">¶</a> &#8211; If True, do not emit the DDL for this constraint as
 part of the CREATE TABLE definition. Instead, generate it via an
 ALTER TABLE statement issued after the full collection of tables
 have been created, and drop it via an ALTER TABLE statement before
@@ -606,7 +604,7 @@ usage of <a class="reference internal" href="ddl.html#sqlalchemy.schema.AddConst
 as &#8220;after-create&#8221; and &#8220;before-drop&#8221; events on the MetaData object.
 This is normally used to generate/drop constraints on objects that
 are mutually dependent on each other.</li>
-<li><strong>match</strong> &#8211; Optional string. If set, emit MATCH &lt;value&gt; when issuing
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.match"></span><strong>match</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.match">¶</a> &#8211; Optional string. If set, emit MATCH &lt;value&gt; when issuing
 DDL for this constraint. Typical values include SIMPLE, PARTIAL
 and FULL.</li>
 </ul>
@@ -790,10 +788,13 @@ one <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" 
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> &#8211; The name of the index</li>
-<li><strong>*expressions</strong> &#8211; Column or SQL expressions.</li>
-<li><strong>unique</strong> &#8211; Defaults to False: create a unique index.</li>
-<li><strong>**kw</strong> &#8211; Other keyword arguments may be interpreted by specific dialects.</li>
+<li><span class="target" id="sqlalchemy.schema.Index.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.__init__.params.name">¶</a> &#8211; The name of the index</li>
+<li><span class="target" id="sqlalchemy.schema.Index.__init__.params.*expressions"></span><strong>*expressions</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.__init__.params.*expressions">¶</a> &#8211; Column expressions to include in the index.   The expressions
+are normally instances of <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, but may also
+be arbitrary SQL expressions which ultmately refer to a
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.schema.Index.__init__.params.unique"></span><strong>unique</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.__init__.params.unique">¶</a> &#8211; Defaults to False: create a unique index.</li>
+<li><span class="target" id="sqlalchemy.schema.Index.__init__.params.**kw"></span><strong>**kw</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.__init__.params.**kw">¶</a> &#8211; Other keyword arguments may be interpreted by specific dialects.</li>
 </ul>
 </td>
 </tr>
@@ -847,7 +848,7 @@ for connectivity.</p>
         <a href="ddl.html" title="next chapter">Customizing DDL</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

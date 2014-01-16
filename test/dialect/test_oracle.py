@@ -1,5 +1,5 @@
 # coding: utf-8
-from __future__ import with_statement
+
 
 from sqlalchemy.testing import eq_
 from sqlalchemy import *
@@ -7,11 +7,12 @@ from sqlalchemy import types as sqltypes, exc, schema
 from sqlalchemy.sql import table, column
 from sqlalchemy.testing import fixtures, AssertsExecutionResults, AssertsCompiledSQL
 from sqlalchemy import testing
+from sqlalchemy.util import u, b
+from sqlalchemy import util
 from sqlalchemy.testing import assert_raises, assert_raises_message
 from sqlalchemy.testing.engines import testing_engine
 from sqlalchemy.dialects.oracle import cx_oracle, base as oracle
 from sqlalchemy.engine import default
-from sqlalchemy.util import u
 import decimal
 from sqlalchemy.testing.schema import Table, Column
 import datetime
@@ -105,7 +106,7 @@ class QuotedBindRoundTripTest(fixtures.TestBase):
 
 
 class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
-    __dialect__ = oracle.dialect()
+    __dialect__ = "oracle" #oracle.dialect()
 
     def test_true_false(self):
         self.assert_compile(
@@ -215,6 +216,49 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'sometable.col2) WHERE ROWNUM <= '
                             ':ROWNUM_1) WHERE ora_rn > :ora_rn_1 FOR '
                             'UPDATE')
+
+    def test_for_update(self):
+        table1 = table('mytable',
+                    column('myid'), column('name'), column('description'))
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).with_for_update(),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).with_for_update(of=table1.c.myid),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE OF mytable.myid")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).with_for_update(nowait=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE NOWAIT")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                                with_for_update(nowait=True, of=table1.c.myid),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 "
+            "FOR UPDATE OF mytable.myid NOWAIT")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                with_for_update(nowait=True, of=[table1.c.myid, table1.c.name]),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE OF "
+            "mytable.myid, mytable.name NOWAIT")
+
+        ta = table1.alias()
+        self.assert_compile(
+            ta.select(ta.c.myid == 7).
+                with_for_update(of=[ta.c.myid, ta.c.name]),
+            "SELECT mytable_1.myid, mytable_1.name, mytable_1.description "
+            "FROM mytable mytable_1 "
+            "WHERE mytable_1.myid = :myid_1 FOR UPDATE OF "
+            "mytable_1.myid, mytable_1.name"
+        )
 
     def test_limit_preserves_typing_information(self):
         class MyType(TypeDecorator):
@@ -461,6 +505,39 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'WHERE thirdtable.otherstuff = '
                             'mytable.name) AS bar FROM mytable',
                             dialect=oracle.dialect(use_ansi=False))
+
+    def test_nonansi_nested_right_join(self):
+        a = table('a', column('a'))
+        b = table('b', column('b'))
+        c = table('c', column('c'))
+
+        j = a.join(b.join(c, b.c.b == c.c.c), a.c.a == b.c.b)
+
+        self.assert_compile(
+            select([j]),
+            "SELECT a.a, b.b, c.c FROM a, b, c "
+            "WHERE a.a = b.b AND b.b = c.c",
+            dialect=oracle.OracleDialect(use_ansi=False)
+        )
+
+
+        j = a.outerjoin(b.join(c, b.c.b == c.c.c), a.c.a == b.c.b)
+
+        self.assert_compile(
+            select([j]),
+            "SELECT a.a, b.b, c.c FROM a, b, c "
+            "WHERE a.a = b.b(+) AND b.b = c.c",
+            dialect=oracle.OracleDialect(use_ansi=False)
+        )
+
+        j = a.join(b.outerjoin(c, b.c.b == c.c.c), a.c.a == b.c.b)
+
+        self.assert_compile(
+            select([j]),
+            "SELECT a.a, b.b, c.c FROM a, b, c "
+            "WHERE a.a = b.b AND b.b = c.c(+)",
+            dialect=oracle.OracleDialect(use_ansi=False)
+        )
 
 
     def test_alias_outer_join(self):
@@ -812,27 +889,25 @@ drop synonym test_schema.local_table;
         select([parent,
                child]).select_from(parent.join(child)).execute().fetchall()
 
-class ConstraintTest(fixtures.TestBase):
+class ConstraintTest(fixtures.TablesTest):
 
     __only_on__ = 'oracle'
+    run_deletes = None
 
-    def setup(self):
-        global metadata
-        metadata = MetaData(testing.db)
-        foo = Table('foo', metadata, Column('id', Integer,
-                    primary_key=True))
-        foo.create(checkfirst=True)
-
-    def teardown(self):
-        metadata.drop_all()
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('foo', metadata, Column('id', Integer, primary_key=True))
 
     def test_oracle_has_no_on_update_cascade(self):
-        bar = Table('bar', metadata, Column('id', Integer,
-                    primary_key=True), Column('foo_id', Integer,
+        bar = Table('bar', self.metadata,
+                Column('id', Integer, primary_key=True),
+                Column('foo_id', Integer,
                     ForeignKey('foo.id', onupdate='CASCADE')))
         assert_raises(exc.SAWarning, bar.create)
-        bat = Table('bat', metadata, Column('id', Integer,
-                    primary_key=True), Column('foo_id', Integer),
+
+        bat = Table('bat', self.metadata,
+                Column('id', Integer, primary_key=True),
+                Column('foo_id', Integer),
                     ForeignKeyConstraint(['foo_id'], ['foo.id'],
                     onupdate='CASCADE'))
         assert_raises(exc.SAWarning, bat.create)
@@ -863,7 +938,7 @@ class TwoPhaseTest(fixtures.TablesTest):
         )
     def test_twophase_prepare_false(self):
         conn = self._connection()
-        for i in xrange(2):
+        for i in range(2):
             trans = conn.begin_twophase()
             conn.execute("select 1 from dual")
             trans.prepare()
@@ -873,7 +948,7 @@ class TwoPhaseTest(fixtures.TablesTest):
 
     def test_twophase_prepare_true(self):
         conn = self._connection()
-        for i in xrange(2):
+        for i in range(2):
             trans = conn.begin_twophase()
             conn.execute("insert into datatable (id, data) "
                     "values (%s, 'somedata')" % i)
@@ -934,6 +1009,7 @@ class DialectTypesTest(fixtures.TestBase, AssertsCompiledSQL):
             b.type.dialect_impl(dialect).get_dbapi_type(dbapi),
             'STRING'
         )
+
 
     def test_long(self):
         self.assert_compile(oracle.LONG(), "LONG")
@@ -1351,10 +1427,10 @@ class TypesTest(fixtures.TestBase):
             Column('data', oracle.RAW(35))
         )
         metadata.create_all()
-        testing.db.execute(raw_table.insert(), id=1, data="ABCDEF")
+        testing.db.execute(raw_table.insert(), id=1, data=b("ABCDEF"))
         eq_(
             testing.db.execute(raw_table.select()).first(),
-            (1, "ABCDEF")
+            (1, b("ABCDEF"))
         )
 
     @testing.provide_metadata
@@ -1375,11 +1451,11 @@ class TypesTest(fixtures.TestBase):
                 t2.c.data.type.dialect_impl(testing.db.dialect),
                 cx_oracle._OracleNVarChar)
 
-        data = u'm’a réveillé.'
+        data = u('m’a réveillé.')
         t2.insert().execute(data=data)
         res = t2.select().execute().first()['data']
         eq_(res, data)
-        assert isinstance(res, unicode)
+        assert isinstance(res, util.text_type)
 
 
     @testing.provide_metadata
@@ -1437,10 +1513,10 @@ class TypesTest(fixtures.TestBase):
         try:
             engine.execute(t.insert(), id=1,
                                         data='this is text',
-                                        bindata='this is binary')
+                                        bindata=b('this is binary'))
             row = engine.execute(t.select()).first()
             eq_(row['data'].read(), 'this is text')
-            eq_(row['bindata'].read(), 'this is binary')
+            eq_(row['bindata'].read(), b('this is binary'))
         finally:
             t.drop(engine)
 
@@ -1526,7 +1602,8 @@ class BufferedColumnTest(fixtures.TestBase, AssertsCompiledSQL):
         stream = os.path.join(
                         os.path.dirname(__file__), "..",
                         'binary_data_one.dat')
-        stream = file(stream).read(12000)
+        with open(stream, "rb") as file_:
+            stream = file_.read(12000)
 
         for i in range(1, 11):
             binary_table.insert().execute(id=i, data=stream)
@@ -1772,5 +1849,5 @@ class DBLinkReflectionTest(fixtures.TestBase):
 
         t = Table('test_table_syn', m, autoload=True,
                 autoload_with=testing.db, oracle_resolve_synonyms=True)
-        eq_(t.c.keys(), ['id', 'data'])
+        eq_(list(t.c.keys()), ['id', 'data'])
         eq_(list(t.primary_key), [t.c.id])

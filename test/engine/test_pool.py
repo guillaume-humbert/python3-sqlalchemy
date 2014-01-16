@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 import threading
 import time
 from sqlalchemy import pool, select, event
@@ -988,13 +986,13 @@ class QueuePoolTest(PoolTestBase):
                 c1 = p.connect()
                 c2 = p.connect()
 
-                threads = set()
+                threads = []
                 for i in range(2):
                     t = threading.Thread(target=waiter,
                                     args=(p, timeout, max_overflow))
                     t.daemon = True
                     t.start()
-                    threads.add(t)
+                    threads.append(t)
 
                 # this sleep makes sure that the
                 # two waiter threads hit upon wait()
@@ -1009,7 +1007,6 @@ class QueuePoolTest(PoolTestBase):
         eq_(len(success), 12, "successes: %s" % success)
 
     @testing.requires.threading_with_mock
-    @testing.requires.python26
     def test_notify_waiters(self):
         dbapi = MockDBAPI()
         canary = []
@@ -1030,14 +1027,18 @@ class QueuePoolTest(PoolTestBase):
 
         c1 = p1.connect()
 
+        threads = []
         for i in range(5):
             t = threading.Thread(target=waiter, args=(p1, ))
-            t.setDaemon(True)
             t.start()
+            threads.append(t)
         time.sleep(.5)
         eq_(canary, [1])
         p1._pool.abort(p2)
-        time.sleep(1)
+
+        for t in threads:
+            t.join(join_timeout)
+
         eq_(canary, [1, 2, 2, 2, 2, 2])
 
     def test_dispose_closes_pooled(self):

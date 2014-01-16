@@ -10,7 +10,7 @@
     
                 Alternate Class Instrumentation
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,9 +47,9 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
-        <link rel="next" title="Examples" href="../examples.html" />
+        <link rel="next" title="ORM Examples" href="../examples.html" />
         <link rel="prev" title="Hybrid Attributes" href="hybrid.html" />
     <!-- end layout.mako headers -->
 
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -99,7 +100,7 @@
             <a href="hybrid.html" title="previous chapter">Hybrid Attributes</a>
             </li>
             <li>Next:
-            <a href="../examples.html" title="next chapter">Examples</a>
+            <a href="../examples.html" title="next chapter">ORM Examples</a>
             </li>
 
         <li>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -145,7 +146,7 @@
     </p>
     <h4>Next Topic</h4>
     <p>
-    <a href="../examples.html" title="next chapter">Examples</a>
+    <a href="../examples.html" title="next chapter">ORM Examples</a>
     </p>
 
 
@@ -179,14 +180,14 @@ their own instrumentation.  It is not intended for general use.</p>
 <p>For examples of how the instrumentation extension is used,
 see the example <a class="reference internal" href="../examples.html#examples-instrumentation"><em>Attribute Instrumentation</em></a>.</p>
 <div class="versionchanged">
-<p><span>Changed in version 0.8: </span>The <tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.orm.instrumentation</span></tt> was split out so
+<p><span>Changed in version 0.8: </span>The <a class="reference internal" href="../events.html#module-sqlalchemy.orm.instrumentation" title="sqlalchemy.orm.instrumentation"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.orm.instrumentation</span></tt></a> was split out so
 that all functionality having to do with non-standard
 instrumentation was moved out to <a class="reference internal" href="#module-sqlalchemy.ext.instrumentation" title="sqlalchemy.ext.instrumentation"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.instrumentation</span></tt></a>.
 When imported, the module installs itself within
-<tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.orm.instrumentation</span></tt> so that it
+<a class="reference internal" href="../events.html#module-sqlalchemy.orm.instrumentation" title="sqlalchemy.orm.instrumentation"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.orm.instrumentation</span></tt></a> so that it
 takes effect, including recognition of
 <tt class="docutils literal"><span class="pre">__sa_instrumentation_manager__</span></tt> on mapped classes, as
-well <tt class="xref py py-attr docutils literal"><span class="pre">instrumentation_finders</span></tt>
+well <a class="reference internal" href="#sqlalchemy.ext.instrumentation.instrumentation_finders" title="sqlalchemy.ext.instrumentation.instrumentation_finders"><tt class="xref py py-data docutils literal"><span class="pre">instrumentation_finders</span></tt></a>
 being used to determine class instrumentation resolution.</p>
 </div>
 <div class="section" id="api-reference">
@@ -217,6 +218,12 @@ attribute.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="sqlalchemy.orm.instrumentation.InstrumentationFactory">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.instrumentation.</tt><tt class="descname">InstrumentationFactory</tt><a class="headerlink" href="#sqlalchemy.orm.instrumentation.InstrumentationFactory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory for new ClassManager instances.</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="sqlalchemy.ext.instrumentation.InstrumentationManager">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.ext.instrumentation.</tt><tt class="descname">InstrumentationManager</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.instrumentation.InstrumentationManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined class instrumentation extension.</p>
@@ -232,7 +239,7 @@ events, see <a class="reference internal" href="../events.html#sqlalchemy.orm.ev
 and may change slightly with new releases.</p>
 <div class="versionchanged">
 <p><span>Changed in version 0.8: </span><a class="reference internal" href="#sqlalchemy.ext.instrumentation.InstrumentationManager" title="sqlalchemy.ext.instrumentation.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a> was moved from
-<tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.orm.instrumentation</span></tt> to
+<a class="reference internal" href="../events.html#module-sqlalchemy.orm.instrumentation" title="sqlalchemy.orm.instrumentation"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.orm.instrumentation</span></tt></a> to
 <a class="reference internal" href="#module-sqlalchemy.ext.instrumentation" title="sqlalchemy.ext.instrumentation"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.instrumentation</span></tt></a>.</p>
 </div>
 <dl class="method">
@@ -319,7 +326,7 @@ and may change slightly with new releases.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.ext.instrumentation.instrumentation_finders">
-<tt class="descclassname">sqlalchemy.ext.instrumentation.</tt><tt class="descname">instrumentation_finders</tt><em class="property"> = [&lt;function find_native_user_instrumentation_hook at 0x10dae8668&gt;]</em><a class="headerlink" href="#sqlalchemy.ext.instrumentation.instrumentation_finders" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.instrumentation.</tt><tt class="descname">instrumentation_finders</tt><em class="property"> = [&lt;function find_native_user_instrumentation_hook at 0x10c6cc050&gt;]</em><a class="headerlink" href="#sqlalchemy.ext.instrumentation.instrumentation_finders" title="Permalink to this definition">¶</a></dt>
 <dd><p>An extensible sequence of callables which return instrumentation
 implementations</p>
 <p>When a class is registered, each callable will be passed a class object.
@@ -335,18 +342,10 @@ ClassManager instrumentation is used.</p>
 <dl class="class">
 <dt id="sqlalchemy.ext.instrumentation.ExtendedInstrumentationRegistry">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.ext.instrumentation.</tt><tt class="descname">ExtendedInstrumentationRegistry</tt><a class="headerlink" href="#sqlalchemy.ext.instrumentation.ExtendedInstrumentationRegistry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.instrumentation.InstrumentationFactory</span></tt></p>
-<p>Extends <tt class="xref py py-class docutils literal"><span class="pre">InstrumentationFactory</span></tt> with additional
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.orm.instrumentation.InstrumentationFactory" title="sqlalchemy.orm.instrumentation.InstrumentationFactory"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.instrumentation.InstrumentationFactory</span></tt></a></p>
+<p>Extends <a class="reference internal" href="#sqlalchemy.orm.instrumentation.InstrumentationFactory" title="sqlalchemy.orm.instrumentation.InstrumentationFactory"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationFactory</span></tt></a> with additional
 bookkeeping, to accommodate multiple types of
 class managers.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Members :</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 </div>
@@ -360,10 +359,10 @@ class managers.</p>
         Previous:
         <a href="hybrid.html" title="previous chapter">Hybrid Attributes</a>
         Next:
-        <a href="../examples.html" title="next chapter">Examples</a>
+        <a href="../examples.html" title="next chapter">ORM Examples</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

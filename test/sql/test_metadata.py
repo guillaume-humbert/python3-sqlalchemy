@@ -6,7 +6,7 @@ import pickle
 from sqlalchemy import Integer, String, UniqueConstraint, \
     CheckConstraint, ForeignKey, MetaData, Sequence, \
     ForeignKeyConstraint, ColumnDefault, Index, event,\
-    events, Unicode, types as sqltypes
+    events, Unicode, types as sqltypes, bindparam
 from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy import schema, exc
 import sqlalchemy as tsa
@@ -89,7 +89,7 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
             msgs.append("attach %s.%s" % (t.name, c.name))
         c1 = Column('foo', String())
         m = MetaData()
-        for i in xrange(3):
+        for i in range(3):
             cx = c1.copy()
             # as of 0.7, these events no longer copy.  its expected
             # that listeners will be re-established from the
@@ -212,13 +212,6 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
         assert b.c.a_id.references(a.c.id)
         eq_(len(b.constraints), 2)
 
-    def test_fk_erroneous_schema_arg(self):
-        assert_raises_message(
-            exc.SADeprecationWarning,
-            "'schema' argument on ForeignKey has no effect.",
-            ForeignKey, "foo.bar", schema='myschema'
-        )
-
     def test_fk_construct(self):
         c1 = Column('foo', Integer)
         c2 = Column('bar', Integer)
@@ -243,22 +236,74 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
             go
         )
 
-    def test_fk_no_such_target_col_error(self):
+    def test_fk_given_non_col(self):
+        not_a_col = bindparam('x')
+        assert_raises_message(
+            exc.ArgumentError,
+            "String, Column, or Column-bound argument expected, got Bind",
+            ForeignKey, not_a_col
+        )
+
+    def test_fk_given_non_col_clauseelem(self):
+        class Foo(object):
+            def __clause_element__(self):
+                return bindparam('x')
+        assert_raises_message(
+            exc.ArgumentError,
+            "String, Column, or Column-bound argument expected, got Bind",
+            ForeignKey, Foo()
+        )
+
+    def test_fk_given_col_non_table(self):
+        t = Table('t', MetaData(), Column('x', Integer))
+        xa = t.alias().c.x
+        assert_raises_message(
+            exc.ArgumentError,
+            "ForeignKey received Column not bound to a Table, got: .*Alias",
+            ForeignKey, xa
+        )
+
+    def test_fk_given_col_non_table_clauseelem(self):
+        t = Table('t', MetaData(), Column('x', Integer))
+        class Foo(object):
+            def __clause_element__(self):
+                return t.alias().c.x
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "ForeignKey received Column not bound to a Table, got: .*Alias",
+            ForeignKey, Foo()
+        )
+
+    def test_fk_no_such_target_col_error_upfront(self):
         meta = MetaData()
         a = Table('a', meta, Column('a', Integer))
         Table('b', meta, Column('b', Integer))
-        a.append_constraint(
-            ForeignKeyConstraint(['a'], ['b.x'])
-        )
 
-        def go():
-            list(a.c.a.foreign_keys)[0].column
+        a.append_constraint(ForeignKeyConstraint(['a'], ['b.x']))
+
         assert_raises_message(
             exc.NoReferencedColumnError,
-            "Could not create ForeignKey 'b.x' on "
+            "Could not initialize target column for ForeignKey 'b.x' on "
             "table 'a': table 'b' has no column named 'x'",
-            go
+            getattr, list(a.foreign_keys)[0], "column"
         )
+
+    def test_fk_no_such_target_col_error_delayed(self):
+        meta = MetaData()
+        a = Table('a', meta, Column('a', Integer))
+        a.append_constraint(
+            ForeignKeyConstraint(['a'], ['b.x']))
+
+        b = Table('b', meta, Column('b', Integer))
+
+        assert_raises_message(
+            exc.NoReferencedColumnError,
+            "Could not initialize target column for ForeignKey 'b.x' on "
+            "table 'a': table 'b' has no column named 'x'",
+            getattr, list(a.foreign_keys)[0], "column"
+        )
+
 
     @testing.exclude('mysql', '<', (4, 1, 1), 'early types are squirrely')
     def test_to_metadata(self):
@@ -488,6 +533,47 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
         eq_(str(table_c.join(table2_c).onclause),
             'myschema.mytable.myid = myschema.othertable.myid')
 
+    def test_tometadata_copy_info(self):
+        m = MetaData()
+        fk = ForeignKey('t2.id')
+        c = Column('c', Integer, fk)
+        ck = CheckConstraint('c > 5')
+        t = Table('t', m, c, ck)
+
+        m.info['minfo'] = True
+        fk.info['fkinfo'] = True
+        c.info['cinfo'] = True
+        ck.info['ckinfo'] = True
+        t.info['tinfo'] = True
+        t.primary_key.info['pkinfo'] = True
+        fkc = [const for const in t.constraints if
+                    isinstance(const, ForeignKeyConstraint)][0]
+        fkc.info['fkcinfo'] = True
+
+        m2 = MetaData()
+        t2 = t.tometadata(m2)
+
+        m.info['minfo'] = False
+        fk.info['fkinfo'] = False
+        c.info['cinfo'] = False
+        ck.info['ckinfo'] = False
+        t.primary_key.info['pkinfo'] = False
+        fkc.info['fkcinfo'] = False
+
+        eq_(m2.info, {})
+        eq_(t2.info, {"tinfo": True})
+        eq_(t2.c.c.info, {"cinfo": True})
+        eq_(list(t2.c.c.foreign_keys)[0].info, {"fkinfo": True})
+        eq_(t2.primary_key.info, {"pkinfo": True})
+
+        fkc2 = [const for const in t2.constraints
+                    if isinstance(const, ForeignKeyConstraint)][0]
+        eq_(fkc2.info, {"fkcinfo": True})
+
+        ck2 = [const for const in
+                    t2.constraints if isinstance(const, CheckConstraint)][0]
+        eq_(ck2.info, {"ckinfo": True})
+
 
     def test_tometadata_kwargs(self):
         meta = MetaData()
@@ -518,7 +604,7 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
         def _get_key(i):
             return [i.name, i.unique] + \
                     sorted(i.kwargs.items()) + \
-                    i.columns.keys()
+                    list(i.columns.keys())
 
         eq_(
             sorted([_get_key(i) for i in table.indexes]),
@@ -575,11 +661,13 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
                 kw['quote_schema'] = quote_schema
             t = Table(name, metadata, **kw)
             eq_(t.schema, exp_schema, "test %d, table schema" % i)
-            eq_(t.quote_schema, exp_quote_schema,
+            eq_(t.schema.quote if t.schema is not None else None,
+                            exp_quote_schema,
                             "test %d, table quote_schema" % i)
             seq = Sequence(name, metadata=metadata, **kw)
             eq_(seq.schema, exp_schema, "test %d, seq schema" % i)
-            eq_(seq.quote_schema, exp_quote_schema,
+            eq_(seq.schema.quote if seq.schema is not None else None,
+                            exp_quote_schema,
                             "test %d, seq quote_schema" % i)
 
     def test_manual_dependencies(self):
@@ -1033,7 +1121,7 @@ class UseExistingTest(fixtures.TablesTest):
         meta2 = self._useexisting_fixture()
         users = Table('users', meta2, quote=True, autoload=True,
                       keep_existing=True)
-        assert not users.quote
+        assert not users.name.quote
 
     def test_keep_existing_add_column(self):
         meta2 = self._useexisting_fixture()
@@ -1049,12 +1137,15 @@ class UseExistingTest(fixtures.TablesTest):
                       autoload=True, keep_existing=True)
         assert isinstance(users.c.name.type, Unicode)
 
+    @testing.skip_if(
+            lambda: testing.db.dialect.requires_name_normalize,
+            "test depends on lowercase as case insensitive")
     def test_keep_existing_quote_no_orig(self):
         meta2 = self._notexisting_fixture()
         users = Table('users', meta2, quote=True,
                         autoload=True,
                       keep_existing=True)
-        assert users.quote
+        assert users.name.quote
 
     def test_keep_existing_add_column_no_orig(self):
         meta2 = self._notexisting_fixture()
@@ -1074,7 +1165,7 @@ class UseExistingTest(fixtures.TablesTest):
         meta2 = self._useexisting_fixture()
         users = Table('users', meta2, quote=True,
                       keep_existing=True)
-        assert not users.quote
+        assert not users.name.quote
 
     def test_keep_existing_add_column_no_reflection(self):
         meta2 = self._useexisting_fixture()
@@ -1091,9 +1182,12 @@ class UseExistingTest(fixtures.TablesTest):
 
     def test_extend_existing_quote(self):
         meta2 = self._useexisting_fixture()
-        users = Table('users', meta2, quote=True, autoload=True,
-                      extend_existing=True)
-        assert users.quote
+        assert_raises_message(
+            tsa.exc.ArgumentError,
+            "Can't redefine 'quote' or 'quote_schema' arguments",
+            Table, 'users', meta2, quote=True, autoload=True,
+                      extend_existing=True
+        )
 
     def test_extend_existing_add_column(self):
         meta2 = self._useexisting_fixture()
@@ -1109,12 +1203,15 @@ class UseExistingTest(fixtures.TablesTest):
                       autoload=True, extend_existing=True)
         assert isinstance(users.c.name.type, Unicode)
 
+    @testing.skip_if(
+            lambda: testing.db.dialect.requires_name_normalize,
+            "test depends on lowercase as case insensitive")
     def test_extend_existing_quote_no_orig(self):
         meta2 = self._notexisting_fixture()
         users = Table('users', meta2, quote=True,
                         autoload=True,
                       extend_existing=True)
-        assert users.quote
+        assert users.name.quote
 
     def test_extend_existing_add_column_no_orig(self):
         meta2 = self._notexisting_fixture()
@@ -1132,9 +1229,12 @@ class UseExistingTest(fixtures.TablesTest):
 
     def test_extend_existing_quote_no_reflection(self):
         meta2 = self._useexisting_fixture()
-        users = Table('users', meta2, quote=True,
-                      extend_existing=True)
-        assert users.quote
+        assert_raises_message(
+            tsa.exc.ArgumentError,
+            "Can't redefine 'quote' or 'quote_schema' arguments",
+            Table, 'users', meta2, quote=True,
+                      extend_existing=True
+        )
 
     def test_extend_existing_add_column_no_reflection(self):
         meta2 = self._useexisting_fixture()
@@ -1190,11 +1290,36 @@ class ConstraintTest(fixtures.TestBase):
         assert s1.c.a.references(t1.c.a)
         assert not s1.c.a.references(t1.c.b)
 
-    def test_invalid_composite_fk_check(self):
+    def test_related_column_not_present_atfirst_ok(self):
         m = MetaData()
-        t1 = Table('t1', m, Column('x', Integer), Column('y', Integer),
+        base_table = Table("base", m,
+            Column("id", Integer, primary_key=True)
+        )
+        fk = ForeignKey('base.q')
+        derived_table = Table("derived", m,
+            Column("id", None, fk,
+                primary_key=True),
+        )
+
+        base_table.append_column(Column('q', Integer))
+        assert fk.column is base_table.c.q
+        assert isinstance(derived_table.c.id.type, Integer)
+
+    def test_invalid_composite_fk_check_strings(self):
+        m = MetaData()
+
+        assert_raises_message(
+            exc.ArgumentError,
+            r"ForeignKeyConstraint on t1\(x, y\) refers to "
+                "multiple remote tables: t2 and t3",
+            Table,
+            't1', m, Column('x', Integer), Column('y', Integer),
             ForeignKeyConstraint(['x', 'y'], ['t2.x', 't3.y'])
         )
+
+    def test_invalid_composite_fk_check_columns(self):
+        m = MetaData()
+
         t2 = Table('t2', m, Column('x', Integer))
         t3 = Table('t3', m, Column('y', Integer))
 
@@ -1202,21 +1327,24 @@ class ConstraintTest(fixtures.TestBase):
             exc.ArgumentError,
             r"ForeignKeyConstraint on t1\(x, y\) refers to "
                 "multiple remote tables: t2 and t3",
-            t1.join, t2
-        )
-        assert_raises_message(
-            exc.ArgumentError,
-            r"ForeignKeyConstraint on t1\(x, y\) refers to "
-                "multiple remote tables: t2 and t3",
-            t1.join, t3
+            Table,
+            't1', m, Column('x', Integer), Column('y', Integer),
+            ForeignKeyConstraint(['x', 'y'], [t2.c.x, t3.c.y])
         )
 
-        assert_raises_message(
-            exc.ArgumentError,
-            r"ForeignKeyConstraint on t1\(x, y\) refers to "
-                "multiple remote tables: t2 and t3",
-            schema.CreateTable(t1).compile
-        )
+    def test_invalid_composite_fk_check_columns_notattached(self):
+        m = MetaData()
+        x = Column('x', Integer)
+        y = Column('y', Integer)
+
+        # no error is raised for this one right now.
+        # which is a minor bug.
+        Table('t1', m, Column('x', Integer), Column('y', Integer),
+                ForeignKeyConstraint(['x', 'y'], [x, y])
+            )
+
+        t2 = Table('t2', m, x)
+        t3 = Table('t3', m, y)
 
     def test_constraint_copied_to_proxy_ok(self):
         m = MetaData()
@@ -1240,6 +1368,209 @@ class ConstraintTest(fixtures.TestBase):
             t2fk.constraint.elements,
             [t2fk]
         )
+
+    def test_type_propagate_composite_fk_string(self):
+        metadata = MetaData()
+        a = Table('a', metadata,
+                  Column('key1', Integer, primary_key=True),
+                  Column('key2', String(40), primary_key=True))
+
+        b = Table('b', metadata,
+                  Column('a_key1', None),
+                  Column('a_key2', None),
+                  Column('id', Integer, primary_key=True),
+                  ForeignKeyConstraint(['a_key1', 'a_key2'],
+                                       ['a.key1', 'a.key2'])
+                  )
+
+        assert isinstance(b.c.a_key1.type, Integer)
+        assert isinstance(b.c.a_key2.type, String)
+
+    def test_type_propagate_composite_fk_col(self):
+        metadata = MetaData()
+        a = Table('a', metadata,
+                  Column('key1', Integer, primary_key=True),
+                  Column('key2', String(40), primary_key=True))
+
+        b = Table('b', metadata,
+                  Column('a_key1', None),
+                  Column('a_key2', None),
+                  Column('id', Integer, primary_key=True),
+                  ForeignKeyConstraint(['a_key1', 'a_key2'],
+                                       [a.c.key1, a.c.key2])
+                  )
+
+        assert isinstance(b.c.a_key1.type, Integer)
+        assert isinstance(b.c.a_key2.type, String)
+
+    def test_type_propagate_standalone_fk_string(self):
+        metadata = MetaData()
+        a = Table('a', metadata,
+                  Column('key1', Integer, primary_key=True))
+
+        b = Table('b', metadata,
+                  Column('a_key1', None, ForeignKey("a.key1")),
+                  )
+
+        assert isinstance(b.c.a_key1.type, Integer)
+
+    def test_type_propagate_standalone_fk_col(self):
+        metadata = MetaData()
+        a = Table('a', metadata,
+                  Column('key1', Integer, primary_key=True))
+
+        b = Table('b', metadata,
+                  Column('a_key1', None, ForeignKey(a.c.key1)),
+                  )
+
+        assert isinstance(b.c.a_key1.type, Integer)
+
+    def test_type_propagate_chained_string_source_first(self):
+        metadata = MetaData()
+        a = Table('a', metadata,
+                  Column('key1', Integer, primary_key=True))
+
+        b = Table('b', metadata,
+                  Column('a_key1', None, ForeignKey("a.key1")),
+                  )
+
+        c = Table('c', metadata,
+                  Column('b_key1', None, ForeignKey("b.a_key1")),
+                  )
+
+        assert isinstance(b.c.a_key1.type, Integer)
+        assert isinstance(c.c.b_key1.type, Integer)
+
+    def test_type_propagate_chained_string_source_last(self):
+        metadata = MetaData()
+
+        b = Table('b', metadata,
+                  Column('a_key1', None, ForeignKey("a.key1")),
+                  )
+
+        c = Table('c', metadata,
+                  Column('b_key1', None, ForeignKey("b.a_key1")),
+                  )
+
+        a = Table('a', metadata,
+                  Column('key1', Integer, primary_key=True))
+
+        assert isinstance(b.c.a_key1.type, Integer)
+        assert isinstance(c.c.b_key1.type, Integer)
+
+    def test_type_propagate_chained_col_orig_first(self):
+        metadata = MetaData()
+        a = Table('a', metadata,
+                  Column('key1', Integer, primary_key=True))
+
+        b = Table('b', metadata,
+                  Column('a_key1', None, ForeignKey(a.c.key1)),
+                  )
+
+        c = Table('c', metadata,
+                  Column('b_key1', None, ForeignKey(b.c.a_key1)),
+                  )
+
+        assert isinstance(b.c.a_key1.type, Integer)
+        assert isinstance(c.c.b_key1.type, Integer)
+
+    def test_column_accessor_col(self):
+        c1 = Column('x', Integer)
+        fk = ForeignKey(c1)
+        is_(fk.column, c1)
+
+    def test_column_accessor_clause_element(self):
+        c1 = Column('x', Integer)
+
+        class CThing(object):
+            def __init__(self, c):
+                self.c = c
+            def __clause_element__(self):
+                return self.c
+
+        fk = ForeignKey(CThing(c1))
+        is_(fk.column, c1)
+
+    def test_column_accessor_string_no_parent(self):
+        fk = ForeignKey("sometable.somecol")
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "this ForeignKey object does not yet have a parent "
+            "Column associated with it.",
+            getattr, fk, "column"
+        )
+
+    def test_column_accessor_string_no_parent_table(self):
+        fk = ForeignKey("sometable.somecol")
+        c1 = Column('x', fk)
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "this ForeignKey's parent column is not yet "
+            "associated with a Table.",
+            getattr, fk, "column"
+        )
+
+    def test_column_accessor_string_no_target_table(self):
+        fk = ForeignKey("sometable.somecol")
+        c1 = Column('x', fk)
+        t1 = Table('t', MetaData(), c1)
+        assert_raises_message(
+            exc.NoReferencedTableError,
+            "Foreign key associated with column 't.x' could not find "
+            "table 'sometable' with which to generate a "
+            "foreign key to target column 'somecol'",
+            getattr, fk, "column"
+        )
+
+    def test_column_accessor_string_no_target_column(self):
+        fk = ForeignKey("sometable.somecol")
+        c1 = Column('x', fk)
+        m = MetaData()
+        t1 = Table('t', m, c1)
+        t2 = Table("sometable", m, Column('notsomecol', Integer))
+        assert_raises_message(
+            exc.NoReferencedColumnError,
+            "Could not initialize target column for ForeignKey "
+            "'sometable.somecol' on table 't': "
+            "table 'sometable' has no column named 'somecol'",
+            getattr, fk, "column"
+        )
+
+    def test_remove_table_fk_bookkeeping(self):
+        metadata = MetaData()
+        fk = ForeignKey('t1.x')
+        t2 = Table('t2', metadata, Column('y', Integer, fk))
+        t3 = Table('t3', metadata, Column('y', Integer, ForeignKey('t1.x')))
+
+        assert t2.key in metadata.tables
+        assert ("t1", "x") in metadata._fk_memos
+
+        metadata.remove(t2)
+
+        # key is removed
+        assert t2.key not in metadata.tables
+
+        # the memo for the FK is still there
+        assert ("t1", "x") in metadata._fk_memos
+
+        # fk is not in the collection
+        assert fk not in metadata._fk_memos[("t1", "x")]
+
+        # make the referenced table
+        t1 = Table('t1', metadata, Column('x', Integer))
+
+        # t2 tells us exactly what's wrong
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Table t2 is no longer associated with its parent MetaData",
+            getattr, fk, "column"
+        )
+
+        # t3 is unaffected
+        assert t3.c.y.references(t1.c.x)
+
+        # remove twice OK
+        metadata.remove(t2)
 
 
 class ColumnDefinitionTest(AssertsCompiledSQL, fixtures.TestBase):
@@ -1570,19 +1901,48 @@ class ColumnOptionsTest(fixtures.TestBase):
         assert Column(String, default=g2).default is g2
         assert Column(String, onupdate=g2).onupdate is g2
 
-    def test_type_required(self):
-        assert_raises(exc.ArgumentError, Column)
-        assert_raises(exc.ArgumentError, Column, "foo")
-        assert_raises(exc.ArgumentError, Column, default="foo")
-        assert_raises(exc.ArgumentError, Column, Sequence("a"))
-        assert_raises(exc.ArgumentError, Column, "foo", default="foo")
-        assert_raises(exc.ArgumentError, Column, "foo", Sequence("a"))
-        Column(ForeignKey('bar.id'))
-        Column("foo", ForeignKey('bar.id'))
-        Column(ForeignKey('bar.id'), default="foo")
-        Column(ForeignKey('bar.id'), Sequence("a"))
-        Column("foo", ForeignKey('bar.id'), default="foo")
-        Column("foo", ForeignKey('bar.id'), Sequence("a"))
+    def _null_type_error(self, col):
+        t = Table('t', MetaData(), col)
+        assert_raises_message(
+            exc.CompileError,
+            r"\(in table 't', column 'foo'\): Can't generate DDL for NullType",
+            schema.CreateTable(t).compile
+        )
+
+    def _no_name_error(self, col):
+        assert_raises_message(
+            exc.ArgumentError,
+            "Column must be constructed with a non-blank name or "
+            "assign a non-blank .name",
+            Table, 't', MetaData(), col
+        )
+
+    def _no_error(self, col):
+        m = MetaData()
+        b = Table('bar', m, Column('id', Integer))
+        t = Table('t', m, col)
+        schema.CreateTable(t).compile()
+
+    def test_argument_signatures(self):
+        self._no_name_error(Column())
+        self._null_type_error(Column("foo"))
+        self._no_name_error(Column(default="foo"))
+
+        self._no_name_error(Column(Sequence("a")))
+        self._null_type_error(Column("foo", default="foo"))
+
+        self._null_type_error(Column("foo", Sequence("a")))
+
+        self._no_name_error(Column(ForeignKey('bar.id')))
+
+        self._no_error(Column("foo", ForeignKey('bar.id')))
+
+        self._no_name_error(Column(ForeignKey('bar.id'), default="foo"))
+
+        self._no_name_error(Column(ForeignKey('bar.id'), Sequence("a")))
+        self._no_error(Column("foo", ForeignKey('bar.id'), default="foo"))
+        self._no_error(Column("foo", ForeignKey('bar.id'), Sequence("a")))
+
 
     def test_column_info(self):
 
@@ -1596,7 +1956,6 @@ class ColumnOptionsTest(fixtures.TestBase):
         for c in (c1, c2, c3):
             c.info['bar'] = 'zip'
             assert c.info['bar'] == 'zip'
-
 
 class CatchAllEventsTest(fixtures.TestBase):
 
@@ -1646,6 +2005,7 @@ class CatchAllEventsTest(fixtures.TestBase):
                                         parent.__class__.__name__))
 
             def after_attach(obj, parent):
+                assert hasattr(obj, 'name')  # so we can change it
                 canary.append("%s->%s" % (target.__name__, parent))
             event.listen(target, "before_parent_attach", before_attach)
             event.listen(target, "after_parent_attach", after_attach)
@@ -1653,14 +2013,15 @@ class CatchAllEventsTest(fixtures.TestBase):
         for target in [
             schema.ForeignKeyConstraint, schema.PrimaryKeyConstraint,
             schema.UniqueConstraint,
-            schema.CheckConstraint
+            schema.CheckConstraint,
+            schema.Index
         ]:
             evt(target)
 
         m = MetaData()
         Table('t1', m,
             Column('id', Integer, Sequence('foo_id'), primary_key=True),
-            Column('bar', String, ForeignKey('t2.id')),
+            Column('bar', String, ForeignKey('t2.id'), index=True),
             Column('bat', Integer, unique=True),
         )
         Table('t2', m,
@@ -1668,17 +2029,20 @@ class CatchAllEventsTest(fixtures.TestBase):
             Column('bar', Integer),
             Column('bat', Integer),
             CheckConstraint("bar>5"),
-            UniqueConstraint('bar', 'bat')
+            UniqueConstraint('bar', 'bat'),
+            Index(None, 'bar', 'bat')
         )
         eq_(
             canary,
             [
                 'PrimaryKeyConstraint->Table', 'PrimaryKeyConstraint->t1',
+                'Index->Table', 'Index->t1',
                 'ForeignKeyConstraint->Table', 'ForeignKeyConstraint->t1',
                 'UniqueConstraint->Table', 'UniqueConstraint->t1',
                 'PrimaryKeyConstraint->Table', 'PrimaryKeyConstraint->t2',
                 'CheckConstraint->Table', 'CheckConstraint->t2',
-                'UniqueConstraint->Table', 'UniqueConstraint->t2'
+                'UniqueConstraint->Table', 'UniqueConstraint->t2',
+                'Index->Table', 'Index->t2'
             ]
         )
 

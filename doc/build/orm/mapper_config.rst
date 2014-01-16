@@ -351,22 +351,74 @@ separately when it is accessed::
         photo3 = deferred(Column(Binary), group='photos')
 
 You can defer or undefer columns at the :class:`~sqlalchemy.orm.query.Query`
-level using the :func:`.orm.defer` and :func:`.orm.undefer` query options::
+level using options, including :func:`.orm.defer` and :func:`.orm.undefer`::
 
     from sqlalchemy.orm import defer, undefer
 
     query = session.query(Book)
-    query.options(defer('summary')).all()
-    query.options(undefer('excerpt')).all()
+    query = query.options(defer('summary'))
+    query = query.options(undefer('excerpt'))
+    query.all()
 
-And an entire "deferred group", i.e. which uses the ``group`` keyword argument
-to :func:`.orm.deferred`, can be undeferred using
-:func:`.orm.undefer_group`, sending in the group name::
+:func:`.orm.deferred` attributes which are marked with a "group" can be undeferred
+using :func:`.orm.undefer_group`, sending in the group name::
 
     from sqlalchemy.orm import undefer_group
 
     query = session.query(Book)
     query.options(undefer_group('photos')).all()
+
+Load Only Cols
+---------------
+
+An arbitrary set of columns can be selected as "load only" columns, which will
+be loaded while deferring all other columns on a given entity, using :func:`.orm.load_only`::
+
+    from sqlalchemy.orm import load_only
+
+    session.query(Book).options(load_only("summary", "excerpt"))
+
+.. versionadded:: 0.9.0
+
+Deferred Loading with Multiple Entities
+---------------------------------------
+
+To specify column deferral options within a :class:`.Query` that loads multiple types
+of entity, the :class:`.Load` object can specify which parent entity to start with::
+
+    from sqlalchemy.orm import Load
+
+    query = session.query(Book, Author).join(Book.author)
+    query = query.options(
+                Load(Book).load_only("summary", "excerpt"),
+                Load(Author).defer("bio")
+            )
+
+To specify column deferral options along the path of various relationships,
+the options support chaining, where the loading style of each relationship
+is specified first, then is chained to the deferral options.  Such as, to load
+``Book`` instances, then joined-eager-load the ``Author``, then apply deferral
+options to the ``Author`` entity::
+
+    from sqlalchemy.orm import joinedload
+
+    query = session.query(Book)
+    query = query.options(
+                joinedload(Book.author).load_only("summary", "excerpt"),
+            )
+
+In the case where the loading style of parent relationships should be left
+unchanged, use :func:`.orm.defaultload`::
+
+    from sqlalchemy.orm import defaultload
+
+    query = session.query(Book)
+    query = query.options(
+                defaultload(Book.author).load_only("summary", "excerpt"),
+            )
+
+.. versionadded:: 0.9.0 support for :class:`.Load` and other options which
+   allow for better targeting of deferral options.
 
 Column Deferral API
 -------------------
@@ -374,6 +426,8 @@ Column Deferral API
 .. autofunction:: deferred
 
 .. autofunction:: defer
+
+.. autofunction:: load_only
 
 .. autofunction:: undefer
 
@@ -613,7 +667,7 @@ issued when the ORM is populating the object::
             assert '@' in address
             return address
 
-Validators also receive collection events, when items are added to a
+Validators also receive collection append events, when items are added to a
 collection::
 
     from sqlalchemy.orm import validates
@@ -628,6 +682,51 @@ collection::
             assert '@' in address.email
             return address
 
+
+The validation function by default does not get emitted for collection
+remove events, as the typical expectation is that a value being discarded
+doesn't require validation.  However, :func:`.validates` supports reception
+of these events by specifying ``include_removes=True`` to the decorator.  When
+this flag is set, the validation function must receive an additional boolean
+argument which if ``True`` indicates that the operation is a removal::
+
+    from sqlalchemy.orm import validates
+
+    class User(Base):
+        # ...
+
+        addresses = relationship("Address")
+
+        @validates('addresses', include_removes=True)
+        def validate_address(self, key, address, is_remove):
+            if is_remove:
+                raise ValueError(
+                        "not allowed to remove items from the collection")
+            else:
+                assert '@' in address.email
+                return address
+
+The case where mutually dependent validators are linked via a backref
+can also be tailored, using the ``include_backrefs=False`` option; this option,
+when set to ``False``, prevents a validation function from emitting if the
+event occurs as a result of a backref::
+
+    from sqlalchemy.orm import validates
+
+    class User(Base):
+        # ...
+
+        addresses = relationship("Address", backref='user')
+
+        @validates('addresses', include_backrefs=False)
+        def validate_address(self, key, address):
+            assert '@' in address.email
+            return address
+
+Above, if we were to assign to ``Address.user`` as in ``some_address.user = some_user``,
+the ``validate_address()`` function would *not* be emitted, even though an append
+occurs to ``some_user.addresses`` - the event is caused by a backref.
+
 Note that the :func:`~.validates` decorator is a convenience function built on
 top of attribute events.   An application that requires more control over
 configuration of attribute change behavior can make use of this system,
@@ -635,13 +734,13 @@ described at :class:`~.AttributeEvents`.
 
 .. autofunction:: validates
 
-.. _synonyms:
+.. _mapper_hybrids:
 
 Using Descriptors and Hybrids
 -----------------------------
 
 A more comprehensive way to produce modified behavior for an attribute is to
-use descriptors. These are commonly used in Python using the ``property()``
+use :term:`descriptors`.  These are commonly used in Python using the ``property()``
 function. The standard SQLAlchemy technique for descriptors is to create a
 plain descriptor, and to have it read/write from a mapped attribute with a
 different name. Below we illustrate this using Python 2.6-style properties::
@@ -765,14 +864,88 @@ attribute, a SQL function is rendered which produces the same effect:
 
 Read more about Hybrids at :ref:`hybrids_toplevel`.
 
+.. _synonyms:
+
 Synonyms
 --------
 
-Synonyms are a mapper-level construct that applies expression behavior to a descriptor
-based attribute.
+Synonyms are a mapper-level construct that allow any attribute on a class
+to "mirror" another attribute that is mapped.
 
-.. versionchanged:: 0.7
-    The functionality of synonym is superceded as of 0.7 by hybrid attributes.
+In the most basic sense, the synonym is an easy way to make a certain
+attribute available by an additional name::
+
+    class MyClass(Base):
+        __tablename__ = 'my_table'
+
+        id = Column(Integer, primary_key=True)
+        job_status = Column(String(50))
+
+        status = synonym("job_status")
+
+The above class ``MyClass`` has two attributes, ``.job_status`` and
+``.status`` that will behave as one attribute, both at the expression
+level::
+
+    >>> print MyClass.job_status == 'some_status'
+    my_table.job_status = :job_status_1
+
+    >>> print MyClass.status == 'some_status'
+    my_table.job_status = :job_status_1
+
+and at the instance level::
+
+    >>> m1 = MyClass(status='x')
+    >>> m1.status, m1.job_status
+    ('x', 'x')
+
+    >>> m1.job_status = 'y'
+    >>> m1.status, m1.job_status
+    ('y', 'y')
+
+The :func:`.synonym` can be used for any kind of mapped attribute that
+subclasses :class:`.MapperProperty`, including mapped columns and relationships,
+as well as synonyms themselves.
+
+Beyond a simple mirror, :func:`.synonym` can also be made to reference
+a user-defined :term:`descriptor`.  We can supply our
+``status`` synonym with a ``@property``::
+
+    class MyClass(Base):
+        __tablename__ = 'my_table'
+
+        id = Column(Integer, primary_key=True)
+        status = Column(String(50))
+
+        @property
+        def job_status(self):
+            return "Status: " + self.status
+
+        job_status = synonym("status", descriptor=job_status)
+
+When using Declarative, the above pattern can be expressed more succinctly
+using the :func:`.synonym_for` decorator::
+
+    from sqlalchemy.ext.declarative import synonym_for
+
+    class MyClass(Base):
+        __tablename__ = 'my_table'
+
+        id = Column(Integer, primary_key=True)
+        status = Column(String(50))
+
+        @synonym_for("status")
+        @property
+        def job_status(self):
+            return "Status: " + self.status
+
+While the :func:`.synonym` is useful for simple mirroring, the use case
+of augmenting attribute behavior with descriptors is better handled in modern
+usage using the :ref:`hybrid attribute <mapper_hybrids>` feature, which
+is more oriented towards Python descriptors.   Techically, a :func:`.synonym`
+can do everything that a :class:`.hybrid_property` can do, as it also supports
+injection of custom SQL capabilities, but the hybrid is more straightforward
+to use in more complex situations.
 
 .. autofunction:: synonym
 
@@ -812,6 +985,10 @@ class you provide.
     they no longer "conceal" the underlying column based attributes.  Additionally,
     in-place mutation is no longer automatic; see the section below on
     enabling mutability to support tracking of in-place changes.
+
+.. versionchanged:: 0.9
+    Composites will return their object-form, rather than as individual columns,
+    when used in a column-oriented :class:`.Query` construct.  See :ref:`migration_2824`.
 
 A simple example represents pairs of columns as a ``Point`` object.
 ``Point`` represents such a pair as ``.x`` and ``.y``::
@@ -951,6 +1128,54 @@ the same expression that the base "greater than" does::
                             comparator_factory=PointComparator)
         end = composite(Point, x2, y2,
                             comparator_factory=PointComparator)
+
+.. _bundles:
+
+Column Bundles
+===============
+
+The :class:`.Bundle` may be used to query for groups of columns under one
+namespace.
+
+.. versionadded:: 0.9.0
+
+The bundle allows columns to be grouped together::
+
+    from sqlalchemy.orm import Bundle
+
+    bn = Bundle('mybundle', MyClass.data1, MyClass.data2)
+    for row in session.query(bn).filter(bn.c.data1 == 'd1'):
+        print row.mybundle.data1, row.mybundle.data2
+
+The bundle can be subclassed to provide custom behaviors when results
+are fetched.  The method :meth:`.Bundle.create_row_processor` is given
+the :class:`.Query` and a set of "row processor" functions at query execution
+time; these processor functions when given a result row will return the
+individual attribute value, which can then be adapted into any kind of
+return data structure.  Below illustrates replacing the usual :class:`.KeyedTuple`
+return structure with a straight Python dictionary::
+
+    from sqlalchemy.orm import Bundle
+
+    class DictBundle(Bundle):
+        def create_row_processor(self, query, procs, labels):
+            """Override create_row_processor to return values as dictionaries"""
+            def proc(row, result):
+                return dict(
+                            zip(labels, (proc(row, result) for proc in procs))
+                        )
+            return proc
+
+A result from the above bundle will return dictionary values::
+
+    bn = DictBundle('mybundle', MyClass.data1, MyClass.data2)
+    for row in session.query(bn).filter(bn.c.data1 == 'd1'):
+        print row.mybundle['data1'], row.mybundle['data2']
+
+The :class:`.Bundle` construct is also integrated into the behavior
+of :func:`.composite`, where it is used to return composite attributes as objects
+when queried as individual attributes.
+
 
 .. _maptojoin:
 
@@ -1231,7 +1456,7 @@ If a transaction elsewhere has modifed the row independently, this version id
 will no longer match, and the UPDATE statement will report that no rows matched;
 this is the condition that SQLAlchemy tests, that exactly one row matched our
 UPDATE (or DELETE) statement.  If zero rows match, that indicates our version
-of the data is stale, and a :class:`.StaleDataError` is raised.
+of the data is stale, and a :exc:`.StaleDataError` is raised.
 
 .. _custom_version_counter:
 
@@ -1274,6 +1499,132 @@ subsequent value.
 .. seealso::
 
     :ref:`custom_guid_type`
+
+.. _server_side_version_counter:
+
+Server Side Version Counters
+----------------------------
+
+The ``version_id_generator`` can also be configured to rely upon a value
+that is generated by the database.  In this case, the database would need
+some means of generating new identifiers when a row is subject to an INSERT
+as well as with an UPDATE.   For the UPDATE case, typically an update trigger
+is needed, unless the database in question supports some other native
+version identifier.  The Postgresql database in particular supports a system
+column called `xmin <http://www.postgresql.org/docs/9.1/static/ddl-system-columns.html>`_
+which provides UPDATE versioning.  We can make use
+of the Postgresql ``xmin`` column to version our ``User``
+class as follows::
+
+    class User(Base):
+        __tablename__ = 'user'
+
+        id = Column(Integer, primary_key=True)
+        name = Column(String(50), nullable=False)
+        xmin = Column("xmin", Integer, system=True)
+
+        __mapper_args__ = {
+            'version_id_col': xmin,
+            'version_id_generator': False
+        }
+
+With the above mapping, the ORM will rely upon the ``xmin`` column for
+automatically providing the new value of the version id counter.
+
+.. topic:: creating tables that refer to system columns
+
+    In the above scenario, as ``xmin`` is a system column provided by Postgresql,
+    we use the ``system=True`` argument to mark it as a system-provided
+    column, omitted from the ``CREATE TABLE`` statement.
+
+
+The ORM typically does not actively fetch the values of database-generated
+values when it emits an INSERT or UPDATE, instead leaving these columns as
+"expired" and to be fetched when they are next accessed, unless the ``eager_defaults``
+:func:`.mapper` flag is set.  However, when a
+server side version column is used, the ORM needs to actively fetch the newly
+generated value.  This is so that the version counter is set up *before*
+any concurrent transaction may update it again.   This fetching is also
+best done simultaneously within the INSERT or UPDATE statement using :term:`RETURNING`,
+otherwise if emitting a SELECT statement afterwards, there is still a potential
+race condition where the version counter may change before it can be fetched.
+
+When the target database supports RETURNING, an INSERT statement for our ``User`` class will look
+like this::
+
+    INSERT INTO "user" (name) VALUES (%(name)s) RETURNING "user".id, "user".xmin
+    {'name': 'ed'}
+
+Where above, the ORM can acquire any newly generated primary key values along
+with server-generated version identifiers in one statement.   When the backend
+does not support RETURNING, an additional SELECT must be emitted for **every**
+INSERT and UPDATE, which is much less efficient, and also introduces the possibility of
+missed version counters::
+
+    INSERT INTO "user" (name) VALUES (%(name)s)
+    {'name': 'ed'}
+
+    SELECT "user".version_id AS user_version_id FROM "user" where
+    "user".id = :param_1
+    {"param_1": 1}
+
+It is *strongly recommended* that server side version counters only be used
+when absolutely necessary and only on backends that support :term:`RETURNING`,
+e.g. Postgresql, Oracle, SQL Server (though SQL Server has
+`major caveats <http://blogs.msdn.com/b/sqlprogrammability/archive/2008/07/11/update-with-output-clause-triggers-and-sqlmoreresults.aspx>`_ when triggers are used), Firebird.
+
+.. versionadded:: 0.9.0
+
+    Support for server side version identifier tracking.
+
+Programmatic or Conditional Version Counters
+---------------------------------------------
+
+When ``version_id_generator`` is set to False, we can also programmatically
+(and conditionally) set the version identifier on our object in the same way
+we assign any other mapped attribute.  Such as if we used our UUID example, but
+set ``version_id_generator`` to ``False``, we can set the version identifier
+at our choosing::
+
+    import uuid
+
+    class User(Base):
+        __tablename__ = 'user'
+
+        id = Column(Integer, primary_key=True)
+        version_uuid = Column(String(32))
+        name = Column(String(50), nullable=False)
+
+        __mapper_args__ = {
+            'version_id_col':version_uuid,
+            'version_id_generator': False
+        }
+
+    u1 = User(name='u1', version_uuid=uuid.uuid4())
+
+    session.add(u1)
+
+    session.commit()
+
+    u1.name = 'u2'
+    u1.version_uuid = uuid.uuid4()
+
+    session.commit()
+
+We can update our ``User`` object without incrementing the version counter
+as well; the value of the counter will remain unchanged, and the UPDATE
+statement will still check against the previous value.  This may be useful
+for schemes where only certain classes of UPDATE are sensitive to concurrency
+issues::
+
+    # will leave version_uuid unchanged
+    u1.name = 'u3'
+    session.commit()
+
+.. versionadded:: 0.9.0
+
+    Support for programmatic and conditional version identifier tracking.
+
 
 Class Mapping API
 =================

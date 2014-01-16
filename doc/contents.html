@@ -10,7 +10,7 @@
     
                 Table of Contents
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    './',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="index.html" />
         <link rel="next" title="Overview" href="intro.html" />
     <!-- end layout.mako headers -->
 
@@ -71,7 +72,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -83,7 +84,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -106,7 +107,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="index.html">SQLAlchemy 0.9 Documentation</a>
         » 
                 Table of Contents
             
@@ -172,7 +173,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="intro.html#checking-the-installed-sqlalchemy-version">Checking the Installed SQLAlchemy Version</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="intro.html#to-0-8-migration">0.7 to 0.8 Migration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro.html#to-0-9-migration">0.8 to 0.9 Migration</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="orm/index.html">SQLAlchemy ORM</a><ul>
@@ -180,6 +181,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#version-check">Version Check</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#connecting">Connecting</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#declare-a-mapping">Declare a Mapping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#create-a-schema">Create a Schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#create-an-instance-of-the-mapped-class">Create an Instance of the Mapped Class</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#creating-a-session">Creating a Session</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#adding-new-objects">Adding New Objects</a></li>
@@ -201,6 +203,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#sql-expressions-as-mapped-attributes">SQL Expressions as Mapped Attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#changing-attribute-behavior">Changing Attribute Behavior</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#composite-column-types">Composite Column Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#column-bundles">Column Bundles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#mapping-a-class-against-multiple-tables">Mapping a Class against Multiple Tables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#mapping-a-class-against-arbitrary-selects">Mapping a Class against Arbitrary Selects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#multiple-mappers-for-one-class">Multiple Mappers for One Class</a></li>
@@ -255,11 +258,13 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 </li>
 <li class="toctree-l2"><a class="reference internal" href="orm/loading.html">Relationship Loading Techniques</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="orm/loading.html#using-loader-strategies-lazy-loading-eager-loading">Using Loader Strategies: Lazy Loading, Eager Loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/loading.html#loading-along-paths">Loading Along Paths</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/loading.html#default-loading-strategies">Default Loading Strategies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/loading.html#per-entity-default-loading-strategies">Per-Entity Default Loading Strategies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/loading.html#the-zen-of-eager-loading">The Zen of Eager Loading</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/loading.html#what-kind-of-loading-to-use">What Kind of Loading to Use ?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/loading.html#routing-explicit-joins-statements-into-eagerly-loaded-collections">Routing Explicit Joins/Statements into Eagerly Loaded Collections</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/loading.html#relation-loader-api">Relation Loader API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/loading.html#relationship-loader-api">Relationship Loader API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="orm/events.html">ORM Events</a><ul>
@@ -267,7 +272,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="orm/events.html#mapper-events">Mapper Events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/events.html#instance-events">Instance Events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/events.html#session-events">Session Events</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/events.html#instrumentation-events">Instrumentation Events</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/events.html#module-sqlalchemy.orm.instrumentation">Instrumentation Events</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="orm/extensions/index.html">ORM Extensions</a><ul>
@@ -280,23 +285,11 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="orm/extensions/instrumentation.html">Alternate Class Instrumentation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="orm/examples.html">Examples</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#adjacency-list">Adjacency List</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#associations">Associations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#attribute-instrumentation">Attribute Instrumentation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#dogpile-caching">Dogpile Caching</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#directed-graphs">Directed Graphs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#dynamic-relations-as-dictionaries">Dynamic Relations as Dictionaries</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#generic-associations">Generic Associations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#horizontal-sharding">Horizontal Sharding</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#inheritance-mappings">Inheritance Mappings</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#large-collections">Large Collections</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#nested-sets">Nested Sets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#polymorphic-associations">Polymorphic Associations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#postgis-integration">PostGIS Integration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#versioned-objects">Versioned Objects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#vertical-attribute-mapping">Vertical Attribute Mapping</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#xml-persistence">XML Persistence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="orm/examples.html">ORM Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#mapping-recipes">Mapping Recipes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#inheritance-mapping-recipes">Inheritance Mapping Recipes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#special-apis">Special APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#extending-the-orm">Extending the ORM</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="orm/exceptions.html">ORM Exceptions</a></li>
@@ -370,6 +363,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 </li>
 <li class="toctree-l2"><a class="reference internal" href="core/event.html">Events</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="core/event.html#event-registration">Event Registration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/event.html#named-argument-styles">Named Argument Styles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/event.html#targets">Targets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/event.html#modifiers">Modifiers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/event.html#event-reference">Event Reference</a></li>
@@ -411,7 +405,6 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l2"><a class="reference internal" href="dialects/index.html#included-dialects">Included Dialects</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="dialects/drizzle.html">Drizzle</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/firebird.html">Firebird</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/informix.html">Informix</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html">Microsoft SQL Server</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html">MySQL</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html">Oracle</a></li>
@@ -423,16 +416,18 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l2"><a class="reference internal" href="dialects/index.html#external-dialects">External Dialects</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="dialects/index.html#production-ready">Production Ready</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/index.html#experimental-incomplete">Experimental / Incomplete</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/index.html#attic">Attic</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="changelog/index.html">Changes and Migration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="changelog/index.html#current-migration-guide">Current Migration Guide</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog/migration_08.html">What&#8217;s New in SQLAlchemy 0.8?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/migration_09.html">What&#8217;s New in SQLAlchemy 0.9?</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="changelog/index.html#change-logs">Change logs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog/changelog_09.html">0.9 Changelog</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog/changelog_08.html">0.8 Changelog</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog/changelog_07.html">0.7 Changelog</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog/changelog_06.html">0.6 Changelog</a></li>
@@ -444,6 +439,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="changelog/index.html#older-migration-guides">Older Migration Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog/migration_08.html">What&#8217;s New in SQLAlchemy 0.8?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog/migration_07.html">What&#8217;s New in SQLAlchemy 0.7?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog/migration_06.html">What&#8217;s New in SQLAlchemy 0.6?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog/migration_05.html">What&#8217;s new in SQLAlchemy 0.5?</a></li>
@@ -472,7 +468,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
         <a href="intro.html" title="next chapter">Overview</a>
 
     <div id="docs-copyright">
-        &copy; <a href="copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

@@ -2,6 +2,7 @@ from sqlalchemy import *
 from sqlalchemy.testing import fixtures, AssertsExecutionResults, profiling
 from sqlalchemy import testing
 from sqlalchemy.testing import eq_
+from sqlalchemy.util import u
 from sqlalchemy.engine.result import RowProxy
 import sys
 
@@ -22,10 +23,10 @@ class ResultSetTest(fixtures.TestBase, AssertsExecutionResults):
 
     def setup(self):
         metadata.create_all()
-        t.insert().execute([dict(('field%d' % fnum, u'value%d' % fnum)
+        t.insert().execute([dict(('field%d' % fnum, u('value%d' % fnum))
                            for fnum in range(NUM_FIELDS)) for r_num in
                            range(NUM_RECORDS)])
-        t2.insert().execute([dict(('field%d' % fnum, u'value%d' % fnum)
+        t2.insert().execute([dict(('field%d' % fnum, u('value%d' % fnum))
                             for fnum in range(NUM_FIELDS)) for r_num in
                             range(NUM_RECORDS)])
 
@@ -51,6 +52,7 @@ class ResultSetTest(fixtures.TestBase, AssertsExecutionResults):
         def go():
             c1 in row
         go()
+
 
 class ExecutionTest(fixtures.TestBase):
 
@@ -90,7 +92,7 @@ class RowProxyTest(fixtures.TestBase):
 
         keymap = {}
         for index, (keyobjs, processor, values) in \
-            enumerate(zip(keys, processors, row)):
+            enumerate(list(zip(keys, processors, row))):
             for key in keyobjs:
                 keymap[key] = (processor, key, index)
             keymap[index] = (processor, key, index)

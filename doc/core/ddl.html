@@ -10,7 +10,7 @@
     
                 Customizing DDL
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Schema Definition Language" href="schema.html" />
         <link rel="next" title="Engine Configuration" href="engines.html" />
         <link rel="prev" title="Defining Constraints and Indexes" href="constraints.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
                 » <a href="schema.html" title="Schema Definition Language">Schema Definition Language</a>
         » 
@@ -417,10 +418,10 @@ criteria, it will be invoked with None as the event.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>bind</strong> &#8211; Optional, an <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>. If not supplied, a valid
+<li><span class="target" id="sqlalchemy.schema.DDLElement.execute.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDLElement.execute.params.bind">¶</a> &#8211; Optional, an <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>. If not supplied, a valid
 <a class="reference internal" href="connections.html#sqlalchemy.engine.Connectable" title="sqlalchemy.engine.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a> must be present in the
 <tt class="docutils literal"><span class="pre">.bind</span></tt> property.</li>
-<li><strong>target</strong> &#8211; Optional, defaults to None.  The target SchemaItem for the
+<li><span class="target" id="sqlalchemy.schema.DDLElement.execute.params.target"></span><strong>target</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDLElement.execute.params.target">¶</a> &#8211; Optional, defaults to None.  The target SchemaItem for the
 execute call.  Will be passed to the <tt class="docutils literal"><span class="pre">on</span></tt> callable if any,
 and may also provide string expansion data for the
 statement. See <tt class="docutils literal"><span class="pre">execute_at</span></tt> for more information.</li>
@@ -448,9 +449,9 @@ this statement is ignored.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>event</strong> &#8211; One of the events defined in the schema item&#8217;s <tt class="docutils literal"><span class="pre">.ddl_events</span></tt>;
+<li><span class="target" id="sqlalchemy.schema.DDLElement.execute_at.params.event"></span><strong>event</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDLElement.execute_at.params.event">¶</a> &#8211; One of the events defined in the schema item&#8217;s <tt class="docutils literal"><span class="pre">.ddl_events</span></tt>;
 e.g. &#8216;before-create&#8217;, &#8216;after-create&#8217;, &#8216;before-drop&#8217; or &#8216;after-drop&#8217;</li>
-<li><strong>target</strong> &#8211; The Table or MetaData instance for which this DDLElement will
+<li><span class="target" id="sqlalchemy.schema.DDLElement.execute_at.params.target"></span><strong>target</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDLElement.execute_at.params.target">¶</a> &#8211; The Table or MetaData instance for which this DDLElement will
 be associated with.</li>
 </ul>
 </td>
@@ -482,7 +483,7 @@ DDLElement conditionally.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; <p>May be a string, tuple or a callable
+<li><span class="target" id="sqlalchemy.schema.DDLElement.execute_if.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDLElement.execute_if.params.dialect">¶</a> &#8211; <p>May be a string, tuple or a callable
 predicate.  If a string, it will be compared to the name of the
 executing database dialect:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">DDL</span><span class="p">(</span><span class="s">&#39;something&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">execute_if</span><span class="p">(</span><span class="n">dialect</span><span class="o">=</span><span class="s">&#39;postgresql&#39;</span><span class="p">)</span></pre></div>
@@ -491,7 +492,7 @@ executing database dialect:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">DDL</span><span class="p">(</span><span class="s">&#39;something&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">execute_if</span><span class="p">(</span><span class="n">dialect</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;postgresql&#39;</span><span class="p">,</span> <span class="s">&#39;mysql&#39;</span><span class="p">))</span></pre></div>
 </div>
 </li>
-<li><strong>callable</strong> &#8211; <p>A callable, which will be invoked with
+<li><span class="target" id="sqlalchemy.schema.DDLElement.execute_if.params.callable_"></span><strong>callable_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDLElement.execute_if.params.callable_">¶</a> &#8211; <p>A callable, which will be invoked with
 four positional arguments as well as optional keyword
 arguments:</p>
 <blockquote>
@@ -524,7 +525,7 @@ set during the call to <tt class="docutils literal"><span class="pre">create()</
 <p>If the callable returns a true value, the DDL statement will be
 executed.</p>
 </li>
-<li><strong>state</strong> &#8211; any value which will be passed to the <a href="#id1"><span class="problematic" id="id2">callable_</span></a>
+<li><span class="target" id="sqlalchemy.schema.DDLElement.execute_if.params.state"></span><strong>state</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDLElement.execute_if.params.state">¶</a> &#8211; any value which will be passed to the callable_
 as the <tt class="docutils literal"><span class="pre">state</span></tt> keyword argument.</li>
 </ul>
 </td>
@@ -590,13 +591,15 @@ the standard substitutions.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>statement</strong> &#8211; <p>A string or unicode string to be executed.  Statements will be
+<li><span class="target" id="sqlalchemy.schema.DDL.__init__.params.statement"></span><strong>statement</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDL.__init__.params.statement">¶</a> &#8211; <p>A string or unicode string to be executed.  Statements will be
 processed with Python&#8217;s string formatting operator.  See the
 <tt class="docutils literal"><span class="pre">context</span></tt> argument and the <tt class="docutils literal"><span class="pre">execute_at</span></tt> method.</p>
 <p>A literal &#8216;%&#8217; in a statement must be escaped as &#8216;%%&#8217;.</p>
 <p>SQL bind parameters are not available in DDL statements.</p>
 </li>
-<li><strong>on</strong> &#8211; <p>Deprecated.  See <a class="reference internal" href="#sqlalchemy.schema.DDLElement.execute_if" title="sqlalchemy.schema.DDLElement.execute_if"><tt class="xref py py-meth docutils literal"><span class="pre">DDLElement.execute_if()</span></tt></a>.</p>
+<li><span class="target" id="sqlalchemy.schema.DDL.__init__.params.on"></span><strong>on</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDL.__init__.params.on">¶</a> &#8211; <div class="deprecated">
+<p><span>Deprecated since version 0.7: </span>See <a class="reference internal" href="#sqlalchemy.schema.DDLElement.execute_if" title="sqlalchemy.schema.DDLElement.execute_if"><tt class="xref py py-meth docutils literal"><span class="pre">DDLElement.execute_if()</span></tt></a>.</p>
+</div>
 <p>Optional filtering criteria.  May be a string, tuple or a callable
 predicate.  If a string, it will be compared to the name of the
 executing database dialect:</p>
@@ -632,9 +635,9 @@ method call.</td>
 <p>If the callable returns a true value, the DDL statement will be
 executed.</p>
 </li>
-<li><strong>context</strong> &#8211; Optional dictionary, defaults to None.  These values will be
+<li><span class="target" id="sqlalchemy.schema.DDL.__init__.params.context"></span><strong>context</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDL.__init__.params.context">¶</a> &#8211; Optional dictionary, defaults to None.  These values will be
 available for use in string substitutions on the DDL statement.</li>
-<li><strong>bind</strong> &#8211; Optional. A <a class="reference internal" href="connections.html#sqlalchemy.engine.Connectable" title="sqlalchemy.engine.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a>, used by
+<li><span class="target" id="sqlalchemy.schema.DDL.__init__.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.DDL.__init__.params.bind">¶</a> &#8211; Optional. A <a class="reference internal" href="connections.html#sqlalchemy.engine.Connectable" title="sqlalchemy.engine.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt></a>, used by
 default when <tt class="docutils literal"><span class="pre">execute()</span></tt> is invoked without a bind argument.</li>
 </ul>
 </td>
@@ -664,10 +667,10 @@ default when <tt class="docutils literal"><span class="pre">execute()</span></tt
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>element</strong> &#8211; a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that&#8217;s the subject
+<li><span class="target" id="sqlalchemy.schema.CreateTable.__init__.params.element"></span><strong>element</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.CreateTable.__init__.params.element">¶</a> &#8211; a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that&#8217;s the subject
 of the CREATE</li>
-<li><strong>on</strong> &#8211; See the description for &#8216;on&#8217; in <a class="reference internal" href="#sqlalchemy.schema.DDL" title="sqlalchemy.schema.DDL"><tt class="xref py py-class docutils literal"><span class="pre">DDL</span></tt></a>.</li>
-<li><strong>bind</strong> &#8211; See the description for &#8216;bind&#8217; in <a class="reference internal" href="#sqlalchemy.schema.DDL" title="sqlalchemy.schema.DDL"><tt class="xref py py-class docutils literal"><span class="pre">DDL</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.schema.CreateTable.__init__.params.on"></span><strong>on</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.CreateTable.__init__.params.on">¶</a> &#8211; See the description for &#8216;on&#8217; in <a class="reference internal" href="#sqlalchemy.schema.DDL" title="sqlalchemy.schema.DDL"><tt class="xref py py-class docutils literal"><span class="pre">DDL</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.schema.CreateTable.__init__.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.CreateTable.__init__.params.bind">¶</a> &#8211; See the description for &#8216;bind&#8217; in <a class="reference internal" href="#sqlalchemy.schema.DDL" title="sqlalchemy.schema.DDL"><tt class="xref py py-class docutils literal"><span class="pre">DDL</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -875,7 +878,7 @@ to support custom column creation styles.</p>
         <a href="engines.html" title="next chapter">Engine Configuration</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
