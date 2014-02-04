@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -250,7 +251,9 @@ Language provides a schema-centric usage paradigm.</p>
 <li class="toctree-l3"><a class="reference internal" href="constraints.html#defining-foreign-keys">Defining Foreign Keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="constraints.html#unique-constraint">UNIQUE Constraint</a></li>
 <li class="toctree-l3"><a class="reference internal" href="constraints.html#check-constraint">CHECK Constraint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#primary-key-constraint">PRIMARY KEY Constraint</a></li>
 <li class="toctree-l3"><a class="reference internal" href="constraints.html#setting-up-constraints-when-using-the-declarative-orm-extension">Setting up Constraints when using the Declarative ORM Extension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#configuring-constraint-naming-conventions">Configuring Constraint Naming Conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="constraints.html#constraints-api">Constraints API</a></li>
 <li class="toctree-l3"><a class="reference internal" href="constraints.html#indexes">Indexes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="constraints.html#index-api">Index API</a></li>
@@ -266,7 +269,6 @@ Language provides a schema-centric usage paradigm.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="engines.html">Engine Configuration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="engines.html#supported-databases">Supported Databases</a></li>
-<li class="toctree-l2"><a class="reference internal" href="engines.html#engine-creation-api">Engine Creation API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="engines.html#database-urls">Database Urls</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="engines.html#postgresql">Postgresql</a></li>
 <li class="toctree-l3"><a class="reference internal" href="engines.html#mysql">MySQL</a></li>
@@ -274,9 +276,9 @@ Language provides a schema-centric usage paradigm.</p>
 <li class="toctree-l3"><a class="reference internal" href="engines.html#microsoft-sql-server">Microsoft SQL Server</a></li>
 <li class="toctree-l3"><a class="reference internal" href="engines.html#sqlite">SQLite</a></li>
 <li class="toctree-l3"><a class="reference internal" href="engines.html#others">Others</a></li>
-<li class="toctree-l3"><a class="reference internal" href="engines.html#url-api">URL API</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="engines.html#engine-creation-api">Engine Creation API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="engines.html#pooling">Pooling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="engines.html#custom-dbapi-connect-arguments">Custom DBAPI connect() arguments</a></li>
 <li class="toctree-l2"><a class="reference internal" href="engines.html#configuring-logging">Configuring Logging</a></li>
@@ -307,6 +309,7 @@ Language provides a schema-centric usage paradigm.</p>
 <li class="toctree-l2"><a class="reference internal" href="pooling.html#dealing-with-disconnects">Dealing with Disconnects</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="pooling.html#disconnect-handling-optimistic">Disconnect Handling - Optimistic</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pooling.html#disconnect-handling-pessimistic">Disconnect Handling - Pessimistic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pooling.html#more-on-invalidation">More on Invalidation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="pooling.html#api-documentation-available-pool-implementations">API Documentation - Available Pool Implementations</a></li>

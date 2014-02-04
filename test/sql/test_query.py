@@ -304,7 +304,7 @@ class QueryTest(fixtures.TestBase):
 
 
     def test_row_comparison(self):
-        users.insert().execute(user_id = 7, user_name = 'jack')
+        users.insert().execute(user_id = 7, user_name='jack')
         rp = users.select().execute().first()
 
         self.assert_(rp == rp)
@@ -316,6 +316,39 @@ class QueryTest(fixtures.TestBase):
         self.assert_(equal == rp)
         self.assert_(not (rp != equal))
         self.assert_(not (equal != equal))
+
+        def endless():
+            while True:
+                yield 1
+        self.assert_(rp != endless())
+        self.assert_(endless() != rp)
+
+        # test that everything compares the same
+        # as it would against a tuple
+        import operator
+        for compare in [False, 8, endless(), 'xyz', (7, 'jack')]:
+            for op in [
+                operator.eq, operator.ne, operator.gt,
+                operator.lt, operator.ge, operator.le
+            ]:
+
+                try:
+                    control = op(equal, compare)
+                except TypeError:
+                    # Py3K raises TypeError for some invalid comparisons
+                    assert_raises(TypeError, op, rp, compare)
+                else:
+                    eq_(control, op(rp, compare))
+
+                try:
+                    control = op(compare, equal)
+                except TypeError:
+                    # Py3K raises TypeError for some invalid comparisons
+                    assert_raises(TypeError, op, compare, rp)
+                else:
+                    eq_(control, op(compare, rp))
+
+
 
     @testing.provide_metadata
     def test_column_label_overlap_fallback(self):
@@ -1753,6 +1786,51 @@ class KeyTargetingTest(fixtures.TablesTest):
         assert content.c.type in row
         assert bar.c.content_type not in row
         assert sql.column('content_type') not in row
+
+    def test_columnclause_schema_column_one(self):
+        keyed2 = self.tables.keyed2
+
+        # this is addressed by [ticket:2932]
+        # ColumnClause._compare_name_for_result allows the
+        # columns which the statement is against to be lightweight
+        # cols, which results in a more liberal comparison scheme
+        a, b = sql.column('a'), sql.column('b')
+        stmt = select([a, b]).select_from("keyed2")
+        row = testing.db.execute(stmt).first()
+
+        assert keyed2.c.a in row
+        assert keyed2.c.b in row
+        assert a in row
+        assert b in row
+
+    def test_columnclause_schema_column_two(self):
+        keyed2 = self.tables.keyed2
+
+        a, b = sql.column('a'), sql.column('b')
+        stmt = select([keyed2.c.a, keyed2.c.b])
+        row = testing.db.execute(stmt).first()
+
+        assert keyed2.c.a in row
+        assert keyed2.c.b in row
+        assert a in row
+        assert b in row
+
+    def test_columnclause_schema_column_three(self):
+        keyed2 = self.tables.keyed2
+
+        # this is also addressed by [ticket:2932]
+
+        a, b = sql.column('a'), sql.column('b')
+        stmt = text("select a, b from keyed2").columns(a=CHAR, b=CHAR)
+        row = testing.db.execute(stmt).first()
+
+        assert keyed2.c.a in row
+        assert keyed2.c.b in row
+        assert a in row
+        assert b in row
+        assert stmt.c.a in row
+        assert stmt.c.b in row
+
 
 
 class LimitTest(fixtures.TestBase):

@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -280,7 +281,10 @@ tutorial.</p>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#handling-multiple-join-paths">Handling Multiple Join Paths</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#specifying-alternate-join-conditions">Specifying Alternate Join Conditions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#creating-custom-foreign-conditions">Creating Custom Foreign Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#using-custom-operators-in-join-conditions">Using custom operators in join conditions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#self-referential-many-to-many-relationship">Self-Referential Many-to-Many Relationship</a></li>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#composite-secondary-joins">Composite &#8220;Secondary&#8221; Joins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#relationship-to-non-primary-mapper">Relationship to Non Primary Mapper</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#building-query-enabled-properties">Building Query-Enabled Properties</a></li>
 </ul>
 </li>
@@ -364,7 +368,7 @@ tutorial.</p>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="session.html#embedding-sql-insert-update-expressions-into-a-flush">Embedding SQL Insert/Update Expressions into a Flush</a></li>
 <li class="toctree-l2"><a class="reference internal" href="session.html#using-sql-expressions-with-sessions">Using SQL Expressions with Sessions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="session.html#joining-a-session-into-an-external-transaction">Joining a Session into an External Transaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="session.html#joining-a-session-into-an-external-transaction-such-as-for-test-suites">Joining a Session into an External Transaction (such as for test suites)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="session.html#contextual-thread-local-sessions">Contextual/Thread-local Sessions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="session.html#implicit-method-access">Implicit Method Access</a></li>
 <li class="toctree-l3"><a class="reference internal" href="session.html#thread-local-scope">Thread-Local Scope</a></li>

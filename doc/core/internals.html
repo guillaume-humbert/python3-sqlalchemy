@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -183,11 +184,11 @@ defaults.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.__init__.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.__init__.params.dialect">¶</a> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
-<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.__init__.params.statement"></span><strong>statement</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.__init__.params.statement">¶</a> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
-<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.__init__.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.__init__.params.bind">¶</a> &#8211; Optional Engine or Connection to compile this
+<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.params.dialect">¶</a> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.params.statement"></span><strong>statement</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.params.statement">¶</a> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.params.bind">¶</a> &#8211; Optional Engine or Connection to compile this
 statement against.</li>
-<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.__init__.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.__init__.params.compile_kwargs">¶</a> &#8211; <p>additional kwargs that will be
+<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.params.compile_kwargs">¶</a> &#8211; <p>additional kwargs that will be
 passed to the initial call to <tt class="xref py py-meth docutils literal"><span class="pre">Compiled.process()</span></tt>.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.</span></p>
@@ -268,11 +269,11 @@ scalar value.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.__init__.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.__init__.params.dialect">¶</a> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
-<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.__init__.params.statement"></span><strong>statement</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.__init__.params.statement">¶</a> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
-<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.__init__.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.__init__.params.bind">¶</a> &#8211; Optional Engine or Connection to compile this
+<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.params.dialect">¶</a> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
+<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.params.statement"></span><strong>statement</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.params.statement">¶</a> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
+<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.params.bind">¶</a> &#8211; Optional Engine or Connection to compile this
 statement against.</li>
-<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.__init__.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.__init__.params.compile_kwargs">¶</a> &#8211; <p>additional kwargs that will be
+<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.params.compile_kwargs">¶</a> &#8211; <p>additional kwargs that will be
 passed to the initial call to <tt class="xref py py-meth docutils literal"><span class="pre">Compiled.process()</span></tt>.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.</span></p>
@@ -334,6 +335,31 @@ scalar value.</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.default.</tt><tt class="descname">DefaultDialect</tt><big>(</big><em>convert_unicode=False</em>, <em>encoding='utf-8'</em>, <em>paramstyle=None</em>, <em>dbapi=None</em>, <em>implicit_returning=None</em>, <em>supports_right_nested_joins=None</em>, <em>case_sensitive=True</em>, <em>supports_native_boolean=None</em>, <em>label_length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.interfaces.Dialect</span></tt></a></p>
 <p>Default implementation of Dialect</p>
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultDialect.construct_arguments">
+<tt class="descname">construct_arguments</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.construct_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optional set of argument specifiers for various SQLAlchemy
+constructs, typically schema items.</p>
+<p>To
+implement, establish as a series of tuples, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">construct_arguments</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">schema</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">&quot;using&quot;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s">&quot;where&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&quot;ops&quot;</span><span class="p">:</span> <span class="bp">None</span>
+    <span class="p">})</span>
+<span class="p">]</span></pre></div>
+</div>
+<p>If the above construct is established on the Postgresql dialect,
+the <tt class="docutils literal"><span class="pre">Index</span></tt> construct will now accept additional keyword arguments
+such as <tt class="docutils literal"><span class="pre">postgresql_using</span></tt>, <tt class="docutils literal"><span class="pre">postgresql_where</span></tt>, etc.  Any kind of
+<tt class="docutils literal"><span class="pre">postgresql_XYZ</span></tt> argument not corresponding to the above template will
+be rejected with an <a href="#id1"><span class="problematic" id="id2">``</span></a>ArgumentError`, for all those SQLAlchemy constructs
+which implement the <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt> class.</p>
+<p>The default is <tt class="docutils literal"><span class="pre">None</span></tt>; older dialects which don&#8217;t implement the argument
+will have the old behavior of un-validated kwargs to schema/SQL constructs.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.create_xid">
 <tt class="descname">create_xid</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.create_xid" title="Permalink to this definition">¶</a></dt>
@@ -571,7 +597,7 @@ instead implement the <a class="reference internal" href="#sqlalchemy.engine.int
 
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.get_unique_constraints">
-<tt class="descname">get_unique_constraints</tt><big>(</big><em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.get_unique_constraints" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_unique_constraints</tt><big>(</big><em>connection</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.get_unique_constraints" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_unique_constraints" title="sqlalchemy.engine.interfaces.Dialect.get_unique_constraints"><tt class="xref py py-meth docutils literal"><span class="pre">get_unique_constraints()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a></div>
 <p>Return information about unique constraints in <cite>table_name</cite>.</p>
@@ -1185,7 +1211,7 @@ instead implement the <a class="reference internal" href="#sqlalchemy.engine.int
 
 <dl class="method">
 <dt id="sqlalchemy.engine.interfaces.Dialect.get_unique_constraints">
-<tt class="descname">get_unique_constraints</tt><big>(</big><em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.interfaces.Dialect.get_unique_constraints" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_unique_constraints</tt><big>(</big><em>connection</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.interfaces.Dialect.get_unique_constraints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return information about unique constraints in <cite>table_name</cite>.</p>
 <p>Given a string <cite>table_name</cite> and an optional string <cite>schema</cite>, return
 unique constraint information as a list of dicts with these keys:</p>

@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -1738,7 +1739,7 @@ parent object.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.attributes.QueryableAttribute.op">
-<tt class="descname">op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.attributes.QueryableAttribute.op" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em>, <em>is_comparison=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.attributes.QueryableAttribute.op" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-meth docutils literal"><span class="pre">op()</span></tt></a> <em>method of</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators" title="sqlalchemy.sql.operators.Operators"><tt class="xref py py-class docutils literal"><span class="pre">Operators</span></tt></a></div>
 <p>produce a generic operator function.</p>
@@ -1772,6 +1773,16 @@ will be lower than or equal to all operators.</p>
 <p><span>New in version 0.8: </span>- added the &#8216;precedence&#8217; argument.</p>
 </div>
 </li>
+<li><span class="target" id="sqlalchemy.orm.attributes.QueryableAttribute.op.params.is_comparison"></span><strong>is_comparison</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.attributes.QueryableAttribute.op.params.is_comparison">¶</a> &#8211; <p>if True, the operator will be considered as a
+&#8220;comparison&#8221; operator, that is which evaulates to a boolean true/false
+value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set so that
+ORM relationships can establish that the operator is a comparison
+operator when used in a custom join condition.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>- added the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a>
+flag.</p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -1779,7 +1790,8 @@ will be lower than or equal to all operators.</p>
 </table>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="../core/types.html#types-operators"><em>Redefining and Creating New Operators</em></a></p>
+<p><a class="reference internal" href="../core/types.html#types-operators"><em>Redefining and Creating New Operators</em></a></p>
+<p class="last"><a class="reference internal" href="relationships.html#relationship-custom-operator"><em>Using custom operators in join conditions</em></a></p>
 </div>
 </dd></dl>
 

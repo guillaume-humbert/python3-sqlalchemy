@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -170,76 +171,267 @@ used to construct any kind of typed SQL expression.</p>
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.and_">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">and_</tt><big>(</big><em>*clauses</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.and_" title="Permalink to this definition">¶</a></dt>
-<dd><p>Join a list of clauses together using the <tt class="docutils literal"><span class="pre">AND</span></tt> operator.</p>
-<p>The <tt class="docutils literal"><span class="pre">&amp;</span></tt> operator is also overloaded on all <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-subclasses to produce the
-same result.</p>
+<dd><p>Produce a conjunction of expressions joined by <tt class="docutils literal"><span class="pre">AND</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">and_</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                <span class="n">and_</span><span class="p">(</span>
+                    <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span>
+                    <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">enrolled</span> <span class="o">==</span> <span class="bp">True</span>
+                <span class="p">)</span>
+            <span class="p">)</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a> conjunction is also available using the
+Python <tt class="docutils literal"><span class="pre">&amp;</span></tt> operator (though note that compound expressions
+need to be parenthesized in order to function with Python
+operator precedence behavior):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">)</span> <span class="o">&amp;</span>
+                <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">enrolled</span> <span class="o">==</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="p">)</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a> operation is also implicit in some cases;
+the <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.where" title="sqlalchemy.sql.expression.Select.where"><tt class="xref py py-meth docutils literal"><span class="pre">Select.where()</span></tt></a> method for example can be invoked multiple
+times against a statement, which will have the effect of each
+clause being combined using <a class="reference internal" href="#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">where</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">)</span><span class="o">.</span>\
+            <span class="n">where</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">enrolled</span> <span class="o">==</span> <span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.or_" title="sqlalchemy.sql.expression.or_"><tt class="xref py py-func docutils literal"><span class="pre">or_()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.asc">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">asc</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.asc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an ascending <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> clause element.</p>
+<dd><p>Produce an ascending <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> clause element.</p>
 <p>e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">someselect</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">asc</span><span class="p">(</span><span class="n">table1</span><span class="o">.</span><span class="n">mycol</span><span class="p">))</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">asc</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">asc</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></pre></div>
 </div>
-<p>produces:</p>
-<div class="highlight-python"><pre>ORDER BY mycol ASC</pre>
+<p>will produce SQL as:</p>
+<div class="highlight-python"><pre>SELECT id, name FROM user ORDER BY name ASC</pre>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a> function is a standalone version of the
+<a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement.asc" title="sqlalchemy.sql.expression.ColumnElement.asc"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.asc()</span></tt></a> method available on all SQL expressions,
+e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">asc</span><span class="p">())</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.sql.expression.asc.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.asc.params.column">¶</a> &#8211; A <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> (e.g. scalar SQL expression)
+with which to apply the <a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a> operation.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.nullsfirst" title="sqlalchemy.sql.expression.nullsfirst"><tt class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.nullslast" title="sqlalchemy.sql.expression.nullslast"><tt class="xref py py-func docutils literal"><span class="pre">nullslast()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.order_by" title="sqlalchemy.sql.expression.Select.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Select.order_by()</span></tt></a></p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.between">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">between</tt><big>(</big><em>ctest</em>, <em>cleft</em>, <em>cright</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.between" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <tt class="docutils literal"><span class="pre">BETWEEN</span></tt> predicate clause.</p>
-<p>Equivalent of SQL <tt class="docutils literal"><span class="pre">clausetest</span> <span class="pre">BETWEEN</span> <span class="pre">clauseleft</span> <span class="pre">AND</span> <span class="pre">clauseright</span></tt>.</p>
-<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.between" title="sqlalchemy.sql.expression.between"><tt class="xref py py-func docutils literal"><span class="pre">between()</span></tt></a> method on all
-<a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> subclasses provides
-similar functionality.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="sqlalchemy.sql.expression.bindparam">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">bindparam</tt><big>(</big><em>key</em>, <em>value=symbol('NO_ARG')</em>, <em>type_=None</em>, <em>unique=False</em>, <em>required=symbol('NO_ARG')</em>, <em>quote=None</em>, <em>callable_=None</em>, <em>isoutparam=False</em>, <em>_compared_to_operator=None</em>, <em>_compared_to_type=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.bindparam" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a new <a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a>.</p>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">between</tt><big>(</big><em>expr</em>, <em>lower_bound</em>, <em>upper_bound</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.between" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a <tt class="docutils literal"><span class="pre">BETWEEN</span></tt> predicate clause.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">between</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">between</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span></pre></div>
+</div>
+<p>Would produce SQL resembling:</p>
+<div class="highlight-python"><pre>SELECT id, name FROM user WHERE id BETWEEN :id_1 AND :id_2</pre>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.between" title="sqlalchemy.sql.expression.between"><tt class="xref py py-func docutils literal"><span class="pre">between()</span></tt></a> function is a standalone version of the
+<a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement.between" title="sqlalchemy.sql.expression.ColumnElement.between"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.between()</span></tt></a> method available on all
+SQL expressions, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">between</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span></pre></div>
+</div>
+<p>All arguments passed to <a class="reference internal" href="#sqlalchemy.sql.expression.between" title="sqlalchemy.sql.expression.between"><tt class="xref py py-func docutils literal"><span class="pre">between()</span></tt></a>, including the left side
+column expression, are coerced from Python scalar values if a
+the value is not a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> subclass.   For example,
+three fixed values can be compared as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="n">between</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span></pre></div>
+</div>
+<p>Which would produce:</p>
+<div class="highlight-python"><pre>:param_1 BETWEEN :param_2 AND :param_3</pre>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.key"></span><strong>key</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.key">¶</a> &#8211; the key for this bind param.  Will be used in the generated
+<li><span class="target" id="sqlalchemy.sql.expression.between.params.expr"></span><strong>expr</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.between.params.expr">¶</a> &#8211; a column expression, typically a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
+instance or alternatively a Python scalar expression to be coerced
+into a column expression, serving as the left side of the <tt class="docutils literal"><span class="pre">BETWEEN</span></tt>
+expression.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.between.params.lower_bound"></span><strong>lower_bound</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.between.params.lower_bound">¶</a> &#8211; a column or Python scalar expression serving as the lower
+bound of the right side of the <tt class="docutils literal"><span class="pre">BETWEEN</span></tt> expression.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.between.params.upper_bound"></span><strong>upper_bound</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.between.params.upper_bound">¶</a> &#8211; a column or Python scalar expression serving as the
+upper bound of the right side of the <tt class="docutils literal"><span class="pre">BETWEEN</span></tt> expression.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement.between" title="sqlalchemy.sql.expression.ColumnElement.between"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.between()</span></tt></a></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sqlalchemy.sql.expression.bindparam">
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">bindparam</tt><big>(</big><em>key</em>, <em>value=symbol('NO_ARG')</em>, <em>type_=None</em>, <em>unique=False</em>, <em>required=symbol('NO_ARG')</em>, <em>quote=None</em>, <em>callable_=None</em>, <em>isoutparam=False</em>, <em>_compared_to_operator=None</em>, <em>_compared_to_type=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.bindparam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a &#8220;bound expression&#8221;.</p>
+<p>The return value is an instance of <a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a>; this
+is a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> subclass which represents a so-called
+&#8220;placeholder&#8221; value in a SQL expression, the value of which is supplied
+at the point at which the statement in executed against a database
+connection.</p>
+<p>In SQLAlchemy, the <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> construct has
+the ability to carry along the actual value that will be ultimately
+used at expression time.  In this way, it serves not just as
+a &#8220;placeholder&#8221; for eventual population, but also as a means of
+representing so-called &#8220;unsafe&#8221; values which should not be rendered
+directly in a SQL statement, but rather should be passed along
+to the <a class="reference internal" href="../glossary.html#term-dbapi"><em class="xref std std-term">DBAPI</em></a> as values which need to be correctly escaped
+and potentially handled for type-safety.</p>
+<p>When using <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> explicitly, the use case is typically
+one of traditional deferment of parameters; the <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a>
+construct accepts a name which can then be referred to at execution
+time:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">bindparam</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">where</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">bindparam</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">))</span></pre></div>
+</div>
+<p>The above statement, when rendered, will produce SQL similar to:</p>
+<div class="highlight-python"><pre>SELECT id, name FROM user WHERE name = :username</pre>
+</div>
+<p>In order to populate the value of <tt class="docutils literal"><span class="pre">:username</span></tt> above, the value
+would typically be applied at execution time to a method
+like <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execute" title="sqlalchemy.engine.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execute()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s">&#39;wendy&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>Explicit use of <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> is also common when producing
+UPDATE or DELETE statements that are to be invoked multiple times,
+where the WHERE criterion of the statement is to change on each
+invocation, such as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">users_table</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span>\
+                <span class="n">where</span><span class="p">(</span><span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">bindparam</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">))</span><span class="o">.</span>\
+                <span class="n">values</span><span class="p">(</span><span class="n">fullname</span><span class="o">=</span><span class="n">bindparam</span><span class="p">(</span><span class="s">&#39;fullname&#39;</span><span class="p">))</span>
+
+<span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="p">[</span>
+                    <span class="p">{</span><span class="s">&quot;username&quot;</span><span class="p">:</span> <span class="s">&quot;wendy&quot;</span><span class="p">,</span> <span class="s">&quot;fullname&quot;</span><span class="p">:</span> <span class="s">&quot;Wendy Smith&quot;</span><span class="p">},</span>
+                    <span class="p">{</span><span class="s">&quot;username&quot;</span><span class="p">:</span> <span class="s">&quot;jack&quot;</span><span class="p">,</span> <span class="s">&quot;fullname&quot;</span><span class="p">:</span> <span class="s">&quot;Jack Jones&quot;</span><span class="p">},</span>
+            <span class="p">])</span></pre></div>
+</div>
+<p>SQLAlchemy&#8217;s Core expression system makes wide use of <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a>
+in an implicit sense.   It is typical that Python literal values passed to
+virtually all SQL expression functions are coerced into fixed
+<a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> constructs.  For example, given a comparison operation
+such as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">expr</span> <span class="o">=</span> <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;Wendy&#39;</span></pre></div>
+</div>
+<p>The above expression will produce a <a class="reference internal" href="#sqlalchemy.sql.expression.BinaryExpression" title="sqlalchemy.sql.expression.BinaryExpression"><tt class="xref py py-class docutils literal"><span class="pre">BinaryExpression</span></tt></a>
+contruct, where the left side is the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object
+representing the <tt class="docutils literal"><span class="pre">name</span></tt> column, and the right side is a <a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a>
+representing the literal value:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">right</span><span class="p">))</span>
+<span class="n">BindParameter</span><span class="p">(</span><span class="s">&#39;%(4327771088 name)s&#39;</span><span class="p">,</span> <span class="s">&#39;Wendy&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="n">String</span><span class="p">())</span></pre></div>
+</div>
+<p>The expression above will render SQL such as:</p>
+<div class="highlight-python"><pre>user.name = :name_1</pre>
+</div>
+<p>Where the <tt class="docutils literal"><span class="pre">:name_1</span></tt> parameter name is an anonymous name.  The
+actual string <tt class="docutils literal"><span class="pre">Wendy</span></tt> is not in the rendered string, but is carried
+along where it is later used within statement execution.  If we
+invoke a statement like the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;Wendy&#39;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span></pre></div>
+</div>
+<p>We would see SQL logging output as:</p>
+<div class="highlight-python"><pre>SELECT "user".id, "user".name
+FROM "user"
+WHERE "user".name = %(name_1)s
+{'name_1': 'Wendy'}</pre>
+</div>
+<p>Above, we see that <tt class="docutils literal"><span class="pre">Wendy</span></tt> is passed as a parameter to the database,
+while the placeholder <tt class="docutils literal"><span class="pre">:name_1</span></tt> is rendered in the appropriate form
+for the target database, in this case the Postgresql database.</p>
+<p>Similarly, <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> is invoked automatically
+when working with <a class="reference internal" href="../glossary.html#term-crud"><em class="xref std std-term">CRUD</em></a> statements as far as the &#8220;VALUES&#8221;
+portion is concerned.   The <a class="reference internal" href="dml.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> construct produces an
+<tt class="docutils literal"><span class="pre">INSERT</span></tt> expression which will, at statement execution time, generate
+bound placeholders based on the arguments passed, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">users_table</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Wendy&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>The above will produce SQL output as:</p>
+<div class="highlight-python"><pre>INSERT INTO "user" (name) VALUES (%(name)s)
+{'name': 'Wendy'}</pre>
+</div>
+<p>The <a class="reference internal" href="dml.html#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> construct, at compilation/execution time,
+rendered a single <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> mirroring the column
+name <tt class="docutils literal"><span class="pre">name</span></tt> as a result of the single <tt class="docutils literal"><span class="pre">name</span></tt> parameter
+we passed to the <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execute" title="sqlalchemy.engine.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execute()</span></tt></a> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.key"></span><strong>key</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.key">¶</a> &#8211; the key (e.g. the name) for this bind param.
+Will be used in the generated
 SQL statement for dialects that use named parameters.  This
 value may be modified when part of a compilation operation,
 if other <a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> objects exist with the same
 key, or if its length is too long and truncation is
 required.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.value"></span><strong>value</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.value">¶</a> &#8211; <p>Initial value for this bind param.  This value may be
-overridden by the dictionary of parameters sent to statement
-compilation/execution.</p>
-<p>Defaults to <tt class="docutils literal"><span class="pre">None</span></tt>, however if neither <tt class="docutils literal"><span class="pre">value</span></tt> nor
-<tt class="docutils literal"><span class="pre">callable</span></tt> are passed explicitly, the <tt class="docutils literal"><span class="pre">required</span></tt> flag will be
-set to <tt class="docutils literal"><span class="pre">True</span></tt> which has the effect of requiring a value be present
-when the statement is actually executed.</p>
-<div class="versionchanged">
-<p><span>Changed in version 0.8: </span>The <tt class="docutils literal"><span class="pre">required</span></tt> flag is set to <tt class="docutils literal"><span class="pre">True</span></tt>
-automatically if <tt class="docutils literal"><span class="pre">value</span></tt> or <tt class="docutils literal"><span class="pre">callable</span></tt> is not passed.</p>
-</div>
-</li>
+<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.value"></span><strong>value</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.value">¶</a> &#8211; Initial value for this bind param.  Will be used at statement
+execution time as the value for this parameter passed to the
+DBAPI, if no other value is indicated to the statement execution
+method for this particular parameter name.  Defaults to <tt class="docutils literal"><span class="pre">None</span></tt>.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.callable_"></span><strong>callable_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.callable_">¶</a> &#8211; A callable function that takes the place of &#8220;value&#8221;.  The function
 will be called at statement execution time to determine the
 ultimate value.   Used for scenarios where the actual bind
 value cannot be determined at the point at which the clause
 construct is created, but embedded bind values are still desirable.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.type_"></span><strong>type_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.type_">¶</a> &#8211; A <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> object that will be used to pre-process the
-value corresponding to this <a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> at
-execution time.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.unique"></span><strong>unique</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.unique">¶</a> &#8211; if True, the key name of this BindParamClause will be
+<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.type_"></span><strong>type_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.type_">¶</a> &#8211; <p>A <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> class or instance representing an optional
+datatype for this <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a>.  If not passed, a type
+may be determined automatically for the bind, based on the given
+value; for example, trivial Python types such as <tt class="docutils literal"><span class="pre">str</span></tt>,
+<tt class="docutils literal"><span class="pre">int</span></tt>, <tt class="docutils literal"><span class="pre">bool</span></tt>
+may result in the <a class="reference internal" href="types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>, <a class="reference internal" href="types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> or
+<a class="reference internal" href="types.html#sqlalchemy.types.Boolean" title="sqlalchemy.types.Boolean"><tt class="xref py py-class docutils literal"><span class="pre">Boolean</span></tt></a> types being autoamtically selected.</p>
+<p>The type of a <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> is significant especially in that
+the type will apply pre-processing to the value before it is
+passed to the database.  For example, a <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> which
+refers to a datetime value, and is specified as holding the
+<a class="reference internal" href="types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">DateTime</span></tt></a> type, may apply conversion needed to the
+value (such as stringification on SQLite) before passing the value
+to the database.</p>
+</li>
+<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.unique"></span><strong>unique</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.unique">¶</a> &#8211; if True, the key name of this <a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> will be
 modified if another <a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> of the same name
 already has been located within the containing
-<a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>.</li>
+expression.  This flag is used generally by the internals
+when producing so-called &#8220;anonymous&#8221; bound expressions, it
+isn&#8217;t generally applicable to explicitly-named <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a>
+constructs.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.required"></span><strong>required</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.required">¶</a> &#8211; <p>If <tt class="docutils literal"><span class="pre">True</span></tt>, a value is required at execution time.  If not passed,
-is set to <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt> based on whether or not
-one of <tt class="docutils literal"><span class="pre">value</span></tt> or <tt class="docutils literal"><span class="pre">callable</span></tt> were passed..</p>
+it defaults to <tt class="docutils literal"><span class="pre">True</span></tt> if neither <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam.params.value" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-paramref docutils literal"><span class="pre">bindparam.value</span></tt></a>
+or <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam.params.callable" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-paramref docutils literal"><span class="pre">bindparam.callable</span></tt></a> were passed.  If either of these
+parameters are present, then <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam.params.required" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-paramref docutils literal"><span class="pre">bindparam.required</span></tt></a> defaults
+to <tt class="docutils literal"><span class="pre">False</span></tt>.</p>
 <div class="versionchanged">
 <p><span>Changed in version 0.8: </span>If the <tt class="docutils literal"><span class="pre">required</span></tt> flag is not specified,
 it will be set automatically to <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt> depending
@@ -249,94 +441,187 @@ were specified.</p>
 </li>
 <li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.quote"></span><strong>quote</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.quote">¶</a> &#8211; True if this parameter name requires quoting and is not
 currently known as a SQLAlchemy reserved word; this currently
-only applies to the Oracle backend.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.isoutparam"></span><strong>isoutparam</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.isoutparam">¶</a> &#8211; <p>if True, the parameter should be treated like a stored procedure
-&#8220;OUT&#8221; parameter.</p>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.outparam" title="sqlalchemy.sql.expression.outparam"><tt class="xref py py-func docutils literal"><span class="pre">outparam()</span></tt></a></p>
-</div>
-</li>
+only applies to the Oracle backend, where bound names must
+sometimes be quoted.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.bindparam.params.isoutparam"></span><strong>isoutparam</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.bindparam.params.isoutparam">¶</a> &#8211; if True, the parameter should be treated like a stored procedure
+&#8220;OUT&#8221; parameter.  This applies to backends such as Oracle which
+support OUT parameters.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="tutorial.html#coretutorial-bind-param"><em>Bind Parameter Objects</em></a></p>
+<p><a class="reference internal" href="tutorial.html#coretutorial-insert-expressions"><em>Insert Expressions</em></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.outparam" title="sqlalchemy.sql.expression.outparam"><tt class="xref py py-func docutils literal"><span class="pre">outparam()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.case">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">case</tt><big>(</big><em>whens</em>, <em>value=None</em>, <em>else_=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.case" title="Permalink to this definition">¶</a></dt>
-<dd><p>Produce a <a class="reference internal" href="#sqlalchemy.sql.expression.Case" title="sqlalchemy.sql.expression.Case"><tt class="xref py py-class docutils literal"><span class="pre">Case</span></tt></a> object.</p>
+<dd><p>Produce a <tt class="docutils literal"><span class="pre">CASE</span></tt> expression.</p>
+<p>The <tt class="docutils literal"><span class="pre">CASE</span></tt> construct in SQL is a conditional object that
+acts somewhat analogously to an &#8220;if/then&#8221; construct in other
+languages.  It returns an instance of <a class="reference internal" href="#sqlalchemy.sql.expression.Case" title="sqlalchemy.sql.expression.Case"><tt class="xref py py-class docutils literal"><span class="pre">Case</span></tt></a>.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.case" title="sqlalchemy.sql.expression.case"><tt class="xref py py-func docutils literal"><span class="pre">case()</span></tt></a> in its usual form is passed a list of &#8220;when&#8221;
+contructs, that is, a list of conditions and results as tuples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">case</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">where</span><span class="p">(</span>
+                <span class="n">case</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="s">&#39;W&#39;</span><span class="p">),</span>
+                        <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;jack&#39;</span><span class="p">,</span> <span class="s">&#39;J&#39;</span><span class="p">)</span>
+                    <span class="p">],</span>
+                    <span class="n">else_</span><span class="o">=</span><span class="s">&#39;E&#39;</span>
+                <span class="p">)</span>
+            <span class="p">)</span></pre></div>
+</div>
+<p>The above statement will produce SQL resembling:</p>
+<div class="highlight-python"><pre>SELECT id, name FROM user
+WHERE CASE
+    WHEN (name = :name_1) THEN :param_1
+    WHEN (name = :name_2) THEN :param_2
+    ELSE :param_3
+END</pre>
+</div>
+<p>When simple equality expressions of several values against a single
+parent column are needed, <a class="reference internal" href="#sqlalchemy.sql.expression.case" title="sqlalchemy.sql.expression.case"><tt class="xref py py-func docutils literal"><span class="pre">case()</span></tt></a> also has a &#8220;shorthand&#8221; format
+used via the
+<a class="reference internal" href="#sqlalchemy.sql.expression.case.params.value" title="sqlalchemy.sql.expression.case"><tt class="xref py py-paramref docutils literal"><span class="pre">case.value</span></tt></a> parameter, which is passed a column
+expression to be compared.  In this form, the <a class="reference internal" href="#sqlalchemy.sql.expression.case.params.whens" title="sqlalchemy.sql.expression.case"><tt class="xref py py-paramref docutils literal"><span class="pre">case.whens</span></tt></a>
+parameter is passed as a dictionary containing expressions to be compared
+against keyed to result expressions.  The statement below is equivalent
+to the preceding statement:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">where</span><span class="p">(</span>
+                <span class="n">case</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s">&quot;wendy&quot;</span><span class="p">:</span> <span class="s">&quot;W&quot;</span><span class="p">,</span> <span class="s">&quot;jack&quot;</span><span class="p">:</span> <span class="s">&quot;J&quot;</span><span class="p">},</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">else_</span><span class="o">=</span><span class="s">&#39;E&#39;</span>
+                <span class="p">)</span>
+            <span class="p">)</span></pre></div>
+</div>
+<p>The values which are accepted as result values in
+<a class="reference internal" href="#sqlalchemy.sql.expression.case.params.whens" title="sqlalchemy.sql.expression.case"><tt class="xref py py-paramref docutils literal"><span class="pre">case.whens</span></tt></a> as well as with <a class="reference internal" href="#sqlalchemy.sql.expression.case.params.else_" title="sqlalchemy.sql.expression.case"><tt class="xref py py-paramref docutils literal"><span class="pre">case.else_</span></tt></a> are
+coerced from Python literals into <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> constructs.
+SQL expressions, e.g. <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> constructs, are accepted
+as well.  To coerce a literal string expression into a constant
+expression rendered inline, use the <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> construct,
+as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">case</span><span class="p">,</span> <span class="n">literal_column</span>
+
+<span class="n">case</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">(</span>
+            <span class="n">orderline</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">qty</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;&#39;greaterthan100&#39;&quot;</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="n">orderline</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">qty</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;&#39;greaterthan10&#39;&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">else_</span><span class="o">=</span><span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;&#39;lessthan10&#39;&quot;</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>The above will render the given constants without using bound
+parameters for the result values (but still for the comparison
+values), as in:</p>
+<div class="highlight-python"><pre>CASE
+    WHEN (orderline.qty &gt; :qty_1) THEN 'greaterthan100'
+    WHEN (orderline.qty &gt; :qty_2) THEN 'greaterthan10'
+    ELSE 'lessthan10'
+END</pre>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.case.params.whens"></span><strong>whens</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.case.params.whens">¶</a> &#8211; A sequence of pairs, or alternatively a dict,
-to be translated into &#8220;WHEN / THEN&#8221; clauses.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.case.params.value"></span><strong>value</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.case.params.value">¶</a> &#8211; Optional for simple case statements, produces
-a column expression as in &#8220;CASE &lt;expr&gt; WHEN ...&#8221;</li>
-<li><span class="target" id="sqlalchemy.sql.expression.case.params.else_"></span><strong>else_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.case.params.else_">¶</a> &#8211; Optional as well, for case defaults produces
-the &#8220;ELSE&#8221; portion of the &#8220;CASE&#8221; statement.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.case.params.whens"></span><strong>whens</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.case.params.whens">¶</a> &#8211; <p>The criteria to be compared against, <a class="reference internal" href="#sqlalchemy.sql.expression.case.params.whens" title="sqlalchemy.sql.expression.case"><tt class="xref py py-paramref docutils literal"><span class="pre">case.whens</span></tt></a>
+accepts two different forms, based on whether or not <a class="reference internal" href="#sqlalchemy.sql.expression.case.params.value" title="sqlalchemy.sql.expression.case"><tt class="xref py py-paramref docutils literal"><span class="pre">case.value</span></tt></a>
+is used.</p>
+<p>In the first form, it accepts a list of 2-tuples; each 2-tuple consists
+of <tt class="docutils literal"><span class="pre">(&lt;sql</span> <span class="pre">expression&gt;,</span> <span class="pre">&lt;value&gt;)</span></tt>, where the SQL expression is a
+boolean expression and &#8220;value&#8221; is a resulting value, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">case</span><span class="p">([</span>
+    <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="s">&#39;W&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;jack&#39;</span><span class="p">,</span> <span class="s">&#39;J&#39;</span><span class="p">)</span>
+<span class="p">])</span></pre></div>
+</div>
+<p>In the second form, it accepts a Python dictionary of comparison values
+mapped to a resulting value; this form requires <a class="reference internal" href="#sqlalchemy.sql.expression.case.params.value" title="sqlalchemy.sql.expression.case"><tt class="xref py py-paramref docutils literal"><span class="pre">case.value</span></tt></a>
+to be present, and values will be compared using the <tt class="docutils literal"><span class="pre">==</span></tt> operator,
+e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">case</span><span class="p">(</span>
+    <span class="p">{</span><span class="s">&quot;wendy&quot;</span><span class="p">:</span> <span class="s">&quot;W&quot;</span><span class="p">,</span> <span class="s">&quot;jack&quot;</span><span class="p">:</span> <span class="s">&quot;J&quot;</span><span class="p">},</span>
+    <span class="n">value</span><span class="o">=</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span>
+<span class="p">)</span></pre></div>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.sql.expression.case.params.value"></span><strong>value</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.case.params.value">¶</a> &#8211; An optional SQL expression which will be used as a
+fixed &#8220;comparison point&#8221; for candidate values within a dictionary
+passed to <a class="reference internal" href="#sqlalchemy.sql.expression.case.params.whens" title="sqlalchemy.sql.expression.case"><tt class="xref py py-paramref docutils literal"><span class="pre">case.whens</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.case.params.else_"></span><strong>else_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.case.params.else_">¶</a> &#8211; An optional SQL expression which will be the evaluated
+result of the <tt class="docutils literal"><span class="pre">CASE</span></tt> construct if all expressions within
+<a class="reference internal" href="#sqlalchemy.sql.expression.case.params.whens" title="sqlalchemy.sql.expression.case"><tt class="xref py py-paramref docutils literal"><span class="pre">case.whens</span></tt></a> evaluate to false.  When omitted, most
+databases will produce a result of NULL if none of the &#8220;when&#8221;
+expressions evaulate to true.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>The expressions used for THEN and ELSE,
-when specified as strings, will be interpreted
-as bound values. To specify textual SQL expressions
-for these, use the <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a>
-construct.</p>
-<p>The expressions used for the WHEN criterion
-may only be literal strings when &#8220;value&#8221; is
-present, i.e. CASE table.somecol WHEN &#8220;x&#8221; THEN &#8220;y&#8221;.
-Otherwise, literal strings are not accepted
-in this position, and either the text(&lt;string&gt;)
-or literal(&lt;string&gt;) constructs must be used to
-interpret raw string values.</p>
-<p>Usage examples:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">case</span><span class="p">([(</span><span class="n">orderline</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">qty</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">specialprice</span><span class="p">),</span>
-      <span class="p">(</span><span class="n">orderline</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">qty</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">bulkprice</span><span class="p">)</span>
-    <span class="p">],</span> <span class="n">else_</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">regularprice</span><span class="p">)</span>
-
-<span class="n">case</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">emp</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">whens</span><span class="o">=</span><span class="p">{</span>
-        <span class="s">&#39;engineer&#39;</span><span class="p">:</span> <span class="n">emp</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">salary</span> <span class="o">*</span> <span class="mf">1.1</span><span class="p">,</span>
-        <span class="s">&#39;manager&#39;</span><span class="p">:</span>  <span class="n">emp</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">salary</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
-    <span class="p">})</span></pre></div>
-</div>
-<p>Using <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a>, to allow for databases that
-do not support bind parameters in the <tt class="docutils literal"><span class="pre">then</span></tt> clause.  The type
-can be specified which determines the type of the <a class="reference internal" href="#sqlalchemy.sql.expression.case" title="sqlalchemy.sql.expression.case"><tt class="xref py py-func docutils literal"><span class="pre">case()</span></tt></a> construct
-overall:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">case</span><span class="p">([(</span><span class="n">orderline</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">qty</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">,</span>
-        <span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;&#39;greaterthan100&#39;&quot;</span><span class="p">,</span> <span class="n">String</span><span class="p">)),</span>
-      <span class="p">(</span><span class="n">orderline</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">qty</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">,</span> <span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;&#39;greaterthan10&#39;&quot;</span><span class="p">,</span>
-        <span class="n">String</span><span class="p">))</span>
-    <span class="p">],</span> <span class="n">else_</span><span class="o">=</span><span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;&#39;lethan10&#39;&quot;</span><span class="p">,</span> <span class="n">String</span><span class="p">))</span></pre></div>
-</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.cast">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">cast</tt><big>(</big><em>expression</em>, <em>type_</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.cast" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Cast" title="sqlalchemy.sql.expression.Cast"><tt class="xref py py-class docutils literal"><span class="pre">Cast</span></tt></a> object.</p>
-<p>Equivalent of SQL <tt class="docutils literal"><span class="pre">CAST(clause</span> <span class="pre">AS</span> <span class="pre">totype)</span></tt>.</p>
+<dd><p>Produce a <tt class="docutils literal"><span class="pre">CAST</span></tt> expression.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> returns an instance of <a class="reference internal" href="#sqlalchemy.sql.expression.Cast" title="sqlalchemy.sql.expression.Cast"><tt class="xref py py-class docutils literal"><span class="pre">Cast</span></tt></a>.</p>
 <p>E.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">cast</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">unit_price</span> <span class="o">*</span> <span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">qty</span><span class="p">,</span> <span class="n">Numeric</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Numeric</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
+            <span class="n">cast</span><span class="p">(</span><span class="n">product_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">unit_price</span><span class="p">,</span> <span class="n">Numeric</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+        <span class="p">])</span></pre></div>
 </div>
-<p>or:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">cast</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">DATE</span><span class="p">)</span></pre></div>
+<p>The above statement will produce SQL resembling:</p>
+<div class="highlight-python"><pre>SELECT CAST(unit_price AS NUMERIC(10, 4)) FROM product</pre>
 </div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> function performs two distinct functions when
+used.  The first is that it renders the <tt class="docutils literal"><span class="pre">CAST</span></tt> expression within
+the resulting SQL string.  The second is that it associates the given
+type (e.g. <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> class or instance) with the column
+expression on the Python side, which means the expression will take
+on the expression operator behavior associated with that type,
+as well as the bound-value handling and result-row-handling behavior
+of the type.</p>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.0: </span><a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> now applies the given type
+to the expression such that it takes effect on the bound-value,
+e.g. the Python-to-database direction, in addition to the
+result handling, e.g. database-to-Python, direction.</p>
+</div>
+<p>An alternative to <a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> is the <a class="reference internal" href="#sqlalchemy.sql.expression.type_coerce" title="sqlalchemy.sql.expression.type_coerce"><tt class="xref py py-func docutils literal"><span class="pre">type_coerce()</span></tt></a> function.
+This function performs the second task of associating an expression
+with a specific type, but does not render the <tt class="docutils literal"><span class="pre">CAST</span></tt> expression
+in SQL.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.cast.params.expression"></span><strong>expression</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.cast.params.expression">¶</a> &#8211; Column-oriented expression.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.cast.params.expression"></span><strong>expression</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.cast.params.expression">¶</a> &#8211; A SQL expression, such as a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
+expression or a Python string which will be coerced into a bound
+literal value.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.cast.params.type_"></span><strong>type_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.cast.params.type_">¶</a> &#8211; A <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> class or instance indicating
-the type to which the CAST should apply.</li>
+the type to which the <tt class="docutils literal"><span class="pre">CAST</span></tt> should apply.</li>
 </ul>
 </td>
 </tr>
@@ -352,7 +637,52 @@ CAST.</p>
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.column">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">column</tt><big>(</big><em>text</em>, <em>type_=None</em>, <em>is_literal=False</em>, <em>_selectable=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.column" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> object.</p>
+<dd><p>Produce a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> object.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> is a lightweight analogue to the
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> class.  The <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function can
+be invoked with just a name alone, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">column</span>
+
+<span class="nb">id</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="nb">id</span><span class="p">,</span> <span class="n">name</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>The above statement would produce SQL like:</p>
+<div class="highlight-python"><pre>SELECT id, name FROM user</pre>
+</div>
+<p>Once constructed, <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> may be used like any other SQL expression
+element such as within <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> constructs:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">column</span>
+
+<span class="nb">id</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="nb">id</span><span class="p">,</span> <span class="n">name</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>The text handled by <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> is assumed to be handled
+like the name of a database column; if the string contains mixed case,
+special characters, or matches a known reserved word on the target
+backend, the column expression will render using the quoting
+behavior determined by the backend.  To produce a textual SQL
+expression that is rendered exactly without any quoting,
+use <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> instead, or pass <tt class="docutils literal"><span class="pre">True</span></tt> as the
+value of <a class="reference internal" href="#sqlalchemy.sql.expression.column.params.is_literal" title="sqlalchemy.sql.expression.column"><tt class="xref py py-paramref docutils literal"><span class="pre">column.is_literal</span></tt></a>.   Additionally, full SQL
+statements are best handled using the <a class="reference internal" href="#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> can be used in a table-like
+fashion by combining it with the <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a> function
+(which is the lightweight analogue to <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>) to produce
+a working table construct with minimal boilerplate:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">),</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&quot;description&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">description</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>A <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> / <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a> construct like that illustrated
+above can be created in an
+ad-hoc fashion and is not associated with any <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">schema.MetaData</span></tt></a>,
+DDL, or events, unlike its <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> counterpart.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -364,18 +694,20 @@ this <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause
 <li><span class="target" id="sqlalchemy.sql.expression.column.params.is_literal"></span><strong>is_literal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.column.params.is_literal">¶</a> &#8211; if True, the <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> is assumed to
 be an exact expression that will be delivered to the output with no
 quoting rules applied regardless of case sensitive settings. the
-<a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> function is usually used to create such a
-<a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.column.params.text"></span><strong>text</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.column.params.text">¶</a> &#8211; the name of the column.  Quoting rules will be applied
-to the clause like any other column name. For textual column constructs
-that are not to be quoted, use the <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> function.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.column.params.type_"></span><strong>type_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.column.params.type_">¶</a> &#8211; an optional <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object
-which will provide result-set translation for this column.</li>
+<a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> function essentially invokes <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a>
+while passing <tt class="docutils literal"><span class="pre">is_literal=True</span></tt>.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="metadata.html"><em>Describing Databases with MetaData</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -393,24 +725,66 @@ which will provide result-set translation for this column.</li>
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.desc">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">desc</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.desc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a descending <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> clause element.</p>
+<dd><p>Produce a descending <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> clause element.</p>
 <p>e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">someselect</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">desc</span><span class="p">(</span><span class="n">table1</span><span class="o">.</span><span class="n">mycol</span><span class="p">))</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">desc</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">desc</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></pre></div>
 </div>
-<p>produces:</p>
-<div class="highlight-python"><pre>ORDER BY mycol DESC</pre>
+<p>will produce SQL as:</p>
+<div class="highlight-python"><pre>SELECT id, name FROM user ORDER BY name DESC</pre>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a> function is a standalone version of the
+<a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement.desc" title="sqlalchemy.sql.expression.ColumnElement.desc"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.desc()</span></tt></a> method available on all SQL expressions,
+e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.sql.expression.desc.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.desc.params.column">¶</a> &#8211; A <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> (e.g. scalar SQL expression)
+with which to apply the <a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a> operation.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.nullsfirst" title="sqlalchemy.sql.expression.nullsfirst"><tt class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.nullslast" title="sqlalchemy.sql.expression.nullslast"><tt class="xref py py-func docutils literal"><span class="pre">nullslast()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.order_by" title="sqlalchemy.sql.expression.Select.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Select.order_by()</span></tt></a></p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.distinct">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">distinct</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.distinct" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> clause.</p>
-<p>e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">distinct</span><span class="p">(</span><span class="n">a</span><span class="p">)</span></pre></div>
+<dd><p>Produce an column-expression-level unary <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> clause.</p>
+<p>This applies the <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> keyword to an individual column
+expression, and is typically contained within an aggregate function,
+as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">distinct</span><span class="p">,</span> <span class="n">func</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">distinct</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">))])</span></pre></div>
 </div>
-<p>renders:</p>
-<div class="highlight-python"><pre>DISTINCT a</pre>
+<p>The above would produce an expression resembling:</p>
+<div class="highlight-python"><pre>SELECT COUNT(DISTINCT name) FROM user</pre>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.distinct" title="sqlalchemy.sql.expression.distinct"><tt class="xref py py-func docutils literal"><span class="pre">distinct()</span></tt></a> function is also available as a column-level
+method, e.g. <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement.distinct" title="sqlalchemy.sql.expression.ColumnElement.distinct"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.distinct()</span></tt></a>, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">distinct</span><span class="p">())])</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.distinct" title="sqlalchemy.sql.expression.distinct"><tt class="xref py py-func docutils literal"><span class="pre">distinct()</span></tt></a> operator is different from the
+<a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.distinct" title="sqlalchemy.sql.expression.Select.distinct"><tt class="xref py py-meth docutils literal"><span class="pre">Select.distinct()</span></tt></a> method of <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>,
+which produces a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement
+with <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> applied to the result set as a whole,
+e.g. a <tt class="docutils literal"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span></tt> expression.  See that method for further
+information.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement.distinct" title="sqlalchemy.sql.expression.ColumnElement.distinct"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.distinct()</span></tt></a></p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.distinct" title="sqlalchemy.sql.expression.Select.distinct"><tt class="xref py py-meth docutils literal"><span class="pre">Select.distinct()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a></p>
 </div>
 </dd></dl>
 
@@ -459,7 +833,7 @@ that don&#8217;t support true/false constants.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103493b50&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103f81cd0&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> is a special object instance which generates SQL
 functions based on name-based attributes, e.g.:</p>
@@ -613,34 +987,90 @@ same result.</p>
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.nullsfirst">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">nullsfirst</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.nullsfirst" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a NULLS FIRST <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> clause element.</p>
-<p>e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">someselect</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">desc</span><span class="p">(</span><span class="n">table1</span><span class="o">.</span><span class="n">mycol</span><span class="p">)</span><span class="o">.</span><span class="n">nullsfirst</span><span class="p">())</span></pre></div>
+<dd><p>Produce the <tt class="docutils literal"><span class="pre">NULLS</span> <span class="pre">FIRST</span></tt> modifier for an <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> expression.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.nullsfirst" title="sqlalchemy.sql.expression.nullsfirst"><tt class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></tt></a> is intended to modify the expression produced
+by <a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a> or <a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a>, and indicates how NULL values
+should be handled when they are encountered during ordering:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">desc</span><span class="p">,</span> <span class="n">nullsfirst</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">order_by</span><span class="p">(</span><span class="n">nullsfirst</span><span class="p">(</span><span class="n">desc</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)))</span></pre></div>
 </div>
-<p>produces:</p>
-<div class="highlight-python"><pre>ORDER BY mycol DESC NULLS FIRST</pre>
+<p>The SQL expression from the above would resemble:</p>
+<div class="highlight-python"><pre>SELECT id, name FROM user ORDER BY name DESC NULLS FIRST</pre>
+</div>
+<p>Like <a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.expression.nullsfirst" title="sqlalchemy.sql.expression.nullsfirst"><tt class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></tt></a> is typically
+invoked from the column expression itself using <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement.nullsfirst" title="sqlalchemy.sql.expression.ColumnElement.nullsfirst"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.nullsfirst()</span></tt></a>,
+rather than as its standalone function version, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">order_by</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">desc</span><span class="p">()</span><span class="o">.</span><span class="n">nullsfirst</span><span class="p">())</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.nullslast" title="sqlalchemy.sql.expression.nullslast"><tt class="xref py py-func docutils literal"><span class="pre">nullslast()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.order_by" title="sqlalchemy.sql.expression.Select.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Select.order_by()</span></tt></a></p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.nullslast">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">nullslast</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.nullslast" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a NULLS LAST <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> clause element.</p>
-<p>e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">someselect</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">desc</span><span class="p">(</span><span class="n">table1</span><span class="o">.</span><span class="n">mycol</span><span class="p">)</span><span class="o">.</span><span class="n">nullslast</span><span class="p">())</span></pre></div>
+<dd><p>Produce the <tt class="docutils literal"><span class="pre">NULLS</span> <span class="pre">LAST</span></tt> modifier for an <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> expression.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.nullslast" title="sqlalchemy.sql.expression.nullslast"><tt class="xref py py-func docutils literal"><span class="pre">nullslast()</span></tt></a> is intended to modify the expression produced
+by <a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a> or <a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a>, and indicates how NULL values
+should be handled when they are encountered during ordering:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">desc</span><span class="p">,</span> <span class="n">nullslast</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">order_by</span><span class="p">(</span><span class="n">nullslast</span><span class="p">(</span><span class="n">desc</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)))</span></pre></div>
 </div>
-<p>produces:</p>
-<div class="highlight-python"><pre>ORDER BY mycol DESC NULLS LAST</pre>
+<p>The SQL expression from the above would resemble:</p>
+<div class="highlight-python"><pre>SELECT id, name FROM user ORDER BY name DESC NULLS LAST</pre>
+</div>
+<p>Like <a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.expression.nullslast" title="sqlalchemy.sql.expression.nullslast"><tt class="xref py py-func docutils literal"><span class="pre">nullslast()</span></tt></a> is typically
+invoked from the column expression itself using <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement.nullslast" title="sqlalchemy.sql.expression.ColumnElement.nullslast"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.nullslast()</span></tt></a>,
+rather than as its standalone function version, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">order_by</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">desc</span><span class="p">()</span><span class="o">.</span><span class="n">nullslast</span><span class="p">())</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.nullsfirst" title="sqlalchemy.sql.expression.nullsfirst"><tt class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.order_by" title="sqlalchemy.sql.expression.Select.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Select.order_by()</span></tt></a></p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.or_">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">or_</tt><big>(</big><em>*clauses</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.or_" title="Permalink to this definition">¶</a></dt>
-<dd><p>Join a list of clauses together using the <tt class="docutils literal"><span class="pre">OR</span></tt> operator.</p>
-<p>The <tt class="docutils literal"><span class="pre">|</span></tt> operator is also overloaded on all
-<a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> subclasses to produce the
-same result.</p>
+<dd><p>Produce a conjunction of expressions joined by <tt class="docutils literal"><span class="pre">OR</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">or_</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                <span class="n">or_</span><span class="p">(</span>
+                    <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span>
+                    <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;jack&#39;</span>
+                <span class="p">)</span>
+            <span class="p">)</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.or_" title="sqlalchemy.sql.expression.or_"><tt class="xref py py-func docutils literal"><span class="pre">or_()</span></tt></a> conjunction is also available using the
+Python <tt class="docutils literal"><span class="pre">|</span></tt> operator (though note that compound expressions
+need to be parenthesized in order to function with Python
+operator precedence behavior):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">)</span> <span class="o">|</span>
+                <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;jack&#39;</span><span class="p">)</span>
+            <span class="p">)</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -745,7 +1175,8 @@ of a full, standalone statement.   As such, SQLAlchemy refers
 to it as an <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> object, and it supports
 the <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execution_options()</span></tt></a> method.  For example,
 a <a class="reference internal" href="#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct that should be subject to &#8220;autocommit&#8221;
-can be set explicitly so using the <tt class="docutils literal"><span class="pre">autocommit</span></tt> option:</p>
+can be set explicitly so using the <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options.params.autocommit" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-paramref docutils literal"><span class="pre">Connection.execution_options.autocommit</span></tt></a>
+option:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">t</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="s">&quot;EXEC my_procedural_thing()&quot;</span><span class="p">)</span><span class="o">.</span>\
         <span class="n">execution_options</span><span class="p">(</span><span class="n">autocommit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
@@ -872,46 +1303,42 @@ an expression is invoked.</p>
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.type_coerce">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">type_coerce</tt><big>(</big><em>expression</em>, <em>type_</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.type_coerce" title="Permalink to this definition">¶</a></dt>
-<dd><p>Coerce the given expression into the given type,
-on the Python side only.</p>
-<p><a class="reference internal" href="#sqlalchemy.sql.expression.type_coerce" title="sqlalchemy.sql.expression.type_coerce"><tt class="xref py py-func docutils literal"><span class="pre">type_coerce()</span></tt></a> is roughly similar to <a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a>, except no
-&#8220;CAST&#8221; expression is rendered - the given type is only applied towards
-expression typing and against received result values.</p>
-<p>e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">TypeDecorator</span>
-<span class="kn">import</span> <span class="nn">uuid</span>
+<dd><p>Associate a SQL expression with a particular type, without rendering
+<tt class="docutils literal"><span class="pre">CAST</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">type_coerce</span>
 
-<span class="k">class</span> <span class="nc">AsGuid</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
-    <span class="n">impl</span> <span class="o">=</span> <span class="n">String</span>
-
-    <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
-
-    <span class="k">def</span> <span class="nf">process_result_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
-
-<span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-    <span class="n">select</span><span class="p">([</span><span class="n">type_coerce</span><span class="p">(</span><span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">ident</span><span class="p">,</span> <span class="n">AsGuid</span><span class="p">)])</span><span class="o">.</span>\
-            <span class="n">where</span><span class="p">(</span>
-                <span class="n">type_coerce</span><span class="p">(</span><span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">ident</span><span class="p">,</span> <span class="n">AsGuid</span><span class="p">)</span> <span class="o">==</span>
-                <span class="n">uuid</span><span class="o">.</span><span class="n">uuid3</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">NAMESPACE_URL</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">)</span>
-            <span class="p">)</span>
-<span class="p">)</span></pre></div>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">type_coerce</span><span class="p">(</span><span class="n">log_table</span><span class="o">.</span><span class="n">date_string</span><span class="p">,</span> <span class="n">StringDateTime</span><span class="p">())])</span></pre></div>
 </div>
+<p>The above construct will produce SQL that is usually otherwise unaffected
+by the <a class="reference internal" href="#sqlalchemy.sql.expression.type_coerce" title="sqlalchemy.sql.expression.type_coerce"><tt class="xref py py-func docutils literal"><span class="pre">type_coerce()</span></tt></a> call:</p>
+<div class="highlight-python"><pre>SELECT date_string FROM log</pre>
+</div>
+<p>However, when result rows are fetched, the <tt class="docutils literal"><span class="pre">StringDateTime</span></tt> type
+will be applied to result rows on behalf of the <tt class="docutils literal"><span class="pre">date_string</span></tt> column.</p>
+<p>A type that features bound-value handling will also have that behavior
+take effect when literal values or <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> constructs are
+passed to <a class="reference internal" href="#sqlalchemy.sql.expression.type_coerce" title="sqlalchemy.sql.expression.type_coerce"><tt class="xref py py-func docutils literal"><span class="pre">type_coerce()</span></tt></a> as targets.
+For example, if a type implements the <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine.bind_expression" title="sqlalchemy.types.TypeEngine.bind_expression"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.bind_expression()</span></tt></a>
+method or <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine.bind_processor" title="sqlalchemy.types.TypeEngine.bind_processor"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.bind_processor()</span></tt></a> method or equivalent,
+these functions will take effect at statement compliation/execution time
+when a literal value is passed, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># bound-value handling of MyStringType will be applied to the</span>
+<span class="c"># literal value &quot;some string&quot;</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">type_coerce</span><span class="p">(</span><span class="s">&quot;some string&quot;</span><span class="p">,</span> <span class="n">MyStringType</span><span class="p">)])</span></pre></div>
+</div>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.type_coerce" title="sqlalchemy.sql.expression.type_coerce"><tt class="xref py py-func docutils literal"><span class="pre">type_coerce()</span></tt></a> is similar to the <a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> function,
+except that it does not render the <tt class="docutils literal"><span class="pre">CAST</span></tt> expression in the resulting
+statement.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.type_coerce.params.expression"></span><strong>expression</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.type_coerce.params.expression">¶</a> &#8211; Column-oriented expression.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.type_coerce.params.expression"></span><strong>expression</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.type_coerce.params.expression">¶</a> &#8211; A SQL expression, such as a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> expression
+or a Python string which will be coerced into a bound literal value.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.type_coerce.params.type_"></span><strong>type_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.type_coerce.params.type_">¶</a> &#8211; A <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> class or instance indicating
-the type to which the CAST should apply.</li>
+the type to which the the expression is coerced.</li>
 </ul>
 </td>
 </tr>
@@ -949,7 +1376,20 @@ given <a class="reference internal" href="#sqlalchemy.sql.expression.BinaryExpre
 <dt id="sqlalchemy.sql.expression.BindParameter">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">BindParameter</tt><big>(</big><em>key</em>, <em>value=symbol('NO_ARG')</em>, <em>type_=None</em>, <em>unique=False</em>, <em>required=symbol('NO_ARG')</em>, <em>quote=None</em>, <em>callable_=None</em>, <em>isoutparam=False</em>, <em>_compared_to_operator=None</em>, <em>_compared_to_type=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.BindParameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a></p>
-<p>Represent a bound parameter value.</p>
+<p>Represent a &#8220;bound expression&#8221;.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> is invoked explicitly using the
+<a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> function, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">bindparam</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">where</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">bindparam</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">))</span></pre></div>
+</div>
+<p>Detailed discussion of how <a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> is used is
+at <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a></p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.BindParameter.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>key</em>, <em>value=symbol('NO_ARG')</em>, <em>type_=None</em>, <em>unique=False</em>, <em>required=symbol('NO_ARG')</em>, <em>quote=None</em>, <em>callable_=None</em>, <em>isoutparam=False</em>, <em>_compared_to_operator=None</em>, <em>_compared_to_type=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.BindParameter.__init__" title="Permalink to this definition">¶</a></dt>
@@ -980,7 +1420,27 @@ and returned if present, else <tt class="docutils literal"><span class="pre">val
 <dt id="sqlalchemy.sql.expression.Case">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Case</tt><big>(</big><em>whens</em>, <em>value=None</em>, <em>else_=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Case" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a></p>
-<p>Represent a SQL <tt class="docutils literal"><span class="pre">CASE</span></tt> construct.</p>
+<p>Represent a <tt class="docutils literal"><span class="pre">CASE</span></tt> expression.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.Case" title="sqlalchemy.sql.expression.Case"><tt class="xref py py-class docutils literal"><span class="pre">Case</span></tt></a> is produced using the <a class="reference internal" href="#sqlalchemy.sql.expression.case" title="sqlalchemy.sql.expression.case"><tt class="xref py py-func docutils literal"><span class="pre">case()</span></tt></a> factory function,
+as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">case</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
+            <span class="n">where</span><span class="p">(</span>
+                <span class="n">case</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="s">&#39;W&#39;</span><span class="p">),</span>
+                        <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;jack&#39;</span><span class="p">,</span> <span class="s">&#39;J&#39;</span><span class="p">)</span>
+                    <span class="p">],</span>
+                    <span class="n">else_</span><span class="o">=</span><span class="s">&#39;E&#39;</span>
+                <span class="p">)</span>
+            <span class="p">)</span></pre></div>
+</div>
+<p>Details on <a class="reference internal" href="#sqlalchemy.sql.expression.Case" title="sqlalchemy.sql.expression.Case"><tt class="xref py py-class docutils literal"><span class="pre">Case</span></tt></a> usage is at <a class="reference internal" href="#sqlalchemy.sql.expression.case" title="sqlalchemy.sql.expression.case"><tt class="xref py py-func docutils literal"><span class="pre">case()</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.case" title="sqlalchemy.sql.expression.case"><tt class="xref py py-func docutils literal"><span class="pre">case()</span></tt></a></p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Case.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>whens</em>, <em>value=None</em>, <em>else_=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Case.__init__" title="Permalink to this definition">¶</a></dt>
@@ -994,7 +1454,20 @@ and returned if present, else <tt class="docutils literal"><span class="pre">val
 <dt id="sqlalchemy.sql.expression.Cast">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Cast</tt><big>(</big><em>expression</em>, <em>type_</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Cast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a></p>
-<p>Represent the SQL <tt class="docutils literal"><span class="pre">CAST</span></tt> construct.</p>
+<p>Represent a <tt class="docutils literal"><span class="pre">CAST</span></tt> expression.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.Cast" title="sqlalchemy.sql.expression.Cast"><tt class="xref py py-class docutils literal"><span class="pre">Cast</span></tt></a> is produced using the <a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> factory function,
+as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Numeric</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
+            <span class="n">cast</span><span class="p">(</span><span class="n">product_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">unit_price</span><span class="p">,</span> <span class="n">Numeric</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+        <span class="p">])</span></pre></div>
+</div>
+<p>Details on <a class="reference internal" href="#sqlalchemy.sql.expression.Cast" title="sqlalchemy.sql.expression.Cast"><tt class="xref py py-class docutils literal"><span class="pre">Cast</span></tt></a> usage is at <a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a></p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Cast.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>expression</em>, <em>type_</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Cast.__init__" title="Permalink to this definition">¶</a></dt>
@@ -1141,42 +1614,32 @@ including a comparison of all the clause items.</p>
 <dt id="sqlalchemy.sql.expression.ColumnClause">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnClause</tt><big>(</big><em>text</em>, <em>type_=None</em>, <em>is_literal=False</em>, <em>_selectable=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnClause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Immutable</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a></p>
-<p>Represents a generic column expression from any textual string.</p>
-<p>This includes columns associated with tables, aliases and select
-statements, but also any arbitrary text.  May or may not be bound
-to an underlying <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a>.</p>
-<p><a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> is constructed by itself typically via
-the <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function.  It may be placed directly
-into constructs such as <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> constructs:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+<p>Represents a column expression from any textual string.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>, a lightweight analogue to the
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> class, is typically invoked using the
+<a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">column</span>
 
-<span class="n">c1</span><span class="p">,</span> <span class="n">c2</span> <span class="o">=</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;c1&quot;</span><span class="p">),</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;c2&quot;</span><span class="p">)</span>
-<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">c1</span><span class="o">==</span><span class="mi">5</span><span class="p">)</span></pre></div>
+<span class="nb">id</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="nb">id</span><span class="p">,</span> <span class="n">name</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span></pre></div>
 </div>
-<p>There is also a variant on <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> known
-as <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> - the difference is that
-in the latter case, the string value is assumed to be an exact
-expression, rather than a column name, so that no quoting rules
-or similar are applied:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">literal_column</span><span class="p">,</span> <span class="n">select</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;5 + 7&quot;</span><span class="p">)])</span></pre></div>
+<p>The above statement would produce SQL like:</p>
+<div class="highlight-python"><pre>SELECT id, name FROM user</pre>
 </div>
-<p><a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> can also be used in a table-like
-fashion by combining the <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function
-with the <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a> function, to produce
-a &#8220;lightweight&#8221; form of table metadata:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span>
-
-<span class="n">user</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span>
-        <span class="n">column</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span>
-        <span class="n">column</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">),</span>
-        <span class="n">column</span><span class="p">(</span><span class="s">&quot;description&quot;</span><span class="p">),</span>
-<span class="p">)</span></pre></div>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> is the immediate superclass of the schema-specific
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object.  While the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> class has all the
+same capabilities as <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>, the <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>
+class is usable by itself in those cases where behavioral requirements
+are limited to simple SQL expression generation.  The object has none of the
+associations with schema-level metadata or with execution-time behavior
+that <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> does, so in that sense is a &#8220;lightweight&#8221; version
+of <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</p>
+<p>Full details on <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> usage is at <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a></p>
 </div>
-<p>The above construct can be created in an ad-hoc fashion and is
-not associated with any <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">schema.MetaData</span></tt></a>, unlike it&#8217;s
-more full fledged <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">schema.Table</span></tt></a> counterpart.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ColumnClause.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>text</em>, <em>type_=None</em>, <em>is_literal=False</em>, <em>_selectable=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnClause.__init__" title="Permalink to this definition">¶</a></dt>
@@ -1233,6 +1696,41 @@ for any unit that may be present in a SQL expression, including
 the expressions themselves, SQL functions, bound parameters,
 literal expressions, keywords such as <tt class="docutils literal"><span class="pre">NULL</span></tt>, etc.
 <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is the ultimate base class for all such elements.</p>
+<p>A wide variety of SQLAlchemy Core functions work at the SQL expression level,
+and are intended to accept instances of <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> as arguments.
+These functions will typically document that they accept a &#8220;SQL expression&#8221;
+as an argument.  What this means in terms of SQLAlchemy usually refers
+to an input which is either already in the form of a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
+object, or a value which can be <strong>coerced</strong> into one.   The coercion
+rules followed by most, but not all, SQLAlchemy Core functions with regards
+to SQL expressions are as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a literal Python value, such as a string, integer or floating
+point value, boolean, datetime, <tt class="docutils literal"><span class="pre">Decimal</span></tt> object, or virtually
+any other Python object, will be coerced into a &#8220;literal bound value&#8221;.
+This generally means that a <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> will be produced
+featuring the given value embedded into the construct; the resulting
+<a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> object is an instance of <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>.
+The Python value will ultimately be sent to the DBAPI at execution time as a
+paramterized argument to the <tt class="docutils literal"><span class="pre">execute()</span></tt> or <tt class="docutils literal"><span class="pre">executemany()</span></tt> methods,
+after SQLAlchemy type-specific converters (e.g. those provided by
+any associated <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> objects) are applied to the value.</li>
+<li>any special object value, typically ORM-level constructs, which feature
+a method called <tt class="docutils literal"><span class="pre">__clause_element__()</span></tt>.   The Core expression system
+looks for this method when an object of otherwise unknown type is passed
+to a function that is looking to coerce the argument into a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
+expression.  The <tt class="docutils literal"><span class="pre">__clause_element__()</span></tt> method, if present, should
+return a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> instance.  The primary use of
+<tt class="docutils literal"><span class="pre">__clause_element__()</span></tt> within SQLAlchemy is that of class-bound attributes
+on ORM-mapped classes; a <tt class="docutils literal"><span class="pre">User</span></tt> class which contains a mapped attribute
+named <tt class="docutils literal"><span class="pre">.name</span></tt> will have a method <tt class="docutils literal"><span class="pre">User.name.__clause_element__()</span></tt>
+which when invoked returns the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> called <tt class="docutils literal"><span class="pre">name</span></tt> associated
+with the mapped table.</li>
+<li>The Python <tt class="docutils literal"><span class="pre">None</span></tt> value is typically interpreted as <tt class="docutils literal"><span class="pre">NULL</span></tt>, which
+in SQLAlchemy Core produces an instance of <a class="reference internal" href="#sqlalchemy.sql.expression.null" title="sqlalchemy.sql.expression.null"><tt class="xref py py-func docutils literal"><span class="pre">null()</span></tt></a>.</li>
+</ul>
+</div></blockquote>
 <p>A <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> provides the ability to generate new
 <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
 objects using Python expressions.  This means that Python operators
@@ -1250,13 +1748,11 @@ of <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement"
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;b&#39;</span><span class="p">)</span>
 <span class="go">a + b</span></pre></div>
 </div>
-<p><a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> supports the ability to be a <em>proxy</em> element,
-which indicates that the <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> may be associated with
-a <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a> which was derived from another <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a>.
-An example of a &#8220;derived&#8221; <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a> is an <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> of a
-<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  For the ambitious, an in-depth
-discussion of this concept can be found at
-<a class="reference external" href="http://techspot.zzzeek.org/2008/01/23/expression-transformations/">Expression Transformations</a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">expression.column()</span></tt></a></p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ColumnElement.__eq__">
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement.__eq__" title="Permalink to this definition">¶</a></dt>
@@ -1710,7 +2206,7 @@ parent object.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ColumnElement.op">
-<tt class="descname">op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement.op" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em>, <em>is_comparison=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement.op" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.Operators.op" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-meth docutils literal"><span class="pre">op()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.Operators" title="sqlalchemy.sql.operators.Operators"><tt class="xref py py-class docutils literal"><span class="pre">Operators</span></tt></a></div>
 <p>produce a generic operator function.</p>
@@ -1744,6 +2240,16 @@ will be lower than or equal to all operators.</p>
 <p><span>New in version 0.8: </span>- added the &#8216;precedence&#8217; argument.</p>
 </div>
 </li>
+<li><span class="target" id="sqlalchemy.sql.expression.ColumnElement.op.params.is_comparison"></span><strong>is_comparison</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.ColumnElement.op.params.is_comparison">¶</a> &#8211; <p>if True, the operator will be considered as a
+&#8220;comparison&#8221; operator, that is which evaulates to a boolean true/false
+value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set so that
+ORM relationships can establish that the operator is a comparison
+operator when used in a custom join condition.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>- added the <a class="reference internal" href="#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a>
+flag.</p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -1751,7 +2257,8 @@ will be lower than or equal to all operators.</p>
 </table>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="types.html#types-operators"><em>Redefining and Creating New Operators</em></a></p>
+<p><a class="reference internal" href="types.html#types-operators"><em>Redefining and Creating New Operators</em></a></p>
+<p class="last"><a class="reference internal" href="../orm/relationships.html#relationship-custom-operator"><em>Using custom operators in join conditions</em></a></p>
 </div>
 </dd></dl>
 
@@ -2434,7 +2941,7 @@ parent object.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.operators.ColumnOperators.op">
-<tt class="descname">op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.op" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em>, <em>is_comparison=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.op" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.Operators.op" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-meth docutils literal"><span class="pre">op()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.Operators" title="sqlalchemy.sql.operators.Operators"><tt class="xref py py-class docutils literal"><span class="pre">Operators</span></tt></a></div>
 <p>produce a generic operator function.</p>
@@ -2468,6 +2975,16 @@ will be lower than or equal to all operators.</p>
 <p><span>New in version 0.8: </span>- added the &#8216;precedence&#8217; argument.</p>
 </div>
 </li>
+<li><span class="target" id="sqlalchemy.sql.operators.ColumnOperators.op.params.is_comparison"></span><strong>is_comparison</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.op.params.is_comparison">¶</a> &#8211; <p>if True, the operator will be considered as a
+&#8220;comparison&#8221; operator, that is which evaulates to a boolean true/false
+value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set so that
+ORM relationships can establish that the operator is a comparison
+operator when used in a custom join condition.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>- added the <a class="reference internal" href="#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a>
+flag.</p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -2475,7 +2992,8 @@ will be lower than or equal to all operators.</p>
 </table>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="types.html#types-operators"><em>Redefining and Creating New Operators</em></a></p>
+<p><a class="reference internal" href="types.html#types-operators"><em>Redefining and Creating New Operators</em></a></p>
+<p class="last"><a class="reference internal" href="../orm/relationships.html#relationship-custom-operator"><em>Using custom operators in join conditions</em></a></p>
 </div>
 </dd></dl>
 
@@ -2609,7 +3127,18 @@ backends.</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">TextClause</tt><big>(</big><em>text</em>, <em>bind=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TextClause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a></p>
 <p>Represent a literal SQL text fragment.</p>
-<p>Public constructor is the <a class="reference internal" href="#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> function.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="s">&quot;SELECT * FROM users&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a> construct is produced using the <a class="reference internal" href="#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a>
+function; see that function for full documentation.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a></p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.TextClause.bindparams">
 <tt class="descname">bindparams</tt><big>(</big><em>*binds</em>, <em>**names_to_values</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TextClause.bindparams" title="Permalink to this definition">¶</a></dt>
@@ -2757,7 +3286,7 @@ method.  This method supersedes the <tt class="docutils literal"><span class="pr
 
 <dl class="class">
 <dt id="sqlalchemy.sql.operators.custom_op">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.operators.</tt><tt class="descname">custom_op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.custom_op" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.operators.</tt><tt class="descname">custom_op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em>, <em>is_comparison=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.custom_op" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represent a &#8216;custom&#8217; operator.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.operators.custom_op" title="sqlalchemy.sql.operators.custom_op"><tt class="xref py py-class docutils literal"><span class="pre">custom_op</span></tt></a> is normally instantitated when the
 <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.op" title="sqlalchemy.sql.operators.ColumnOperators.op"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.op()</span></tt></a> method is used to create a
@@ -2850,7 +3379,7 @@ further sub expressions:</p>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.operators.Operators.op">
-<tt class="descname">op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.Operators.op" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">op</tt><big>(</big><em>opstring</em>, <em>precedence=0</em>, <em>is_comparison=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.Operators.op" title="Permalink to this definition">¶</a></dt>
 <dd><p>produce a generic operator function.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">)(</span><span class="mi">5</span><span class="p">)</span></pre></div>
@@ -2882,6 +3411,16 @@ will be lower than or equal to all operators.</p>
 <p><span>New in version 0.8: </span>- added the &#8216;precedence&#8217; argument.</p>
 </div>
 </li>
+<li><span class="target" id="sqlalchemy.sql.operators.Operators.op.params.is_comparison"></span><strong>is_comparison</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.operators.Operators.op.params.is_comparison">¶</a> &#8211; <p>if True, the operator will be considered as a
+&#8220;comparison&#8221; operator, that is which evaulates to a boolean true/false
+value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set so that
+ORM relationships can establish that the operator is a comparison
+operator when used in a custom join condition.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>- added the <a class="reference internal" href="#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a>
+flag.</p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -2889,7 +3428,8 @@ will be lower than or equal to all operators.</p>
 </table>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="types.html#types-operators"><em>Redefining and Creating New Operators</em></a></p>
+<p><a class="reference internal" href="types.html#types-operators"><em>Redefining and Creating New Operators</em></a></p>
+<p class="last"><a class="reference internal" href="../orm/relationships.html#relationship-custom-operator"><em>Using custom operators in join conditions</em></a></p>
 </div>
 </dd></dl>
 
@@ -2986,6 +3526,9 @@ upper case.</p>
 and an operator.  The operator can be placed on the left
 (where it is called the &#8216;operator&#8217;) or right (where it is called the
 &#8216;modifier&#8217;) of the column expression.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.UnaryExpression" title="sqlalchemy.sql.expression.UnaryExpression"><tt class="xref py py-class docutils literal"><span class="pre">UnaryExpression</span></tt></a> is the basis for several unary operators
+including those used by <a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.expression.distinct" title="sqlalchemy.sql.expression.distinct"><tt class="xref py py-func docutils literal"><span class="pre">distinct()</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.sql.expression.nullsfirst" title="sqlalchemy.sql.expression.nullsfirst"><tt class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.sql.expression.nullslast" title="sqlalchemy.sql.expression.nullslast"><tt class="xref py py-func docutils literal"><span class="pre">nullslast()</span></tt></a>.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.UnaryExpression.compare">
 <tt class="descname">compare</tt><big>(</big><em>other</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.UnaryExpression.compare" title="Permalink to this definition">¶</a></dt>

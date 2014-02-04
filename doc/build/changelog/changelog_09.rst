@@ -12,6 +12,428 @@
         :start-line: 5
 
 .. changelog::
+    :version: 0.9.2
+    :released: February 2, 2014
+
+    .. change::
+        :tags: bug, examples
+
+        Added a tweak to the "history_meta" example where the check for
+        "history" on a relationship-bound attribute will now no longer emit
+        any SQL if the relationship is unloaded.
+
+    .. change::
+        :tags: feature, sql
+
+        Added :paramref:`.MetaData.reflect.**dialect_kwargs`
+        to support dialect-level reflection options for all :class:`.Table`
+        objects reflected.
+
+    .. change::
+        :tags: feature, postgresql
+        :tickets: 2922
+
+        Added a new dialect-level argument ``postgresql_ignore_search_path``;
+        this argument is accepted by both the :class:`.Table` constructor
+        as well as by the :meth:`.MetaData.reflect` method.  When in use
+        against Postgresql, a foreign-key referenced table which specifies
+        a remote schema name will retain that schema name even if the name
+        is present in the ``search_path``; the default behavior since 0.7.3
+        has been that schemas present in ``search_path`` would not be copied
+        to reflected :class:`.ForeignKey` objects.  The documentation has been
+        updated to describe in detail the behavior of the ``pg_get_constraintdef()``
+        function and how the ``postgresql_ignore_search_path`` feature essentially
+        determines if we will honor the schema qualification reported by
+        this function or not.
+
+        .. seealso::
+
+            :ref:`postgresql_schema_reflection`
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2913
+
+        The behavior of :meth:`.Table.tometadata` has been adjusted such that
+        the schema target of a :class:`.ForeignKey` will not be changed unless
+        that schema matches that of the parent table.  That is, if
+        a table "schema_a.user" has a foreign key to "schema_b.order.id",
+        the "schema_b" target will be maintained whether or not the
+        "schema" argument is passed to :meth:`.Table.tometadata`.  However
+        if a table "schema_a.user" refers to "schema_a.order.id", the presence
+        of "schema_a" will be updated on both the parent and referred tables.
+        This is a behavioral change hence isn't likely to be backported to
+        0.8; it is assumed that the previous behavior is pretty buggy
+        however and that it's unlikely anyone was relying upon it.
+
+        Additionally, a new parameter has been added
+        :paramref:`.Table.tometadata.referred_schema_fn`.  This refers to a
+        callable function which will be used to determine the new referred
+        schema for any :class:`.ForeignKeyConstraint` encountered in the
+        tometadata operation.  This callable can be used to revert to the
+        previous behavior or to customize how referred schemas are treated
+        on a per-constraint basis.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2932
+
+        Fixed bug in new :class:`.TextAsFrom` construct where :class:`.Column`-
+        oriented row lookups were not matching up to the ad-hoc :class:`.ColumnClause`
+        objects that :class:`.TextAsFrom` generates, thereby making it not
+        usable as a target in :meth:`.Query.from_statement`.  Also fixed
+        :meth:`.Query.from_statement` mechanics to not mistake a :class:`.TextAsFrom`
+        for a :class:`.Select` construct.  This bug is also an 0.9 regression
+        as the :meth:`.Text.columns` method is called to accommodate the
+        :paramref:`.text.typemap` argument.
+
+    .. change::
+        :tags: feature, sql
+        :tickets: 2923
+
+        Added a new feature which allows automated naming conventions to be
+        applied to :class:`.Constraint` and :class:`.Index` objects.  Based
+        on a recipe in the wiki, the new feature uses schema-events to set up
+        names as various schema objects are associated with each other.  The
+        events then expose a configuration system through a new argument
+        :paramref:`.MetaData.naming_convention`.  This system allows production
+        of both simple and custom naming schemes for constraints and indexes
+        on a per-:class:`.MetaData` basis.
+
+        .. seealso::
+
+            :ref:`constraint_naming_conventions`
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2921
+
+        Added a new directive used within the scope of an attribute "set" operation
+        to disable autoflush, in the case that the attribute needs to lazy-load
+        the "old" value, as in when replacing one-to-one values or some
+        kinds of many-to-one.  A flush at this point otherwise occurs
+        at the point that the attribute is None and can cause NULL violations.
+
+    .. change::
+        :tags: feature, orm
+
+        Added a new parameter :paramref:`.Operators.op.is_comparison`.  This
+        flag allows a custom op from :meth:`.Operators.op` to be considered
+        as a "comparison" operator, thus usable for custom
+        :paramref:`.relationship.primaryjoin` conditions.
+
+        .. seealso::
+
+            :ref:`relationship_custom_operator`
+
+
+    .. change::
+        :tags: bug, sqlite
+
+        Fixed bug whereby SQLite compiler failed to propagate compiler arguments
+        such as "literal binds" into a CAST expression.
+
+    .. change::
+        :tags: bug, sql
+
+        Fixed bug whereby binary type would fail in some cases
+        if used with a "test" dialect, such as a DefaultDialect or other
+        dialect with no DBAPI.
+
+    .. change::
+        :tags: bug, sql, py3k
+
+        Fixed bug where "literal binds" wouldn't work with a bound parameter
+        that's a binary type.  A similar, but different, issue is fixed
+        in 0.8.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2927
+
+        Fixed regression whereby the "annotation" system used by the ORM was leaking
+        into the names used by standard functions in :mod:`sqlalchemy.sql.functions`,
+        such as ``func.coalesce()`` and ``func.max()``.  Using these functions
+        in ORM attributes and thus producing annotated versions of them could
+        corrupt the actual function name rendered in the SQL.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2924, 2848
+
+        Fixed 0.9 regression where the new sortable support for :class:`.RowProxy`
+        would lead to ``TypeError`` when compared to non-tuple types as it attempted
+        to apply tuple() to the "other" object unconditionally.  The
+        full range of Python comparison operators have now been implemented on
+        :class:`.RowProxy`, using an approach that guarantees a comparison
+        system that is equivalent to that of a tuple, and the "other" object
+        is only coerced if it's an instance of RowProxy.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2918
+
+        Fixed an 0.9 regression where the automatic aliasing applied by
+        :class:`.Query` and in other situations where selects or joins
+        were aliased (such as joined table inheritance) could fail if a
+        user-defined :class:`.Column` subclass were used in the expression.
+        In this case, the subclass would fail to propagate ORM-specific
+        "annotations" along needed by the adaptation.  The "expression
+        annotations" system has been corrected to account for this case.
+
+    .. change::
+        :tags: feature, orm
+
+        Support is improved for supplying a :func:`.join` construct as the
+        target of :paramref:`.relationship.secondary` for the purposes
+        of creating very complex :func:`.relationship` join conditions.
+        The change includes adjustments to query joining, joined eager loading
+        to not render a SELECT subquery, changes to lazy loading such that
+        the "secondary" target is properly included in the SELECT, and
+        changes to declarative to better support specification of a
+        join() object with classes as targets.
+
+        The new use case is somewhat experimental, but a new documentation section
+        has been added.
+
+        .. seealso::
+
+            :ref:`composite_secondary_join`
+
+    .. change::
+        :tags: bug, mysql, sql
+        :tickets: 2917
+
+        Added new test coverage for so-called "down adaptions" of SQL types,
+        where a more specific type is adapted to a more generic one - this
+        use case is needed by some third party tools such as ``sqlacodegen``.
+        The specific cases that needed repair within this test suite were that
+        of :class:`.mysql.ENUM` being downcast into a :class:`.types.Enum`,
+        and that of SQLite date types being cast into generic date types.
+        The ``adapt()`` method needed to become more specific here to counteract
+        the removal of a "catch all" ``**kwargs`` collection on the base
+        :class:`.TypeEngine` class that was removed in 0.9.
+
+    .. change::
+        :tags: feature, sql
+        :tickets: 2910
+
+        Options can now be specified on a :class:`.PrimaryKeyConstraint` object
+        independently of the specification of columns in the table with
+        the ``primary_key=True`` flag; use a :class:`.PrimaryKeyConstraint`
+        object with no columns in it to achieve this result.
+
+        Previously, an explicit :class:`.PrimaryKeyConstraint` would have the
+        effect of those columns marked as ``primary_key=True`` being ignored;
+        since this is no longer the case, the :class:`.PrimaryKeyConstraint`
+        will now assert that either one style or the other is used to specify
+        the columns, or if both are present, that the column lists match
+        exactly.  If an inconsistent set of columns in the
+        :class:`.PrimaryKeyConstraint`
+        and within the :class:`.Table` marked as ``primary_key=True`` are
+        present, a warning is emitted, and the list of columns is taken
+        only from the :class:`.PrimaryKeyConstraint` alone as was the case
+        in previous releases.
+
+
+
+        .. seealso::
+
+            :class:`.PrimaryKeyConstraint`
+
+    .. change::
+        :tags: feature, sql
+        :tickets: 2866
+
+        The system by which schema constructs and certain SQL constructs
+        accept dialect-specific keyword arguments has been enhanced.  This
+        system includes commonly the :class:`.Table` and :class:`.Index` constructs,
+        which accept a wide variety of dialect-specific arguments such as
+        ``mysql_engine`` and ``postgresql_where``, as well as the constructs
+        :class:`.PrimaryKeyConstraint`, :class:`.UniqueConstraint`,
+        :class:`.Update`, :class:`.Insert` and :class:`.Delete`, and also
+        newly added kwarg capability to :class:`.ForeignKeyConstraint`
+        and :class:`.ForeignKey`.  The change is that participating dialects
+        can now specify acceptable argument lists for these constructs, allowing
+        an argument error to be raised if an invalid keyword is specified for
+        a particular dialect.  If the dialect portion of the keyword is unrecognized,
+        a warning is emitted only; while the system will actually make use
+        of setuptools entrypoints in order to locate non-local dialects,
+        the use case where certain dialect-specific arguments are used
+        in an environment where that third-party dialect is uninstalled remains
+        supported.  Dialects also have to explicitly opt-in to this system,
+        so that external dialects which aren't making use of this system
+        will remain unaffected.
+
+    .. change::
+        :tags: bug, sql
+        :pullreq: bitbucket:11
+
+        A :class:`.UniqueConstraint` created inline with a :class:`.Table`
+        that has no columns within it will be skipped.  Pullreq courtesy
+        Derek Harland.
+
+    .. change::
+        :tags: feature, mssql
+        :pullreq: bitbucket:11
+
+        Added an option ``mssql_clustered`` to the :class:`.UniqueConstraint`
+        and :class:`.PrimaryKeyConstraint` constructs; on SQL Server, this adds
+        the ``CLUSTERED`` keyword to the constraint construct within DDL.
+        Pullreq courtesy Derek Harland.
+
+    .. change::
+        :tags: bug, sql, orm
+        :tickets: 2912
+
+        Fixed the multiple-table "UPDATE..FROM" construct, only usable on
+        MySQL, to correctly render the SET clause among multiple columns
+        with the same name across tables.  This also changes the name used for
+        the bound parameter in the SET clause to "<tablename>_<colname>" for
+        the non-primary table only; as this parameter is typically specified
+        using the :class:`.Column` object directly this should not have an
+        impact on applications.   The fix takes effect for both
+        :meth:`.Table.update` as well as :meth:`.Query.update` in the ORM.
+
+    .. change::
+        :tags: bug, oracle
+        :tickets: 2911
+
+        It's been observed that the usage of a cx_Oracle "outputtypehandler"
+        in Python 2.xx in order to coerce string values to Unicode is inordinately
+        expensive; even though cx_Oracle is written in C, when you pass the
+        Python ``unicode`` primitive to cursor.var() and associate with an output
+        handler, the library counts every conversion as a Python function call
+        with all the requisite overhead being recorded; this *despite* the fact
+        when running in Python 3, all strings are also unconditionally coerced
+        to unicode but it does *not* incur this overhead,
+        meaning that cx_Oracle is failing to use performant techniques in Py2K.
+        As SQLAlchemy cannot easily select for this style of type handler on a
+        per-column basis, the handler was assembled unconditionally thereby
+        adding the overhead to all string access.
+
+        So this logic has been replaced with SQLAlchemy's own unicode
+        conversion system, which now
+        only takes effect in Py2K for columns that are requested as unicode.
+        When C extensions are used, SQLAlchemy's system appears to be 2-3x faster than
+        cx_Oracle's.  Additionally, SQLAlchemy's unicode conversion has been
+        enhanced such that when the "conditional" converter is required
+        (now needed for the Oracle backend), the check for "already unicode" is now
+        performed in C and no longer introduces significant overhead.
+
+        This change has two impacts on the cx_Oracle backend.  One is that
+        string values in Py2K which aren't specifically requested with the
+        Unicode type or convert_unicode=True will now come back as ``str``,
+        not ``unicode`` - this behavior is similar to a backend such as
+        MySQL.  Additionally, when unicode values are requested with the cx_Oracle
+        backend, if the C extensions are *not* used, there is now an additional
+        overhead of an isinstance() check per column.  This tradeoff has been
+        made as it can be worked around and no longer places a performance burden
+        on the likely majority of Oracle result columns that are non-unicode
+        strings.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2908
+
+        Fixed a bug involving the new flattened JOIN structures which
+        are used with :func:`.joinedload()` (thereby causing a regression
+        in joined eager loading) as well as :func:`.aliased`
+        in conjunction with the ``flat=True`` flag and joined-table inheritance;
+        basically multiple joins across a "parent JOIN sub" entity using different
+        paths to get to a target class wouldn't form the correct ON conditions.
+        An adjustment / simplification made in the mechanics of figuring
+        out the "left side" of the join in the case of an aliased, joined-inh
+        class repairs the issue.
+
+    .. change::
+        :tags: bug, mysql
+
+        The MySQL CAST compilation now takes into account aspects of a string
+        type such as "charset" and "collation".  While MySQL wants all character-
+        based CAST calls to use the CHAR type, we now create a real CHAR
+        object at CAST time and copy over all the parameters it has, so that
+        an expression like ``cast(x, mysql.TEXT(charset='utf8'))`` will
+        render ``CAST(t.col AS CHAR CHARACTER SET utf8)``.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 2906
+
+        Added new "unicode returns" detection to the MySQL dialect and
+        to the default dialect system overall, such that any dialect
+        can add extra "tests" to the on-first-connect "does this DBAPI
+        return unicode directly?" detection. In this case, we are
+        adding a check specifically against the "utf8" encoding with
+        an explicit "utf8_bin" collation type (after checking that
+        this collation is available) to test for some buggy unicode
+        behavior observed with MySQLdb version 1.2.3.  While MySQLdb
+        has resolved this issue as of 1.2.4, the check here should
+        guard against regressions.  The change also allows the "unicode"
+        checks to log in the engine logs, which was not previously
+        the case.
+
+    .. change::
+        :tags: bug, mysql, pool, engine
+        :tickets: 2907
+
+        :class:`.Connection` now associates a new
+        :class:`.RootTransaction` or :class:`.TwoPhaseTransaction`
+        with its immediate :class:`._ConnectionFairy` as a "reset handler"
+        for the span of that transaction, which takes over the task
+        of calling commit() or rollback() for the "reset on return" behavior
+        of :class:`.Pool` if the transaction was not otherwise completed.
+        This resolves the issue that a picky transaction
+        like that of MySQL two-phase will be
+        properly closed out when the connection is closed without an
+        explicit rollback or commit (e.g. no longer raises "XAER_RMFAIL"
+        in this case - note this only shows up in logging as the exception
+        is not propagated within pool reset).
+        This issue would arise e.g. when using an orm
+        :class:`.Session` with ``twophase`` set, and then
+        :meth:`.Session.close` is called without an explicit rollback or
+        commit.   The change also has the effect that you will now see
+        an explicit "ROLLBACK" in the logs when using a :class:`.Session`
+        object in non-autocommit mode regardless of how that session was
+        discarded.  Thanks to Jeff Dairiki and Laurence Rowe for isolating
+        the issue here.
+
+    .. change::
+        :tags: feature, pool, engine
+
+        Added a new pool event :meth:`.PoolEvents.invalidate`.  Called when
+        a DBAPI connection is to be marked as "invaldated" and discarded
+        from the pool.
+
+    .. change::
+        :tags: bug, pool
+
+        The argument names for the :meth:`.PoolEvents.reset` event have been
+        renamed to ``dbapi_connection`` and ``connection_record`` in order
+        to maintain consistency with all the other pool events.  It is expected
+        that any existing listeners for this relatively new and
+        seldom-used event are using positional style to receive arguments in
+        any case.
+
+    .. change::
+        :tags: bug, py3k, cextensions
+        :pullreq: github:55
+
+        Fixed an issue where the C extensions in Py3K are using the wrong API
+        to specify the top-level module function, which breaks
+        in Python 3.4b2.  Py3.4b2 changes PyMODINIT_FUNC to return
+        "void" instead of "PyObject *", so we now make sure to use
+        "PyMODINIT_FUNC" instead of "PyObject *" directly.  Pull request
+        courtesy cgohlke.
+
+    .. change::
+        :tags: bug, schema
+        :pullreq: github:57
+
+        Restored :class:`sqlalchemy.schema.SchemaVisitor` to the ``.schema``
+        module.  Pullreq courtesy Sean Dague.
+
+.. changelog::
     :version: 0.9.1
     :released: January 5, 2014
 
@@ -235,7 +657,7 @@
         to an individual element of the comparison expression,
         rather than the comparison expression as a whole.
 
-        .. seelalso::
+        .. seealso::
 
             :ref:`migration_2879`
 

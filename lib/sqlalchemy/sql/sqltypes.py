@@ -204,20 +204,11 @@ class String(Concatenable, TypeEngine):
                                     dialect.encoding, self.unicode_error)
 
             if needs_isinstance:
-                # we wouldn't be here unless convert_unicode='force'
-                # was specified, or the driver has erratic unicode-returning
-                # habits.  since we will be getting back unicode
-                # in most cases, we check for it (decode will fail).
-                def process(value):
-                    if isinstance(value, util.text_type):
-                        return value
-                    else:
-                        return to_unicode(value)
-                return process
+                return processors.to_conditional_unicode_processor_factory(
+                                    dialect.encoding, self.unicode_error)
             else:
-                # here, we assume that the object is not unicode,
-                # avoiding expensive isinstance() check.
-                return to_unicode
+                return processors.to_unicode_processor_factory(
+                                    dialect.encoding, self.unicode_error)
         else:
             return None
 
@@ -416,44 +407,41 @@ class BigInteger(Integer):
 
 
 class Numeric(_DateAffinity, TypeEngine):
-    """A type for fixed precision numbers.
+    """A type for fixed precision numbers, such as ``NUMERIC`` or ``DECIMAL``.
 
-    Typically generates DECIMAL or NUMERIC.  Returns
-    ``decimal.Decimal`` objects by default, applying
-    conversion as needed.
+    This type returns Python ``decimal.Decimal`` objects by default, unless the
+    :paramref:`.Numeric.asdecimal` flag is set to False, in which case they
+    are coerced to Python ``float`` objects.
 
     .. note::
 
-       The `cdecimal <http://pypi.python.org/pypi/cdecimal/>`_ library
-       is a high performing alternative to Python's built-in
-       ``decimal.Decimal`` type, which performs very poorly in high volume
-       situations. SQLAlchemy 0.7 is tested against ``cdecimal`` and supports
-       it fully. The type is not necessarily supported by DBAPI
-       implementations however, most of which contain an import for plain
-       ``decimal`` in their source code, even though some such as psycopg2
-       provide hooks for alternate adapters. SQLAlchemy imports ``decimal``
-       globally as well.  The most straightforward and
-       foolproof way to use "cdecimal" given current DBAPI and Python support
-       is to patch it directly into sys.modules before anything else is
-       imported::
+        The :class:`.Numeric` type is designed to receive data from a database
+        type that is explicitly known to be a decimal type
+        (e.g. ``DECIMAL``, ``NUMERIC``, others) and not a floating point
+        type (e.g. ``FLOAT``, ``REAL``, others).
+        If the database column on the server is in fact a floating-point type
+        type, such as ``FLOAT`` or ``REAL``, use the :class:`.Float`
+        type or a subclass, otherwise numeric coercion between ``float``/``Decimal``
+        may or may not function as expected.
+
+    .. note::
+
+       The Python ``decimal.Decimal`` class is generally slow
+       performing; cPython 3.3 has now switched to use the `cdecimal
+       <http://pypi.python.org/pypi/cdecimal/>`_ library natively. For
+       older Python versions, the ``cdecimal`` library can be patched
+       into any application where it will replace the ``decimal``
+       library fully, however this needs to be applied globally and
+       before any other modules have been imported, as follows::
 
            import sys
            import cdecimal
            sys.modules["decimal"] = cdecimal
 
-       While the global patch is a little ugly, it's particularly
-       important to use just one decimal library at a time since
-       Python Decimal and cdecimal Decimal objects
-       are not currently compatible *with each other*::
-
-           >>> import cdecimal
-           >>> import decimal
-           >>> decimal.Decimal("10") == cdecimal.Decimal("10")
-           False
-
-       SQLAlchemy will provide more natural support of
-       cdecimal if and when it becomes a standard part of Python
-       installations and is supported by all DBAPIs.
+       Note that the ``cdecimal`` and ``decimal`` libraries are **not
+       compatible with each other**, so patching ``cdecimal`` at the
+       global level is the only way it can be used effectively with
+       various DBAPIs that hardcode to import the ``decimal`` library.
 
     """
 
@@ -594,10 +582,22 @@ class Numeric(_DateAffinity, TypeEngine):
 
 
 class Float(Numeric):
-    """A type for ``float`` numbers.
+    """Type representing floating point types, such as ``FLOAT`` or ``REAL``.
 
-    Returns Python ``float`` objects by default, applying
-    conversion as needed.
+    This type returns Python ``float`` objects by default, unless the
+    :paramref:`.Float.asdecimal` flag is set to True, in which case they
+    are coerced to ``decimal.Decimal`` objects.
+
+    .. note::
+
+        The :class:`.Float` type is designed to receive data from a database
+        type that is explicitly known to be a floating point type
+        (e.g. ``FLOAT``, ``REAL``, others)
+        and not a decimal type (e.g. ``DECIMAL``, ``NUMERIC``, others).
+        If the database column on the server is in fact a Numeric
+        type, such as ``DECIMAL`` or ``NUMERIC``, use the :class:`.Numeric`
+        type or a subclass, otherwise numeric coercion between ``float``/``Decimal``
+        may or may not function as expected.
 
     """
 
@@ -790,7 +790,7 @@ class _Binary(TypeEngine):
 
     def literal_processor(self, dialect):
         def process(value):
-            value = value.decode(self.dialect.encoding).replace("'", "''")
+            value = value.decode(dialect.encoding).replace("'", "''")
             return "'%s'" % value
         return process
 
@@ -801,6 +801,9 @@ class _Binary(TypeEngine):
     # Python 3 - sqlite3 doesn't need the `Binary` conversion
     # here, though pg8000 does to indicate "bytea"
     def bind_processor(self, dialect):
+        if dialect.dbapi is None:
+            return None
+
         DBAPIBinary = dialect.dbapi.Binary
 
         def process(value):

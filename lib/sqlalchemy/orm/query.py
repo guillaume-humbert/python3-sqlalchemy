@@ -229,7 +229,6 @@ class Query(object):
         have been applied within this query."""
 
         adapters = []
-
         # do we adapt all expression elements or only those
         # tagged as 'ORM' constructs ?
         orm_only = getattr(self, '_orm_only_adapt', orm_only)
@@ -2751,11 +2750,6 @@ class Query(object):
             # "load from explicit FROMs" mode,
             # i.e. when select_from() or join() is used
             context.froms = list(context.from_clause)
-            # this would fix...
-            #import pdb
-            #pdb.set_trace()
-            #context.froms += tuple(context.from_clause)
-
         else:
             # "load from discrete FROMs" mode,
             # i.e. when each _MappedEntity has its own FROM
@@ -3477,6 +3471,7 @@ class QueryContext(object):
 
         if query._statement is not None:
             if isinstance(query._statement, expression.SelectBase) and \
+                                not query._statement._textual and \
                                 not query._statement.use_labels:
                 self.statement = query._statement.apply_labels()
             else:

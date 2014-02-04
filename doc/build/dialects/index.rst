@@ -44,18 +44,21 @@ Current external dialect projects for SQLAlchemy include:
 Production Ready
 ^^^^^^^^^^^^^^^^
 
-* `ibm_db_sa <http://code.google.com/p/ibm-db/wiki/README>`_ - driver for IBM DB2 and Informix, developed jointly by IBM and SQLAlchemy developers.
-* `sqlalchemy-sqlany <https://github.com/sqlanywhere/sqlalchemy-sqlany>`_ - driver for SAP Sybase SQL Anywhere, developed by SAP.
+* `ibm_db_sa <http://code.google.com/p/ibm-db/wiki/README>`_ - driver for IBM DB2 and Informix,
+  developed jointly by IBM and SQLAlchemy developers.
+* `redshift-sqlalchemy <https://pypi.python.org/pypi/redshift-sqlalchemy>`_ - driver for Amazon Redshift, adapts
+  the existing Postgresql/psycopg2 driver.
+* `sqlalchemy-sqlany <https://github.com/sqlanywhere/sqlalchemy-sqlany>`_ - driver for SAP Sybase SQL
+  Anywhere, developed by SAP.
 * `sqlalchemy-monetdb <https://github.com/gijzelaerr/sqlalchemy-monetdb>`_ - driver for MonetDB.
 
 Experimental / Incomplete
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Dialects that were started but are not in a completed state.  Code contributions
-welcome here.
+Dialects that are in an incomplete state or are considered somewhat experimental.
 
+* `sqlalchemy-foundationdb <https://github.com/FoundationDB/sql-layer-adapter-sqlalchemy>`_ - driver and ORM extensions for the `Foundation DB <http://foundationdb.com/>`_ database, making use of the `FoundationDB SQL Layer <https://foundationdb.com/layers/sql/index.html>`_.
 * `CALCHIPAN <https://bitbucket.org/zzzeek/calchipan/>`_ - Adapts `Pandas <http://pandas.pydata.org/>`_ dataframes to SQLAlchemy.
-* `sqlalchemy-akiban <https://github.com/zzzeek/sqlalchemy_akiban>`_ - driver and ORM extensions for the `Akiban <http://www.akiban.com>`_ database.
 * `sqlalchemy-cubrid <https://bitbucket.org/zzzeek/sqlalchemy-cubrid>`_ - driver for the CUBRID database.
 
 Attic

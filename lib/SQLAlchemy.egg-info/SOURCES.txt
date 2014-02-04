@@ -138,6 +138,7 @@ doc/_sources/orm/extensions/instrumentation.txt
 doc/_sources/orm/extensions/mutable.txt
 doc/_sources/orm/extensions/orderinglist.txt
 doc/_static/basic.css
+doc/_static/changelog.css
 doc/_static/comment-bright.png
 doc/_static/comment-close.png
 doc/_static/comment.png
@@ -534,6 +535,7 @@ lib/sqlalchemy/sql/dml.py
 lib/sqlalchemy/sql/elements.py
 lib/sqlalchemy/sql/expression.py
 lib/sqlalchemy/sql/functions.py
+lib/sqlalchemy/sql/naming.py
 lib/sqlalchemy/sql/operators.py
 lib/sqlalchemy/sql/schema.py
 lib/sqlalchemy/sql/selectable.py

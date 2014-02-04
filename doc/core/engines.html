@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -134,7 +135,6 @@
     <ul>
 <li><a class="reference internal" href="#">Engine Configuration</a><ul>
 <li><a class="reference internal" href="#supported-databases">Supported Databases</a></li>
-<li><a class="reference internal" href="#engine-creation-api">Engine Creation API</a></li>
 <li><a class="reference internal" href="#database-urls">Database Urls</a><ul>
 <li><a class="reference internal" href="#postgresql">Postgresql</a></li>
 <li><a class="reference internal" href="#mysql">MySQL</a></li>
@@ -142,9 +142,9 @@
 <li><a class="reference internal" href="#microsoft-sql-server">Microsoft SQL Server</a></li>
 <li><a class="reference internal" href="#sqlite">SQLite</a></li>
 <li><a class="reference internal" href="#others">Others</a></li>
-<li><a class="reference internal" href="#url-api">URL API</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#engine-creation-api">Engine Creation API</a></li>
 <li><a class="reference internal" href="#pooling">Pooling</a></li>
 <li><a class="reference internal" href="#custom-dbapi-connect-arguments">Custom DBAPI connect() arguments</a></li>
 <li><a class="reference internal" href="#configuring-logging">Configuring Logging</a></li>
@@ -213,35 +213,133 @@ backends.   Dialects for the most common databases are included with SQLAlchemy;
 of others require an additional install of a separate dialect.</p>
 <p>See the section <a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a> for information on the various backends available.</p>
 </div>
+<div class="section" id="database-urls">
+<span id="id1"></span><h2>Database Urls<a class="headerlink" href="#database-urls" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> function produces an <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> object based
+on a URL.  These URLs follow <a class="reference external" href="http://rfc.net/rfc1738.html">RFC-1738</a>, and usually can include username, password,
+hostname, database name as well as optional keyword arguments for additional configuration.
+In some cases a file path is accepted, and in others a &#8220;data source name&#8221; replaces
+the &#8220;host&#8221; and &#8220;database&#8221; portions.  The typical form of a database URL is:</p>
+<div class="highlight-python"><pre>dialect+driver://username:password@host:port/database</pre>
+</div>
+<p>Dialect names include the identifying name of the SQLAlchemy dialect,
+a name such as <tt class="docutils literal"><span class="pre">sqlite</span></tt>, <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">postgresql</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>, or <tt class="docutils literal"><span class="pre">mssql</span></tt>.
+The drivername is the name of the DBAPI to be used to connect to
+the database using all lowercase letters. If not specified, a &#8220;default&#8221; DBAPI
+will be imported if available - this default is typically the most widely
+known driver available for that backend.</p>
+<p>Examples for common connection styles follow below.  For a full index of
+detailed information on all included dialects as well as links to third-party dialects, see
+<a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a>.</p>
+<div class="section" id="postgresql">
+<h3>Postgresql<a class="headerlink" href="#postgresql" title="Permalink to this headline">¶</a></h3>
+<p>The Postgresql dialect uses psycopg2 as the default DBAPI.  pg8000 is
+also available as a pure-Python substitute:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># default</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
+
+<span class="c"># psycopg2</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+psycopg2://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
+
+<span class="c"># pg8000</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+pg8000://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>More notes on connecting to Postgresql at <a class="reference internal" href="../dialects/postgresql.html"><em>PostgreSQL</em></a>.</p>
+</div>
+<div class="section" id="mysql">
+<h3>MySQL<a class="headerlink" href="#mysql" title="Permalink to this headline">¶</a></h3>
+<p>The MySQL dialect uses mysql-python as the default DBAPI.  There are many
+MySQL DBAPIs available, including MySQL-connector-python and OurSQL:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># default</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
+
+<span class="c"># mysql-python</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
+
+<span class="c"># MySQL-connector-python</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqlconnector://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
+
+<span class="c"># OurSQL</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+oursql://scott:tiger@localhost/foo&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>More notes on connecting to MySQL at <a class="reference internal" href="../dialects/mysql.html"><em>MySQL</em></a>.</p>
+</div>
+<div class="section" id="oracle">
+<h3>Oracle<a class="headerlink" href="#oracle" title="Permalink to this headline">¶</a></h3>
+<p>The Oracle dialect uses cx_oracle as the default DBAPI:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@127.0.0.1:1521/sidname&#39;</span><span class="p">)</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle+cx_oracle://scott:tiger@tnsname&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>More notes on connecting to Oracle at <a class="reference internal" href="../dialects/oracle.html"><em>Oracle</em></a>.</p>
+</div>
+<div class="section" id="microsoft-sql-server">
+<h3>Microsoft SQL Server<a class="headerlink" href="#microsoft-sql-server" title="Permalink to this headline">¶</a></h3>
+<p>The SQL Server dialect uses pyodbc as the default DBAPI.  pymssql is
+also available:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># pyodbc</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+pyodbc://scott:tiger@mydsn&#39;</span><span class="p">)</span>
+
+<span class="c"># pymssql</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+pymssql://scott:tiger@hostname:port/dbname&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>More notes on connecting to SQL Server at <a class="reference internal" href="../dialects/mssql.html"><em>Microsoft SQL Server</em></a>.</p>
+</div>
+<div class="section" id="sqlite">
+<h3>SQLite<a class="headerlink" href="#sqlite" title="Permalink to this headline">¶</a></h3>
+<p>SQLite connects to file-based databases, using the Python built-in
+module <tt class="docutils literal"><span class="pre">sqlite3</span></tt> by default.</p>
+<p>As SQLite connects to local files, the URL format is slightly different.
+The &#8220;file&#8221; portion of the URL is the filename of the database.
+For a relative file path, this requires three slashes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># sqlite://&lt;nohostname&gt;/&lt;path&gt;</span>
+<span class="c"># where &lt;path&gt; is relative:</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///foo.db&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>And for an absolute file path, <em>four</em> slashes are used:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:////absolute/path/to/foo.db&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>To use a SQLite <tt class="docutils literal"><span class="pre">:memory:</span></tt> database, specify an empty URL:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite://&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>More notes on connecting to SQLite at <a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a>.</p>
+</div>
+<div class="section" id="others">
+<h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
+<p>See <a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a>, the top-level page for all additional dialect
+documentation.</p>
+</div>
+</div>
 <div class="section" id="engine-creation-api">
 <span id="create-engine-args"></span><h2>Engine Creation API<a class="headerlink" href="#engine-creation-api" title="Permalink to this headline">¶</a></h2>
-<p>Keyword options can also be specified to <a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>,
-following the string URL as follows:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://...&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;latin1&#39;</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
-</div>
 <dl class="function">
 <dt id="sqlalchemy.create_engine">
 <tt class="descclassname">sqlalchemy.</tt><tt class="descname">create_engine</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.create_engine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> instance.</p>
 <p>The standard calling form is to send the URL as the
 first positional argument, usually a string
-that indicates database dialect and connection arguments.
-Additional keyword arguments may then follow it which
+that indicates database dialect and connection arguments:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://scott:tiger@localhost/test&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>Additional keyword arguments may then follow it which
 establish various options on the resulting <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>
 and its underlying <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> and <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>
-constructs.</p>
+constructs:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;mysql://scott:tiger@hostname/dbname&quot;</span><span class="p">,</span>
+                            <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;latin1&#39;</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
 <p>The string form of the URL is
-<tt class="docutils literal"><span class="pre">dialect+driver://user:password&#64;host/dbname[?key=value..]</span></tt>, where
+<tt class="docutils literal"><span class="pre">dialect[+driver]://user:password&#64;host/dbname[?key=value..]</span></tt>, where
 <tt class="docutils literal"><span class="pre">dialect</span></tt> is a database name such as <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>,
 <tt class="docutils literal"><span class="pre">postgresql</span></tt>, etc., and <tt class="docutils literal"><span class="pre">driver</span></tt> the name of a DBAPI, such as
 <tt class="docutils literal"><span class="pre">psycopg2</span></tt>, <tt class="docutils literal"><span class="pre">pyodbc</span></tt>, <tt class="docutils literal"><span class="pre">cx_oracle</span></tt>, etc.  Alternatively,
 the URL can be an instance of <a class="reference internal" href="#sqlalchemy.engine.url.URL" title="sqlalchemy.engine.url.URL"><tt class="xref py py-class docutils literal"><span class="pre">URL</span></tt></a>.</p>
 <p><tt class="docutils literal"><span class="pre">**kwargs</span></tt> takes a wide variety of options which are routed
-towards their appropriate components.  Arguments may be     specific
-to the <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, the underlying <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>, as well as
-the     <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>.  Specific dialects also accept keyword
-arguments that     are unique to that dialect.   Here, we describe the
-parameters     that are common to most <a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> usage.</p>
+towards their appropriate components.  Arguments may be specific to
+the <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, the underlying <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>, as well as the
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>.  Specific dialects also accept keyword arguments that
+are unique to that dialect.   Here, we describe the parameters
+that are common to most <a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> usage.</p>
 <p>Once established, the newly resulting <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> will
 request a connection from the underlying <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> once
 <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine.connect" title="sqlalchemy.engine.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a> is called, or a method which depends on it
@@ -249,9 +347,12 @@ such as <a class="reference internal" href="connections.html#sqlalchemy.engine.E
 will establish the first actual DBAPI connection when this request
 is received.   The <a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> call itself does <strong>not</strong>
 establish any actual DBAPI connections directly.</p>
-<p>See also:</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
 <p><a class="reference internal" href=""><em>Engine Configuration</em></a></p>
-<p><a class="reference internal" href="connections.html"><em>Working with Engines and Connections</em></a></p>
+<p><a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a></p>
+<p class="last"><a class="reference internal" href="connections.html"><em>Working with Engines and Connections</em></a></p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -455,21 +556,6 @@ functionality will be expanded and include dialect-specific
 arguments.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="database-urls">
-<h2>Database Urls<a class="headerlink" href="#database-urls" title="Permalink to this headline">¶</a></h2>
-<p>SQLAlchemy indicates the source of an Engine strictly via <a class="reference external" href="http://rfc.net/rfc1738.html">RFC-1738</a> style URLs, combined with optional keyword
-arguments to specify options for the Engine. The form of the URL is:</p>
-<div class="highlight-python"><pre>dialect+driver://username:password@host:port/database</pre>
-</div>
-<p>Dialect names include the identifying name of the SQLAlchemy dialect which
-include <tt class="docutils literal"><span class="pre">sqlite</span></tt>, <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">postgresql</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>, <tt class="docutils literal"><span class="pre">mssql</span></tt>, and
-<tt class="docutils literal"><span class="pre">firebird</span></tt>. The drivername is the name of the DBAPI to be used to connect to
-the database using all lowercase letters. If not specified, a &#8220;default&#8221; DBAPI
-will be imported if available - this default is typically the most widely
-known driver available for that backend (i.e. cx_oracle, pysqlite/sqlite3,
-psycopg2, mysqldb). For Jython connections, specify the <cite>zxjdbc</cite> driver, which
-is the JDBC-DBAPI bridge included with Jython.</p>
 <dl class="function">
 <dt id="sqlalchemy.engine.url.make_url">
 <tt class="descclassname">sqlalchemy.engine.url.</tt><tt class="descname">make_url</tt><big>(</big><em>name_or_url</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.url.make_url" title="Permalink to this definition">¶</a></dt>
@@ -478,77 +564,6 @@ is the JDBC-DBAPI bridge included with Jython.</p>
 existing URL object is passed, just returns the object.</p>
 </dd></dl>
 
-<div class="section" id="postgresql">
-<h3>Postgresql<a class="headerlink" href="#postgresql" title="Permalink to this headline">¶</a></h3>
-<p>The Postgresql dialect uses psycopg2 as the default DBAPI:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># default</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
-
-<span class="c"># psycopg2</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+psycopg2://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
-
-<span class="c"># pg8000</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+pg8000://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
-
-<span class="c"># Jython</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+zxjdbc://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span></pre></div>
-</div>
-<p>More notes on connecting to Postgresql at <a class="reference internal" href="../dialects/postgresql.html"><em>PostgreSQL</em></a>.</p>
-</div>
-<div class="section" id="mysql">
-<h3>MySQL<a class="headerlink" href="#mysql" title="Permalink to this headline">¶</a></h3>
-<p>The MySQL dialect uses mysql-python as the default DBAPI:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># default</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
-
-<span class="c"># mysql-python</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
-
-<span class="c"># OurSQL</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+oursql://scott:tiger@localhost/foo&#39;</span><span class="p">)</span></pre></div>
-</div>
-<p>More notes on connecting to MySQL at <a class="reference internal" href="../dialects/mysql.html"><em>MySQL</em></a>.</p>
-</div>
-<div class="section" id="oracle">
-<h3>Oracle<a class="headerlink" href="#oracle" title="Permalink to this headline">¶</a></h3>
-<p>cx_oracle is usually used here:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@127.0.0.1:1521/sidname&#39;</span><span class="p">)</span>
-
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle+cx_oracle://scott:tiger@tnsname&#39;</span><span class="p">)</span></pre></div>
-</div>
-<p>More notes on connecting to Oracle at <a class="reference internal" href="../dialects/oracle.html"><em>Oracle</em></a>.</p>
-</div>
-<div class="section" id="microsoft-sql-server">
-<h3>Microsoft SQL Server<a class="headerlink" href="#microsoft-sql-server" title="Permalink to this headline">¶</a></h3>
-<p>There are a few drivers for SQL Server, currently PyODBC is the most solid:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+pyodbc://mydsn&#39;</span><span class="p">)</span></pre></div>
-</div>
-<p>More notes on connecting to SQL Server at <a class="reference internal" href="../dialects/mssql.html"><em>Microsoft SQL Server</em></a>.</p>
-</div>
-<div class="section" id="sqlite">
-<h3>SQLite<a class="headerlink" href="#sqlite" title="Permalink to this headline">¶</a></h3>
-<p>SQLite connects to file based databases. The same URL format is used, omitting
-the hostname, and using the &#8220;file&#8221; portion as the filename of the database.
-This has the effect of four slashes being present for an absolute file path:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># sqlite://&lt;nohostname&gt;/&lt;path&gt;</span>
-<span class="c"># where &lt;path&gt; is relative:</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///foo.db&#39;</span><span class="p">)</span>
-
-<span class="c"># or absolute, starting with a slash:</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:////absolute/path/to/foo.db&#39;</span><span class="p">)</span></pre></div>
-</div>
-<p>To use a SQLite <tt class="docutils literal"><span class="pre">:memory:</span></tt> database, specify an empty URL:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite://&#39;</span><span class="p">)</span></pre></div>
-</div>
-<p>More notes on connecting to SQLite at <a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a>.</p>
-</div>
-<div class="section" id="others">
-<h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
-<p>See <a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a>, the top-level page for all dialect
-documentation.</p>
-</div>
-<div class="section" id="url-api">
-<h3>URL API<a class="headerlink" href="#url-api" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sqlalchemy.engine.url.URL">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.url.</tt><tt class="descname">URL</tt><big>(</big><em>drivername</em>, <em>username=None</em>, <em>password=None</em>, <em>host=None</em>, <em>port=None</em>, <em>database=None</em>, <em>query=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.url.URL" title="Permalink to this definition">¶</a></dt>
@@ -610,7 +625,6 @@ names, but correlates the name to the original positionally.</li>
 
 </dd></dl>
 
-</div>
 </div>
 <div class="section" id="pooling">
 <h2>Pooling<a class="headerlink" href="#pooling" title="Permalink to this headline">¶</a></h2>

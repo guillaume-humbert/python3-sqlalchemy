@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -222,11 +223,11 @@ construction arguments, are as follows:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.drizzle.CHAR.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.CHAR.__init__.params.length">¶</a> &#8211; Maximum data length, in characters.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.CHAR.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.CHAR.__init__.params.binary">¶</a> &#8211; Optional, use the default binary collation for the
+<li><span class="target" id="sqlalchemy.dialects.drizzle.CHAR.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.CHAR.params.length">¶</a> &#8211; Maximum data length, in characters.</li>
+<li><span class="target" id="sqlalchemy.dialects.drizzle.CHAR.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.CHAR.params.binary">¶</a> &#8211; Optional, use the default binary collation for the
 national character set.  This does not affect the type of data
 stored, use a BINARY type for binary data.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.CHAR.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.CHAR.__init__.params.collation">¶</a> &#8211; Optional, request a particular collation.  Must be
+<li><span class="target" id="sqlalchemy.dialects.drizzle.CHAR.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.CHAR.params.collation">¶</a> &#8211; Optional, request a particular collation.  Must be
 compatible with the national character set.</li>
 </ul>
 </td>
@@ -251,9 +252,9 @@ compatible with the national character set.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.drizzle.DECIMAL.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.DECIMAL.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.drizzle.DECIMAL.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.DECIMAL.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.DECIMAL.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.DECIMAL.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.drizzle.DECIMAL.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.DECIMAL.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
 </ul>
 </td>
 </tr>
@@ -277,9 +278,9 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.drizzle.DOUBLE.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.DOUBLE.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.drizzle.DOUBLE.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.DOUBLE.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.DOUBLE.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.DOUBLE.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.drizzle.DOUBLE.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.DOUBLE.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
 </ul>
 </td>
 </tr>
@@ -306,22 +307,22 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.__init__.params.enums"></span><strong>enums</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.__init__.params.enums">¶</a> &#8211; The range of valid values for this ENUM.  Values will be
+<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.params.enums"></span><strong>enums</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.params.enums">¶</a> &#8211; The range of valid values for this ENUM.  Values will be
 quoted when generating the schema according to the quoting flag (see
 below).</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.__init__.params.strict"></span><strong>strict</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.__init__.params.strict">¶</a> &#8211; Defaults to False: ensure that a given value is in this
+<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.params.strict"></span><strong>strict</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.params.strict">¶</a> &#8211; Defaults to False: ensure that a given value is in this
 ENUM&#8217;s range of permissible values when inserting or updating rows.
 Note that Drizzle will not raise a fatal error if you attempt to
 store an out of range value- an alternate value will be stored
 instead.
 (See Drizzle ENUM documentation.)</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.__init__.params.quoting"></span><strong>quoting</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.__init__.params.quoting">¶</a> &#8211; <p>Defaults to &#8216;auto&#8217;: automatically determine enum value
+<li><span class="target" id="sqlalchemy.dialects.drizzle.ENUM.params.quoting"></span><strong>quoting</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.ENUM.params.quoting">¶</a> &#8211; <p>Defaults to &#8216;auto&#8217;: automatically determine enum value
 quoting.  If all enum values are surrounded by the same quoting
 character, then use &#8216;quoted&#8217; mode.  Otherwise, use &#8216;unquoted&#8217; mode.</p>
 <p>&#8216;quoted&#8217;: values in enums are already quoted, they will be used
@@ -355,9 +356,9 @@ literals for you.  This is a transitional option.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.drizzle.FLOAT.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.FLOAT.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.drizzle.FLOAT.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.FLOAT.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.FLOAT.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.FLOAT.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.drizzle.FLOAT.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.FLOAT.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
 </ul>
 </td>
 </tr>
@@ -394,9 +395,9 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.drizzle.NUMERIC.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.NUMERIC.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.drizzle.NUMERIC.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.NUMERIC.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.NUMERIC.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.NUMERIC.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.drizzle.NUMERIC.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.NUMERIC.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
 </ul>
 </td>
 </tr>
@@ -420,9 +421,9 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.drizzle.REAL.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.REAL.__init__.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
+<li><span class="target" id="sqlalchemy.dialects.drizzle.REAL.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.REAL.params.precision">¶</a> &#8211; Total digits in this number.  If scale and precision
 are both None, values are stored to limits allowed by the server.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.REAL.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.REAL.__init__.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
+<li><span class="target" id="sqlalchemy.dialects.drizzle.REAL.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.REAL.params.scale">¶</a> &#8211; The number of digits after the decimal point.</li>
 </ul>
 </td>
 </tr>
@@ -446,12 +447,12 @@ are both None, values are stored to limits allowed by the server.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.drizzle.TEXT.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.TEXT.__init__.params.length">¶</a> &#8211; Optional, if provided the server may optimize storage
+<li><span class="target" id="sqlalchemy.dialects.drizzle.TEXT.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.TEXT.params.length">¶</a> &#8211; Optional, if provided the server may optimize storage
 by substituting the smallest TEXT type sufficient to store
 <tt class="docutils literal"><span class="pre">length</span></tt> characters.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.TEXT.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.TEXT.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.drizzle.TEXT.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.TEXT.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.TEXT.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.TEXT.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.drizzle.TEXT.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.TEXT.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>
@@ -477,7 +478,7 @@ only the collation of character data.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.drizzle.TIMESTAMP.__init__.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.TIMESTAMP.__init__.params.timezone">¶</a> &#8211; boolean.  If True, and supported by the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.drizzle.TIMESTAMP.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.TIMESTAMP.params.timezone">¶</a> &#8211; boolean.  If True, and supported by the
 backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
 that don&#8217;t support timezone aware timestamps, has no
 effect.</td>
@@ -502,9 +503,9 @@ effect.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.drizzle.VARCHAR.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.VARCHAR.__init__.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
+<li><span class="target" id="sqlalchemy.dialects.drizzle.VARCHAR.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.VARCHAR.params.collation">¶</a> &#8211; Optional, a column-level collation for this string
 value.  Takes precedence to &#8216;binary&#8217; short-hand.</li>
-<li><span class="target" id="sqlalchemy.dialects.drizzle.VARCHAR.__init__.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.VARCHAR.__init__.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
+<li><span class="target" id="sqlalchemy.dialects.drizzle.VARCHAR.params.binary"></span><strong>binary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.drizzle.VARCHAR.params.binary">¶</a> &#8211; Defaults to False: short-hand, pick the binary
 collation type that matches the column&#8217;s character set.  Generates
 BINARY in schema.  This does not affect the type of data stored,
 only the collation of character data.</li>

@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -254,6 +255,26 @@ see all the generated SQL produced. If you are working through this tutorial
 and want less output generated, set it to <tt class="docutils literal"><span class="pre">False</span></tt>. This tutorial will format
 the SQL behind a popup window so it doesn&#8217;t get in our way; just click the
 &#8220;SQL&#8221; links to see what&#8217;s being generated.</p>
+<p>The return value of <a class="reference internal" href="engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> is an instance of
+<a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, and it represents the core interface to the
+database, adapted through a <em class="xref std std-term">dialect</em> that handles the details
+of the database and <a class="reference internal" href="../glossary.html#term-dbapi"><em class="xref std std-term">DBAPI</em></a> in use.  In this case the SQLite
+dialect will interpret instructions to the Python built-in <tt class="docutils literal"><span class="pre">sqlite3</span></tt>
+module.</p>
+<div class="sidebar">
+<p class="first sidebar-title">Lazy Connecting</p>
+<p class="last">The <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, when first returned by <a class="reference internal" href="engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>,
+has not actually tried to connect to the database yet; that happens
+only the first time it is asked to perform a task against the database.</p>
+</div>
+<p>The first time a method like <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine.execute" title="sqlalchemy.engine.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.execute()</span></tt></a> or <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine.connect" title="sqlalchemy.engine.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a>
+is called, the <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> establishes a real <a class="reference internal" href="../glossary.html#term-dbapi"><em class="xref std std-term">DBAPI</em></a> connection to the
+database, which is then used to emit the SQL.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="engines.html#database-urls"><em>Database Urls</em></a> - includes examples of <a class="reference internal" href="engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>
+connecting to several kinds of databases with links to more information.</p>
+</div>
 </div>
 <div class="section" id="define-and-create-tables">
 <h2>Define and Create Tables<a class="headerlink" href="#define-and-create-tables" title="Permalink to this headline">¶</a></h2>
@@ -967,6 +988,12 @@ would be using <tt class="docutils literal"><span class="pre">OracleDialect</spa
 </div>
 <p>If you don&#8217;t know what that SQL means, don&#8217;t worry ! The secret tribe of
 Oracle DBAs don&#8217;t want their black magic being found out ;).</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">expression.join()</span></tt></a></p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.outerjoin" title="sqlalchemy.sql.expression.outerjoin"><tt class="xref py py-func docutils literal"><span class="pre">expression.outerjoin()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a></p>
+</div>
 </div>
 <div class="section" id="everything-else">
 <h2>Everything Else<a class="headerlink" href="#everything-else" title="Permalink to this headline">¶</a></h2>
@@ -974,12 +1001,15 @@ Oracle DBAs don&#8217;t want their black magic being found out ;).</p>
 more variants of the same themes. So now we&#8217;ll catalog the rest of the
 important things we&#8217;ll need to know.</p>
 <div class="section" id="bind-parameter-objects">
-<h3>Bind Parameter Objects<a class="headerlink" href="#bind-parameter-objects" title="Permalink to this headline">¶</a></h3>
+<span id="coretutorial-bind-param"></span><h3>Bind Parameter Objects<a class="headerlink" href="#bind-parameter-objects" title="Permalink to this headline">¶</a></h3>
 <p>Throughout all these examples, SQLAlchemy is busy creating bind parameters
 wherever literal expressions occur. You can also specify your own bind
-parameters with your own names, and use the same statement repeatedly. The
-database dialect converts to the appropriate named or positional style, as
-here where it converts to positional for SQLite:</p>
+parameters with your own names, and use the same statement repeatedly.
+The <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> construct is used to produce a bound parameter
+with a given name.  While SQLAlchemy always refers to bound parameters by
+name on the API side, the
+database dialect converts to the appropriate named or positional style
+at execution time, as here where it converts to positional for SQLite:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">bindparam</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">bindparam</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">))</span>
 <a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s">&#39;wendy&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> 
@@ -988,7 +1018,7 @@ FROM users
 WHERE users.name = ?
 ('wendy',)</div><span class="go">[(2, u&#39;wendy&#39;, u&#39;Wendy Williams&#39;)]</span></pre></div>
 </div>
-<p>Another important aspect of bind parameters is that they may be assigned a
+<p>Another important aspect of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> is that it may be assigned a
 type. The type of the bind parameter will determine its behavior within
 expressions and also how the data bound to it is processed before being sent
 off to the database:</p>
@@ -999,7 +1029,7 @@ FROM users
 WHERE users.name LIKE (? || '%')
 ('wendy',)</div><span class="go">[(2, u&#39;wendy&#39;, u&#39;Wendy Williams&#39;)]</span></pre></div>
 </div>
-<p>Bind parameters of the same name can also be used multiple times, where only a
+<p><a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> constructs of the same name can also be used multiple times, where only a
 single named value is needed in the execute parameters:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users</span><span class="p">,</span> <span class="n">addresses</span><span class="p">])</span><span class="o">.</span>\
 <span class="gp">... </span>    <span class="n">where</span><span class="p">(</span>
@@ -1019,6 +1049,10 @@ FROM users LEFT OUTER JOIN addresses ON users.id = addresses.user_id
 WHERE users.name LIKE (? || '%') OR addresses.email_address LIKE (? || '@%')
 ORDER BY addresses.id
 ('jack', 'jack')</div><span class="go">[(1, u&#39;jack&#39;, u&#39;Jack Jones&#39;, 1, 1, u&#39;jack@yahoo.com&#39;), (1, u&#39;jack&#39;, u&#39;Jack Jones&#39;, 2, 1, u&#39;jack@msn.com&#39;)]</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a></p>
 </div>
 </div>
 <div class="section" id="functions">
@@ -1101,12 +1135,16 @@ of our selectable:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span><span class="o">.</span><span class="n">params</span>
 <span class="go">{u&#39;x_2&#39;: 5, u&#39;y_2&#39;: 12, u&#39;y_1&#39;: 45, u&#39;x_1&#39;: 17}</span></pre></div>
 </div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a></p>
+</div>
 </div>
 <div class="section" id="window-functions">
 <h3>Window Functions<a class="headerlink" href="#window-functions" title="Permalink to this headline">¶</a></h3>
 <p>Any <a class="reference internal" href="functions.html#sqlalchemy.sql.functions.FunctionElement" title="sqlalchemy.sql.functions.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a>, including functions generated by
 <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a>, can be turned into a &#8220;window function&#8221;, that is an
-OVER clause, using the <a class="reference internal" href="functions.html#sqlalchemy.sql.functions.FunctionElement.over" title="sqlalchemy.sql.functions.FunctionElement.over"><tt class="xref py py-meth docutils literal"><span class="pre">over()</span></tt></a> method:</p>
+OVER clause, using the <a class="reference internal" href="functions.html#sqlalchemy.sql.functions.FunctionElement.over" title="sqlalchemy.sql.functions.FunctionElement.over"><tt class="xref py py-meth docutils literal"><span class="pre">FunctionElement.over()</span></tt></a> method:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
 <span class="gp">... </span>        <span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="n">func</span><span class="o">.</span><span class="n">row_number</span><span class="p">()</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">order_by</span><span class="o">=</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -1114,6 +1152,11 @@ OVER clause, using the <a class="reference internal" href="functions.html#sqlalc
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span> 
 <span class="go">SELECT users.id, row_number() OVER (ORDER BY users.name) AS anon_1</span>
 <span class="go">FROM users</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.over" title="sqlalchemy.sql.expression.over"><tt class="xref py py-func docutils literal"><span class="pre">over()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="functions.html#sqlalchemy.sql.functions.FunctionElement.over" title="sqlalchemy.sql.functions.FunctionElement.over"><tt class="xref py py-meth docutils literal"><span class="pre">FunctionElement.over()</span></tt></a></p>
 </div>
 </div>
 <div class="section" id="unions-and-other-set-operations">
@@ -1195,6 +1238,15 @@ FROM addresses
 WHERE addresses.email_address LIKE ?
 ('%@yahoo.com', '%@msn.com', '%@msn.com')</div><span class="go">[(1, 1, u&#39;jack@yahoo.com&#39;)]</span></pre></div>
 </div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.union" title="sqlalchemy.sql.expression.union"><tt class="xref py py-func docutils literal"><span class="pre">union()</span></tt></a></p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.union_all" title="sqlalchemy.sql.expression.union_all"><tt class="xref py py-func docutils literal"><span class="pre">union_all()</span></tt></a></p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.intersect" title="sqlalchemy.sql.expression.intersect"><tt class="xref py py-func docutils literal"><span class="pre">intersect()</span></tt></a></p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.intersect_all" title="sqlalchemy.sql.expression.intersect_all"><tt class="xref py py-func docutils literal"><span class="pre">intersect_all()</span></tt></a></p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.except_" title="sqlalchemy.sql.expression.except_"><tt class="xref py py-func docutils literal"><span class="pre">except_()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.except_all" title="sqlalchemy.sql.expression.except_all"><tt class="xref py py-func docutils literal"><span class="pre">except_all()</span></tt></a></p>
+</div>
 </div>
 <div class="section" id="scalar-selects">
 <span id="id1"></span><h3>Scalar Selects<a class="headerlink" href="#scalar-selects" title="Permalink to this headline">¶</a></h3>
@@ -1232,6 +1284,11 @@ FROM addresses
 WHERE users.id = addresses.user_id) AS address_count
 FROM users
 ()</div><span class="go">[(u&#39;jack&#39;, 2), (u&#39;wendy&#39;, 2)]</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.as_scalar" title="sqlalchemy.sql.expression.Select.as_scalar"><tt class="xref py py-meth docutils literal"><span class="pre">Select.as_scalar()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.label" title="sqlalchemy.sql.expression.Select.label"><tt class="xref py py-meth docutils literal"><span class="pre">Select.label()</span></tt></a></p>
 </div>
 </div>
 <div class="section" id="correlated-subqueries">

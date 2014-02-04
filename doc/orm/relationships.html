@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -159,7 +160,10 @@
 <li><a class="reference internal" href="#handling-multiple-join-paths">Handling Multiple Join Paths</a></li>
 <li><a class="reference internal" href="#specifying-alternate-join-conditions">Specifying Alternate Join Conditions</a></li>
 <li><a class="reference internal" href="#creating-custom-foreign-conditions">Creating Custom Foreign Conditions</a></li>
+<li><a class="reference internal" href="#using-custom-operators-in-join-conditions">Using custom operators in join conditions</a></li>
 <li><a class="reference internal" href="#self-referential-many-to-many-relationship">Self-Referential Many-to-Many Relationship</a></li>
+<li><a class="reference internal" href="#composite-secondary-joins">Composite &#8220;Secondary&#8221; Joins</a></li>
+<li><a class="reference internal" href="#relationship-to-non-primary-mapper">Relationship to Non Primary Mapper</a></li>
 <li><a class="reference internal" href="#building-query-enabled-properties">Building Query-Enabled Properties</a></li>
 </ul>
 </li>
@@ -1044,9 +1048,10 @@ longer needed in this situation.</p>
 <p>The default behavior of <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> when constructing a join
 is that it equates the value of primary key columns
 on one side to that of foreign-key-referring columns on the other.
-We can change this criterion to be anything we&#8217;d like using the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt>
-argument, as well as the <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> argument in the case when
-a &#8220;secondary&#8221; table is used.</p>
+We can change this criterion to be anything we&#8217;d like using the
+<a class="reference internal" href="#sqlalchemy.orm.relationship.params.primaryjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.primaryjoin</span></tt></a>
+argument, as well as the <a class="reference internal" href="#sqlalchemy.orm.relationship.params.secondaryjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.secondaryjoin</span></tt></a>
+argument in the case when a &#8220;secondary&#8221; table is used.</p>
 <p>In the example below, using the <tt class="docutils literal"><span class="pre">User</span></tt> class
 as well as an <tt class="docutils literal"><span class="pre">Address</span></tt> class which stores a street address,  we
 create a relationship <tt class="docutils literal"><span class="pre">boston_addresses</span></tt> which will only
@@ -1061,7 +1066,7 @@ load those <tt class="docutils literal"><span class="pre">Address</span></tt> ob
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
-    <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span>
+    <span class="n">boston_addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span>
                     <span class="n">primaryjoin</span><span class="o">=</span><span class="s">&quot;and_(User.id==Address.user_id, &quot;</span>
                         <span class="s">&quot;Address.city==&#39;Boston&#39;)&quot;</span><span class="p">)</span>
 
@@ -1162,6 +1167,54 @@ of these features on its own:</p>
                     <span class="p">)</span></pre></div>
 </div>
 </div>
+<div class="section" id="using-custom-operators-in-join-conditions">
+<span id="relationship-custom-operator"></span><h3>Using custom operators in join conditions<a class="headerlink" href="#using-custom-operators-in-join-conditions" title="Permalink to this headline">¶</a></h3>
+<p>Another use case for relationships is the use of custom operators, such
+as Postgresql&#8217;s &#8220;is contained within&#8221; <tt class="docutils literal"><span class="pre">&lt;&lt;</span></tt> operator when joining with
+types such as <a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.INET" title="sqlalchemy.dialects.postgresql.INET"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.INET</span></tt></a> and <a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.CIDR" title="sqlalchemy.dialects.postgresql.CIDR"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.CIDR</span></tt></a>.
+For custom operators we use the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-meth docutils literal"><span class="pre">Operators.op()</span></tt></a> function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">inet_column</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s">&quot;&lt;&lt;&quot;</span><span class="p">)(</span><span class="n">cidr_column</span><span class="p">)</span></pre></div>
+</div>
+<p>However, if we construct a <a class="reference internal" href="#sqlalchemy.orm.relationship.params.primaryjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.primaryjoin</span></tt></a> using this
+operator, <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> will still need more information.  This is because
+when it examines our primaryjoin condition, it specifically looks for operators
+used for <strong>comparisons</strong>, and this is typically a fixed list containing known
+comparison operators such as <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&lt;</span></tt>, etc.   So for our custom operator
+to participate in this system, we need it to register as a comparison operator
+using the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a> parameter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">inet_column</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s">&quot;&lt;&lt;&quot;</span><span class="p">,</span> <span class="n">is_comparison</span><span class="o">=</span><span class="bp">True</span><span class="p">)(</span><span class="n">cidr_column</span><span class="p">)</span></pre></div>
+</div>
+<p>A complete example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">IPA</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;ip_address&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">v4address</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">INET</span><span class="p">)</span>
+
+    <span class="n">network</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Network&quot;</span><span class="p">,</span>
+                        <span class="n">primaryjoin</span><span class="o">=</span><span class="s">&quot;IPA.v4address.op(&#39;&lt;&lt;&#39;, is_comparison=True)&quot;</span>
+                            <span class="s">&quot;(foreign(Network.v4representation))&quot;</span><span class="p">,</span>
+                        <span class="n">viewonly</span><span class="o">=</span><span class="bp">True</span>
+                    <span class="p">)</span>
+<span class="k">class</span> <span class="nc">Network</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;network&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">v4representation</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">CIDR</span><span class="p">)</span></pre></div>
+</div>
+<p>Above, a query such as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">IPA</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">IPA</span><span class="o">.</span><span class="n">network</span><span class="p">)</span></pre></div>
+</div>
+<p>Will render as:</p>
+<div class="highlight-python"><pre>SELECT ip_address.id AS ip_address_id, ip_address.v4address AS ip_address_v4address
+FROM ip_address JOIN network ON ip_address.v4address &lt;&lt; network.v4representation</pre>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>- Added the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a>
+flag to assist in the creation of <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> constructs using
+custom operators.</p>
+</div>
+</div>
 <div class="section" id="self-referential-many-to-many-relationship">
 <span id="self-referential-many-to-many"></span><h3>Self-Referential Many-to-Many Relationship<a class="headerlink" href="#self-referential-many-to-many-relationship" title="Permalink to this headline">¶</a></h3>
 <p>Many to many relationships can be customized by one or both of <tt class="docutils literal"><span class="pre">primaryjoin</span></tt>
@@ -1227,6 +1280,146 @@ to <tt class="docutils literal"><span class="pre">node.c.id</span></tt>:</p>
 <p>Note that in both examples, the <tt class="docutils literal"><span class="pre">backref</span></tt> keyword specifies a <tt class="docutils literal"><span class="pre">left_nodes</span></tt>
 backref - when <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> creates the second relationship in the reverse
 direction, it&#8217;s smart enough to reverse the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> and <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> arguments.</p>
+</div>
+<div class="section" id="composite-secondary-joins">
+<span id="composite-secondary-join"></span><h3>Composite &#8220;Secondary&#8221; Joins<a class="headerlink" href="#composite-secondary-joins" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This section features some new and experimental features of SQLAlchemy.</p>
+</div>
+<p>Sometimes, when one seeks to build a <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> between two tables
+there is a need for more than just two or three tables to be involved in
+order to join them.  This is an area of <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> where one seeks
+to push the boundaries of what&#8217;s possible, and often the ultimate solution to
+many of these exotic use cases needs to be hammered out on the SQLAlchemy mailing
+list.</p>
+<p>In more recent versions of SQLAlchemy, the <a class="reference internal" href="#sqlalchemy.orm.relationship.params.secondary" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.secondary</span></tt></a>
+parameter can be used in some of these cases in order to provide a composite
+target consisting of multiple tables.   Below is an example of such a
+join condition (requires version 0.9.2 at least to function as is):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;a&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">b_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;b.id&#39;</span><span class="p">))</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;D&quot;</span><span class="p">,</span>
+                <span class="n">secondary</span><span class="o">=</span><span class="s">&quot;join(B, D, B.d_id == D.id).&quot;</span>
+                            <span class="s">&quot;join(C, C.d_id == D.id)&quot;</span><span class="p">,</span>
+                <span class="n">primaryjoin</span><span class="o">=</span><span class="s">&quot;and_(A.b_id == B.id, A.id == C.a_id)&quot;</span><span class="p">,</span>
+                <span class="n">secondaryjoin</span><span class="o">=</span><span class="s">&quot;D.id == B.d_id&quot;</span><span class="p">,</span>
+                <span class="n">uselist</span><span class="o">=</span><span class="bp">False</span>
+                <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;b&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">d_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;d.id&#39;</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">C</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;c&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">a_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;a.id&#39;</span><span class="p">))</span>
+    <span class="n">d_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;d.id&#39;</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">D</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;d&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<p>In the above example, we provide all three of <a class="reference internal" href="#sqlalchemy.orm.relationship.params.secondary" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.secondary</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.orm.relationship.params.primaryjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.primaryjoin</span></tt></a>, and <a class="reference internal" href="#sqlalchemy.orm.relationship.params.secondaryjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.secondaryjoin</span></tt></a>,
+in the declarative style referring to the named tables <tt class="docutils literal"><span class="pre">a</span></tt>, <tt class="docutils literal"><span class="pre">b</span></tt>, <tt class="docutils literal"><span class="pre">c</span></tt>, <tt class="docutils literal"><span class="pre">d</span></tt>
+directly.  A query from <tt class="docutils literal"><span class="pre">A</span></tt> to <tt class="docutils literal"><span class="pre">D</span></tt> looks like:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<div class='show_sql'>SELECT a.id AS a_id, a.b_id AS a_b_id
+FROM a JOIN (
+    b AS b_1 JOIN d AS d_1 ON b_1.d_id = d_1.id
+        JOIN c AS c_1 ON c_1.d_id = d_1.id)
+    ON a.b_id = b_1.id AND a.id = c_1.a_id JOIN d ON d.id = b_1.d_id</div></pre></div>
+</div>
+<p>In the above example, we take advantage of being able to stuff multiple
+tables into a &#8220;secondary&#8221; container, so that we can join across many
+tables while still keeping things &#8220;simple&#8221; for <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, in that
+there&#8217;s just &#8220;one&#8221; table on both the &#8220;left&#8221; and the &#8220;right&#8221; side; the
+complexity is kept within the middle.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>Support is improved for allowing a <a class="reference internal" href="query.html#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a>
+construct to be used directly as the target of the <a class="reference internal" href="#sqlalchemy.orm.relationship.params.secondary" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.secondary</span></tt></a>
+argument, including support for joins, eager joins and lazy loading,
+as well as support within declarative to specify complex conditions such
+as joins involving class names as targets.</p>
+</div>
+</div>
+<div class="section" id="relationship-to-non-primary-mapper">
+<span id="relationship-non-primary-mapper"></span><h3>Relationship to Non Primary Mapper<a class="headerlink" href="#relationship-to-non-primary-mapper" title="Permalink to this headline">¶</a></h3>
+<p>In the previous section, we illustrated a technique where we used
+<a class="reference internal" href="#sqlalchemy.orm.relationship.params.secondary" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.secondary</span></tt></a> in order to place additional tables
+within a join condition.   There is one complex join case where even this technique is not
+sufficient; when we seek to join from <tt class="docutils literal"><span class="pre">A</span></tt> to <tt class="docutils literal"><span class="pre">B</span></tt>, making use of any
+number of <tt class="docutils literal"><span class="pre">C</span></tt>, <tt class="docutils literal"><span class="pre">D</span></tt>, etc. in between, however there are also join conditions
+between <tt class="docutils literal"><span class="pre">A</span></tt> and <tt class="docutils literal"><span class="pre">B</span></tt> <em>directly</em>.  In this case, the join from <tt class="docutils literal"><span class="pre">A</span></tt> to <tt class="docutils literal"><span class="pre">B</span></tt>
+may be difficult to express with just a complex <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> condition, as the
+intermediary tables may need special handling, and it is also not expressable
+with a <tt class="docutils literal"><span class="pre">secondary</span></tt> object, since the <tt class="docutils literal"><span class="pre">A-&gt;secondary-&gt;B</span></tt> pattern does not support
+any references between <tt class="docutils literal"><span class="pre">A</span></tt> and <tt class="docutils literal"><span class="pre">B</span></tt> directly.  When this <strong>extremely advanced</strong>
+case arises, we can resort to creating a second mapping as a target for
+the relationship.  This is where we use <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> in order to make a mapping to
+a class that includes all the additional tables we need for this join.
+In order to produce this mapper as an &#8220;alternative&#8221; mapping for our class,
+we use the <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.params.non_primary" title="sqlalchemy.orm.mapper"><tt class="xref py py-paramref docutils literal"><span class="pre">mapper.non_primary</span></tt></a> flag.</p>
+<p>Below illustrates a <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> with a simple join from <tt class="docutils literal"><span class="pre">A</span></tt> to
+<tt class="docutils literal"><span class="pre">B</span></tt>, however the primaryjoin condition is augmented with two additional
+entities <tt class="docutils literal"><span class="pre">C</span></tt> and <tt class="docutils literal"><span class="pre">D</span></tt>, which also must have rows that line up with
+the rows in both <tt class="docutils literal"><span class="pre">A</span></tt> and <tt class="docutils literal"><span class="pre">B</span></tt> simultaneously:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;a&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">b_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;b.id&#39;</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;b&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">C</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;c&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">a_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;a.id&#39;</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">D</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;d&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">c_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;c.id&#39;</span><span class="p">))</span>
+    <span class="n">b_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;b.id&#39;</span><span class="p">))</span>
+
+<span class="c"># 1. set up the join() as a variable, so we can refer</span>
+<span class="c"># to it in the mapping multiple times.</span>
+<span class="n">j</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="o">.</span><span class="n">b_id</span> <span class="o">==</span> <span class="n">B</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">C</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">D</span><span class="o">.</span><span class="n">c_id</span><span class="p">)</span>
+
+<span class="c"># 2. Create a new mapper() to B, with non_primary=True.</span>
+<span class="c"># Columns in the join with the same name must be</span>
+<span class="c"># disambiguated within the mapping, using named properties.</span>
+<span class="n">B_viacd</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">non_primary</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+    <span class="s">&quot;b_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">j</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b_id</span><span class="p">,</span> <span class="n">j</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">d_b_id</span><span class="p">],</span>
+    <span class="s">&quot;d_id&quot;</span><span class="p">:</span> <span class="n">j</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">d_id</span>
+    <span class="p">})</span>
+
+<span class="n">A</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">B_viacd</span><span class="p">,</span> <span class="n">primaryjoin</span><span class="o">=</span><span class="n">A</span><span class="o">.</span><span class="n">b_id</span> <span class="o">==</span> <span class="n">B_viacd</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b_id</span><span class="p">)</span></pre></div>
+</div>
+<p>In the above case, our non-primary mapper for <tt class="docutils literal"><span class="pre">B</span></tt> will emit for
+additional columns when we query; these can be ignored:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<div class='show_sql'>SELECT a.id AS a_id, a.b_id AS a_b_id
+FROM a JOIN (b JOIN d ON d.b_id = b.id JOIN c ON c.id = d.c_id) ON a.b_id = b.id</div></pre></div>
+</div>
 </div>
 <div class="section" id="building-query-enabled-properties">
 <h3>Building Query-Enabled Properties<a class="headerlink" href="#building-query-enabled-properties" title="Permalink to this headline">¶</a></h3>
@@ -1461,9 +1654,11 @@ mutating primary key, not throughout the database.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.relationship">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">relationship</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>primaryjoin=None</em>, <em>secondaryjoin=None</em>, <em>foreign_keys=None</em>, <em>uselist=None</em>, <em>order_by=False</em>, <em>backref=None</em>, <em>back_populates=None</em>, <em>post_update=False</em>, <em>cascade=False</em>, <em>extension=None</em>, <em>viewonly=False</em>, <em>lazy=True</em>, <em>collection_class=None</em>, <em>passive_deletes=False</em>, <em>passive_updates=True</em>, <em>remote_side=None</em>, <em>enable_typechecks=True</em>, <em>join_depth=None</em>, <em>comparator_factory=None</em>, <em>single_parent=False</em>, <em>innerjoin=False</em>, <em>distinct_target_key=None</em>, <em>doc=None</em>, <em>active_history=False</em>, <em>cascade_backrefs=True</em>, <em>load_on_pending=False</em>, <em>strategy_class=None</em>, <em>_local_remote_pairs=None</em>, <em>query_class=None</em>, <em>info=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.relationship" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide a relationship of a primary Mapper to a secondary Mapper.</p>
+<dd><p>Provide a relationship between two mapped classes.</p>
 <p>This corresponds to a parent-child or associative table relationship.  The
 constructed class is an instance of <a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty" title="sqlalchemy.orm.properties.RelationshipProperty"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt></a>.</p>
+<p>For an overview of basic patterns with <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> as
+used with Declarative, see <a class="reference internal" href="#relationship-patterns"><em>Basic Relational Patterns</em></a>.</p>
 <p>A typical <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, used in a classical mapping:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
   <span class="s">&#39;children&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Child</span><span class="p">)</span>
@@ -1511,14 +1706,24 @@ which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
 <li><span class="target" id="sqlalchemy.orm.relationship.params.secondary"></span><strong>secondary</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.secondary">¶</a> &#8211; <p>for a many-to-many relationship, specifies the intermediary
-table, and is an instance of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  The <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword
-argument should generally only
+table, and is typically an instance of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.
+In less common circumstances, the argument may also be specified
+as an <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> construct, or even a <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> construct.</p>
+<p>The <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword argument should generally only
 be used for a table that is not otherwise expressed in any class
 mapping, unless this relationship is declared as view only, otherwise
 conflicting persistence operations can occur.</p>
 <p><tt class="docutils literal"><span class="pre">secondary</span></tt> may
 also be passed as a callable function which is evaluated at
 mapper initialization time.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#relationships-many-to-many"><em>Many To Many</em></a></p>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span><a class="reference internal" href="#sqlalchemy.orm.relationship.params.secondary" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.secondary</span></tt></a> works
+more effectively when referring to a <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> instance.</p>
+</div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.relationship.params.active_history"></span><strong>active_history=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.active_history">¶</a> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
 many-to-one reference should be loaded when replaced, if
@@ -1849,6 +2054,10 @@ table).</p>
 <p><tt class="docutils literal"><span class="pre">primaryjoin</span></tt> may also be passed as a callable function
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#relationship-primaryjoin"><em>Specifying Alternate Join Conditions</em></a></p>
+</div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.relationship.params.remote_side"></span><strong>remote_side</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.remote_side">¶</a> &#8211; <p>used for self-referential relationships, indicates the column or
 list of columns that form the &#8220;remote side&#8221; of the relationship.</p>
@@ -1874,6 +2083,10 @@ child tables.</p>
 <p><tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> may also be passed as a callable function
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#relationship-primaryjoin"><em>Specifying Alternate Join Conditions</em></a></p>
+</div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.relationship.params.single_parent"></span><strong>single_parent=(True|False)</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.single_parent">¶</a> &#8211; when True, installs a validator which will prevent objects
 from being associated with more than one parent at a time.

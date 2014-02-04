@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -758,16 +759,23 @@ with context managers.</p>
 <dt id="sqlalchemy.engine.Connection.detach">
 <tt class="descname">detach</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Connection.detach" title="Permalink to this definition">¶</a></dt>
 <dd><p>Detach the underlying DB-API connection from its connection pool.</p>
-<p>This Connection instance will remain usable.  When closed,
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SET search_path TO schema1, schema2&quot;</span><span class="p">)</span>
+
+    <span class="c"># work with connection</span>
+
+<span class="c"># connection is fully closed (since we used &quot;with:&quot;, can</span>
+<span class="c"># also call .close())</span></pre></div>
+</div>
+<p>This <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> instance will remain usable.  When closed
+(or exited from a context manager context as above),
 the DB-API connection will be literally closed and not
-returned to its pool.  The pool will typically lazily create a
-new connection to replace the detached connection.</p>
+returned to its originating pool.</p>
 <p>This method can be used to insulate the rest of an application
 from a modified state on a connection (such as a transaction
-isolation level or similar).  Also see
-<a class="reference internal" href="interfaces.html#sqlalchemy.interfaces.PoolListener" title="sqlalchemy.interfaces.PoolListener"><tt class="xref py py-class docutils literal"><span class="pre">PoolListener</span></tt></a> for a mechanism to modify
-connection state when connections leave and return to their
-connection pool.</p>
+isolation level or similar).</p>
 </dd></dl>
 
 <dl class="method">
@@ -957,17 +965,36 @@ in subsequent instances of <a class="reference internal" href="#sqlalchemy.engin
 <dt id="sqlalchemy.engine.Connection.invalidate">
 <tt class="descname">invalidate</tt><big>(</big><em>exception=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Connection.invalidate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invalidate the underlying DBAPI connection associated with
-this Connection.</p>
-<p>The underlying DB-API connection is literally closed (if
+this <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</p>
+<p>The underlying DBAPI connection is literally closed (if
 possible), and is discarded.  Its source connection pool will
 typically lazily create a new connection to replace it.</p>
-<p>Upon the next usage, this Connection will attempt to reconnect
-to the pool with a new connection.</p>
-<p>Transactions in progress remain in an &#8220;opened&#8221; state (even though the
-actual transaction is gone); these must be explicitly rolled back
-before a reconnect on this Connection can proceed. This is to prevent
-applications from accidentally continuing their transactional
-operations in a non-transactional state.</p>
+<p>Upon the next use (where &#8220;use&#8221; typically means using the
+<a class="reference internal" href="#sqlalchemy.engine.Connection.execute" title="sqlalchemy.engine.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execute()</span></tt></a> method or similar),
+this <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> will attempt to
+procure a new DBAPI connection using the services of the
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> as a source of connectivty (e.g. a &#8220;reconnection&#8221;).</p>
+<p>If a transaction was in progress (e.g. the
+<a class="reference internal" href="#sqlalchemy.engine.Connection.begin" title="sqlalchemy.engine.Connection.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin()</span></tt></a> method has been called) when
+<a class="reference internal" href="#sqlalchemy.engine.Connection.invalidate" title="sqlalchemy.engine.Connection.invalidate"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.invalidate()</span></tt></a> method is called, at the DBAPI
+level all state associated with this transaction is lost, as
+the DBAPI connection is closed.  The <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
+will not allow a reconnection to proceed until the <a class="reference internal" href="#sqlalchemy.engine.Transaction" title="sqlalchemy.engine.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a>
+object is ended, by calling the <a class="reference internal" href="#sqlalchemy.engine.Transaction.rollback" title="sqlalchemy.engine.Transaction.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Transaction.rollback()</span></tt></a>
+method; until that point, any attempt at continuing to use the
+<a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> will raise an
+<a class="reference internal" href="exceptions.html#sqlalchemy.exc.InvalidRequestError" title="sqlalchemy.exc.InvalidRequestError"><tt class="xref py py-class docutils literal"><span class="pre">InvalidRequestError</span></tt></a>.
+This is to prevent applications from accidentally
+continuing an ongoing transactional operations despite the
+fact that the transaction has been lost due to an
+invalidation.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.engine.Connection.invalidate" title="sqlalchemy.engine.Connection.invalidate"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.invalidate()</span></tt></a> method, just like auto-invalidation,
+will at the connection pool level invoke the <a class="reference internal" href="events.html#sqlalchemy.events.PoolEvents.invalidate" title="sqlalchemy.events.PoolEvents.invalidate"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.invalidate()</span></tt></a>
+event.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="pooling.html#pool-connection-invalidation"><em>More on Invalidation</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
