@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -134,6 +134,17 @@
     <h3><a href="../index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">0.9 Changelog</a><ul>
+<li><a class="reference internal" href="#change-0.9.3">0.9.3</a><ul>
+<li><a class="reference internal" href="#change-0.9.3-orm">orm</a></li>
+<li><a class="reference internal" href="#change-0.9.3-orm-declarative">orm declarative</a></li>
+<li><a class="reference internal" href="#change-0.9.3-engine">engine</a></li>
+<li><a class="reference internal" href="#change-0.9.3-sql">sql</a></li>
+<li><a class="reference internal" href="#change-0.9.3-postgresql">postgresql</a></li>
+<li><a class="reference internal" href="#change-0.9.3-mysql">mysql</a></li>
+<li><a class="reference internal" href="#change-0.9.3-sqlite">sqlite</a></li>
+<li><a class="reference internal" href="#change-0.9.3-misc">misc</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#change-0.9.2">0.9.2</a><ul>
 <li><a class="reference internal" href="#change-0.9.2-orm">orm</a></li>
 <li><a class="reference internal" href="#change-0.9.2-engine">engine</a></li>
@@ -213,6 +224,233 @@
         
 <div class="section" id="changelog">
 <h1>0.9 Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="change-0.9.3">
+<h2>0.9.3<a class="headerlink" href="#change-0.9.3" title="Permalink to this headline">¶</a></h2>
+Released: February 19, 2014<div class="section" id="change-0.9.3-orm">
+<h3>orm<a class="headerlink" href="#change-0.9.3-orm" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.9.3-0"><span class="target" id="change-eb786e8c736c09ac5a33083ba8a84ffd"><strong>[orm] [feature] </strong></span>Added new <a class="reference internal" href="../orm/events.html#sqlalchemy.orm.events.MapperEvents.before_configured" title="sqlalchemy.orm.events.MapperEvents.before_configured"><tt class="xref py py-meth docutils literal"><span class="pre">MapperEvents.before_configured()</span></tt></a> event which allows
+an event at the start of <a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.configure_mappers" title="sqlalchemy.orm.configure_mappers"><tt class="xref py py-func docutils literal"><span class="pre">configure_mappers()</span></tt></a>, as well
+as <tt class="docutils literal"><span class="pre">__declare_first__()</span></tt> hook within declarative to complement
+<tt class="docutils literal"><span class="pre">__declare_last__()</span></tt>.<a class="changeset-link headerlink reference internal" href="#change-eb786e8c736c09ac5a33083ba8a84ffd">¶</a><p></p>
+</p>
+</li>
+<li><p id="change-0.9.3-1"><span class="target" id="change-96a72422aa09306aa423720d8a97b57c"><strong>[orm] [bug] </strong></span>Fixed bug where <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">Query.get()</span></tt></a> would fail to consistently
+raise the <tt class="xref py py-class docutils literal"><span class="pre">InvalidRequestError</span></tt> that invokes when called
+on a query with existing criterion, when the given identity is
+already present in the identity map.<a class="changeset-link headerlink reference internal" href="#change-96a72422aa09306aa423720d8a97b57c">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2951">#2951</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-2"><span class="target" id="change-bcd89a790df27cfdcae2a8109b61d16e"><strong>[orm] [bug] [sqlite] </strong></span>Fixed bug in SQLite &#8220;join rewriting&#8221; where usage of an exists() construct
+would fail to be rewritten properly, such as when the exists is
+mapped to a column_property in an intricate nested-join scenario.
+Also fixed a somewhat related issue where join rewriting would fail
+on the columns clause of the SELECT statement if the targets were
+aliased tables, as opposed to individual aliased columns.<a class="changeset-link headerlink reference internal" href="#change-bcd89a790df27cfdcae2a8109b61d16e">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2967">#2967</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-3"><span class="target" id="change-5d64e437351667e0682df36dc7a55ebb"><strong>[orm] [bug] </strong></span>Fixed an 0.9 regression where ORM instance or mapper events applied
+to a base class such as a declarative base with the propagate=True
+flag would fail to apply to existing mapped classes which also
+used inheritance due to an assertion.  Addtionally, repaired an
+attribute error which could occur during removal of such an event,
+depending on how it was first assigned.<a class="changeset-link headerlink reference internal" href="#change-5d64e437351667e0682df36dc7a55ebb">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2949">#2949</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-4"><span class="target" id="change-af92c4a9aa53d0e18016cc10a0c419db"><strong>[orm] [bug] </strong></span>Improved the initialization logic of composite attributes such that
+calling <tt class="docutils literal"><span class="pre">MyClass.attribute</span></tt> will not require that the configure
+mappers step has occurred, e.g. it will just work without throwing
+any error.<a class="changeset-link headerlink reference internal" href="#change-af92c4a9aa53d0e18016cc10a0c419db">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2935">#2935</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-5"><span class="target" id="change-f823d5ff3da539a90fc0cf3f7dac97c5"><strong>[orm] [bug] </strong></span>More issues with [ticket:2932] first resolved in 0.9.2 where
+using a column key of the form <tt class="docutils literal"><span class="pre">&lt;tablename&gt;_&lt;columnname&gt;</span></tt>
+matching that of an aliased column in the text would still not
+match at the ORM level, which is ultimately due to a core
+column-matching issue.  Additional rules have been added so that the
+column <tt class="docutils literal"><span class="pre">_label</span></tt> is taken into account when working with a
+<a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.TextAsFrom" title="sqlalchemy.sql.expression.TextAsFrom"><tt class="xref py py-class docutils literal"><span class="pre">TextAsFrom</span></tt></a> construct or with literal columns.<a class="changeset-link headerlink reference internal" href="#change-f823d5ff3da539a90fc0cf3f7dac97c5">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2932">#2932</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.9.3-orm-declarative">
+<h3>orm declarative<a class="headerlink" href="#change-0.9.3-orm-declarative" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.9.3-6"><span class="target" id="change-fdcf86f8dfe04be777c674c066723232"><strong>[bug] [orm] [declarative] </strong></span>Fixed bug where <a class="reference internal" href="../orm/extensions/declarative.html#sqlalchemy.ext.declarative.AbstractConcreteBase" title="sqlalchemy.ext.declarative.AbstractConcreteBase"><tt class="xref py py-class docutils literal"><span class="pre">AbstractConcreteBase</span></tt></a> would fail to be
+fully usable within declarative relationship configuration, as its
+string classname would not be available in the registry of classnames
+at mapper configuration time.   The class now explicitly adds itself
+to the class regsitry, and additionally both <a class="reference internal" href="../orm/extensions/declarative.html#sqlalchemy.ext.declarative.AbstractConcreteBase" title="sqlalchemy.ext.declarative.AbstractConcreteBase"><tt class="xref py py-class docutils literal"><span class="pre">AbstractConcreteBase</span></tt></a>
+as well as <a class="reference internal" href="../orm/extensions/declarative.html#sqlalchemy.ext.declarative.ConcreteBase" title="sqlalchemy.ext.declarative.ConcreteBase"><tt class="xref py py-class docutils literal"><span class="pre">ConcreteBase</span></tt></a> set themselves up <em>before</em> mappers
+are configured within the <a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.configure_mappers" title="sqlalchemy.orm.configure_mappers"><tt class="xref py py-func docutils literal"><span class="pre">configure_mappers()</span></tt></a> setup, using
+the new <a class="reference internal" href="../orm/events.html#sqlalchemy.orm.events.MapperEvents.before_configured" title="sqlalchemy.orm.events.MapperEvents.before_configured"><tt class="xref py py-meth docutils literal"><span class="pre">MapperEvents.before_configured()</span></tt></a> event.<a class="changeset-link headerlink reference internal" href="#change-fdcf86f8dfe04be777c674c066723232">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2950">#2950</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.9.3-engine">
+<h3>engine<a class="headerlink" href="#change-0.9.3-engine" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.9.3-7"><span class="target" id="change-a5e88f49d79f6b2a868c6f66b3be7d98"><strong>[engine] [bug] [pool] </strong></span>Fixed a critical regression caused by <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2880">#2880</a> where the newly
+concurrent ability to return connections from the pool means that the
+&#8220;first_connect&#8221; event is now no longer synchronized either, thus leading
+to dialect mis-configurations under even minimal concurrency situations.<a class="changeset-link headerlink reference internal" href="#change-a5e88f49d79f6b2a868c6f66b3be7d98">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2964">#2964</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2880">#2880</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.9.3-sql">
+<h3>sql<a class="headerlink" href="#change-0.9.3-sql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.9.3-8"><span class="target" id="change-4bcdb46ed066a2c9b8490bf78da16720"><strong>[sql] [bug] </strong></span>Fixed bug where calling <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Insert.values" title="sqlalchemy.sql.expression.Insert.values"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.values()</span></tt></a> with an empty list
+or tuple would raise an IndexError.   It now produces an empty
+insert construct as would be the case with an empty dictionary.<a class="changeset-link headerlink reference internal" href="#change-4bcdb46ed066a2c9b8490bf78da16720">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2944">#2944</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-9"><span class="target" id="change-d04236a265c2b96a0d1c28f0cb10ee98"><strong>[sql] [bug] </strong></span>Fixed bug where <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.in_" title="sqlalchemy.sql.expression.ColumnElement.in_"><tt class="xref py py-meth docutils literal"><span class="pre">in_()</span></tt></a> would go into an endless loop if
+erroneously passed a column expression whose comparator included
+the <tt class="docutils literal"><span class="pre">__getitem__()</span></tt> method, such as a column that uses the
+<a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a> type.<a class="changeset-link headerlink reference internal" href="#change-d04236a265c2b96a0d1c28f0cb10ee98">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2957">#2957</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-10"><span class="target" id="change-32e5f45f2c9cbe4cd6ccc0326087b300"><strong>[sql] [bug] </strong></span>Fixed regression in new &#8220;naming convention&#8221; feature where conventions
+would fail if the referred table in a foreign key contained a schema
+name.  Pull request courtesy Thomas Farvour.<a class="changeset-link headerlink reference internal" href="#change-32e5f45f2c9cbe4cd6ccc0326087b300">¶</a><p>References: <a class="reference external" href="https://github.com/zzzeek/sqlalchemy/pull/67">pull request github:67</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-11"><span class="target" id="change-e2e7387ca4e9c810c4f780765399985c"><strong>[sql] [bug] </strong></span>Fixed bug where so-called &#8220;literal render&#8221; of <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a>
+constructs would fail if the bind were constructed with a callable,
+rather than a direct value.  This prevented ORM expressions
+from being rendered with the &#8220;literal_binds&#8221; compiler flag.<a class="changeset-link headerlink reference internal" href="#change-e2e7387ca4e9c810c4f780765399985c">¶</a><p></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.9.3-postgresql">
+<h3>postgresql<a class="headerlink" href="#change-0.9.3-postgresql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.9.3-12"><span class="target" id="change-2887ae0aba411e9eb86f31766ab46817"><strong>[postgresql] [feature] </strong></span>Added the <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine.python_type" title="sqlalchemy.types.TypeEngine.python_type"><tt class="xref py py-attr docutils literal"><span class="pre">TypeEngine.python_type</span></tt></a> convenience accessor onto the
+<a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a> type.  Pull request courtesy Alexey Terentev.<a class="changeset-link headerlink reference internal" href="#change-2887ae0aba411e9eb86f31766ab46817">¶</a><p>References: <a class="reference external" href="https://github.com/zzzeek/sqlalchemy/pull/64">pull request github:64</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-13"><span class="target" id="change-6799209a311c3dc94eac58c106af18da"><strong>[postgresql] [bug] </strong></span>Added an additional message to psycopg2 disconnect detection,
+&#8220;could not send data to server&#8221;, which complements the existing
+&#8220;could not receive data from server&#8221; and has been observed by users.<a class="changeset-link headerlink reference internal" href="#change-6799209a311c3dc94eac58c106af18da">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2936">#2936</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-14"><span class="target" id="change-f41983d269d6edd9b36005f803524707"><strong>[postgresql] [bug] </strong></span><blockquote>
+<div>Support has been improved for Postgresql reflection behavior on very old
+(pre 8.1) versions of Postgresql, and potentially other PG engines
+such as Redshift (assuming Redshift reports the version as &lt; 8.1).
+The query for &#8220;indexes&#8221; as well as &#8220;primary keys&#8221; relies upon inspecting
+a so-called &#8220;int2vector&#8221; datatype, which refuses to coerce to an array
+prior to 8.1 causing failures regarding the &#8220;ANY()&#8221; operator used
+in the query.  Extensive googling has located the very hacky, but
+recommended-by-PG-core-developer query to use when PG version &lt; 8.1
+is in use, so index and primary key constraint reflection now work
+on these versions.</div></blockquote>
+<a class="changeset-link headerlink reference internal" href="#change-f41983d269d6edd9b36005f803524707">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p></p>
+</p>
+</li>
+<li><p id="change-0.9.3-15"><span class="target" id="change-5433997f376e8e488a886c0c8e165f57"><strong>[postgresql] [bug] </strong></span>Revised this very old issue where the Postgresql &#8220;get primary key&#8221;
+reflection query were updated to take into account primary key constraints
+that were renamed; the newer query fails on very old versions of
+Postgresql such as version 7, so the old query is restored in those cases
+when server_version_info &lt; (8, 0) is detected.<a class="changeset-link headerlink reference internal" href="#change-5433997f376e8e488a886c0c8e165f57">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2291">#2291</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-16"><span class="target" id="change-4f3cfb3c174030c18a138b13afe7a215"><strong>[postgresql] [bug] </strong></span>Added server version detection to the newly added dialect startup
+query for  &#8220;show standard_conforming_strings&#8221;; as this variable was
+added as of PG 8.2, we skip the query for PG versions who report a
+version string earlier than that.<a class="changeset-link headerlink reference internal" href="#change-4f3cfb3c174030c18a138b13afe7a215">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2946">#2946</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.9.3-mysql">
+<h3>mysql<a class="headerlink" href="#change-0.9.3-mysql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.9.3-17"><span class="target" id="change-ab9ba4668cce1a333145dd002a487a27"><strong>[mysql] [feature] </strong></span>Added new MySQL-specific <a class="reference internal" href="../dialects/mysql.html#sqlalchemy.dialects.mysql.DATETIME" title="sqlalchemy.dialects.mysql.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">mysql.DATETIME</span></tt></a> which includes
+fractional seconds support; also added fractional seconds support
+to <a class="reference internal" href="../dialects/mysql.html#sqlalchemy.dialects.mysql.TIMESTAMP" title="sqlalchemy.dialects.mysql.TIMESTAMP"><tt class="xref py py-class docutils literal"><span class="pre">mysql.TIMESTAMP</span></tt></a>.  DBAPI support is limited, though
+fractional seconds are known to be supported by MySQL Connector/Python.
+Patch courtesy Geert JM Vanderkelen.<a class="changeset-link headerlink reference internal" href="#change-ab9ba4668cce1a333145dd002a487a27">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2941">#2941</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-18"><span class="target" id="change-985ed90f90095c4b537ea36d3c1ac546"><strong>[mysql] [bug] </strong></span>Added support for the <tt class="docutils literal"><span class="pre">PARTITION</span> <span class="pre">BY</span></tt> and <tt class="docutils literal"><span class="pre">PARTITIONS</span></tt>
+MySQL table keywords, specified as <tt class="docutils literal"><span class="pre">mysql_partition_by='value'</span></tt> and
+<tt class="docutils literal"><span class="pre">mysql_partitions='value'</span></tt> to <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  Pull request
+courtesy Marcus McCurdy.<a class="changeset-link headerlink reference internal" href="#change-985ed90f90095c4b537ea36d3c1ac546">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2966">#2966</a>, <a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy/pull-request/12">pull request bitbucket:12</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-19"><span class="target" id="change-73d5f7e864d7ffd3bf7060a3a52e6d34"><strong>[mysql] [bug] </strong></span>Fixed bug which prevented MySQLdb-based dialects (e.g.
+pymysql) from working in Py3K, where a check for &#8220;connection
+charset&#8221; would fail due to Py3K&#8217;s more strict value comparison
+rules.  The call in question  wasn&#8217;t taking the database
+version into account in any case as the server version was
+still None at that point, so the method overall has been
+simplified to rely upon connection.character_set_name().<a class="changeset-link headerlink reference internal" href="#change-73d5f7e864d7ffd3bf7060a3a52e6d34">¶</a><p>This change is also <strong>backported</strong> to: 0.8.5</p>
+<p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2933">#2933</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-20"><span class="target" id="change-cec15bf8dc76d9d68418cad966e2a9f1"><strong>[mysql] [bug] [cymysql] </strong></span>Fixed bug in cymysql dialect where a version string such as
+<tt class="docutils literal"><span class="pre">'33a-MariaDB'</span></tt> would fail to parse properly.  Pull request
+courtesy Matt Schmidt.<a class="changeset-link headerlink reference internal" href="#change-cec15bf8dc76d9d68418cad966e2a9f1">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2934">#2934</a>, <a class="reference external" href="https://github.com/zzzeek/sqlalchemy/pull/69">pull request github:69</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.9.3-sqlite">
+<h3>sqlite<a class="headerlink" href="#change-0.9.3-sqlite" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.9.3-21"><span class="target" id="change-daa887aa6b3dccbb6a979e6d7ecfd2cb"><strong>[sqlite] [bug] </strong></span>The SQLite dialect will now skip unsupported arguments when reflecting
+types; such as if it encounters a string like <tt class="docutils literal"><span class="pre">INTEGER(5)</span></tt>, the
+<a class="reference internal" href="../dialects/drizzle.html#sqlalchemy.dialects.drizzle.INTEGER" title="sqlalchemy.dialects.drizzle.INTEGER"><tt class="xref py py-class docutils literal"><span class="pre">INTEGER</span></tt></a> type will be instantiated without the &#8220;5&#8221; being included,
+based on detecting a <tt class="docutils literal"><span class="pre">TypeError</span></tt> on the first attempt.<a class="changeset-link headerlink reference internal" href="#change-daa887aa6b3dccbb6a979e6d7ecfd2cb">¶</a><p></p>
+</p>
+</li>
+<li><p id="change-0.9.3-22"><span class="target" id="change-c8dda32a20ab1a2a6020cd0b56a025cf"><strong>[sqlite] [bug] </strong></span>Support has been added to SQLite type reflection to fully support
+the &#8220;type affinity&#8221; contract specified at <a class="reference external" href="http://www.sqlite.org/datatype3.html">http://www.sqlite.org/datatype3.html</a>.
+In this scheme, keywords like <tt class="docutils literal"><span class="pre">INT</span></tt>, <tt class="docutils literal"><span class="pre">CHAR</span></tt>, <tt class="docutils literal"><span class="pre">BLOB</span></tt> or
+<tt class="docutils literal"><span class="pre">REAL</span></tt> located in the type name generically associate the type with
+one of five affinities.  Pull request courtesy Erich Blume.<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../dialects/sqlite.html#sqlite-type-reflection"><em>Type Reflection</em></a></p>
+</div>
+<a class="changeset-link headerlink reference internal" href="#change-c8dda32a20ab1a2a6020cd0b56a025cf">¶</a><p>References: <a class="reference external" href="https://github.com/zzzeek/sqlalchemy/pull/65">pull request github:65</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.9.3-misc">
+<h3>misc<a class="headerlink" href="#change-0.9.3-misc" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.9.3-23"><span class="target" id="change-6e2fa11bc1b490afa61009b74983d414"><strong>[feature] [examples] </strong></span>Added optional &#8220;changed&#8221; column to the versioned rows example, as well
+as support for when the versioned <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> has an explicit
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table.params.schema" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">schema</span></tt></a> argument.   Pull request
+courtesy jplaverdure.<a class="changeset-link headerlink reference internal" href="#change-6e2fa11bc1b490afa61009b74983d414">¶</a><p>References: <a class="reference external" href="https://github.com/zzzeek/sqlalchemy/pull/41">pull request github:41</a></p>
+</p>
+</li>
+<li><p id="change-0.9.3-24"><span class="target" id="change-30674584c851329f071d2f6c65eb6630"><strong>[bug] [ext] </strong></span>Fixed bug where the <a class="reference internal" href="../orm/extensions/automap.html#sqlalchemy.ext.automap.AutomapBase" title="sqlalchemy.ext.automap.AutomapBase"><tt class="xref py py-class docutils literal"><span class="pre">AutomapBase</span></tt></a> class of the
+new automap extension would fail if classes
+were pre-arranged in single or potentially joined inheritance patterns.
+The repaired joined inheritance issue could also potentially apply when
+using <a class="reference internal" href="../orm/extensions/declarative.html#sqlalchemy.ext.declarative.DeferredReflection" title="sqlalchemy.ext.declarative.DeferredReflection"><tt class="xref py py-class docutils literal"><span class="pre">DeferredReflection</span></tt></a> as well.<a class="changeset-link headerlink reference internal" href="#change-30674584c851329f071d2f6c65eb6630">¶</a><p></p>
+</p>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="change-0.9.2">
 <h2>0.9.2<a class="headerlink" href="#change-0.9.2" title="Permalink to this headline">¶</a></h2>
 Released: February 2, 2014<div class="section" id="change-0.9.2-orm">
@@ -1977,7 +2215,7 @@ this keyword is not only silently ignored by MySQL but also breaks
 the ON UPDATE/ON DELETE options.<p>To use a <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
 that does not render or renders differently on MySQL, use a custom
 compilation option.  An example of this usage has been added to the
-documentation, see <a class="reference internal" href="../dialects/mysql.html#mysql-foreign-keys"><em>MySQL Foreign Key Options</em></a>.</p>
+documentation, see <a class="reference internal" href="../dialects/mysql.html#mysql-foreign-keys"><em>MySQL Foreign Keys</em></a>.</p>
 <a class="changeset-link headerlink reference internal" href="#change-e43926dc67636d3ba7e0744c194355b2">¶</a><p>This change is also <strong>backported</strong> to: 0.8.3</p>
 <p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2721">#2721</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2839">#2839</a></p>
 </p>

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -138,7 +138,6 @@
 <li><a class="reference internal" href="#connect-arguments">Connect Arguments</a></li>
 <li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
 <li><a class="reference internal" href="#identifier-casing">Identifier Casing</a></li>
-<li><a class="reference internal" href="#unicode">Unicode</a></li>
 <li><a class="reference internal" href="#limit-offset-support">LIMIT/OFFSET Support</a></li>
 <li><a class="reference internal" href="#returning-support">RETURNING Support</a></li>
 <li><a class="reference internal" href="#on-update-cascade">ON UPDATE CASCADE</a></li>
@@ -149,7 +148,7 @@
 <li><a class="reference internal" href="#dialect-oracle-cx_oracle-url">DBAPI</a></li>
 <li><a class="reference internal" href="#dialect-oracle-cx_oracle-connect">Connecting</a></li>
 <li><a class="reference internal" href="#additional-connect-arguments">Additional Connect Arguments</a></li>
-<li><a class="reference internal" href="#id1">Unicode</a></li>
+<li><a class="reference internal" href="#unicode">Unicode</a></li>
 <li><a class="reference internal" href="#cx-oracle-returning">RETURNING Support</a></li>
 <li><a class="reference internal" href="#lob-objects">LOB Objects</a></li>
 <li><a class="reference internal" href="#two-phase-transaction-support">Two Phase Transaction Support</a></li>
@@ -243,20 +242,6 @@ case sensitive identifier, and SQLAlchemy will quote the name - this will cause 
 against data dictionary data received from Oracle, so unless identifier names have been
 truly created as case sensitive (i.e. using quoted names), all lowercase names should be
 used on the SQLAlchemy side.</p>
-</div>
-<div class="section" id="unicode">
-<h2>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h2>
-<div class="versionchanged">
-<p><span>Changed in version 0.6: </span>SQLAlchemy uses the &#8220;native unicode&#8221; mode provided as of cx_oracle 5.
-cx_oracle 5.0.2 or greater is recommended for support of NCLOB.
-If not using cx_oracle 5, the NLS_LANG environment variable needs
-to be set in order for the oracle client library to use proper encoding,
-such as &#8220;AMERICAN_AMERICA.UTF8&#8221;.</p>
-</div>
-<p>Also note that Oracle supports unicode data through the NVARCHAR and NCLOB data types.
-When using the SQLAlchemy Unicode and UnicodeText types, these DDL types will be used
-within CREATE TABLE statements.   Usage of VARCHAR2 and CLOB with unicode text still
-requires NLS_LANG to be set.</p>
 </div>
 <div class="section" id="limit-offset-support">
 <h2>LIMIT/OFFSET Support<a class="headerlink" href="#limit-offset-support" title="Permalink to this headline">¶</a></h2>
@@ -645,18 +630,42 @@ itself.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id1">
-<h3>Unicode<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>cx_oracle 5 fully supports Python unicode objects.   SQLAlchemy will pass
-all unicode strings directly to cx_oracle, and additionally uses an output
-handler so that all string based result values are returned as unicode as well.
-Generally, the <tt class="docutils literal"><span class="pre">NLS_LANG</span></tt> environment variable determines the nature
-of the encoding to be used.</p>
-<p>Note that this behavior is disabled when Oracle 8 is detected, as it has been
-observed that issues remain when passing Python unicodes to cx_oracle with Oracle 8.</p>
+<div class="section" id="unicode">
+<h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
+<p>The cx_Oracle DBAPI as of version 5 fully supports unicode, and has the ability
+to return string results as Python unicode objects natively.</p>
+<p>When used in Python 3, cx_Oracle returns all strings as Python unicode objects
+(that is, plain <tt class="docutils literal"><span class="pre">str</span></tt> in Python 3).  In Python 2, it will return as Python
+unicode those column values that are of type <tt class="docutils literal"><span class="pre">NVARCHAR</span></tt> or <tt class="docutils literal"><span class="pre">NCLOB</span></tt>.  For
+column values that are of type <tt class="docutils literal"><span class="pre">VARCHAR</span></tt> or other non-unicode string types,
+it will return values as Python strings (e.g. bytestrings).</p>
+<p>While the cx_Oracle DBAPI has the ability to return all string types as
+unicode by using outputtypehandlers, SQLAlchemy has observed that usage
+of a unicode-converting outputtypehandler in Python 2 (not Python 3) incurs
+significant performance overhead for all statements that deliver string
+results, whether or not values contain non-ASCII characters.  For this reason,
+SQLAlchemy as of 0.9.2 does not use cx_Oracle&#8217;s outputtypehandlers for unicode conversion.</p>
+<p>Keeping in mind that any NVARCHAR or NCLOB type is returned as Python unicode
+unconditionally, in order for VARCHAR values to be returned as Python unicode
+objects in Python 2, SQLAlchemy&#8217;s own unicode facilities should be used.
+This means ensuring that the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> or <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type with
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.String.params.convert_unicode" title="sqlalchemy.types.String"><tt class="xref py py-paramref docutils literal"><span class="pre">String.convert_unicode</span></tt></a> should be linked to any result columns
+where non-default unicode coersion is desired.   For Core and ORM
+select constructs, if those constructs are linked to <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects
+of the appropriate type, this conversion will be automatic.  For a textual
+SQL statement, use <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">text</span><span class="p">,</span> <span class="n">Unicode</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s">&quot;select username from user&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">columns</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">Unicode</span><span class="p">))</span></pre></div>
+</div>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.2: </span>cx_Oracle&#8217;s outputtypehandlers are no longer used for
+unicode results of non-unicode datatypes in Python 2, after they were identified as a major
+performance bottleneck.  SQLAlchemy&#8217;s own unicode facilities are used
+instead.</p>
+</div>
 </div>
 <div class="section" id="cx-oracle-returning">
-<span id="id2"></span><h3>RETURNING Support<a class="headerlink" href="#cx-oracle-returning" title="Permalink to this headline">¶</a></h3>
+<span id="id1"></span><h3>RETURNING Support<a class="headerlink" href="#cx-oracle-returning" title="Permalink to this headline">¶</a></h3>
 <p>cx_oracle supports a limited subset of Oracle&#8217;s already limited RETURNING support.
 Typically, results can only be guaranteed for at most one column being returned;
 this is the typical case when SQLAlchemy uses RETURNING to get just the value of a

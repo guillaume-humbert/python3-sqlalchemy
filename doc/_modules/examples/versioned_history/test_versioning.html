@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -85,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -133,11 +133,10 @@
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">ForeignKey</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">clear_mappers</span><span class="p">,</span> <span class="n">Session</span><span class="p">,</span> <span class="n">deferred</span><span class="p">,</span> <span class="n">relationship</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.testing</span> <span class="kn">import</span> <span class="n">AssertsCompiledSQL</span><span class="p">,</span> <span class="n">eq_</span><span class="p">,</span> <span class="n">assert_raises</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.testing.entities</span> <span class="kn">import</span> <span class="n">BasicEntity</span><span class="p">,</span> <span class="n">ComparableEntity</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.testing.entities</span> <span class="kn">import</span> <span class="n">ComparableEntity</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">exc</span> <span class="k">as</span> <span class="n">orm_exc</span>
 
 <span class="n">engine</span> <span class="o">=</span> <span class="bp">None</span>
-
 
 <span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
     <span class="k">global</span> <span class="n">engine</span>
@@ -311,7 +310,7 @@
             <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
             <span class="nb">type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">20</span><span class="p">))</span>
 
-            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_on&#39;</span><span class="p">:</span><span class="nb">type</span><span class="p">,</span> <span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;base&#39;</span><span class="p">}</span>
+            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_on&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="s">&#39;base&#39;</span><span class="p">}</span>
 
         <span class="k">class</span> <span class="nc">SubClassSeparatePk</span><span class="p">(</span><span class="n">BaseClass</span><span class="p">):</span>
             <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;subtable1&#39;</span>
@@ -320,7 +319,7 @@
             <span class="n">base_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;basetable.id&#39;</span><span class="p">))</span>
             <span class="n">subdata1</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
 
-            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;sep&#39;</span><span class="p">}</span>
+            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="s">&#39;sep&#39;</span><span class="p">}</span>
 
         <span class="k">class</span> <span class="nc">SubClassSamePk</span><span class="p">(</span><span class="n">BaseClass</span><span class="p">):</span>
             <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;subtable2&#39;</span>
@@ -328,7 +327,7 @@
             <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;basetable.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="n">subdata2</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
 
-            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;same&#39;</span><span class="p">}</span>
+            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="s">&#39;same&#39;</span><span class="p">}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">create_tables</span><span class="p">()</span>
         <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
@@ -341,7 +340,7 @@
 
         <span class="n">base1</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;base1mod&#39;</span>
         <span class="n">same1</span><span class="o">.</span><span class="n">subdata2</span> <span class="o">=</span> <span class="s">&#39;same1subdatamod&#39;</span>
-        <span class="n">sep1</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span><span class="s">&#39;sep1mod&#39;</span>
+        <span class="n">sep1</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;sep1mod&#39;</span>
         <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 
         <span class="n">BaseClassHistory</span> <span class="o">=</span> <span class="n">BaseClass</span><span class="o">.</span><span class="n">__history_mapper__</span><span class="o">.</span><span class="n">class_</span>
@@ -415,14 +414,24 @@
         <span class="n">q</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SubSubHistory</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assert_compile</span><span class="p">(</span>
             <span class="n">q</span><span class="p">,</span>
-            <span class="s">&quot;SELECT subsubtable_history.id AS subsubtable_history_id, &quot;</span>
+            <span class="s">&quot;SELECT &quot;</span>
+
+            <span class="s">&quot;subsubtable_history.id AS subsubtable_history_id, &quot;</span>
             <span class="s">&quot;subtable_history.id AS subtable_history_id, &quot;</span>
             <span class="s">&quot;basetable_history.id AS basetable_history_id, &quot;</span>
+
             <span class="s">&quot;basetable_history.name AS basetable_history_name, &quot;</span>
+
             <span class="s">&quot;basetable_history.type AS basetable_history_type, &quot;</span>
+
             <span class="s">&quot;subsubtable_history.version AS subsubtable_history_version, &quot;</span>
             <span class="s">&quot;subtable_history.version AS subtable_history_version, &quot;</span>
             <span class="s">&quot;basetable_history.version AS basetable_history_version, &quot;</span>
+
+            <span class="s">&quot;subsubtable_history.changed AS subsubtable_history_changed, &quot;</span>
+            <span class="s">&quot;subtable_history.changed AS subtable_history_changed, &quot;</span>
+            <span class="s">&quot;basetable_history.changed AS basetable_history_changed, &quot;</span>
+
             <span class="s">&quot;subtable_history.base_id AS subtable_history_base_id, &quot;</span>
             <span class="s">&quot;subtable_history.subdata1 AS subtable_history_subdata1, &quot;</span>
             <span class="s">&quot;subsubtable_history.subdata2 AS subsubtable_history_subdata2 &quot;</span>
@@ -461,12 +470,13 @@
             <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
             <span class="nb">type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
-            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_on&#39;</span><span class="p">:</span><span class="nb">type</span><span class="p">,</span> <span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;base&#39;</span><span class="p">}</span>
+            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_on&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+                                <span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="s">&#39;base&#39;</span><span class="p">}</span>
 
         <span class="k">class</span> <span class="nc">SubClass</span><span class="p">(</span><span class="n">BaseClass</span><span class="p">):</span>
 
             <span class="n">subname</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;sub&#39;</span><span class="p">}</span>
+            <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="s">&#39;sub&#39;</span><span class="p">}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">create_tables</span><span class="p">()</span>
         <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
@@ -478,21 +488,23 @@
 
         <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 
-        <span class="n">b1</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;b1modified&#39;</span>
+        <span class="n">b1</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;b1modified&#39;</span>
 
         <span class="n">BaseClassHistory</span> <span class="o">=</span> <span class="n">BaseClass</span><span class="o">.</span><span class="n">__history_mapper__</span><span class="o">.</span><span class="n">class_</span>
         <span class="n">SubClassHistory</span> <span class="o">=</span> <span class="n">SubClass</span><span class="o">.</span><span class="n">__history_mapper__</span><span class="o">.</span><span class="n">class_</span>
 
         <span class="n">eq_</span><span class="p">(</span>
-            <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BaseClassHistory</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">BaseClassHistory</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">BaseClassHistory</span><span class="o">.</span><span class="n">version</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+            <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BaseClassHistory</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">BaseClassHistory</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                        <span class="n">BaseClassHistory</span><span class="o">.</span><span class="n">version</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
             <span class="p">[</span><span class="n">BaseClassHistory</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;b1&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s">&#39;base&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
         <span class="p">)</span>
 
-        <span class="n">sc</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span><span class="s">&#39;s1modified&#39;</span>
-        <span class="n">b1</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;b1modified2&#39;</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;s1modified&#39;</span>
+        <span class="n">b1</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;b1modified2&#39;</span>
 
         <span class="n">eq_</span><span class="p">(</span>
-            <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BaseClassHistory</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">BaseClassHistory</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">BaseClassHistory</span><span class="o">.</span><span class="n">version</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+            <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BaseClassHistory</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">BaseClassHistory</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                            <span class="n">BaseClassHistory</span><span class="o">.</span><span class="n">version</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
             <span class="p">[</span>
                 <span class="n">BaseClassHistory</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;b1&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s">&#39;base&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
                 <span class="n">BaseClassHistory</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;b1modified&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s">&#39;base&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
@@ -502,7 +514,7 @@
 
         <span class="c"># test the unique constraint on the subclass</span>
         <span class="c"># column</span>
-        <span class="n">sc</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span><span class="s">&quot;modifyagain&quot;</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;modifyagain&quot;</span>
         <span class="n">sess</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">test_unique</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

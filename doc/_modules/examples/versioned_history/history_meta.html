@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -85,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -128,10 +128,11 @@
 <span class="sd">&quot;&quot;&quot;Versioned mixin class and other utilities.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declared_attr</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">mapper</span><span class="p">,</span> <span class="n">class_mapper</span><span class="p">,</span> <span class="n">attributes</span><span class="p">,</span> <span class="n">object_mapper</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.orm.exc</span> <span class="kn">import</span> <span class="n">UnmappedClassError</span><span class="p">,</span> <span class="n">UnmappedColumnError</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">ForeignKeyConstraint</span><span class="p">,</span> <span class="n">Integer</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">mapper</span><span class="p">,</span> <span class="n">attributes</span><span class="p">,</span> <span class="n">object_mapper</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm.exc</span> <span class="kn">import</span> <span class="n">UnmappedColumnError</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">ForeignKeyConstraint</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">DateTime</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm.properties</span> <span class="kn">import</span> <span class="n">RelationshipProperty</span>
 
 <span class="k">def</span> <span class="nf">col_references_table</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
@@ -139,6 +140,9 @@
         <span class="k">if</span> <span class="n">fk</span><span class="o">.</span><span class="n">references</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">True</span>
     <span class="k">return</span> <span class="bp">False</span>
+
+<span class="k">def</span> <span class="nf">_is_versioning_col</span><span class="p">(</span><span class="n">col</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;version_meta&quot;</span> <span class="ow">in</span> <span class="n">col</span><span class="o">.</span><span class="n">info</span>
 
 <span class="k">def</span> <span class="nf">_history_mapper</span><span class="p">(</span><span class="n">local_mapper</span><span class="p">):</span>
     <span class="n">cls</span> <span class="o">=</span> <span class="n">local_mapper</span><span class="o">.</span><span class="n">class_</span>
@@ -158,7 +162,7 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">super_mapper</span> <span class="ow">or</span> <span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">super_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="p">:</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">c</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">column</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;version&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_is_versioning_col</span><span class="p">(</span><span class="n">column</span><span class="p">):</span>
                 <span class="k">continue</span>
 
             <span class="n">col</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -174,15 +178,29 @@
 
         <span class="k">if</span> <span class="n">super_mapper</span><span class="p">:</span>
             <span class="n">super_fks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="n">super_history_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">version</span><span class="p">))</span>
-            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoincrement</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoincrement</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+
+        <span class="n">version_meta</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;version_meta&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>  <span class="c"># add column.info to identify</span>
+                                               <span class="c"># columns specific to versioning</span>
+
+        <span class="c"># &quot;version&quot; stores the integer version id.  This column is</span>
+        <span class="c"># required.</span>
+        <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">autoincrement</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">version_meta</span><span class="p">))</span>
+
+        <span class="c"># &quot;changed&quot; column stores the UTC timestamp of when the</span>
+        <span class="c"># history row was created.</span>
+        <span class="c"># This column is optional and can be omitted.</span>
+        <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;changed&#39;</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">,</span>
+                            <span class="n">info</span><span class="o">=</span><span class="n">version_meta</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">super_fks</span><span class="p">:</span>
             <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ForeignKeyConstraint</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">super_fks</span><span class="p">)))</span>
 
-        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;_history&#39;</span><span class="p">,</span> <span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
-           <span class="o">*</span><span class="n">cols</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;_history&#39;</span><span class="p">,</span>
+                        <span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
+                        <span class="o">*</span><span class="n">cols</span><span class="p">,</span>
+                        <span class="n">schema</span><span class="o">=</span><span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">schema</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># single table inheritance.  take any additional columns that may have</span>
@@ -231,7 +249,7 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s">&#39;__history_mapper__&#39;</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">obj</span>
 
-<span class="k">def</span> <span class="nf">create_version</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">deleted</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_version</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">deleted</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="n">obj_mapper</span> <span class="o">=</span> <span class="n">object_mapper</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="n">history_mapper</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">__history_mapper__</span>
     <span class="n">history_cls</span> <span class="o">=</span> <span class="n">history_mapper</span><span class="o">.</span><span class="n">class_</span>
@@ -247,7 +265,7 @@
             <span class="k">continue</span>
 
         <span class="k">for</span> <span class="n">hist_col</span> <span class="ow">in</span> <span class="n">hm</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">c</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">hist_col</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s">&#39;version&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_is_versioning_col</span><span class="p">(</span><span class="n">hist_col</span><span class="p">):</span>
                 <span class="k">continue</span>
 
             <span class="n">obj_col</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">c</span><span class="p">[</span><span class="n">hist_col</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
@@ -312,7 +330,7 @@
         <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">versioned_objects</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">dirty</span><span class="p">):</span>
             <span class="n">create_version</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">versioned_objects</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">deleted</span><span class="p">):</span>
-            <span class="n">create_version</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">deleted</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span></pre></div>
+            <span class="n">create_version</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">deleted</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
     </div>
 
 </div>

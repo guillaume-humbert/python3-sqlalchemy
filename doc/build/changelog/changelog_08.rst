@@ -10,6 +10,117 @@
 
 .. changelog::
     :version: 0.8.5
+    :released: February 19, 2014
+
+    .. change::
+        :tags: postgresql, bug
+        :versions: 0.9.3
+        :tickets: 2936
+
+        Added an additional message to psycopg2 disconnect detection,
+        "could not send data to server", which complements the existing
+        "could not receive data from server" and has been observed by users.
+
+    .. change::
+        :tags: postgresql, bug
+        :versions: 0.9.3
+
+        Support has been improved for Postgresql reflection behavior on very old
+        (pre 8.1) versions of Postgresql, and potentially other PG engines
+        such as Redshift (assuming Redshift reports the version as < 8.1).
+        The query for "indexes" as well as "primary keys" relies upon inspecting
+        a so-called "int2vector" datatype, which refuses to coerce to an array
+        prior to 8.1 causing failures regarding the "ANY()" operator used
+        in the query.  Extensive googling has located the very hacky, but
+        recommended-by-PG-core-developer query to use when PG version < 8.1
+        is in use, so index and primary key constraint reflection now work
+        on these versions.
+
+
+     .. change::
+        :tags: feature, mysql
+        :versions: 0.9.3
+        :tickets: 2941
+
+        Added new MySQL-specific :class:`.mysql.DATETIME` which includes
+        fractional seconds support; also added fractional seconds support
+        to :class:`.mysql.TIMESTAMP`.  DBAPI support is limited, though
+        fractional seconds are known to be supported by MySQL Connector/Python.
+        Patch courtesy Geert JM Vanderkelen.
+
+     .. change::
+        :tags: bug, mysql
+        :versions: 0.9.3
+        :tickets: 2966
+        :pullreq: bitbucket:12
+
+        Added support for the ``PARTITION BY`` and ``PARTITIONS``
+        MySQL table keywords, specified as ``mysql_partition_by='value'`` and
+        ``mysql_partitions='value'`` to :class:`.Table`.  Pull request
+        courtesy Marcus McCurdy.
+
+     .. change::
+        :tags: bug, sql
+        :versions: 0.9.3
+        :tickets: 2944
+
+        Fixed bug where calling :meth:`.Insert.values` with an empty list
+        or tuple would raise an IndexError.   It now produces an empty
+        insert construct as would be the case with an empty dictionary.
+
+     .. change::
+        :tags: bug, engine, pool
+        :versions: 0.9.3
+        :tickets: 2880, 2964
+
+        Fixed a critical regression caused by :ticket:`2880` where the newly
+        concurrent ability to return connections from the pool means that the
+        "first_connect" event is now no longer synchronized either, thus leading
+        to dialect mis-configurations under even minimal concurrency situations.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 2291
+        :versions: 0.9.3
+
+        Revised this very old issue where the Postgresql "get primary key"
+        reflection query were updated to take into account primary key constraints
+        that were renamed; the newer query fails on very old versions of
+        Postgresql such as version 7, so the old query is restored in those cases
+        when server_version_info < (8, 0) is detected.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2957
+        :versions: 0.9.3
+
+        Fixed bug where :meth:`.in_()` would go into an endless loop if
+        erroneously passed a column expression whose comparator included
+        the ``__getitem__()`` method, such as a column that uses the
+        :class:`.postgresql.ARRAY` type.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2951
+        :versions: 0.9.3
+
+        Fixed bug where :meth:`.Query.get` would fail to consistently
+        raise the :class:`.InvalidRequestError` that invokes when called
+        on a query with existing criterion, when the given identity is
+        already present in the identity map.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 2933
+        :versions: 0.9.3
+
+        Fixed bug which prevented MySQLdb-based dialects (e.g.
+        pymysql) from working in Py3K, where a check for "connection
+        charset" would fail due to Py3K's more strict value comparison
+        rules.  The call in question  wasn't taking the database
+        version into account in any case as the server version was
+        still None at that point, so the method overall has been
+        simplified to rely upon connection.character_set_name().
 
     .. change::
         :tags: bug, mysql

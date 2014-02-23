@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -140,6 +140,7 @@
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#database-locking-behavior-concurrency">Database Locking Behavior / Concurrency</a></li>
 <li><a class="reference internal" href="#foreign-key-support">Foreign Key Support</a></li>
+<li><a class="reference internal" href="#type-reflection">Type Reflection</a></li>
 <li><a class="reference internal" href="#sqlite-data-types">SQLite Data Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.sqlite.pysqlite">Pysqlite</a><ul>
 <li><a class="reference internal" href="#dialect-sqlite-pysqlite-url">DBAPI</a></li>
@@ -196,15 +197,15 @@
 </div>
 <div class="section" id="date-and-time-types">
 <h2>Date and Time Types<a class="headerlink" href="#date-and-time-types" title="Permalink to this headline">¶</a></h2>
-<p>SQLite does not have built-in DATE, TIME, or DATETIME types, and pysqlite
-does not provide out of the box functionality for translating values between
-Python <cite>datetime</cite> objects and a SQLite-supported format.  SQLAlchemy&#8217;s own
+<p>SQLite does not have built-in DATE, TIME, or DATETIME types, and pysqlite does
+not provide out of the box functionality for translating values between Python
+<cite>datetime</cite> objects and a SQLite-supported format. SQLAlchemy&#8217;s own
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">DateTime</span></tt></a> and related types provide date formatting
 and parsing functionality when SQlite is used. The implementation classes are
 <a class="reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME" title="sqlalchemy.dialects.sqlite.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">DATETIME</span></tt></a>, <a class="reference internal" href="#sqlalchemy.dialects.sqlite.DATE" title="sqlalchemy.dialects.sqlite.DATE"><tt class="xref py py-class docutils literal"><span class="pre">DATE</span></tt></a> and <a class="reference internal" href="#sqlalchemy.dialects.sqlite.TIME" title="sqlalchemy.dialects.sqlite.TIME"><tt class="xref py py-class docutils literal"><span class="pre">TIME</span></tt></a>.
 These types represent dates and times as ISO formatted strings, which also
-nicely support ordering.   There&#8217;s no reliance on typical &#8220;libc&#8221; internals
-for these functions so historical dates are fully supported.</p>
+nicely support ordering. There&#8217;s no reliance on typical &#8220;libc&#8221; internals for
+these functions so historical dates are fully supported.</p>
 </div>
 <div class="section" id="auto-incrementing-behavior">
 <h2>Auto Incrementing Behavior<a class="headerlink" href="#auto-incrementing-behavior" title="Permalink to this headline">¶</a></h2>
@@ -212,15 +213,15 @@ for these functions so historical dates are fully supported.</p>
 <p>Two things to note:</p>
 <ul class="simple">
 <li>The AUTOINCREMENT keyword is <strong>not</strong> required for SQLite tables to
-generate primary key values automatically. AUTOINCREMENT only means that
-the algorithm used to generate ROWID values should be slightly different.</li>
+generate primary key values automatically. AUTOINCREMENT only means that the
+algorithm used to generate ROWID values should be slightly different.</li>
 <li>SQLite does <strong>not</strong> generate primary key (i.e. ROWID) values, even for
 one column, if the table has a composite (i.e. multi-column) primary key.
 This is regardless of the AUTOINCREMENT keyword being present or not.</li>
 </ul>
-<p>To specifically render the AUTOINCREMENT keyword on the primary key
-column when rendering DDL, add the flag <tt class="docutils literal"><span class="pre">sqlite_autoincrement=True</span></tt>
-to the Table construct:</p>
+<p>To specifically render the AUTOINCREMENT keyword on the primary key column when
+rendering DDL, add the flag <tt class="docutils literal"><span class="pre">sqlite_autoincrement=True</span></tt> to the Table
+construct:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;sometable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
         <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
         <span class="n">sqlite_autoincrement</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
@@ -228,49 +229,47 @@ to the Table construct:</p>
 </div>
 <div class="section" id="transaction-isolation-level">
 <h2>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter which
-results in the command <tt class="docutils literal"><span class="pre">PRAGMA</span> <span class="pre">read_uncommitted</span> <span class="pre">&lt;level&gt;</span></tt> being invoked for
-every new connection.   Valid values for this parameter are <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>
-and <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt> corresponding to a value of 0 and 1, respectively.
-See the section <a class="reference internal" href="#pysqlite-serializable"><em>Serializable Transaction Isolation</em></a> for an important workaround
-when using serializable isolation with Pysqlite.</p>
+<p><a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter which results
+in the command <tt class="docutils literal"><span class="pre">PRAGMA</span> <span class="pre">read_uncommitted</span> <span class="pre">&lt;level&gt;</span></tt> being invoked for every new
+connection. Valid values for this parameter are <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt> and <tt class="docutils literal"><span class="pre">READ</span>
+<span class="pre">UNCOMMITTED</span></tt> corresponding to a value of 0 and 1, respectively. See the
+section <a class="reference internal" href="#pysqlite-serializable"><em>Serializable Transaction Isolation</em></a> for an important workaround when using
+serializable isolation with Pysqlite.</p>
 </div>
 <div class="section" id="database-locking-behavior-concurrency">
 <h2>Database Locking Behavior / Concurrency<a class="headerlink" href="#database-locking-behavior-concurrency" title="Permalink to this headline">¶</a></h2>
-<p>Note that SQLite is not designed for a high level of concurrency.   The
-database itself, being a file, is locked completely during write operations
-and within transactions, meaning exactly one connection has exclusive access
-to the database during this period - all other connections will be blocked
-during this time.</p>
+<p>Note that SQLite is not designed for a high level of concurrency. The database
+itself, being a file, is locked completely during write operations and within
+transactions, meaning exactly one connection has exclusive access to the
+database during this period - all other connections will be blocked during this
+time.</p>
 <p>The Python DBAPI specification also calls for a connection model that is always
-in a transaction; there is no BEGIN method, only commit and rollback.  This
+in a transaction; there is no BEGIN method, only commit and rollback. This
 implies that a SQLite DBAPI driver would technically allow only serialized
-access to a particular database file at all times.   The pysqlite driver
-attempts to ameliorate this by deferring the actual BEGIN statement until
-the first DML (INSERT, UPDATE, or DELETE) is received within a
-transaction.  While this breaks serializable isolation, it at least delays
-the exclusive locking inherent in SQLite&#8217;s design.</p>
-<p>SQLAlchemy&#8217;s default mode of usage with the ORM is known
-as &#8220;autocommit=False&#8221;, which means the moment the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> begins to
-be used, a transaction is begun.   As the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is used, the
-autoflush feature, also on by default, will flush out pending changes to the
-database before each query.  The effect of this is that a <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
-used in its default mode will often emit DML early on, long before the
-transaction is actually committed.  This again will have the effect of
-serializing access to the SQLite database.   If highly concurrent reads are
-desired against the SQLite database, it is advised that the autoflush feature
-be disabled, and potentially even that autocommit be re-enabled, which has
-the effect of each SQL statement and flush committing changes immediately.</p>
-<p>For more information on SQLite&#8217;s lack of concurrency by design, please
-see <a class="reference external" href="http://www.sqlite.org/whentouse.html">Situations Where Another RDBMS May Work Better - High
-Concurrency</a> near the bottom of
-the page.</p>
+access to a particular database file at all times. The pysqlite driver attempts
+to ameliorate this by deferring the actual BEGIN statement until the first DML
+(INSERT, UPDATE, or DELETE) is received within a transaction. While this breaks
+serializable isolation, it at least delays the exclusive locking inherent in
+SQLite&#8217;s design.</p>
+<p>SQLAlchemy&#8217;s default mode of usage with the ORM is known as &#8220;autocommit=False&#8221;,
+which means the moment the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> begins to be used, a transaction
+is begun. As the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is used, the autoflush feature, also on by
+default, will flush out pending changes to the database before each query. The
+effect of this is that a <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> used in its default mode will often
+emit DML early on, long before the transaction is actually committed. This
+again will have the effect of serializing access to the SQLite database. If
+highly concurrent reads are desired against the SQLite database, it is advised
+that the autoflush feature be disabled, and potentially even that autocommit be
+re-enabled, which has the effect of each SQL statement and flush committing
+changes immediately.</p>
+<p>For more information on SQLite&#8217;s lack of concurrency by design, please see
+<a class="reference external" href="http://www.sqlite.org/whentouse.html">Situations Where Another RDBMS May Work Better - High Concurrency</a> near the bottom of the page.</p>
 </div>
 <div class="section" id="foreign-key-support">
 <span id="sqlite-foreign-keys"></span><h2>Foreign Key Support<a class="headerlink" href="#foreign-key-support" title="Permalink to this headline">¶</a></h2>
 <p>SQLite supports FOREIGN KEY syntax when emitting CREATE statements for tables,
-however by default these constraints have no effect on the operation
-of the table.</p>
+however by default these constraints have no effect on the operation of the
+table.</p>
 <p>Constraint checking on SQLite has three prerequisites:</p>
 <ul class="simple">
 <li>At least version 3.6.19 of SQLite must be in use</li>
@@ -279,8 +278,8 @@ or SQLITE_OMIT_TRIGGER symbols enabled.</li>
 <li>The <tt class="docutils literal"><span class="pre">PRAGMA</span> <span class="pre">foreign_keys</span> <span class="pre">=</span> <span class="pre">ON</span></tt> statement must be emitted on all connections
 before use.</li>
 </ul>
-<p>SQLAlchemy allows for the <tt class="docutils literal"><span class="pre">PRAGMA</span></tt> statement to be emitted automatically
-for new connections through the usage of events:</p>
+<p>SQLAlchemy allows for the <tt class="docutils literal"><span class="pre">PRAGMA</span></tt> statement to be emitted automatically for
+new connections through the usage of events:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.engine</span> <span class="kn">import</span> <span class="n">Engine</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
 
@@ -292,9 +291,54 @@ for new connections through the usage of events:</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p><a class="reference external" href="http://www.sqlite.org/foreignkeys.html">SQLite Foreign Key Support</a> -
-on the SQLite web site.</p>
+<p><a class="reference external" href="http://www.sqlite.org/foreignkeys.html">SQLite Foreign Key Support</a> - on
+the SQLite web site.</p>
 <p class="last"><a class="reference internal" href="../core/event.html"><em>Events</em></a> - SQLAlchemy event API.</p>
+</div>
+</div>
+<div class="section" id="type-reflection">
+<span id="sqlite-type-reflection"></span><h2>Type Reflection<a class="headerlink" href="#type-reflection" title="Permalink to this headline">¶</a></h2>
+<p>SQLite types are unlike those of most other database backends, in that
+the string name of the type usually does not correspond to a &#8220;type&#8221; in a
+one-to-one fashion.  Instead, SQLite links per-column typing behavior
+to one of five so-called &#8220;type affinities&#8221; based on a string matching
+pattern for the type.</p>
+<p>SQLAlchemy&#8217;s reflection process, when inspecting types, uses a simple
+lookup table to link the keywords returned to provided SQLAlchemy types.
+This lookup table is present within the SQLite dialect as it is for all
+other dialects.  However, the SQLite dialect has a different &#8220;fallback&#8221;
+routine for when a particular type name is not located in the lookup map;
+it instead implements the SQLite &#8220;type affinity&#8221; scheme located at
+<a class="reference external" href="http://www.sqlite.org/datatype3.html">http://www.sqlite.org/datatype3.html</a> section 2.1.</p>
+<p>The provided typemap will make direct associations from an exact string
+name match for the following types:</p>
+<p><a class="reference internal" href="../core/types.html#sqlalchemy.types.BIGINT" title="sqlalchemy.types.BIGINT"><tt class="xref py py-class docutils literal"><span class="pre">BIGINT</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.BLOB" title="sqlalchemy.types.BLOB"><tt class="xref py py-class docutils literal"><span class="pre">BLOB</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.BOOLEAN" title="sqlalchemy.types.BOOLEAN"><tt class="xref py py-class docutils literal"><span class="pre">BOOLEAN</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.BOOLEAN" title="sqlalchemy.types.BOOLEAN"><tt class="xref py py-class docutils literal"><span class="pre">BOOLEAN</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.CHAR" title="sqlalchemy.types.CHAR"><tt class="xref py py-class docutils literal"><span class="pre">CHAR</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.DATE" title="sqlalchemy.types.DATE"><tt class="xref py py-class docutils literal"><span class="pre">DATE</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.DATETIME" title="sqlalchemy.types.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">DATETIME</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.FLOAT" title="sqlalchemy.types.FLOAT"><tt class="xref py py-class docutils literal"><span class="pre">FLOAT</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.DECIMAL" title="sqlalchemy.types.DECIMAL"><tt class="xref py py-class docutils literal"><span class="pre">DECIMAL</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.FLOAT" title="sqlalchemy.types.FLOAT"><tt class="xref py py-class docutils literal"><span class="pre">FLOAT</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.INTEGER" title="sqlalchemy.types.INTEGER"><tt class="xref py py-class docutils literal"><span class="pre">INTEGER</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.INTEGER" title="sqlalchemy.types.INTEGER"><tt class="xref py py-class docutils literal"><span class="pre">INTEGER</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.NUMERIC" title="sqlalchemy.types.NUMERIC"><tt class="xref py py-class docutils literal"><span class="pre">NUMERIC</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.REAL" title="sqlalchemy.types.REAL"><tt class="xref py py-class docutils literal"><span class="pre">REAL</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.SMALLINT" title="sqlalchemy.types.SMALLINT"><tt class="xref py py-class docutils literal"><span class="pre">SMALLINT</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TEXT" title="sqlalchemy.types.TEXT"><tt class="xref py py-class docutils literal"><span class="pre">TEXT</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.TIME" title="sqlalchemy.types.TIME"><tt class="xref py py-class docutils literal"><span class="pre">TIME</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TIMESTAMP" title="sqlalchemy.types.TIMESTAMP"><tt class="xref py py-class docutils literal"><span class="pre">TIMESTAMP</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.VARCHAR" title="sqlalchemy.types.VARCHAR"><tt class="xref py py-class docutils literal"><span class="pre">VARCHAR</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.NVARCHAR" title="sqlalchemy.types.NVARCHAR"><tt class="xref py py-class docutils literal"><span class="pre">NVARCHAR</span></tt></a>,
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.NCHAR" title="sqlalchemy.types.NCHAR"><tt class="xref py py-class docutils literal"><span class="pre">NCHAR</span></tt></a></p>
+<p>When a type name does not match one of the above types, the &#8220;type affinity&#8221;
+lookup is used instead:</p>
+<ul class="simple">
+<li><a class="reference internal" href="../core/types.html#sqlalchemy.types.INTEGER" title="sqlalchemy.types.INTEGER"><tt class="xref py py-class docutils literal"><span class="pre">INTEGER</span></tt></a> is returned if the type name includes the
+string <tt class="docutils literal"><span class="pre">INT</span></tt></li>
+<li><a class="reference internal" href="../core/types.html#sqlalchemy.types.TEXT" title="sqlalchemy.types.TEXT"><tt class="xref py py-class docutils literal"><span class="pre">TEXT</span></tt></a> is returned if the type name includes the
+string <tt class="docutils literal"><span class="pre">CHAR</span></tt>, <tt class="docutils literal"><span class="pre">CLOB</span></tt> or <tt class="docutils literal"><span class="pre">TEXT</span></tt></li>
+<li><a class="reference internal" href="../core/types.html#sqlalchemy.types.NullType" title="sqlalchemy.types.NullType"><tt class="xref py py-class docutils literal"><span class="pre">NullType</span></tt></a> is returned if the type name includes the
+string <tt class="docutils literal"><span class="pre">BLOB</span></tt></li>
+<li><a class="reference internal" href="../core/types.html#sqlalchemy.types.REAL" title="sqlalchemy.types.REAL"><tt class="xref py py-class docutils literal"><span class="pre">REAL</span></tt></a> is returned if the type name includes the string
+<tt class="docutils literal"><span class="pre">REAL</span></tt>, <tt class="docutils literal"><span class="pre">FLOA</span></tt> or <tt class="docutils literal"><span class="pre">DOUB</span></tt>.</li>
+<li>Otherwise, the <a class="reference internal" href="../core/types.html#sqlalchemy.types.NUMERIC" title="sqlalchemy.types.NUMERIC"><tt class="xref py py-class docutils literal"><span class="pre">NUMERIC</span></tt></a> type is used.</li>
+</ul>
+<div class="versionadded">
+<p><span>New in version 0.9.3: </span>Support for SQLite type affinity rules when reflecting
+columns.</p>
 </div>
 </div>
 <div class="section" id="sqlite-data-types">
@@ -333,13 +377,13 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.sqlite.DATETIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME.params.storage_format">¶</a> &#8211; format string which will be applied to the
-dict with keys year, month, day, hour, minute, second, and microsecond.</li>
-<li><span class="target" id="sqlalchemy.dialects.sqlite.DATETIME.params.regexp"></span><strong>regexp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME.params.regexp">¶</a> &#8211; regular expression which will be applied to
-incoming result rows. If the regexp contains named groups, the
-resulting match dict is applied to the Python datetime() constructor
-as keyword arguments. Otherwise, if positional groups are used, the
-the datetime() constructor is called with positional arguments via
+<li><span class="target" id="sqlalchemy.dialects.sqlite.DATETIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME.params.storage_format">¶</a> &#8211; format string which will be applied to the dict with
+keys year, month, day, hour, minute, second, and microsecond.</li>
+<li><span class="target" id="sqlalchemy.dialects.sqlite.DATETIME.params.regexp"></span><strong>regexp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME.params.regexp">¶</a> &#8211; regular expression which will be applied to incoming result
+rows. If the regexp contains named groups, the resulting match dict is
+applied to the Python datetime() constructor as keyword arguments.
+Otherwise, if positional groups are used, the the datetime() constructor
+is called with positional arguments via
 <tt class="docutils literal"><span class="pre">*map(int,</span> <span class="pre">match_obj.groups(0))</span></tt>.</li>
 </ul>
 </td>
@@ -415,14 +459,13 @@ the date() constructor is called with positional arguments via
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.sqlite.TIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.TIME.params.storage_format">¶</a> &#8211; format string which will be applied to the
-dict with keys hour, minute, second, and microsecond.</li>
-<li><span class="target" id="sqlalchemy.dialects.sqlite.TIME.params.regexp"></span><strong>regexp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.TIME.params.regexp">¶</a> &#8211; regular expression which will be applied to
-incoming result rows. If the regexp contains named groups, the
-resulting match dict is applied to the Python time() constructor
-as keyword arguments. Otherwise, if positional groups are used, the
-the time() constructor is called with positional arguments via
-<tt class="docutils literal"><span class="pre">*map(int,</span> <span class="pre">match_obj.groups(0))</span></tt>.</li>
+<li><span class="target" id="sqlalchemy.dialects.sqlite.TIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.TIME.params.storage_format">¶</a> &#8211; format string which will be applied to the dict with
+keys hour, minute, second, and microsecond.</li>
+<li><span class="target" id="sqlalchemy.dialects.sqlite.TIME.params.regexp"></span><strong>regexp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.TIME.params.regexp">¶</a> &#8211; regular expression which will be applied to incoming result
+rows. If the regexp contains named groups, the resulting match dict is
+applied to the Python time() constructor as keyword arguments. Otherwise,
+if positional groups are used, the the time() constructor is called with
+positional arguments via <tt class="docutils literal"><span class="pre">*map(int,</span> <span class="pre">match_obj.groups(0))</span></tt>.</li>
 </ul>
 </td>
 </tr>

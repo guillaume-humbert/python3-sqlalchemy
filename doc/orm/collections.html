@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -269,7 +269,7 @@ from the database, the <tt class="docutils literal"><span class="pre">children</
 </div>
 <div class="section" id="using-passive-deletes">
 <span id="passive-deletes"></span><h3>Using Passive Deletes<a class="headerlink" href="#using-passive-deletes" title="Permalink to this headline">¶</a></h3>
-<p>Use <tt class="docutils literal"><span class="pre">passive_deletes=True</span></tt> to disable child object loading on a DELETE
+<p>Use <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.passive_deletes" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">passive_deletes</span></tt></a> to disable child object loading on a DELETE
 operation, in conjunction with &#8220;ON DELETE (CASCADE|SET NULL)&#8221; on your database
 to automatically cascade deletes to child objects:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -292,12 +292,12 @@ to automatically cascade deletes to child objects:</p>
 support foreign keys.</p>
 <ul class="last simple">
 <li>When using MySQL, an appropriate storage engine must be
-selected.  See <a class="reference internal" href="../dialects/mysql.html#mysql-storage-engines"><em>Storage Engines</em></a> for details.</li>
+selected.  See <a class="reference internal" href="../dialects/mysql.html#mysql-storage-engines"><em>CREATE TABLE arguments including Storage Engines</em></a> for details.</li>
 <li>When using SQLite, foreign key support must be enabled explicitly.
 See <a class="reference internal" href="../dialects/sqlite.html#sqlite-foreign-keys"><em>Foreign Key Support</em></a> for details.</li>
 </ul>
 </div>
-<p>When <tt class="docutils literal"><span class="pre">passive_deletes</span></tt> is applied, the <tt class="docutils literal"><span class="pre">children</span></tt> relationship will not be
+<p>When <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.passive_deletes" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">passive_deletes</span></tt></a> is applied, the <tt class="docutils literal"><span class="pre">children</span></tt> relationship will not be
 loaded into memory when an instance of <tt class="docutils literal"><span class="pre">MyClass</span></tt> is marked for deletion. The
 <tt class="docutils literal"><span class="pre">cascade=&quot;all,</span> <span class="pre">delete-orphan&quot;</span></tt> <em>will</em> take effect for instances of
 <tt class="docutils literal"><span class="pre">MyOtherClass</span></tt> which are currently present in the session; however for
@@ -323,7 +323,7 @@ this collection is a <tt class="docutils literal"><span class="pre">list</span><
 </div>
 <p>Collections are not limited to lists. Sets, mutable sequences and almost any
 other Python object that can act as a container can be used in place of the
-default list, by specifying the <tt class="docutils literal"><span class="pre">collection_class</span></tt> option on
+default list, by specifying the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.collection_class" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">collection_class</span></tt></a> option on
 <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Parent</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;parent&#39;</span>

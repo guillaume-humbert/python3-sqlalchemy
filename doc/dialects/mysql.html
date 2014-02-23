@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -137,10 +137,10 @@
 <li><a class="reference internal" href="#dialect-mysql">Support for the MySQL database.</a></li>
 <li><a class="reference internal" href="#supported-versions-and-features">Supported Versions and Features</a></li>
 <li><a class="reference internal" href="#connection-timeouts">Connection Timeouts</a></li>
-<li><a class="reference internal" href="#storage-engines">Storage Engines</a></li>
+<li><a class="reference internal" href="#create-table-arguments-including-storage-engines">CREATE TABLE arguments including Storage Engines</a></li>
 <li><a class="reference internal" href="#case-sensitivity-and-table-reflection">Case Sensitivity and Table Reflection</a></li>
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
-<li><a class="reference internal" href="#keys">Keys</a></li>
+<li><a class="reference internal" href="#auto-increment-behavior">AUTO_INCREMENT Behavior</a></li>
 <li><a class="reference internal" href="#ansi-quoting-style">Ansi Quoting Style</a></li>
 <li><a class="reference internal" href="#mysql-sql-extensions">MySQL SQL Extensions</a></li>
 <li><a class="reference internal" href="#rowcount-support">rowcount Support</a></li>
@@ -150,7 +150,11 @@
 <li><a class="reference internal" href="#index-types">Index Types</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#mysql-foreign-key-options">MySQL Foreign Key Options</a></li>
+<li><a class="reference internal" href="#mysql-foreign-keys">MySQL Foreign Keys</a><ul>
+<li><a class="reference internal" href="#foreign-key-arguments-to-avoid">Foreign Key Arguments to Avoid</a></li>
+<li><a class="reference internal" href="#reflection-of-foreign-key-constraints">Reflection of Foreign Key Constraints</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#mysql-data-types">MySQL Data Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mysql.mysqldb">MySQL-Python</a><ul>
 <li><a class="reference internal" href="#dialect-mysql-mysqldb-url">DBAPI</a></li>
@@ -162,7 +166,7 @@
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mysql.oursql">OurSQL</a><ul>
 <li><a class="reference internal" href="#dialect-mysql-oursql-url">DBAPI</a></li>
 <li><a class="reference internal" href="#dialect-mysql-oursql-connect">Connecting</a></li>
-<li><a class="reference internal" href="#id1">Unicode</a></li>
+<li><a class="reference internal" href="#id2">Unicode</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mysql.pymysql">pymysql</a><ul>
@@ -261,23 +265,41 @@ been idle for eight hours or more.   To circumvent having this issue, use the
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb://...&#39;</span><span class="p">,</span> <span class="n">pool_recycle</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span></pre></div>
 </div>
 </div>
-<div class="section" id="storage-engines">
-<span id="mysql-storage-engines"></span><h2>Storage Engines<a class="headerlink" href="#storage-engines" title="Permalink to this headline">¶</a></h2>
-<p>Most MySQL server installations have a default table type of <tt class="docutils literal"><span class="pre">MyISAM</span></tt>, a
-non-transactional table type.  During a transaction, non-transactional storage
-engines do not participate and continue to store table changes in autocommit
-mode.  For fully atomic transactions as well as support for foreign key
-constraints, all participating tables must use a
-transactional engine such as <tt class="docutils literal"><span class="pre">InnoDB</span></tt>, <tt class="docutils literal"><span class="pre">Falcon</span></tt>, <tt class="docutils literal"><span class="pre">SolidDB</span></tt>, <cite>PBXT</cite>, etc.</p>
-<p>Storage engines can be elected when creating tables in SQLAlchemy by supplying
-a <tt class="docutils literal"><span class="pre">mysql_engine='whatever'</span></tt> to the <tt class="docutils literal"><span class="pre">Table</span></tt> constructor.  Any MySQL table
-creation option can be specified in this syntax:</p>
+<div class="section" id="create-table-arguments-including-storage-engines">
+<span id="mysql-storage-engines"></span><h2>CREATE TABLE arguments including Storage Engines<a class="headerlink" href="#create-table-arguments-including-storage-engines" title="Permalink to this headline">¶</a></h2>
+<p>MySQL&#8217;s CREATE TABLE syntax includes a wide array of special options,
+including <tt class="docutils literal"><span class="pre">ENGINE</span></tt>, <tt class="docutils literal"><span class="pre">CHARSET</span></tt>, <tt class="docutils literal"><span class="pre">MAX_ROWS</span></tt>, <tt class="docutils literal"><span class="pre">ROW_FORMAT</span></tt>, <tt class="docutils literal"><span class="pre">INSERT_METHOD</span></tt>, and many more.
+To accommodate the rendering of these arguments, specify the form
+<tt class="docutils literal"><span class="pre">mysql_argument_name=&quot;value&quot;</span></tt>.  For example, to specify a table with
+<tt class="docutils literal"><span class="pre">ENGINE</span></tt> of <tt class="docutils literal"><span class="pre">InnoDB</span></tt>, <tt class="docutils literal"><span class="pre">CHARSET</span></tt> of <tt class="docutils literal"><span class="pre">utf8</span></tt>, and <tt class="docutils literal"><span class="pre">KEY_BLOCK_SIZE</span></tt> of <tt class="docutils literal"><span class="pre">1024</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
       <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">32</span><span class="p">)),</span>
       <span class="n">mysql_engine</span><span class="o">=</span><span class="s">&#39;InnoDB&#39;</span><span class="p">,</span>
-      <span class="n">mysql_charset</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span>
+      <span class="n">mysql_charset</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">,</span>
+      <span class="n">mysql_key_block_size</span><span class="o">=</span><span class="s">&quot;1024&quot;</span>
      <span class="p">)</span></pre></div>
 </div>
+<p>The MySQL dialect will normally transfer any keyword specified as <tt class="docutils literal"><span class="pre">mysql_keyword_name</span></tt>
+to be rendered as <tt class="docutils literal"><span class="pre">KEYWORD_NAME</span></tt> in the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement.  A handful
+of these names will render with a space instead of an underscore; to support this,
+the MySQL dialect has awareness of these particular names, which include
+<tt class="docutils literal"><span class="pre">DATA</span> <span class="pre">DIRECTORY</span></tt> (e.g. <tt class="docutils literal"><span class="pre">mysql_data_directory</span></tt>), <tt class="docutils literal"><span class="pre">CHARACTER</span> <span class="pre">SET</span></tt> (e.g.
+<tt class="docutils literal"><span class="pre">mysql_character_set</span></tt>) and <tt class="docutils literal"><span class="pre">INDEX</span> <span class="pre">DIRECTORY</span></tt> (e.g. <tt class="docutils literal"><span class="pre">mysql_index_directory</span></tt>).</p>
+<p>The most common argument is <tt class="docutils literal"><span class="pre">mysql_engine</span></tt>, which refers to the storage engine
+for the table.  Historically, MySQL server installations would default
+to <tt class="docutils literal"><span class="pre">MyISAM</span></tt> for this value, although newer versions may be defaulting
+to <tt class="docutils literal"><span class="pre">InnoDB</span></tt>.  The <tt class="docutils literal"><span class="pre">InnoDB</span></tt> engine is typically preferred for its support
+of transactions and foreign keys.</p>
+<p>A <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that is created in a MySQL database with a storage engine
+of <tt class="docutils literal"><span class="pre">MyISAM</span></tt> will be essentially non-transactional, meaning any INSERT/UPDATE/DELETE
+statement referring to this table will be invoked as autocommit.   It also will have no
+support for foreign key constraints; while the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement
+accepts foreign key options, when using the <tt class="docutils literal"><span class="pre">MyISAM</span></tt> storage engine these
+arguments are discarded.  Reflecting such a table will also produce no
+foreign key constraint information.</p>
+<p>For fully atomic transactions as well as support for foreign key
+constraints, all participating <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statements must specify a
+transactional engine, which in the vast majority of cases is <tt class="docutils literal"><span class="pre">InnoDB</span></tt>.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/innodb-storage-engine.html">The InnoDB Storage Engine</a> -
@@ -315,19 +337,10 @@ every new connection. Valid values for this parameter are
 <p><span>New in version 0.7.6.</span></p>
 </div>
 </div>
-<div class="section" id="keys">
-<h2>Keys<a class="headerlink" href="#keys" title="Permalink to this headline">¶</a></h2>
-<p>Not all MySQL storage engines support foreign keys.  For <tt class="docutils literal"><span class="pre">MyISAM</span></tt> and
-similar engines, the information loaded by table reflection will not include
-foreign keys.  For these tables, you may supply a
-<tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt> at reflection time:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
-      <span class="n">ForeignKeyConstraint</span><span class="p">([</span><span class="s">&#39;other_id&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;othertable.other_id&#39;</span><span class="p">]),</span>
-      <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span>
-     <span class="p">)</span></pre></div>
-</div>
+<div class="section" id="auto-increment-behavior">
+<h2>AUTO_INCREMENT Behavior<a class="headerlink" href="#auto-increment-behavior" title="Permalink to this headline">¶</a></h2>
 <p>When creating tables, SQLAlchemy will automatically set <tt class="docutils literal"><span class="pre">AUTO_INCREMENT</span></tt> on
-an integer primary key column:</p>
+the first <a class="reference internal" href="../core/types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> primary key column which is not marked as a foreign key:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
 <span class="gp">... </span>  <span class="n">Column</span><span class="p">(</span><span class="s">&#39;mytable_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">... </span><span class="p">)</span>
@@ -337,8 +350,8 @@ an integer primary key column:</p>
 <span class="go">        PRIMARY KEY (id)</span>
 <span class="go">)</span></pre></div>
 </div>
-<p>You can disable this behavior by supplying <tt class="docutils literal"><span class="pre">autoincrement=False</span></tt> to the
-<tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt>.  This flag can also be used to enable
+<p>You can disable this behavior by passing <tt class="docutils literal"><span class="pre">False</span></tt> to the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.params.autoincrement" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">autoincrement</span></tt></a>
+argument of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.  This flag can also be used to enable
 auto-increment on a secondary column in a multi-column key for some storage
 engines:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
@@ -466,8 +479,11 @@ type for your MySQL storage engine.</p>
 <p><a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/create-table.html">http://dev.mysql.com/doc/refman/5.0/en/create-table.html</a></p>
 </div>
 </div>
-<div class="section" id="mysql-foreign-key-options">
-<span id="mysql-foreign-keys"></span><h2>MySQL Foreign Key Options<a class="headerlink" href="#mysql-foreign-key-options" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="mysql-foreign-keys">
+<span id="id1"></span><h2>MySQL Foreign Keys<a class="headerlink" href="#mysql-foreign-keys" title="Permalink to this headline">¶</a></h2>
+<p>MySQL&#8217;s behavior regarding foreign keys has some important caveats.</p>
+<div class="section" id="foreign-key-arguments-to-avoid">
+<h3>Foreign Key Arguments to Avoid<a class="headerlink" href="#foreign-key-arguments-to-avoid" title="Permalink to this headline">¶</a></h3>
 <p>MySQL does not support the foreign key arguments &#8220;DEFERRABLE&#8221;, &#8220;INITIALLY&#8221;,
 or &#8220;MATCH&#8221;.  Using the <tt class="docutils literal"><span class="pre">deferrable</span></tt> or <tt class="docutils literal"><span class="pre">initially</span></tt> keyword argument with
 <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> will have the effect of these keywords being
@@ -497,6 +513,23 @@ rules can be used to correct a MySQL ForeignKeyConstraint at DDL definition time
 <p><span>New in version 0.9.0: </span>- the MySQL backend will raise a <tt class="xref py py-class docutils literal"><span class="pre">CompileError</span></tt>
 when the <tt class="docutils literal"><span class="pre">match</span></tt> keyword is used with <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
 or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.</p>
+</div>
+</div>
+<div class="section" id="reflection-of-foreign-key-constraints">
+<h3>Reflection of Foreign Key Constraints<a class="headerlink" href="#reflection-of-foreign-key-constraints" title="Permalink to this headline">¶</a></h3>
+<p>Not all MySQL storage engines support foreign keys.  When using the
+very common <tt class="docutils literal"><span class="pre">MyISAM</span></tt> MySQL storage engine, the information loaded by table
+reflection will not include foreign keys.  For these tables, you may supply a
+<tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt> at reflection time:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+      <span class="n">ForeignKeyConstraint</span><span class="p">([</span><span class="s">&#39;other_id&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;othertable.other_id&#39;</span><span class="p">]),</span>
+      <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span>
+     <span class="p">)</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#mysql-storage-engines"><em>CREATE TABLE arguments including Storage Engines</em></a></p>
+</div>
 </div>
 </div>
 <div class="section" id="mysql-data-types">
@@ -672,24 +705,39 @@ compatible with the national character set.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.DATETIME">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">DATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATETIME" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
-<p>The SQL DATETIME type.</p>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">DATETIME</tt><big>(</big><em>timezone=False</em>, <em>fsp=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATETIME" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.DATETIME" title="sqlalchemy.types.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DATETIME</span></tt></a></p>
+<p>MySQL DATETIME type.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.mysql.DATETIME.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATETIME.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a new <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">DateTime</span></tt></a>.</p>
+<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em>, <em>fsp=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATETIME.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a MySQL DATETIME type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.mysql.DATETIME.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DATETIME.params.timezone">¶</a> &#8211; boolean.  If True, and supported by the
-backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
-that don&#8217;t support timezone aware timestamps, has no
-effect.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.dialects.mysql.DATETIME.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DATETIME.params.timezone">¶</a> &#8211; not used by the MySQL dialect.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.DATETIME.params.fsp"></span><strong>fsp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.DATETIME.params.fsp">¶</a> &#8211; <p>fractional seconds precision value.
+MySQL 5.6.4 supports storage of fractional seconds;
+this parameter will be used when emitting DDL
+for the DATETIME type.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">DBAPI driver support for fractional seconds may
+be limited; current support includes
+MySQL Connector/Python.</p>
+</div>
+</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
+<div class="versionadded">
+<p><span>New in version 0.8.5: </span>Added MySQL-specific <a class="reference internal" href="#sqlalchemy.dialects.mysql.DATETIME" title="sqlalchemy.dialects.mysql.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">mysql.DATETIME</span></tt></a>
+with fractional seconds support.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -1264,11 +1312,6 @@ only the collation of character data.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">TIME</tt><big>(</big><em>timezone=False</em>, <em>fsp=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TIME" title="sqlalchemy.types.TIME"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TIME</span></tt></a></p>
 <p>MySQL TIME type.</p>
-<p>Recent versions of MySQL add support for
-fractional seconds precision.   While the
-<a class="reference internal" href="#sqlalchemy.dialects.mysql.TIME" title="sqlalchemy.dialects.mysql.TIME"><tt class="xref py py-class docutils literal"><span class="pre">mysql.TIME</span></tt></a> type now supports this,
-note that many DBAPI drivers may not yet
-include support.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.mysql.TIME.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>timezone=False</em>, <em>fsp=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIME.__init__" title="Permalink to this definition">¶</a></dt>
@@ -1279,12 +1322,17 @@ include support.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.dialects.mysql.TIME.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TIME.params.timezone">¶</a> &#8211; not used by the MySQL dialect.</li>
-<li><span class="target" id="sqlalchemy.dialects.mysql.TIME.params.fsp"></span><strong>fsp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TIME.params.fsp">¶</a> &#8211; fractional seconds precision value.
+<li><span class="target" id="sqlalchemy.dialects.mysql.TIME.params.fsp"></span><strong>fsp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TIME.params.fsp">¶</a> &#8211; <p>fractional seconds precision value.
 MySQL 5.6 supports storage of fractional seconds;
 this parameter will be used when emitting DDL
-for the TIME type.  Note that many DBAPI drivers
-may not yet have support for fractional seconds,
-however.</li>
+for the TIME type.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">DBAPI driver support for fractional seconds may
+be limited; current support includes
+MySQL Connector/Python.</p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -1300,24 +1348,39 @@ type as well as fractional seconds support.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.mysql.TIMESTAMP">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em>, <em>fsp=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TIMESTAMP" title="sqlalchemy.types.TIMESTAMP"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TIMESTAMP</span></tt></a></p>
 <p>MySQL TIMESTAMP type.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.mysql.TIMESTAMP.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIMESTAMP.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a new <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">DateTime</span></tt></a>.</p>
+<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em>, <em>fsp=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIMESTAMP.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a MySQL TIMESTAMP type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.mysql.TIMESTAMP.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TIMESTAMP.params.timezone">¶</a> &#8211; boolean.  If True, and supported by the
-backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
-that don&#8217;t support timezone aware timestamps, has no
-effect.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.dialects.mysql.TIMESTAMP.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TIMESTAMP.params.timezone">¶</a> &#8211; not used by the MySQL dialect.</li>
+<li><span class="target" id="sqlalchemy.dialects.mysql.TIMESTAMP.params.fsp"></span><strong>fsp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.mysql.TIMESTAMP.params.fsp">¶</a> &#8211; <p>fractional seconds precision value.
+MySQL 5.6.4 supports storage of fractional seconds;
+this parameter will be used when emitting DDL
+for the TIMESTAMP type.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">DBAPI driver support for fractional seconds may
+be limited; current support includes
+MySQL Connector/Python.</p>
+</div>
+</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
+<div class="versionadded">
+<p><span>New in version 0.8.5: </span>Added MySQL-specific <a class="reference internal" href="#sqlalchemy.dialects.mysql.TIMESTAMP" title="sqlalchemy.dialects.mysql.TIMESTAMP"><tt class="xref py py-class docutils literal"><span class="pre">mysql.TIMESTAMP</span></tt></a>
+with fractional seconds support.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -1505,8 +1568,8 @@ It is strongly advised to use the latest version of MySQL-Python.</p>
 </div>
 </p>
 </div>
-<div class="section" id="id1">
-<h3>Unicode<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h3>Unicode<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>oursql defaults to using <tt class="docutils literal"><span class="pre">utf8</span></tt> as the connection charset, but other
 encodings may be used instead. Like the MySQL-Python driver, unicode support
 can be completely disabled:</p>
@@ -1551,7 +1614,7 @@ the pymysql driver as well.</p>
 <div class="section" id="dialect-mysql-mysqlconnector-url">
 <h3>DBAPI<a class="headerlink" href="#dialect-mysql-mysqlconnector-url" title="Permalink to this headline">¶</a></h3>
 <p>Documentation and download information (if applicable) for MySQL Connector/Python is available at:
-<a class="reference external" href="https://launchpad.net/myconnpy">https://launchpad.net/myconnpy</a></p>
+<a class="reference external" href="http://dev.mysql.com/downloads/connector/python/">http://dev.mysql.com/downloads/connector/python/</a></p>
 </div>
 <div class="section" id="dialect-mysql-mysqlconnector-connect">
 <h3>Connecting<a class="headerlink" href="#dialect-mysql-mysqlconnector-connect" title="Permalink to this headline">¶</a></h3>
